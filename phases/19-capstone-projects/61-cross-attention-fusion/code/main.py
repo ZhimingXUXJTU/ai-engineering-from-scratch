@@ -119,6 +119,12 @@ class CrossAttention(nn.Module):
             k, v = self.project_memory(memory)
         else:
             k, v = kv_cache
+            expected = (b, h, memory.shape[1], hd)
+            if k.shape != expected or v.shape != expected:
+                raise ValueError(
+                    f"kv_cache must be (B,H,Nv,hd)={expected}, got "
+                    f"k={tuple(k.shape)} v={tuple(v.shape)}"
+                )
 
         scores = (q @ k.transpose(-2, -1)) * self.scale
         attn = F.softmax(scores, dim=-1)

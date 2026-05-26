@@ -95,7 +95,7 @@ Run it:
 python3 code/main.py
 ```
 
-Output: decoder produces a `(2, 10, hidden)` tensor. Mask shape is `(10, 10)`. The KV-cache reuse check confirms identical outputs between the cached and uncached paths.
+Output: decoder produces a `(2, 10, text_vocab)` logits tensor. Mask shape is `(10, 10)`. The KV-cache reuse check confirms identical logits between the cached and uncached paths.
 
 ## Use It
 
