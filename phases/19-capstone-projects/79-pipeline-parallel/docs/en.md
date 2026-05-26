@@ -59,7 +59,7 @@ A pipeline runs M microbatches of size B each. The effective batch size is M*B. 
 
 Run it:
 
-```
+```bash
 python3 code/main.py
 ```
 
@@ -110,5 +110,5 @@ Lesson 80 stores the per-stage parameter shards in the sharded checkpoint. Lesso
 - [Huang et al, GPipe: Efficient Training of Giant Neural Networks](https://arxiv.org/abs/1811.06965)
 - [Narayanan et al, PipeDream: Generalized Pipeline Parallelism for DNN Training](https://arxiv.org/abs/1806.03377)
 - [Megatron-LM pipeline parallel docs](https://github.com/NVIDIA/Megatron-LM)
-- Phase 19 Lesson 76 — the send/recv primitives the schedule uses
-- Phase 19 Lesson 78 — ZeRO is orthogonal to pipeline and often combined
+- Phase 19 Lesson 76 - the send/recv primitives the schedule uses
+- Phase 19 Lesson 78 - ZeRO is orthogonal to pipeline and often combined
