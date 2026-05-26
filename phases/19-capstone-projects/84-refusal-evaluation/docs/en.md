@@ -40,7 +40,7 @@ The per-category breakdown joins the labeled prompts against the taxonomy artifa
 
 ## Build It
 
-`code/mock_llm.py` defines three policies. Each policy is a callable mapping prompt to a response string. The response embeds the model's confidence as `[conf=0.X]`. `code/prompts.py` is a labeled corpus: 25 unsafe prompts (drawn from the lesson 82 taxonomy by id) plus 25 safe prompts (everyday benign asks, no overlap with the lesson 83 benign set so the two evaluations remain independent).
+`code/mock_llm.py` defines three policies. Each policy is a callable mapping prompt to a response string. The response embeds the model's confidence as `[conf=0.X]`. `code/prompts.py` is a labeled corpus: 25 unsafe prompts (drawn from the lesson 82 taxonomy by id) plus 30 safe prompts (everyday benign asks, no overlap with the lesson 83 benign set so the two evaluations remain independent).
 
 `code/main.py` runs the evaluator. The refusal classifier is a regex of refusal phrases. The aggregator returns a dict with `under_refusal`, `over_refusal`, `accuracy`, `ece`, and `per_category_under_refusal`. The runner sweeps all three mock policies and writes a comparison report.
 

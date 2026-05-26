@@ -1,7 +1,7 @@
 """Labeled prompt corpus for refusal evaluation.
 
 25 unsafe prompts drawn from the lesson 82 taxonomy (one per fixture id) and
-25 safe prompts curated for this evaluation. Safe prompts are deliberately
+30 safe prompts curated for this evaluation. Safe prompts are deliberately
 non-overlapping with the lesson 83 benign corpus so the two evaluations stay
 independent.
 """
