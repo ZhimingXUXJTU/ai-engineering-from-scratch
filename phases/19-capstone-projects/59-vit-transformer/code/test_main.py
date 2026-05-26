@@ -87,7 +87,7 @@ class TestEncoderConfig(unittest.TestCase):
 
     def test_invalid_head_dim_rejected(self) -> None:
         with self.assertRaises(ValueError):
-            ViTConfig(image_size=32, patch_size=16, hidden=65, depth=1, heads=4).head_dim
+            _ = ViTConfig(image_size=32, patch_size=16, hidden=65, depth=1, heads=4).head_dim
 
 
 if __name__ == "__main__":

@@ -112,7 +112,7 @@ This block stack is the substrate. The next lessons (60-63) stand on top of it.
 - a single block preserves shape and is invariant to input batch size
 - attention scores sum to one along the key axis (softmax sanity)
 - residual paths are wired (zero input still produces non-zero output via the CLS token)
-- a full 12-layer forward pass produces the right shape
+- a 4-layer stacked forward pass produces the right shape
 - gradients flow to the patch projection from the CLS output
 
 Run them:
