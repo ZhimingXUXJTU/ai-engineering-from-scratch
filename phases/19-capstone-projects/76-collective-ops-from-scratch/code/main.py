@@ -261,15 +261,13 @@ def gloo_reference(op: str, world_size: int,
         for _ in range(world_size):
             rank, tensor = out_queue.get(timeout=60)
             results[rank] = tensor
+        return [results[r] for r in range(world_size)]
+    finally:
         for p in procs:
             p.join(timeout=5)
-            if p.exitcode not in (0, None):
-                raise RuntimeError(f"gloo worker exited with {p.exitcode}")
             if p.is_alive():
                 p.terminate()
                 p.join(timeout=2)
-        return [results[r] for r in range(world_size)]
-    finally:
         try:
             os.remove(init_file)
         except FileNotFoundError:
@@ -308,23 +306,28 @@ def run_mesh(op: str, world_size: int,
     byte_counter = ctx.Value("q", 0)
     out_queue = ctx.Queue()
     procs = []
-    for r in range(world_size):
-        t = per_rank_tensors[r].contiguous()
-        p = ctx.Process(
-            target=_mesh_worker,
-            args=(r, world_size, op, grid, byte_counter,
-                  bytes(t.numpy().tobytes()), tuple(t.shape),
-                  str(t.dtype).split(".")[-1], src, out_queue),
-        )
-        p.start()
-        procs.append(p)
-    results = {}
-    for _ in range(world_size):
-        rank, tensor = out_queue.get(timeout=60)
-        results[rank] = tensor
-    for p in procs:
-        p.join(timeout=30)
-    return [results[r] for r in range(world_size)], byte_counter.value
+    try:
+        for r in range(world_size):
+            t = per_rank_tensors[r].contiguous()
+            p = ctx.Process(
+                target=_mesh_worker,
+                args=(r, world_size, op, grid, byte_counter,
+                      bytes(t.numpy().tobytes()), tuple(t.shape),
+                      str(t.dtype).split(".")[-1], src, out_queue),
+            )
+            p.start()
+            procs.append(p)
+        results = {}
+        for _ in range(world_size):
+            rank, tensor = out_queue.get(timeout=60)
+            results[rank] = tensor
+        return [results[r] for r in range(world_size)], byte_counter.value
+    finally:
+        for p in procs:
+            p.join(timeout=30)
+            if p.is_alive():
+                p.terminate()
+                p.join(timeout=2)
 
 
 def verify_against_gloo(op: str, world_size: int,
