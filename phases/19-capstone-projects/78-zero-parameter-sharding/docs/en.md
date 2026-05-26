@@ -74,7 +74,7 @@ Allreduce gives every rank the full summed gradient. If you only need shard r, t
 
 Run it:
 
-```
+```bash
 python3 code/main.py
 ```
 
@@ -125,5 +125,5 @@ Lesson 79 (pipeline parallel) is the orthogonal sharding axis: instead of shardi
 - [Rajbhandari et al, ZeRO: Memory Optimizations Toward Training Trillion Parameter Models](https://arxiv.org/abs/1910.02054)
 - [DeepSpeed ZeRO documentation](https://www.deepspeed.ai/tutorials/zero/)
 - [PyTorch FSDP documentation](https://pytorch.org/docs/stable/fsdp.html)
-- Phase 19 Lesson 76 — the reduce_scatter and allgather this lesson stands on
-- Phase 19 Lesson 80 — sharded checkpointing the ZeRO state must use
+- Phase 19 Lesson 76 - the reduce_scatter and allgather this lesson stands on
+- Phase 19 Lesson 80 - sharded checkpointing the ZeRO state must use
