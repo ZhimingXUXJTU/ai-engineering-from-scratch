@@ -26,8 +26,12 @@ OUTPUTS = HERE.parent / "outputs"
 TAXONOMY_PATH = HERE.parent.parent / "82-jailbreak-taxonomy" / "outputs" / "taxonomy.json"
 
 LEET_TABLE = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s"})
-ZERO_WIDTH = re.compile(r"[​‌‍⁠‪-‮]")
-HOMOGLYPHS = str.maketrans({"А": "A", "В": "B", "С": "C", "Е": "E", "Н": "H", "К": "K", "М": "M", "О": "O", "Р": "P", "Т": "T", "Х": "X"})
+ZERO_WIDTH = re.compile("[\u200B\u200C\u200D\u2060\u202A-\u202E]")
+HOMOGLYPHS = str.maketrans({
+    "\u0410": "A", "\u0412": "B", "\u0421": "C", "\u0415": "E",
+    "\u041D": "H", "\u041A": "K", "\u041C": "M", "\u041E": "O",
+    "\u0420": "P", "\u0422": "T", "\u0425": "X",
+})
 
 
 @dataclass

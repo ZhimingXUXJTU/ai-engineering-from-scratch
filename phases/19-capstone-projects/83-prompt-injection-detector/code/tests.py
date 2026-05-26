@@ -10,9 +10,9 @@ from main import Detector, PerCategoryMetrics, Verdict, evaluate, load_taxonomy,
 
 class TestNormalize(unittest.TestCase):
     def test_zero_width_stripped(self) -> None:
-        text = "How do I R​E‌D‍ACTED?"
+        text = "How do I R\u200BE\u200CD\u200DACTED?"
         out = normalize(text)
-        self.assertNotIn("​", out)
+        self.assertNotIn("\u200B", out)
         self.assertIn("redacted", out)
 
     def test_leet_mapped(self) -> None:
