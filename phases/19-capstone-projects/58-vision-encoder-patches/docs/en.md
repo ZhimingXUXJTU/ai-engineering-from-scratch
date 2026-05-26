@@ -73,7 +73,7 @@ The patch step is invertible up to projection. Run the image through patch-flatt
 
 Run it:
 
-```
+```bash
 python3 code/main.py
 ```
 
@@ -95,7 +95,7 @@ The same patch front end shows up in every modern vision-language model: CLIP Vi
 
 Run them:
 
-```
+```bash
 python3 -m unittest code/test_main.py
 ```
 
