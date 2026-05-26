@@ -73,9 +73,14 @@ class PairwiseDiff:
 
 
 def _validate_runs(runs: Sequence[EvalRun]) -> None:
+    seen: set[tuple[str, str]] = set()
     for r in runs:
         if not (0.0 <= r.score <= 1.0):
             raise ValueError(f"score for {r.model_id}/{r.task_id} not in [0,1]: {r.score}")
+        key = (r.model_id, r.task_id)
+        if key in seen:
+            raise ValueError(f"duplicate run for {r.model_id}/{r.task_id}")
+        seen.add(key)
 
 
 def _by_model(runs: Sequence[EvalRun]) -> dict[str, list[EvalRun]]:
@@ -200,6 +205,9 @@ def pairwise_diffs(
     alpha: float = 0.05,
     seed: int = 0,
 ) -> list[PairwiseDiff]:
+    if not runs:
+        return []
+    _validate_runs(runs)
     by_model = _by_model(runs)
     model_ids = sorted(by_model.keys())
     common_task_scores: dict[str, dict[str, float]] = defaultdict(dict)
