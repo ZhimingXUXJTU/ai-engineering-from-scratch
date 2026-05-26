@@ -181,12 +181,13 @@ def run_pipeline(steps: int = 5, batch: int = 8, microbatches: int = 4) -> dict:
         for _ in range(world_size):
             rank, losses, norm = out_queue.get(timeout=120)
             results[rank] = (losses, norm)
+        return results
+    finally:
         for p in procs:
             p.join(timeout=5)
             if p.is_alive():
                 p.terminate()
                 p.join(timeout=2)
-    finally:
         try:
             os.remove(init_file)
         except FileNotFoundError:
@@ -195,7 +196,6 @@ def run_pipeline(steps: int = 5, batch: int = 8, microbatches: int = 4) -> dict:
             os.rmdir(init_dir)
         except OSError:
             pass
-    return results
 
 
 def main() -> int:
