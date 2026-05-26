@@ -50,6 +50,10 @@ def _coerce(value: str) -> Any:
     s = value.strip()
     if s == "":
         return None
+    if s == "{}":
+        return {}
+    if s == "[]":
+        return []
     if s in ("true", "True"):
         return True
     if s in ("false", "False"):

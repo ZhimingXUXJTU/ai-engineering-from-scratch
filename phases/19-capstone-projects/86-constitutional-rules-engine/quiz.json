@@ -16,11 +16,11 @@
     },
     {
       "stage": "pre",
-      "question": "What three fields must every rule have at minimum?",
+      "question": "What fields must every rule have at minimum?",
       "options": [
         "name, regex, fix",
         "id, owner, timestamp",
-        "name, must, explanation",
+        "name, severity, must, explanation",
         "predicate, severity, owner"
       ],
       "correct": 2,

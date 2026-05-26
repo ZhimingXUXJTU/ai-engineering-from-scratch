@@ -51,7 +51,7 @@
     {
       "case": "pii-in-example",
       "draft": "Example user: lee@example.com. Here is how to look them up.",
-      "revised": "Example user: [example-user]. Here is how to look them up.",
+      "revised": "Example user: [example-contact]. Here is how to look them up.",
       "draft_violations": [
         {
           "rule_name": "no-pii-in-examples",
@@ -68,7 +68,7 @@
         },
         {
           "op": "edit-added",
-          "text": "Example user: [example-user]. Here is how to look them up."
+          "text": "Example user: [example-contact]. Here is how to look them up."
         }
       ]
     },
