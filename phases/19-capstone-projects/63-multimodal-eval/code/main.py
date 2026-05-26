@@ -230,7 +230,9 @@ def evaluate(model: MultimodalModel, suite: EvalSuite) -> dict:
         vqa_q = torch.cat([t.question_ids for t in suite.vqa], dim=0)
         vqa_memory, _ = model.encode_image(vqa_imgs)
         vqa_logits = model.decoder(vqa_q, vqa_memory)
-        last_step = vqa_logits[:, 0, :]
+        last_non_pad = (vqa_q != PAD_ID).sum(dim=1).clamp(min=1) - 1
+        batch_idx = torch.arange(vqa_logits.size(0), device=vqa_logits.device)
+        last_step = vqa_logits[batch_idx, last_non_pad, :]
         preds = last_step.argmax(dim=-1).tolist()
         refs = [t.answer_id for t in suite.vqa]
         vqa_em = vqa_exact_match(preds, refs)

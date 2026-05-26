@@ -4,7 +4,7 @@
 
 **Type:** Build
 **Languages:** Python
-**Prerequisites:** Phase 19 lessons 30-37 (Track B foundations)
+**Prerequisites:** Phase 19 lessons 58-62 (Track E foundations: encoder, transformer, projection, cross-attention fusion, pretraining)
 **Time:** ~90 minutes
 
 ## Learning Objectives
@@ -64,13 +64,13 @@ Smoothing is needed for small samples where some `p_n` is zero. The implementati
 
 ### Synthetic eval suite
 
-A 50-sample eval suite is generated from the same mock corpus pattern used in lesson 62, with a held-out seed. Three eval files:
+A 50-sample eval suite is built in memory from the same mock corpus pattern used in lesson 62, with a held-out seed. Three lists make up the suite:
 
-- `eval_pairs.json`: 50 (image_seed, caption_ids) pairs for retrieval.
-- `eval_vqa.json`: 50 (image_seed, question_ids, answer_id) triples.
-- `eval_caps.json`: 50 (image_seed, [reference_caption_ids, ...]) entries with up to 3 references per image.
+- `pairs`: 50 (image, caption_ids) pairs for retrieval.
+- `vqa`: 50 (image, question_ids, answer_id) triples.
+- `caps`: 50 (image, [reference_caption_ids, ...]) entries with up to 3 references per image.
 
-The eval files are deterministic from the seed and held out from the training corpus, so the metrics are computed on data the model never saw.
+The suite is deterministic from the seed and held out from the training corpus, so the metrics are computed on data the model never saw. Persisting the suite to JSON is left as an exercise (see below).
 
 | Metric | Range | Random baseline (N=50) |
 |--------|-------|------------------------|
@@ -120,7 +120,7 @@ For real benchmarks, swap `build_eval_suite` for a real loader and keep the func
 - bleu4 returns 1.0 when generated equals one of the references exactly
 - bleu4 returns 0.0 on disjoint vocabulary
 - vqa exact match equals the fraction of equal pairs
-- evaluate() returns a dict containing all expected keys
+- build_eval_suite returns the expected number of pairs, vqa items, and caption entries
 
 Run them:
 
