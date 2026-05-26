@@ -66,7 +66,7 @@ The image keys and values are computed once at the start of the decode and held 
 
 A decoder block runs: pre-LN -> self-attention -> residual -> pre-LN -> cross-attention -> residual -> pre-LN -> feed-forward -> residual. Three sub-layers, each with its own LayerNorm. The Flamingo paper added a learned gate on cross-attention so the model could opt out of the image path at training-time stability cost; the canonical baseline (used here) has no gate.
 
-```
+```python
 class DecoderBlock:
   def forward(self, text_tokens, image_tokens, text_mask, cross_mask):
       text_tokens = text_tokens + self.self_attn(self.ln1(text_tokens),
@@ -91,7 +91,7 @@ class DecoderBlock:
 
 Run it:
 
-```
+```bash
 python3 code/main.py
 ```
 
@@ -118,7 +118,7 @@ The shape of the block in this lesson maps directly onto both. The mask discipli
 
 Run them:
 
-```
+```bash
 python3 -m unittest code/test_main.py
 ```
 
