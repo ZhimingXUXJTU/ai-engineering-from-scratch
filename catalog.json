@@ -2,11 +2,11 @@
   "schema_version": 1,
   "totals": {
     "phases": 20,
-    "lessons": 435,
+    "lessons": 441,
     "skills": 378,
     "prompts": 99,
     "agents": 0,
-    "code_files": 487
+    "code_files": 513
   },
   "phases": [
     {
@@ -12304,7 +12304,7 @@
       "num": 19,
       "slug": "19-capstone-projects",
       "title": "Capstone Projects",
-      "lesson_count": 17,
+      "lesson_count": 23,
       "lessons": [
         {
           "num": 1,
@@ -12568,8 +12568,14 @@
           "has_quiz": true,
           "has_notebook": true,
           "code_files": [
-            "dashboard.ts",
-            "main.py"
+            "main.py",
+            "ts/src/cost.ts",
+            "ts/src/index.ts",
+            "ts/src/migrations.ts",
+            "ts/src/server.ts",
+            "ts/src/types.ts",
+            "ts/tests/cost.test.ts",
+            "ts/tests/migrations.test.ts"
           ],
           "outputs": [
             {
@@ -12601,7 +12607,14 @@
           "has_notebook": true,
           "code_files": [
             "main.py",
-            "team.ts"
+            "ts/src/agent.ts",
+            "ts/src/coordinator.ts",
+            "ts/src/index.ts",
+            "ts/src/runtime.ts",
+            "ts/src/types.ts",
+            "ts/src/workspace.ts",
+            "ts/tests/coordinator.test.ts",
+            "ts/tests/runtime.test.ts"
           ],
           "outputs": [
             {
@@ -12633,7 +12646,14 @@
           "has_notebook": true,
           "code_files": [
             "main.py",
-            "server.ts"
+            "ts/src/index.ts",
+            "ts/src/pricing.ts",
+            "ts/src/rollup.ts",
+            "ts/src/server.ts",
+            "ts/src/spans.ts",
+            "ts/src/types.ts",
+            "ts/tests/rollup.test.ts",
+            "ts/tests/spans.test.ts"
           ],
           "outputs": [
             {
@@ -12847,6 +12867,90 @@
               ]
             }
           ]
+        },
+        {
+          "num": 76,
+          "slug": "76-collective-ops-from-scratch",
+          "title": "Collective Ops From Scratch",
+          "path": "phases/19-capstone-projects/76-collective-ops-from-scratch",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 77,
+          "slug": "77-data-parallel-ddp",
+          "title": "Data Parallel DDP From Scratch",
+          "path": "phases/19-capstone-projects/77-data-parallel-ddp",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 78,
+          "slug": "78-zero-parameter-sharding",
+          "title": "ZeRO Optimizer State Sharding",
+          "path": "phases/19-capstone-projects/78-zero-parameter-sharding",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 79,
+          "slug": "79-pipeline-parallel",
+          "title": "Pipeline Parallel and Bubble Analysis",
+          "path": "phases/19-capstone-projects/79-pipeline-parallel",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 80,
+          "slug": "80-checkpoint-sharded-resume",
+          "title": "Sharded Checkpoint and Atomic Resume",
+          "path": "phases/19-capstone-projects/80-checkpoint-sharded-resume",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 81,
+          "slug": "81-end-to-end-distributed-train",
+          "title": "End-to-End Distributed Training",
+          "path": "phases/19-capstone-projects/81-end-to-end-distributed-train",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py"
+          ],
+          "outputs": []
         }
       ]
     }
