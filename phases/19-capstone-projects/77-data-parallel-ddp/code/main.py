@@ -153,12 +153,13 @@ def run_ddp(world_size: int = WORLD_SIZE, steps: int = STEPS,
         for _ in range(world_size):
             rank, losses, norm = out_queue.get(timeout=120)
             results[rank] = (losses, norm)
+        return results
+    finally:
         for p in procs:
             p.join(timeout=5)
             if p.is_alive():
                 p.terminate()
                 p.join(timeout=2)
-    finally:
         try:
             os.remove(init_file)
         except FileNotFoundError:
@@ -167,7 +168,6 @@ def run_ddp(world_size: int = WORLD_SIZE, steps: int = STEPS,
             os.rmdir(init_dir)
         except OSError:
             pass
-    return results
 
 
 def reference_single_process(world_size: int = WORLD_SIZE, steps: int = STEPS,
