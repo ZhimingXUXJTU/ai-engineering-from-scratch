@@ -2,11 +2,11 @@
   "schema_version": 1,
   "totals": {
     "phases": 20,
-    "lessons": 435,
+    "lessons": 441,
     "skills": 378,
     "prompts": 99,
     "agents": 0,
-    "code_files": 487
+    "code_files": 519
   },
   "phases": [
     {
@@ -12304,7 +12304,7 @@
       "num": 19,
       "slug": "19-capstone-projects",
       "title": "Capstone Projects",
-      "lesson_count": 17,
+      "lesson_count": 23,
       "lessons": [
         {
           "num": 1,
@@ -12568,8 +12568,14 @@
           "has_quiz": true,
           "has_notebook": true,
           "code_files": [
-            "dashboard.ts",
-            "main.py"
+            "main.py",
+            "ts/src/cost.ts",
+            "ts/src/index.ts",
+            "ts/src/migrations.ts",
+            "ts/src/server.ts",
+            "ts/src/types.ts",
+            "ts/tests/cost.test.ts",
+            "ts/tests/migrations.test.ts"
           ],
           "outputs": [
             {
@@ -12601,7 +12607,14 @@
           "has_notebook": true,
           "code_files": [
             "main.py",
-            "team.ts"
+            "ts/src/agent.ts",
+            "ts/src/coordinator.ts",
+            "ts/src/index.ts",
+            "ts/src/runtime.ts",
+            "ts/src/types.ts",
+            "ts/src/workspace.ts",
+            "ts/tests/coordinator.test.ts",
+            "ts/tests/runtime.test.ts"
           ],
           "outputs": [
             {
@@ -12633,7 +12646,14 @@
           "has_notebook": true,
           "code_files": [
             "main.py",
-            "server.ts"
+            "ts/src/index.ts",
+            "ts/src/pricing.ts",
+            "ts/src/rollup.ts",
+            "ts/src/server.ts",
+            "ts/src/spans.ts",
+            "ts/src/types.ts",
+            "ts/tests/rollup.test.ts",
+            "ts/tests/spans.test.ts"
           ],
           "outputs": [
             {
@@ -12847,6 +12867,96 @@
               ]
             }
           ]
+        },
+        {
+          "num": 58,
+          "slug": "58-vision-encoder-patches",
+          "title": "Vision Encoder Patches",
+          "path": "phases/19-capstone-projects/58-vision-encoder-patches",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "test_main.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 59,
+          "slug": "59-vit-transformer",
+          "title": "Vision Transformer Encoder",
+          "path": "phases/19-capstone-projects/59-vit-transformer",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "test_main.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 60,
+          "slug": "60-projection-layer-modality-align",
+          "title": "Projection Layer for Modality Alignment",
+          "path": "phases/19-capstone-projects/60-projection-layer-modality-align",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "test_main.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 61,
+          "slug": "61-cross-attention-fusion",
+          "title": "Cross-Attention Fusion",
+          "path": "phases/19-capstone-projects/61-cross-attention-fusion",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "test_main.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 62,
+          "slug": "62-vision-language-pretraining",
+          "title": "Vision-Language Pretraining",
+          "path": "phases/19-capstone-projects/62-vision-language-pretraining",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "test_main.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 63,
+          "slug": "63-multimodal-eval",
+          "title": "Multimodal Evaluation",
+          "path": "phases/19-capstone-projects/63-multimodal-eval",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "test_main.py"
+          ],
+          "outputs": []
         }
       ]
     }
