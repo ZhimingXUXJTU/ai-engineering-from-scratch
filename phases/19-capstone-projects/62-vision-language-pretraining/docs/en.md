@@ -78,7 +78,7 @@ The mock corpus is a synthetic 200-pair set with random images and random captio
 
 Run it:
 
-```
+```bash
 python3 code/main.py
 ```
 
@@ -106,7 +106,7 @@ This is the same loss recipe shipped in:
 
 Run them:
 
-```
+```bash
 python3 -m unittest code/test_main.py
 ```
 
