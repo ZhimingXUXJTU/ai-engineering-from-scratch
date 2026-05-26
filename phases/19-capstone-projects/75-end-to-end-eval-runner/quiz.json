@@ -36,7 +36,7 @@
         "It uses Brier decomposition"
       ],
       "correct": 1,
-      "explanation": "The threshold is metric-aware: exact_match is binary, graded metrics use 0.5 by default and the runner accepts an override."
+      "explanation": "The threshold is metric-aware: exact_match-style metrics use a near-1.0 cutoff, while graded metrics use 0.5 by default."
     },
     {
       "stage": "check",

@@ -62,7 +62,7 @@ Mock adapters in the runner provide three flavours: `RuleBasedAdapter` (determin
 
 The runner uses `concurrent.futures.ThreadPoolExecutor` to run tasks in parallel per model. The worker count defaults to the smaller of eight and the task count. Threads are sufficient because the bottleneck for real model calls is network I/O. The code-exec path spawns its own subprocess inside the task and the executor only schedules the wait.
 
-For deterministic tests, the runner exposes `run_eval(adapter, tasks, parallel=False)` so the tests can pin the execution order.
+For deterministic tests, the runner exposes `run_eval(adapters, tasks, parallel=False)` so tests can pin the execution order.
 
 ## The single-pass scoring loop
 
@@ -75,7 +75,7 @@ For each task:
 5. Build an `EvalRun` record with the score and metric metadata.
 6. Append the `(confidence, correct)` pair to the calibration buffer.
 
-The `correct` signal is `score >= 1.0` for exact_match-style metrics and `score >= 0.5` for graded metrics. This convention is configurable through `correct_threshold` on the runner.
+The `correct` signal is `score >= 1.0` for exact_match-style metrics (`exact_match`, `accuracy`, `code_exec`) and `score >= 0.5` for graded metrics. The threshold lives in `_correct_from_score` and the runner does not expose a public override.
 
 ## Aggregation
 
@@ -118,7 +118,7 @@ It does not call a real model. It does not implement an API key flow or rate-lim
 
 ## How to read the code
 
-`main.py` is the integration. It imports from the other five lesson modules through a small `imports` helper that resolves them by relative path. The dataclasses `Generation`, `EvalReport`, and `ModelAdapter` are defined locally. The mock adapters are at the bottom of the file.
+`main.py` is the integration. It imports from the other five lesson modules through a small `_load_sibling` helper that resolves them by relative path. The dataclasses `Generation`, `EvalReport`, and `ModelAdapter` are defined locally. The mock adapters are at the bottom of the file.
 
 Read `main.py` top to bottom. Skim the imports, then look at `run_eval`, then `_score_one`, then the adapters. The demo at the end is the entry point.
 

@@ -142,7 +142,10 @@ def run_eval(
     code_exec_timeout_s: float = 3.0,
 ) -> tuple[list[TaskResult], dict[str, list[tuple[float, float, int]]]]:
     results: list[TaskResult] = []
-    calibration_buf: dict[str, list[tuple[float, float, int]]] = {a.model_id: [] for a in adapters}
+    model_ids = [a.model_id for a in adapters]
+    if len(set(model_ids)) != len(model_ids):
+        raise ValueError("adapter.model_id values must be unique within a single eval run")
+    calibration_buf: dict[str, list[tuple[float, float, int]]] = {mid: [] for mid in model_ids}
 
     if not tasks or not adapters:
         return results, calibration_buf
