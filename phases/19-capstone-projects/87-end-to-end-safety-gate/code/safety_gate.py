@@ -167,9 +167,9 @@ class SafetyGate:
         if during.terminated_early:
             signals.append(("during", SEVERITY_RANK["medium"]))
         if post is not None:
-            signals.append(("post.classifier", SEVERITY_RANK[post.classifier_severity]))
+            signals.append(("post.classifier", SEVERITY_RANK.get(post.classifier_severity, SEVERITY_RANK["none"])))
             if post.rules_max_severity:
-                signals.append(("post.rules", SEVERITY_RANK[post.rules_max_severity]))
+                signals.append(("post.rules", SEVERITY_RANK.get(post.rules_max_severity, SEVERITY_RANK["none"])))
         if not signals:
             return "allow"
         max_rank = max(rank for _, rank in signals)
@@ -191,7 +191,7 @@ class SafetyGate:
                 violations = self.rules_engine.evaluate(redacted).violations()
                 if self.rules_fixer is not None:
                     redacted = self.rules_fixer.apply(redacted, violations)
-            return redacted
+            return redacted if redacted.strip() else REFUSAL_TEXT
         if action == "warn":
             return raw_output + "\n\n[note: this response was flagged at low severity by the safety gate]"
         return raw_output

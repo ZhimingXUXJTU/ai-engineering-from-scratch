@@ -39,7 +39,7 @@ The aggregator combines four severity signals: detector confidence (lesson 83), 
 | any medium severity | redact |
 | any low severity | warn |
 | all none + detector confidence < 0.5 | allow |
-| detector confidence 0.5-0.85, no other signal | allow with note |
+| detector confidence 0.5-0.85, no other signal | warn |
 
 Block returns a refusal. Redact ships the classifier-redacted text and applies the rules-engine fixer. Warn ships the original with a soft notice. Allow ships the original. Each request emits a `RequestTrace` with `request_id`, `prompt`, `pre_gen` (detector verdict), `during_gen` (token-filter trigger), `post_gen` (classifier action + rules report), `final_action`, `final_output`, and `latency_ms`.
 

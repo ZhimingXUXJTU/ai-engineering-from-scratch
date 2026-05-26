@@ -58,6 +58,8 @@ def _persona(prompt: str) -> str:
 
 
 def stream(prompt: str, chunk_tokens: int = 4) -> Iterator[str]:
+    if chunk_tokens <= 0:
+        raise ValueError("chunk_tokens must be > 0")
     persona = _persona(prompt)
     if persona == "attacker-honest":
         text = REFUSAL

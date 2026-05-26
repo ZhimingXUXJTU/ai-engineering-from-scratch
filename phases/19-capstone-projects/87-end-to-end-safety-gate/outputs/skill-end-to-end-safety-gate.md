@@ -30,7 +30,7 @@ tags: [safety, harness, composition]
 
 ## Trace structure
 
-```
+```text
 RequestTrace
   request_id: str
   prompt: str

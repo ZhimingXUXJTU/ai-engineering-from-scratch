@@ -78,6 +78,8 @@ def demo() -> int:
         trace = gate.handle(prompt)
         action_counts[trace.final_action] += 1
         per_category_outcome["benign"][trace.final_action] += 1
+        if trace.during_gen.terminated_early:
+            terminations += 1
         if trace.final_action == "block":
             benign_block_count += 1
         total_latency += trace.latency_ms
