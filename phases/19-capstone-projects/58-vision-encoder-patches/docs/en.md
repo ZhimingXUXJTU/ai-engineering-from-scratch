@@ -12,7 +12,7 @@
 - Tokenize an image into a fixed-length sequence of patch embeddings.
 - Implement a `Conv2d`-based patch projection that matches the math of unfold-then-linear.
 - Build a deterministic 2D sinusoidal position embedding so token order encodes spatial position.
-- Verify patch count, embedding shape, and reconstruction round-trips on a synthetic fixture.
+- Verify patch count, embedding shape, and `Conv2d`/unfold equivalence on a synthetic fixture.
 
 ## The Problem
 
@@ -57,9 +57,9 @@ Tokens carry no order out of the projection. The 2D sinusoidal embedding gives e
 
 For ViT-Base/16 at 224 resolution: 590,592 parameters in the projection, 768 in the CLS token, and zero for sinusoidal position. The next lesson (59) stacks a 12-layer transformer on top of this front end.
 
-### Reconstruction as a sanity check
+### Equivalence as a sanity check
 
-The patch step is invertible up to projection. Run the image through patch-flatten with no projection, then unflatten back; the result must equal the input. If it does not, the unfold math is wrong, and the rest of the encoder is built on sand. The tests in this lesson exercise that round-trip.
+The patch step has two spellings: a `Conv2d` projection and an explicit unfold-then-linear. They must produce the same output for the same weights. If they do not, the unfold math is wrong, and the rest of the encoder is built on sand. The tests in this lesson exercise that equivalence.
 
 ## Build It
 

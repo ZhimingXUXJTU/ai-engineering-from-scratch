@@ -30,7 +30,7 @@ class FrontEndConfig:
     def grid_size(self) -> int:
         if self.image_size % self.patch_size != 0:
             raise ValueError(
-                f"image_size {self.image_size} must divide patch_size {self.patch_size}"
+                f"patch_size {self.patch_size} must divide image_size {self.image_size}"
             )
         return self.image_size // self.patch_size
 
