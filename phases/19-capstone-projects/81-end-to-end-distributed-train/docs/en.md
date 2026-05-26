@@ -67,7 +67,7 @@ The loop runs a fixed 20 steps and exits. No `while True`, no human intervention
 
 Run it:
 
-```
+```bash
 python3 code/main.py
 ```
 
@@ -117,5 +117,5 @@ The full track ends here. The 6 lessons together are the distributed-training su
 - [DeepSpeed end-to-end training tutorial](https://www.deepspeed.ai/getting-started/)
 - [PyTorch FSDP advanced tutorial](https://pytorch.org/tutorials/intermediate/FSDP_advanced_tutorial.html)
 - [Megatron-LM training script reference](https://github.com/NVIDIA/Megatron-LM)
-- Phase 19 Lessons 76-80 — each piece this lesson composes
-- Phase 17 — moving the composition to a real cluster
+- Phase 19 Lessons 76-80 - each piece this lesson composes
+- Phase 17 - moving the composition to a real cluster
