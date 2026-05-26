@@ -45,7 +45,7 @@ A 22M-parameter cross-encoder (the published `ms-marco-MiniLM-L-6-v2` weight cla
 
 ### Why this lesson trains a tiny one
 
-A real cross-encoder is a finetuned encoder transformer. In production you load a checkpoint and run it. In this lesson the goal is to show you the shape of the model and the shape of the latency-quality curve, not to train a state-of-the-art ranker. So we build a small `nn.Module` with one transformer block, one attention head, and one regression head. It is initialized deterministically from a seed so the demo is reproducible without weights on disk.
+A real cross-encoder is a finetuned encoder transformer. In production you load a checkpoint and run it. In this lesson the goal is to show you the shape of the model and the shape of the latency-quality curve, not to train a state-of-the-art ranker. So we build a small `nn.Module` with one transformer block, multi-head attention (4 heads by default), and one regression head. It is initialized deterministically from a seed so the demo is reproducible without weights on disk.
 
 The toy model learns the right shape from the fixture corpus: relevant query-document pairs have higher predicted scores than irrelevant pairs. The end-to-end pipeline reranks the bi-encoder's output and the rerank's top-k correlates with the gold labels.
 
@@ -93,7 +93,7 @@ The output shows the bi-encoder's top-N, the cross-encoder's top-K, and a timing
 
 **Production weights are dense.** A 22M-parameter cross-encoder is 88MB at float32. Plan the model server's memory before promising sub-100ms p95.
 
-**Batching matters.** A real cross-encoder runs the N candidates in one batch. This lesson does that with `torch.stack`. Skip batching and the latency multiplies by N.
+**Batching matters.** A real cross-encoder runs the N candidates in one batch. This lesson does that in `_batch_encode`, which builds the batched id and type-id tensors with `torch.tensor(...)` and runs one forward pass. Skip batching and the latency multiplies by N.
 
 ## Use It
 
