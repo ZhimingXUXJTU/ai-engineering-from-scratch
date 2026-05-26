@@ -70,7 +70,7 @@ Every rank must call `torch.manual_seed(seed + rank)` for shuffling but `torch.m
 
 Run it:
 
-```
+```bash
 python3 code/main.py
 ```
 
@@ -121,5 +121,5 @@ Lesson 78 (ZeRO sharding) replaces the per-parameter allreduce with reduce_scatt
 - [PyTorch DistributedDataParallel docs](https://pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html)
 - [PyTorch DDP internals tutorial](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)
 - [Li et al, PyTorch Distributed: Experiences on Accelerating Data Parallel Training](https://arxiv.org/abs/2006.15704)
-- Phase 19 Lesson 76 — the collectives DDP is built on
-- Phase 19 Lesson 78 — ZeRO sharding replaces the per-param allreduce with reduce_scatter
+- Phase 19 Lesson 76 - the collectives DDP is built on
+- Phase 19 Lesson 78 - ZeRO sharding replaces the per-param allreduce with reduce_scatter
