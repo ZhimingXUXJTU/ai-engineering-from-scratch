@@ -197,6 +197,8 @@ def make_mock_corpus(seed: int, n_pairs: int, vocab_size: int, max_len: int
     amount of learnable signal across the contrastive batch. Token id 0 is
     reserved for padding.
     """
+    if vocab_size <= 50:
+        raise ValueError(f"vocab_size must be > 50, got {vocab_size}")
     pairs = []
     rng = np.random.default_rng(seed)
     for i in range(n_pairs):
@@ -229,6 +231,11 @@ def train(cfg: PretrainConfig) -> dict:
     model = MultimodalModel(cfg).train()
     opt = torch.optim.Adam(model.parameters(), lr=cfg.lr)
     corpus = make_mock_corpus(cfg.seed + 1, cfg.n_pairs, cfg.text_vocab, cfg.max_text_len)
+    if cfg.batch_size > len(corpus):
+        raise ValueError(
+            f"batch_size ({cfg.batch_size}) cannot exceed corpus size ({len(corpus)}) "
+            "with replace=False"
+        )
 
     rng = np.random.default_rng(cfg.seed + 2)
     history = {"contrast": [], "lm": [], "total": []}

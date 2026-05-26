@@ -82,7 +82,7 @@ Run it:
 python3 code/main.py
 ```
 
-Output: contrastive loss drops from about `ln(16) = 2.77` toward 2.4; LM loss drops from random-uniform `ln(vocab) = 8.0` toward about 6.5. Both decreases prove the gradient is wired correctly. Real models train for millions of steps; the dynamics are the same.
+Output: contrastive loss drops from about `ln(16) = 2.77` toward 2.4; LM loss drops from a random-uniform baseline of `ln(512) ≈ 6.24` toward about 4.7. Both decreases prove the gradient is wired correctly. Real models train for millions of steps; the dynamics are the same.
 
 ## Use It
 
