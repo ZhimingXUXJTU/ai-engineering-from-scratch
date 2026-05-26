@@ -13,7 +13,7 @@ Three classifiers, one router, four actions.
 
 ## Verdict structure
 
-```
+```text
 ClassifierVerdict
   name: str
   severity: none | low | medium | high
