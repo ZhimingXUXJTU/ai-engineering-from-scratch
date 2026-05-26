@@ -31,7 +31,11 @@ def _load_module(name: str, path: Path):
         raise ImportError(f"could not load {path}")
     mod = importlib.util.module_from_spec(spec)
     sys.modules[name] = mod
-    spec.loader.exec_module(mod)
+    try:
+        spec.loader.exec_module(mod)
+    except Exception:
+        sys.modules.pop(name, None)
+        raise
     return mod
 
 
@@ -131,6 +135,15 @@ class TrainStats:
 
 
 def train(cfg: AlignConfig) -> tuple[MLPProjector, TrainStats]:
+    if cfg.pairs <= 0:
+        raise ValueError(f"pairs must be > 0, got {cfg.pairs}")
+    if cfg.steps <= 0:
+        raise ValueError(f"steps must be > 0, got {cfg.steps}")
+    if cfg.max_caption_len < 4:
+        raise ValueError(
+            f"max_caption_len must be >= 4 for make_pair(), got {cfg.max_caption_len}"
+        )
+
     torch.manual_seed(cfg.seed)
 
     encoder_cfg = ViTConfig(image_size=224, patch_size=16, hidden=cfg.vision_hidden,

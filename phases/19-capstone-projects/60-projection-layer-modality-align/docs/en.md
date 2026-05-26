@@ -75,7 +75,7 @@ Run it:
 python3 code/main.py
 ```
 
-Output: training reports drop from initial loss around 1.0 down to about 0.05 within 200 steps, demonstrating that the projection alone can align image tokens to the text space. The final cosine similarity per pair is also printed.
+Output: training reports drop from initial loss around 1.07 down to about 0.80 within 200 steps, demonstrating that the projection alone can pull image tokens toward the text space. The final cosine similarity per pair is also printed.
 
 ## Use It
 
