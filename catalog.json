@@ -2,11 +2,11 @@
   "schema_version": 1,
   "totals": {
     "phases": 20,
-    "lessons": 435,
+    "lessons": 441,
     "skills": 378,
     "prompts": 99,
     "agents": 0,
-    "code_files": 487
+    "code_files": 519
   },
   "phases": [
     {
@@ -12304,7 +12304,7 @@
       "num": 19,
       "slug": "19-capstone-projects",
       "title": "Capstone Projects",
-      "lesson_count": 17,
+      "lesson_count": 23,
       "lessons": [
         {
           "num": 1,
@@ -12568,8 +12568,14 @@
           "has_quiz": true,
           "has_notebook": true,
           "code_files": [
-            "dashboard.ts",
-            "main.py"
+            "main.py",
+            "ts/src/cost.ts",
+            "ts/src/index.ts",
+            "ts/src/migrations.ts",
+            "ts/src/server.ts",
+            "ts/src/types.ts",
+            "ts/tests/cost.test.ts",
+            "ts/tests/migrations.test.ts"
           ],
           "outputs": [
             {
@@ -12601,7 +12607,14 @@
           "has_notebook": true,
           "code_files": [
             "main.py",
-            "team.ts"
+            "ts/src/agent.ts",
+            "ts/src/coordinator.ts",
+            "ts/src/index.ts",
+            "ts/src/runtime.ts",
+            "ts/src/types.ts",
+            "ts/src/workspace.ts",
+            "ts/tests/coordinator.test.ts",
+            "ts/tests/runtime.test.ts"
           ],
           "outputs": [
             {
@@ -12633,7 +12646,14 @@
           "has_notebook": true,
           "code_files": [
             "main.py",
-            "server.ts"
+            "ts/src/index.ts",
+            "ts/src/pricing.ts",
+            "ts/src/rollup.ts",
+            "ts/src/server.ts",
+            "ts/src/spans.ts",
+            "ts/src/types.ts",
+            "ts/tests/rollup.test.ts",
+            "ts/tests/spans.test.ts"
           ],
           "outputs": [
             {
@@ -12847,6 +12867,96 @@
               ]
             }
           ]
+        },
+        {
+          "num": 64,
+          "slug": "64-chunking-strategies-advanced",
+          "title": "Chunking Strategies, Compared",
+          "path": "phases/19-capstone-projects/64-chunking-strategies-advanced",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "tests/test_chunkers.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 65,
+          "slug": "65-hybrid-retrieval-bm25-dense",
+          "title": "Hybrid Retrieval with BM25 and Dense Embeddings",
+          "path": "phases/19-capstone-projects/65-hybrid-retrieval-bm25-dense",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "tests/test_hybrid.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 66,
+          "slug": "66-reranker-cross-encoder",
+          "title": "Cross-Encoder Reranker",
+          "path": "phases/19-capstone-projects/66-reranker-cross-encoder",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "tests/test_reranker.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 67,
+          "slug": "67-query-rewriting-hyde",
+          "title": "Query Rewriting: HyDE, Multi-Query, and Decomposition",
+          "path": "phases/19-capstone-projects/67-query-rewriting-hyde",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "tests/test_rewriters.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 68,
+          "slug": "68-rag-eval-precision-recall",
+          "title": "RAG Evaluation: Precision, Recall, MRR, nDCG, Faithfulness, Answer Relevance",
+          "path": "phases/19-capstone-projects/68-rag-eval-precision-recall",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "tests/test_eval.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 69,
+          "slug": "69-end-to-end-rag-system",
+          "title": "End-to-End RAG System",
+          "path": "phases/19-capstone-projects/69-end-to-end-rag-system",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "tests/test_pipeline.py"
+          ],
+          "outputs": []
         }
       ]
     }
