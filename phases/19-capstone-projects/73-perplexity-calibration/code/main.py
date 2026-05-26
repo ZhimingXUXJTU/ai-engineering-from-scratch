@@ -109,6 +109,8 @@ def brier_score(confidences: Sequence[float], correct: Sequence[int]) -> float:
 
 
 def brier_decomposition(confidences: Sequence[float], correct: Sequence[int], bins: int = 10) -> dict:
+    if bins <= 0:
+        raise ValueError("bins must be positive")
     conf = np.asarray(confidences, dtype=np.float64)
     corr = np.asarray(correct, dtype=np.float64)
     _validate_probs(conf, corr)
@@ -139,6 +141,8 @@ def brier_decomposition(confidences: Sequence[float], correct: Sequence[int], bi
 
 
 def reliability_diagram(confidences: Sequence[float], correct: Sequence[int], bins: int = 10) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    if bins <= 0:
+        raise ValueError("bins must be positive")
     conf = np.asarray(confidences, dtype=np.float64)
     corr = np.asarray(correct, dtype=np.float64)
     _validate_probs(conf, corr)
