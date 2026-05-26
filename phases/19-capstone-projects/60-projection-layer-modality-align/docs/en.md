@@ -71,7 +71,7 @@ The vision encoder has 86M parameters. The text table has another few million. T
 
 Run it:
 
-```
+```bash
 python3 code/main.py
 ```
 
@@ -100,7 +100,7 @@ The shape varies but the role is identical: pool image tokens, project to text e
 
 Run them:
 
-```
+```bash
 python3 -m unittest code/test_main.py
 ```
 
