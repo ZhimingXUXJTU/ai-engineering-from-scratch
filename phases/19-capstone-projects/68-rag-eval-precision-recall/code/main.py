@@ -61,6 +61,11 @@ def reciprocal_rank(retrieved: list[str], gold: set[str]) -> float:
 
 def mean_reciprocal_rank(retrieved_per_query: list[list[str]],
                          gold_per_query: list[set[str]]) -> float:
+    if len(retrieved_per_query) != len(gold_per_query):
+        raise ValueError(
+            f"retrieved_per_query and gold_per_query must have the same length "
+            f"({len(retrieved_per_query)} vs {len(gold_per_query)})"
+        )
     if not retrieved_per_query:
         return 0.0
     return sum(reciprocal_rank(r, g) for r, g in zip(retrieved_per_query, gold_per_query)) / len(retrieved_per_query)

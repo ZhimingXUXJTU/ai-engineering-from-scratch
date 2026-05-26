@@ -94,7 +94,7 @@ Each query carries:
 - the query string,
 - a set of gold doc ids (for precision / recall / MRR),
 - a graded relevance dict (for nDCG),
-- the gold answer substring (for faithfulness; the answer must contain or paraphrase this).
+- the gold answer substring (kept as reference metadata on each qrel; faithfulness in this lesson is computed by judging extracted claims against the retrieved context, not against this substring).
 
 In production you label these. This lesson ships a hand-built fixture so the eval runs out of the box.
 
@@ -119,7 +119,7 @@ Run it:
 python3 code/main.py
 ```
 
-The output shows precision@k, recall@k, MRR, nDCG@k for each variant. The hybrid retrieval row beats the chunker baseline on recall; the rerank row beats hybrid on MRR; faithfulness and relevance are computed at the end and printed separately.
+The output shows precision@k, recall@k, MRR, nDCG@k, faithfulness, and answer relevance for each variant in a single metrics table. The hybrid retrieval row beats the chunker baseline on recall; the rerank row beats hybrid on MRR.
 
 ## Reading the metrics to diagnose failures
 
