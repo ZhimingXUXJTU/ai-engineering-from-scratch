@@ -2,11 +2,11 @@
   "schema_version": 1,
   "totals": {
     "phases": 20,
-    "lessons": 435,
-    "skills": 378,
+    "lessons": 441,
+    "skills": 384,
     "prompts": 99,
     "agents": 0,
-    "code_files": 487
+    "code_files": 528
   },
   "phases": [
     {
@@ -12304,7 +12304,7 @@
       "num": 19,
       "slug": "19-capstone-projects",
       "title": "Capstone Projects",
-      "lesson_count": 17,
+      "lesson_count": 23,
       "lessons": [
         {
           "num": 1,
@@ -12568,8 +12568,14 @@
           "has_quiz": true,
           "has_notebook": true,
           "code_files": [
-            "dashboard.ts",
-            "main.py"
+            "main.py",
+            "ts/src/cost.ts",
+            "ts/src/index.ts",
+            "ts/src/migrations.ts",
+            "ts/src/server.ts",
+            "ts/src/types.ts",
+            "ts/tests/cost.test.ts",
+            "ts/tests/migrations.test.ts"
           ],
           "outputs": [
             {
@@ -12601,7 +12607,14 @@
           "has_notebook": true,
           "code_files": [
             "main.py",
-            "team.ts"
+            "ts/src/agent.ts",
+            "ts/src/coordinator.ts",
+            "ts/src/index.ts",
+            "ts/src/runtime.ts",
+            "ts/src/types.ts",
+            "ts/src/workspace.ts",
+            "ts/tests/coordinator.test.ts",
+            "ts/tests/runtime.test.ts"
           ],
           "outputs": [
             {
@@ -12633,7 +12646,14 @@
           "has_notebook": true,
           "code_files": [
             "main.py",
-            "server.ts"
+            "ts/src/index.ts",
+            "ts/src/pricing.ts",
+            "ts/src/rollup.ts",
+            "ts/src/server.ts",
+            "ts/src/spans.ts",
+            "ts/src/types.ts",
+            "ts/tests/rollup.test.ts",
+            "ts/tests/spans.test.ts"
           ],
           "outputs": [
             {
@@ -12844,6 +12864,183 @@
                 "livekit",
                 "multimodal",
                 "coppa"
+              ]
+            }
+          ]
+        },
+        {
+          "num": 82,
+          "slug": "82-jailbreak-taxonomy",
+          "title": "Capstone 82 — Jailbreak Taxonomy",
+          "path": "phases/19-capstone-projects/82-jailbreak-taxonomy",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "fixtures.py",
+            "main.py",
+            "tests.py"
+          ],
+          "outputs": [
+            {
+              "type": "skill",
+              "name": "skill-jailbreak-taxonomy",
+              "path": "phases/19-capstone-projects/82-jailbreak-taxonomy/outputs/skill-jailbreak-taxonomy.md",
+              "version": "1.0.0",
+              "description": "Shared vocabulary for attacks against LLM assistants, six categories with hand-built fixtures",
+              "tags": [
+                "safety",
+                "red-team",
+                "taxonomy"
+              ]
+            }
+          ]
+        },
+        {
+          "num": 83,
+          "slug": "83-prompt-injection-detector",
+          "title": "Capstone 83 — Prompt Injection Detector",
+          "path": "phases/19-capstone-projects/83-prompt-injection-detector",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "benign.py",
+            "main.py",
+            "rules.py",
+            "tests.py"
+          ],
+          "outputs": [
+            {
+              "type": "skill",
+              "name": "skill-prompt-injection-detector",
+              "path": "phases/19-capstone-projects/83-prompt-injection-detector/outputs/skill-prompt-injection-detector.md",
+              "version": "1.0.0",
+              "description": "Layered detector pipeline that returns a category and confidence for any prompt, with measurable precision and recall",
+              "tags": [
+                "safety",
+                "detector",
+                "prompt-injection"
+              ]
+            }
+          ]
+        },
+        {
+          "num": 84,
+          "slug": "84-refusal-evaluation",
+          "title": "Capstone 84 — Refusal Evaluation",
+          "path": "phases/19-capstone-projects/84-refusal-evaluation",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "mock_llm.py",
+            "prompts.py",
+            "tests.py"
+          ],
+          "outputs": [
+            {
+              "type": "skill",
+              "name": "skill-refusal-evaluation",
+              "path": "phases/19-capstone-projects/84-refusal-evaluation/outputs/skill-refusal-evaluation.md",
+              "version": "1.0.0",
+              "description": "Two-sided refusal metrics with calibration and per-category breakdown over a labeled prompt corpus",
+              "tags": [
+                "safety",
+                "evaluation",
+                "calibration"
+              ]
+            }
+          ]
+        },
+        {
+          "num": 85,
+          "slug": "85-content-classifier-integration",
+          "title": "Capstone 85 — Content Classifier Integration",
+          "path": "phases/19-capstone-projects/85-content-classifier-integration",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "classifiers.py",
+            "main.py",
+            "tests.py"
+          ],
+          "outputs": [
+            {
+              "type": "skill",
+              "name": "skill-content-classifier-integration",
+              "path": "phases/19-capstone-projects/85-content-classifier-integration/outputs/skill-content-classifier-integration.md",
+              "version": "1.0.0",
+              "description": "Three output-side classifiers (toxicity, PII, instruction-leakage) behind a single severity router with block, redact, warn, log actions",
+              "tags": [
+                "safety",
+                "classifier",
+                "output-filter"
+              ]
+            }
+          ]
+        },
+        {
+          "num": 86,
+          "slug": "86-constitutional-rules-engine",
+          "title": "Capstone 86 — Constitutional Rules Engine",
+          "path": "phases/19-capstone-projects/86-constitutional-rules-engine",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "tests.py",
+            "yaml_subset.py"
+          ],
+          "outputs": [
+            {
+              "type": "skill",
+              "name": "skill-constitutional-rules-engine",
+              "path": "phases/19-capstone-projects/86-constitutional-rules-engine/outputs/skill-constitutional-rules-engine.md",
+              "version": "1.0.0",
+              "description": "Declarative YAML rules engine for output constraints with severity, explanation, fixer operations, and structured diff",
+              "tags": [
+                "safety",
+                "rules",
+                "constitutional"
+              ]
+            }
+          ]
+        },
+        {
+          "num": 87,
+          "slug": "87-end-to-end-safety-gate",
+          "title": "Capstone 87 — End-to-End Safety Gate",
+          "path": "phases/19-capstone-projects/87-end-to-end-safety-gate",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "mock_llm_stream.py",
+            "safety_gate.py",
+            "tests.py"
+          ],
+          "outputs": [
+            {
+              "type": "skill",
+              "name": "skill-end-to-end-safety-gate",
+              "path": "phases/19-capstone-projects/87-end-to-end-safety-gate/outputs/skill-end-to-end-safety-gate.md",
+              "version": "1.0.0",
+              "description": "Three-checkpoint safety gate composing the input detector, streaming token filter, output classifier, and rules engine with a deterministic aggregation table and per-request trace",
+              "tags": [
+                "safety",
+                "harness",
+                "composition"
               ]
             }
           ]
