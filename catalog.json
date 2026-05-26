@@ -2,11 +2,11 @@
   "schema_version": 1,
   "totals": {
     "phases": 20,
-    "lessons": 435,
+    "lessons": 441,
     "skills": 378,
     "prompts": 99,
     "agents": 0,
-    "code_files": 487
+    "code_files": 519
   },
   "phases": [
     {
@@ -12304,7 +12304,7 @@
       "num": 19,
       "slug": "19-capstone-projects",
       "title": "Capstone Projects",
-      "lesson_count": 17,
+      "lesson_count": 23,
       "lessons": [
         {
           "num": 1,
@@ -12568,8 +12568,14 @@
           "has_quiz": true,
           "has_notebook": true,
           "code_files": [
-            "dashboard.ts",
-            "main.py"
+            "main.py",
+            "ts/src/cost.ts",
+            "ts/src/index.ts",
+            "ts/src/migrations.ts",
+            "ts/src/server.ts",
+            "ts/src/types.ts",
+            "ts/tests/cost.test.ts",
+            "ts/tests/migrations.test.ts"
           ],
           "outputs": [
             {
@@ -12601,7 +12607,14 @@
           "has_notebook": true,
           "code_files": [
             "main.py",
-            "team.ts"
+            "ts/src/agent.ts",
+            "ts/src/coordinator.ts",
+            "ts/src/index.ts",
+            "ts/src/runtime.ts",
+            "ts/src/types.ts",
+            "ts/src/workspace.ts",
+            "ts/tests/coordinator.test.ts",
+            "ts/tests/runtime.test.ts"
           ],
           "outputs": [
             {
@@ -12633,7 +12646,14 @@
           "has_notebook": true,
           "code_files": [
             "main.py",
-            "server.ts"
+            "ts/src/index.ts",
+            "ts/src/pricing.ts",
+            "ts/src/rollup.ts",
+            "ts/src/server.ts",
+            "ts/src/spans.ts",
+            "ts/src/types.ts",
+            "ts/tests/rollup.test.ts",
+            "ts/tests/spans.test.ts"
           ],
           "outputs": [
             {
@@ -12847,6 +12867,96 @@
               ]
             }
           ]
+        },
+        {
+          "num": 70,
+          "slug": "70-task-spec-format",
+          "title": "Task Spec Format",
+          "path": "phases/19-capstone-projects/70-task-spec-format",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "tests/test_spec.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 71,
+          "slug": "71-classical-metrics",
+          "title": "Classical Metrics",
+          "path": "phases/19-capstone-projects/71-classical-metrics",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "tests/test_metrics.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 72,
+          "slug": "72-code-exec-metric",
+          "title": "Code Exec Metric",
+          "path": "phases/19-capstone-projects/72-code-exec-metric",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "tests/test_exec.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 73,
+          "slug": "73-perplexity-calibration",
+          "title": "Perplexity and Calibration",
+          "path": "phases/19-capstone-projects/73-perplexity-calibration",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "tests/test_calibration.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 74,
+          "slug": "74-leaderboard-aggregation",
+          "title": "Leaderboard Aggregation",
+          "path": "phases/19-capstone-projects/74-leaderboard-aggregation",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "tests/test_leaderboard.py"
+          ],
+          "outputs": []
+        },
+        {
+          "num": 75,
+          "slug": "75-end-to-end-eval-runner",
+          "title": "End-to-End Eval Runner",
+          "path": "phases/19-capstone-projects/75-end-to-end-eval-runner",
+          "has_docs": true,
+          "has_code": true,
+          "has_quiz": true,
+          "has_notebook": false,
+          "code_files": [
+            "main.py",
+            "tests/test_runner.py"
+          ],
+          "outputs": []
         }
       ]
     }
