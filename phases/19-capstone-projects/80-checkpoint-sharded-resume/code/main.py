@@ -74,6 +74,20 @@ def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _fsync_dir(path: Path) -> None:
+    """Fsync a directory so rename metadata reaches disk; no-op where unsupported."""
+    try:
+        fd = os.open(str(path), os.O_RDONLY)
+    except OSError:
+        return
+    try:
+        os.fsync(fd)
+    except OSError:
+        pass
+    finally:
+        os.close(fd)
+
+
 def _serialize_state(state: dict) -> bytes:
     """Serialize a state dict deterministically using torch.save with pickle 4."""
     import io
@@ -138,6 +152,7 @@ def save_sharded(per_rank_state: list, dest_dir: str, step: int,
     for tmp, final in tmp_paths:
         os.replace(tmp, final)
     os.replace(manifest_tmp, manifest_final)
+    _fsync_dir(dest)
     return manifest
 
 
@@ -161,8 +176,23 @@ def load_sharded(src_dir: str, expected_world_size: int) -> tuple:
             f"shard count != world_size: {len(manifest.shards)} vs {manifest.world_size}"
         )
     per_rank = [None] * manifest.world_size
+    seen_ranks = set()
+    src_resolved = src.resolve()
     for shard in manifest.shards:
-        shard_path = src / shard.path
+        if not (0 <= shard.rank < manifest.world_size):
+            raise CheckpointError(
+                f"shard rank {shard.rank} out of range [0,{manifest.world_size})"
+            )
+        if shard.rank in seen_ranks:
+            raise CheckpointError(f"duplicate shard for rank {shard.rank}")
+        seen_ranks.add(shard.rank)
+        if os.path.isabs(shard.path) or os.sep in shard.path or "/" in shard.path or shard.path in ("", ".", ".."):
+            raise CheckpointError(f"unsafe shard path: {shard.path!r}")
+        shard_path = (src / shard.path).resolve()
+        try:
+            shard_path.relative_to(src_resolved)
+        except ValueError as exc:
+            raise CheckpointError(f"shard path escapes checkpoint dir: {shard.path!r}") from exc
         if not shard_path.exists():
             raise CheckpointError(f"shard file missing: {shard_path}")
         payload = shard_path.read_bytes()
@@ -173,19 +203,29 @@ def load_sharded(src_dir: str, expected_world_size: int) -> tuple:
                 f"recorded={shard.sha256[:12]}..., actual={actual[:12]}..."
             )
         per_rank[shard.rank] = _deserialize_state(payload)
+    if len(seen_ranks) != manifest.world_size:
+        missing = sorted(set(range(manifest.world_size)) - seen_ranks)
+        raise CheckpointError(f"manifest missing ranks: {missing}")
     return manifest, per_rank
 
 
 def rotate_checkpoints(parent_dir: str, keep_last: int = 5) -> list:
     """Delete oldest checkpoint directories so only the most recent keep_last remain."""
+    if keep_last < 0:
+        raise ValueError(f"keep_last must be >= 0, got {keep_last}")
     parent = Path(parent_dir)
     if not parent.exists():
         return []
     children = sorted(
         [c for c in parent.iterdir() if c.is_dir() and c.name.startswith("step_")],
-        key=lambda c: c.stat().st_mtime,
+        key=lambda c: (c.stat().st_mtime, c.name),
     )
-    to_delete = children[:-keep_last] if len(children) > keep_last else []
+    if keep_last == 0:
+        to_delete = children
+    elif len(children) > keep_last:
+        to_delete = children[:-keep_last]
+    else:
+        to_delete = []
     deleted = []
     for c in to_delete:
         shutil.rmtree(c, ignore_errors=True)
