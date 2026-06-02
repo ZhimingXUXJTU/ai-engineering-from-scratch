@@ -71,6 +71,17 @@ OTHER_MCP_RESOURCE = "https://tasks.example.com"
 MCP_RESOURCE_METADATA = f"{MCP_RESOURCE}/.well-known/oauth-protected-resource"
 OTHER_MCP_RESOURCE_METADATA = f"{OTHER_MCP_RESOURCE}/.well-known/oauth-protected-resource"
 
+# Each tool declares the scope it needs. Destructive tools sit behind a stronger
+# scope (mcp:tools.delete) that is NOT in the IdP's minimal scopes_supported, so
+# a client reaches it only via the step-up flow.
+TOOL_SCOPES = {
+    "notes.list": "mcp:tools.invoke",
+    "notes.read": "mcp:tools.invoke",
+    "notes.delete": "mcp:tools.delete",
+    "tasks.list": "mcp:tools.invoke",
+}
+DEFAULT_TOOL_SCOPE = "mcp:tools.invoke"
+
 
 # ---------------------------------------------------------------------------
 # Authorization server - issues tokens, registers clients, rotates signing keys
@@ -223,6 +234,10 @@ class ResourceServer:
             return challenge(401, f'error="invalid_token", error_description="malformed", resource_metadata="{rm}"')
 
         iss = claims.get("iss", "")
+        # Check the issuer allow-list first: an untrusted iss should never cost
+        # us a JWKS refresh, and "iss not allowed" is the correct error to return.
+        if iss not in self.allowed_issuers:
+            return challenge(401, f'error="invalid_token", error_description="iss not allowed", resource_metadata="{rm}"')
         cache = self.jwks_cache.get(iss)
         if cache is None:
             self.refresh_jwks()
@@ -241,8 +256,6 @@ class ResourceServer:
 
         if not jwt_verify(token, b64url_decode(matching["k"])):
             return challenge(401, f'error="invalid_token", error_description="bad signature", resource_metadata="{rm}"')
-        if iss not in self.allowed_issuers:
-            return challenge(401, f'error="invalid_token", error_description="iss not allowed", resource_metadata="{rm}"')
         if claims.get("aud") != self.resource:
             return challenge(401, f'error="invalid_token", error_description="audience mismatch", resource_metadata="{rm}"')
         if claims.get("exp", 0) < time.time():
@@ -252,7 +265,8 @@ class ResourceServer:
         return {"valid": True, "claims": claims}
 
     def call_tool(self, tool: str, bearer: str) -> dict:
-        result = self.validate(bearer, required_scope="mcp:tools.invoke")
+        required_scope = TOOL_SCOPES.get(tool, DEFAULT_TOOL_SCOPE)
+        result = self.validate(bearer, required_scope=required_scope)
         if not result["valid"]:
             return {"status": result["status"], "WWW-Authenticate": result["www_authenticate"]}
         return {"status": 200, "body": {"tool": tool, "user": result["claims"]["sub"], "ok": True}}
@@ -272,8 +286,10 @@ class Client:
     def discover(self) -> dict:
         meta = self.auth_server.metadata()
         # Verify the IdP satisfies the MCP auth profile before trusting it.
-        assert "S256" in meta["code_challenge_methods_supported"], "no S256 PKCE"
-        assert meta.get("client_id_metadata_document_supported") or "registration_endpoint" in meta, "no enrollment path"
+        if "S256" not in meta["code_challenge_methods_supported"]:
+            raise ValueError("authorization server does not advertise S256 PKCE")
+        if not (meta.get("client_id_metadata_document_supported") or "registration_endpoint" in meta):
+            raise ValueError("authorization server advertises no client enrollment path")
         return meta
 
     def register(self) -> str:
@@ -287,7 +303,8 @@ class Client:
                 "client_name": self.name,
             }
         )
-        assert resp["status"] == 201
+        if resp["status"] != 201:
+            raise ValueError(f"client registration failed: {resp}")
         self.client_id = resp["body"]["client_id"]
         return self.client_id
 
