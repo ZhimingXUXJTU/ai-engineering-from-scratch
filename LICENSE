@@ -33,3 +33,9 @@ by Rohit Ghumare, with Chinese bilingual annotations added for personal learning
 
 本仓库为 [ai-engineering-from-scratch](https://github.com/rohitg00/ai-engineering-from-scratch) 的中文注释 fork 版本，仅供个人学习使用。
 原始内容的版权归 Rohit Ghumare 所有，遵循 MIT 开源协议。
+
+### 中文注释工具说明
+
+中文注释由 [Claude Code](https://claude.ai/code)（Anthropic 的 CLI 工具）辅助生成，使用模型 GLM-5.1。
+注释过程：主会话编排 + 多个子代理 (subagent) 并行处理，覆盖全部 473 课、20 个 Phase。
+所有注释均为机器辅助生成，仅供学习参考，不保证翻译准确性。
