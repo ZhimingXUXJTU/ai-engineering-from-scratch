@@ -1,6 +1,10 @@
-# Video Understanding — Temporal Modeling
+# Video Understanding — Temporal Modeling | 视频理解 — 时序建模
 
 > A video is a sequence of images plus the physics that connects them. Every video model either treats time as an extra axis (3D conv), a sequence to attend over (transformer), or a feature to extract once and pool (2D+pool).
+
+> **【中文解读】** 视频是一组图像序列加上连接它们的物理规律。视频模型的三种流派：3D 卷积（时间作为额外维度）、Transformer（时间作为序列）、2D+池化（每帧提取特征再聚合）。理解时间维度是视频 AI 的核心挑战。
+
+> **【拓展：视频 AI 应用】** 视频理解驱动了 YouTube/TikTok 的内容推荐、安防监控的异常检测、体育赛事的自动分析。Sora 等视频生成模型将视频理解推向了新高度——理解视频才能生成视频。
 
 **Type:** Learn + Build
 **Languages:** Python

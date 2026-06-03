@@ -1,13 +1,16 @@
-# Capstone Lesson 26: Sandbox Runner with Denylist and Path Jail
+# Capstone Lesson 26: Sandbox Runner with Denylist and Path Jail | 结业 运行器
 
 > The verification gate decides whether a tool call should run. The sandbox decides what happens when it does. This lesson ships a subprocess runner that refuses dangerous executables, refuses dangerous argv shapes, jails every file path to a project root, truncates oversized output, and kills runaway processes on a wall-clock timeout. It is the second of two layers that sit between the model and the operating system.
+
+> **【中文解读】** 本节是综合项目——构建沙盒运行器和拒绝名单。
+
 
 **Type:** Build
 **Languages:** Python (stdlib)
 **Prerequisites:** Phase 19 · 25 (verification gates and observation budget), Phase 14 · 33 (instructions as constraints), Phase 14 · 38 (verification gates)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build a `Sandbox` class wrapping `subprocess.run` with timeout, capture, and truncation.
 - Refuse a command by name against a denylist and by structure against an argv inspector.
@@ -15,7 +18,7 @@
 - Refuse shell metacharacters when shell mode is off.
 - Return a structured `SandboxResult` that downstream observability and the eval harness can ingest.
 
-## The Problem
+## The Problem | 问题
 
 A coding agent that can shell out can install backdoors, exfiltrate keys, brick a developer laptop, and rack up a cloud bill in a single turn. The least costly defense is to not give it shell. The second least costly is a sandbox that says no to a precise list of patterns.
 
@@ -29,7 +32,7 @@ The third is path escape. The model is told to read `./src/main.py` and instead 
 
 The sandbox is not a security boundary in the operating system sense. A determined attacker with code execution can still break out. The sandbox is a development-time guardrail: it makes the common failure modes loud and stops the agent from doing damage out of sheer ineptitude.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart TD
@@ -46,7 +49,7 @@ The sandbox has four refusal axes: name, argv, path, structure. Each axis is a p
 
 The `SandboxResult` exit codes are the conventional ones: 0 success, non-zero failure, plus three sentinel codes for denied (-100), timed_out (-101), and truncated (the exit code is the real one, with a flag set). Downstream lessons read this structured result rather than parsing stderr.
 
-## Architecture
+## Architecture | 架构
 
 ```mermaid
 flowchart LR
@@ -78,7 +81,7 @@ The lesson sandbox does not use namespaces, cgroups, seccomp, gVisor, Firecracke
 
 For production agents you layer on top: run inside an unprivileged Docker container, run inside a microVM, drop capabilities, mount the project root read-only and a scratch dir read-write, set ulimit on memory and CPU, scrub the environment to a known-safe whitelist. Lesson 29 does some of this. Operating-system isolation is out of scope for this lesson.
 
-## Running it
+## Running it | 运行
 
 ```bash
 cd phases/19-capstone-projects/26-sandbox-runner-denylist

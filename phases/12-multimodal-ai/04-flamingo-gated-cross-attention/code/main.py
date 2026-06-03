@@ -1,5 +1,10 @@
 """Flamingo gated cross-attention + Perceiver resampler toy — stdlib Python.
 
+Flamingo 门控交叉注意力 (Gated Cross-Attention for Few-Shot VLMs)
+核心概念：Perceiver 重采样器将可变长度视觉 token 压缩为固定长度；门控交叉注意力用 tanh(alpha)
+控制视觉信息注入量，alpha=0 时视觉贡献为零，保护冻结 LLM 的文本能力。
+AI 应用对应：Flamingo 首次实现图文交织输入和少样本上下文学习，是 Gemini 交织输入的原型。
+
 Demonstrates:
   - Perceiver resampler: variable-length patch tokens -> fixed-length latents
   - gated cross-attention: tanh(alpha) * cross + x residual

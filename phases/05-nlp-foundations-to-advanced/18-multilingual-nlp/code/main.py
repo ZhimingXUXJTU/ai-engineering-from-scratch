@@ -1,3 +1,8 @@
+"""
+多语言 NLP
+
+处理多种语言的 NLP。多语言 BERT、XLM-R 是关键模型。
+"""
 LANGUAGE_FEATURES = {
     "english":  {"word_order": "SVO", "script": "Latin",   "family": "Germanic"},
     "german":   {"word_order": "SVO", "script": "Latin",   "family": "Germanic"},

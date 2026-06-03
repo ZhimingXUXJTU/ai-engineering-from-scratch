@@ -1,4 +1,4 @@
-# Chain Rule & Automatic Differentiation
+# Chain Rule & Automatic Differentiation | 链式法则与自动微分
 
 > The chain rule is the engine behind every neural network that learns.
 
@@ -7,12 +7,18 @@
 **Prerequisites:** Phase 1, Lesson 04 (Derivatives & Gradients)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build a minimal autograd engine (Value class) that records operations and computes gradients via reverse-mode autodiff
 - Implement forward and backward passes through a computation graph using topological sort
 - Construct and train a multi-layer perceptron on XOR using only the from-scratch autograd engine
 - Verify autodiff correctness using gradient checking against numerical finite differences
+
+> **【中文解读】**
+> 链式法则是"函数套函数的导数怎么算"。神经网络就是几百个函数嵌套在一起：矩阵乘法→加偏置→激活函数→再矩阵乘法→Softmax→交叉熵。链式法则让你能从最后一层开始，逐层往回计算每个参数的梯度——这就是反向传播。
+
+> **【拓展：链式法则 → 反向传播 → PyTorch autograd】**
+> 链式法则是反向传播（Backpropagation）的数学基础。PyTorch 的 `autograd`、TensorFlow 的 `GradientTape` 都是用反向模式自动微分实现的——它们自动追踪计算图，然后用链式法则计算所有梯度。你将在本章从零构建一个迷你的 autograd 引擎。
 
 ## The Problem
 

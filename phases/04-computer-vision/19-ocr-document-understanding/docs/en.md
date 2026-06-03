@@ -1,6 +1,10 @@
-# OCR & Document Understanding
+# OCR & Document Understanding | OCR 与文档理解
 
 > OCR is a three-stage pipeline — detect text boxes, recognise the characters, then lay them out. Every modern OCR system reorders these stages or merges them.
+
+> **【中文解读】** OCR（光学字符识别）是三阶段流水线：检测文本框 → 识别字符 → 布局分析。现代 OCR 系统将这些阶段重新排序或合并。文档理解不仅识别文字，还理解表格、图表、版面结构。
+
+> **【拓展：文档理解的金融应用】** OCR 与文档理解在金融领域有广泛应用：银行流水识别、发票自动处理、合同智能审查、财务报表解析。LayoutLM、Donut 等模型将视觉和文本信息融合，实现了端到端的文档理解。
 
 **Type:** Learn + Use
 **Languages:** Python

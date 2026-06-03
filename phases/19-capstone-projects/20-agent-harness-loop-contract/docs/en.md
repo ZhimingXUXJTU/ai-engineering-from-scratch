@@ -1,13 +1,16 @@
-# Agent Harness Loop Contract
+# Agent Harness Loop Contract | 线束 行动
 
 > The harness is the agent. The model is a coprocessor. This lesson freezes the loop contract you can wire any model into.
+
+> **【中文解读】** 本节是综合项目——构建 Agent 线束循环和契约验证系统。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 13 lessons 01-07, Phase 14 lesson 01
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 - Specify an agent harness loop as a deterministic state machine with explicit transitions.
 - Implement ten lifecycle hook topics that operators wire policy, telemetry, and guardrails into.
 - Define two pull points where the loop yields control back to the caller and resumes on a fresh input.

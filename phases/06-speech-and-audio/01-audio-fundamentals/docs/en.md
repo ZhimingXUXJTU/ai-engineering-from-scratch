@@ -1,6 +1,10 @@
-# Audio Fundamentals — Waveforms, Sampling, Fourier Transform
+# Audio Fundamentals — Waveforms, Sampling, Fourier Transform | 音频基础 — 波形、采样与傅里叶变换
 
 > Waveforms are the raw signal. Spectrograms are the representation. Mel features are the ML-friendly form. Every modern ASR and TTS pipeline walks this ladder, and the first rung is understanding sampling and Fourier.
+
+> **【中文解读】** 波形是原始信号，频谱图是表示形式，Mel 特征是机器学习友好的形式。每个现代语音识别（ASR）和语音合成（TTS）系统都沿这个阶梯向上：波形 → 频谱图 → Mel 特征。第一阶就是理解采样和傅里叶变换。
+
+> **【拓展：音频 AI 的基础】** 采样率（如 16kHz）决定了可表示的最高频率（奈奎斯特定理）。傅里叶变换将时域信号分解为频域成分。这些概念是 Whisper、TTS、语音克隆等所有音频 AI 的基础。
 
 **Type:** Learn
 **Languages:** Python

@@ -5,6 +5,9 @@ Watch reward climb, KL divergence grow, and the policy drift. Turn off the
 KL penalty to see reward hacking appear. Pedagogical toy — no torch.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -20,14 +23,16 @@ ACTIONS = ["A", "B", "C"]
 
 
 def softmax(logits: list[float]) -> list[float]:
+    """softmax"""
     m = max(logits)
     exps = [math.exp(x - m) for x in logits]
     z = sum(exps)
-    return [e / z for e in exps]
+    return [e / z for e in exps]  # 返回结果
 
 
 def kl(p: list[float], q: list[float]) -> float:
-    return sum(pi * math.log(pi / qi) for pi, qi in zip(p, q) if pi > 0 and qi > 0)
+    """kl"""
+    return sum(pi * math.log(pi / qi) for pi, qi in zip(p, q) if pi > 0 and qi > 0)  # 返回结果
 
 
 @dataclass
@@ -36,7 +41,7 @@ class Policy:
     logits: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0])
 
     def probs(self) -> list[float]:
-        return softmax(self.logits)
+        return softmax(self.logits)  # 返回结果
 
     def sample(self) -> int:
         r = random.random()
@@ -44,19 +49,19 @@ class Policy:
         for i, p in enumerate(self.probs()):
             cum += p
             if r < cum:
-                return i
-        return len(self.logits) - 1
+                return i  # 返回结果
+        return len(self.logits) - 1  # 返回结果
 
     def logprob(self, a: int) -> float:
-        return math.log(self.probs()[a] + 1e-12)
+        return math.log(self.probs()[a] + 1e-12)  # 返回结果
 
     def copy(self) -> "Policy":
-        return Policy(logits=list(self.logits))
+        return Policy(logits=list(self.logits))  # 返回结果
 
 
 def labeler_true_utility() -> list[float]:
     """The 'human' rater prefers B, is neutral on A, slightly against C."""
-    return [0.0, 1.0, -0.3]
+    return [0.0, 1.0, -0.3]  # 返回结果
 
 
 def stage1_sft(n_demos: int = 200) -> Policy:
@@ -85,7 +90,7 @@ def stage1_sft(n_demos: int = 200) -> Policy:
     # center for numerical stability
     m = sum(logits) / 3
     logits = [x - m for x in logits]
-    return Policy(logits=logits)
+    return Policy(logits=logits)  # 返回结果
 
 
 def stage2_reward_model(n_pairs: int = 500, bias: list[float] | None = None) -> list[float]:
@@ -112,10 +117,11 @@ def stage2_reward_model(n_pairs: int = 500, bias: list[float] | None = None) -> 
         r = [ri + bi for ri, bi in zip(r, bias)]
     # center reward (RL is invariant to constant shifts)
     m = sum(r) / 3
-    return [x - m for x in r]
+    return [x - m for x in r]  # 返回结果
 
 
 def stage3_ppo(sft: Policy, reward: list[float], beta: float,
+    """stage3_ppo"""
                steps: int = 300, batch: int = 32,
                lr: float = 0.1) -> tuple[Policy, list[float], list[float]]:
     """Toy REINFORCE-with-KL (a stripped-down PPO).
@@ -154,10 +160,11 @@ def stage3_ppo(sft: Policy, reward: list[float], beta: float,
         pi.logits = [l + lr * g for l, g in zip(pi.logits, grad)]
         reward_traj.append(total_r / batch)
         kl_traj.append(kl(pi.probs(), sft_probs))
-    return pi, reward_traj, kl_traj
+    return pi, reward_traj, kl_traj  # 返回结果
 
 
 def report(name: str, sft: Policy, rlhf: Policy, reward: list[float],
+    """report"""
            r_traj: list[float], kl_traj: list[float]) -> None:
     print(f"\n{name}")
     print("-" * 60)
@@ -170,6 +177,7 @@ def report(name: str, sft: Policy, rlhf: Policy, reward: list[float],
 
 
 def main() -> None:
+    """main"""
     print("=" * 60)
     print("INSTRUCTGPT TOY PIPELINE (Phase 18, Lesson 1)")
     print("=" * 60)
@@ -205,4 +213,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

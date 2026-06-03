@@ -1,3 +1,8 @@
+"""
+子词分词 — BPE、WordPiece、SentencePiece
+
+BPE 是 GPT 的分词算法，WordPiece 是 BERT 的。理解子词分词是理解 LLM 如何处理文本的关键。对应 tiktoken、tokenizers 库。
+"""
 import re
 from collections import Counter
 

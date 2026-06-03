@@ -1,13 +1,16 @@
-# Capstone Lesson 29: End-to-End Coding Agent on the Harness
+# Capstone Lesson 29: End-to-End Coding Agent on the Harness | 编码 Agent 结业 线束
 
 > Track A's payoff. This lesson stitches the gate chain, the sandbox, the eval harness, and the OTel spans into one working coding agent that fixes a real (small, fixture-scale) bug in a multi-file Python project. The agent is a deterministic policy, not an LLM; the substitution makes the lesson reproducible and shows that the harness was the interesting part all along. The contract is identical: a real model plugs in at the policy seam.
+
+> **【中文解读】** 本节是综合项目——端到端研究演示的完整集成。
+
 
 **Type:** Build
 **Languages:** Python (stdlib)
 **Prerequisites:** Phase 19 · 25 (verification gates), Phase 19 · 26 (sandbox), Phase 19 · 27 (eval harness), Phase 19 · 28 (observability), Phase 14 · 38 (verification gates), Phase 14 · 41 (workbench for real repos), Phase 14 · 42 (agent workbench capstone)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Compose the gate chain, sandbox, eval harness, and span builder into a single agent loop.
 - Implement a deterministic policy that uses read_file, run_tests, and write_file to fix a fixture bug.
@@ -15,7 +18,7 @@
 - Emit complete OTel GenAI traces and Prometheus metrics for the full run.
 - Verify the agent solves the fixture in fewer than 12 steps with zero gate trips on legal tools.
 
-## The Problem
+## The Problem | 问题
 
 Most agent demos work in isolation: a sandbox by itself, an eval harness by itself, a span emitter by itself. They look fine. Compose them and the seams show.
 
@@ -23,7 +26,7 @@ The gate chain says ALLOW but the sandbox refuses for a reason the chain did not
 
 This lesson is the integration test for the whole track. The agent has to do four things in order: read the project, run the tests, identify the bug from the test failure, write the fix, rerun the tests, and stop. Every operation goes through the gate chain. Every tool execution goes through the sandbox. Every step is wrapped in a span. The eval harness scores the whole thing at the end.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart TD
@@ -49,7 +52,7 @@ Each state corresponds to a tool call. Each tool call passes through the gate ch
 
 The fixture bug is an off-by-one in `fizz.py`. The deterministic policy detects the bug from the test failure message via a regex and emits the corrected file. Replacing the policy with an LLM does not change the harness contract.
 
-## Architecture
+## Architecture | 架构
 
 ```mermaid
 flowchart TD
@@ -104,7 +107,7 @@ The Prometheus exposition contains a `tools_called_total{tool="read_file"}` entr
 
 This lesson is the integration. Lesson 25 wrote the gate chain. Lesson 26 wrote the sandbox. Lesson 27 wrote the eval harness. Lesson 28 wrote the observability. Lesson 29 proves they work as a system. A real agent harness extends from here: swap the deterministic policy for a model, swap the bundled fixture for a real-repo task, swap the JSONL exporter for OTLP.
 
-## Running it
+## Running it | 运行
 
 ```bash
 cd phases/19-capstone-projects/29-end-to-end-coding-task-demo

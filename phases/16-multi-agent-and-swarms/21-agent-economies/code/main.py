@@ -3,6 +3,9 @@
 All stdlib. Shapley is exact for N<=6 and sampled otherwise. Second-price
 auction demonstrates truthful bidding. Reputation routing compares
 rep-weighted vs random assignment over 100 rounds.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 from __future__ import annotations
 
@@ -16,6 +19,7 @@ from typing import Callable
 # ---------- Shapley ----------
 
 def shapley_exact(value_fn: Callable[[frozenset], float], agents: list[str]) -> dict[str, float]:
+    """shapley_exact"""
     n = len(agents)
     contribs = {a: 0.0 for a in agents}
     for order in permutations(agents):
@@ -27,10 +31,11 @@ def shapley_exact(value_fn: Callable[[frozenset], float], agents: list[str]) -> 
             contribs[a] += new_value - prev_value
             prev_value = new_value
     factorial = math.factorial(n)
-    return {a: v / factorial for a, v in contribs.items()}
+    return {a: v / factorial for a, v in contribs.items()}  # 返回结果
 
 
 def shapley_sampled(value_fn: Callable[[frozenset], float], agents: list[str],
+    """shapley_sampled"""
                     samples: int, rng: random.Random) -> dict[str, float]:
     contribs = {a: 0.0 for a in agents}
     for _ in range(samples):
@@ -43,29 +48,32 @@ def shapley_sampled(value_fn: Callable[[frozenset], float], agents: list[str],
             new_value = value_fn(frozenset(visited))
             contribs[a] += new_value - prev_value
             prev_value = new_value
-    return {a: v / samples for a, v in contribs.items()}
+    return {a: v / samples for a, v in contribs.items()}  # 返回结果
 
 
 # ---------- Second-price auction ----------
 
 @dataclass
 class Bid:
+    """Bid"""
     bidder: str
     value: float
 
 
 def second_price(bids: list[Bid]) -> tuple[str, float] | None:
+    """second_price"""
     if len(bids) < 2:
-        return None
+        return None  # 返回结果
     sorted_bids = sorted(bids, key=lambda b: b.value, reverse=True)
     winner = sorted_bids[0].bidder
     payment = sorted_bids[1].value
-    return winner, payment
+    return winner, payment  # 返回结果
 
 
 # ---------- Reputation-weighted routing ----------
 
 class Reputation:
+    """Reputation"""
     def __init__(self, alpha: float = 0.95, floor: float = 0.1) -> None:
         self.alpha = alpha
         self.floor = floor
@@ -80,23 +88,25 @@ class Reputation:
         self.scores[agent] = max(self.floor, self.alpha * current + (1 - self.alpha) * quality)
 
     def weights(self, agents: list[str]) -> list[float]:
-        return [self.scores.get(a, 1.0) for a in agents]
+        return [self.scores.get(a, 1.0) for a in agents]  # 返回结果
 
 
 def weighted_choice(agents: list[str], weights: list[float], rng: random.Random) -> str:
+    """weighted_choice"""
     total = sum(weights)
     r = rng.random() * total
     upto = 0.0
     for a, w in zip(agents, weights):
         upto += w
         if r <= upto:
-            return a
-    return agents[-1]
+            return a  # 返回结果
+    return agents[-1]  # 返回结果
 
 
 # ---------- demos ----------
 
 def demo_shapley() -> None:
+    """demo_shapley"""
     print("=" * 72)
     print("SHAPLEY ATTRIBUTION — 3 agents collaborate on a task")
     print("=" * 72)
@@ -130,6 +140,7 @@ def demo_shapley() -> None:
 
 
 def demo_auction() -> None:
+    """demo_auction"""
     print("\n" + "=" * 72)
     print("SECOND-PRICE AUCTION — 5 bidders compete for a task slot")
     print("=" * 72)
@@ -150,6 +161,7 @@ def demo_auction() -> None:
 
 
 def demo_reputation_routing() -> None:
+    """demo_reputation_routing"""
     print("\n" + "=" * 72)
     print("REPUTATION-WEIGHTED ROUTING — 100 tasks, 4 agents, 50 warmup")
     print("=" * 72)
@@ -188,6 +200,7 @@ def demo_reputation_routing() -> None:
 
 
 def main() -> None:
+    """main"""
     demo_shapley()
     demo_auction()
     demo_reputation_routing()
@@ -198,4 +211,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

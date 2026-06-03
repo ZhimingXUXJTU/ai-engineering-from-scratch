@@ -1,5 +1,10 @@
 """Embodied VLA action format toys — stdlib.
 
+具身 VLA：视觉-语言-动作模型 (Vision-Language-Action Models)
+核心概念：VLA 将视觉理解与机器人动作控制统一在单一模型中。
+RT-2 首次证明网络级视觉语言知识可迁移到机器人控制，OpenVLA 是开源7B参考实现。
+AI 应用对应：VLA 是具身智能的核心技术，连接 Phase 12 的理解模型和 Phase 15 的自主系统。
+
 Three mini-implementations:
   1. Discrete-bin action tokenization (RT-2 / OpenVLA).
   2. A FAST-style DCT-quantize compressor.
@@ -13,7 +18,7 @@ from dataclasses import dataclass
 
 
 def discretize(action: list[float], bins: int = 256) -> list[int]:
-    """Map a [-1,1]^D action to D integer bins."""
+    """将 [-1,1]^D 连续动作离散化为 D 个整数 bin（RT-2 / OpenVLA 方式）。"""
     tokens = []
     for a in action:
         idx = int((a + 1) / 2 * (bins - 1))
@@ -27,7 +32,7 @@ def undiscretize(tokens: list[int], bins: int = 256) -> list[float]:
 
 
 def dct(x: list[float]) -> list[float]:
-    """Naive type-II DCT."""
+    """朴素 type-II DCT（离散余弦变换），用于 FAST token 压缩。"""
     n = len(x)
     out = []
     for k in range(n):
@@ -40,9 +45,9 @@ def dct(x: list[float]) -> list[float]:
 
 def fast_compress(trajectory: list[list[float]], keep_coeff: int = 4,
                   bins: int = 32) -> list[int]:
-    """FAST-style tokenizer: per-dim DCT + keep low-freq + quantize.
-    trajectory: list of actions (list of floats), shape (T, D).
-    Returns a flat integer token list."""
+    """FAST 风格 tokenizer：每维做 DCT，保留低频系数，量化为整数 token。
+    trajectory: 动作序列，形状 (T, D)。
+    返回扁平化的整数 token 列表。"""
     if not trajectory:
         return []
     D = len(trajectory[0])

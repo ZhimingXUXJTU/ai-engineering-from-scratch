@@ -1,6 +1,10 @@
-# Image Generation — GANs
+# Image Generation — GANs | 图像生成 — 生成对抗网络
 
 > A GAN is two neural networks in a fixed game. One draws, one critiques. They get better together until the drawings fool the critic.
+
+> **【中文解读】** GAN（生成对抗网络）是两个神经网络的博弈：生成器画画，判别器挑毛病，两者共同进步直到生成器能骗过判别器。GAN 是图像生成三大路线（GAN/VAE/Diffusion）之一，曾统治 AI 图像生成领域多年。
+
+> **【拓展：GAN 的遗产】** GAN 在 StyleGAN（人脸生成）、CycleGAN（风格迁移）、Super-Resolution GAN（图像超分辨率）中有里程碑式应用。虽然扩散模型在 2022 年后成为图像生成的主流，GAN 的对抗训练思想仍被用于提升其他生成模型的质量。
 
 **Type:** Build
 **Languages:** Python

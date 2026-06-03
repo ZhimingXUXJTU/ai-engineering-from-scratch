@@ -1,3 +1,8 @@
+"""
+流式语音到语音 (Streaming Speech-to-Speech — Moshi/Hibiki)
+核心概念：全双工架构，同时听和说，基于 Mimi codec token
+AI 对应：Moshi 在 200ms 延迟内实现同时听说，是语音 AI 的前沿
+"""
 """Moshi-style full-duplex simulation.
 
 Models the shape of Moshi's parallel-stream architecture:

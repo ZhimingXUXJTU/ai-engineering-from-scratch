@@ -1,4 +1,4 @@
-# Norms and Distances
+# Norms and Distances | 范数与距离
 
 > Your distance function defines what "similar" means. Choose wrong and everything downstream breaks.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1, Lessons 01 (Linear Algebra Intuition), 02 (Vectors, Matrices & Operations)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement L1, L2, cosine, Mahalanobis, Jaccard, and edit distance functions from scratch
 - Select the appropriate distance metric for a given ML task and explain why alternatives fail
 - Connect L1 and L2 norms to LASSO and Ridge regularization and their geometric constraint regions
 - Demonstrate how the same dataset produces different nearest neighbors under different metrics
+
+
+> **【中文解读】**
+> 距离函数定义了相似的含义。L1 对应 LASSO（特征选择），L2 对应 Ridge（防止过拟合），余弦距离适合词嵌入，编辑距离适合字符串。梯度裁剪用 L2 范数限制梯度大小。
 
 ## The Problem
 

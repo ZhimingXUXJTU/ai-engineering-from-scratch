@@ -2,6 +2,9 @@
 
 Scripted debaters with different opinion drifts. Measures convergent answer,
 rounds to consensus, and total critique ops (as a cost proxy).
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -13,23 +16,26 @@ from typing import Any, Callable
 
 @dataclass
 class Debater:
+    """Debater"""
     name: str
     drift: Callable[[str, list[str]], str]
 
 
 def _make_debater(name: str, bias: str,
+    """_make_debater"""
                   corrections: dict[str, str]) -> Debater:
     def drift(question: str, peer_answers: list[str]) -> str:
         current = corrections.get(question, bias)
         if peer_answers:
             common = Counter(peer_answers).most_common(1)[0][0]
             if common != current and common != bias:
-                return common
-        return current
-    return Debater(name=name, drift=drift)
+                return common  # 返回结果
+        return current  # 返回结果
+    return Debater(name=name, drift=drift)  # 返回结果
 
 
 def full_mesh_round(debaters: list[Debater], question: str,
+    """full_mesh_round"""
                     prior: dict[str, str]) -> tuple[dict[str, str], int]:
     new_answers: dict[str, str] = {}
     ops = 0
@@ -37,10 +43,11 @@ def full_mesh_round(debaters: list[Debater], question: str,
         peers = [prior[d.name] for d in debaters if d.name != debater.name]
         new_answers[debater.name] = debater.drift(question, peers)
         ops += len(peers)
-    return new_answers, ops
+    return new_answers, ops  # 返回结果
 
 
 def sparse_star_round(hub: Debater, spokes: list[Debater], question: str,
+    """sparse_star_round"""
                       prior: dict[str, str]) -> tuple[dict[str, str], int]:
     new_answers: dict[str, str] = {}
     ops = 0
@@ -54,10 +61,11 @@ def sparse_star_round(hub: Debater, spokes: list[Debater], question: str,
             question, [prior[hub.name]]
         )
         ops += 1
-    return new_answers, ops
+    return new_answers, ops  # 返回结果
 
 
 def run_debate(debaters: list[Debater], question: str, rounds: int,
+    """run_debate"""
                topology: str) -> tuple[str, int, int]:
     prior: dict[str, str] = {}
     for debater in debaters:
@@ -78,10 +86,11 @@ def run_debate(debaters: list[Debater], question: str, rounds: int,
         prior = new
 
     votes = Counter(prior.values()).most_common(1)[0][0]
-    return votes, converged_round, total_ops
+    return votes, converged_round, total_ops  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("MULTI-AGENT DEBATE — Phase 14, Lesson 25")
     print("=" * 70)
@@ -128,4 +137,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

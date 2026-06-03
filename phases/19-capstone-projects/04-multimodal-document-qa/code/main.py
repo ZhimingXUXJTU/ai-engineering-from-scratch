@@ -7,6 +7,9 @@ end on synthetic patch embeddings so the algorithm is observable without
 loading a real ColQwen model. Includes DocPruner-style patch pruning.
 
 Run:  python main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -25,18 +28,21 @@ EMB_DIM = 16
 
 
 def tokenize(text: str) -> list[str]:
-    return re.findall(r"\w+", text.lower())
+    """tokenize"""
+    return re.findall(r"\w+", text.lower())  # 返回结果
 
 
 def hash_embed(tok: str) -> list[float]:
+    """hash_embed"""
     rnd = random.Random(hash(tok) & 0xFFFFFFFF)
     v = [rnd.gauss(0, 1) for _ in range(EMB_DIM)]
     n = math.sqrt(sum(x * x for x in v)) or 1.0
-    return [x / n for x in v]
+    return [x / n for x in v]  # 返回结果
 
 
 @dataclass
 class Page:
+    """Page"""
     doc_id: str
     page_num: int
     content_tokens: list[str]          # stand-in for page contents
@@ -57,7 +63,7 @@ def doc_prune(patches: list[list[float]], keep_fraction: float = 0.5) -> list[li
     scored = [(sum(abs(x) for x in p), p) for p in patches]
     scored.sort(key=lambda x: -x[0])
     keep_n = max(1, int(len(scored) * keep_fraction))
-    return [p for _, p in scored[:keep_n]]
+    return [p for _, p in scored[:keep_n]]  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -65,10 +71,12 @@ def doc_prune(patches: list[list[float]], keep_fraction: float = 0.5) -> list[li
 # ---------------------------------------------------------------------------
 
 def dot(a: list[float], b: list[float]) -> float:
-    return sum(x * y for x, y in zip(a, b))
+    """dot"""
+    return sum(x * y for x, y in zip(a, b))  # 返回结果
 
 
 def max_sim_score(query_tokens: list[list[float]],
+    """max_sim_score"""
                   doc_patches: list[list[float]]) -> float:
     """For every query token embedding, take max dot product against any
     doc patch; sum across query tokens. This is MaxSim / late interaction."""
@@ -80,7 +88,7 @@ def max_sim_score(query_tokens: list[list[float]],
             if s > best:
                 best = s
         total += best
-    return total
+    return total  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -89,6 +97,7 @@ def max_sim_score(query_tokens: list[list[float]],
 
 @dataclass
 class Index:
+    """Index"""
     pages: list[Page] = field(default_factory=list)
 
     def add(self, p: Page) -> None:
@@ -98,7 +107,7 @@ class Index:
         q_tokens = [hash_embed(t) for t in tokenize(query)]
         scored = [(pg, max_sim_score(q_tokens, pg.patches)) for pg in self.pages]
         scored.sort(key=lambda x: -x[1])
-        return scored[:k]
+        return scored[:k]  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -120,6 +129,7 @@ CORPUS = [
 
 
 def build_index(prune: bool = True) -> Index:
+    """build_index"""
     idx = Index()
     for doc, page, text in CORPUS:
         p = Page(doc_id=doc, page_num=page, content_tokens=tokenize(text))
@@ -127,10 +137,11 @@ def build_index(prune: bool = True) -> Index:
         if prune:
             p.patches = doc_prune(p.patches, keep_fraction=0.5)
         idx.add(p)
-    return idx
+    return idx  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=== build index with DocPruner (50% patches) ===")
     idx = build_index(prune=True)
     print(f"pages indexed: {len(idx.pages)}")
@@ -161,4 +172,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

@@ -1,13 +1,16 @@
-# Plan-Execute Control Flow
+# Plan-Execute Control Flow | 执行 控制 计划
 
 > A plan that cannot survive a failure is a script. A script that can replan is an agent. Build the replanner first.
+
+> **【中文解读】** 本节是综合项目——构建计划-执行控制流。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 13 lessons 01-07, Phase 14 lesson 01
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 - Represent a plan as an ordered list of typed steps so the executor can reason about progress and outcome.
 - Execute steps sequentially with a controlled failure handoff back to the planner.
 - Replan from the current cursor with the prior error in the context so the next plan is informed.

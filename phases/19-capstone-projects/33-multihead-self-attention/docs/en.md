@@ -1,13 +1,16 @@
-# Multi-Head Self-Attention
+# Multi-Head Self-Attention | 自注意力 多
 
 > One linear projection, three views, H parallel heads, one mask. The attention block as the model actually uses it.
+
+> **【中文解读】** 本节是综合项目——实现多头自注意力机制。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 04 lessons, Phase 07 transformer lessons, Lessons 30 through 32 of this phase
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 - Implement a batched Query/Key/Value projection as a single linear layer split into H heads.
 - Compute scaled dot-product attention with the correct normalization and dtype handling.
 - Apply a causal mask that prevents a position from attending to future positions.

@@ -6,6 +6,9 @@ hash). Sampling is biased toward green. Detector computes green-token
 z-score; reported at 1000 tokens.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -28,14 +31,15 @@ def green_set(prev_tokens: list[int]) -> set[int]:
     digest = hashlib.sha256(seed.encode()).hexdigest()
     h = int(digest, 16)
     # partition: token is green iff (token + h) mod 2 == 0
-    return {t for t in range(VOCAB) if (t + h) % 2 == 0}
+    return {t for t in range(VOCAB) if (t + h) % 2 == 0}  # 返回结果
 
 
 def unwatermarked_sample(n: int, seed_prefix: list[int]) -> list[int]:
+    """unwatermarked_sample"""
     out = list(seed_prefix)
     for _ in range(n):
         out.append(random.randrange(VOCAB))
-    return out
+    return out  # 返回结果
 
 
 def watermarked_sample(n: int, seed_prefix: list[int], bias: float = 0.9) -> list[int]:
@@ -46,13 +50,13 @@ def watermarked_sample(n: int, seed_prefix: list[int], bias: float = 0.9) -> lis
         use_green = random.random() < bias
         pool = list(greens) if use_green else list(set(range(VOCAB)) - greens)
         out.append(random.choice(pool))
-    return out
+    return out  # 返回结果
 
 
 def detect(tokens: list[int]) -> float:
     """Returns z-score: (green count - expected) / sqrt(expected * p(1-p))."""
     if len(tokens) <= K:
-        return 0.0
+        return 0.0  # 返回结果
     green_count = 0
     for i in range(K, len(tokens)):
         greens = green_set(tokens[:i])
@@ -61,7 +65,7 @@ def detect(tokens: list[int]) -> float:
     n = len(tokens) - K
     expected = n * 0.5
     std = math.sqrt(n * 0.5 * 0.5)
-    return (green_count - expected) / std
+    return (green_count - expected) / std  # 返回结果
 
 
 def paraphrase(tokens: list[int], ratio: float = 0.3) -> list[int]:
@@ -70,10 +74,11 @@ def paraphrase(tokens: list[int], ratio: float = 0.3) -> list[int]:
     for i in range(len(out)):
         if random.random() < ratio:
             out[i] = random.randrange(VOCAB)
-    return out
+    return out  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("TOY TOKEN WATERMARK (Phase 18, Lesson 23)")
     print("=" * 70)
@@ -108,4 +113,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

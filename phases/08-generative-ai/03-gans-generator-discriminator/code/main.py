@@ -1,3 +1,8 @@
+"""
+GAN — 生成器与判别器 (GANs — Generator vs Discriminator)
+核心概念：对抗训练——生成器造假、判别器识破、互相博弈
+AI 对应：StyleGAN（人脸生成）、CycleGAN（风格迁移）的基石
+"""
 import math
 import random
 

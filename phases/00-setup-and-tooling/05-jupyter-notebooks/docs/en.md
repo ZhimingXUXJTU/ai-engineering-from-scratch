@@ -1,4 +1,4 @@
-# Jupyter Notebooks
+# Jupyter Notebooks | Jupyter 笔记本
 
 > Notebooks are the lab bench of AI engineering. You prototype here, then move what works into production.
 
@@ -7,20 +7,26 @@
 **Prerequisites:** Phase 0, Lesson 01
 **Time:** ~30 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Install and launch JupyterLab, Jupyter Notebook, or VS Code with the Jupyter extension
 - Use magic commands (`%timeit`, `%%time`, `%matplotlib inline`) to benchmark and visualize inline
 - Distinguish when to use notebooks vs scripts and apply the "explore in notebooks, ship in scripts" workflow
 - Identify and avoid common notebook traps: out-of-order execution, hidden state, and memory leaks
 
-## The Problem
+> **【中文解读】**
+> Jupyter Notebook 是 AI 工程师的"实验室工作台"。你可以在里面逐段运行代码、即时查看结果、混合文字说明和图表。核心理念：在 Notebook 中探索和实验，验证后再迁移到 `.py` 脚本中部署。
+
+## The Problem | 问题描述
 
 Every AI paper, tutorial, and Kaggle competition uses Jupyter notebooks. They let you run code in pieces, see outputs inline, mix code with explanations, and iterate fast. If you try to learn AI without notebooks, you're doing math homework without scratch paper.
 
 But notebooks have real traps. People use them for everything, including things they're terrible at. Knowing when to use a notebook and when to use a script will save you from debugging nightmares later.
 
-## The Concept
+> **【中文解读】**
+> Notebook 是 AI 领域的标准工具，几乎所有论文和 Kaggle 比赛都用它。但它也有陷阱：乱序执行、隐藏状态、内存泄漏。关键是知道什么时候用 Notebook、什么时候用脚本。
+
+## The Concept | 核心概念
 
 A notebook is a list of cells. Each cell is either code or text.
 
@@ -42,9 +48,12 @@ graph LR
 
 That "whatever order you click" part is both the superpower and the foot-gun.
 
+> **【中文解读】**
+> Notebook 由多个"单元格"（cell）组成，每个单元格可以是代码或 Markdown。所有单元格共享同一个 Kernel（Python 进程），变量在单元格之间持久存在。"按任意顺序执行"既是超能力也是大坑——乱序执行会导致别人无法复现你的结果。
+
 ## Build It
 
-### Step 1: Pick your interface
+### Step 1: Pick your interface | 选择你的界面
 
 Three options, one format:
 
@@ -54,6 +63,12 @@ Three options, one format:
 | Jupyter Notebook | `pip install notebook` then `jupyter notebook` | Simple, lightweight, one notebook at a time |
 | VS Code | Install "Jupyter" extension | Already in your editor, git integration, debugging |
 
+| 界面 | 安装方式 | 最适合 |
+|------|---------|--------|
+| JupyterLab | `pip install jupyterlab` 后运行 `jupyter lab` | 完整 IDE 体验、多标签、文件浏览器 |
+| Jupyter Notebook | `pip install notebook` 后运行 `jupyter notebook` | 简洁轻量、一次一个笔记本 |
+| VS Code | 安装 "Jupyter" 扩展 | 集成在编辑器中、Git 整合、可调试 |
+
 All three read and write the same `.ipynb` file. Pick whatever you like. JupyterLab is the most common in AI work.
 
 ```bash
@@ -61,7 +76,7 @@ pip install jupyterlab
 jupyter lab
 ```
 
-### Step 2: Keyboard shortcuts that matter
+### Step 2: Keyboard shortcuts that matter | 重要快捷键
 
 You operate in two modes. Press `Escape` for command mode (blue bar on the left), `Enter` for edit mode (green bar).
 
@@ -88,7 +103,7 @@ You operate in two modes. Press `Escape` for command mode (blue bar on the left)
 
 `Shift+Enter` is the one you'll use a thousand times a day. Learn it first.
 
-### Step 3: Cell types
+### Step 3: Cell types | 单元格类型
 
 **Code cells** run Python and show the output:
 
@@ -102,20 +117,20 @@ Output: `(0.0032, 0.9987)`
 
 **Markdown cells** render formatted text. Use them to document what you're doing and why. Supports headers, bold, italic, LaTeX math (`$E = mc^2$`), tables, and images.
 
-### Step 4: Magic commands
+### Step 4: Magic commands | 魔术命令
 
 These aren't Python. They're Jupyter-specific commands that start with `%` (line magic) or `%%` (cell magic).
 
 **Time your code:**
 
 ```python
-%timeit np.random.randn(10000)
+%timeit np.random.randn(10000)  # 多次运行取平均，适合微基准测试
 ```
 
 Output: `45.2 us +/- 1.3 us per loop`
 
 ```python
-%%time
+%%time  # 单次运行，测量总耗时，适合训练耗时测试
 model.fit(X_train, y_train, epochs=10)
 ```
 
@@ -126,7 +141,7 @@ Output: `Wall time: 2.34 s`
 **Enable inline plots:**
 
 ```python
-%matplotlib inline
+%matplotlib inline  # 让图表直接显示在笔记本中
 ```
 
 Every `plt.plot()` or `plt.show()` now renders directly in the notebook.
@@ -134,7 +149,7 @@ Every `plt.plot()` or `plt.show()` now renders directly in the notebook.
 **Install packages without leaving the notebook:**
 
 ```python
-!pip install scikit-learn
+!pip install scikit-learn  # ! 前缀可以在笔记本中执行 shell 命令
 ```
 
 The `!` prefix runs any shell command.
@@ -142,7 +157,7 @@ The `!` prefix runs any shell command.
 **Check environment variables:**
 
 ```python
-%env CUDA_VISIBLE_DEVICES
+%env CUDA_VISIBLE_DEVICES  # 查看环境变量
 ```
 
 ### Step 5: Display rich output inline
@@ -195,9 +210,9 @@ Colab differences from local Jupyter:
 - `from google.colab import drive; drive.mount('/content/drive')` for persistent storage
 - Sessions time out after 90 minutes of inactivity (free tier)
 
-## Use It
+## Use It | 使用指南
 
-### Notebooks vs Scripts: When to use which
+### Notebooks vs Scripts: When to use which | 什么时候用笔记本、什么时候用脚本
 
 | Use notebooks for | Use scripts for |
 |-------------------|-----------------|
@@ -208,7 +223,19 @@ Colab differences from local Jupyter:
 | Quick experiments | Production code |
 | Course exercises | Packages and libraries |
 
+| 用 Notebook | 用脚本 |
+|-----------|-------|
+| 探索数据集 | 训练管线 |
+| 原型开发模型 | 可复用的工具函数 |
+| 可视化结果 | 带 `if __name__` 的正式代码 |
+| 解释你的工作 | 定时运行的代码 |
+| 快速实验 | 生产环境代码 |
+| 课程练习 | 包和库 |
+
 The rule: **explore in notebooks, ship in scripts**.
+
+> **【中文解读】**
+> 黄金法则：**在 Notebook 中探索，在脚本中部署**。先在 Notebook 里实验想法，验证可行后再将代码迁移到 `.py` 文件。
 
 A common workflow in AI:
 1. Explore data in a notebook
@@ -229,13 +256,16 @@ A common workflow in AI:
 This lesson produces:
 - `outputs/prompt-notebook-helper.md` for debugging notebook issues
 
-## Exercises
+## Exercises | 练习题
 
 1. Open JupyterLab, create a notebook, and use `%timeit` to compare list comprehension vs numpy for creating an array of 100,000 random numbers
+   打开 JupyterLab，创建笔记本，用 `%timeit` 对比列表推导式和 NumPy 生成 10 万随机数的速度
 2. Create a notebook with both markdown and code cells that loads a CSV, displays a dataframe, and plots a chart. Then run Kernel > Restart & Run All to verify it works top to bottom
+   创建包含 Markdown 和代码单元格的笔记本，加载 CSV、显示 DataFrame、画图，然后"重启并全部运行"验证顺序正确
 3. Take the code from `code/notebook_tips.py`, paste it into a Colab notebook, and run it with a free GPU
+   将 `code/notebook_tips.py` 的代码粘贴到 Colab 笔记本中，用免费 GPU 运行
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -243,6 +273,13 @@ This lesson produces:
 | Cell | "A code block" | An independently runnable unit in a notebook, either code or markdown |
 | Magic command | "Jupyter tricks" | Special commands prefixed with `%` or `%%` that control the notebook environment |
 | `.ipynb` | "Notebook file" | A JSON file containing cells, outputs, and metadata. Stands for IPython Notebook |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| Kernel | "运行代码的那个东西" | 独立的 Python 进程，执行单元格并维护变量状态 |
+| Cell | "代码块" | 笔记本中可独立运行的单元，可以是代码或 Markdown |
+| Magic command | "Jupyter 魔法" | 以 `%` 或 `%%` 开头的特殊命令，控制笔记本环境 |
+| `.ipynb` | "笔记本文件" | 包含单元格、输出和元数据的 JSON 文件 |
 
 ## Further Reading
 

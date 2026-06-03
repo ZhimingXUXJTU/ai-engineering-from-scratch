@@ -1,3 +1,17 @@
+"""
+构建生产级 LLM 应用 (Building a Production LLM Application)
+
+核心概念：
+- 端到端 LLM 应用：整合提示、RAG、函数调用、缓存、护栏等全部组件
+- 异步处理：使用 asyncio 处理并发请求
+- 流式输出：Server-Sent Events (SSE) 实现逐 token 输出
+- 成本追踪与优雅降级：监控 API 费用，异常时自动降级
+
+AI 应用对应：
+- 这是 Phase 11 的集大成课程，展示如何将所有组件整合为生产服务
+- 生产级 LLM 应用需要考虑可靠性、成本、安全和用户体验
+"""
+
 import asyncio
 import hashlib
 import json

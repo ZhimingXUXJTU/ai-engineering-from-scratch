@@ -1,6 +1,8 @@
-# Monte Carlo Methods — Learning from Complete Episodes
+# Monte Carlo Methods — Learning from Complete Episodes | 蒙特卡洛方法 — 从完整回合中学习
 
 > Dynamic programming needs a model. Monte Carlo needs nothing but episodes. Run the policy, watch the returns, average them. The simplest idea in RL — and the one that unlocks everything downstream.
+
+> **【中文解读】** 动态规划需要已知环境模型，蒙特卡洛只需要完整的回合数据：执行策略、观测回报、取平均。这是 RL 中最简单的思想，也是所有后续算法（TD、Q-learning、PPO、RLHF）的基石。
 
 **Type:** Build
 **Languages:** Python
@@ -15,11 +17,17 @@ You need a method that only needs the ability to *sample* from the environment. 
 
 The shift from DP to MC is philosophically important: we move from *known model + exact backup* to *sampled rollouts + averaged return*. The variance jumps, but the applicability explodes. Every RL algorithm after this lesson — TD, Q-learning, REINFORCE, PPO, GRPO — is a Monte Carlo estimator at heart, sometimes with bootstrapping layered on top.
 
+> **【中文解读】** 从 DP 到 MC 的核心转变：从"已知模型+精确计算"到"采样轨迹+平均回报"。方差增大了，但适用范围爆炸式扩展。PPO、RLHF 本质上都是 MC 估计器的变体。
+
+> **【拓展：LLM中的MC】** ChatGPT 的 RLHF 训练中，对每个 prompt 采样多个回答、计算平均奖励——这就是 MC 思想在大模型训练中的直接应用。DeepSeek-R1 的 GRPO 也是基于组内采样的 MC 估计。
+
 ## The Concept
 
 ![Monte Carlo: rollout, compute returns, average; first-visit vs every-visit](../assets/monte-carlo.svg)
 
 **The core idea, in one line:** `V^π(s) = E_π[G_t | s_t = s] ≈ (1/N) Σ_i G^{(i)}(s)` where `G^{(i)}(s)` are observed returns following visits to `s` under policy `π`.
+
+> **【中文解读】** MC 评估的核心：状态值 = 多次经过该状态时观测到的回报的平均值。首次访问 MC 只统计每个回合中第一次访问的回报，每次访问 MC 统计所有访问。增量式均值更新 `V_new = V_old + α(target - V_old)` 是从 MC 到 TD 到所有现代 RL 算法的桥梁。
 
 **First-visit vs every-visit MC.** Given an episode that visits state `s` multiple times, first-visit MC only counts the return from the first visit; every-visit MC counts all visits. Both are unbiased in the limit. First-visit is simpler to analyze (iid samples). Every-visit uses more data per episode and typically converges faster in practice.
 
@@ -30,6 +38,8 @@ The shift from DP to MC is philosophically important: we move from *known model 
 Reorganize: `V_new = V_old + α · (target - V_old)` with `α = 1/n`. Swap `1/n` for a constant step-size `α ∈ (0, 1)` and you get a non-stationary MC estimator that tracks changes in `π`. That move is the entire jump from MC to TD to every modern RL algorithm.
 
 **Exploration is now a problem.** DP touched every state by enumeration. MC only sees states the policy visits. If `π` is deterministic, whole regions of the state space never get sampled, and their value estimates stay at zero forever. Three fixes, in historical order:
+
+> **【中文解读】** 探索问题：DP 能遍历所有状态，MC 只能看到策略访问过的状态。如果策略是确定性的，大量状态永远不会被访问。三种解决方案：探索起点（不实际）、ε-贪心（最常用）、离策略 MC（通过重要性采样从行为策略学习目标策略）。
 
 1. **Exploring starts.** Start each episode from a random (s, a) pair. Guarantees coverage; unrealistic in practice (you cannot "reset" a robot into an arbitrary state).
 2. **ε-greedy.** Act greedy w.r.t. current Q, but with probability `ε` pick a random action. All state-action pairs get sampled asymptotically.
@@ -179,21 +189,24 @@ Refuse to run MC on non-episodic tasks without a finite horizon cap. Refuse to r
 ## Exercises
 
 1. **Easy.** Implement first-visit MC evaluation of the uniform-random policy on 4×4 GridWorld. Run 10,000 episodes. Plot `V(0,0)` as a function of episode count against the DP answer.
+   > **练习1：** 实现 MC 评估，将 V(0,0) 随回合数的收敛曲线与 DP 基准对比。
 2. **Medium.** Implement ε-greedy MC control with `ε ∈ {0.01, 0.1, 0.3}`. Compare mean return after 20,000 episodes. What does the curve look like? Where does the bias-variance tradeoff live?
+   > **练习2：** 用不同 ε 值做 MC 控制，观察探索-利用权衡。
 3. **Hard.** Implement *off-policy* MC with importance sampling: collect data under uniform-random policy `μ`, estimate `V^π` for the deterministic optimal policy `π`. Compare plain IS vs per-decision IS vs weighted IS. Which has lowest variance?
+   > **练习3：** 实现离策略 MC（重要性采样），比较不同 IS 方差的差异。
 
 ## Key Terms
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
-| Monte Carlo | "Random sampling" | Estimate expectations by averaging over iid samples from the distribution. |
-| Return `G_t` | "Future reward" | Sum of discounted rewards from step `t` to episode end: `Σ_{k≥0} γ^k r_{t+k+1}`. |
-| First-visit MC | "Count each state once" | Only the first visit in an episode contributes to the value estimate. |
-| Every-visit MC | "Use all visits" | Every visit contributes; slightly biased but more sample-efficient. |
-| ε-greedy | "Exploration noise" | Pick greedy action with prob `1-ε`; random action with prob `ε`. |
-| Importance sampling | "Correcting for sampling from the wrong distribution" | Reweight returns by `π(a\|s)/μ(a\|s)` products to estimate `V^π` from `μ` data. |
-| On-policy | "Learn from my own data" | Target policy = behavior policy. Vanilla MC, PPO, SARSA. |
-| Off-policy | "Learn from someone else's data" | Target policy ≠ behavior policy. Importance-sampled MC, Q-learning, DQN. |
+| Monte Carlo | "Random sampling" / 蒙特卡洛 | Estimate expectations by averaging over iid samples from the distribution. |
+| Return `G_t` | "Future reward" / 回报 | Sum of discounted rewards from step `t` to episode end: `Σ_{k≥0} γ^k r_{t+k+1}`. |
+| First-visit MC | "Count each state once" / 首次访问 MC | Only the first visit in an episode contributes to the value estimate. |
+| Every-visit MC | "Use all visits" / 每次访问 MC | Every visit contributes; slightly biased but more sample-efficient. |
+| ε-greedy | "Exploration noise" / ε-贪心 | Pick greedy action with prob `1-ε`; random action with prob `ε`. |
+| Importance sampling | "Correcting for sampling from the wrong distribution" / 重要性采样 | Reweight returns by `π(a\|s)/μ(a\|s)` products to estimate `V^π` from `μ` data. |
+| On-policy | "Learn from my own data" / 在线策略 | Target policy = behavior policy. Vanilla MC, PPO, SARSA. |
+| Off-policy | "Learn from someone else's data" / 离线策略 | Target policy ≠ behavior policy. Importance-sampled MC, Q-learning, DQN. |
 
 ## Further Reading
 

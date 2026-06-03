@@ -5,6 +5,9 @@ Models a 50k-document pipeline across four configurations:
   SYNC + CACHE      : system prompt cached after first call
   BATCH             : 50% discount, no cache
   BATCH + CACHE     : stacked (~10% of SYNC bill)
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -18,33 +21,38 @@ BATCH_DISCOUNT = 0.50
 
 
 def cost_sync(docs: int, prefix_tokens: int, per_doc_tokens: int, out_tokens: int) -> float:
+    """cost_sync"""
     cost = 0.0
     for _ in range(docs):
         cost += (prefix_tokens / 1e6) * BASE_INPUT
         cost += (per_doc_tokens / 1e6) * BASE_INPUT
         cost += (out_tokens / 1e6) * BASE_OUTPUT
-    return cost
+    return cost  # 返回结果
 
 
 def cost_sync_cache(docs: int, prefix_tokens: int, per_doc_tokens: int, out_tokens: int) -> float:
+    """cost_sync_cache"""
     cost = (prefix_tokens / 1e6) * CACHE_WRITE_5MIN
     for i in range(docs):
         if i > 0:
             cost += (prefix_tokens / 1e6) * CACHED_INPUT
         cost += (per_doc_tokens / 1e6) * BASE_INPUT
         cost += (out_tokens / 1e6) * BASE_OUTPUT
-    return cost
+    return cost  # 返回结果
 
 
 def cost_batch(docs: int, prefix_tokens: int, per_doc_tokens: int, out_tokens: int) -> float:
-    return cost_sync(docs, prefix_tokens, per_doc_tokens, out_tokens) * BATCH_DISCOUNT
+    """cost_batch"""
+    return cost_sync(docs, prefix_tokens, per_doc_tokens, out_tokens) * BATCH_DISCOUNT  # 返回结果
 
 
 def cost_batch_cache(docs: int, prefix_tokens: int, per_doc_tokens: int, out_tokens: int) -> float:
-    return cost_sync_cache(docs, prefix_tokens, per_doc_tokens, out_tokens) * BATCH_DISCOUNT
+    """cost_batch_cache"""
+    return cost_sync_cache(docs, prefix_tokens, per_doc_tokens, out_tokens) * BATCH_DISCOUNT  # 返回结果
 
 
 def run(label: str, docs: int, prefix: int, per_doc: int, output: int) -> None:
+    """run"""
     sc = cost_sync(docs, prefix, per_doc, output)
     scc = cost_sync_cache(docs, prefix, per_doc, output)
     bc = cost_batch(docs, prefix, per_doc, output)
@@ -58,6 +66,7 @@ def run(label: str, docs: int, prefix: int, per_doc: int, output: int) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("BATCH API ECONOMICS — stack batch with prompt caching for ~10% of sync bill")
     print("=" * 80)
@@ -70,4 +79,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

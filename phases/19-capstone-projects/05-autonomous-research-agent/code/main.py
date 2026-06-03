@@ -7,6 +7,9 @@ experiments are stubbed so the tree-search skeleton is observable end to end
 without real compute.
 
 Run:  python main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -23,6 +26,7 @@ from typing import Iterable
 
 @dataclass
 class Node:
+    """Node"""
     node_id: int
     parent: int | None
     hypothesis: str
@@ -35,7 +39,7 @@ class Node:
 
     def score(self, remaining_budget: float) -> float:
         budget_weight = min(1.0, remaining_budget / 10.0)
-        return self.novelty * 0.4 + self.quality * 0.5 + budget_weight * 0.1
+        return self.novelty * 0.4 + self.quality * 0.5 + budget_weight * 0.1  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -60,7 +64,7 @@ def expand(node: Node, next_id: int) -> list[Node]:
                              hypothesis=f"lr={lr}",
                              config=cfg))
         next_id += 1
-    return children
+    return children  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -93,12 +97,13 @@ def run_experiment(node: Node, rng: random.Random) -> None:
 # ---------------------------------------------------------------------------
 
 def verify(node: Node) -> bool:
+    """verify"""
     if node.failure:
-        return False
+        return False  # 返回结果
     if node.result.get("loss", 99) > 4.0:
         node.failure = "loss_diverged"
-        return False
-    return True
+        return False  # 返回结果
+    return True  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -107,6 +112,7 @@ def verify(node: Node) -> bool:
 
 @dataclass
 class Tree:
+    """Tree"""
     root: Node
     nodes: dict[int, Node] = field(default_factory=dict)
     frontier: list = field(default_factory=list)  # (neg_score, counter, node_id)
@@ -124,11 +130,12 @@ class Tree:
     def pop(self) -> Node | None:
         while self.frontier:
             _, _, nid = heapq.heappop(self.frontier)
-            return self.nodes[nid]
-        return None
+            return self.nodes[nid]  # 返回结果
+        return None  # 返回结果
 
 
 def tree_search(seed: str, rng: random.Random) -> Tree:
+    """tree_search"""
     root = Node(node_id=0, parent=None, hypothesis=seed, config={"sparsity_top": 8, "lr": 3e-4})
     root.novelty = 1.0
     root.quality = 0.5
@@ -159,7 +166,7 @@ def tree_search(seed: str, rng: random.Random) -> Tree:
         for ch in children:
             tree.push(ch)
 
-    return tree
+    return tree  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -167,18 +174,20 @@ def tree_search(seed: str, rng: random.Random) -> Tree:
 # ---------------------------------------------------------------------------
 
 def best_branch(tree: Tree) -> list[Node]:
+    """best_branch"""
     done = [n for n in tree.nodes.values() if n.result and not n.failure]
     if not done:
-        return []
+        return []  # 返回结果
     best = max(done, key=lambda n: n.quality)
     # walk back to root
     chain = [best]
     while chain[-1].parent is not None:
         chain.append(tree.nodes[chain[-1].parent])
-    return list(reversed(chain))
+    return list(reversed(chain))  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=== autonomous research agent: tree search (budget $30) ===")
     rng = random.Random(7)
     seed = "investigate sparsity patterns in attention maps of sub-1B transformers"
@@ -198,4 +207,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

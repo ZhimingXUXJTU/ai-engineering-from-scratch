@@ -2,6 +2,9 @@
 
 Built-in tools, subagents with isolated context, lifecycle hooks, session store.
 Demonstrates how spawning subagents keeps the orchestrator's context bounded.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -12,12 +15,14 @@ from typing import Any, Callable
 
 @dataclass
 class Tool:
+    """Tool"""
     name: str
     description: str
     fn: Callable[..., str]
 
 
 class ToolRegistry:
+    """ToolRegistry"""
     def __init__(self) -> None:
         self._tools: dict[str, Tool] = {}
 
@@ -25,14 +30,15 @@ class ToolRegistry:
         self._tools[tool.name] = tool
 
     def get(self, name: str) -> Tool | None:
-        return self._tools.get(name)
+        return self._tools.get(name)  # 返回结果
 
     def names(self) -> list[str]:
-        return sorted(self._tools)
+        return sorted(self._tools)  # 返回结果
 
 
 @dataclass
 class Hooks:
+    """Hooks"""
     pre_tool_use: list[Callable[[str, dict[str, Any]], None]] = field(default_factory=list)
     post_tool_use: list[Callable[[str, str], None]] = field(default_factory=list)
     session_start: list[Callable[[str], None]] = field(default_factory=list)
@@ -41,11 +47,13 @@ class Hooks:
 
 @dataclass
 class Turn:
+    """Turn"""
     role: str
     content: str
 
 
 class SessionStore:
+    """SessionStore"""
     def __init__(self) -> None:
         self._sessions: dict[str, list[Turn]] = {}
         self._subkeys: dict[str, list[str]] = {}
@@ -54,10 +62,10 @@ class SessionStore:
         self._sessions.setdefault(session_id, []).append(turn)
 
     def load(self, session_id: str) -> list[Turn]:
-        return list(self._sessions.get(session_id, []))
+        return list(self._sessions.get(session_id, []))  # 返回结果
 
     def list_sessions(self) -> list[str]:
-        return sorted(self._sessions)
+        return sorted(self._sessions)  # 返回结果
 
     def delete(self, session_id: str) -> None:
         self._sessions.pop(session_id, None)
@@ -66,7 +74,7 @@ class SessionStore:
         self._subkeys.pop(session_id, None)
 
     def list_subkeys(self, session_id: str) -> list[str]:
-        return list(self._subkeys.get(session_id, []))
+        return list(self._subkeys.get(session_id, []))  # 返回结果
 
     def link_sub(self, parent: str, sub: str) -> None:
         self._subkeys.setdefault(parent, []).append(sub)
@@ -74,6 +82,7 @@ class SessionStore:
 
 @dataclass
 class AgentRun:
+    """AgentRun"""
     session_id: str
     context_tokens: int = 0
     tool_calls: list[tuple[str, dict[str, Any], str]] = field(default_factory=list)
@@ -81,6 +90,7 @@ class AgentRun:
 
 
 class Harness:
+    """Harness"""
     def __init__(self, tools: ToolRegistry, hooks: Hooks,
                  store: SessionStore) -> None:
         self.tools = tools
@@ -101,7 +111,7 @@ class Harness:
                 result = f"error: {type(e).__name__}: {e}"
         for hook in self.hooks.post_tool_use:
             hook(tool_name, result)
-        return result
+        return result  # 返回结果
 
     def run_agent(self, session_id: str, prompt: str,
                   tool_calls: list[tuple[str, dict[str, Any]]],
@@ -128,7 +138,7 @@ class Harness:
 
         for hook in self.hooks.session_end:
             hook(session_id)
-        return run
+        return run  # 返回结果
 
     def spawn_subagents(self, parent_session: str,
                         tasks: list[tuple[str, list[tuple[str, dict[str, Any]]]]]
@@ -140,18 +150,21 @@ class Harness:
             run = self.run_agent(sub_session, prompt, tool_calls,
                                  parent_session=parent_session)
             runs.append(run)
-        return runs
+        return runs  # 返回结果
 
 
 def _read_file_demo(path: str) -> str:
-    return f"[content of {path}: 42 lines]"
+    """_read_file_demo"""
+    return f"[content of {path}: 42 lines]"  # 返回结果
 
 
 def _list_dir_demo(path: str) -> str:
-    return f"[{path}: 7 files]"
+    """_list_dir_demo"""
+    return f"[{path}: 7 files]"  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("CLAUDE AGENT SDK SHAPE — Phase 14, Lesson 17")
     print("=" * 70)
@@ -215,4 +228,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

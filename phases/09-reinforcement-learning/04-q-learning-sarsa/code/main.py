@@ -1,3 +1,18 @@
+"""
+时序差分学习 (Temporal Difference) — Q-Learning 与 SARSA
+
+核心概念：每一步都更新值函数，用 bootstrapping（自举）构造目标：
+  TD 目标 = r + γ V(s')
+Q-learning 用 max（离策略，学习最优 Q*），SARSA 用实际下一动作（在线策略，学习 Q^π）。
+
+AI 对应：Q-learning 是 Atari DQN 的核心→开启了深度 RL 时代；
+SARSA 的在线策略思想延伸到 PPO→ChatGPT RLHF 训练的核心算法。
+
+本模块实现：
+  - SARSA（在线策略 TD 控制）
+  - Q-learning（离策略 TD 控制）
+"""
+
 import random
 from collections import defaultdict
 
@@ -23,6 +38,7 @@ def step(state, action):
 
 
 def epsilon_greedy(Q, state, rng, epsilon):
+    """ε-贪心动作选择：以 ε 概率随机探索，否则选 Q 最大的动作"""
     if rng.random() < epsilon:
         return rng.choice(ACTIONS)
     q = Q[state]
@@ -30,28 +46,30 @@ def epsilon_greedy(Q, state, rng, epsilon):
 
 
 def sarsa(episodes, alpha=0.1, gamma=0.99, epsilon=0.1, rng=None):
+    """SARSA 算法（在线策略 TD 控制）：用实际下一动作 a' 构造目标"""
     rng = rng or random.Random(0)
-    Q = defaultdict(lambda: {a: 0.0 for a in ACTIONS})
+    Q = defaultdict(lambda: {a: 0.0 for a in ACTIONS})  # Q 表初始化为 0
     returns = []
     for _ in range(episodes):
         s = reset()
-        a = epsilon_greedy(Q, s, rng, epsilon)
+        a = epsilon_greedy(Q, s, rng, epsilon)  # 选初始动作
         total = 0.0
         for _ in range(200):
             s_next, r, done = step(s, a)
             total += r
             if done:
-                Q[s][a] += alpha * (r - Q[s][a])
+                Q[s][a] += alpha * (r - Q[s][a])  # 终止时目标是 r
                 break
-            a_next = epsilon_greedy(Q, s_next, rng, epsilon)
-            target = r + gamma * Q[s_next][a_next]
-            Q[s][a] += alpha * (target - Q[s][a])
+            a_next = epsilon_greedy(Q, s_next, rng, epsilon)  # 用当前策略选下一动作
+            target = r + gamma * Q[s_next][a_next]  # SARSA 目标：r + γ Q(s',a')
+            Q[s][a] += alpha * (target - Q[s][a])  # TD 更新
             s, a = s_next, a_next
         returns.append(total)
     return Q, returns
 
 
 def q_learning(episodes, alpha=0.1, gamma=0.99, epsilon=0.1, rng=None):
+    """Q-learning 算法（离策略 TD 控制）：用 max Q(s',a') 构造目标"""
     rng = rng or random.Random(0)
     Q = defaultdict(lambda: {a: 0.0 for a in ACTIONS})
     returns = []
@@ -59,15 +77,15 @@ def q_learning(episodes, alpha=0.1, gamma=0.99, epsilon=0.1, rng=None):
         s = reset()
         total = 0.0
         for _ in range(200):
-            a = epsilon_greedy(Q, s, rng, epsilon)
+            a = epsilon_greedy(Q, s, rng, epsilon)  # 行为策略（ε-贪心）
             s_next, r, done = step(s, a)
             total += r
             if done:
                 Q[s][a] += alpha * (r - Q[s][a])
                 break
-            best_next = max(Q[s_next].values())
-            target = r + gamma * best_next
-            Q[s][a] += alpha * (target - Q[s][a])
+            best_next = max(Q[s_next].values())  # 目标策略（贪心 max）
+            target = r + gamma * best_next  # Q-learning 目标：r + γ max Q(s',·)
+            Q[s][a] += alpha * (target - Q[s][a])  # TD 更新
             s = s_next
         returns.append(total)
     return Q, returns

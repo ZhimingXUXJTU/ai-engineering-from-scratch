@@ -1,6 +1,8 @@
-# Text Processing — Tokenization, Stemming, Lemmatization
+# Text Processing — Tokenization, Stemming, Lemmatization | 文本处理 — 分词、词干提取、词形还原
 
 > Language is continuous. Models are discrete. Preprocessing is the bridge.
+
+> **【中文解读】** 分词是 NLP 的第一步：把连续文本切成离散 token。包括词干提取和词形还原。在 LLM 时代，分词由 BPE 等子词分词器处理。
 
 **Type:** Build
 **Languages:** Python

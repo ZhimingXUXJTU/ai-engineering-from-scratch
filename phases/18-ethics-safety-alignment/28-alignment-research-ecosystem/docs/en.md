@@ -1,24 +1,27 @@
-# Alignment Research Ecosystem — MATS, Redwood, Apollo, METR
+# Alignment Research Ecosystem — MATS, Redwood, Apollo, METR | 对齐 生态系统 研究 METR
 
 > Five organisations define the 2026 non-lab alignment research layer. MATS (ML Alignment & Theory Scholars): 527+ researchers since late 2021, 180+ papers, 10K+ citations, h-index 47; summer 2024 cohort incorporated as 501(c)(3) with ~90 scholars and 40 mentors; 80% of pre-2025 alumni work on safety/security with 200+ at Anthropic, DeepMind, OpenAI, UK AISI, RAND, Redwood, METR, Apollo. Redwood Research: applied alignment lab founded by Buck Shlegeris; introduced AI Control (Lesson 10); collaborates with UK AISI on control safety cases. Apollo Research: pre-deployment scheming evaluations for frontier labs; authored In-Context Scheming (Lesson 8) and Towards Safety Cases for AI Scheming. METR (Model Evaluation and Threat Research): task-based capability evaluations, autonomous-task time-horizon studies; "Common Elements of Frontier AI Safety Policies" compares lab frameworks. Eleos AI Research: model-welfare pre-deployment evaluations (Lesson 19); conducted Claude Opus 4 welfare assessment.
+
+> **【中文解读】** 本节介绍了对齐研究生态系统——AI 安全对齐领域的研究机构、论文和开源项目。
+
 
 **Type:** Learn
 **Languages:** none
 **Prerequisites:** Phase 18 · 01-27 (prior Phase 18 lessons)
 **Time:** ~45 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Identify the five organisations of the non-lab alignment research ecosystem and their core output.
 - Describe MATS's scale (scholars, papers, h-index) and its role as a talent pipeline.
 - Describe Redwood's AI Control agenda and its partnership with UK AISI.
 - Describe METR's task-based evaluation methodology.
 
-## The Problem
+## The Problem | 问题
 
 The frontier labs (Lesson 18) produce safety evaluations internally and publish selected results. The ecosystem outside the labs is where the evaluations are validated, where novel failure modes are first discovered, and where talent is trained. Understanding the ecosystem helps interpret which research findings are trusted by whom.
 
-## The Concept
+## The Concept | 概念
 
 ### MATS (ML Alignment & Theory Scholars)
 
@@ -71,15 +74,15 @@ Single-source evaluations are unreliable: labs evaluating their own models have 
 
 Lessons 7-11 reference Redwood and Apollo work; Lesson 18 references METR's framework comparison; Lesson 19 references Eleos. Lesson 28 is the explicit organisational map for the ecosystem the rest of the Phase relies on.
 
-## Use It
+## Use It | 使用方法
 
 No code. Read METR's "Common Elements of Frontier AI Safety Policies" as an example of how external synthesis adds value to lab-internal policy work.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-ecosystem-map.md`. Given an alignment claim or evaluation, it identifies the organisation, the publication venue, and the methodological style, and cross-checks against known-counterpart organisations.
 
-## Exercises
+## Exercises | 练习题
 
 1. Pick one paper from Lessons 7-15 and identify the organisations involved. Cross-check the authors against MATS alumni and current ecosystem affiliations.
 
@@ -91,7 +94,7 @@ This lesson produces `outputs/skill-ecosystem-map.md`. Given an alignment claim 
 
 5. Eleos AI is the only pure model-welfare organisation. Design a hypothetical second organisation focused on a different welfare-adjacent question (cognitive liberty, robotic embodiment, etc.) and articulate its methodology.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -103,7 +106,7 @@ This lesson produces `outputs/skill-ecosystem-map.md`. Given an alignment claim 
 | Talent pipeline | "MATS -> labs" | MATS graduates flow to Anthropic, DM, OpenAI, Redwood, Apollo, METR |
 | External evaluation | "non-lab check" | Evaluation not done by the model's producer; adds credibility |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [MATS (ML Alignment & Theory Scholars)](https://www.matsprogram.org/) — the mentorship program
 - [Redwood Research](https://www.redwoodresearch.org/) — AI Control papers

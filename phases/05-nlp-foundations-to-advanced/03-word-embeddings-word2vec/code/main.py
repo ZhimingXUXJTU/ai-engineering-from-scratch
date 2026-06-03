@@ -1,3 +1,8 @@
+"""
+Word2Vec 词嵌入从零实现
+
+Word2Vec 把词映射到稠密向量，相似词在空间中接近。核心：上下文相似的词语义相似。GPT/BERT 的词嵌入层就是这个思想的延伸。对应 gensim Word2Vec。
+"""
 import re
 
 import numpy as np

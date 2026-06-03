@@ -1,4 +1,4 @@
-# Editor Setup
+# Editor Setup | 编辑器配置
 
 > Your editor is your co-pilot. Configure it once so it stays out of your way and starts pulling its weight.
 
@@ -7,20 +7,26 @@
 **Prerequisites:** Phase 0, Lesson 01
 **Time:** ~20 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Install VS Code with essential extensions for Python, Jupyter, linting, and remote SSH
 - Configure format-on-save, type checking, and notebook output scrolling for AI workflows
 - Set up Remote SSH to edit and debug code on remote GPU machines as if they were local
 - Evaluate editor alternatives (Cursor, Windsurf, Neovim) and their tradeoffs for AI work
 
-## The Problem
+> **【中文解读】**
+> 编辑器是你写代码的主力工具。本章帮你配置 VS Code 用于 AI 开发：Python 支持、Jupyter 集成、远程 SSH 连接 GPU 服务器。配置一次，受益整个课程。
+
+## The Problem | 问题描述
 
 You'll spend thousands of hours inside your editor writing Python, running notebooks, debugging training loops, and SSH-ing into GPU boxes. A misconfigured editor turns every session into friction: no autocomplete, no type hints, no inline errors, manual formatting, and a clunky terminal workflow.
 
 The right setup takes 20 minutes. Skipping it costs you 20 minutes every day.
 
-## The Concept
+> **【中文解读】**
+> 配置编辑器只需 20 分钟，但不配置会让你每天多浪费 20 分钟。自动补全、类型检查、保存时格式化——这些小功能累积起来能省大量时间。
+
+## The Concept | 核心概念
 
 An AI engineering editor setup needs five things:
 
@@ -32,6 +38,9 @@ graph TD
     L2["2. Extensions<br/>Python, Jupyter, Pylance, GitLens"] --> L1
     L1["1. Base Editor<br/>VS Code — free, extensible, universal"]
 ```
+
+> **【中文解读】**
+> AI 开发编辑器需要五层配置：基础编辑器 → 扩展插件 → AI 专用设置 → 终端集成 → 远程开发。其中远程 SSH 开发是最重要的——你需要在本地编辑器中直接操作远程 GPU 服务器。
 
 ## Build It
 
@@ -190,14 +199,18 @@ With this setup, your daily workflow looks like:
 4. Use the integrated terminal for training scripts, `uv pip install`, and GPU monitoring.
 5. Review changes with GitLens before committing.
 
-## Exercises
+## Exercises | 练习题
 
 1. Install VS Code and all extensions listed in Step 2
+   安装 VS Code 和步骤 2 中列出的所有扩展
 2. Copy the `settings.json` from this lesson into your VS Code config
+   将本课的 `settings.json` 复制到你的 VS Code 配置中
 3. Open a Python file and verify that Pylance shows type hints and Black formats on save
+   打开一个 Python 文件，验证 Pylance 显示类型提示、Black 保存时自动格式化
 4. If you have access to a remote machine, set up Remote SSH and open a folder on it
+   如果有远程机器，设置 Remote SSH 并打开远程文件夹
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -205,3 +218,10 @@ With this setup, your daily workflow looks like:
 | Pylance | "The Python plugin" | Microsoft's Python language server using Pyright for type checking and IntelliSense |
 | Remote SSH | "Working on the server" | VS Code extension that runs a lightweight server on a remote machine and streams the UI to your local editor |
 | Format on save | "Auto-prettier" | The editor runs a formatter (Black, Ruff) every time you save, so code style is always consistent |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| LSP | "自动补全引擎" | 语言服务器协议：编辑器获取类型信息、补全和诊断的标准 |
+| Pylance | "Python 插件" | 微软的 Python 语言服务器，提供类型检查和智能提示 |
+| Remote SSH | "在服务器上开发" | VS Code 在远程机器上运行轻量服务器，将 UI 传输到本地编辑器 |
+| Format on save | "保存时自动格式化" | 每次保存时自动运行格式化工具，保持代码风格一致 |

@@ -1,13 +1,16 @@
-# Capstone Lesson 40: Direct Preference Optimization from Scratch
+# Capstone Lesson 40: Direct Preference Optimization from Scratch | 直接偏好 优化 结业
 
 > Reward models and PPO are the classical RLHF stack. DPO collapses that stack into a single supervised loss that fits a policy directly against preference pairs. This lesson derives the DPO loss from the reward-difference identity, ships a working reference model plus policy model, computes per-token log-probabilities, and trains a tiny transformer on a preference fixture of chosen and rejected completions. Tests pin the loss math and the gradient direction so you know the implementation matches the paper.
+
+> **【中文解读】** 本节是综合项目——从零实现 DPO（直接偏好优化）。
+
 
 **Type:** Build
 **Languages:** Python (torch, numpy)
 **Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Derive the DPO loss as a sigmoid over a scaled log-ratio difference and connect it to the implicit reward.
 - Build a reference model + policy model pair with a frozen reference and a trainable policy.
@@ -15,7 +18,7 @@
 - Train the policy on `(prompt, chosen, rejected)` triples and watch the chosen log-prob rise relative to rejected.
 - Pin behaviour with tests on the loss math, the gradient sign, and the reference invariance.
 
-## The Problem
+## The Problem | 问题
 
 You have an SFT model. It follows instructions, but its outputs are uneven; some completions are clear, some are wordy or wrong. You also have a small dataset of preference pairs: for the same prompt, a human marked one completion as chosen and the other as rejected.
 
@@ -23,7 +26,7 @@ The classical RLHF answer is a two-stage pipeline. Train a reward model on the p
 
 DPO replaces both stages with a single supervised loss. The reward model never exists explicitly. The policy is trained directly on the preference pairs, with an explicit KL penalty toward the SFT reference. Same optimal solution under the Bradley-Terry preference model, far less code.
 
-## The Concept
+## The Concept | 概念
 
 Start from the Bradley-Terry model. Given a prompt `x` and two completions `y_w` (chosen) and `y_l` (rejected), the probability the human prefers `y_w` is
 
@@ -113,7 +116,7 @@ The implementation enforces these by:
 - Setting `requires_grad=False` on every reference parameter.
 - Constructing the policy via `policy.load_state_dict(reference.state_dict())` after the reference is built.
 
-## Architecture
+## Architecture | 架构
 
 ```mermaid
 flowchart TD

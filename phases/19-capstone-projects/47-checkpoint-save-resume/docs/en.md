@@ -1,20 +1,23 @@
-# Checkpoint Save and Resume
+# Checkpoint Save and Resume | 检查点
 
 > Train interrupts kill runs; checkpoints let them continue. Save model, optimizer, scheduler, loss history, step counter, and RNG state, atomically, so a kill at any moment leaves a valid file on disk.
+
+> **【中文解读】** 本节是综合项目——实现检查点保存和恢复。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 42 to 45
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Capture the full training state into a single payload that can be reloaded into a fresh process.
 - Implement atomic save with write-to-temp then rename so a crash never leaves a half-written file.
 - Restore the RNG state for Python, NumPy, and PyTorch so the post-resume loss matches the uninterrupted baseline.
 - Build a sharded checkpoint layout for models that no longer fit in a single file, with hash-verified shards and a JSON index.
 
-## The Problem
+## The Problem | 问题
 
 You set a training job for 18 hours. The wallclock cap is 4 hours. The cluster reboots at hour 11 because someone above your pay grade approved a kernel upgrade. Without checkpoints you start over. Without resume you also lose the optimizer state that took the first 11 hours to learn, so even if the model weights survived, the AdamW moments are gone and the next step lurches in a direction the training trajectory had already moved past.
 
@@ -22,7 +25,7 @@ The right artifact is a single file that holds everything needed to continue: mo
 
 Atomic save is the other half of the contract. Writing into the final filename means a crash mid-write leaves a corrupt file; the resume reads garbage. Writing into a temporary file in the same directory and then renaming means a crash mid-write leaves the previous good file untouched. The rename is atomic on POSIX file systems.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart TD
@@ -80,7 +83,7 @@ The index records the shard count, the sha256 of each shard, and the sha256 of t
 
 A resume that snaps to the start of the next epoch wastes anywhere from minutes to a day. The fix is `(epoch, batch_in_epoch)` plus the RNG state. After load, the training loop fast-forwards the random number generator past the batches already consumed in the current epoch and continues from `batch_in_epoch`. The lesson code does this exactly; the assertion is that the loss trajectory after resume matches the uninterrupted baseline within 1e-4.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` provides four primitives and a demo driver.
 
@@ -112,7 +115,7 @@ python3 code/main.py
 
 The single-file and sharded demos both assert max-diff under 1e-4. The summary lands in `outputs/resume-demo.json`.
 
-## Use It
+## Use It | 使用方法
 
 Production training stacks ship checkpointing as part of the trainer. The shape is the same: model + optimizer + scheduler + counters + RNG, written atomically, named by step so the latest is easy to find. Sharded layouts power large model loading with parallel reads; the index.json is what makes that work.
 
@@ -122,11 +125,11 @@ Three patterns to enforce:
 - **Sha256 every shard.** A silently truncated download is the worst kind of bug; the loader fails fast or it fails late.
 - **Keep checkpoint cadence honest.** Save every N steps and every wallclock-minute, whichever is shorter. Otherwise the long step that crashes wastes a full window of work.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-checkpoint-save-resume.md` is the recipe for any new training script: payload shape, atomic write, RNG capture, sharded index. Drop the skill into a repo, wire `save_checkpoint` at the periodic save site, wire `load_checkpoint` at startup, and the run survives kills.
 
-## Exercises
+## Exercises | 练习题
 
 1. Replace round-robin sharding with sharding by parameter group (layers ending in `.weight` vs `.bias`). When is each layout preferable?
 2. Extend the save loop to keep the last K checkpoints and prune older ones. What is the right K when the disk is small?
@@ -134,7 +137,7 @@ Three patterns to enforce:
 4. Add a checksum verification path that runs at startup, scans every checkpoint in the directory, and reports which ones are corrupt.
 5. Implement a `migrate_v1_to_v2` function that adds a new field to the payload and bumps the schema string. Make load tolerate both versions.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -144,7 +147,7 @@ Three patterns to enforce:
 | RNG state | "Random seed" | Captured state for python random, numpy, torch CPU, torch CUDA; not just the seed |
 | Mid-epoch resume | "Restart" | Fast-forward the RNG and continue from the next batch in the same epoch |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - POSIX `rename` semantics for the atomicity claim that `os.replace` relies on.
 - PyTorch documentation on `torch.save` and `torch.load`, including `map_location` for cross-device restores.

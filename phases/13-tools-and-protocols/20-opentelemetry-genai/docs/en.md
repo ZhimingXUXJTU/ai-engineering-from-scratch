@@ -1,6 +1,10 @@
-# OpenTelemetry GenAI — Tracing Tool Calls End-to-End
+# OpenTelemetry GenAI — Tracing Tool Calls End-to-End | OpenTelemetry GenAI：端到端追踪工具调用
 
-> An agent calls five tools, three MCP servers, and two sub-agents. You need one trace across all of it. The OpenTelemetry GenAI semantic conventions (stable attributes in v1.37 and up) are the 2026 standard, natively supported by Datadog, Langfuse, Arize Phoenix, OpenLLMetry, and AgentOps. This lesson names the required attributes, walks the span hierarchy (agent → LLM → tool), and ships a stdlib span emitter you can plug into any OTel exporter.
+> An agent calls five tools, three MCP servers, and two sub-agents. You need one trace across all of it. The OpenTelemetry GenAI semantic conventions (stable attributes in v1.37 and up) are the 2026 standard, natively supported by Datadog, Langfuse, Arize Phoenix, OpenLLMetry, and AgentOps. This lesson names the required attributes, walks the span hierarchy (agent -> LLM -> tool), and ships a stdlib span emitter you can plug into any OTel exporter.
+
+> **【中文解读】** Agent 调用5个工具、3个 MCP 服务器、2个子 Agent，需要一个贯穿全程的 trace。OpenTelemetry GenAI 语义约定（v1.37+ 稳定属性）是 2026 年标准，Datadog/Langfuse/Arize Phoenix/OpenLLMetry/AgentOps 原生支持。本课命名必需属性、走通 span 层次结构（agent -> LLM -> tool），提供一个可接入任何 OTel 导出器的标准库 span 发射器。
+
+> **【拓展】** OpenTelemetry 是 AI 应用从实验走向生产的必备可观测性基础设施。OTel GenAI 语义约定定义了稳定的属性名称，使得 Datadog、Langfuse、Phoenix 等后端都能解析相同的 span。一次仪表化，发送到任何后端。MCP 调用可通过 W3C traceparent 头传播追踪上下文。
 
 **Type:** Build
 **Languages:** Python (stdlib, OTel span emitter)
@@ -14,7 +18,11 @@
 - Decide what content to capture (opt-in) vs redact (defaults).
 - Emit spans to a local collector (Jaeger, Langfuse) without rewriting tool code.
 
+> **【中文解读】** 学习目标：掌握 OTel GenAI 必需属性（LLM span 和工具执行 span）；构建覆盖 Agent 循环、LLM 调用、工具调用和 MCP 客户端分发的 trace 层次；决定捕获哪些内容（opt-in）vs 脱敏（默认）；发送 span 到本地收集器。
+
 ## The Problem
+
+> **【中文解读】** 调试场景：用户报告"Agent 有时30秒响应，有时3秒"。无追踪，日志只显示 LLM 调用，看不到工具分发、MCP 服务器往返、子 Agent。最终发现是一个 MCP 服务器冷启动偶尔卡住。没有端到端追踪就无法发现这类问题。
 
 A debug from February 2026: user reports "my agent sometimes takes 30 seconds to respond; other times 3 seconds." No traces. Logs show the LLM call, but not the tool dispatch, not the MCP server round-trip, not the sub-agent. You guess. Eventually you find: one MCP server occasionally hangs on a cold-start.
 
@@ -24,7 +32,11 @@ The conventions settled in 2025-2026 under the OpenTelemetry semantic-convention
 
 ## The Concept
 
+> **【中文解读】** 本节详解 span 层次结构（agent.invoke_agent -> llm.chat -> tool.execute -> mcp.call）、必需属性（gen_ai.* 命名空间）、span 类型（CLIENT/INTERNAL）、opt-in 内容捕获、span 事件、导出器、跨 MCP 传播、指标和 AgentOps 层。
+
 ### Span hierarchy
+
+> **【中文解读】** Span 层次：agent.invoke_agent（顶层 INTERNAL span）-> llm.chat（CLIENT span）-> tool.execute（INTERNAL）-> mcp.call（CLIENT span）。整个结构嵌套在一个 trace id 下，span id 链接父子关系。
 
 ```
 agent.invoke_agent  (top, INTERNAL span)
@@ -111,6 +123,8 @@ AgentOps (founded 2024) specializes in GenAI observability. It wraps popular fra
 
 ## Use It
 
+> **【中文解读】** `code/main.py` 向 stdout 发射 OTLP-JSON 格式的 span，覆盖一个 Agent 调用 LLM、分发两个工具、进行一次 MCP 往返。无真实导出器——课程聚焦 span 形状和属性集。关注点：trace id 跨所有 span 共享；父子链接通过 parentSpanId 编码；`gen_ai.*` 必需属性已填充；内容捕获默认关闭。
+
 `code/main.py` emits OTel-shaped spans to stdout (in OTLP-JSON-like format) for an agent that calls an LLM, dispatches two tools, and makes one MCP round-trip. No real exporter — the lesson focuses on the span shape and attribute set. Paste the output into an OTLP-compatible viewer or just read it.
 
 What to look at:
@@ -121,6 +135,8 @@ What to look at:
 - Content capture is off by default; one scenario turns it on via env var.
 
 ## Ship It
+
+> **【中文解读】** 本课产出 `outputs/skill-otel-genai-instrumentation.md`——给定 Agent 代码库，生成仪表化计划：在哪里添加 span、填充哪些属性、目标导出器。
 
 This lesson produces `outputs/skill-otel-genai-instrumentation.md`. Given an agent codebase, the skill produces an instrumentation plan: where to add spans, which attributes to populate, and which exporters to target.
 
@@ -138,18 +154,18 @@ This lesson produces `outputs/skill-otel-genai-instrumentation.md`. Given an age
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| OTel | "OpenTelemetry" | Open standard for traces, metrics, logs |
-| GenAI semconv | "GenAI semantic conventions" | Stable attribute names for LLM / tool / agent spans |
-| `gen_ai.*` | "The attribute namespace" | All GenAI attributes share this prefix |
-| Span | "Timed operation" | A unit of work with a start, end, and attributes |
-| Trace | "Cross-span ancestry" | Tree of spans sharing a trace id |
-| SpanKind | "CLIENT / SERVER / INTERNAL" | Hints about span direction |
-| OTLP | "OpenTelemetry Line Protocol" | Wire format for exporters |
-| Opt-in content | "Prompt / completion capture" | Off by default; env var to enable |
-| traceparent | "W3C header" | Propagates trace context across services |
-| Exporter | "Backend-specific shipper" | Component that sends spans to Jaeger / Datadog / etc. |
+| Term | What people say | What it actually means | 中文 |
+|------|----------------|------------------------|------|
+| OTel | "OpenTelemetry" | Open standard for traces, metrics, logs | 开放遥测标准 |
+| GenAI semconv | "GenAI semantic conventions" | Stable attribute names for LLM / tool / agent spans | GenAI 语义约定 |
+| `gen_ai.*` | "The attribute namespace" | All GenAI attributes share this prefix | GenAI 属性命名空间 |
+| Span | "Timed operation" | A unit of work with a start, end, and attributes | Span：带属性的时间操作单元 |
+| Trace | "Cross-span ancestry" | Tree of spans sharing a trace id | Trace：跨 span 的追踪树 |
+| SpanKind | "CLIENT / SERVER / INTERNAL" | Hints about span direction | Span 类型：跨进程/同进程 |
+| OTLP | "OpenTelemetry Line Protocol" | Wire format for exporters | OTLP：导出器线格式 |
+| Opt-in content | "Prompt / completion capture" | Off by default; env var to enable | 内容捕获：默认关闭 |
+| traceparent | "W3C header" | Propagates trace context across services | traceparent：跨服务追踪传播 |
+| Exporter | "Backend-specific shipper" | Component that sends spans to Jaeger / Datadog / etc. | 导出器：发送到后端 |
 
 ## Further Reading
 

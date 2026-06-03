@@ -1,5 +1,10 @@
 """Emu3 token-count + CFG-sampling toys — stdlib.
 
+Emu3：用下一 Token 预测生成图像与视频 (Next-Token Prediction for Generation)
+核心概念：纯下一 token 预测目标，统一词表(text+VQ图像+3D VQ视频)，击败 SDXL 和 LLaVA。
+无需 CLIP 损失或扩散调度，核心训练目标就是 next-token prediction + teacher forcing。
+AI 应用对应：证明了"更好的 tokenizer + 规模"可能是多模态统一生成所需的一切。
+
 Two mini-tools:
   1. Token-count calculator for images + video at various resolutions and FPS.
   2. Autoregressive sampler with classifier-free guidance (CFG).

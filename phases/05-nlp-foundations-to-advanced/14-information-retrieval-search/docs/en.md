@@ -1,6 +1,8 @@
-# Information Retrieval and Search
+# Information Retrieval and Search | 信息检索与搜索
 
 > BM25 is precise but brittle. Dense casts a wide net but misses keywords. Hybrid is the 2026 default. Everything else is tuning.
+
+> **【中文解读】** 从关键词匹配到向量检索。RAG 的检索器就是信息检索的应用。
 
 **Type:** Build
 **Languages:** Python

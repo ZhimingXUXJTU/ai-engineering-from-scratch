@@ -1,6 +1,10 @@
-# Conditional GANs & Pix2Pix
+# Conditional GANs & Pix2Pix | 条件 GAN 与 Pix2Pix
 
 > The first big unlock of 2014-2017 was controlling what a GAN makes. Attach a label, or an image, or a sentence. Pix2Pix did the image version and it still beats every generic text-to-image model on narrow image-to-image tasks.
+
+> **【中文解读】** 2014-2017 年的第一个重大突破是控制 GAN 生成什么：附加标签、图像或文本。Pix2Pix 做了图像版本，至今在窄域图像翻译任务上仍胜过通用文本生成图像模型。
+
+> **【拓展：Pix2Pix 的应用】** Pix2Pix 开创了"图像到图像翻译"的范式：素描→照片、白天→夜晚、线稿→彩色图。这个范式后来被 ControlNet 继承和发展。
 
 **Type:** Build
 **Languages:** Python

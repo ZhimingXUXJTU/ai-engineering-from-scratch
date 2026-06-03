@@ -1,13 +1,16 @@
-# Experiment Runner
+# Experiment Runner | 实验 运行器
 
 > The loop is only as honest as its measurements. Build the runner that takes a spec, executes it in a sandboxed subprocess, and emits a json metrics blob the evaluator can trust.
+
+> **【中文解读】** 本节是综合项目——构建实验运行器。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 Track A lessons 20-29
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 - Encode an experiment as a typed spec the runner can serialise to a subprocess.
 - Launch a subprocess with a hard wall clock timeout and a soft memory cap, and surface both as terminal conditions.
 - Capture stdout, stderr, and the structured metrics blob into a single result record.
@@ -36,7 +39,7 @@ ExperimentSpec
 
 The script lives on disk; the runner writes the config to a temp file path that the script reads. The script is expected to print a single json line on stdout whose keys are a superset of `metric_keys`. Anything else on stdout is captured but ignored by the metrics parser.
 
-## Architecture
+## Architecture | 架构
 
 ```mermaid
 flowchart TD

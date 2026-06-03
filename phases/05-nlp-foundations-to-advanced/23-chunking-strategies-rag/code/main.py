@@ -1,3 +1,8 @@
+"""
+RAG 分块策略
+
+如何把长文档切成适合检索的块。分块策略直接影响 RAG 效果。对应 langchain text_splitter、llamaindex node_parser。
+"""
 import hashlib
 import math
 import re

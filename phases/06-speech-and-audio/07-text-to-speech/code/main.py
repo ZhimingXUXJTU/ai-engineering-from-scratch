@@ -1,3 +1,8 @@
+"""
+语音合成 TTS (Text-to-Speech)
+核心概念：文本→音素→时长估计→Mel 帧→波形
+AI 对应：有声书、导航语音、虚拟助手、无障碍辅助
+"""
 """TTS internals demo: phoneme lookup + duration estimation + mel frame schedule.
 
 Stdlib only. Builds a toy English grapheme-to-phoneme table, estimates

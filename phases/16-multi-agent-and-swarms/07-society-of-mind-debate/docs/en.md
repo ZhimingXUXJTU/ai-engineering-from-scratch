@@ -1,6 +1,9 @@
-# Society of Mind and Multi-Agent Debate
+# Society of Mind and Multi-Agent Debate | 心智社会 多 Agent 辩论
 
 > Minsky's 1986 premise — intelligence is a society of specialists — gets rediscovered every decade. In 2023 Du et al. turned it into a concrete algorithm: multiple LLM instances propose answers, read each other's answers, critique, and update. Over N rounds they converge on a consensus that beats zero-shot CoT and reflection on six reasoning and factuality tasks. Two findings matter: both **multiple agents** and **multiple rounds** contribute independently. The society beats a single-agent monologue; the multi-round exchange beats one-shot voting.
+
+> **【中文解读】** 本节介绍了心智社会辩论——Marvin Minsky 的心智社会理论在多 Agent 系统中的应用。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)
@@ -56,7 +59,7 @@ Zhuge et al. ("Mindstorms in Natural Language-Based Societies of Mind," arXiv:23
 - **Topic drift.** Debates over many rounds drift from the original question. Mitigation: re-inject the question every round.
 - **Compute blowup.** N agents × R rounds = N·R LLM calls, each with a context that grows. A 5-agent, 5-round debate is 25 calls at growing context. Cost per question can exceed 10× a single CoT call.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` runs a 3-agent × 3-round debate on a math question where each agent starts with a different (possibly wrong) answer. Agents are scripted — each "updates" by averaging the neighbors' answers weighted by a scripted confidence. Convergence is visible in the round-by-round log.
 
@@ -71,11 +74,11 @@ Run:
 python3 code/main.py
 ```
 
-## Use It
+## Use It | 使用方法
 
 `outputs/skill-debate-configurator.md` configures a debate for a new task: number of agents, number of rounds, heterogeneity (same model vs mixed), role assignment (symmetric vs one-adversarial). It also estimates the token cost before you run.
 
-## Ship It
+## Ship It | 部署上线
 
 If you ship debate:
 
@@ -85,7 +88,7 @@ If you ship debate:
 - **Adversarial slot.** One agent prompted to disagree regardless. Breaks sycophancy.
 - **Log every round.** Debate systems that hide intermediate rounds cannot be debugged or audited.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`, then set the round count to 5 and watch diminishing returns. At which round does additional convergence stop?
 2. Add a fourth agent with an adversarial role: always disagree with the current majority. Does this break or improve convergence?
@@ -93,7 +96,7 @@ If you ship debate:
 4. Read Du et al. Section 4 ablations. Replicate the "agents-only" vs "rounds-only" vs "both" result using this code.
 5. Read "Should we be going MAD?" (arXiv:2311.17371) and list two debate variants beyond round-robin — e.g., judge-led, chain-of-debate, adversarial.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
@@ -106,7 +109,7 @@ If you ship debate:
 | NLSOM | "129-agent society" | Natural-language society of mind; Zhuge et al.'s scaled version. |
 | Correlated error | "Same model, same bug" | Why self-consistency saturates; debate across different views decorrelates. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Du et al. — Improving Factuality and Reasoning in Language Models through Multiagent Debate](https://arxiv.org/abs/2305.14325) — the reference paper, ICML 2024
 - [Zhuge et al. — Mindstorms in Natural Language-Based Societies of Mind](https://arxiv.org/abs/2305.17066) — 129-agent NLSOM

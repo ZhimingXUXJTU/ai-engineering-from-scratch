@@ -1,3 +1,8 @@
+"""
+嵌入模型深度解析
+
+深入理解 text-embedding-ada-002、BGE、E5 等。RAG 的检索质量取决于嵌入质量。对应 sentence-transformers 库。
+"""
 import hashlib
 import math
 import re

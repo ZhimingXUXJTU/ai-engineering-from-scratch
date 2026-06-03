@@ -1,24 +1,27 @@
-# Red-Teaming: PAIR and Automated Attacks
+# Red-Teaming: PAIR and Automated Attacks | 自动攻击
 
 > Chao, Robey, Dobriban, Hassani, Pappas, Wong (NeurIPS 2023, arXiv:2310.08419). PAIR — Prompt Automatic Iterative Refinement — is the canonical automated black-box jailbreak. An attacker LLM with a red-team system prompt iteratively proposes jailbreaks for a target LLM, accumulating attempts and responses in its own chat history as in-context feedback. PAIR typically succeeds within 20 queries, orders of magnitude more efficient than GCG (Zou et al.'s token-level gradient search) and without requiring white-box access. PAIR is now a standard baseline in JailbreakBench (arXiv:2404.01318) and HarmBench, alongside GCG, AutoDAN, TAP, and Persuasive Adversarial Prompt.
+
+> **【中文解读】** 本节介绍了红队测试——系统化的安全评估方法，用自动化攻击发现 AI 系统漏洞。
+
 
 **Type:** Build
 **Languages:** Python (stdlib, mock PAIR loop against a toy target)
 **Prerequisites:** Phase 18 · 01 (instruction-following), Phase 14 (agent engineering)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Describe the PAIR algorithm: attacker system prompt, iterative refinement, in-context feedback.
 - Explain why PAIR is strictly more efficient than GCG when the target is black-box.
 - Name four other automated-attack baselines (GCG, AutoDAN, TAP, PAP) and state one distinguishing feature of each.
 - Describe the JailbreakBench and HarmBench evaluation protocols and what "attack success rate" means under each.
 
-## The Problem
+## The Problem | 问题
 
 Red-teaming used to be a manual activity. A small number of expert testers constructed adversarial prompts and tracked which ones worked. This does not scale: attack success rate needs a statistical sample, and the target is a moving target with every model release. PAIR operationalizes red-teaming as an optimization problem with a black-box target.
 
-## The Concept
+## The Concept | 概念
 
 ### PAIR algorithm
 
@@ -67,15 +70,15 @@ Every frontier lab now runs PAIR and TAP against production models before releas
 
 Lesson 12 is the automated-attack foundation. Lesson 13 (Many-Shot Jailbreaking) is a complementary length-exploit. Lesson 14 (ASCII Art / Visual) is an encoding attack. Lesson 15 (Indirect Prompt Injection) is the 2026 production attack surface. Lesson 16 covers the defensive-tooling counterparts (Llama Guard, Garak, PyRIT).
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` builds a toy PAIR loop. The target is a mock classifier that refuses "obvious" harmful prompts (keyword-filter). The attacker is a rule-based refiner that tries paraphrase, roleplay-framing, and encoding. The judge scores the response. You watch the attacker succeed in ~5-15 iterations against the keyword filter and fail against a semantic filter.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-attack-audit.md`. Given a red-team evaluation report, it audits: which attacks were run (PAIR, GCG, TAP, AutoDAN, PAP), at what budget each, with which judge, on which harmful-behaviour set (JailbreakBench, HarmBench, internal).
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Measure mean-queries-to-success for the three built-in attacker strategies. Explain which target-defense assumption each exploits.
 
@@ -87,7 +90,7 @@ This lesson produces `outputs/skill-attack-audit.md`. Given a red-team evaluatio
 
 5. TAP (Mehrotra 2024) extends PAIR with branching + pruning. Sketch a TAP-style extension to `code/main.py` and describe the computational cost vs success-rate trade-off.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -99,7 +102,7 @@ This lesson produces `outputs/skill-attack-audit.md`. Given a red-team evaluatio
 | HarmBench | "the broader bench" | 510 behaviours, functional + semantic harm tests |
 | TAP | "tree of attacks" | PAIR with branching + pruning; better ASR at higher compute |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Chao et al. — Jailbreaking Black Box LLMs in Twenty Queries (arXiv:2310.08419)](https://arxiv.org/abs/2310.08419) — PAIR paper, NeurIPS 2023
 - [Zou et al. — Universal and Transferable Adversarial Attacks on Aligned LLMs (arXiv:2307.15043)](https://arxiv.org/abs/2307.15043) — GCG paper

@@ -1,4 +1,4 @@
-# Human-in-the-Loop: Propose-Then-Commit
+# Human-in-the-Loop: Propose-Then-Commit | 提议 提交
 
 > The 2026 consensus on HITL is specific. It is not "the agent asks, the user clicks Approve." It is propose-then-commit: the proposed action is persisted to a durable store with an idempotency key; surfaced to a reviewer with intent, data lineage, permissions touched, blast radius, and a rollback plan; committed only after positive acknowledgement; verified after execution to confirm the side effect actually happened. LangGraph's `interrupt()` plus PostgreSQL checkpointing, Microsoft Agent Framework's `RequestInfoEvent`, and Cloudflare's `waitForApproval()` all implement the same shape. The canonical failure mode is the rubber-stamp approval: "Approve?" is clicked without review. The documented mitigation is challenge-and-response with an explicit checklist.
 
@@ -7,15 +7,18 @@
 **Prerequisites:** Phase 15 · 12 (Durable execution), Phase 15 · 14 (Tripwires)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题
 
 An agent takes an action. The user has to decide: approve or not. If the decision is instant, it is probably not a review. If the decision is structured, it is slow but trustworthy. The engineering question is how to make a structured review the path of least resistance.
 
 The 2023-era HITL pattern was a synchronous prompt: "Agent wants to send email to X with body Y — approve?" The user clicks Approve. Everyone feels the system is safe. In practice this surface is heavily rubber-stamped: users approve fast, approvals predict little, and when the agent goes wrong, the audit trail shows a long history of approvals the user cannot recall.
 
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
 The 2026 pattern — propose-then-commit — moves HITL onto a durable substrate, attaches structured metadata, and requires positive commit. Every managed agent SDK ships a version: LangGraph `interrupt()`, Microsoft Agent Framework `RequestInfoEvent`, Cloudflare `waitForApproval()`. The API names differ; the shape does not.
 
-## The Concept
+## The Concept | 概念
 
 ### The propose-then-commit state machine
 
@@ -66,40 +69,45 @@ Not every action needs propose-then-commit. The 2026 guidance:
 
 Article 14 mandates effective human oversight for high-risk AI systems in the EU. "Effective" is not decorative. Regulatory language specifically excludes rubber-stamp patterns. Propose-then-commit with challenge-and-response is the shape that survives Article 14 scrutiny in the Microsoft Agent Governance Toolkit compliance docs.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` implements a propose-then-commit state machine in stdlib Python. Durable store is a JSON file. Idempotency key is a hash of (thread_id, action_signature). The driver simulates three cases: a clean approval flow, a retry after transient failure (which must not double-execute), and a rubber-stamp default versus a challenge-and-response flow.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-hitl-design.md` reviews a proposed HITL workflow for propose-then-commit shape and flags missing metadata, idempotency, verification, or challenge-and-response layers.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Confirm that a retry of an approved proposal uses the durable record and does not re-execute. Now change the idempotency key to include a timestamp and show the retry double-executes.
+   *思考并实践此练习*
 
 2. Extend the proposal record with a `rollback` field. Simulate an execution whose verify step fails. Show the rollback firing automatically.
+   *思考并实践此练习*
 
 3. Read Microsoft Agent Framework's `RequestInfoEvent` docs. Identify one metadata field the API includes that the toy engine is missing. Add it and explain what it protects against.
+   *思考并实践此练习*
 
 4. Design a challenge-and-response checklist for a specific action (e.g., "post to a public Twitter account"). What three questions must the reviewer answer? Why those three?
+   *思考并实践此练习*
 
 5. Pick one case where a synchronous "Approve?" prompt would be sufficient (no durable store needed). Explain why, and name the risk class you are accepting.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| Propose-then-commit | "Two-phase approval" | Persisted proposal + positive commit + verify |
-| Idempotency key | "Retry-safe token" | Unique per proposal; second execution no-ops |
-| Data lineage | "Where it came from" | The specific source content that led to the proposal |
-| Blast radius | "Worst case" | Scope of effect if the action goes wrong |
-| Rubber-stamp | "Fast approval" | "Approve" clicked without genuine review |
-| Challenge-and-response | "Forcing checklist" | Reviewer must positively acknowledge specific questions |
-| RequestInfoEvent | "MS Agent Framework primitive" | Durable HITL request with structured metadata |
-| `interrupt()` / `waitForApproval()` | "Framework primitives" | LangGraph / Cloudflare equivalents of the same shape |
+|---|---|---|---|
+| Propose-then-commit | "Two-phase approval" | Persisted proposal + positive commit + verify |  |
+| Idempotency key | "Retry-safe token" | Unique per proposal; second execution no-ops |  |
+| Data lineage | "Where it came from" | The specific source content that led to the proposal |  |
+| Blast radius | "Worst case" | Scope of effect if the action goes wrong |  |
+| Rubber-stamp | "Fast approval" | "Approve" clicked without genuine review |  |
+| Challenge-and-response | "Forcing checklist" | Reviewer must positively acknowledge specific questions |  |
+| RequestInfoEvent | "MS Agent Framework primitive" | Durable HITL request with structured metadata |  |
+| `interrupt()` / `waitForApproval()` | "Framework primitives" | LangGraph / Cloudflare equivalents of the same shape |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Microsoft Agent Framework — Human in the loop](https://learn.microsoft.com/en-us/agent-framework/workflows/human-in-the-loop) — `RequestInfoEvent`, durable approvals.
 - [Cloudflare Agents — Human in the loop](https://developers.cloudflare.com/agents/concepts/human-in-the-loop/) — `waitForApproval()` and Durable Objects.

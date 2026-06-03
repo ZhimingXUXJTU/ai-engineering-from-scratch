@@ -1,6 +1,8 @@
-# Positional Encoding — Sinusoidal, RoPE, ALiBi
+# Positional Encoding — Sinusoidal, RoPE, ALiBi | 位置编码 — 正弦、RoPE、ALiBi
 
 > Attention is permutation-invariant. "The cat sat on the mat" and "mat the on sat cat the" produce the same output without positional signal. Three algorithms fix it — each with a different bet on what "position" means.
+
+> **【中文解读】** Transformer 没有位置信息，需要手动注入。RoPE 是 Llama 使用的方法，ALiBi 支持外推到更长序列。
 
 **Type:** Build
 **Languages:** Python

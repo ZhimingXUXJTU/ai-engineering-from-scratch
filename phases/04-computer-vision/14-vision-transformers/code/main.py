@@ -1,6 +1,20 @@
+"""
+视觉 Transformer (Vision Transformers — ViT)
+
+核心概念：
+- ViT：将图像切成 patch，每个 patch 作为一个 token，用标准 Transformer 处理
+- Patch 嵌入：线性投影将 patch 展平并映射到嵌入维度
+- 位置编码：为每个 patch 添加位置信息（Transformer 本身没有位置概念）
+- [CLS] token：全局分类 token，用于图像级预测
+
+AI 对应：
+- ViT 是 GPT-4V、Claude Vision、LLaVA 的视觉编码器
+- ViT 取代 CNN 成为计算机视觉的基础架构（2021 年至今）
+- DINO、DINOv2、SAM、CLIP 等核心模型都基于 ViT
+"""
+
 import torch
 import torch.nn as nn
-
 
 class PatchEmbedding(nn.Module):
     def __init__(self, in_channels=3, patch_size=16, dim=192, image_size=64):

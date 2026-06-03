@@ -1,6 +1,10 @@
-# Latent Diffusion & Stable Diffusion
+# Latent Diffusion & Stable Diffusion | 潜在扩散与 Stable Diffusion
 
-> Pixel-space diffusion on 512×512 images is a computational war crime. Rombach et al. (2022) noticed that you do not need all 786k dimensions to generate an image — you need enough to capture semantic structure, and a separate decoder for the rest. Run diffusion inside a VAE's latent space. That one idea is Stable Diffusion.
+> Pixel-space diffusion on 512x512 images is a computational war crime. Rombach et al. (2022) noticed that you do not need all 786k dimensions to generate an image — you need enough to capture semantic structure, and a separate decoder for the rest. Run diffusion inside a VAE's latent space. That one idea is Stable Diffusion.
+
+> **【中文解读】** 在 512x512 像素空间做扩散是计算灾难。Rombach 等人发现不需要全部 78.6 万维度——只需捕获语义结构，其余用解码器补充。在 VAE 的潜在空间中运行扩散，这一个想法就是 Stable Diffusion。
+
+> **【拓展：Stable Diffusion 的革命】** Stable Diffusion 将扩散过程从像素空间移到潜在空间，计算量降低数十倍，使消费级 GPU 可以运行。开源发布后催生了 LoRA、ControlNet 等丰富生态，推动了 AIGC 的普及化。
 
 **Type:** Build
 **Languages:** Python

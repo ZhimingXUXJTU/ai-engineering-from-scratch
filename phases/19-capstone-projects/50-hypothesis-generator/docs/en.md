@@ -1,13 +1,16 @@
-# Hypothesis Generator
+# Hypothesis Generator | 假设 生成器
 
 > A research agent that asks the same question twice is wasting tokens. The trick is forcing each draft to land somewhere new.
+
+> **【中文解读】** 本节是综合项目——构建假设生成器。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 Track A lessons 20-29
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 - Drive a sampler from a seed prompt and turn its outputs into typed hypothesis records.
 - Ramp the sampler temperature on each pass so the next draft drifts further from the last.
 - Filter near duplicates with a small embedding model and a cosine distance threshold.
@@ -41,7 +44,7 @@ Hypothesis
 
 `baseline_ref` is optional but recommended. The evaluator in lesson fifty-three needs a baseline to compare against. If the hypothesis omits one, the evaluator falls back to the previous run on the same metric.
 
-## Architecture
+## Architecture | 架构
 
 ```mermaid
 flowchart TD

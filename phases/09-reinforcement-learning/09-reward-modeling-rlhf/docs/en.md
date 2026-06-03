@@ -1,6 +1,10 @@
-# Reward Modeling & RLHF
+# Reward Modeling & RLHF | 奖励建模与 RLHF
 
 > Humans cannot write a reward function for "good assistant response," but they can compare two responses and pick the better one. Fit a reward model to those comparisons, then RL the language model against it. Christiano 2017. InstructGPT 2022. The recipe that turned GPT-3 into ChatGPT. In 2026 it is mostly being replaced by DPO — but the mental model stays.
+
+> **【中文解读】** 人类无法为"好的助手回复"写奖励函数，但可以比较两个回复选更好的。用这些比较训练奖励模型，再用 RL 优化语言模型。这就是把 GPT-3 变成 ChatGPT 的方法。2026 年大多被 DPO 取代，但思维方式不变。
+
+> **【拓展：RLHF 是大模型对齐的关键】** RLHF（基于人类反馈的强化学习）是 ChatGPT 成功的核心技术。三步流程：(1) 监督微调 SFT；(2) 训练奖励模型 RM；(3) 用 PPO 优化 LM。DPO 简化了第 2-3 步，但本质相同。
 
 **Type:** Build
 **Languages:** Python

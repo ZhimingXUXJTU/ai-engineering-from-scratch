@@ -1,5 +1,10 @@
 """Phase 13 Lesson 10 - MCP resources and prompts in the notes server.
 
+MCP 资源与提示 (MCP Resources and Prompts)
+核心概念：工具获得90%的关注，但资源和提示解决不同问题。资源暴露数据供读取，
+提示暴露可复用模板作为斜杠命令。很多场景应该用资源而非把读取包装成工具。
+AI 应用对应：合理使用 resources/prompts/tools 三个原语是设计好 MCP 服务器的关键。
+
 Extends the Lesson 07 server with:
   - resources/list, resources/read for per-note URIs
   - resources/subscribe + notifications/resources/updated

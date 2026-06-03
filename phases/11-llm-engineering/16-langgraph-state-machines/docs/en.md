@@ -1,6 +1,10 @@
-# LangGraph — State Machines for Agents
+# LangGraph — State Machines for Agents | LangGraph：Agent 的状态机
 
 > A ReAct loop written by hand is a `while True`. A ReAct loop written in LangGraph is a graph you can checkpoint, interrupt, branch, and time-travel through. The agent hasn't changed. The harness around it has.
+
+> **【中文解读】** 手写的 ReAct 循环就是一个 `while True`。用 LangGraph 写的 ReAct 循环是一个图——可以检查点保存、中断、分支、时间旅行。Agent 没变，但围绕它的框架变了。
+
+> **【拓展：LangGraph→Agent工程】** LangGraph 是目前最成熟的 Agent 编排框架，将 Agent 执行建模为状态图（StateGraph），支持人机协作、分支逻辑和持久化状态。
 
 **Type:** Build
 **Languages:** Python

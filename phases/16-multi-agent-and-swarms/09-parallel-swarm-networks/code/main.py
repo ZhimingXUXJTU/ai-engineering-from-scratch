@@ -6,6 +6,9 @@ Compares three scheduling strategies on a variable-duration workload:
   - swarm (4 workers pull from a shared queue)
 
 Swarm balances load automatically; fixed assignment leaves fast workers idle.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 from __future__ import annotations
 
@@ -17,23 +20,26 @@ from dataclasses import dataclass
 
 @dataclass
 class Task:
+    """Task"""
     task_id: int
     duration: float
     pre_assigned: int  # for the fixed-assignment baseline
 
 
 def fake_work(task: Task) -> str:
+    """fake_work"""
     time.sleep(task.duration)
-    return f"task-{task.task_id}-done"
+    return f"task-{task.task_id}-done"  # 返回结果
 
 
 def run_sequential(tasks: list[Task]) -> tuple[float, dict[int, int]]:
+    """run_sequential"""
     t0 = time.time()
     counts: dict[int, int] = {0: 0}
     for t in tasks:
         fake_work(t)
         counts[0] += 1
-    return time.time() - t0, counts
+    return time.time() - t0, counts  # 返回结果
 
 
 def run_fixed_assignment(tasks: list[Task], n_workers: int) -> tuple[float, dict[int, int]]:
@@ -54,7 +60,7 @@ def run_fixed_assignment(tasks: list[Task], n_workers: int) -> tuple[float, dict
         th.start()
     for th in threads:
         th.join()
-    return time.time() - t0, counts
+    return time.time() - t0, counts  # 返回结果
 
 
 def run_swarm(tasks: list[Task], n_workers: int) -> tuple[float, dict[int, int]]:
@@ -70,7 +76,7 @@ def run_swarm(tasks: list[Task], n_workers: int) -> tuple[float, dict[int, int]]
             try:
                 task = q.get_nowait()
             except queue.Empty:
-                return
+                return  # 返回结果
             fake_work(task)
             with lock:
                 counts[wid] += 1
@@ -82,7 +88,7 @@ def run_swarm(tasks: list[Task], n_workers: int) -> tuple[float, dict[int, int]]
         th.start()
     for th in threads:
         th.join()
-    return time.time() - t0, counts
+    return time.time() - t0, counts  # 返回结果
 
 
 def make_tasks(n_workers: int = 4) -> list[Task]:
@@ -98,10 +104,11 @@ def make_tasks(n_workers: int = 4) -> list[Task]:
                 pre_assigned=0 if is_slow else (i - 3) % n_workers,
             )
         )
-    return tasks
+    return tasks  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("Swarm architecture demo — variable-duration workload")
     print("-" * 56)
     n_workers = 4
@@ -132,4 +139,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

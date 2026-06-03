@@ -1,13 +1,16 @@
-# Literature Retrieval
+# Literature Retrieval | 文献 检索
 
 > A hypothesis is cheap. Knowing whether someone already proved it is the expensive part. Build the retrieval layer that answers that question before the runner spins up a sandbox.
+
+> **【中文解读】** 本节是综合项目——实现文献检索。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 Track A lessons 20-29
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 - Model a small paper record with the fields the loop will read downstream.
 - Build a BM25 index over abstracts with stdlib data structures only.
 - Walk a citation graph to surface papers the lexical search missed.
@@ -36,7 +39,7 @@ Paper
 
 The references and citations fields form the directed citation graph. The two mock APIs return overlapping but not identical fields, so the corpus loader unions them on `id`.
 
-## Architecture
+## Architecture | 架构
 
 ```mermaid
 flowchart TD

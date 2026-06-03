@@ -3,6 +3,9 @@
 Models three platforms (Bedrock on-demand, Azure PTU, Vertex on-demand) on the
 same synthetic workload. Reports per-day cost, TTFT median / P99, and attribution
 fidelity. Pedagogical: prices and latencies are 2026 public-domain approximations.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -14,6 +17,7 @@ import statistics
 
 @dataclass
 class Platform:
+    """Platform"""
     name: str
     per_mtok_input: float        # $/M input tokens on-demand
     per_mtok_output: float       # $/M output tokens on-demand
@@ -33,6 +37,7 @@ PLATFORMS = [
 
 
 def simulate(tokens_in_per_day: int, tokens_out_per_day: int, sla_ttft_ms: float, use_ptu: bool) -> None:
+    """simulate"""
     print(f"\nWorkload: {tokens_in_per_day/1e6:.1f}M input, {tokens_out_per_day/1e6:.1f}M output per day")
     print(f"SLA: TTFT P99 < {sla_ttft_ms:.0f} ms   |   PTU path: {'enabled' if use_ptu else 'off'}\n")
     header = f"{'Platform':25}  {'$/day':>9}  {'TTFT P50':>10}  {'TTFT P99':>10}  {'SLA':>6}  Attribution"
@@ -63,6 +68,7 @@ def simulate(tokens_in_per_day: int, tokens_out_per_day: int, sla_ttft_ms: float
 
 
 def break_even_demo() -> None:
+    """break_even_demo"""
     print("\n" + "=" * 80)
     print("PTU BREAK-EVEN SWEEP — Azure OpenAI, GPT-4o class")
     print("=" * 80)
@@ -78,6 +84,7 @@ def break_even_demo() -> None:
 
 
 def lock_in_cost() -> None:
+    """lock_in_cost"""
     print("\n" + "=" * 80)
     print("TWO-PROVIDER MINIMUM — cost uplift for redundancy")
     print("=" * 80)
@@ -95,6 +102,7 @@ def lock_in_cost() -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("MANAGED LLM PLATFORM COMPARATOR — 2026 approximations")
     print("=" * 80)
@@ -107,4 +115,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

@@ -1,6 +1,8 @@
-# GPT — Causal Language Modeling
+# GPT — Causal Language Modeling | GPT — 因果语言模型
 
 > BERT sees both sides. GPT sees only the past. The triangle mask is the most consequential single line of code in modern AI.
+
+> **【中文解读】** GPT 是 Decoder-only Transformer，用因果掩码（下三角矩阵）防止看到未来 token。GPT-2/3/4 都是这个架构。理解因果掩码 = 理解自回归生成。
 
 **Type:** Build
 **Languages:** Python

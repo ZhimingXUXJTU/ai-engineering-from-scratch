@@ -1,5 +1,10 @@
 """Multimodal agent capstone — action schema + agent loop + 10-task benchmark.
 
+多模态 Agent 与计算机使用 (Multimodal Agents and Computer-Use)
+核心概念：多模态 Agent 读取屏幕截图、点击按钮、导航 UI、填写表单，端到端完成工作流。
+SeeClick/CogAgent 证明 GUI 定位原语，Claude/ Gemini 在 AgentVista 上仅约30%通过率，仍是前沿挑战。
+AI 应用对应：这是 Phase 12 的收官课程，整合感知（高分辨率VLM）、推理（工具使用LLM）、定位（坐标输出）。
+
 Stdlib. A mock browser with deterministic page transitions, a toy VLM that
 emits actions from a fixed policy table, an outer loop tracking progress
 across 10 synthetic booking-site tasks.

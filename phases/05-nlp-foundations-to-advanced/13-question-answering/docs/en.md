@@ -1,6 +1,8 @@
-# Question Answering Systems
+# Question Answering Systems | 问答系统
 
 > Three systems shaped modern QA. Extractive found spans. Retrieval-augmented grounded them in documents. Generative produced answers. Every modern AI assistant is a mix of the three.
+
+> **【中文解读】** 从信息检索到生成式问答。RAG 就是一种问答系统。
 
 **Type:** Build
 **Languages:** Python

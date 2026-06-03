@@ -1,5 +1,10 @@
 """Phase 13 Lesson 12 - MCP roots and elicitation.
 
+MCP Roots 与 Elicitation (Scoping and Mid-Flight User Input)
+核心概念：Roots 将服务器限定在用户控制的 URI 集合内；Elicitation 在工具执行中途暂停，
+向用户请求结构化输入。两个客户端原语，修复两个常见 MCP 故障模式。
+AI 应用对应：Roots 防止硬编码路径问题，Elicitation 处理用户输入不足的场景。
+
 Demonstrates:
   - client-declared roots enforced as server boundary
   - elicitation/create for disambiguation when a tool has multiple matches

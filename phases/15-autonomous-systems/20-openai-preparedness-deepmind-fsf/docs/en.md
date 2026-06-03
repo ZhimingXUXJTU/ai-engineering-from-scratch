@@ -1,13 +1,16 @@
-# OpenAI Preparedness Framework and DeepMind Frontier Safety Framework
+# OpenAI Preparedness Framework and DeepMind Frontier Safety Framework | 准备度 前沿 OpenAI 安全
 
 > OpenAI Preparedness Framework v2 (April 2025) introduces Research Categories — Long-range Autonomy, Sandbagging, Autonomous Replication and Adaptation, Undermining Safeguards — distinct from Tracked Categories. Tracked Categories trigger Capabilities Reports plus Safeguards Reports reviewed by the Safety Advisory Group. DeepMind's FSF v3 (September 2025, with Tracked Capability Levels added April 17, 2026) folds autonomy into ML R&D and Cyber domains (ML R&D autonomy level 1 = fully automate the AI R&D pipeline at competitive cost vs human + AI tools). FSF v3 explicitly addresses deceptive alignment via automated monitoring for instrumental-reasoning misuse. The honest note: Research Categories in PF v2 (including Long-range Autonomy) do not automatically trigger mitigations; the policy language is "potential." DeepMind itself says automated monitoring "will not remain sufficient long-term" if instrumental reasoning strengthens.
+
+> **【中文解读】** 本节介绍了各前沿 AI 实验室的安全框架——Anthropic RSP、OpenAI Preparedness、DeepMind FSF。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, three-framework decision-table diff tool)
 **Prerequisites:** Phase 15 · 19 (Anthropic RSP)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题
 
 Lesson 19 read Anthropic's scaling policy closely. This lesson completes the picture by reading OpenAI's and DeepMind's. The three documents are cousin artifacts addressing the same question — when should a frontier lab pause or gate a model — and they converge on a small set of categories and diverge in specific places that matter.
 
@@ -15,7 +18,7 @@ The convergence: all three label long-range autonomy as a capability class worth
 
 Reading them together is the useful exercise. The same capability can be "mandatory mitigation" at Anthropic, "monitored but not triggering" at OpenAI, and "tracked in a specific domain" at DeepMind. The policy posture matters.
 
-## The Concept
+## The Concept | 概念
 
 ### OpenAI Preparedness Framework v2 (April 2025)
 
@@ -62,15 +65,15 @@ If a model sandbags on evaluations, every framework's capability thresholds are 
 - Cadence: is the policy updated on a declared schedule, or only after specific events? Declared cadence is stronger.
 - Independence: is external review mandatory or optional? Anthropic partners with Apollo and US AI Safety Institute; OpenAI with METR; DeepMind with internal SAG primarily.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` implements a small decision-table diff tool. Given a capability (autonomy, deceptive alignment, R&D automation, cyber uplift, etc.), it outputs how each of the three policies classifies the capability, and what mitigations trigger. It's a reading aid, not a policy tool.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-cross-policy-diff.md` produces a cross-policy comparison for a specific capability, using the three frameworks as reference.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Confirm the diff tool's output matches the policies for at least two capabilities you can verify against the source documents.
 
@@ -82,7 +85,7 @@ If a model sandbags on evaluations, every framework's capability thresholds are 
 
 5. Compare the three policies on a specific capability (your choice). Name which policy's classification you find most rigorous and which least. Justify with source text.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |---|---|---|
@@ -95,7 +98,7 @@ If a model sandbags on evaluations, every framework's capability thresholds are 
 | Sandbagging | "Strategic underperformance" | Model underperforms on evals; in OpenAI Research Categories |
 | Instrumental reasoning | "Means-ends reasoning" | Reasoning about how to achieve goals; target of DeepMind monitoring |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [OpenAI — Updating our Preparedness Framework](https://openai.com/index/updating-our-preparedness-framework/) — v2 announcement.
 - [OpenAI — Preparedness Framework v2 PDF](https://cdn.openai.com/pdf/18a02b5d-6b67-4cec-ab64-68cdfbddebcd/preparedness-framework-v2.pdf) — full document.

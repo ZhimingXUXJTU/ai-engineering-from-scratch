@@ -6,6 +6,9 @@ violation budget the runtime can survive without halting, and supports merging
 multiple contracts (project-wide + task-specific) into a single effective one.
 
 Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -21,6 +24,7 @@ HERE = Path(__file__).parent
 
 @dataclass
 class ScopeContract:
+    """ScopeContract"""
     task_id: str
     goal: str
     allowed_files: list[str]
@@ -36,6 +40,7 @@ class ScopeContract:
 
 @dataclass
 class RunSummary:
+    """RunSummary"""
     touched_files: list[str]
     commands_run: list[str]
     elapsed_minutes: float = 0.0
@@ -44,6 +49,7 @@ class RunSummary:
 
 @dataclass
 class Finding:
+    """Finding"""
     code: str
     severity: str  # block | warn | info
     detail: str
@@ -51,6 +57,7 @@ class Finding:
 
 @dataclass
 class ScopeReport:
+    """ScopeReport"""
     task_id: str
     in_scope_writes: list[str]
     off_scope_writes: list[str]
@@ -61,11 +68,12 @@ class ScopeReport:
     over_budget: bool
 
     def passed(self) -> bool:
-        return not self.over_budget and not any(f.severity == "block" for f in self.findings)
+        return not self.over_budget and not any(f.severity == "block" for f in self.findings)  # 返回结果
 
 
 def matches_any(path: str, patterns: list[str]) -> bool:
-    return any(fnmatch.fnmatch(path, p) for p in patterns)
+    """matches_any"""
+    return any(fnmatch.fnmatch(path, p) for p in patterns)  # 返回结果
 
 
 def merge_contracts(parent: ScopeContract, child: ScopeContract) -> ScopeContract:
@@ -78,7 +86,7 @@ def merge_contracts(parent: ScopeContract, child: ScopeContract) -> ScopeContrac
     network_egress: None means no enforcement, otherwise intersect; an empty
     list means deny-all and stays deny-all under merge.
     """
-    return ScopeContract(
+    return ScopeContract(  # 返回结果
         task_id=child.task_id,
         goal=child.goal or parent.goal,
         allowed_files=sorted(set(parent.allowed_files) & set(child.allowed_files)),
@@ -94,24 +102,27 @@ def merge_contracts(parent: ScopeContract, child: ScopeContract) -> ScopeContrac
 
 
 def _merge_egress(a: list[str] | None, b: list[str] | None) -> list[str] | None:
+    """_merge_egress"""
     if a is None and b is None:
-        return None
+        return None  # 返回结果
     if a is None:
-        return b
+        return b  # 返回结果
     if b is None:
-        return a
-    return sorted(set(a) & set(b))
+        return a  # 返回结果
+    return sorted(set(a) & set(b))  # 返回结果
 
 
 def _min_optional(a: int | None, b: int | None) -> int | None:
+    """_min_optional"""
     if a is None:
-        return b
+        return b  # 返回结果
     if b is None:
-        return a
-    return min(a, b)
+        return a  # 返回结果
+    return min(a, b)  # 返回结果
 
 
 def scope_check(contract: ScopeContract, run: RunSummary) -> ScopeReport:
+    """scope_check"""
     in_scope: list[str] = []
     off_scope: list[str] = []
     soft_off_scope: list[str] = []
@@ -148,7 +159,7 @@ def scope_check(contract: ScopeContract, run: RunSummary) -> ScopeReport:
     warn_count = sum(1 for f in findings if f.severity == "warn")
     over_budget = warn_count > contract.violation_budget
 
-    return ScopeReport(
+    return ScopeReport(  # 返回结果
         task_id=contract.task_id,
         in_scope_writes=in_scope,
         off_scope_writes=off_scope,
@@ -161,6 +172,7 @@ def scope_check(contract: ScopeContract, run: RunSummary) -> ScopeReport:
 
 
 def archive(report: ScopeReport) -> Path:
+    """archive"""
     out = HERE / "closed" / f"{report.task_id}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(
@@ -169,10 +181,11 @@ def archive(report: ScopeReport) -> Path:
                     "soft_off_scope": report.soft_off_scope_writes,
                     "passed": report.passed(), "closed_at": time.time()}, indent=2) + "\n"
     )
-    return out
+    return out  # 返回结果
 
 
 def main() -> None:
+    """main"""
     project_wide = ScopeContract(
         task_id="P-PROJECT",
         goal="project-wide defaults",
@@ -232,4 +245,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

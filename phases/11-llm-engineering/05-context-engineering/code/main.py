@@ -1,3 +1,17 @@
+"""
+上下文工程：窗口、预算、记忆与检索 (Context Engineering: Windows, Budgets, Memory, and Retrieval)
+
+核心概念：
+- 上下文窗口管理：控制系统提示、检索文档、对话历史等内容的分配
+- Token 预算：在有限上下文窗口内优化信息密度
+- 记忆机制：短期记忆（对话历史）和长期记忆（向量存储）的管理
+- 检索策略：根据查询动态选择注入上下文的内容
+
+AI 应用对应：
+- 上下文工程是 RAG 系统和 AI Agent 的核心能力
+- Claude MCP 协议通过统一接口管理上下文中的工具、资源和提示
+"""
+
 import json
 import numpy as np
 from collections import OrderedDict

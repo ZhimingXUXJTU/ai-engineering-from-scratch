@@ -1,6 +1,10 @@
-# Roots and Elicitation — Scoping and Mid-Flight User Input
+# Roots and Elicitation — Scoping and Mid-Flight User Input | Roots 与 Elicitation：作用域与飞行中用户输入
 
 > Hard-coded paths break the moment a user opens a different project. Pre-filled tool arguments break when the user under-specifies. Roots scope the server to a user-controlled set of URIs; elicitation pauses mid-tool-call to ask the user for structured input via a form or URL. Two client primitives, two fixes for common MCP failure modes. SEP-1036 (URL-mode elicitation, 2025-11-25) is experimental through H1 2026 — check SDK versions before depending on it.
+
+> **【中文解读】** 硬编码路径在用户打开不同项目时就会出问题。预填的工具参数在用户信息不足时也会出错。Roots 将服务器限定在用户控制的一组 URI 中；Elicitation 在工具调用中途暂停，通过表单或 URL 向用户请求结构化输入。两个客户端原语，修复两个常见的 MCP 失败模式。
+
+> **【拓展：Roots→MCP 安全边界】** Roots 是 MCP 安全模型的基础。客户端通过声明 roots 控制服务器可以访问的文件/资源范围。例如 Claude Desktop 只允许 MCP 服务器访问用户打开的项目目录。Elicitation 则让工具在需要额外信息时安全地向用户请求，而非假设或幻觉参数值。
 
 **Type:** Build
 **Languages:** Python (stdlib, roots + elicitation demo)
@@ -151,18 +155,18 @@ This lesson produces `outputs/skill-elicitation-form-designer.md`. Given a tool 
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Root | "Consent boundary" | URI the client has allowed the server to touch |
-| `roots/list` | "Server asks for scope" | Client returns the current root set |
-| `notifications/roots/list_changed` | "User changed scope" | Client signals the root set has mutated |
-| Elicitation | "Ask the user mid-call" | Server-initiated request for structured user input |
-| `elicitation/create` | "The method" | JSON-RPC method for elicitation requests |
-| Form mode | "Schema-driven form" | Flat JSON Schema rendered as a form in the client UI |
-| URL mode | "Browser redirect" | SEP-1036 experimental; opens a URL and waits |
-| `accept` / `decline` / `cancel` | "User response outcomes" | Three branches the server handles |
-| Disambiguation | "Pick one" | Common elicitation use case when a tool has N candidates |
-| Flat form | "Top-level properties only" | Elicitation schemas cannot nest |
+| Term | What people say | What it actually means | 中文术语 |
+|------|----------------|------------------------|----------|
+| Root | "Consent boundary" | URI the client has allowed the server to touch | 根路径（授权边界） |
+| `roots/list` | "Server asks for scope" | Client returns the current root set | 查询根路径 |
+| `notifications/roots/list_changed` | "User changed scope" | Client signals the root set has mutated | 根路径变更通知 |
+| Elicitation | "Ask the user mid-call" | Server-initiated request for structured user input | 用户征询 |
+| `elicitation/create` | "The method" | JSON-RPC method for elicitation requests | 征询请求方法 |
+| Form mode | "Schema-driven form" | Flat JSON Schema rendered as a form in the client UI | 表单模式 |
+| URL mode | "Browser redirect" | SEP-1036 experimental; opens a URL and waits | URL 模式 |
+| `accept` / `decline` / `cancel` | "User response outcomes" | Three branches the server handles | 接受/拒绝/取消 |
+| Disambiguation | "Pick one" | Common elicitation use case when a tool has N candidates | 消歧义 |
+| Flat form | "Top-level properties only" | Elicitation schemas cannot nest | 扁平表单 |
 
 ## Further Reading
 

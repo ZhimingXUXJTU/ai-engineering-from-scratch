@@ -1,3 +1,8 @@
+"""
+CNN 和 RNN 文本处理
+
+CNN 捕捉局部特征做分类，RNN(LSTM/GRU)做序列建模。Transformer 之前的主流架构。
+"""
 import math
 
 

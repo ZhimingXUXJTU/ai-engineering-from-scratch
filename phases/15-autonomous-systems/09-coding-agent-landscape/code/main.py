@@ -9,6 +9,9 @@ comparison isolates the scaffold from model quality. Metrics:
 The point is pedagogical: scaffolding is load-bearing. OpenHands
 (arXiv:2407.16741) made the CodeAct bet explicitly; JSON tool calls
 dominate managed services where the provider controls the executor.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -54,23 +57,24 @@ def run_tests(repo: dict[str, str]) -> list[bool]:
         elif path == "cli.py":
             passed = "VERSION = 'v1.0'" in src
         results.append(passed)
-    return results
+    return results  # 返回结果
 
 
 def _apply_fix(repo: dict[str, str], path: str) -> bool:
     """Apply the per-path fix in place. Returns True iff a fix was applied."""
     rule = FIXES.get(path)
     if rule is None:
-        return False
+        return False  # 返回结果
     old, new = rule
     repo[path] = repo[path].replace(old, new)
-    return True
+    return True  # 返回结果
 
 
 # ---------- JSON tool-call scaffold: one action per turn ----------
 
 @dataclass
 class JsonScaffold:
+    """JsonScaffold"""
     repo: dict[str, str] = field(default_factory=lambda: dict(INITIAL_REPO))
     turns: int = 0
 
@@ -82,8 +86,8 @@ class JsonScaffold:
             if ok:
                 continue
             if _apply_fix(self.repo, path):
-                return json.dumps({"tool": "edit", "path": path})
-        return json.dumps({"tool": "done"})
+                return json.dumps({"tool": "edit", "path": path})  # 返回结果
+        return json.dumps({"tool": "done"})  # 返回结果
 
     def blast_radius(self) -> int:
         return 1  # each action touches exactly one file
@@ -94,13 +98,14 @@ class JsonScaffold:
             if json.loads(action).get("tool") == "done":
                 break
         passed = sum(run_tests(self.repo))
-        return passed, self.turns
+        return passed, self.turns  # 返回结果
 
 
 # ---------- CodeAct scaffold: one snippet may touch many files ----------
 
 @dataclass
 class CodeActScaffold:
+    """CodeActScaffold"""
     repo: dict[str, str] = field(default_factory=lambda: dict(INITIAL_REPO))
     turns: int = 0
     # Track the observed max number of files touched by a single action.
@@ -121,12 +126,12 @@ class CodeActScaffold:
                 snippet_lines.append(f"fs.write('{path}', ...)")
         self.worst_touched = max(self.worst_touched, len(snippet_lines))
         if not snippet_lines:
-            return "done()"
-        return "; ".join(snippet_lines)
+            return "done()"  # 返回结果
+        return "; ".join(snippet_lines)  # 返回结果
 
     def blast_radius(self) -> int:
         # observed worst-case: files touched by a single action.
-        return self.worst_touched
+        return self.worst_touched  # 返回结果
 
     def run(self, max_turns: int = 10) -> tuple[int, int]:
         for _ in range(max_turns):
@@ -134,18 +139,20 @@ class CodeActScaffold:
             if action == "done()":
                 break
         passed = sum(run_tests(self.repo))
-        return passed, self.turns
+        return passed, self.turns  # 返回结果
 
 
 # ---------- Driver ----------
 
 def report(name: str, passed: int, turns: int, blast: int) -> None:
+    """report"""
     total = len(TESTS)
     print(f"  {name:<18}  passed {passed}/{total}  turns {turns:>2}  "
           f"blast-radius {blast}")
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("CODEACT vs JSON TOOL-CALL SCAFFOLDS (Phase 15, Lesson 9)")
     print("=" * 70)
@@ -174,4 +181,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

@@ -1,8 +1,23 @@
+"""
+检索增强生成 (RAG - Retrieval-Augmented Generation)
+
+核心概念：
+- 文本分块(Chunking)：将文档切分为适合嵌入的小段
+- 向量嵌入与相似度搜索：用嵌入模型将文本转为向量并检索最相关块
+- 检索-生成管道：检索相关文档 → 注入提示 → LLM 生成回答
+- 基础 RAG 流程：查询 → 嵌入 → 向量搜索 → 上下文注入 → 生成
+
+AI 应用对应：
+- RAG 是企业落地 AI 的首选方案，适用于知识库问答、文档助手等场景
+- 金融领域用 RAG 实现研报问答、合规文档检索等应用
+"""
+
 import math
 from collections import Counter
 
 
 def chunk_text(text, chunk_size=200, overlap=50):
+    """按固定词数分块，支持重叠 (Fixed-size text chunking with overlap)"""
     words = text.split()
     chunks = []
     start = 0

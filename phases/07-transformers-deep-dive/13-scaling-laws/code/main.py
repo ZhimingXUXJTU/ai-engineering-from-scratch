@@ -2,6 +2,8 @@
 
 Pure stdlib. Validates the D/N ≈ 20 rule numerically by grid search.
 """
+# 【中文解读】缩放定律。Chinchilla 定律：模型大小、数据量、计算量的最优关系。
+
 
 import math
 

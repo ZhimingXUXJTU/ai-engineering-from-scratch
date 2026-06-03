@@ -1,5 +1,12 @@
 """Prompt caching accountant.
 
+提示缓存与上下文缓存 (Prompt Caching and Context Caching)
+核心概念：提示缓存让供应商保留固定前缀，重用时大幅降低成本和延迟。
+本文件模拟三大供应商（Anthropic 5分钟/1小时、OpenAI 自动、Gemini 显式）的缓存策略，
+对比写入/读取/未命中次数和混合成本。
+
+AI 应用对应：RAG 生产系统降低成本的关键技术，固定系统提示+大量检索上下文时效果最佳。
+
 Simulates three provider caching regimes (Anthropic ephemeral 5m, Anthropic 1h,
 OpenAI automatic, Gemini explicit) against a stream of requests and reports
 write/read/miss counts plus blended cost per 1K requests.

@@ -1,3 +1,8 @@
+"""
+语音克隆与转换 (Voice Cloning & Voice Conversion)
+核心概念：将说话人身份与内容分离，实现声音克隆/转换
+AI 对应：零样本语音克隆只需几秒参考音频，但引发严重伦理问题
+"""
 """Voice cloning demo: simulate (content, speaker) decomposition and swap.
 
 Build a tiny "content" vector from a deterministic phoneme hash and a

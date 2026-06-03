@@ -1,3 +1,17 @@
+"""
+单目深度与几何估计 (Monocular Depth & Geometry Estimation)
+
+核心概念：
+- 深度图：单通道图像，每像素值表示到相机的距离
+- 从单张 RGB 图像预测深度（无需双目或 LiDAR）
+- ViT 编码器 + 轻量级解码器可达到接近真值的精度
+
+AI 对应：
+- 自动驾驶（补充 LiDAR）、AR/VR 场景理解、机器人导航
+- Depth Anything、MiDaS、ZoeDepth 是代表性模型
+- 3D 照片效果（背景虚化）、室内导航等消费级应用
+"""
+
 import os
 import tempfile
 

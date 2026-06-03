@@ -1,24 +1,27 @@
-# Many-Shot Jailbreaking
+# Many-Shot Jailbreaking | 越狱 多次射击
 
 > Anil, Durmus, Panickssery, Sharma, et al. (Anthropic, NeurIPS 2024). Many-shot jailbreaking (MSJ) exploits long context windows: stuff hundreds of faux user-assistant turns where the assistant complies with harmful requests, then append the target query. Attack success follows a power law in the number of shots; fails at 5 shots, reliable at 256 shots on violent and deceitful content. The phenomenon follows the same power law as benign in-context learning — the attack and ICL share an underlying mechanism, which is why defenses that preserve ICL are hard to design. Classifier-based prompt modification reduces attack success from 61% to 2% on tested settings.
+
+> **【中文解读】** 本节介绍了多次射击越狱——利用长上下文窗口中的大量示例来绕过安全训练。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, in-context learning vs MSJ simulator)
 **Prerequisites:** Phase 18 · 12 (PAIR), Phase 10 · 04 (in-context learning)
 **Time:** ~45 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Describe the many-shot jailbreaking attack and the context-window property it exploits.
 - State the empirical power law: attack success rate as a function of shot count.
 - Explain why MSJ shares a mechanism with benign in-context learning, and what that implies for defenses.
 - Describe Anthropic's classifier-based prompt modification defense and its reported 61% -> 2% reduction.
 
-## The Problem
+## The Problem | 问题
 
 PAIR (Lesson 12) works within normal prompt lengths. MSJ works because context windows are long. Every 2024-2025 frontier model ships with a 200k+ context window; Claude has extended to 1M; Gemini offers 2M. Long context is a product feature. MSJ turns it into an attack surface.
 
-## The Concept
+## The Concept | 概念
 
 ### The attack
 
@@ -66,15 +69,15 @@ Every frontier lab now runs MSJ evaluations at 256+ shots against production mod
 
 Lesson 12 is the in-context iterative attack. Lesson 13 is the long-context length-exploit. Lesson 14 is the encoding attack. Lesson 15 is the injection attack at the system boundary. Together they define the 2026 jailbreak attack surface.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` builds a toy target with a keyword filter and a "patterned-continuation" weakness: when the context contains N examples of harmful-compliance pairs, the target's filter score is damped by a power-law factor. You can reproduce the shot-vs-ASR curve.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-msj-audit.md`. Given a long-context-safety evaluation, it audits: shot counts tested (5, 32, 128, 256, 512), categories covered, defense mechanism (prompt classifier, truncation, rewriting), and power-law-fit statistics.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Fit a power law to the shot-vs-ASR curve. Report the exponent.
 
@@ -86,7 +89,7 @@ This lesson produces `outputs/skill-msj-audit.md`. Given a long-context-safety e
 
 5. MSJ's mechanism is identical to ICL. Sketch a training-time defense that reduces ICL sensitivity to harmful-compliance patterns without reducing ICL sensitivity to benign task patterns. Identify the primary failure mode of your design.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -98,7 +101,7 @@ This lesson produces `outputs/skill-msj-audit.md`. Given a long-context-safety e
 | Context-window exploit | "long-prompt attack surface" | Attacks that exist because context windows are long |
 | Compositional attack | "MSJ + PAIR" | Combination of MSJ with other attack families; often strictly stronger |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anil, Durmus, Panickssery et al. — Many-shot Jailbreaking (Anthropic, NeurIPS 2024)](https://www.anthropic.com/research/many-shot-jailbreaking) — the canonical paper and power-law results
 - [Chao et al. — PAIR (Lesson 12, arXiv:2310.08419)](https://arxiv.org/abs/2310.08419) — the iterative attack MSJ composes with

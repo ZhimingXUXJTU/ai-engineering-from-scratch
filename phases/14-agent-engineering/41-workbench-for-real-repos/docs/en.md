@@ -1,4 +1,4 @@
-# The Workbench on a Real Repo
+# The Workbench on a Real Repo | 工作台 仓库
 
 > Eleven lessons of surfaces are worth nothing if they do not survive contact with a real codebase. This lesson runs the same task twice on a small sample app: prompt-only versus workbench-guided. The numbers do the arguing.
 
@@ -7,20 +7,23 @@
 **Prerequisites:** Phases 14 · 32 to 14 · 40
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Bring the seven workbench surfaces together on a small application.
 - Run the same task twice (prompt-only and workbench-guided) and measure five outcomes.
 - Read the before/after report and decide which surfaces gave the most leverage.
 - Defend the workbench against a "but my model is good enough" pushback.
 
-## The Problem
+## The Problem | 问题
 
 A demo on a toy task convinces no one. The case for the workbench is made when a real-feeling task on a real-feeling repo lands in production with fewer failures, fewer reverts, and a packet the next session can use.
 
 This lesson ships that real-feeling repo and runs the same task through both pipelines. The result is a before/after report you can hand to a skeptic.
 
-## The Concept
+
+> **【中文解读】** 本节介绍了生产环境的部署策略和运维最佳实践。
+
+## The Concept | 概念
 
 ```mermaid
 flowchart TD
@@ -30,6 +33,9 @@ flowchart TD
   B --> M
   M --> Report[before-after-report.md]
 ```
+
+
+> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
 
 ### The sample app
 
@@ -73,7 +79,7 @@ Workbench-guided:
 | `handoff_quality` | The next session pays for or benefits from this |
 | `reviewer_total` | Qualitative judgment on top of the gate |
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` orchestrates the two pipelines against the same sample app fixture. Both pipelines are scripted (no LLM in the loop) so the measurement is reproducible. The script writes the comparison into `before-after-report.md` and `comparison.json`.
 
@@ -103,7 +109,7 @@ The skeptic's question is "how much does the workbench actually help?" The 2026 
 
 The takeaway is not "harness wins forever." Models do absorb harness tricks over time. The takeaway is that today, the engineering load sits in the seven surfaces, and the numbers prove it.
 
-## Use It
+## Use It | 使用方法
 
 This lesson is the case file you cite when:
 
@@ -113,29 +119,34 @@ This lesson is the case file you cite when:
 
 The numbers travel further than the explanation.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-workbench-benchmark.md` is a portable evaluation harness that runs any agent product through both pipelines against a project's own sample app and reports the five outcomes.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a sixth outcome: time-to-first-meaningful-edit. How do you measure it cleanly?
+   *思考并实践此练习*
 2. Run the comparison on a real second-day task in your codebase. Where do the workbench numbers slip?
+   *思考并实践此练习*
 3. Add a "false negative" pass: tasks where prompt-only would have been faster and the workbench overhead is real cost. Defend keeping the workbench anyway.
+   *思考并实践此练习*
 4. Replace the scripted "agent" with a real LLM call. Which outcomes get noisier?
+   *思考并实践此练习*
 5. Author a one-page summary aimed at a non-engineer. What survives the cut?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Sample app | "Toy repo" | Small but realistic enough to exercise all seven surfaces |
-| Pipeline | "Workflow" | Ordered sequence of surface reads/writes the agent follows |
-| Before/after report | "The receipts" | The artifact you hand to a skeptic |
-| False negative | "Workbench overkill" | Tasks where prompt-only is faster; useful to enumerate honestly |
-| Workbench benchmark | "Reliability score" | Portable harness that runs the comparison on your codebase |
+|------|----------------|------------------------|---|
+| Sample app | "Toy repo" | Small but realistic enough to exercise all seven surfaces |  |
+| Pipeline | "Workflow" | Ordered sequence of surface reads/writes the agent follows |  |
+| Before/after report | "The receipts" | The artifact you hand to a skeptic |  |
+| False negative | "Workbench overkill" | Tasks where prompt-only is faster; useful to enumerate honestly |  |
+| Workbench benchmark | "Reliability score" | Portable harness that runs the comparison on your codebase |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [LangChain, The Anatomy of an Agent Harness](https://blog.langchain.com/the-anatomy-of-an-agent-harness/) — Terminal Bench Top-30 to Top-5 receipt
 - [MongoDB, The Agent Harness: Why the LLM Is the Smallest Part of Your Agent System](https://www.mongodb.com/company/blog/technical/agent-harness-why-llm-is-smallest-part-of-your-agent-system) — Vercel + Harvey numbers

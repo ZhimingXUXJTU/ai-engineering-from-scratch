@@ -1,26 +1,30 @@
-# Instruction-Following as Alignment Signal
+# Instruction-Following as Alignment Signal | 指令遵循作为对齐信号
 
 > Every later critique of RLHF argues against this pipeline. Before you study how optimization pressure distorts a proxy, you have to see the proxy. InstructGPT (Ouyang et al., 2022) defined the reference architecture: supervised fine-tuning on instruction-response pairs, a reward model trained on pairwise preference rankings, and PPO against the reward model with a KL penalty to the SFT policy. A 1.3B InstructGPT was preferred over a 175B GPT-3. That single result is the reason every frontier lab in 2026 still ships an RLHF-shaped post-training pipeline.
+
+> **【中文解读】** InstructGPT（Ouyang 等人, 2022）定义了对齐的参考架构：1) 监督微调（SFT）在指令-响应对上训练；2) 奖励模型在成对偏好排序上训练；3) PPO 对抗奖励模型，带 KL 惩罚保护。1.3B 的 InstructGPT 在人类偏好评估上超越了 175B 的 GPT-3。这就是为什么 2026 年每个前沿实验室仍在使用 RLHF 形式的后训练管线。
+
+> **【拓展：RLHF → 现代 AI 对齐】** RLHF（基于人类反馈的强化学习）是 ChatGPT 成功的关键技术。InstructGPT 的三阶段管线——SFT→RM→PPO——已成为行业标准。2026 年的变体包括 DPO（直接偏好优化）、Constitutional AI（宪法 AI）等，但核心思路相同：用人类偏好信号引导模型行为。
 
 **Type:** Learn
 **Languages:** Python (stdlib, toy three-stage pipeline)
 **Prerequisites:** Phase 10 · 06 (SFT), Phase 10 · 07 (RLHF), Phase 10 · 08 (DPO)
 **Time:** ~45 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Name the three stages of the InstructGPT pipeline and the loss used in each.
 - Explain why a 1.3B instruction-tuned model beat the raw 175B GPT-3 on human preference evaluation.
 - State what the KL penalty in stage 3 is protecting against and why removing it collapses to mode-seeking behaviour.
 - Describe the alignment tax and the PPO-ptx mitigation Ouyang et al. used against it.
 
-## The Problem
+## The Problem | 问题
 
 Pre-trained language models complete text. They do not answer questions. Ask GPT-3 "write a Python function that reverses a list" and you often get back another prompt, because most of the training distribution is web text that continues with more web text. The model is doing its job — the job is wrong.
 
 The proxy every serious lab used to fix this is human preference. Two completions go to a rater; the rater picks the better one; a reward model learns the rater. Then an RL loop shifts the policy toward outputs the reward model scores high. That is the full InstructGPT thesis in three sentences. The rest of the paper is engineering.
 
-## The Concept
+## The Concept | 概念
 
 ### Stage 1: supervised fine-tuning (SFT)
 
@@ -73,7 +77,7 @@ A 1.3B InstructGPT (SFT + RM + PPO-ptx) is preferred by labelers over the 175B b
 
 Every critique in later lessons — reward hacking (Lesson 2), DPO (Lesson 3), sycophancy (Lesson 4), CAI (Lesson 5), sleeper agents (Lesson 7), alignment faking (Lesson 9) — argues against some part of this pipeline. Reward hacking attacks stage 2. DPO collapses stages 2 and 3. CAI replaces the human labeler. Sycophancy shows the labeler is a biased signal. Alignment faking shows the policy can route around stage 3 entirely. You cannot follow any of these critiques without the pipeline in your head first.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` simulates the three stages on toy preference data. The base "policy" is a biased coin over actions {A, B, C}. Stage 1 SFT mimics labeler actions on 200 prompts. Stage 2 fits a Bradley-Terry reward model from 500 pairwise rankings. Stage 3 runs a simplified PPO update with a KL penalty to the SFT policy. You can watch the reward climb, the KL divergence grow, and the policy drift — and you can turn off the KL term to see reward hacking appear inside 50 update steps.
 
@@ -83,11 +87,11 @@ What to look at:
 - KL(pi || pi_SFT) over training steps.
 - Final action distribution compared to labeler preference.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-instructgpt-explainer.md`. Given an RLHF pipeline description or a paper abstract, it identifies which of the three stages is being modified, what loss is being used at each stage, and whether a KL penalty or equivalent regularizer is present.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Set `beta = 0.0` and report the action distribution after 200 PPO steps. Explain the mode-seeking behaviour in one paragraph.
 
@@ -99,7 +103,7 @@ This lesson produces `outputs/skill-instructgpt-explainer.md`. Given an RLHF pip
 
 5. Replace the PPO loss with DPO (Phase 10 · 08) on the same preference data. Compare final policy drift (KL to SFT) and final reward. Which method drifts further at matched reward?
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -111,7 +115,7 @@ This lesson produces `outputs/skill-instructgpt-explainer.md`. Given an RLHF pip
 | Alignment tax | "the RLHF regression" | Post-RLHF drop on standard benchmarks that RLHF did not target |
 | Labeler preference | "the ground truth" | Sample of human rankings; the RM is a statistical proxy for this, not for "human values" |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Ouyang et al. — Training language models to follow instructions with human feedback (arXiv:2203.02155)](https://arxiv.org/abs/2203.02155) — the InstructGPT paper, foundation for every RLHF pipeline that followed
 - [Stiennon et al. — Learning to summarize from human feedback (arXiv:2009.01325)](https://arxiv.org/abs/2009.01325) — the RLHF-for-summarization predecessor

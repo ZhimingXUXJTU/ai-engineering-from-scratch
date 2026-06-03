@@ -1,6 +1,10 @@
-# Speaker Recognition & Verification
+# Speaker Recognition & Verification | 说话人识别与验证
 
 > ASR asks "what did they say?" Speaker recognition asks "who said it?" The math looks the same — embeddings plus cosine — but every production decision hinges on a single EER number.
+
+> **【中文解读】** ASR 问"说了什么"，说话人识别问"谁说的"。数学看起来一样——嵌入向量+余弦相似度——但每个生产决策都取决于一个 EER（等错误率）数值。EER 越低，系统越可靠。
+
+> **【拓展：声纹识别应用】** 声纹识别用于银行电话认证、智能音箱用户识别、安防监控。声纹（voiceprint）就像语音的指纹，是生物特征识别的重要分支。
 
 **Type:** Build
 **Languages:** Python

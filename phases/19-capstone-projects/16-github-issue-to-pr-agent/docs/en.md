@@ -1,6 +1,9 @@
-# Capstone 16 — GitHub Issue-to-PR Autonomous Agent
+# Capstone 16 — GitHub Issue-to-PR Autonomous Agent | GitHub Issue 结业 美国 PR
 
 > AWS Remote SWE Agents, Cursor Background Agents, OpenAI Codex cloud, and Google Jules all ship the same 2026 product shape: label an issue, get a PR. Run an agent in a cloud sandbox, verify tests pass, and post a review-ready PR with rationale. The hard parts are reproducing the repo's build environment automatically, preventing credential leakage, enforcing per-repo budgets, and making sure the agent cannot force-push. This capstone builds the self-hosted version and compares it on cost and pass rate to the hosted alternatives.
+
+> **【中文解读】** 本节是综合项目——构建 GitHub Issue 到 PR 的自动化 Agent。
+
 
 **Type:** Capstone
 **Languages:** Python (agent), TypeScript (GitHub App), YAML (Actions)
@@ -22,7 +25,7 @@ Verification is the gating step. Full CI must pass in the sandbox before the PR 
 
 Safety is scoped through two different GitHub surfaces: the App provides a short-lived installation token with `workflows: read` and narrow repo contents/PR scopes; branch protection (not app permissions) enforces "no direct writes to `main`" and "no force-push" — the app is never added to the bypass list. Path-scoped read-only access to `.github/workflows` is not a real GitHub App primitive, so the agent's allow-list on file edits has to enforce that at the worker. Budget ceilings per repo per day are enforced at the dispatcher (e.g., max 5 PRs per repo per day, $20 per PR).
 
-## Architecture
+## Architecture | 架构
 
 ```
 GitHub issue labeled `@agent fix` or PR comment
@@ -65,7 +68,7 @@ GitHub issue labeled `@agent fix` or PR comment
 - Observability: Langfuse with per-PR trace archive linked from the PR body
 - Budget: per-repo daily dollar ceiling; max PRs per repo per day
 
-## Build It
+## Build It | 动手构建
 
 1. **GitHub App.** Fine-grained installation token: issues read+write, pull_requests write, contents read+write, workflows read. Branch protection (the only surface that can do this) enforces "no direct push to `main`" and "no force-push"; the app is not in the bypass list. The worker enforces "no writes under `.github/workflows`" as an allow-list check on the proposed diff, since GitHub App permissions are not path-scoped.
 
@@ -85,7 +88,7 @@ GitHub issue labeled `@agent fix` or PR comment
 
 9. **Eval.** 30 seeded internal issues of varying difficulty. Measure pass rate, PR quality (diff size, style, coverage), cost, latency. Compare with Cursor Background Agents and AWS Remote SWE Agents on the same issues.
 
-## Use It
+## Use It | 使用方法
 
 ```
 # on github.com
@@ -99,7 +102,7 @@ GitHub issue labeled `@agent fix` or PR comment
     > Label: needs-review
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-issue-to-pr.md` is the deliverable. A GitHub App + async cloud worker that turns labeled issues into review-ready PRs with bounded cost and scoped credentials.
 
@@ -112,7 +115,7 @@ GitHub issue labeled `@agent fix` or PR comment
 | 15 | Operator UX | Rationale comments, retry affordance, @-mention follow-up |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a "fix flaky test" mode: the label `@agent stabilize-flake TestX` runs the test 50 times in-sandbox and proposes a minimal change that stabilizes it.
 
@@ -124,7 +127,7 @@ GitHub issue labeled `@agent fix` or PR comment
 
 5. Add a retention policy: PR branches older than 7 days without merge get deleted automatically.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -136,7 +139,7 @@ GitHub issue labeled `@agent fix` or PR comment
 | Per-repo budget | "Daily ceiling" | Dollar and PR-count cap enforced at the dispatcher |
 | Rationale | "PR body explanation" | Agent's summary of what changed and why; required in the PR body |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [AWS Remote SWE Agents](https://github.com/aws-samples/remote-swe-agents) — the canonical async cloud agent reference
 - [SWE-agent](https://github.com/SWE-agent/SWE-agent) — CLI reference

@@ -1,6 +1,10 @@
-# Flow Matching & Rectified Flows
+# Flow Matching & Rectified Flows | 流匹配与整流流
 
 > Diffusion models take 20-50 sampling steps because they walk a curved path from noise to data. Flow matching (Lipman et al., 2023) and rectified flow (Liu et al., 2022) trained straight paths. Straighter paths mean fewer steps mean faster inference. Stable Diffusion 3, Flux.1, and AudioCraft 2 all switched to flow matching in 2024.
+
+> **【中文解读】** 扩散模型需要 20-50 步采样因为走的是弯曲路径。Flow Matching 和 Rectified Flow 训练直线路径——更直的路径意味着更少的步数和更快的推理。SD3、FLUX.1、AudioCraft 2 都在 2024 年切换到了 Flow Matching。
+
+> **【拓展：Flow Matching 是 2024-2026 的趋势】** Flow Matching 正在取代传统扩散调度成为新一代生成模型的标准。它数学上更优雅，实验上更高效。SD3 和 FLUX 的质量提升很大程度上归功于这个改进。
 
 **Type:** Build
 **Languages:** Python

@@ -1,4 +1,4 @@
-# Optimization
+# Optimization | 优化
 
 > Training a neural network is nothing more than finding the bottom of a valley.
 
@@ -7,12 +7,20 @@
 **Prerequisites:** Phase 1, Lessons 04-05 (Derivatives, Gradients)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement vanilla gradient descent, SGD with momentum, and Adam from scratch
 - Compare optimizer convergence on the Rosenbrock function and explain why Adam adapts per-weight learning rates
 - Distinguish convex from non-convex loss landscapes and explain the role of saddle points in high dimensions
 - Configure learning rate schedules (step decay, cosine annealing, warmup) for training stability
+
+> **【中文解读】**
+> 训练神经网络就是"找山谷最低点"。损失函数告诉你当前有多错，梯度告诉你哪个方向能让误差更小，优化器决定你怎么走。本章从零实现 SGD、Momentum 和 Adam——PyTorch 中最常用的三个优化器。
+
+> **【拓展：优化器在 AI 中的位置】**
+> - **SGD**: 最基础的优化器，所有优化器的"祖先"。
+> - **Adam**: 目前最流行的优化器，自适应学习率 + 动量，几乎成了默认选择。
+> - **学习率调度**: 训练初期用大步长快速接近最优，后期用小步长精细调整。Cosine Annealing 和 Warmup 是 Transformer 训练的标准配置。
 
 ## The Problem
 

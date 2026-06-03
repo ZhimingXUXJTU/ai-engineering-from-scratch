@@ -1,4 +1,4 @@
-# OpenTelemetry GenAI Semantic Conventions
+# OpenTelemetry GenAI Semantic Conventions | 约定 GenAI METR
 
 > OpenTelemetry's GenAI SIG (launched April 2024) defines the standard schema for agent telemetry. Span names, attributes, and content-capture rules converge across vendors so agent traces mean the same thing in Datadog, Grafana, Jaeger, and Honeycomb.
 
@@ -7,18 +7,21 @@
 **Prerequisites:** Phase 14 · 13 (LangGraph), Phase 14 · 24 (Observability Platforms)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Name the GenAI span categories: model/client, agent, tool.
 - Distinguish `invoke_agent` CLIENT vs INTERNAL spans and when each applies.
 - List the top-level GenAI attributes: provider name, request model, data-source ID.
 - Explain the content-capture contract: opt-in, `OTEL_SEMCONV_STABILITY_OPT_IN`, external-reference recommendation.
 
-## The Problem
+## The Problem | 问题
 
 Every vendor invents their own span names. Ops teams end up building per-framework dashboards. OpenTelemetry's GenAI SIG fixes this by defining one standard the whole ecosystem targets.
 
-## The Concept
+
+> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
+
+## The Concept | 概念
 
 ### Span categories
 
@@ -71,7 +74,7 @@ Datadog v1.37+ maps GenAI attributes natively into its LLM Observability schema.
 - **Spans without parent links.** Orphaned tool spans. Always propagate context.
 - **Not setting stability opt-in.** Your attributes may get renamed on backend upgrade.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements a stdlib span emitter matching GenAI conventions:
 
@@ -88,39 +91,44 @@ python3 code/main.py
 
 Output: a span tree with all required GenAI attributes, and an "external store" showing the opt-in content references.
 
-## Use It
+## Use It | 使用方法
 
 - **Datadog LLM Observability** (v1.37+) maps attributes natively.
 - **Langfuse / Phoenix / Opik** (Lesson 24) — auto-instrument the ecosystem.
 - **Jaeger / Honeycomb / Grafana Tempo** — raw OTel traces; build dashboards from GenAI attributes.
 - **Self-hosted** — run the OTel Collector with a GenAI processor.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-otel-genai.md` wires OTel GenAI spans into an existing agent with content-capture defaults and external-reference storage.
 
-## Exercises
+## Exercises | 练习题
 
 1. Instrument your Lesson 01 ReAct loop with `invoke_agent` (INTERNAL) + per-tool spans. Send to a Jaeger instance.
+   *思考并实践此练习*
 2. Add content capture in "references only" mode: prompts to SQLite, span attributes carry only row IDs.
+   *思考并实践此练习*
 3. Read the spec for `gen_ai.data_source.id`. Wire it into your Lesson 09 Mem0 search.
+   *思考并实践此练习*
 4. Set `OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental` and verify your attributes don't get renamed by the collector.
+   *思考并实践此练习*
 5. Build a dashboard: "which tool errors correlate with which models" from GenAI attributes alone.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| GenAI SIG | "OpenTelemetry GenAI group" | OTel working group defining the schema |
-| invoke_agent | "Agent span" | Name of the span representing an agent run |
-| CLIENT span | "Remote call" | Span for a call to a remote agent service |
-| INTERNAL span | "In-process" | Span for an in-process agent run |
-| gen_ai.provider.name | "Provider" | anthropic / openai / aws.bedrock / google.vertex |
-| gen_ai.data_source.id | "RAG source" | Which corpus/store a retrieval hit |
-| Content capture | "Prompt logging" | Opt-in capture of messages; store externally in prod |
-| Stability opt-in | "Preview mode" | Env var to pin experimental conventions |
+|------|----------------|------------------------|---|
+| GenAI SIG | "OpenTelemetry GenAI group" | OTel working group defining the schema |  |
+| invoke_agent | "Agent span" | Name of the span representing an agent run |  |
+| CLIENT span | "Remote call" | Span for a call to a remote agent service |  |
+| INTERNAL span | "In-process" | Span for an in-process agent run |  |
+| gen_ai.provider.name | "Provider" | anthropic / openai / aws.bedrock / google.vertex |  |
+| gen_ai.data_source.id | "RAG source" | Which corpus/store a retrieval hit |  |
+| Content capture | "Prompt logging" | Opt-in capture of messages; store externally in prod |  |
+| Stability opt-in | "Preview mode" | Env var to pin experimental conventions |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) — the spec
 - [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) — GenAI spans by default

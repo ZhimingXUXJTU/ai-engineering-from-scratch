@@ -2,6 +2,9 @@
 
 Stdlib only. Vector store uses token-overlap as an embedding stand-in.
 Scope taxonomy: user / session / agent. Fusion: relevance + importance + recency.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -13,6 +16,7 @@ from typing import Any
 
 @dataclass
 class Record:
+    """Record"""
     rid: str
     text: str
     scope: str
@@ -24,6 +28,7 @@ class Record:
 
 
 class VectorStore:
+    """VectorStore"""
     def __init__(self) -> None:
         self._records: dict[str, Record] = {}
 
@@ -43,17 +48,19 @@ class VectorStore:
             score = overlap / (len(q_tokens | r_tokens))
             scored.append((score, record))
         scored.sort(key=lambda x: -x[0])
-        return scored[:top_k]
+        return scored[:top_k]  # 返回结果
 
 
 @dataclass(frozen=True)
 class KVKey:
+    """KVKey"""
     user_id: str
     fact_type: str
     entity: str
 
 
 class KVStore:
+    """KVStore"""
     def __init__(self) -> None:
         self._map: dict[KVKey, Record] = {}
 
@@ -61,14 +68,15 @@ class KVStore:
         self._map[key] = record
 
     def get(self, key: KVKey) -> Record | None:
-        return self._map.get(key)
+        return self._map.get(key)  # 返回结果
 
     def by_user(self, user_id: str) -> list[Record]:
-        return [r for k, r in self._map.items() if k.user_id == user_id]
+        return [r for k, r in self._map.items() if k.user_id == user_id]  # 返回结果
 
 
 @dataclass
 class Edge:
+    """Edge"""
     subject: str
     relation: str
     obj: str
@@ -77,6 +85,7 @@ class Edge:
 
 
 class GraphStore:
+    """GraphStore"""
     def __init__(self) -> None:
         self._edges: list[Edge] = []
 
@@ -87,15 +96,16 @@ class GraphStore:
         self._edges.append(Edge(subject=subject, relation=relation, obj=obj))
 
     def neighbors(self, subject: str, valid_only: bool = True) -> list[Edge]:
-        return [e for e in self._edges
+        return [e for e in self._edges  # 返回结果
                 if e.subject == subject and (e.valid or not valid_only)]
 
     def all_edges(self) -> list[Edge]:
-        return list(self._edges)
+        return list(self._edges)  # 返回结果
 
 
 @dataclass
 class Mem0Config:
+    """Mem0Config"""
     w_relevance: float = 0.6
     w_importance: float = 0.2
     w_recency: float = 0.2
@@ -103,6 +113,7 @@ class Mem0Config:
 
 
 class Mem0:
+    """Mem0"""
     def __init__(self, config: Mem0Config | None = None) -> None:
         self.vector = VectorStore()
         self.kv = KVStore()
@@ -124,12 +135,12 @@ class Mem0:
             self.kv.put(KVKey(user_id=user_id, fact_type=fact_type, entity=entity), record)
         for subject, relation, obj in graph_triples:
             self.graph.add_edge(subject, relation, obj)
-        return rid
+        return rid  # 返回结果
 
     def _recency_score(self, record: Record, now: float) -> float:
         elapsed = max(0.0, now - record.ts)
         half = self.config.recency_halflife_s
-        return 0.5 ** (elapsed / half) if half > 0 else 1.0
+        return 0.5 ** (elapsed / half) if half > 0 else 1.0  # 返回结果
 
     def search(self, query: str, *, user_id: str,
                scope: str | None = None, top_k: int = 5) -> list[tuple[float, Record]]:
@@ -155,10 +166,11 @@ class Mem0:
                      + self.config.w_recency * recency)
             fused[record.rid] = (score, record)
         ordered = sorted(fused.values(), key=lambda x: -x[0])
-        return ordered[:top_k]
+        return ordered[:top_k]  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("MEM0 HYBRID MEMORY — Phase 14, Lesson 09")
     print("=" * 70)
@@ -231,4 +243,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

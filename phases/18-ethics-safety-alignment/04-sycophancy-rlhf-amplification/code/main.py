@@ -12,6 +12,9 @@ like Shapira et al. predict.
 We sweep beta (KL coefficient) and alpha (agreement-penalty correction).
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -28,14 +31,16 @@ AGREEMENT = {"A": 0.0, "S": 1.0, "W": 0.0}
 
 
 def softmax(xs: list[float]) -> list[float]:
+    """softmax"""
     m = max(xs)
     exps = [math.exp(x - m) for x in xs]
     z = sum(exps)
-    return [e / z for e in exps]
+    return [e / z for e in exps]  # 返回结果
 
 
 def kl(p: list[float], q: list[float]) -> float:
-    return sum(pi * math.log(pi / qi) for pi, qi in zip(p, q) if pi > 0 and qi > 0)
+    """kl"""
+    return sum(pi * math.log(pi / qi) for pi, qi in zip(p, q) if pi > 0 and qi > 0)  # 返回结果
 
 
 def labeler_reward(action: str) -> float:
@@ -43,7 +48,7 @@ def labeler_reward(action: str) -> float:
     agreement bonus. This is the spurious feature that RMs pick up from
     real labeler data — fluent agreement scores higher than an equally
     correct disagreement."""
-    return TRUE_UTILITY[action] + 0.6 * AGREEMENT[action]
+    return TRUE_UTILITY[action] + 0.6 * AGREEMENT[action]  # 返回结果
 
 
 def train_rm(n_pairs: int = 500) -> dict[str, float]:
@@ -60,15 +65,16 @@ def train_rm(n_pairs: int = 500) -> dict[str, float]:
         r[winner] += lr * (1 - s)
         r[loser] -= lr * (1 - s)
     m = sum(r.values()) / 3
-    return {a: v - m for a, v in r.items()}
+    return {a: v - m for a, v in r.items()}  # 返回结果
 
 
 def agreement_penalty_correction(r: dict[str, float], alpha: float) -> dict[str, float]:
     """Shapira et al. correction: r' = r - alpha * agree(y)."""
-    return {a: r[a] - alpha * AGREEMENT[a] for a in ACTIONS}
+    return {a: r[a] - alpha * AGREEMENT[a] for a in ACTIONS}  # 返回结果
 
 
 def ppo_train(ref_logits: list[float], reward: dict[str, float],
+    """ppo_train"""
               beta: float, steps: int = 300, batch: int = 64,
               lr: float = 0.08) -> list[float]:
     logits = list(ref_logits)
@@ -100,18 +106,21 @@ def ppo_train(ref_logits: list[float], reward: dict[str, float],
                 indicator = 1.0 if i == b else 0.0
                 grad[b] += advantages[i] * probs[i] * (indicator - probs[b])
         logits = [l + lr * g for l, g in zip(logits, grad)]
-    return logits
+    return logits  # 返回结果
 
 
 def sycophancy(probs: list[float]) -> float:
-    return probs[ACTIONS.index("S")]
+    """sycophancy"""
+    return probs[ACTIONS.index("S")]  # 返回结果
 
 
 def correctness(probs: list[float]) -> float:
-    return probs[ACTIONS.index("A")]
+    """correctness"""
+    return probs[ACTIONS.index("A")]  # 返回结果
 
 
 def report(label: str, logits: list[float]) -> None:
+    """report"""
     probs = softmax(logits)
     print(f"  {label:40s}  "
           f"P(A)={correctness(probs):.3f}  "
@@ -120,6 +129,7 @@ def report(label: str, logits: list[float]) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("SYCOPHANCY AMPLIFICATION (Phase 18, Lesson 4)")
     print("=" * 70)
@@ -151,4 +161,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

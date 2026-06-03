@@ -1,3 +1,8 @@
+"""
+音频生成 (Audio Generation)
+核心概念：神经编解码器（EnCodec）将音频压缩为 token，Transformer 生成 token
+AI 对应：MusicGen、AudioCraft 使用这种方式生成音乐和音效
+"""
 import math
 import random
 

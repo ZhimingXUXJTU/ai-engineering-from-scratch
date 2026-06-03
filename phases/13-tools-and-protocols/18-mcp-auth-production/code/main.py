@@ -1,5 +1,11 @@
 """Phase 13 Lesson 18 - MCP auth in production on iii primitives.
 
+MCP 生产级认证 (MCP Auth in Production)
+核心概念：Lesson 16 的 OAuth 2.1 状态机在生产环境有三个缺口——动态客户端注册(DCR, RFC 7591)、
+JWKS 密钥轮换（防止凌晨3点 token 验证失败）、受众绑定 token（防止混淆代理重用）。
+本课通过 iii 原语（registerTrigger/registerFunction/state::set/get）连接所有认证组件。
+AI 应用对应：生产级 MCP 认证需要 DCR 自动注册客户端、JWKS 定时轮换、每次请求验证 aud 声明。
+
 A stdlib walk-through of the production MCP auth surface:
 
   - RFC 8414 authorization server metadata on an HTTP trigger
@@ -35,13 +41,10 @@ from typing import Any, Callable
 
 
 class IIIMock:
-    """In-process mock of the iii runtime.
+    """iii 运行时的进程内模拟。
 
-    Real iii (see iii-sdk) gives the same shape over a websocket:
-        await iii.register_function("auth::validate-jwt", handler)
-        await iii.register_trigger("http", {"path": "/register"}, "auth::register-client")
-        await iii.trigger("auth::validate-jwt", {"token": ...})
-        await iii.state.set("auth/jwks/<iss>", {...})
+    真实的 iii 通过 websocket 提供相同的 API 形状。
+    模拟了 registerFunction、registerTrigger、trigger、state::set/get 等核心原语。
     """
 
     def __init__(self) -> None:
@@ -88,7 +91,7 @@ iii = IIIMock()
 
 
 # ---------------------------------------------------------------------------
-# JWT helpers - HS256 keeps the lesson stdlib-only; production uses RS256/EdDSA
+# JWT 工具函数 - 使用 HS256 保持标准库兼容，生产环境使用 RS256/EdDSA
 # ---------------------------------------------------------------------------
 
 
@@ -181,6 +184,7 @@ OTHER_MCP_RESOURCE = "https://tasks.example.com"
 
 
 def serve_asm(_: dict) -> dict:
+    """RFC 8414 授权服务器元数据端点：发布所有端点 URL 和支持的授权类型。"""
     return {
         "status": 200,
         "body": {
@@ -199,6 +203,7 @@ def serve_asm(_: dict) -> dict:
 
 
 def register_client(payload: dict) -> dict:
+    """RFC 7591 动态客户端注册：客户端 POST /register 获得 client_id，无需管理员干预。"""
     body = payload["body"]
     redirect_uris = body.get("redirect_uris", [])
     if not redirect_uris:
@@ -228,6 +233,7 @@ def register_client(payload: dict) -> dict:
 
 
 def rotate_jwks(_: dict) -> dict:
+    """JWKS 密钥轮换：生成新密钥，写入 state 缓存，保留最近2个密钥实现重叠窗口。"""
     new_key = idp.rotate_key()
     iii.state_set(
         f"auth/jwks/{idp.issuer}",
@@ -237,6 +243,7 @@ def rotate_jwks(_: dict) -> dict:
 
 
 def validate_jwt(payload: dict) -> dict:
+    """JWT 验证：签名验证 + iss 白名单 + aud 受众绑定 + 过期检查 + 范围验证。"""
     token = payload["token"]
     expected_resource = payload["resource"]
     allowed_issuers = payload.get("allowed_issuers", [idp.issuer])
@@ -309,7 +316,7 @@ def validate_jwt(payload: dict) -> dict:
 
 
 def issue_step_up(payload: dict) -> dict:
-    """Issue a new token with an enlarged scope set. Used after 403 insufficient_scope."""
+    """SEP-835 逐步授权：签发带有扩大范围集的新 token，在 403 insufficient_scope 后使用。"""
     user = payload["user"]
     client_id = payload["client_id"]
     new_scopes = payload["scopes"]
@@ -328,11 +335,12 @@ def issue_step_up(payload: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Registration of every iii primitive this lesson uses
+# 注册所有 iii 原语——构建完整认证面
 # ---------------------------------------------------------------------------
 
 
 def install_auth_surface() -> None:
+    """注册所有认证相关的 iii 原语：HTTP 触发器、cron 触发器、函数注册、初始 JWKS 加载。"""
     print("[install] registering iii primitives:")
     iii.registerTrigger(
         "http",
@@ -350,7 +358,7 @@ def install_auth_surface() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Mock MCP client - PKCE + DCR + audience-pinned token request
+# 模拟 MCP 客户端 - PKCE + DCR + 受众绑定 token 请求
 # ---------------------------------------------------------------------------
 
 
@@ -406,7 +414,7 @@ class MockMCPClient:
 
 
 # ---------------------------------------------------------------------------
-# Mock MCP server - calls auth::validate-jwt via iii.trigger on every request
+# 模拟 MCP 服务器 - 每次请求通过 iii.trigger 调用 auth::validate-jwt
 # ---------------------------------------------------------------------------
 
 
@@ -435,7 +443,7 @@ class MockMCPServer:
 
 
 # ---------------------------------------------------------------------------
-# Demo - the 9-step production flow
+# 演示 - 9步生产流程
 # ---------------------------------------------------------------------------
 
 

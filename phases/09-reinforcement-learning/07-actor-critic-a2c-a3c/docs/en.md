@@ -1,6 +1,8 @@
-# Actor-Critic — A2C and A3C
+# Actor-Critic — A2C and A3C | 演员-评论家 — A2C 与 A3C
 
 > REINFORCE is noisy. Add a critic that learns `V̂(s)`, subtract it from the return, and you get an advantage that has the same expectation but far lower variance. That is actor-critic. A2C runs it synchronously; A3C runs it across threads. Both are the mental model for every modern deep-RL method.
+
+> **【中文解读】** REINFORCE 方差太大。加入一个"评论家"(Critic)学习 V̂(s)，用它作为基线构造优势函数 A = G - V̂(s)，期望不变但方差大幅降低。这就是 Actor-Critic——PPO、SAC 等所有现代深度 RL 方法的架构原型。
 
 **Type:** Build
 **Languages:** Python
@@ -52,6 +54,10 @@ with `λ ∈ [0, 1]`. `λ = 0` is TD (low variance, high bias). `λ = 1` is MC (
 `L(θ, φ) = -E[ A_t · log π_θ(a_t | s_t) ]  +  c_v · E[(V_φ(s_t) - G_t)²]  -  c_e · E[H(π_θ(·|s_t))]`
 
 Three terms: policy-gradient loss, value regression, entropy bonus. `c_v ~ 0.5`, `c_e ~ 0.01` are canonical starting points.
+
+> **【中文解读】** Actor-Critic 的组合损失 = 策略梯度损失 + 值函数回归 + 熵正则化。这三项分别对应：让好的动作概率更大、让 Critic 更准确、防止策略过早坍缩为确定性策略。
+
+> **【拓展：GAE→PPO→RLHF】** GAE (广义优势估计) 是 PPO 的核心组件，而 PPO 是 ChatGPT RLHF 训练的标准算法。λ=0.95 是 2026 年的默认值，在偏差和方差之间取得平衡。理解 GAE 就理解了大模型对齐训练中最关键的优势估计方法。
 
 ## Build It
 
@@ -174,14 +180,14 @@ Refuse single-worker A2C on environments with horizon > 1000 (too on-policy, too
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
-| Actor | "The policy net" | `π_θ(a\|s)`, updated by policy gradient. |
-| Critic | "The value net" | `V_φ(s)`, updated by MSE regression to returns / TD targets. |
-| Advantage | "How much better than average" | `A(s, a) = Q(s, a) - V(s)` or its estimators. Multiplier for `∇ log π`. |
-| TD residual | "δ" | `δ_t = r + γ V(s') - V(s)`; one-step advantage estimate. |
-| GAE | "The interpolation knob" | Exponentially weighted sum of n-step advantages, parameterized by `λ`. |
-| A2C | "Synchronous actor-critic" | Batched across envs; one gradient step per rollout. |
-| A3C | "Async actor-critic" | Worker threads push gradients to a shared param server. Original paper; less common in 2026. |
-| Bootstrap | "Use V at the horizon" | Truncate the rollout, add `γ^n V(s_{t+n})` to close the sum. |
+| Actor | "The policy net" / 演员（策略网络） | `π_θ(a\|s)`, updated by policy gradient. |
+| Critic | "The value net" / 评论家（值网络） | `V_φ(s)`, updated by MSE regression to returns / TD targets. |
+| Advantage | "How much better than average" / 优势函数 | `A(s, a) = Q(s, a) - V(s)` or its estimators. Multiplier for `∇ log π`. |
+| TD residual | "δ" / TD 残差 | `δ_t = r + γ V(s') - V(s)`; one-step advantage estimate. |
+| GAE | "The interpolation knob" / 广义优势估计 | Exponentially weighted sum of n-step advantages, parameterized by `λ`. |
+| A2C | "Synchronous actor-critic" / 同步演员-评论家 | Batched across envs; one gradient step per rollout. |
+| A3C | "Async actor-critic" / 异步演员-评论家 | Worker threads push gradients to a shared param server. Original paper; less common in 2026. |
+| Bootstrap | "Use V at the horizon" / 自举截断 | Truncate the rollout, add `γ^n V(s_{t+n})` to close the sum. |
 
 ## Further Reading
 

@@ -1,3 +1,7 @@
+"""
+逆 CDF、拒绝采样、温度/Top-k/Top-p 采样和 MCMC。
+AI 对应: LLM 用 temperature/top-k/top-p 控制生成多样性，扩散模型用采样生成图像。
+"""
 import math
 import random
 

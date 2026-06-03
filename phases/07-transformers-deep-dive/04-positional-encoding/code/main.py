@@ -3,6 +3,8 @@
 Pure stdlib. Each encoding scheme shipped as a small reusable function.
 Demos the relative-distance property of RoPE numerically.
 """
+# 【中文解读】位置编码。Transformer 无位置信息需手动注入。RoPE 用于 Llama，ALiBi 支持长序列外推。
+
 
 import math
 import random

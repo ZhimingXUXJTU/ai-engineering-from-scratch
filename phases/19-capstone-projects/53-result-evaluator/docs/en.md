@@ -1,13 +1,16 @@
-# Result Evaluator
+# Result Evaluator | 评估器 结果
 
 > The runner produced numbers. The evaluator decides whether those numbers are an improvement, a regression, or noise. Build the verdict path that turns metrics into a one line conclusion.
+
+> **【中文解读】** 本节是综合项目——构建结果评估器。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 Track A lessons 20-29
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 - Compare a candidate run against a baseline using direction aware improvement and a fixed threshold.
 - Run a paired t test from scratch over per seed metrics and read the resulting p value.
 - Normalise log scaled metrics so a downstream report can blend them with linear metrics.
@@ -46,7 +49,7 @@ Improvement is signed. A negative improvement on a higher is better metric means
 
 A flat threshold (`improvement_threshold=0.02`, two percent) decides whether the change is large enough to call. Below that the verdict is "noise" regardless of the p value; the loop is not interested in changes the user could not measure.
 
-## Architecture
+## Architecture | 架构
 
 ```mermaid
 flowchart TD

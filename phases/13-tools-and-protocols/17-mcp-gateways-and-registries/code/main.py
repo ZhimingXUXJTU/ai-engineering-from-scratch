@@ -1,5 +1,11 @@
 """Phase 13 Lesson 17 - minimal MCP gateway.
 
+MCP 网关与注册中心 (MCP Gateways and Registries)
+核心概念：网关集中处理认证、RBAC、审计、限流和工具投毒检测，暴露为单一 MCP 端点。
+企业不能让每个开发者随意安装 MCP 服务器，网关是安全合规的核心组件。
+本文件实现约150行的最小网关：Bearer token 认证、每用户 RBAC、审计日志、令牌桶限流、工具哈希锁定。
+AI 应用对应：MCP 网关是企业部署 MCP 的必备架构模式，Cloudflare/Kong/IBM 都推出了网关产品。
+
 Single-file stdlib gateway that:
   - authenticates by Bearer token
   - applies per-user RBAC on server.tool
@@ -22,44 +28,51 @@ from typing import Callable
 
 
 # ------------------------------------------------------------------
-# fake backend servers
+# 模拟后端服务器 (fake backend servers)
 # ------------------------------------------------------------------
 
+# 笔记服务器提供的工具列表
 NOTES_TOOLS = [
     {"name": "search", "description": "Use when the user searches notes."},
     {"name": "create", "description": "Use when the user writes a new note."},
 ]
 
+# GitHub 服务器提供的工具列表
 GITHUB_TOOLS = [
     {"name": "list_issues", "description": "Use when the user wants open issues."},
     {"name": "open_pr", "description": "Use when the user opens a PR."},
 ]
 
 
+# 模拟后端工具调用（实际部署中会通过 MCP 协议路由到真实后端）
 def backend_call(server: str, tool: str, args: dict) -> dict:
     return {"content": [{"type": "text", "text": f"[{server}] {tool} ran"}],
             "isError": False}
 
 
 # ------------------------------------------------------------------
-# gateway state
+# 网关状态 (gateway state)
 # ------------------------------------------------------------------
 
+# 用户数据库：Bearer token -> 用户信息和角色
 USERS = {
     "bearer_alice": {"id": "alice", "role": "developer"},
     "bearer_bob":   {"id": "bob",   "role": "auditor"},
 }
 
+# RBAC 策略：每用户可访问的工具集合（server.tool 格式）
 RBAC = {
     "alice":   {"notes.search", "notes.create", "github.list_issues", "github.open_pr"},
     "bob":     {"notes.search", "github.list_issues"},
 }
 
 
+# 工具描述哈希锁定清单：server::tool -> SHA256 哈希值
 PINNED_HASHES: dict[str, str] = {}
 
 
 def pin_manifest(server: str, tools: list[dict]) -> None:
+    """记录所有已审批工具描述的 SHA256 哈希，用于后续检测地毯拉扯攻击。"""
     for t in tools:
         key = f"{server}::{t['name']}"
         PINNED_HASHES[key] = hashlib.sha256(t["description"].encode()).hexdigest()
@@ -69,9 +82,11 @@ pin_manifest("notes", NOTES_TOOLS)
 pin_manifest("github", GITHUB_TOOLS)
 
 
+# 审计日志：追加式事件列表，记录所有调用决策
 AUDIT_LOG: list[dict] = []
 
 
+# 令牌桶限流器：每用户独立，capacity 为桶容量，refill_rate 为每秒补充速率
 @dataclass
 class TokenBucket:
     capacity: int
@@ -99,10 +114,11 @@ def get_bucket(user_id: str) -> TokenBucket:
 
 
 # ------------------------------------------------------------------
-# gateway dispatch
+# 网关调度 (gateway dispatch)
 # ------------------------------------------------------------------
 
 def verify_pinned(server: str, tool_name: str, live_desc: str) -> bool:
+    """验证后端工具描述是否与锁定的哈希匹配。不匹配则表示发生了地毯拉扯攻击。"""
     key = f"{server}::{tool_name}"
     if key not in PINNED_HASHES:
         return False
@@ -110,6 +126,7 @@ def verify_pinned(server: str, tool_name: str, live_desc: str) -> bool:
 
 
 def gateway_tools_list(bearer: str) -> dict:
+    """列出当前用户可见的所有工具（经 RBAC 过滤 + 哈希锁定验证 + 命名空间合并）。"""
     user = USERS.get(bearer)
     if not user:
         return {"error": "unauthenticated", "status": 401}
@@ -126,6 +143,7 @@ def gateway_tools_list(bearer: str) -> dict:
 
 
 def gateway_tools_call(bearer: str, canonical_name: str, args: dict) -> dict:
+    """网关工具调用：认证 -> RBAC 检查 -> 限流 -> 哈希锁定验证 -> 路由到后端 -> 审计记录。"""
     user = USERS.get(bearer)
     if not user:
         return {"error": "unauthenticated", "status": 401}
@@ -152,6 +170,7 @@ def gateway_tools_call(bearer: str, canonical_name: str, args: dict) -> dict:
 
 
 def demo() -> None:
+    """演示：合法用户调用、越权调用、限流触发、地毯拉扯模拟。"""
     print("=" * 72)
     print("PHASE 13 LESSON 17 - MCP GATEWAY")
     print("=" * 72)

@@ -1,6 +1,10 @@
-# Monocular Depth & Geometry Estimation
+# Monocular Depth & Geometry Estimation | 单目深度与几何估计
 
 > A depth map is a single-channel image where each pixel is a distance from the camera. Predicting it from one RGB frame used to be impossible without stereo or LiDAR. In 2026 a frozen ViT encoder plus a lightweight head gets within a few percent of ground truth.
+
+> **【中文解读】** 深度图是单通道图像，每个像素值表示到相机的距离。从单张 RGB 图像预测深度曾经被认为是不可能的（需要双目或 LiDAR），但 2026 年的 ViT 编码器 + 轻量级解码器已经可以达到接近真值的精度。
+
+> **【拓展：深度估计的应用】** 单目深度估计在自动驾驶（补充 LiDAR）、AR/VR（场景理解）、机器人导航、3D 照片效果（背景虚化）中有重要应用。Depth Anything、MiDaS、ZoeDepth 是代表性模型。
 
 **Type:** Build + Use
 **Languages:** Python

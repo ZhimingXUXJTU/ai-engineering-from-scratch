@@ -1,3 +1,18 @@
+"""
+语义分割 — U-Net (Semantic Segmentation — U-Net)
+
+核心概念：
+- 语义分割：对每个像素进行分类（不是对整张图分类）
+- U-Net：编码器-解码器架构 + 跳跃连接，编码器提取特征，解码器恢复分辨率
+- 损失函数：交叉熵损失 + Dice 损失（处理类别不平衡）
+- 评估指标：IoU（交并比）、mIoU（平均 IoU）
+
+AI 对应：
+- U-Net 是 Stable Diffusion 的核心去噪网络
+- 语义分割是自动驾驶（道路分割）、医学影像（器官分割）的基础
+- 编码器-解码器+跳跃连接的模式被广泛复制到各种任务
+"""
+
 import numpy as np
 import torch
 import torch.nn as nn

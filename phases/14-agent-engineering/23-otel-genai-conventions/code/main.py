@@ -2,6 +2,9 @@
 
 Emits invoke_agent INTERNAL spans, per-tool spans, chat spans for LLM calls.
 Content capture is opt-in: prompts go to an external store, spans carry IDs.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -13,6 +16,7 @@ from typing import Any
 
 @dataclass
 class Span:
+    """Span"""
     name: str
     kind: str = "INTERNAL"
     attributes: dict[str, Any] = field(default_factory=dict)
@@ -22,10 +26,11 @@ class Span:
 
     @property
     def duration_ms(self) -> float:
-        return (self.end_ns - self.start_ns) / 1_000_000
+        return (self.end_ns - self.start_ns) / 1_000_000  # 返回结果
 
 
 class ExternalContentStore:
+    """ExternalContentStore"""
     def __init__(self) -> None:
         self._store: dict[str, str] = {}
         self._counter = 0
@@ -34,16 +39,17 @@ class ExternalContentStore:
         self._counter += 1
         cid = f"content_{self._counter:03d}"
         self._store[cid] = content
-        return cid
+        return cid  # 返回结果
 
     def get(self, cid: str) -> str:
-        return self._store.get(cid, "")
+        return self._store.get(cid, "")  # 返回结果
 
     def items(self) -> list[tuple[str, str]]:
-        return sorted(self._store.items())
+        return sorted(self._store.items())  # 返回结果
 
 
 class Tracer:
+    """Tracer"""
     def __init__(self, capture_inline: bool = False,
                  content_store: ExternalContentStore | None = None) -> None:
         self.root = Span(name="__root__")
@@ -57,7 +63,7 @@ class Tracer:
                     start_ns=time.perf_counter_ns())
         self.stack[-1].children.append(span)
         self.stack.append(span)
-        return span
+        return span  # 返回结果
 
     def end_span(self) -> None:
         span = self.stack.pop()
@@ -66,24 +72,27 @@ class Tracer:
     def add_content(self, span: Span, key: str, content: str) -> None:
         if self.capture_inline:
             span.attributes[key] = content[:200]
-            return
+            return  # 返回结果
         cid = self.content_store.put(content)
         span.attributes[f"{key}.reference_id"] = cid
 
 
 def _scripted_llm(prompt: str) -> str:
+    """_scripted_llm"""
     if "search" in prompt.lower():
-        return "search_tool(\"agent engineering\")"
+        return "search_tool(\"agent engineering\")"  # 返回结果
     if "result" in prompt.lower():
-        return "found 3 sources; drafting answer"
-    return "final answer: agents in 2026"
+        return "found 3 sources; drafting answer"  # 返回结果
+    return "final answer: agents in 2026"  # 返回结果
 
 
 def _search_tool(query: str) -> str:
-    return f"[3 sources for {query!r}]"
+    """_search_tool"""
+    return f"[3 sources for {query!r}]"  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("OTEL GENAI SEMANTIC CONVENTIONS — Phase 14, Lesson 23")
     print("=" * 70)
@@ -145,7 +154,7 @@ def main() -> None:
         if span.name == "__root__":
             for child in span.children:
                 render(child, indent)
-            return
+            return  # 返回结果
         pad = "  " * indent
         dur = f"{span.duration_ms:.2f}ms" if span.end_ns else "..."
         print(f"{pad}{span.name}  [{span.kind}]  {dur}")
@@ -171,4 +180,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

@@ -1,13 +1,16 @@
-# Frontier Safety Frameworks — RSP, PF, FSF
+# Frontier Safety Frameworks — RSP, PF, FSF | 框架 前沿 安全 RSP
 
 > Three major-lab frameworks define the 2026 industry governance of frontier capability. Anthropic Responsible Scaling Policy v3.0 (February 2026) introduces tiered AI Safety Levels (ASL-1 through ASL-5+), modeled on biosafety levels, with ASL-3 activated May 2025 for CBRN-relevant models. OpenAI Preparedness Framework v2 (April 2025) defines five criteria for tracked capabilities and separates Capabilities Reports from Safeguards Reports. DeepMind Frontier Safety Framework v3.0 (September 2025) introduces Critical Capability Levels including a new Harmful Manipulation CCL. All three now include competitor-adjustment clauses allowing deferral if peer labs ship without comparable safeguards. Cross-lab alignment remains structural, not terminological: "Capability Thresholds," "High Capability thresholds," and "Critical Capability Levels" denote analogous constructs.
+
+> **【中文解读】** 本节介绍了前沿安全框架——Anthropic RSP、OpenAI Preparedness、DeepMind FSF 等安全框架对比。
+
 
 **Type:** Learn
 **Languages:** none
 **Prerequisites:** Phase 18 · 17 (WMDP), Phase 18 · 07-09 (deception failures)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Describe Anthropic's ASL tier structure and what activated ASL-3.
 - Name the five OpenAI Preparedness Framework v2 criteria for tracked capabilities.
@@ -15,7 +18,7 @@
 - Explain the competitor-adjustment clauses and why they matter for race dynamics.
 - Define a safety case and describe the three-pillar structure (monitoring, illegibility, incapability).
 
-## The Problem
+## The Problem | 问题
 
 Lessons 7-17 establish that deception is possible, dual-use capability exists, and evaluation has limits. A lab with a frontier-capable model needs an internal governance structure that:
 - Defines thresholds for when new safeguards are required.
@@ -25,7 +28,7 @@ Lessons 7-17 establish that deception is possible, dual-use capability exists, a
 
 The three 2025-2026 frameworks are the state of the art — imperfect, evolving, and aligned enough across labs that the governance question is now whether the frameworks are adequate, not whether they exist.
 
-## The Concept
+## The Concept | 概念
 
 ### Anthropic Responsible Scaling Policy v3.0 (February 2026)
 
@@ -97,15 +100,15 @@ UK AISI, US CAISI, and EU AI Office (Lesson 24) are the external governance coun
 
 Lessons 17-18 are the measurement-and-governance layer on top of the deception and red-team analyses. Lessons 19-24 cover welfare, bias, privacy, watermarking, and regulatory structure. Lesson 28 maps the research ecosystem (MATS, Redwood, Apollo, METR) that operationalizes the evaluations.
 
-## Use It
+## Use It | 使用方法
 
 No code for this lesson. Read the three primary sources: RSP v3.0, PF v2, FSF v3.0. Map each lab's tier structure to the others and identify one threshold each lab defines that the others do not.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-framework-diff.md`. Given a safety framework or release note, it compares the framework's threshold definitions, evaluations required, and safety-case structure against RSP v3.0, PF v2, FSF v3.0 and flags cross-lab gaps.
 
-## Exercises
+## Exercises | 练习题
 
 1. Read RSP v3.0, PF v2, and FSF v3.0. Compile a table of each lab's CBRN threshold, each's AI R&D threshold, and each's required pre-deployment evaluation.
 
@@ -117,7 +120,7 @@ This lesson produces `outputs/skill-framework-diff.md`. Given a safety framework
 
 5. Read METR's "Common Elements of Frontier AI Safety Policies" (2025). Name the three strongest cross-lab convergences and the two largest divergences.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -129,7 +132,7 @@ This lesson produces `outputs/skill-framework-diff.md`. Given a safety framework
 | Safety case | "the formal argument" | Written argument that deployment is acceptably safe under worst-case U |
 | Adjustment clause | "competitor defection allowance" | Framework provision for reducing requirements if competitors ship without comparable safeguards |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic — Responsible Scaling Policy v3.0 (February 2026)](https://www.anthropic.com/responsible-scaling-policy) — ASL tiers, roadmaps, AI R&D disaggregation
 - [OpenAI — Updating the Preparedness Framework (April 15, 2025)](https://openai.com/index/updating-our-preparedness-framework/) — five criteria, adjustment clause

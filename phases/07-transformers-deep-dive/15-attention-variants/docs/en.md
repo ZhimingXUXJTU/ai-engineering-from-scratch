@@ -1,6 +1,8 @@
-# Attention Variants — Sliding Window, Sparse, Differential
+# Attention Variants — Sliding Window, Sparse, Differential | 注意力变体 — 滑动窗口、稀疏、差分注意力
 
 > Full attention is a circle. Every token sees every token, and memory pays the price. Four variants bend the shape of the circle and recover half the cost.
+
+> **【中文解读】** 标准注意力的 O(n^2) 复杂度太昂贵。滑动窗口注意力(Mistral)、稀疏注意力、差分注意力是降低复杂度的方法。
 
 **Type:** Build
 **Languages:** Python

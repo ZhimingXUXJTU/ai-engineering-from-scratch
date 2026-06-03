@@ -1,3 +1,20 @@
+"""
+正则化技术大全 (Regularization Techniques)
+
+核心概念：
+  - Dropout：训练时随机丢弃神经元，防止过拟合
+  - L2 权重衰减：惩罚大权重，防止模型过于复杂
+  - Batch Normalization：标准化每层输出，加速训练
+  - Layer Normalization：Transformer 的标配（不依赖 batch 大小）
+  - RMSNorm：LayerNorm 的简化版，Llama 等现代 LLM 使用
+
+在 AI 中的位置：
+  - Transformer (GPT/BERT)：Dropout + LayerNorm
+  - Llama/Mistral：Dropout + RMSNorm
+  - CNN (ResNet)：Dropout + BatchNorm
+  - PyTorch: nn.Dropout, nn.BatchNorm1d, nn.LayerNorm, nn.RMSNorm
+"""
+
 import math
 import random
 

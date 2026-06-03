@@ -1,6 +1,9 @@
-# Case Studies and the 2026 State of the Art
+# Case Studies and the 2026 State of the Art | 案例研究 状态
 
 > Three production-grade references to study end-to-end, each illustrating a different slice of multi-agent engineering. **Anthropic's Research system** (orchestrator-worker, 15x tokens, +90.2% over single-agent Opus 4, rainbow deployments) is the canonical supervisor case. **MetaGPT / ChatDev** (SOP-encoded role specialization for software engineering; ChatDev's "communicative dehallucination"; MacNet extension to >1000 agents via DAGs, arXiv:2406.07155) is the canonical role-decomposition case. **OpenClaw / Moltbook** (originally Clawdbot by Peter Steinberger, November 2025; renamed twice; 247k GitHub stars by March 2026; local ReAct-loop agents; Moltbook as an agent-only social network with ~2.3M agent accounts within days of launch, acquired by Meta 2026-03-10) illustrates what happens at population scale: emergent economic activity, prompt-injection risks, state-level regulation (China restricted OpenClaw on government computers, March 2026). **Framework landscape April 2026:** LangGraph and CrewAI lead production; AG2 is the community AutoGen continuation; Microsoft AutoGen is in maintenance mode (merged into Microsoft Agent Framework, RC Feb 2026); OpenAI Agents SDK is the production Swarm successor; Google ADK (April 2025) is the A2A-native entrant. Every major framework now ships MCP support; most ship A2A. This lesson reads each case end-to-end and distills the common patterns so you can pick the right reference for your next production system.
+
+> **【中文解读】** 本节介绍了 2026 年 SOTA 多 Agent 案例研究——最新最佳多 Agent 系统的分析。
+
 
 **Type:** Learn (capstone)
 **Languages:** —
@@ -119,11 +122,11 @@ Where the field is in April 2026:
 - **Cost is the central engineering constraint.** Token cost per task, wall-clock per interaction, rainbow-deploy overhead. Multi-agent wins on accuracy but loses on cost — and that trade is the business decision.
 - **Regulation is a near-term input, not a background concern.** Jurisdictions are moving faster than individual deploy cycles.
 
-## Use It
+## Use It | 使用方法
 
 `outputs/skill-case-study-mapper.md` is a skill that reads a proposed multi-agent system design and maps it to the closest case study, surfacing the design decisions that case study already tested.
 
-## Ship It
+## Ship It | 部署上线
 
 Starter rules for production multi-agent in 2026:
 
@@ -134,7 +137,7 @@ Starter rules for production multi-agent in 2026:
 - **Rainbow deploy long-running agents.** Expect multi-hour agent runs to be routine.
 - **Read WMAC 2026 and the MAST follow-ups.** The discipline is moving fast.
 
-## Exercises
+## Exercises | 练习题
 
 1. Read the Anthropic Research system post end-to-end. Identify three design decisions that would change if you replaced Opus 4 with a smaller model (e.g., Haiku 4).
 2. Read MetaGPT Sections 3-4 (arXiv:2308.00352). Encode one SOP from your own domain (not software) as role prompts. How many roles does the SOP imply?
@@ -142,7 +145,7 @@ Starter rules for production multi-agent in 2026:
 4. Read about OpenClaw and Moltbook. Pick one specific failure mode that emerged at population scale that would not appear in a 5-agent system. How would you engineer against it?
 5. Pick your current multi-agent project. Which of the three case studies is the closest reference? Which design decisions from that case study have you NOT yet adopted? Write down one you will adopt this quarter.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
@@ -156,7 +159,7 @@ Starter rules for production multi-agent in 2026:
 | Communicative dehallucination | "Ask before answering" | Agents request specifics from peers instead of guessing. |
 | WMAC 2026 | "The AAAI workshop" | April 2026 community focal point for multi-agent coordination. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic — How we built our multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system) — the supervisor-worker production reference
 - [MetaGPT — Meta Programming for Multi-Agent Collaborative Framework](https://arxiv.org/abs/2308.00352) — SOP-role decomposition

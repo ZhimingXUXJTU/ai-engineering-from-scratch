@@ -1,6 +1,10 @@
-# Real-Time Vision — Edge Deployment
+# Real-Time Vision — Edge Deployment | 实时视觉 — 边缘部署
 
 > Edge inference is the discipline of getting a 90-accuracy model to run at 30 fps on a device with 2 GB of RAM. Every percentage point of accuracy is traded against milliseconds of latency.
+
+> **【中文解读】** 边缘推理是一门平衡艺术：让 90% 准确率的模型在只有 2GB 内存的设备上以 30fps 运行。每一个百分点的准确率都在与毫秒级延迟做交易。关键技术包括量化（INT8）、剪枝、知识蒸馏、ONNX Runtime 和 TensorRT。
+
+> **【拓展：边缘 AI 的应用】** 边缘部署在智能手机（人脸解锁、拍照美化）、无人机（实时目标检测）、工业 IoT（缺陷检测）和自动驾驶（车载推理）中至关重要。MobileNet、YOLO-nano、EfficientNet 是常见的轻量级模型。
 
 **Type:** Learn + Build
 **Languages:** Python

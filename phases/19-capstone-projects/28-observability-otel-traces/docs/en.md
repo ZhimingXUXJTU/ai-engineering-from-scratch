@@ -1,13 +1,16 @@
-# Capstone Lesson 28: Observability with OTel GenAI Spans and Prometheus Metrics
+# Capstone Lesson 28: Observability with OTel GenAI Spans and Prometheus Metrics | 可观测性 结业 指标 GenAI OpenTelemetry 欧盟
 
 > An agent harness without observability is a black box that costs money. This lesson hand-rolls a span builder that emits records compliant with the OpenTelemetry GenAI semantic conventions, writes them to a JSON-Lines file one span per line, and exposes counters and histograms in Prometheus text format. The whole thing is stdlib Python and runs offline.
+
+> **【中文解读】** 本节是综合项目——构建 OpenTelemetry 追踪可观测性。
+
 
 **Type:** Build
 **Languages:** Python (stdlib)
 **Prerequisites:** Phase 19 · 25 (verification gates), Phase 19 · 26 (sandbox), Phase 19 · 27 (eval harness), Phase 13 · 20 (OpenTelemetry GenAI), Phase 14 · 23 (OTel GenAI conventions)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build a span data class shaped to the OpenTelemetry GenAI semantic conventions.
 - Implement a JSONL exporter that writes one self-contained span per line.
@@ -15,7 +18,7 @@
 - Wrap any callable in a span context manager that records duration, status, and exceptions.
 - Verify that the emitted spans roundtrip through `json.loads` and match the spec shape.
 
-## The Problem
+## The Problem | 问题
 
 A coding agent in production produces three classes of artifact every turn: a model call, a tool execution, and a verification gate decision. None of these are useful without structured telemetry.
 
@@ -27,7 +30,7 @@ The third failure mode is the unaggregated metric. You can see one slow tool cal
 
 The OpenTelemetry GenAI semantic conventions exist exactly for this. They define a small set of standard attributes that span emitters across LLM frameworks share. If your harness writes those attributes, every OTel-compatible backend can read them.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart TD
@@ -47,7 +50,7 @@ The exporter writes JSONL. One JSON object per line. This is the simplest possib
 
 Metrics live next to traces. A counter increments on each tool call: `tools_called_total{tool="read_file"}`. A histogram records the observed latency: `tool_latency_ms{tool="read_file"}`. Both serialise into Prometheus text exposition format, which is the de-facto standard for pull-based metrics.
 
-## Architecture
+## Architecture | 架构
 
 ```mermaid
 flowchart LR
@@ -87,7 +90,7 @@ The conventions are stable. The wire format the lesson emits will keep parsing i
 
 Lesson 25 produced the gate chain. Lesson 26 produced the sandbox. Lesson 27 produced the eval harness. Lesson 28 makes all three observable. Lesson 29 wraps every step of the end-to-end demo in spans and prints the Prometheus text at the end.
 
-## Running it
+## Running it | 运行
 
 ```bash
 cd phases/19-capstone-projects/28-observability-otel-traces

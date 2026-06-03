@@ -1,3 +1,8 @@
+"""
+条件 GAN 与 Pix2Pix (Conditional GANs & Pix2Pix)
+核心概念：条件生成——附加标签/图像/文本控制 GAN 输出
+AI 对应：Pix2Pix 开创了"图像到图像翻译"范式
+"""
 import math
 import random
 

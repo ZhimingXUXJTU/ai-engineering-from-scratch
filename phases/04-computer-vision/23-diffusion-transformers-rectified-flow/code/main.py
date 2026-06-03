@@ -1,3 +1,17 @@
+"""
+扩散 Transformer 与整流流 (Diffusion Transformers & Rectified Flow)
+
+核心概念：
+- DiT：用 Transformer 替换 U-Net 作为扩散模型骨干
+- Rectified Flow：将扩散过程简化为直线插值，训练和推理更高效
+- 可扩展性：Transformer 架构可以更容易地扩展到更大模型
+
+AI 对应：
+- SD3、FLUX、Sora 等最新模型都采用 DiT 架构
+- Rectified Flow 减少了推理步数，提升了生成质量
+- DiT 代表了 2024-2026 年图像/视频生成的技术趋势
+"""
+
 import math
 import numpy as np
 import torch

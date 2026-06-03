@@ -1,6 +1,10 @@
-# Voice Cloning & Voice Conversion
+# Voice Cloning & Voice Conversion | 语音克隆与语音转换
 
 > Voice cloning reads your text in someone else's voice. Voice conversion rewrites your voice into someone else's while preserving what you said. Both hang on the same decomposition: separate speaker identity from content.
+
+> **【中文解读】** 语音克隆用别人的声音朗读你的文字；语音转换把你的声音变成别人的但保留内容。两者的核心都是同一个分解：将说话人身份与内容分离。
+
+> **【拓展：语音克隆的伦理与法律】** 语音克隆技术引发严重的伦理和法律问题——深度伪造语音诈骗、名人声音未经授权使用。2025-2026 年多起诉讼（如 Warner Music 5 亿美元和解案）推动了音频水印和防伪造技术的发展。
 
 **Type:** Build
 **Languages:** Python

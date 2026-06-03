@@ -1,4 +1,4 @@
-# Initialization Scripts for Agents
+# Initialization Scripts for Agents | 初始化 脚本 Agent
 
 > Every session that starts cold pays a tax. The agent reads the same files, retries the same probes, and rediscovers the same paths. An init script pays the tax once and writes the answers into state.
 
@@ -7,20 +7,23 @@
 **Prerequisites:** Phase 14 · 32 (Minimal Workbench), Phase 14 · 34 (Repo Memory)
 **Time:** ~45 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Identify the work an agent should never have to redo per session.
 - Build a deterministic init script that probes runtime, dependencies, and repo health.
 - Persist the probe result so the agent reads it instead of re-running checks.
 - Fail loud, fast, and with one place to look when initialization fails.
 
-## The Problem
+## The Problem | 问题
 
 Open a session. The agent guesses the Python version. Guesses the test command. Lists the repo root five times to find the entry point. Tries to import a package that is not installed. Asks the user where the config file lives. By the time it makes a real edit, ten thousand tokens have gone to setup work that should have been a single script.
 
 The fix is one initialization script that runs before the agent does anything else and writes a `init_report.json` the agent reads at startup.
 
-## The Concept
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
+## The Concept | 概念
 
 ```mermaid
 flowchart TD
@@ -31,6 +34,9 @@ flowchart TD
   Decision -- yes --> Agent[Agent Loop]
   Decision -- no --> Halt[fail loud, halt, surface to human]
 ```
+
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
 
 ### What the init script probes
 
@@ -56,7 +62,7 @@ Run it twice in a row. The second run should be a no-op except for a fresh times
 
 Rules (Phase 14 · 33) describe what must be true to act. Init is the script that establishes that those rules can be checked. Rules without init become "be careful." Init without rules becomes a polished failure.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements `init_agent.py`:
 
@@ -82,7 +88,7 @@ Three patterns separate a useful init script from a ceremony.
 
 **No network, no LLM, no surprises in the hot path.** Init probes are deterministic plumbing. A probe that calls an LLM to classify a failure or that hits an external service to check a license is not a probe; it is a workflow. If a probe takes longer than three seconds in a dry run, treat that as a workbench smell and either move it out of init or cache its result.
 
-## Use It
+## Use It | 使用方法
 
 In production:
 
@@ -92,29 +98,34 @@ In production:
 
 The init script is portable because it makes no calls to a specific framework. Bash, Make, or a tasks file can all wrap it.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-init-script.md` interviews the project, classifies its setup work into probes, and emits a project-specific `init_agent.py` plus a CI workflow that runs it before any agent step.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a probe that diffs the current commit against the last-known-good commit and refuses to start if more than 50 files changed.
+   *思考并实践此练习*
 2. Wire the script to write a `prereqs.lock` file and refuse to start if the lock is older than seven days.
+   *思考并实践此练习*
 3. Add a `--fix` flag that auto-installs missing dev dependencies but never modifies runtime dependencies without approval.
+   *思考并实践此练习*
 4. Move probes from hardcoded functions to a YAML registry. Defend the trade-off.
+   *思考并实践此练习*
 5. Add a timing budget per probe. A probe that runs longer than three seconds is a workbench smell.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Probe | "A check" | A deterministic function returning `(name, status, detail)` |
-| Init report | "Setup output" | JSON written next to state with the probe results |
-| Idempotent | "Safe to re-run" | Two runs in a row produce identical reports modulo timestamp |
-| Fail loud | "Don't swallow" | Halt and surface to the human; no silent fallback |
-| Setup tax | "Bootstrap cost" | The tokens the agent spends per session rediscovering the obvious |
+|------|----------------|------------------------|---|
+| Probe | "A check" | A deterministic function returning `(name, status, detail)` |  |
+| Init report | "Setup output" | JSON written next to state with the probe results |  |
+| Idempotent | "Safe to re-run" | Two runs in a row produce identical reports modulo timestamp |  |
+| Fail loud | "Don't swallow" | Halt and surface to the human; no silent fallback |  |
+| Setup tax | "Bootstrap cost" | The tokens the agent spends per session rediscovering the obvious |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic, Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
 - [GitHub Actions, composite actions for setup](https://docs.github.com/en/actions/sharing-automations/creating-actions/creating-a-composite-action)

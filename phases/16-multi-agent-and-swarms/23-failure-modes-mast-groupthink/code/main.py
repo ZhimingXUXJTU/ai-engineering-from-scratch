@@ -2,6 +2,9 @@
 
 Stdlib only. The simulator shows how a 10% downstream error rate amplifies
 through retries to 10x load without a breaker; the breaker caps it.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 from __future__ import annotations
 
@@ -29,16 +32,18 @@ GROUPTHINK = {
 
 
 def categorize_incident(symptoms: dict) -> tuple[str, str]:
+    """categorize_incident"""
     if symptoms.get("role_conflict") or symptoms.get("task_ambiguity"):
-        return "spec", MAST_CATEGORIES["spec"]
+        return "spec", MAST_CATEGORIES["spec"]  # 返回结果
     if symptoms.get("state_drift") or symptoms.get("message_lost") or symptoms.get("sync_error"):
-        return "coord", MAST_CATEGORIES["coord"]
+        return "coord", MAST_CATEGORIES["coord"]  # 返回结果
     if symptoms.get("no_verifier") or symptoms.get("hallucination_propagation"):
-        return "verify", MAST_CATEGORIES["verify"]
-    return "unknown", "no MAST category matched"
+        return "verify", MAST_CATEGORIES["verify"]  # 返回结果
+    return "unknown", "no MAST category matched"  # 返回结果
 
 
 def detect_groupthink(symptoms: dict) -> list[tuple[str, str]]:
+    """detect_groupthink"""
     hits = []
     if symptoms.get("correlated_errors"):
         hits.append(("monoculture", GROUPTHINK["monoculture"]))
@@ -50,12 +55,13 @@ def detect_groupthink(symptoms: dict) -> list[tuple[str, str]]:
         hits.append(("mixed_motive", GROUPTHINK["mixed_motive"]))
     if symptoms.get("retry_amplification"):
         hits.append(("cascade", GROUPTHINK["cascade"]))
-    return hits
+    return hits  # 返回结果
 
 
 # ---------- Circuit breaker ----------
 
 class BreakerState(Enum):
+    """BreakerState"""
     CLOSED = "closed"
     OPEN = "open"
     HALF_OPEN = "half_open"
@@ -63,6 +69,7 @@ class BreakerState(Enum):
 
 @dataclass
 class CircuitBreaker:
+    """CircuitBreaker"""
     failure_threshold: float = 0.5
     window_size: int = 20
     open_cooldown_s: float = 0.5
@@ -72,17 +79,17 @@ class CircuitBreaker:
 
     def _error_rate(self) -> float:
         if not self.outcomes:
-            return 0.0
+            return 0.0  # 返回结果
         recent = self.outcomes[-self.window_size:]
-        return 1.0 - (sum(recent) / len(recent))
+        return 1.0 - (sum(recent) / len(recent))  # 返回结果
 
     def allow(self) -> bool:
         if self.state == BreakerState.OPEN:
             if time.monotonic() - self.opened_at >= self.open_cooldown_s:
                 self.state = BreakerState.HALF_OPEN
             else:
-                return False
-        return True
+                return False  # 返回结果
+        return True  # 返回结果
 
     def record(self, success: bool) -> None:
         self.outcomes.append(success)
@@ -102,6 +109,7 @@ class CircuitBreaker:
 
 @dataclass
 class DownstreamService:
+    """DownstreamService"""
     base_failure_rate: float = 0.1
     load: int = 0
 
@@ -109,10 +117,11 @@ class DownstreamService:
         # Increased load -> increased failure (degradation model)
         effective_rate = self.base_failure_rate + (self.load * 0.02)
         effective_rate = min(effective_rate, 0.99)
-        return rng.random() > effective_rate
+        return rng.random() > effective_rate  # 返回结果
 
 
 def simulate_retry_storm(requests: int, use_breaker: bool, seed: int = 0) -> tuple[int, int, int]:
+    """simulate_retry_storm"""
     rng = random.Random(seed)
     service = DownstreamService()
     breaker = CircuitBreaker()
@@ -135,10 +144,11 @@ def simulate_retry_storm(requests: int, use_breaker: bool, seed: int = 0) -> tup
                 successes += 1
                 break
             attempts_for_req += 1
-    return total_calls, successes, short_circuits
+    return total_calls, successes, short_circuits  # 返回结果
 
 
 def demo_incident_categorization() -> None:
+    """demo_incident_categorization"""
     print("=" * 72)
     print("INCIDENT CATEGORIZATION — map symptoms to MAST + Groupthink families")
     print("=" * 72)
@@ -161,6 +171,7 @@ def demo_incident_categorization() -> None:
 
 
 def demo_retry_storm() -> None:
+    """demo_retry_storm"""
     print("\n" + "=" * 72)
     print("RETRY STORM — 200 requests against a 10% baseline-failing service")
     print("=" * 72)
@@ -173,6 +184,7 @@ def demo_retry_storm() -> None:
 
 
 def main() -> None:
+    """main"""
     demo_incident_categorization()
     demo_retry_storm()
     print("\nTakeaways:")
@@ -183,4 +195,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

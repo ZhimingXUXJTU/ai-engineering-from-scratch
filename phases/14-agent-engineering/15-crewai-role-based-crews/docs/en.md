@@ -1,4 +1,4 @@
-# CrewAI: Role-Based Crews and Flows
+# CrewAI: Role-Based Crews and Flows | CrewAI 团队 角色
 
 > CrewAI is the 2026 role-based multi-agent framework. Four primitives: Agent, Task, Crew, Process. Two top-level shapes: Crews (autonomous, role-based collaboration) and Flows (event-driven, deterministic). The docs are blunt: "for any production-ready application, start with a Flow."
 
@@ -7,7 +7,7 @@
 **Prerequisites:** Phase 14 · 12 (Workflow Patterns), Phase 14 · 14 (Actor Model)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Name CrewAI's four primitives (Agent, Task, Crew, Process) and what each owns.
 - Distinguish Sequential, Hierarchical, and the planned Consensus process; pick one per workload.
@@ -17,15 +17,18 @@
 - Implement a stdlib three-agent crew (researcher, writer, editor) that produces a brief.
 - Spot the three CrewAI failure modes: prompt-bloat, manager-LLM tax, brittle handoffs.
 
-## The Problem
+## The Problem | 问题
 
 Teams adopting multi-agent frameworks hit the same wall. "Autonomous collaboration" sounds great in a demo. Then a customer files a bug and you need deterministic replay. Or finance asks how much an LLM-routed crew costs per run. Or on-call needs to know which agent stalled at 3 AM.
 
 Free-form LLM-routed crews answer none of those cleanly. Pure DAGs answer them all but lose the exploratory shape a brainstorming agent needs.
 
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
 CrewAI's split is honest about the trade. Crews for collaborative, role-based, exploratory work. Flows for event-driven, code-owned, auditable production. Same framework, two shapes, pick per surface.
 
-## The Concept
+## The Concept | 概念
 
 ### Four primitives
 
@@ -133,7 +136,7 @@ Independent of LangChain. Python 3.10 to 3.13. Uses `uv`. Star count: see [crewA
 - **Brittle handoffs.** Task N's `expected_output` is "an outline". Task N+1 reads it as `context` and tries to parse three sections. The LLM produced four. The downstream Agent ad-libs. Fix with `output_pydantic` on Task N so Task N+1 reads a typed object, not free text.
 - **Crew-as-prod.** Free-form Crew shipped to production without a Flow wrapper. Output variability is high; replay is impossible; on-call cannot diff a bad run against a good one. Wrap with a Flow.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements stdlib versions of both shapes plus a three-agent crew.
 
@@ -159,7 +162,7 @@ Trace covers: sequential crew threading outputs through `context`, hierarchical 
 
 The Crew trace is fluid; the manager could in principle re-order. The Flow trace is fixed. That choice is the lesson.
 
-## Use It
+## Use It | 使用方法
 
 - **CrewAI Flow** for production. Even when the Flow is one step that calls `Crew.kickoff()`. The Flow gives the audit boundary.
 - **CrewAI Crew (Sequential)** for clear-ordering collaborative work, especially first drafts and review loops.
@@ -169,7 +172,7 @@ The Crew trace is fluid; the manager could in principle re-order. The Flow trace
 - **OpenAI Agents SDK** (Lesson 16) for OpenAI-first products with handoffs and guardrails.
 - **Claude Agent SDK** (Lesson 17) for Claude-first products with subagents and session store.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-crew-or-flow.md` picks Crew vs Flow for a task and scaffolds the minimal implementation. Hard rejects on Crew-without-backstory, Flow-without-explicit-topics, Hierarchical with under three specialists.
 
@@ -181,35 +184,42 @@ The Crew trace is fluid; the manager could in principle re-order. The Flow trace
 - **Manager prompt drift.** Hierarchical's manager prompt is implicit. If routing gets weird, dump it in verbose mode and read.
 - **Tool side effects in Crews.** A Crew can call a tool more times than expected. POST, DELETE, payment belong in a Flow step, never a Crew tool.
 
-## Exercises
+## Exercises | 练习题
 
 1. Convert the Sequential crew to a Flow. Count the touchpoints where variability drops. Note where readability dropped.
+   *思考并实践此练习*
 2. Add entity memory to the crew: facts about a customer persist across kickoffs. Verify retrieval pulls the right entity.
+   *思考并实践此练习*
 3. Implement a Hierarchical process where the manager refuses to route to the editor until the writer's output has at least three paragraphs. Trace the retry.
+   *思考并实践此练习*
 4. Wire a `BaseTool` subclass for a (mocked) web search. Compare the trace shape vs the `@tool` decorator version.
+   *思考并实践此练习*
 5. Add `output_pydantic=Brief` to the editor task, where `Brief` has `title`, `summary`, `sections`. Make the writer task output malformed JSON once; verify CrewAI's retry behavior in the trace.
+   *思考并实践此练习*
 6. Read CrewAI's docs intro. Port the toy to the real `crewai` API. Which guarantees did the stdlib version skip?
+   *思考并实践此练习*
 7. Wire AgentOps or Langfuse (Lesson 24) to a real run. Which traces did you miss in the stdlib version?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Agent | "Persona" | Role + goal + backstory + tools |
-| Task | "Unit of work" | Description + expected output + assignee + optional structured output |
-| Crew | "Agent team" | Container for Agents + Tasks + Process |
-| Process | "Execution strategy" | Sequential / Hierarchical / Consensus (planned) |
-| Flow | "Deterministic workflow" | Event-driven, code-owned, testable |
-| Backstory | "Persona prompt" | Tone and judgment shaper for the Agent |
-| `@tool` | "Function tool" | Decorator that turns a function into a tool the Agent can call |
-| `BaseTool` | "Class tool" | Class-based tool with args schema, retries, async support |
-| Entity memory | "Per-entity facts" | Memory scoped to a customer / account / issue |
-| Long-term memory | "Cross-run memory" | Vector-backed memory that survives between kickoffs |
-| Contextual memory | "Just-in-time retrieval" | Memory pulled at the moment the Agent needs it |
-| Manager LLM | "Router agent" | Extra LLM in Hierarchical process that picks the next task |
-| `expected_output` | "Task contract" | String that tells the Agent (and audit) what shape to return |
+|------|----------------|------------------------|---|
+| Agent | "Persona" | Role + goal + backstory + tools |  |
+| Task | "Unit of work" | Description + expected output + assignee + optional structured output |  |
+| Crew | "Agent team" | Container for Agents + Tasks + Process |  |
+| Process | "Execution strategy" | Sequential / Hierarchical / Consensus (planned) |  |
+| Flow | "Deterministic workflow" | Event-driven, code-owned, testable |  |
+| Backstory | "Persona prompt" | Tone and judgment shaper for the Agent |  |
+| `@tool` | "Function tool" | Decorator that turns a function into a tool the Agent can call |  |
+| `BaseTool` | "Class tool" | Class-based tool with args schema, retries, async support |  |
+| Entity memory | "Per-entity facts" | Memory scoped to a customer / account / issue |  |
+| Long-term memory | "Cross-run memory" | Vector-backed memory that survives between kickoffs |  |
+| Contextual memory | "Just-in-time retrieval" | Memory pulled at the moment the Agent needs it |  |
+| Manager LLM | "Router agent" | Extra LLM in Hierarchical process that picks the next task |  |
+| `expected_output` | "Task contract" | String that tells the Agent (and audit) what shape to return |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [CrewAI docs introduction](https://docs.crewai.com/en/introduction): concepts and the recommended production path
 - [CrewAI Flows guide](https://docs.crewai.com/en/concepts/flows): event-driven shape, `@start`, `@listen`

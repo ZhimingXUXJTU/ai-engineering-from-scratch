@@ -1,3 +1,8 @@
+"""
+神经音频编解码器 (Neural Audio Codecs)
+核心概念：RVQ（残差向量量化）将连续波形转为离散 token，语义-声学分离
+AI 对应：EnCodec/SNAC/Mimi 是音频 token 化的基础，Moshi 等模型依赖它
+"""
 """Residual Vector Quantization (RVQ) from scratch.
 
 Builds a toy 1-D signal, quantizes it with a cascade of tiny codebooks,

@@ -1,6 +1,9 @@
-# Capstone 06 — DevOps Troubleshooting Agent for Kubernetes
+# Capstone 06 — DevOps Troubleshooting Agent for Kubernetes | 故障排除 Kubernetes 结业 DevOps
 
 > AWS's DevOps Agent went GA, Resolve AI published its K8s playbooks, NeuBird demoed semantic monitoring, and Metoro tied AI SRE to per-service SLOs. The production shape is settled: an alert webhook fires, an agent reads telemetry, walks a graph of K8s objects, ranks root-cause hypotheses, and posts a Slack brief with approval buttons. Read-only by default. Every remediation gated by a human. This capstone is that agent, evaluated on 20 synthetic incidents and compared against AWS's Agent on three shared cases.
+
+> **【中文解读】** 本节是综合项目——构建 DevOps 故障排除 Agent，自动诊断和修复基础设施问题。
+
 
 **Type:** Capstone
 **Languages:** Python (agent), TypeScript (Slack integration)
@@ -22,7 +25,7 @@ When an alert fires, the agent root-causes from the affected object. It walks ed
 
 Remediation is gated. Allowed default actions are read-only. Destructive actions (scaling down, rolling back, deleting Pods) require Slack approval; ArgoCD rollback hooks require an auth token the agent never holds. The audit log records every command the agent *considered* — not just executed — so the review process catches near-misses.
 
-## Architecture
+## Architecture | 架构
 
 ```
 PagerDuty / Alertmanager webhook
@@ -64,7 +67,7 @@ PagerDuty / Alertmanager webhook
 - Audit: append-only structured log (considered, executed, approved, outcome)
 - Deployment: K8s deployment with its own narrow RBAC role; separate namespace
 
-## Build It
+## Build It | 动手构建
 
 1. **Graph ingestion.** Sync kube-state-metrics into Neo4j/kuzu every 30s. Nodes: Pod, Deployment, Node, Service, PVC, HPA. Edges: OWNED_BY, SCHEDULED_ON, EXPOSES, MOUNTS, SCALES. Telemetry overlay edges: OBSERVED_BY (a Pod is observed by a Prometheus series).
 
@@ -84,7 +87,7 @@ PagerDuty / Alertmanager webhook
 
 9. **Synthetic incident suite.** Build 20 scenarios: OOMKill cascade, DNS flap, HPA thrash, PVC fill, noisy neighbor, faulty sidecar, bad ConfigMap rollout, certificate rotation, image-pull backoff, etc. Score the agent on root-cause accuracy and time-to-hypothesis.
 
-## Use It
+## Use It | 使用方法
 
 ```
 webhook: alert.pagerduty.com -> checkout-api SLO breach, error rate 14%
@@ -98,7 +101,7 @@ webhook: alert.pagerduty.com -> checkout-api SLO breach, error rate 14%
           (approval required; agent does not roll back unilaterally)
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-devops-agent.md` is the deliverable. Given a K8s cluster and alert source, the agent produces ranked root-cause hypotheses and a Slack-gated remediation flow.
 
@@ -111,7 +114,7 @@ webhook: alert.pagerduty.com -> checkout-api SLO breach, error rate 14%
 | 15 | Integration completeness | PagerDuty, Slack, ArgoCD, Prometheus end-to-end working |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Run your agent on the same three incidents AWS's DevOps Agent is demo'd on. Publish the side-by-side. Report where the agent diverges.
 
@@ -123,7 +126,7 @@ webhook: alert.pagerduty.com -> checkout-api SLO breach, error rate 14%
 
 5. Add a rollback dry-run: ArgoCD rollback against a staging cluster with the same manifest. Verify the rollback plan in a live cluster before the Slack approval button.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -135,7 +138,7 @@ webhook: alert.pagerduty.com -> checkout-api SLO breach, error rate 14%
 | Telemetry citation | "Evidence pointer" | A Prometheus query, Loki selector, or Tempo trace URL that supports a claim |
 | MTTR | "Time to resolution" | Wall-clock from alert fire to SLO recovery |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [AWS DevOps Agent GA](https://aws.amazon.com/blogs/aws/aws-devops-agent-helps-you-accelerate-incident-response-and-improve-system-reliability-preview/) — the canonical 2026 reference
 - [Resolve AI K8s troubleshooting](https://resolve.ai/blog/kubernetes-troubleshooting-in-resolve-ai) — the competitor reference

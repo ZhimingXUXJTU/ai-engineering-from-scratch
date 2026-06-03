@@ -1,6 +1,10 @@
-# Proximal Policy Optimization (PPO)
+# Proximal Policy Optimization (PPO) | 近端策略优化
 
 > A2C throws away each rollout after one update. PPO wraps the policy gradient in a clipped importance ratio so you can do 10+ epochs on the same data without the policy exploding. Schulman et al. (2017). Still the default policy-gradient algorithm in 2026.
+
+> **【中文解读】** PPO 用裁剪的重要性比率包裹策略梯度，使同一批数据可以做 10+ 轮更新而策略不会爆炸。2017 年提出，至今仍是 2026 年默认的策略梯度算法。
+
+> **【拓展：PPO 与 ChatGPT】** PPO 是 ChatGPT RLHF 训练的核心算法。InstructGPT（2022）使用 PPO 对 GPT-3 进行人类偏好对齐，这就是 ChatGPT 背后的技术。PPO 的稳定性和简单性使其成为工业界首选。
 
 **Type:** Build
 **Languages:** Python

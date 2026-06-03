@@ -8,6 +8,9 @@ implements the scheduler in full: state machine, barge-in cancellation, tool
 side-channel with filler injection, latency accounting.
 
 Run:  python main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -24,6 +27,7 @@ from enum import Enum, auto
 
 @dataclass
 class Frame:
+    """Frame"""
     t_ms: int              # timestamp ms since session start
     is_speech: bool        # VAD verdict (Silero v5 stand-in)
     partial: str = ""      # ASR cumulative partial (Deepgram Nova-3 stand-in)
@@ -49,7 +53,7 @@ def synth_call(script: str, start_ms: int = 0, noise: float = 0.0) -> list[Frame
     for _ in range(110):
         frames.append(Frame(t_ms=t, is_speech=False, partial=partial))
         t += 20
-    return frames
+    return frames  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -59,16 +63,16 @@ def synth_call(script: str, start_ms: int = 0, noise: float = 0.0) -> list[Frame
 def turn_completion_score(partial: str) -> float:
     """Tiny stand-in for the LiveKit turn-detector model."""
     if not partial:
-        return 0.0
+        return 0.0  # 返回结果
     if partial.rstrip().endswith(("?", ".", "!")):
-        return 0.95
+        return 0.95  # 返回结果
     # heuristic: more words, more confidence the turn is done
     n = len(partial.split())
     if n < 3:
-        return 0.2
+        return 0.2  # 返回结果
     if n < 6:
-        return 0.55
-    return 0.75
+        return 0.55  # 返回结果
+    return 0.75  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -76,6 +80,7 @@ def turn_completion_score(partial: str) -> float:
 # ---------------------------------------------------------------------------
 
 class State(Enum):
+    """State"""
     IDLE = auto()
     LISTENING = auto()   # user is mid-utterance
     WAITING = auto()     # VAD says silence, checking turn score
@@ -86,6 +91,7 @@ class State(Enum):
 
 @dataclass
 class Metrics:
+    """Metrics"""
     events: list[str] = field(default_factory=list)
     turn_complete_ms: int = 0
     first_llm_token_ms: int = 0
@@ -98,8 +104,8 @@ class Metrics:
 
     def latency_ms(self) -> int:
         if self.turn_complete_ms and self.first_audio_out_ms:
-            return self.first_audio_out_ms - self.turn_complete_ms
-        return -1
+            return self.first_audio_out_ms - self.turn_complete_ms  # 返回结果
+        return -1  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -108,6 +114,7 @@ class Metrics:
 
 @dataclass
 class Tool:
+    """Tool"""
     name: str
     latency_ms: int
     result: str
@@ -121,6 +128,7 @@ WEATHER = Tool("weather.tokyo_tomorrow", latency_ms=420, result="68/52 partly cl
 # ---------------------------------------------------------------------------
 
 def run_session(frames: list[Frame], use_tool: bool = True,
+    """run_session"""
                 barge_in_at_ms: int | None = None) -> Metrics:
     m = Metrics()
     state = State.IDLE
@@ -199,7 +207,7 @@ def run_session(frames: list[Frame], use_tool: bool = True,
                     m.first_audio_out_ms = f.t_ms
                     m.log(f"{f.t_ms}ms TTS first audio-out")
 
-    return m
+    return m  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -207,6 +215,7 @@ def run_session(frames: list[Frame], use_tool: bool = True,
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    """main"""
     random.seed(0)
     print("=== session 1: clean call with tool (weather) ===")
     frames = synth_call("what is the weather in tokyo tomorrow", start_ms=0)
@@ -235,4 +244,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

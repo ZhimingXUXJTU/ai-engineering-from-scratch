@@ -1,3 +1,7 @@
+"""
+常见概率分布（伯努利、分类、泊松、均匀、正态）和 Softmax 函数的从零实现。
+AI 对应: Softmax 是分类模型的最后一步，交叉熵损失等于负对数似然。
+"""
 import math
 import random
 

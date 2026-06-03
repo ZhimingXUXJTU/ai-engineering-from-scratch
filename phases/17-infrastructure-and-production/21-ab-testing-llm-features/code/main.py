@@ -2,6 +2,9 @@
 
 Compares fixed-sample vs always-valid sequential testing on a binary outcome.
 Illustrates CUPED-style variance reduction.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -11,14 +14,16 @@ import random
 
 
 def z_statistic(success_a: int, n_a: int, success_b: int, n_b: int) -> float:
+    """z_statistic"""
     p_a = success_a / n_a if n_a else 0
     p_b = success_b / n_b if n_b else 0
     p = (success_a + success_b) / (n_a + n_b) if (n_a + n_b) else 0
     se = math.sqrt(p * (1 - p) * (1 / n_a + 1 / n_b)) if n_a and n_b else 1
-    return (p_b - p_a) / se if se > 0 else 0
+    return (p_b - p_a) / se if se > 0 else 0  # 返回结果
 
 
 def fixed_sample_size(p_baseline: float, lift: float, alpha: float = 0.05, power: float = 0.80) -> int:
+    """fixed_sample_size"""
     p_treat = p_baseline * (1 + lift)
     z_alpha = 1.96
     z_beta = 0.84
@@ -26,10 +31,11 @@ def fixed_sample_size(p_baseline: float, lift: float, alpha: float = 0.05, power
     num = (z_alpha * math.sqrt(2 * p_bar * (1 - p_bar)) +
            z_beta * math.sqrt(p_baseline * (1 - p_baseline) + p_treat * (1 - p_treat))) ** 2
     den = (p_treat - p_baseline) ** 2
-    return int(num / den)
+    return int(num / den)  # 返回结果
 
 
 def simulate(p_a: float, p_b: float, seed: int = 7, max_n: int = 300_000) -> dict:
+    """simulate"""
     rng = random.Random(seed)
     success_a = success_b = 0
     n_a = n_b = 0
@@ -54,7 +60,7 @@ def simulate(p_a: float, p_b: float, seed: int = 7, max_n: int = 300_000) -> dic
                 sequential_stopped_at = n_total
                 break
 
-    return {
+    return {  # 返回结果
         "n_a": n_a,
         "n_b": n_b,
         "p_a_observed": success_a / n_a if n_a else 0.0,
@@ -64,6 +70,7 @@ def simulate(p_a: float, p_b: float, seed: int = 7, max_n: int = 300_000) -> dic
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("SEQUENTIAL A/B — fixed vs always-valid, binary outcome")
     print("=" * 80)
@@ -101,4 +108,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

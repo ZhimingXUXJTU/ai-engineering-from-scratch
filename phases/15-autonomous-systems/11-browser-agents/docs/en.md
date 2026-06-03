@@ -1,4 +1,4 @@
-# Browser Agents and Long-Horizon Web Tasks
+# Browser Agents and Long-Horizon Web Tasks | 长程 浏览器 Agent
 
 > ChatGPT agent (July 2025) merged Operator and deep research into one browser/terminal agent and set BrowseComp SOTA at 68.9%. OpenAI shut Operator down August 31, 2025 — consolidation at the product layer. Anthropic's Vercept acquisition moved Claude Sonnet on OSWorld from under 15% to 72.5%. WebArena-Verified (ServiceNow, ICLR 2026) fixed 11.3 percentage points of false-negative rate in the original WebArena and shipped the 258-task Hard subset. The numbers are real. So is the attack surface: OpenAI's head of preparedness stated publicly that indirect prompt injection into browser agents "is not a bug that can be fully patched." Documented 2025–2026 attacks: Tainted Memories (Atlas CSRF), HashJack (Cato Networks), and one-click hijacks in Perplexity Comet.
 
@@ -7,15 +7,18 @@
 **Prerequisites:** Phase 15 · 10 (Permission modes), Phase 15 · 01 (Long-horizon agents)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题
 
 A browser agent is a long-horizon agent that reads untrusted content and takes consequential actions. Every page the agent visits is an input the user did not write. Every form on every page is a potential command channel. The 2025–2026 attack corpus shows this is not hypothetical: Tainted Memories lets an attacker bind malicious instructions to the agent's memory via a crafted page; HashJack hides commands in URL fragments the agent visits; Perplexity Comet hijacks hit in a single click.
 
 The defensive picture is uncomfortable. OpenAI's head of preparedness said the quiet part loud: indirect prompt injection "is not a bug that can be fully patched." This is because the attack lives in the agent's reading-vs-acting boundary, which is architecturally fuzzy — every token the model reads could, in principle, be read as an instruction.
 
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
 This lesson names the attack surface, names the benchmark landscape (BrowseComp, OSWorld, WebArena-Verified), and models a minimal indirect-prompt-injection scenario so you can reason about real defenses in Lessons 14 and 18.
 
-## The Concept
+## The Concept | 概念
 
 ### The 2026 landscape, in one paragraph per system
 
@@ -62,40 +65,45 @@ This is the same reasoning pattern as Lob's theorem (Lesson 8): the agent cannot
 - **HITL on consequential actions.** Propose-then-commit pattern (Lesson 15).
 - **Canary tokens on memory.** If a memory entry fires, the user sees it (Lesson 14).
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` models a tiny browser-agent run against three synthetic pages. One page is benign, one has a direct prompt-injection blob in visible text, one has a URL-fragment injection (not visible but inside the agent's context). The script shows (a) what a naïve agent would do, (b) what a read/write boundary catches, (c) what a sanitizer catches, (d) what neither catches.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-browser-agent-trust-boundary.md` scopes a proposed browser-agent deployment: which trust zones it touches, what it is authorized to write, and which defenses must be in place before the first run.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Identify which attack the sanitizer catches but the read/write boundary does not, and which attack only the read/write boundary catches.
+   *思考并实践此练习*
 
 2. Extend the sanitizer to detect one class of HashJack-style URL-fragment injection. Measure the false-positive rate on benign URLs with legitimate fragments.
+   *思考并实践此练习*
 
 3. Pick one real browser-agent workflow you know (e.g., "book a flight"). List every read and every write. Mark which writes need HITL and why.
+   *思考并实践此练习*
 
 4. Read the WebArena-Verified ICLR 2026 paper. Identify one category of task where the original WebArena's scoring was unreliable and explain how the Verified subset resolves it.
+   *思考并实践此练习*
 
 5. Design a memory canary for a browser-agent setting. What would you store, where, and what triggers the alarm?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| Indirect prompt injection | "Bad page text" | Untrusted content in a page the agent reads contains instructions the agent executes |
-| Tainted Memories | "Memory attack" | Agent writes an attacker-supplied instruction to durable memory; triggered next session |
-| HashJack | "URL fragment attack" | Payload hidden in URL fragment / query string is in the agent's context but not visibly rendered |
-| One-click hijack | "Bad button" | Visible affordance rides a follow-on payload the agent executes |
-| BrowseComp | "Web search benchmark" | Finding specific facts on the open web; minute-scale horizon |
-| OSWorld | "Desktop benchmark" | Full OS control; multi-step GUI tasks |
-| WebArena-Verified | "Fixed web-task benchmark" | ServiceNow's regraded WebArena with Hard subset |
-| Read/write boundary | "Side-effect gate" | Reading never consequential; writing requires fresh approval if content is out-of-trust |
+|---|---|---|---|
+| Indirect prompt injection | "Bad page text" | Untrusted content in a page the agent reads contains instructions the agent executes |  |
+| Tainted Memories | "Memory attack" | Agent writes an attacker-supplied instruction to durable memory; triggered next session |  |
+| HashJack | "URL fragment attack" | Payload hidden in URL fragment / query string is in the agent's context but not visibly rendered |  |
+| One-click hijack | "Bad button" | Visible affordance rides a follow-on payload the agent executes |  |
+| BrowseComp | "Web search benchmark" | Finding specific facts on the open web; minute-scale horizon |  |
+| OSWorld | "Desktop benchmark" | Full OS control; multi-step GUI tasks |  |
+| WebArena-Verified | "Fixed web-task benchmark" | ServiceNow's regraded WebArena with Hard subset |  |
+| Read/write boundary | "Side-effect gate" | Reading never consequential; writing requires fresh approval if content is out-of-trust |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [OpenAI — Introducing ChatGPT agent](https://openai.com/index/introducing-chatgpt-agent/) — merge of Operator and deep research; BrowseComp SOTA.
 - [OpenAI — Computer-Using Agent](https://openai.com/index/computer-using-agent/) — the Operator lineage and the architecture that became ChatGPT agent.

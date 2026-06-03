@@ -4,6 +4,9 @@ Three-tier enforcement:
   1. rate limit per tenant
   2. daily spend cap per tenant
   3. kill switch on spend z-score > 4
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -15,6 +18,7 @@ import statistics
 
 @dataclass
 class TenantPolicy:
+    """TenantPolicy"""
     contracted_daily_usd: float
     rate_limit_per_min: int
     spend_cap_multiplier: float = 2.0
@@ -23,6 +27,7 @@ class TenantPolicy:
 
 @dataclass
 class TenantState:
+    """TenantState"""
     spend_today_usd: float = 0.0
     minute_count: int = 0
     daily_history: list = field(default_factory=list)
@@ -37,6 +42,7 @@ TENANTS = {
 
 
 def simulate_day(day: int, verbose: bool) -> None:
+    """simulate_day"""
     for name, (policy, state, traffic_mult) in TENANTS.items():
         if state.paused:
             continue
@@ -61,6 +67,7 @@ def simulate_day(day: int, verbose: bool) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 95)
     print("FINOPS ENFORCEMENT — three tenants over 10 days, abusive tenant triggers kill switch")
     print("=" * 95)
@@ -79,4 +86,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

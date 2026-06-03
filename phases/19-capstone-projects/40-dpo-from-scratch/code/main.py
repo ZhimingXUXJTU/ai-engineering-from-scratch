@@ -16,6 +16,9 @@ Builds:
   - run_demo that prints loss and chosen-rejected margins per epoch.
 
 Exits 0 when the chosen-rejected log-prob margin increases under training.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -38,6 +41,7 @@ import torch.nn.functional as F
 
 
 class InstructionTokenizer:
+    """InstructionTokenizer"""
     INST_ID = 256
     RESP_ID = 257
     PAD_ID = 258
@@ -47,10 +51,10 @@ class InstructionTokenizer:
         ids = [self.INST_ID]
         ids.extend(prompt.encode("utf-8", errors="ignore"))
         ids.append(self.RESP_ID)
-        return ids
+        return ids  # 返回结果
 
     def encode_completion(self, completion: str) -> List[int]:
-        return list(completion.encode("utf-8", errors="ignore"))
+        return list(completion.encode("utf-8", errors="ignore"))  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -59,6 +63,7 @@ class InstructionTokenizer:
 
 
 class CausalSelfAttention(nn.Module):
+    """CausalSelfAttention"""
     def __init__(self, hidden: int, heads: int, max_len: int):
         super().__init__()
         if hidden % heads != 0:
@@ -79,10 +84,11 @@ class CausalSelfAttention(nn.Module):
         att = att.masked_fill(~causal, float("-inf"))
         weights = F.softmax(att, dim=-1)
         ctx = (weights @ v).transpose(1, 2).contiguous().view(B, T, D)
-        return self.out(ctx)
+        return self.out(ctx)  # 返回结果
 
 
 class Block(nn.Module):
+    """Block"""
     def __init__(self, hidden: int, heads: int, max_len: int):
         super().__init__()
         self.ln1 = nn.LayerNorm(hidden)
@@ -94,10 +100,11 @@ class Block(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x + self.attn(self.ln1(x))
         h = self.ln2(x)
-        return x + self.fc2(F.gelu(self.fc1(h)))
+        return x + self.fc2(F.gelu(self.fc1(h)))  # 返回结果
 
 
 class TinyGPT(nn.Module):
+    """TinyGPT"""
     def __init__(self, vocab: int, hidden: int, heads: int, depth: int, max_len: int):
         super().__init__()
         self.tok = nn.Embedding(vocab, hidden)
@@ -113,7 +120,7 @@ class TinyGPT(nn.Module):
         x = self.tok(ids) + self.pos(positions)
         for blk in self.blocks:
             x = blk(x)
-        return self.head(self.ln_f(x))
+        return self.head(self.ln_f(x))  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -123,7 +130,7 @@ class TinyGPT(nn.Module):
 
 def make_preferences() -> List[Dict[str, str]]:
     """Twelve preference triples covering simple task types."""
-    return [
+    return [  # 返回结果
         {
             "prompt": "What is the capital of France?",
             "chosen": "Paris.",
@@ -209,7 +216,7 @@ def sequence_log_prob(
         log p(completion[i] | tokens[<i]) and sum.
     """
     if len(completion_ids) == 0:
-        return torch.zeros((), device=next(model.parameters()).device)
+        return torch.zeros((), device=next(model.parameters()).device)  # 返回结果
     full = list(prompt_ids) + list(completion_ids)
     if len(full) > model.max_len:
         # Truncate from the left to keep the most recent context.
@@ -230,7 +237,7 @@ def sequence_log_prob(
         pred_positions = torch.arange(0, len(full) - 1, device=ids.device)
         completion_targets = torch.tensor(full[1:], dtype=torch.long, device=ids.device)
     gathered = log_probs[0, pred_positions, completion_targets]
-    return gathered.sum()
+    return gathered.sum()  # 返回结果
 
 
 def dpo_loss(
@@ -253,7 +260,7 @@ def dpo_loss(
     z = beta * margin
     # logsigmoid is numerically stable; loss is per-example, scalar.
     loss = -F.logsigmoid(z)
-    return loss, margin
+    return loss, margin  # 返回结果
 
 
 def ipo_loss(
@@ -276,7 +283,7 @@ def ipo_loss(
     margin = diff_w - diff_l
     target = 1.0 / (2.0 * beta) if beta > 0 else 0.0
     loss = (margin - target) ** 2
-    return loss, margin
+    return loss, margin  # 返回结果
 
 
 def length_normalised_log_prob(
@@ -291,13 +298,14 @@ def length_normalised_log_prob(
     showing length-sensitive preferences.
     """
     if len(completion_ids) == 0:
-        return torch.zeros((), device=next(model.parameters()).device)
+        return torch.zeros((), device=next(model.parameters()).device)  # 返回结果
     raw = sequence_log_prob(model, prompt_ids, completion_ids)
-    return raw / float(len(completion_ids))
+    return raw / float(len(completion_ids))  # 返回结果
 
 
 @dataclass(frozen=True)
 class MarginRow:
+    """MarginRow"""
     prompt: str
     chosen: str
     rejected: str
@@ -330,10 +338,11 @@ def margin_table(
                     rejected_logprob=lp_l,
                 )
             )
-    return rows
+    return rows  # 返回结果
 
 
 def print_margin_table(rows: Sequence[MarginRow], log: Callable[[str], None] = print) -> None:
+    """print_margin_table"""
     log("  margin   chosen_lp   rejected_lp   prompt")
     log("  -------  ----------  ------------  -------------------------")
     for row in rows:
@@ -349,6 +358,7 @@ def print_margin_table(rows: Sequence[MarginRow], log: Callable[[str], None] = p
 
 @dataclass
 class DPOConfig:
+    """DPOConfig"""
     vocab: int = InstructionTokenizer.VOCAB
     hidden: int = 64
     heads: int = 4
@@ -374,7 +384,7 @@ def build_models(cfg: DPOConfig) -> Tuple[TinyGPT, TinyGPT]:
     for p in reference.parameters():
         p.requires_grad = False
     reference.eval()
-    return reference, policy
+    return reference, policy  # 返回结果
 
 
 def warmup_pretrain(
@@ -411,7 +421,7 @@ def warmup_pretrain(
             opt.step()
             ep_loss += float(loss.item())
         losses.append(ep_loss / max(len(sequences), 1))
-    return losses
+    return losses  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -421,6 +431,7 @@ def warmup_pretrain(
 
 @dataclass
 class DPOReport:
+    """DPOReport"""
     losses: List[float] = field(default_factory=list)
     margins: List[float] = field(default_factory=list)
     initial_margin: float = 0.0
@@ -446,7 +457,7 @@ def evaluate_margins(
             lp_w = sequence_log_prob(policy, prompt, chosen).item()
             lp_l = sequence_log_prob(policy, prompt, rejected).item()
             margins.append(lp_w - lp_l)
-    return float(np.mean(margins)) if margins else 0.0
+    return float(np.mean(margins)) if margins else 0.0  # 返回结果
 
 
 def train_dpo(
@@ -490,7 +501,7 @@ def train_dpo(
         report.margins.append(total_margin / max(len(triples), 1))
         log(f"  epoch {ep:>3d}: loss={report.losses[-1]:.4f}  margin={report.margins[-1]:+.4f}")
     report.final_margin = evaluate_margins(policy, reference, tok, triples)
-    return report
+    return report  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -499,6 +510,7 @@ def train_dpo(
 
 
 def run_demo(cfg: Optional[DPOConfig] = None) -> int:
+    """run_demo"""
     cfg = cfg or DPOConfig()
     torch.manual_seed(cfg.seed)
     np.random.seed(cfg.seed)
@@ -551,12 +563,12 @@ def run_demo(cfg: Optional[DPOConfig] = None) -> int:
     # Sanity: training should push the margin up.
     if report.final_margin <= report.initial_margin:
         print("ERROR: training did not increase the chosen-rejected margin", file=sys.stderr)
-        return 1
+        return 1  # 返回结果
     # And loss should drop.
     if report.losses[-1] >= report.losses[0]:
         print("ERROR: training did not reduce loss across epochs", file=sys.stderr)
-        return 1
-    return 0
+        return 1  # 返回结果
+    return 0  # 返回结果
 
 
 if __name__ == "__main__":

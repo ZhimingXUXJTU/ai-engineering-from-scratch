@@ -1,6 +1,10 @@
-# Skills and Agent SDKs — Anthropic Skills, AGENTS.md, OpenAI Apps SDK
+# Skills and Agent SDKs — Anthropic Skills, AGENTS.md, OpenAI Apps SDK | Skills 与 Agent SDK：Anthropic Skills、AGENTS.md 与 OpenAI Apps SDK
 
 > MCP says "what tools exist." Skills say "how to do a task." The 2026 stack layers both. Anthropic's Agent Skills (open standard, December 2025) ship as SKILL.md with progressive disclosure. OpenAI's Apps SDK is MCP plus widget metadata. AGENTS.md (now in 60,000+ repos) sits at the repo root as project-level agent context. This lesson names what each covers and builds a minimal SKILL.md + AGENTS.md bundle that travels across agents.
+
+> **【中文解读】** MCP 说"有哪些工具"。Skills 说"如何完成任务"。2026 年技术栈将两者分层。Anthropic 的 Agent Skills（2025年12月开放标准）以 SKILL.md 发货，支持渐进式披露。OpenAI 的 Apps SDK 是 MCP 加上小组件元数据。AGENTS.md（已在 60,000+ 仓库中）位于仓库根目录作为项目级 Agent 上下文。本课命名每个覆盖的范围并构建最小 SKILL.md + AGENTS.md 包。
+
+> **【拓展】** 三层堆栈是 2026 年 AI Agent 开发的标准模式：AGENTS.md（项目级约定）+ SKILL.md（可复用工作流）+ MCP 服务器（可调用工具）。Anthropic Claude Agent SDK 和 SkillKit 等跨 Agent 分发层让一个 SKILL.md 可以自动翻译为 32+ AI Agent 的原生格式。
 
 **Type:** Learn
 **Languages:** Python (stdlib, SKILL.md parser and loader)
@@ -14,7 +18,11 @@
 - Load skills filesystem-style into an agent runtime.
 - Compose a skill with an MCP server and an AGENTS.md so one package works in Claude Code, Cursor, and Codex.
 
+> **【中文解读】** 学习目标：区分三层（AGENTS.md 项目上下文、SKILL.md 可复用知识、MCP 工具）；编写带 YAML frontmatter 和渐进式披露的 SKILL.md；以文件系统方式加载技能到 Agent 运行时；组合 SKILL.md + MCP 服务器 + AGENTS.md 使一个包在多个 Agent 中通用。
+
 ## The Problem
+
+> **【中文解读】** 工程师将发版说明写作工作流提炼为多步骤提示词，放在 Notion 文档中。现在想在 Claude Code、Cursor 和 Codex CLI 中使用，但每个 Agent 加载指令的方式不同。AGENTS.md 和 SKILL.md 一起解决这一问题：AGENTS.md 位于仓库根目录，每个兼容 Agent 在会话启动时读取；SKILL.md 是可移植的技能包。三层、一个可移植工件。
 
 An engineer distills a release-notes-writing workflow into a multi-step prompt: "Read the latest merged PRs. Group by area. Summarize each. Write a changelog entry following the team's style. Post to Slack draft." They put it in a Notion doc for their team.
 
@@ -134,6 +142,8 @@ All three compose: the agent reads AGENTS.md on session start, the user invokes 
 
 ## Use It
 
+> **【中文解读】** `code/main.py` 实现标准库 SKILL.md 解析器和加载器：在 `./skills/` 下发现技能文件，解析 YAML frontmatter 和 markdown 正文，生成按技能名索引的字典。然后模拟 Agent 循环按名称调用 `release-notes-writer`。关注点：YAML 用最小标准库解析器（无 pyyaml 依赖）；技能正文原样存储，调用时拼接到系统提示前；渐进式披露通过 `read_subresource` 按需拉取引用文件。
+
 `code/main.py` ships a stdlib SKILL.md parser and loader. It discovers skills under `./skills/`, parses the YAML frontmatter plus markdown body, and produces a dict keyed by skill name. It then simulates an agent loop that invokes `release-notes-writer` by name.
 
 What to look at:
@@ -143,6 +153,8 @@ What to look at:
 - Progressive disclosure demoed via a `read_subresource` function that pulls referenced files on demand.
 
 ## Ship It
+
+> **【中文解读】** 本课产出 `outputs/skill-agent-bundle.md`——给定一个工作流，生成 SKILL.md + AGENTS.md + MCP 服务器蓝图组合包，可跨 Agent 移植。
 
 This lesson produces `outputs/skill-agent-bundle.md`. Given a workflow, the skill produces the combined SKILL.md + AGENTS.md + MCP-server-blueprint bundle, portable across agents.
 
@@ -160,18 +172,18 @@ This lesson produces `outputs/skill-agent-bundle.md`. Given a workflow, the skil
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| SKILL.md | "The skill file" | YAML frontmatter plus markdown body, loaded by agent runtime |
-| AGENTS.md | "Repo-root agent context" | Project-level conventions file read on session start |
-| Progressive disclosure | "Lazy-load sub-resources" | Skill body references files pulled only when needed |
-| Frontmatter | "YAML block at top" | Metadata (name, description) in `---` delimiters |
-| Claude Agent SDK | "Anthropic's skill runtime" | `@anthropic-ai/claude-agent-sdk`, loads skills and routes |
-| OpenAI Apps SDK | "MCP + widget meta" | OpenAI's dev surface built on MCP plus ChatGPT UI hooks |
-| Skill discovery | "Filesystem scan" | Walk known dirs for SKILL.md, key by name |
-| Cross-agent portability | "One skill many agents" | Translate one SKILL.md to 32+ agents via SkillKit-style tools |
-| Agent Skill | "Portable know-how" | Reusable task template outside MCP's tool concept |
-| Apps SDK | "MCP plus ChatGPT UI" | Connectors and Custom GPTs unified on MCP |
+| Term | What people say | What it actually means | 中文 |
+|------|----------------|------------------------|------|
+| SKILL.md | "The skill file" | YAML frontmatter plus markdown body, loaded by agent runtime | 技能文件：YAML 元数据+Markdown 正文 |
+| AGENTS.md | "Repo-root agent context" | Project-level conventions file read on session start | 项目级 Agent 上下文文件 |
+| Progressive disclosure | "Lazy-load sub-resources" | Skill body references files pulled only when needed | 渐进式披露：按需加载子资源 |
+| Frontmatter | "YAML block at top" | Metadata (name, description) in `---` delimiters | YAML 前置元数据 |
+| Claude Agent SDK | "Anthropic's skill runtime" | `@anthropic-ai/claude-agent-sdk`, loads skills and routes | Anthropic 的技能运行时 |
+| OpenAI Apps SDK | "MCP + widget meta" | OpenAI's dev surface built on MCP plus ChatGPT UI hooks | OpenAI 的 MCP+UI 开发平台 |
+| Skill discovery | "Filesystem scan" | Walk known dirs for SKILL.md, key by name | 技能发现：文件系统扫描 |
+| Cross-agent portability | "One skill many agents" | Translate one SKILL.md to 32+ agents via SkillKit-style tools | 跨 Agent 可移植性 |
+| Agent Skill | "Portable know-how" | Reusable task template outside MCP's tool concept | Agent 技能：可移植的任务模板 |
+| Apps SDK | "MCP plus ChatGPT UI" | Connectors and Custom GPTs unified on MCP | Apps SDK：MCP+ChatGPT UI 统一平台 |
 
 ## Further Reading
 

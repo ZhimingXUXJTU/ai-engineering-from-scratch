@@ -1,3 +1,8 @@
+"""
+音乐生成 (Music Generation)
+核心概念：MusicGen、Stable Audio 使用神经编解码器语言模型生成音乐
+AI 对应：Suno/Udio 主导商业产品，MusicGen/Stable Audio Open 领先开源
+"""
 """Music-generation cartoon: symbolic chord/drum generation from a prompt.
 
 This is a pedagogical stand-in. Real music-gen uses neural codec LM

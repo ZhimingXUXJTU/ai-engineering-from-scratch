@@ -1,26 +1,29 @@
-# Scalable Oversight and Weak-to-Strong Generalization
+# Scalable Oversight and Weak-to-Strong Generalization | 可扩展监督
 
 > Burns et al. (OpenAI Superalignment, "Weak-to-Strong Generalization", 2023) proposed a proxy for the superalignment problem: fine-tune a strong model using labels produced by a weaker model. If the strong model generalizes correctly from imperfect weak supervision, current human-scale alignment methods may extend to superhuman systems. Scalable oversight and W2SG are complementary. Scalable oversight (debate, recursive reward modeling, task decomposition) increases the overseer's effective capability so it can keep up with the model under oversight. W2SG ensures the strong model generalizes correctly from whatever imperfect supervision the overseer provides. Debate Helps W2SG (arXiv:2501.13124, January 2025) combines them.
+
+> **【中文解读】** 本节介绍了可扩展监督——从弱到强的 AI 安全评估方法。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, W2SG gap simulator)
 **Prerequisites:** Phase 18 · 01 (instruction-following), Phase 18 · 10 (AI Control), Phase 09 (RL foundations)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Define scalable oversight and weak-to-strong generalization and explain how they are complementary.
 - Describe the Burns et al. 2023 experimental setup: fine-tune GPT-4 using labels from GPT-2.
 - Explain the performance gap recovered (PGR) metric and what it measures.
 - State the three major scalable-oversight mechanisms (debate, recursive reward modeling, task decomposition) and one strength of each.
 
-## The Problem
+## The Problem | 问题
 
 Every alignment technique so far in Phase 18 assumes the overseer can evaluate the model's behaviour. When the model is superhuman, the overseer is the weak link. The superalignment question: can a weaker supervisor reliably produce a stronger, aligned model?
 
 Burns et al. reduce this to an operationalized empirical setup: supervise strong with weak, measure how much of the strong model's capability survives the weak supervision. This is not a solution to superalignment — it is a proxy that lets us measure progress.
 
-## The Concept
+## The Concept | 概念
 
 ### W2SG: the Burns et al. setup
 
@@ -69,15 +72,15 @@ OpenAI's Superalignment team dissolved in May 2024 after Jan Leike's departure t
 
 Lessons 6-10 describe the threat and the defensive paradigm under the assumption U is untrustworthy. Lesson 11 is the offensive paradigm: make the overseer strong enough to verify U's alignment. Lessons 12-16 then turn to the practical tooling of adversarial evaluation.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` simulates a W2SG fine-tune on a synthetic task. Weak labeler has 70% accuracy with structured errors; strong model has 95% ceiling on gold labels. You fine-tune the strong model on weak labels, measure PGR, and compare to strong-on-gold and weak-alone.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-w2sg-pgr.md`. Given an oversight setup description, it identifies the weak supervisor, the strong model, the supervision quality, and computes (or requests) PGR. It flags whether the claim is "weak can supervise strong" or "weak + oversight mechanism can supervise strong."
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Report PGR for weak_accuracy = 0.60, 0.70, 0.80. Explain the shape of the PGR curve.
 
@@ -89,7 +92,7 @@ This lesson produces `outputs/skill-w2sg-pgr.md`. Given an oversight setup descr
 
 5. Articulate what would falsify the "weak-to-strong generalization is a viable path to superalignment" claim. Be specific about the empirical signature you would need to see.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -101,7 +104,7 @@ This lesson produces `outputs/skill-w2sg-pgr.md`. Given an oversight setup descr
 | Task decomposition | "sub-tasks the human checks" | Break a hard task into sub-tasks the human can verify, recursively |
 | Superalignment | "aligning superhuman AI" | The research agenda concerned with aligning models the human cannot directly evaluate |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Burns et al. — Weak-to-Strong Generalization (OpenAI 2023)](https://openai.com/index/weak-to-strong-generalization/) — the W2SG paper
 - [Irving, Christiano, Amodei — AI safety via debate (arXiv:1805.00899)](https://arxiv.org/abs/1805.00899) — the debate mechanism

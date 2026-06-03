@@ -7,6 +7,9 @@ step that picks a sub-window inside the best scene. This scaffold implements
 the index shape, the triple-query fusion, and the sub-window grounding.
 
 Run:  python main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -22,21 +25,24 @@ EMB_DIM = 24
 
 
 def tokenize(s: str) -> list[str]:
-    return re.findall(r"\w+", s.lower())
+    """tokenize"""
+    return re.findall(r"\w+", s.lower())  # 返回结果
 
 
 def fake_embed(text: str) -> list[float]:
+    """fake_embed"""
     v = [0.0] * EMB_DIM
     for tok in tokenize(text):
         h = hash(tok)
         v[h % EMB_DIM] += 1.0
         v[(h >> 8) % EMB_DIM] += 0.5
     n = math.sqrt(sum(x * x for x in v)) or 1.0
-    return [x / n for x in v]
+    return [x / n for x in v]  # 返回结果
 
 
 def cosine(a: list[float], b: list[float]) -> float:
-    return sum(x * y for x, y in zip(a, b))
+    """cosine"""
+    return sum(x * y for x, y in zip(a, b))  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -45,6 +51,7 @@ def cosine(a: list[float], b: list[float]) -> float:
 
 @dataclass
 class Scene:
+    """Scene"""
     video_id: str
     scene_id: int
     start_ms: int
@@ -89,6 +96,7 @@ SAMPLE = [
 # ---------------------------------------------------------------------------
 
 def multi_vector_search(query: str, scenes: list[Scene], k: int = 5) -> list[tuple[Scene, float]]:
+    """multi_vector_search"""
     qv = fake_embed(query)
     scored_caption = sorted(scenes, key=lambda s: -cosine(qv, s.caption_emb))
     scored_frame = sorted(scenes, key=lambda s: -cosine(qv, s.frame_emb))
@@ -105,7 +113,7 @@ def multi_vector_search(query: str, scenes: list[Scene], k: int = 5) -> list[tup
             index[key] = sc
 
     ranked = sorted(fused.items(), key=lambda x: -x[1])
-    return [(index[k_], s) for k_, s in ranked[:k]]
+    return [(index[k_], s) for k_, s in ranked[:k]]  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -117,16 +125,16 @@ def ground_window(query: str, scene: Scene) -> tuple[int, int]:
     q = set(tokenize(query))
     t_tokens = tokenize(scene.transcript)
     if not q or not t_tokens:
-        return scene.start_ms, scene.end_ms
+        return scene.start_ms, scene.end_ms  # 返回结果
     positions = [i for i, w in enumerate(t_tokens) if w in q]
     if not positions:
-        return scene.start_ms, scene.end_ms
+        return scene.start_ms, scene.end_ms  # 返回结果
     span = scene.end_ms - scene.start_ms
     start_frac = min(positions) / max(1, len(t_tokens))
     end_frac = (max(positions) + 1) / max(1, len(t_tokens))
     start = int(scene.start_ms + span * max(0.0, start_frac - 0.05))
     end = int(scene.start_ms + span * min(1.0, end_frac + 0.05))
-    return start, end
+    return start, end  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -134,11 +142,13 @@ def ground_window(query: str, scene: Scene) -> tuple[int, int]:
 # ---------------------------------------------------------------------------
 
 def fmt_ms(ms: int) -> str:
+    """fmt_ms"""
     s = ms // 1000
-    return f"{s // 60:02d}:{s % 60:02d}"
+    return f"{s // 60:02d}:{s % 60:02d}"  # 返回结果
 
 
 def main() -> None:
+    """main"""
     scenes = SAMPLE
     for s in scenes:
         s.embed()
@@ -163,4 +173,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

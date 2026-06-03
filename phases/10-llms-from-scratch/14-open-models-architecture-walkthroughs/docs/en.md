@@ -1,6 +1,10 @@
-# Open Models: Architecture Walkthroughs
+# Open Models: Architecture Walkthroughs | 开源模型架构详解
 
 > You built a GPT-2 Small from scratch in Lesson 04. Frontier open models in 2026 are the same family with five or six concrete changes. RMSNorm instead of LayerNorm. SwiGLU instead of GELU. RoPE instead of learned positions. GQA or MLA instead of full MHA. Mixture-of-Experts at scale. The math you already know covers 95% of them. This lesson reads Llama 3, DeepSeek-V3, Mixtral, Qwen, and Gemma side by side and names the exact line where each architecture diverges.
+
+> **【中文解读】** 你在第四课从零构建了 GPT-2 Small。2026 年前沿开源模型只做了五六处修改：RMSNorm 替代 LayerNorm、SwiGLU 替代 GELU、RoPE 替代学习位置编码、GQA/MLA 替代全注意力、大规模 MoE。已掌握的数学覆盖了 95%。
+
+> **【拓展：DeepSeek架构】** DeepSeek-V3 的关键创新：MLA（多头潜在注意力，压缩 KV-cache）、无辅助损失的 MoE 负载均衡、MTP（多 token 预测）和 DualPipe 训练。理解这些架构选择是理解 2025-2026 年大模型发展方向的关键。
 
 **Type:** Learn
 **Languages:** Python (stdlib)

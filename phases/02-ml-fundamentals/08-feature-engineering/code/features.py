@@ -1,3 +1,7 @@
+"""
+特征工程工具：标准化、编码、交叉特征、多项式特征。
+AI 对应: sklearn 的 StandardScaler/OneHotEncoder/PolynomialFeatures。特征工程是 ML 中最耗时的步骤。
+"""
 import math
 import random
 

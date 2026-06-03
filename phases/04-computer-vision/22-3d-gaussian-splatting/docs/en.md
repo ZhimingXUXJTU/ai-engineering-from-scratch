@@ -1,6 +1,10 @@
-# 3D Gaussian Splatting from Scratch
+# 3D Gaussian Splatting from Scratch | 从零实现 3D 高斯泼溅
 
 > A scene is a cloud of millions of 3D Gaussians. Each one has a position, orientation, scale, opacity, and a colour that depends on viewing direction. Rasterise them, backprop through the rasterisation, done.
+
+> **【中文解读】** 3D 高斯泼溅（3DGS）用数百万个 3D 高斯椭球来表示场景。每个高斯有位置、朝向、缩放、不透明度和视角相关的颜色。通过可微分光栅化进行训练，实现实时、高质量的新视角合成。
+
+> **【拓展：3DGS vs NeRF】** 3D Gaussian Splatting 是 NeRF 的实时替代方案。NeRF 渲染慢但质量高，3DGS 通过显式的 3D 高斯表示实现了实时渲染，同时保持高质量。在 VR/AR、游戏、电影特效中有巨大潜力。
 
 **Type:** Build
 **Languages:** Python

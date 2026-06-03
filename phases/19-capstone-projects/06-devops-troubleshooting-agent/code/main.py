@@ -7,6 +7,9 @@ destructive command is gated by a human-in-the-loop approval and every
 considered command is audit-logged. This scaffold implements both.
 
 Run:  python main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -23,17 +26,19 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Node:
+    """Node"""
     kind: str               # "Pod" | "Deployment" | "Node" | "Service" | "Prom" | "Loki"
     name: str
     attrs: dict = field(default_factory=dict)
 
     @property
     def key(self) -> str:
-        return f"{self.kind}/{self.name}"
+        return f"{self.kind}/{self.name}"  # 返回结果
 
 
 @dataclass
 class Graph:
+    """Graph"""
     nodes: dict[str, Node] = field(default_factory=dict)
     edges: list[tuple[str, str, str]] = field(default_factory=list)  # (src, rel, dst)
 
@@ -46,10 +51,11 @@ class Graph:
     def neighbors(self, key: str) -> list[tuple[str, str]]:
         out = [(rel, dst) for s, rel, dst in self.edges if s == key]
         out += [(rel, src) for src, rel, dst in self.edges if dst == key]
-        return out
+        return out  # 返回结果
 
 
 def build_sample_cluster() -> Graph:
+    """build_sample_cluster"""
     g = Graph()
     dep = Node("Deployment", "checkout-api",
                {"revision": 42, "image": "checkout-api:v2.41", "deployed_at": "14m ago"})
@@ -71,7 +77,7 @@ def build_sample_cluster() -> Graph:
     g.link(svc.key, "EXPOSES", dep.key)
     g.link(dep.key, "OBSERVED_BY", prom.key)
     g.link(dep.key, "OBSERVED_BY", loki.key)
-    return g
+    return g  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -80,6 +86,7 @@ def build_sample_cluster() -> Graph:
 
 @dataclass
 class Hypothesis:
+    """Hypothesis"""
     title: str
     citations: list[str]
     recency_mins: int
@@ -89,7 +96,7 @@ class Hypothesis:
     def score(self) -> float:
         recency_w = max(0.0, 1.0 - self.recency_mins / 60.0)
         path_w = 1.0 / (1 + self.path_len)
-        return (recency_w * 0.35 +
+        return (recency_w * 0.35 +  # 返回结果
                 self.specificity * 0.35 +
                 min(len(self.citations), 5) / 5 * 0.2 +
                 path_w * 0.1)
@@ -138,7 +145,7 @@ def root_cause(g: Graph, alerted: str) -> list[Hypothesis]:
         path_len=4,
     ))
 
-    return sorted(hyps, key=lambda h: -h.score())
+    return sorted(hyps, key=lambda h: -h.score())  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -147,6 +154,7 @@ def root_cause(g: Graph, alerted: str) -> list[Hypothesis]:
 
 @dataclass
 class AuditEvent:
+    """AuditEvent"""
     ts: float
     tool: str
     args: dict
@@ -159,6 +167,7 @@ class AuditEvent:
 
 @dataclass
 class Agent:
+    """Agent"""
     graph: Graph
     audit: list[AuditEvent] = field(default_factory=list)
     read_only_tools: tuple = ("kubectl_get", "kubectl_describe", "promql", "logql", "traceql")
@@ -180,7 +189,7 @@ class Agent:
         else:
             ev.result = "blocked: unknown tool"
         self.audit.append(ev)
-        return ev
+        return ev  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -188,6 +197,7 @@ class Agent:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    """main"""
     g = build_sample_cluster()
     agent = Agent(graph=g)
 
@@ -226,4 +236,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

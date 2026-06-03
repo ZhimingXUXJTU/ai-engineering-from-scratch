@@ -1,3 +1,7 @@
+"""
+集成方法从零实现：Bagging、Boosting(AdaBoost/GBDT)、Stacking。
+AI 对应: XGBoost/LightGBM 在金融风控和推荐系统中广泛使用，Kaggle 比赛利器。
+"""
 import numpy as np
 from collections import Counter
 

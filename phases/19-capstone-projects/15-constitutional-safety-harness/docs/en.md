@@ -1,6 +1,9 @@
-# Capstone 15 — Constitutional Safety Harness + Red-Team Range
+# Capstone 15 — Constitutional Safety Harness + Red-Team Range | 宪法式 结业 线束 安全
 
 > Anthropic's Constitutional Classifiers, Meta's Llama Guard 4, Google's ShieldGemma-2, NVIDIA's Nemotron 3 Content Safety, and X-Guard for multilingual coverage defined the 2026 safety-classifier stack. garak, PyRIT, NVIDIA Aegis, and promptfoo became the standard adversarial evaluation tools. NeMo Guardrails v0.12 ties them into a production pipeline. This capstone wires all of it together: a layered safety harness around a target app, an autonomous red-team agent running 6+ attack families, and a constitutional self-critique run that produces a measurable harmlessness delta.
+
+> **【中文解读】** 本节是综合项目——构建宪法式安全线束。
+
 
 **Type:** Capstone
 **Languages:** Python (safety pipeline, red team), YAML (policy configs)
@@ -24,7 +27,7 @@ The red-team range runs on a scheduler. PAIR and TAP autonomously discover jailb
 
 The constitutional-self-critique run is a training-time intervention. Take 1k harmful-attempt prompts, have the model draft a response, critique it against a written constitution (do-not-harm rules), and retrain on the critique loop. Measure the before/after harmlessness delta on a held-out eval.
 
-## Architecture
+## Architecture | 架构
 
 ```
 request (text / image / multilingual)
@@ -73,7 +76,7 @@ output: CVSS-scored findings + disclosure timeline + before/after harmlessness d
 - PII scrub: Presidio
 - Target: an 8B instruction-tuned model or one of the other capstones' RAG chatbots
 
-## Build It
+## Build It | 动手构建
 
 1. **Target setup.** Stand up an 8B instruction-tuned model on vLLM (or reuse a RAG chatbot from another capstone). This is the app under test.
 
@@ -93,7 +96,7 @@ output: CVSS-scored findings + disclosure timeline + before/after harmlessness d
 
 9. **Range automation.** Everything above runs on a cron; findings write to a queue; over-refusal regression alerts fire to Slack.
 
-## Use It
+## Use It | 使用方法
 
 ```
 $ safety probe --model=target --family=PAIR --budget=50
@@ -105,7 +108,7 @@ $ safety probe --model=target --family=PAIR --budget=50
 [range]      7 successes out of 50 (14% success rate)
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-safety-harness.md` is the deliverable. A production-grade layered safety pipeline plus a reproducible red-team range with before/after harmlessness deltas.
 
@@ -118,7 +121,7 @@ $ safety probe --model=target --family=PAIR --budget=50
 | 15 | Automation and repeatability | Everything runs on cron with alerts |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Run garak's plugin for prompt-injection on a RAG chatbot and compare attack success rate with and without the output-filter layer.
 
@@ -130,7 +133,7 @@ $ safety probe --model=target --family=PAIR --budget=50
 
 5. Run the constitutional self-critique on a 30B model and measure whether the delta scales.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -143,7 +146,7 @@ $ safety probe --model=target --family=PAIR --budget=50
 | XSTest | "Benign probe set" | Benchmark for over-refusal regression |
 | CVSS 4.0 | "Severity score" | Standard vulnerability scoring for safety findings |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic Constitutional Classifiers](https://www.anthropic.com/research/constitutional-classifiers) — training-time reference
 - [Meta Llama Guard 4](https://ai.meta.com/research/publications/llama-guard-4/) — the 2026 input/output classifier

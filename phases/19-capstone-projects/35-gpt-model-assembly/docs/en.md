@@ -1,13 +1,16 @@
-# GPT Model Assembly
+# GPT Model Assembly | 组装
 
 > Twelve blocks stacked, a token embedding, a learned position embedding, a final LayerNorm, and a tied language model head. That is the entire 124 million parameter GPT model. This lesson assembles those pieces into a working class, counts the parameters to confirm the model matches the reference 124M shape, and generates text with multinomial sampling, temperature, and top-k.
+
+> **【中文解读】** 本节是综合项目——组装完整的 GPT 模型。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 30 to 34
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Assemble the transformer block from lesson 34 into a full GPT model: token embedding, position embedding, N blocks, final LayerNorm, language model head.
 - Reproduce the 124 million parameter configuration: vocab 50257, context 1024, embedding 768, twelve heads, twelve layers.
@@ -15,13 +18,13 @@
 - Generate text from a prompt with multinomial sampling, temperature scaling, and top-k truncation, holding context length with a sliding window.
 - Measure parameter count and forward pass cost against the 124M target.
 
-## The Problem
+## The Problem | 问题
 
 A transformer block does nothing on its own. You need to turn token ids into vectors, mix in positional information, run them through the stack, and project back to vocabulary logits. Forget any one of those four steps and the model either fails to forward, drifts in position information, or cannot speak.
 
 The shape of the model also matters. The reference GPT-2 small is 124 million parameters at exactly the configuration above. The numbers are not magic. Vocab 50257 times embedding 768 is the token table. Position 1024 times 768 is the position table. Twelve blocks at roughly 7 million parameters each is 84 million. The final head reuses the token table by weight tying. Sum the pieces and you land on 124 million. Building a model whose parameter count does not match the reference is a sign you wired something wrong.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart TB
@@ -69,7 +72,7 @@ flowchart LR
 
 Three knobs, three different behaviors. Temperature near zero collapses to greedy. Temperature one matches the model's natural distribution. Top-k one is greedy. Top-k forty filters the long tail. The combinations matter; the next lesson on training uses generation as a qualitative eval signal.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements:
 
@@ -104,14 +107,14 @@ Three patterns make the difference between a model that runs and a model that sh
 
 **Tie weights at parameter level, not just by copying.** Setting `lm_head.weight = token_embedding.weight` shares the tensor; copying does not. The optimizer needs to update one parameter and the autograd graph needs one accumulation. If you copy, the head drifts away from the embedding and weight tying buys you nothing.
 
-## Use It
+## Use It | 使用方法
 
 - The model class in this lesson is the same shape as the one the next lesson trains.
 - Replacing the learned position embedding with RoPE gets you the LLaMA family without touching the block or the head.
 - Replacing the GELU with SiLU and the LayerNorm with RMSNorm gets you the rest of the LLaMA family changes.
 - The generation function works with any logits source, not only this model. You can pull logits from a pretrained GPT-2 file in lesson 37 and reuse the same generation loop.
 
-## Exercises
+## Exercises | 练习题
 
 1. Untie the LM head from the token embedding and recount parameters. Verify the delta is 50257 times 768 = 38 million.
 2. Replace the learned position embedding with a sinusoidal table computed at construction time. Confirm the model still forwards and the parameter count drops by 786,432.
@@ -119,7 +122,7 @@ Three patterns make the difference between a model that runs and a model that sh
 4. Add a `repetition_penalty` knob that divides the logit of any token in the prompt or generated history by a constant before softmax. Show on a fixed prompt that values above one reduce repeat counts in the output.
 5. Add `top_p` (nucleus) sampling next to `top_k`. Two-line check that the sum of probabilities of the kept tokens exceeds `top_p`.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -129,7 +132,7 @@ Three patterns make the difference between a model that runs and a model that sh
 | Top-k sampling | "K truncation" | Keep the K logits with the highest values, mask the rest to negative infinity, softmax over the remainder |
 | Temperature | "Sampling temperature" | Divide logits by T before softmax; T less than 1 sharpens, T equal to 1 keeps the natural distribution, T greater than 1 flattens |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - Phase 19 lesson 34 for the block this model stacks.
 - Phase 19 lesson 36 for the training loop that drives this model with cross entropy loss.

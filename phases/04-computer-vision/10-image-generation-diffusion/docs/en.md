@@ -1,6 +1,10 @@
-# Image Generation — Diffusion Models
+# Image Generation — Diffusion Models | 图像生成 — 扩散模型
 
 > A diffusion model learns to denoise. Train it to remove a tiny bit of noise from a noisy image, repeat that backwards a thousand times, and you have an image generator.
+
+> **【中文解读】** 扩散模型学习去噪：训练网络从加了一点噪的图像中去除噪声，反向重复一千次就能从纯噪声生成图像。扩散模型是 Stable Diffusion、DALL-E、Midjourney 等图像生成工具的核心技术。
+
+> **【拓展：扩散模型的革命】** 扩散模型在 2022 年后取代 GAN 成为图像生成的主流。Stable Diffusion 使用潜在空间扩散（Latent Diffusion）大幅降低计算成本，DDIM 采样器将推理步数从 1000 步降至 20 步。扩散模型也被应用于视频生成（Sora）、3D 生成、音频生成等领域。
 
 **Type:** Build
 **Languages:** Python

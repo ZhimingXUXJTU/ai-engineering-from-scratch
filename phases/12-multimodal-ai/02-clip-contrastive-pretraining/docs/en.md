@@ -1,6 +1,10 @@
-# CLIP and Contrastive Vision-Language Pretraining
+# CLIP and Contrastive Vision-Language Pretraining | CLIP 图文对比预训练
 
 > OpenAI's CLIP (2021) proved a single idea big enough to power the next five years: align an image encoder and a text encoder in the same vector space using only noisy web image-caption pairs and a contrastive loss. Zero supervised labels. 400M pairs. The resulting embedding space does zero-shot classification, image-text retrieval, and plugs into every 2026 VLM as its vision tower. SigLIP 2 (2025) replaced softmax with sigmoid and scaled past CLIP at lower cost. This lesson walks the math from InfoNCE to sigmoid pairwise loss and builds the training step in stdlib Python.
+
+> **【中文解读】** CLIP 用4亿网络图文对，通过对比损失将图像和文本编码到同一向量空间。零标注实现零样本分类和图文检索，是所有2026年视觉语言模型的视觉塔基础。
+
+> **【拓展：CLIP→多模态大模型】** CLIP 的图文对比学习是 LLaVA、BLIP-2 等多模态大模型的基础。理解 CLIP 是理解整个多模态 AI 生态的起点。
 
 **Type:** Build
 **Languages:** Python (stdlib, InfoNCE + sigmoid loss implementations)

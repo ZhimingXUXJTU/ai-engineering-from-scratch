@@ -1,13 +1,16 @@
-# Critic Loop
+# Critic Loop | 批评者
 
 > A critic that returns "looks good" the first time is broken. A critic that always returns "needs work" is broken. The interesting critic is the one that converges, and you have to engineer convergence.
+
+> **【中文解读】** 本节是综合项目——构建 Agent 线束循环和契约验证系统。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 50-53
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Score a paper draft across five fixed dimensions: clarity, novelty, evidence, methodology, related-work.
 - Apply each round's critique as a structured revision diff rather than a freeform rewrite.

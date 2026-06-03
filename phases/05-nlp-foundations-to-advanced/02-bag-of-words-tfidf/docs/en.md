@@ -1,6 +1,8 @@
-# Bag of Words, TF-IDF, and Text Representation
+# Bag of Words, TF-IDF, and Text Representation | 词袋模型、TF-IDF 与文本表示
 
 > Count first, think later. TF-IDF still beats embeddings on well-defined tasks in 2026.
+
+> **【中文解读】** 词袋模型忽略词序只统计词频，TF-IDF 通过惩罚常见词突出关键词。这是最基础的文本表示方法。
 
 **Type:** Build
 **Languages:** Python

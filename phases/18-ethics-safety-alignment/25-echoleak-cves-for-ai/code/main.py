@@ -8,6 +8,9 @@ Defense: scope separation -- tool calls derived from untrusted content are
 blocked before they access privileged scope.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -17,6 +20,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class State:
+    """State"""
     user_prompt: str
     retrieved: list[dict] = field(default_factory=list)
     tool_calls: list[dict] = field(default_factory=list)
@@ -41,10 +45,11 @@ INBOX_PRIVATE = [
 
 def retrieve(user_prompt: str) -> list[dict]:
     """RAG step: returns recent emails including the attacker email."""
-    return [ATTACKER_EMAIL]
+    return [ATTACKER_EMAIL]  # 返回结果
 
 
 def naive_copilot(state: State) -> State:
+    """naive_copilot"""
     state.retrieved = retrieve(state.user_prompt)
     email = state.retrieved[0]
     body = email["body"]
@@ -59,7 +64,7 @@ def naive_copilot(state: State) -> State:
         )
     else:
         state.rendered_output = f"Summary of {email['from']}"
-    return state
+    return state  # 返回结果
 
 
 def scope_separated_copilot(state: State) -> State:
@@ -72,10 +77,11 @@ def scope_separated_copilot(state: State) -> State:
         state.rendered_output = f"Summary of {email['from']}: {body[:80]}"
     else:
         state.rendered_output = f"Summary of {email['from']}"
-    return state
+    return state  # 返回结果
 
 
 def trace(label: str, state: State) -> None:
+    """trace"""
     print(f"\n-- {label} --")
     print(f"  user prompt       : {state.user_prompt!r}")
     print(f"  retrieved emails  : {len(state.retrieved)}")
@@ -84,6 +90,7 @@ def trace(label: str, state: State) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 74)
     print("ECHOLEAK ATTACK TRACE RECONSTRUCTION (Phase 18, Lesson 25)")
     print("=" * 74)
@@ -104,4 +111,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

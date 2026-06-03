@@ -1,5 +1,10 @@
 """Document AI stack toy — LayoutLMv3-style inputs + Donut schema + token budgets.
 
+文档与图表理解 (Document and Diagram Understanding)
+核心概念：从 OCR+LayoutLM 管道到 OCR-free VLM，文档 AI 经历了三个时代的演进。
+金融场景中，发票解析、合同审查、报表提取都依赖文档理解技术。
+AI 应用对应：2026年前沿方案是直接将页面图像输入高分辨率 VLM（如 Claude Opus 4.7），无需 OCR 中间步骤。
+
 Stdlib. Produces the three-stream LayoutLM input (text, bbox, patch-ids) for a
 toy page, generates a Donut-style JSON schema, and compares total input token
 counts across (OCR-pipeline, Donut, Nougat, VLM-native).
@@ -13,12 +18,13 @@ from dataclasses import dataclass
 
 @dataclass
 class Token:
+    """文档 token：文本内容 + 2D 边界框坐标 (x0, y0, x1, y1)。"""
     text: str
-    bbox: tuple[int, int, int, int]
+    bbox: tuple[int, int, int, int]  # 边界框 (左, 上, 右, 下)
 
 
 def mock_page() -> list[Token]:
-    """A synthetic invoice page."""
+    """构造模拟发票页面的 token 列表：标题、公司名、表格项、总价等。"""
     return [
         Token("INVOICE",      (100, 50,  300, 80)),
         Token("ACME Co.",     (100, 100, 250, 130)),
@@ -32,7 +38,7 @@ def mock_page() -> list[Token]:
 
 
 def layoutlm_input(tokens: list[Token], patch_grid: tuple[int, int] = (16, 16)) -> dict:
-    """Produce the three-stream input: text, bbox, patch-ids."""
+    """构建 LayoutLMv3 风格的三流输入：文本 ID、bbox 坐标流、图像 patch ID。"""
     text_ids = [hash(t.text) % 10000 for t in tokens]
     bbox_stream = [t.bbox for t in tokens]
     n_patches = patch_grid[0] * patch_grid[1]
@@ -42,6 +48,7 @@ def layoutlm_input(tokens: list[Token], patch_grid: tuple[int, int] = (16, 16)) 
 
 
 def donut_schema(task: str = "invoice") -> dict:
+    """生成 Donut 风格的 JSON 输出 schema：发票或表单的结构化模板。"""
     schemas = {
         "invoice": {
             "vendor": "<string>",

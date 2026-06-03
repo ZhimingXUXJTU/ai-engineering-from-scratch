@@ -1,5 +1,10 @@
 """InternVL3-style native pretraining corpus mixer + ViR router simulator.
 
+InternVL3：原生多模态预训练 (Native Multimodal Pretraining)
+核心概念：不同于"先训练文本LLM再接视觉编码器"的后处理方法，InternVL3 从第一步就将
+文本和多模态数据交织训练，消除对齐债务，78B参数即在 MMMU-Pro 上匹配 Gemini 2.5 Pro。
+AI 应用对应：原生多模态预训练是下一代大模型的趋势。
+
 Three toys:
   1. Corpus mix planner — given target percentages, compute steps per modality.
   2. ViR router sim — given a query distribution, estimate avg tokens per request.

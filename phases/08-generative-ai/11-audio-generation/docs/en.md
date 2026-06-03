@@ -1,6 +1,10 @@
-# Audio Generation
+# Audio Generation | 音频生成
 
 > Audio is a 1-D signal at 16-48 kHz. A five-second clip is 80-240k samples. No transformer attends to that sequence directly. The solution for every production audio model in 2026 is the same: a neural codec (Encodec, SoundStream, DAC) compresses audio to discrete tokens at 50-75 Hz, and a transformer or diffusion model generates tokens.
+
+> **【中文解读】** 音频是 16-48kHz 的 1D 信号，5 秒就是 8-24 万个采样点。没有 Transformer 能直接处理这么长的序列。2026 年所有音频生成模型的解决方案相同：神经编解码器（EnCodec 等）压缩为 50-75Hz 的离散 token，然后用 Transformer 生成。
+
+> **【拓展：MusicGen 与 AudioCraft】** Meta 的 MusicGen 和 AudioCraft 使用 EnCodec + Transformer 架构生成音乐和音效。音频 token 化是音频生成领域的关键创新。
 
 **Type:** Build
 **Languages:** Python

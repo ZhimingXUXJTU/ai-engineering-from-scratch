@@ -1,6 +1,10 @@
-# 3D Vision — Point Clouds & NeRFs
+# 3D Vision — Point Clouds & NeRFs | 3D 视觉 — 点云与 NeRF
 
 > 3D vision comes in two flavours. Point clouds are the sensor's raw output. NeRFs are the learned volumetric field. Both answer "what is where in space."
+
+> **【中文解读】** 3D 视觉有两种范式：点云是传感器（LiDAR、深度相机）的原始输出；NeRF（神经辐射场）是学习到的体积场。两者都在回答"什么东西在空间的哪个位置"。NeRF 通过神经网络学习场景的 3D 表示，可以从任意视角渲染逼真图像。
+
+> **【拓展：3D 视觉的应用】** NeRF 被用于虚拟现实/增强现实（VR/AR）、建筑可视化、自动驾驶场景重建。3D Gaussian Splatting（下一课）是 NeRF 的快速替代方案，实时渲染质量更高。点云处理是自动驾驶 LiDAR 感知的核心。
 
 **Type:** Learn + Build
 **Languages:** Python

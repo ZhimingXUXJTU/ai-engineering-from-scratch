@@ -1,3 +1,8 @@
+"""
+命名实体识别 (NER)
+
+从文本识别人名、地名、组织名等实体。RAG 检索和知识图谱构建都依赖 NER。对应 spaCy NER、HuggingFace token-classification。
+"""
 ORG_GAZETTEER = {"Apple", "Google", "Microsoft", "OpenAI", "Meta", "Amazon", "Netflix", "Anthropic"}
 GPE_GAZETTEER = {"US", "USA", "UK", "India", "Germany", "France", "Japan"}
 PRODUCT_GAZETTEER = {"iPhone", "Android", "Windows", "ChatGPT", "Claude", "Gemini"}

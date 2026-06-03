@@ -1,3 +1,17 @@
+"""
+世界模型与视频扩散 (World Models & Video Diffusion)
+
+核心概念：
+- 世界模型：预测场景未来几秒的视频模型=世界模拟器
+- 条件生成：基于动作条件预测，得到"学习到的游戏引擎"
+- 视频扩散：将扩散模型扩展到时间维度
+
+AI 对应：
+- Sora（OpenAI）和 Genie（DeepMind）是世界模型的代表
+- 自动驾驶仿真（生成训练场景）、游戏 AI（学习游戏物理）
+- 机器人规划（预测动作后果），是实现 AGI 的可能路径之一
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

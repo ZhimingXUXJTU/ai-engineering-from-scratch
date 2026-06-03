@@ -1,3 +1,7 @@
+"""
+时间序列分析：趋势/季节性分解、ARIMA、指数平滑。
+AI 对应: 股票预测、销量预测、天气预报。sklearn 之外用 statsmodels/prophet。
+"""
 import numpy as np
 
 

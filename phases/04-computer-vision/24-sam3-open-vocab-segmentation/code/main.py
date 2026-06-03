@@ -1,3 +1,17 @@
+"""
+SAM 3 与开放词汇分割 (SAM 3 & Open-Vocabulary Segmentation)
+
+核心概念：
+- SAM：Segment Anything Model——零样本分割任意物体
+- 开放词汇：用文本描述指定要分割的物体类别，无需训练
+- 提示类型：点提示、框提示、文本提示
+
+AI 对应：
+- SAM 系列是分割领域的"基础模型"（Meta 发布）
+- 应用：Photoshop 生成式填充、视频编辑、医学影像、自动驾驶
+- SAM 2 扩展到视频分割，实时处理视频流
+"""
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, asdict
 from typing import List

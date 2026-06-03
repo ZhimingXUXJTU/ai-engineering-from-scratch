@@ -1,20 +1,24 @@
-# Chameleon and Early-Fusion Token-Only Multimodal Models
+# Chameleon and Early-Fusion Token-Only Multimodal Models | Chameleon 早期融合纯 Token 多模态模型
 
-> Every VLM we have seen so far keeps images and text separate. Visual tokens come from a vision encoder, flow into a projector, then meet text inside the LLM. The vision and text vocabularies never overlap. Chameleon (Meta, May 2024) asked: what if they did? Train a VQ-VAE that turns an image into a sequence of discrete tokens from a shared vocabulary. Every multimodal document is now one sequence — text tokens and image tokens interleaved, a single autoregressive loss. Side effect: the model can generate mixed-modality outputs — alternating text and image tokens in a single inference call. This lesson reads the early-fusion thesis and builds a toy version end to end.
+> Every VLM
 
-**Type:** Build
+> **【中文解读】** Chameleon（Meta，2024年5月）提出了一种激进的多模态方法：用 VQ-VAE 将图像转换为离散 token，与文本 token 共享同一个词汇表，用单一的自回归损失训练。这样模型既能理解又能生成混合模态内容。
+
+> **【拓展：早期融合 vs 后期融合】** 之前所有 VLM（LLaVA、BLIP-2、Qwen-VL）都保持图像和文本分离。Chameleon 的"早期融合"意味着图像和文本从一开始就在同一个空间中处理，模型可以自然地交替输出文本和图像。这是统一生成模型家族（Emu3、Show-o、Janus-Pro）的起点。 we have seen so far keeps images and text separate. Visual tokens come from a vision encoder, flow into a projector, then meet text inside the LLM. The vision and text vocabularies never overlap. Chameleon (Meta, May 2024) asked: what if they did? Train a VQ-VAE that turns an image into a sequence of discrete tokens from a shared vocabulary. Every multimodal document is now one sequence — text tokens and image tokens interleaved, a single autoregressive loss. Side effect: the model can generate mixed-modality outputs — alternating text and image tokens in a single inference call. This lesson reads the early-fusion thesis and builds a toy version end to end.
+
+**Type:** Build  | **类型：构建**
 **Languages:** Python (stdlib, VQ-VAE tokenizer + interleaved decoder)
 **Prerequisites:** Phase 12 · 05, Phase 8 (Generative AI)
 **Time:** ~180 minutes
 
-## Learning Objectives
+## Learning Objectives  | 学习目标
 
 - Explain why a shared vocabulary + single loss changes what the model can do.
 - Describe how a VQ-VAE tokenizes an image into a discrete sequence compatible with a transformer's next-token objective.
 - Name Chameleon's training-stability tricks: QK-Norm, dropout placement, LayerNorm ordering.
 - Compare Chameleon vs BLIP-2's Q-Former approach and describe when each is the right choice.
 
-## The Problem
+## The Problem  | 问题背景
 
 Adapter-based VLMs (LLaVA, BLIP-2, Qwen-VL) treat text and image as two different things. A text token goes through `embed(text_token)`; an image goes through `visual_encoder(image) → projector → ... pseudo_tokens`. The model has two input paths that merge partway in.
 
@@ -26,7 +30,7 @@ Three consequences:
 
 Chameleon rejects the premise: images are just sequences of discrete tokens from a shared vocabulary. Train the model on interleaved documents, one loss, one autoregressive decoder, and you unlock mixed-modality generation for free.
 
-## The Concept
+## The Concept  | 核心概念
 
 ### VQ-VAE as image tokenizer
 
@@ -98,7 +102,7 @@ Fuyu (Adept, 2023) is a related approach: skip the separate vision encoder entir
 
 AnyGPT (Zhan et al., 2024) extends Chameleon to four modalities: text, image, speech, music. Same VQ-VAE trick for each, shared transformer. Any-to-any generation. Covered more in Lesson 12.16.
 
-## Use It
+## Use It  | 动手实践
 
 `code/main.py` builds a toy end-to-end early-fusion model:
 
@@ -109,11 +113,11 @@ AnyGPT (Zhan et al., 2024) extends Chameleon to four modalities: text, image, sp
 
 The code intentionally keeps the transformer tiny (bigrams) so you can trace the signal flow end to end.
 
-## Ship It
+## Ship It  | 部署上线
 
 This lesson produces `outputs/skill-tokenizer-vs-adapter-picker.md`. Given a product spec (understand only vs understand + generate, required image quality, cost budget), it picks between Chameleon-family (early fusion) and LLaVA-family (late fusion) and justifies with quantitative rules of thumb.
 
-## Exercises
+## Exercises  | 练习题
 
 1. Chameleon uses K=8192 codebook entries and 1024 tokens per 512x512 image. Estimate the compression ratio vs a 24-bit RGB image. Is it lossy? How lossy?
 
@@ -125,9 +129,9 @@ This lesson produces `outputs/skill-tokenizer-vs-adapter-picker.md`. Given a pro
 
 5. Extend the toy decoder to emit a mixed-modality response given a text-only prompt. Measure how often the model picks image-first vs text-first given training-data distribution 60% text-first / 40% image-first.
 
-## Key Terms
+## Key Terms  | 关键术语
 
-| Term | What people say | What it actually means |
+| Term | What people say | What it actually means | 中文含义 |
 |------|-----------------|------------------------|
 | Early fusion | "Unified tokens" | Images converted to discrete tokens sharing the transformer's vocabulary from step one |
 | VQ-VAE | "Image tokenizer" | CNN + ViT + codebook that maps images to integer indices the transformer can predict |
@@ -137,7 +141,7 @@ This lesson produces `outputs/skill-tokenizer-vs-adapter-picker.md`. Given a pro
 | Codebook size | "K entries" | Number of discrete vectors the VQ-VAE can quantize to; trades compression for fidelity |
 | Tokenizer ceiling | "Reconstruction limit" | Best PSNR achievable by decoding VQ tokens; bounds the model's image quality |
 
-## Further Reading
+## Further Reading  | 延伸阅读
 
 - [Chameleon Team — Chameleon: Mixed-Modal Early-Fusion Foundation Models (arXiv:2405.09818)](https://arxiv.org/abs/2405.09818)
 - [Aghajanyan et al. — CM3 (arXiv:2201.07520)](https://arxiv.org/abs/2201.07520)

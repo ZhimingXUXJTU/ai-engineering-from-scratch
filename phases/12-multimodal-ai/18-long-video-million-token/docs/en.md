@@ -1,6 +1,8 @@
-# Long-Video Understanding at Million-Token Context
+# Long-Video Understanding at Million-Token Context | 百万 Token 上下文的长视频理解
 
 > A 1-hour 4K video at 24 FPS, patched and embedded, produces on the order of 60 million tokens. A 2-hour podcast episode transcribed is 30,000 tokens. A full Blu-ray feature film, even compressed with aggressive pooling, is hundreds of thousands of tokens. Google's Gemini 1.5 (March 2024) opened this era with a 10-million-token context, doing reliable needle-in-a-haystack recall over hour-long videos. LWM (Liu et al., February 2024) showed ring attention's scaling path. LongVILA and Video-XL scaled ingestion further. VideoAgent swapped raw context for agentic retrieval. Each approach is a different trade-off on compute, recall, and engineering complexity. This lesson reads them side by side.
+
+> **【中文解读】** 1 小时 4K 视频可产生约 6000 万 token，远超任何模型的上下文窗口。处理长视频有三条路径：(1) 暴力上下文（Gemini 1.5 的千万 token 上下文）；(2) Ring Attention 跨设备分布式注意力；(3) Token 压缩（Video-XL 的摘要 token）；(4) Agent 检索（VideoAgent 将视频当数据库查询）。每条路径在计算量、召回率和工程复杂度上有不同取舍。
 
 **Type:** Build
 **Languages:** Python (stdlib, needle-in-haystack simulator + agentic-retrieval router)
@@ -36,6 +38,8 @@ Engineering: a custom attention implementation with memory hierarchy (local + gl
 
 Ring attention distributes long sequences across devices in a "ring" where each device holds a chunk. Attention across the full sequence happens by each device sending its chunk to the next in a ring pattern, computing partial attention, and aggregating.
 
+> **【中文解读】** Ring Attention 将长序列分布到多个设备上，每个设备持有序列的一个块，通过环形通信计算全局注意力。计算量随上下文长度线性增长（而非二次方），因为注意力的二次开销被分摊到了环形设备上。LongVILA 用 8 路并行处理 268k token 的视频。
+
 LWM (Liu et al., 2024) trained a 1M-token context model this way. Training compute scales linearly with context, not quadratically — the quadratic hit on attention is amortized across the ring's devices.
 
 LongVILA (arXiv:2408.10188) adapted the pattern to VLMs. 1400-frame videos at 192 tokens per frame = 268k context, trained with ring attention across 8-way parallelism.
@@ -63,6 +67,8 @@ VideoAgent (arXiv:2403.10517):
 5. LLM composes the answer or asks follow-up queries.
 
 This is the LLM-as-agent pattern applied to long video. Cheaper inference (only relevant clips encoded), harder engineering (retrieval quality becomes the bottleneck).
+
+> **【拓展：生产级长视频管道】** 2026 年生产环境的长视频管道通常是混合方案：(1) 对整个视频进行动态 FPS 采样 + 激进池化（得到约 100k token 的全局表示）；(2) 用 72B VLM 生成全局摘要；(3) 用户提问时，用 Agent 检索定位到相关片段。这结合了暴力上下文的全局理解和检索的局部细节能力。
 
 ### Needle-in-a-haystack benchmarks
 
@@ -108,26 +114,26 @@ This lesson produces `outputs/skill-long-video-strategy-planner.md`. Given a vid
 
 ## Exercises
 
-1. A 45-minute lecture at 1 FPS, 81 tokens per frame. Total tokens? Fits in which models' contexts?
+1. A 45-minute lecture at 1 FPS, 81 tokens per frame. Total tokens? Fits in which models' contexts? 45 分钟讲座，1 FPS，每帧 81 token。总 token 数？能放入哪些模型的上下文？
 
-2. Design a needle-in-a-haystack test: at what minute do you inject the marker, and what is the exact query format?
+2. Design a needle-in-a-haystack test: at what minute do you inject the marker, and what is the exact query format? 设计一个大海捞针测试：在哪一分钟注入标记？精确的查询格式是什么？
 
-3. Compare brute-context Qwen2.5-VL-72B (80k context) to VideoAgent (Claude 3.5 + retrieval) on a 1-hour video. Which wins on recall? Which wins on latency?
+3. Compare brute-context Qwen2.5-VL-72B (80k context) to VideoAgent (Claude 3.5 + retrieval) on a 1-hour video. Which wins on recall? Which wins on latency? 在 1 小时视频上对比暴力上下文 Qwen2.5-VL-72B 和 VideoAgent。哪个召回率高？哪个延迟低？
 
-4. Ring attention's memory cost scales linearly in sequence length and linearly in device count. Explain why and what fails if you drop the ring-rotation phase.
+4. Ring attention's memory cost scales linearly in sequence length and linearly in device count. Explain why and what fails if you drop the ring-rotation phase. Ring Attention 的内存开销随序列长度和设备数线性增长。解释原因，以及去掉环形轮转阶段会出什么问题。
 
-5. Read Gemini 1.5 Section 5 on needle-in-a-haystack. What did the paper find about recall at the 1M vs 10M token boundary?
+5. Read Gemini 1.5 Section 5 on needle-in-a-haystack. What did the paper find about recall at the 1M vs 10M token boundary? 阅读 Gemini 1.5 第 5 节关于大海捞针的实验。论文发现 1M 和 10M token 边界的召回率有什么差异？
 
 ## Key Terms
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
-| Brute context | "Just more tokens" | Scale LLM context to millions of tokens; process everything in one pass |
-| Ring attention | "LWM-style parallel" | Distributed attention pattern where each device holds a chunk and rotates |
-| Token compression | "Summary tokens" | Reduce per-clip tokens via a learned compressor before the LLM |
-| Needle-in-haystack | "NIH test" | Insert a unique marker at a random point, ask model to recall it at test time |
-| Agentic retrieval | "LLM as query planner" | LLM asks a retrieval tool for relevant clips, reads them via a VLM, composes answer |
-| VideoAgent | "Retrieval pattern for video" | Canonical agentic-retrieval design: question -> tool -> clip -> answer |
+| Brute context | "Just more tokens" 暴力上下文 | Scale LLM context to millions of tokens; process everything in one pass 将 LLM 上下文扩展到百万 token，一次前向传播处理全部内容 |
+| Ring attention | "LWM-style parallel" 环形注意力 | Distributed attention pattern where each device holds a chunk and rotates 分布式注意力模式，每个设备持有一块并在环中轮转 |
+| Token compression | "Summary tokens" 摘要 token | Reduce per-clip tokens via a learned compressor before the LLM LLM 前通过学习型压缩器减少每片段 token 数 |
+| Needle-in-haystack | "NIH test" 大海捞针测试 | Insert a unique marker at a random point, ask model to recall it at test time 在随机位置插入唯一标记，测试时要求模型回忆 |
+| Agentic retrieval | "LLM as query planner" Agent 检索 | LLM asks a retrieval tool for relevant clips, reads them via a VLM, composes answer LLM 调用检索工具获取相关片段，通过 VLM 阅读并生成回答 |
+| VideoAgent | "Retrieval pattern for video" 视频检索模式 | Canonical agentic-retrieval design: question -> tool -> clip -> answer 经典 Agent 检索设计：问题→工具→片段→回答 |
 
 ## Further Reading
 

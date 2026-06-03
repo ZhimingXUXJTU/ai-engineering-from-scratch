@@ -1,6 +1,10 @@
-# Text-to-Speech (TTS) — From Tacotron to F5 and Kokoro
+# Text-to-Speech (TTS) — From Tacotron to F5 and Kokoro | 语音合成 — 从 Tacotron 到 F5 和 Kokoro
 
 > ASR inverts speech to text; TTS inverts text to speech. The 2026 stack is three parts: text → tokens, tokens → mel, mel → waveform. Each part has a default model that fits in a laptop.
+
+> **【中文解读】** ASR 把语音变文字，TTS 把文字变语音。2026 年的 TTS 技术栈分三步：文本→token→Mel 频谱→波形。每一步都有可在笔记本上运行的默认模型。
+
+> **【拓展：TTS 的应用】** TTS 是有声书、导航语音、虚拟助手（Siri/小爱同学）、无障碍辅助（为视障人士朗读）的核心技术。零样本 TTS（只需几秒参考音频即可克隆声音）是最新突破。
 
 **Type:** Build
 **Languages:** Python

@@ -1,6 +1,9 @@
-# Capstone 10 — Multi-Agent Software Engineering Team
+# Capstone 10 — Multi-Agent Software Engineering Team | 多 Agent 工程 结业
 
 > SWE-AF's factory architecture, MetaGPT's role-based prompting, AutoGen 0.4's typed actor graph, Cognition's Devin, and Factory's Droids all converged on the same 2026 shape: an architect plans, N coders work in parallel worktrees, a reviewer gates, a tester verifies. Parallel worktrees convert wall-clock into throughput. Shared state and handoff protocols become the failure surface. The capstone is to build the team, evaluate on SWE-bench Pro, and report which handoffs break and how often.
+
+> **【中文解读】** 本节是综合项目——构建多 Agent 软件团队，模拟完整的开发团队协作。
+
 
 **Type:** Capstone
 **Languages:** Python / TypeScript (agents), Shell (worktree scripts)
@@ -22,7 +25,7 @@ Communication is through a shared task board (file-backed or Redis). Each role c
 
 Token amplification is the hidden cost. Every role boundary adds summary prompts and handoff context. A 40-turn single-agent run becomes 160 total turns across four roles. The rubric specifically weighs token efficiency vs single-agent baseline because the question is not "does multi-agent work" but "does it win per dollar."
 
-## Architecture
+## Architecture | 架构
 
 ```
 GitHub issue URL
@@ -64,7 +67,7 @@ Coder A          Coder B          Coder C          Coder D          (4 parallel)
 - Observability: Langfuse with role-tagged spans, per-agent token accounting
 - Deployment: K8s with each role as a separate Deployment + HPA on backlog
 
-## Build It
+## Build It | 动手构建
 
 1. **Task board.** File-backed JSONL with typed messages: `plan_request`, `subtask`, `diff_ready`, `review_needed`, `test_needed`, `approved`, `rejected`, `replan_needed`. Agents subscribe to tags.
 
@@ -84,7 +87,7 @@ Coder A          Coder B          Coder C          Coder D          (4 parallel)
 
 9. **Post-mortem.** For each failed issue, identify the handoff that broke (plan too vague, merge conflict, reviewer false-approve, tester flake). Produce a handoff-failure histogram.
 
-## Use It
+## Use It | 使用方法
 
 ```
 $ team run --issue https://github.com/acme/widget/issues/842
@@ -102,7 +105,7 @@ $ team run --issue https://github.com/acme/widget/issues/842
 [pr]        opened #3382   4 coders, 1 revision, $4.90, 18m
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-multi-agent-team.md` is the deliverable. Given an issue URL and parallelism level, the team produces a merge-ready PR with per-role token accounting.
 
@@ -115,7 +118,7 @@ $ team run --issue https://github.com/acme/widget/issues/842
 | 15 | Coordination engineering | Merge-conflict resolution, handoff-failure histogram |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Inject an obvious bug into a diff mid-run (extra `return None` before the main body). Measure the reviewer's false-approve rate. Tune the reviewer prompt until false-approval is under 5%.
 
@@ -127,7 +130,7 @@ $ team run --issue https://github.com/acme/widget/issues/842
 
 5. Add a fifth role: documenter (Haiku 4.5). After review, it produces a changelog entry. Measure whether documentation quality justifies the extra token spend.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -139,7 +142,7 @@ $ team run --issue https://github.com/acme/widget/issues/842
 | Merge coordinator | "Integrator" | Component that runs three-way merge and mediates conflicts |
 | False approval | "Reviewer hallucination" | Reviewer approves a diff with known bugs |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [SWE-AF factory architecture](https://github.com/Agent-Field/SWE-AF) — the reference 2026 multi-agent factory
 - [MetaGPT](https://github.com/FoundationAgents/MetaGPT) — role-based multi-agent framework

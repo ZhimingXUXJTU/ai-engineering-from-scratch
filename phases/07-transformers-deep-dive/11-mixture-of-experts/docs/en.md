@@ -1,6 +1,8 @@
-# Mixture of Experts (MoE)
+# Mixture of Experts (MoE) | 混合专家模型 (MoE)
 
 > A dense 70B transformer activates every parameter for every token. A 671B MoE activates only 37B per token and beats it on every benchmark. Sparsity is the most important scaling idea of the decade.
+
+> **【中文解读】** MoE 只激活部分专家网络处理每个 token，大幅增加参数量而不增加计算量。DeepSeek、Mixtral 都用 MoE 架构。
 
 **Type:** Build
 **Languages:** Python

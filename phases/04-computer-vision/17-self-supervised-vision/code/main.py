@@ -1,3 +1,17 @@
+"""
+自监督视觉 — SimCLR、DINO、MAE (Self-Supervised Vision)
+
+核心概念：
+- SimCLR：对比学习——同一样本的两个增强视图应靠近，不同样本应远离
+- DINO：自蒸馏——学生网络学习教师网络的输出分布，无需标签
+- MAE：掩码自编码器——遮盖 75% 的 patch，训练模型预测被遮盖部分
+
+AI 对应：
+- 自监督学习是 GPT/BERT 等大模型的核心训练范式
+- DINOv2 已成为许多视觉任务的通用基础模型
+- MAE 是 ViT 最有效的预训练方法
+"""
+
 import torch
 import torch.nn.functional as F
 

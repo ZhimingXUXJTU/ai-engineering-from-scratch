@@ -1,6 +1,8 @@
-# Long-Context Evaluation — NIAH, RULER, LongBench, MRCR
+# Long-Context Evaluation — NIAH, RULER, LongBench, MRCR | 长上下文评估 — NIAH、RULER
 
 > Gemini 3 Pro advertises 10M tokens of context. At 1M tokens, 8-needle MRCR drops to 26.3%. Advertised ≠ usable. Long-context evaluation tells you the actual capacity of the model you are shipping on.
+
+> **【中文解读】** 评估 LLM 处理长文本的能力。NIAH 是最著名的测试。
 
 **Type:** Learn
 **Languages:** Python

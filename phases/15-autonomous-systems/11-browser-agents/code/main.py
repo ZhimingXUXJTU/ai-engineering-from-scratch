@@ -12,6 +12,9 @@ run against four defense configurations:
 The agent is asked to: "read page, then post a comment to /api/post". A
 posted comment is the consequential action. The indirect-prompt-injection
 payload tries to redirect the comment to /api/exfil with sensitive data.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -63,20 +66,21 @@ def sanitizer(html: str) -> tuple[str, list[str]]:
         if re.search(rule, out, flags=re.IGNORECASE):
             triggered.append(rule)
             out = re.sub(rule, "[sanitized]", out, flags=re.IGNORECASE)
-    return out, triggered
+    return out, triggered  # 返回结果
 
 
 def rw_boundary_allows(content_origin: str, action: dict) -> bool:
     """True if the consequential action is allowed given the content origin."""
     # Rule: writes allowed only if the action was initiated by the user,
     # not by reading out-of-trust content.
-    return content_origin == "user"
+    return content_origin == "user"  # 返回结果
 
 
 # ---------- Agent loop (toy) ----------
 
 @dataclass
 class AgentResult:
+    """AgentResult"""
     defense: str
     posted_to: str | None
     posted_body: str | None
@@ -84,6 +88,7 @@ class AgentResult:
 
 
 def run_agent(page: dict, defense: str) -> AgentResult:
+    """run_agent"""
     notes: list[str] = []
     html = page["html"]
     url = page["url"]
@@ -119,9 +124,9 @@ def run_agent(page: dict, defense: str) -> AgentResult:
     if defense in ("rw_boundary", "both"):
         if not rw_boundary_allows(content_origin, action):
             notes.append("R/W boundary blocked write (content_origin=page)")
-            return AgentResult(defense, None, None, notes)
+            return AgentResult(defense, None, None, notes)  # 返回结果
 
-    return AgentResult(defense, target_endpoint, target_body, notes)
+    return AgentResult(defense, target_endpoint, target_body, notes)  # 返回结果
 
 
 # ---------- Driver ----------
@@ -135,6 +140,7 @@ DEFENSES = ("naive", "sanitizer", "rw_boundary", "both")
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("BROWSER-AGENT INDIRECT PROMPT-INJECTION SIMULATOR (Phase 15, Lesson 11)")
     print("=" * 80)
@@ -164,4 +170,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

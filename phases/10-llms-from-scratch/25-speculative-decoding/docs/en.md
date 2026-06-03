@@ -1,6 +1,10 @@
-# Speculative Decoding and EAGLE
+# Speculative Decoding and EAGLE | 投机解码与 EAGLE
 
 > A frontier LLM generating one token requires a full forward pass over billions of parameters. That forward pass is massively over-provisioned: most of the time a much smaller model can guess the next 3-5 tokens correctly, and the big model only needs to *verify* the guess. When the guess is right you got 5 tokens for the price of one. Speculative decoding (Leviathan et al. 2023) made this exact, and EAGLE-3 (2025) pushed acceptance rates to ~4.5 tokens per verify — a 4-5x speedup at matched output distribution.
+
+> **【中文解读】** 前沿 LLM 生成一个 token 需要一次完整的数十亿参数前向传播。投机解码用小模型猜测接下来 3-5 个 token，大模型只需验证。猜对时 5 个 token 只算一个的价。EAGLE-3 将接受率推到 ~4.5 token/验证，4-5 倍加速。
+
+> **【拓展：投机解码→推理加速】** 投机解码是 2025-2026 年推理加速的标准技术。DeepSeek-V3 的 MTP 头在推理时被复用为草稿器，接受率 80%+。vLLM、TensorRT-LLM 都已内置支持。
 
 **Type:** Build
 **Languages:** Python (with numpy)

@@ -1,5 +1,10 @@
 """Patch-n'-pack for variable-resolution vision transformer batches — stdlib.
 
+任意分辨率视觉 (Any-Resolution Vision: Patch-n'-Pack)
+核心概念：真实图像不是正方形的——收据9:16、图表16:9、截图9:19.5。
+Patch-n'-Pack 将不同分辨率的图像块打包到单个 Transformer 批次中。
+AI 应用对应：高分辨率文档理解和 OCR 场景需要保留原始宽高比。
+
 Given a batch of (H, W) image sizes at patch P, computes:
   - per-image patch grid (H/P, W/P) and sequence length n_i = (H/P)(W/P)
   - packed total length N = sum(n_i)

@@ -1,6 +1,10 @@
-# A2A — The Agent-to-Agent Protocol
+# A2A — The Agent-to-Agent Protocol | A2A：Agent 间通信协议
 
 > Google announced A2A in April 2025; by April 2026 the spec is at https://a2a-protocol.org/latest/specification/ and 150+ organizations back it. A2A is the horizontal complement to MCP (Lesson 13): where MCP is vertical (agent ↔ tools), A2A is peer-to-peer (agent ↔ agent). It defines Agent Cards (discovery), tasks with artifacts (text, structured data, video), opaque task lifecycles, and auth. Production systems increasingly pair MCP with A2A. Google Cloud rolled A2A support into Vertex AI Agent Builder during 2025-2026.
+
+> **【中文解读】** Google 在 2025 年 4 月发布 A2A 协议；到 2026 年 4 月，规范已有 150+ 组织支持。A2A 是 MCP 的水平补充：MCP 是垂直的（Agent 与工具），A2A 是点对点的（Agent 与 Agent）。定义了 Agent Card（发现）、带产物的任务、不透明任务生命周期和认证。生产系统越来越多地将 MCP 与 A2A 配对使用。
+
+> **【拓展：A2A → Google 的 Agent 协议】** A2A 是 Google 主导的 Agent 间通信标准协议，与 Anthropic 的 MCP（Model Context Protocol）互补。MCP 解决 Agent 与工具的连接，A2A 解决 Agent 与 Agent 的协作。两者结合构成了 2026 年 Agent 生态的通信基础设施。
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib, `http.server`, `json`)
@@ -98,7 +102,7 @@ Several related specs emerged in 2024-2026:
 
 A2A is the most-adopted peer protocol as of April 2026. See arXiv:2505.02279 (Liu et al., "A Survey of Agent Interoperability Protocols") for the comparison.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements an A2A-minimal server and client using `http.server` and JSON. The server:
 
@@ -122,11 +126,11 @@ python3 code/main.py
 
 The script starts the server in a background thread, then runs the client against it. You see the complete flow: discovery, submit, poll, artifact.
 
-## Use It
+## Use It | 使用方法
 
 `outputs/skill-a2a-integrator.md` designs an A2A integration: Agent Card contents, task schemas, auth choice, streaming vs polling.
 
-## Ship It
+## Ship It | 部署上线
 
 Checklist:
 
@@ -136,7 +140,7 @@ Checklist:
 - **Rate limits + auth.** A2A is public-facing; apply standard web security.
 - **Dead-letter for failed tasks.** Inspect patterns over time for recurring failure types.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Confirm the client discovers the server and receives the correct artifact.
 2. Add a second skill to the server (e.g., "summarize"). Update the Agent Card. Write a client that picks the skill based on task type.
@@ -144,7 +148,7 @@ Checklist:
 4. Read the A2A spec (https://a2a-protocol.org/latest/specification/). Identify three things the spec mandates that this demo does not implement.
 5. Compare A2A (Agent Card discovery) to MCP (server-side capability listing via `listTools`). What is the tradeoff between self-describing agents and capability-probing?
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
@@ -157,7 +161,7 @@ Checklist:
 | MCP vs A2A | "Tools vs peers" | MCP: vertical agent ↔ tool. A2A: horizontal agent ↔ agent. |
 | ACP / ANP / NLIP | "Sibling protocols" | Adjacent specs; A2A is the most-adopted 2026. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [A2A specification](https://a2a-protocol.org/latest/specification/) — the canonical spec
 - [Google Developers Blog — A2A announcement](https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/) — April 2025 launch post

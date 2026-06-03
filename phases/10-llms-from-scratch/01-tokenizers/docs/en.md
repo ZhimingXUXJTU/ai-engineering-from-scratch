@@ -1,6 +1,10 @@
-# Tokenizers: BPE, WordPiece, SentencePiece
+# Tokenizers: BPE, WordPiece, SentencePiece | 分词器：BPE、WordPiece、SentencePiece
 
 > Your LLM does not read English. It reads integers. The tokenizer decides whether those integers carry meaning or waste it.
+
+> **【中文解读】** LLM 不读英文，它读整数。分词器决定这些整数是有意义还是浪费。子词分词（subword tokenization）在词级和字符级之间找到平衡点：常见词保持完整，罕见词拆分为有意义的片段。GPT-4 用 BPE，Llama 用 SentencePiece。
+
+> **【拓展：BPE→GPT系列】** OpenAI 的所有模型（GPT-2、GPT-3、GPT-4）都使用 BPE 分词器。tiktoken 是 GPT 系列的分词器库。分词质量直接影响上下文窗口利用率——"unfortunately" 拆成4个 token vs 1个 token，等于上下文窗口缩水 75%。
 
 **Type:** Build
 **Languages:** Python

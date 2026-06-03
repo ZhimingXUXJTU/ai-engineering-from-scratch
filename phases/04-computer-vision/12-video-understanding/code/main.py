@@ -1,3 +1,17 @@
+"""
+视频理解 — 时序建模 (Video Understanding — Temporal Modeling)
+
+核心概念：
+- 视频的三种建模方式：3D 卷积（时间作为额外维度）、Transformer（时间作为序列）、2D+池化
+- 时间维度是视频与图像的核心区别——模型需要理解帧间的运动和变化
+- 时序注意力：让模型关注视频中关键时刻的帧
+
+AI 对应：
+- 视频理解驱动了 YouTube/TikTok 内容推荐、安防监控异常检测
+- Sora 等视频生成模型基于视频理解能力
+- 视频问答（Video QA）是多模态 AI 的前沿任务
+"""
+
 import numpy as np
 import torch
 import torch.nn as nn

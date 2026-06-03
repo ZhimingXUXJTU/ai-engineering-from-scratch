@@ -1,3 +1,7 @@
+"""
+描述统计、假设检验(t 检验/卡方)、Bootstrap 置信区间。
+AI 对应: A/B 测试评估模型效果，Bootstrap 构建任意指标的置信区间。
+"""
 import math
 import random
 

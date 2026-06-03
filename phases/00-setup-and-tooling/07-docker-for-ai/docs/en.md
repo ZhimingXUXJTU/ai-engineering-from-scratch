@@ -1,4 +1,4 @@
-# Docker for AI
+# Docker for AI | Docker 容器化 AI 应用
 
 > Containers make "works on my machine" a thing of the past.
 
@@ -7,18 +7,24 @@
 **Prerequisites:** Phase 0, Lessons 01 and 03
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build a GPU-enabled Docker image with CUDA, PyTorch, and AI libraries from a Dockerfile
 - Mount host directories as volumes to persist models, datasets, and code across container rebuilds
 - Configure the NVIDIA Container Toolkit to expose GPUs inside containers
 - Orchestrate multi-service AI applications (inference server + vector database) using Docker Compose
 
-## The Problem
+> **【中文解读】**
+> Docker 把代码、运行时、库和系统工具打包成一个"容器"，确保在任何机器上运行结果一致。AI 项目依赖复杂（CUDA、PyTorch、cuDNN 等），Docker 是解决"在我机器上能跑"问题的标准方案。
+
+## The Problem | 问题描述
 
 You trained a model on your laptop with PyTorch 2.3, CUDA 12.4, and Python 3.12. Your colleague has PyTorch 2.1, CUDA 11.8, and Python 3.10. Your model crashes on their machine. Your Dockerfile works on both.
 
 AI projects are dependency nightmares. A typical stack includes Python, PyTorch, CUDA drivers, cuDNN, system-level C libraries, and specialized packages like flash-attn that need exact compiler versions. Docker packages all of this into a single image that runs identically everywhere.
+
+> **【中文解读】**
+> AI 项目是最需要 Docker 的项目类型之一。CUDA 版本不兼容、PyTorch 版本冲突、cuDNN 缺失——这些问题用 Docker 一次性解决。
 
 ## The Concept
 
@@ -47,7 +53,7 @@ graph TD
 
 3. **Multi-service architectures are common.** A real AI application is not just a Python script. It is an inference server, a vector database for RAG, maybe a web frontend. Docker Compose orchestrates all of these with one command.
 
-### Key vocabulary
+### Key vocabulary | 核心词汇
 
 | Term | What it means |
 |------|---------------|
@@ -56,6 +62,14 @@ graph TD
 | Dockerfile | Instructions to build an image. Layer by layer. |
 | Volume | Persistent storage that survives container restarts. |
 | docker-compose | A tool for defining multi-container applications in YAML. |
+
+| 术语 | 含义 |
+|------|------|
+| Image（镜像） | 只读模板，相当于菜谱。由 Dockerfile 构建。 |
+| Container（容器） | 镜像的运行实例，相当于厨房。 |
+| Dockerfile | 构建镜像的指令文件，逐层定义。 |
+| Volume（卷） | 持久化存储，容器重启后数据不丢失。 |
+| docker-compose | 用 YAML 定义多容器应用的编排工具。 |
 
 ### Common container patterns in AI
 
@@ -354,14 +368,18 @@ You now have a reproducible AI development environment. For the rest of this cou
 
 Remove the `--gpus all` flag and the NVIDIA deploy block. The container still works for CPU-based lessons. PyTorch detects the absence of CUDA and falls back to CPU automatically.
 
-## Exercises
+## Exercises | 练习题
 
 1. Build the Dockerfile and run `python -c "import torch; print(torch.__version__)"` inside the container
+   构建 Docker 镜像，在容器内运行 PyTorch 验证
 2. Start the docker-compose stack and verify Qdrant is accessible from the AI container at `http://qdrant:6333/collections`
+   启动 docker-compose 栈，验证 Qdrant 向量数据库可访问
 3. Add `flask` to the Dockerfile, rebuild, and run a simple API server on port 5000. Map the port with `-p 5000:5000`
+   在 Dockerfile 中添加 flask，重建镜像，运行 API 服务器
 4. Measure the image size with `docker images`. Try switching the base image from `devel` to `runtime` and compare sizes
+   测量镜像大小，对比 devel 和 runtime 基础镜像的体积差异
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -370,3 +388,11 @@ Remove the `--gpus all` flag and the NVIDIA deploy block. The container still wo
 | NVIDIA Container Toolkit | "GPU in Docker" | A runtime hook that exposes host GPUs to containers via `--gpus` flag |
 | Volume mount | "Shared folder" | A directory on the host mapped into the container. Changes persist after the container stops. |
 | Base image | "Starting point" | The `FROM` image your Dockerfile builds on top of. Determines what is pre-installed. |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| Container | "轻量虚拟机" | 使用宿主内核的隔离进程，拥有独立文件系统和网络 |
+| Image layer | "缓存层" | 每条 Dockerfile 指令创建一层，未修改的层会被缓存 |
+| NVIDIA Container Toolkit | "Docker 中的 GPU" | 通过 `--gpus` 标志将宿主 GPU 暴露给容器的运行时钩子 |
+| Volume mount | "共享文件夹" | 宿主目录映射到容器内，容器停止后数据保留 |
+| Base image | "起点" | Dockerfile 的 FROM 镜像，决定了预装内容 |

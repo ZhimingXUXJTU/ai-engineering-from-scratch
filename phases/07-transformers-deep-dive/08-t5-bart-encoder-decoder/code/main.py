@@ -3,6 +3,8 @@
 Pure stdlib. Shows how encoder-decoder models turn any input into
 a supervised (corrupted_input -> clean_spans) training pair.
 """
+# 【中文解读】T5/BART 编码器-解码器。T5 统一为 text-to-text，BART 用去噪自编码。
+
 
 import random
 

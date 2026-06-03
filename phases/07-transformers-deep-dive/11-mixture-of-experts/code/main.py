@@ -5,6 +5,8 @@ Implements:
 - auxiliary-loss-free bias update (DeepSeek-V3)
 - expert-usage tracking over many tokens
 """
+# 【中文解读】混合专家模型 (MoE)。只激活部分专家处理每个 token。DeepSeek、Mixtral 用 MoE。
+
 
 import math
 import random

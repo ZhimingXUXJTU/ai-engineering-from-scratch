@@ -1,3 +1,7 @@
+"""
+模型评估工具：混淆矩阵、精确率/召回率/F1、ROC-AUC、交叉验证。
+AI 对应: sklearn 的 cross_val_score/classification_report/roc_auc_score。
+"""
 import random
 import math
 

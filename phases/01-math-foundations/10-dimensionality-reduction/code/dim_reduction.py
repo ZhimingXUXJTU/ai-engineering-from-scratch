@@ -1,3 +1,7 @@
+"""
+PCA 降维的从零实现：中心化、协方差矩阵、特征分解和投影。
+AI 对应: sklearn 的 PCA 是数据预处理的标准步骤，t-SNE/UMAP 是高维数据可视化的标准工具。
+"""
 import numpy as np
 
 

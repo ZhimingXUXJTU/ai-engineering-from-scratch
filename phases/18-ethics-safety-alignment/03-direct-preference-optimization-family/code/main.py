@@ -8,6 +8,9 @@ Toy-level — goal is to read the loss formulas side by side, not to match
 production numbers.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -24,24 +27,27 @@ TRUE_UTILITY = [0.2, 1.0, -0.4, -0.8]
 
 
 def softmax(logits: list[float]) -> list[float]:
+    """softmax"""
     m = max(logits)
     exps = [math.exp(x - m) for x in logits]
     z = sum(exps)
-    return [e / z for e in exps]
+    return [e / z for e in exps]  # 返回结果
 
 
 def logsoftmax(logits: list[float]) -> list[float]:
+    """logsoftmax"""
     m = max(logits)
     z = math.log(sum(math.exp(x - m) for x in logits)) + m
-    return [x - z for x in logits]
+    return [x - z for x in logits]  # 返回结果
 
 
 def sigmoid(x: float) -> float:
+    """sigmoid"""
     if x > 30:
-        return 1.0
+        return 1.0  # 返回结果
     if x < -30:
-        return 0.0
-    return 1.0 / (1.0 + math.exp(-x))
+        return 0.0  # 返回结果
+    return 1.0 / (1.0 + math.exp(-x))  # 返回结果
 
 
 def sample_pref_pair() -> tuple[int, int, float]:
@@ -49,32 +55,36 @@ def sample_pref_pair() -> tuple[int, int, float]:
     i, j = random.sample(range(N_ACTIONS), 2)
     p_i_beats_j = sigmoid(TRUE_UTILITY[i] - TRUE_UTILITY[j])
     if random.random() < p_i_beats_j:
-        return i, j, p_i_beats_j
-    return j, i, 1 - p_i_beats_j
+        return i, j, p_i_beats_j  # 返回结果
+    return j, i, 1 - p_i_beats_j  # 返回结果
 
 
 @dataclass
 class Policy:
+    """Policy"""
     logits: list[float]
 
     def logprob(self, a: int) -> float:
-        return logsoftmax(self.logits)[a]
+        return logsoftmax(self.logits)[a]  # 返回结果
 
     def grad_logprob(self, a: int) -> list[float]:
         probs = softmax(self.logits)
-        return [(1.0 if b == a else 0.0) - probs[b] for b in range(N_ACTIONS)]
+        return [(1.0 if b == a else 0.0) - probs[b] for b in range(N_ACTIONS)]  # 返回结果
 
 
 def apply_grad(p: Policy, grad: list[float], lr: float) -> None:
+    """apply_grad"""
     p.logits = [l - lr * g for l, g in zip(p.logits, grad)]
 
 
 def make_policy_and_ref() -> tuple[Policy, Policy]:
+    """make_policy_and_ref"""
     ref_logits = [0.1, 0.2, -0.1, -0.2]
-    return Policy(list(ref_logits)), Policy(list(ref_logits))
+    return Policy(list(ref_logits)), Policy(list(ref_logits))  # 返回结果
 
 
 def train_dpo(pairs: list[tuple[int, int, float]], beta: float = 0.1,
+    """train_dpo"""
               steps: int = 2000, lr: float = 0.05,
               variant: str = "dpo") -> Policy:
     pi, ref = make_policy_and_ref()
@@ -106,10 +116,11 @@ def train_dpo(pairs: list[tuple[int, int, float]], beta: float = 0.1,
         else:
             raise ValueError(variant)
         apply_grad(pi, grad, lr)
-    return pi
+    return pi  # 返回结果
 
 
 def train_simpo(pairs: list[tuple[int, int, float]], beta: float = 1.5,
+    """train_simpo"""
                 gamma: float = 0.5, steps: int = 2000, lr: float = 0.05) -> Policy:
     pi, _ = make_policy_and_ref()
     lens = [1, 1, 1, 1]  # trivial in single-action toy; illustrative
@@ -124,10 +135,11 @@ def train_simpo(pairs: list[tuple[int, int, float]], beta: float = 1.5,
         grad = [beta * (g_margin * gw_i / lens[w] - g_margin * gl_i / lens[l])
                 for gw_i, gl_i in zip(gw, gl)]
         apply_grad(pi, grad, lr)
-    return pi
+    return pi  # 返回结果
 
 
 def train_kto(labels: list[tuple[int, bool]], beta: float = 0.1,
+    """train_kto"""
               steps: int = 2000, lr: float = 0.05) -> Policy:
     pi, ref = make_policy_and_ref()
     z_ref = 0.0
@@ -145,10 +157,11 @@ def train_kto(labels: list[tuple[int, bool]], beta: float = 0.1,
         gy = pi.grad_logprob(y)
         grad = [beta * g_value * gy_i for gy_i in gy]
         apply_grad(pi, grad, lr)
-    return pi
+    return pi  # 返回结果
 
 
 def train_orpo(pairs: list[tuple[int, int, float]], lam: float = 0.1,
+    """train_orpo"""
                steps: int = 2000, lr: float = 0.05) -> Policy:
     pi, _ = make_policy_and_ref()
     for _ in range(steps):
@@ -166,23 +179,26 @@ def train_orpo(pairs: list[tuple[int, int, float]], lam: float = 0.1,
         grad = [-gw_i + lam * g_or * (gw_i - gl_i)
                 for gw_i, gl_i in zip(gw, gl)]
         apply_grad(pi, grad, lr)
-    return pi
+    return pi  # 返回结果
 
 
 def win_rate(pi: Policy) -> float:
+    """win_rate"""
     probs = softmax(pi.logits)
     true_probs = softmax(TRUE_UTILITY)
     ranked = sorted(range(N_ACTIONS), key=lambda a: -true_probs[a])
     best = ranked[0]
-    return probs[best]
+    return probs[best]  # 返回结果
 
 
 def report(name: str, pi: Policy) -> None:
+    """report"""
     print(f"  {name:8s}  probs={[f'{p:.3f}' for p in softmax(pi.logits)]}  "
           f"win_rate={win_rate(pi):.3f}  logits={[f'{l:+.2f}' for l in pi.logits]}")
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("DPO FAMILY ON TOY 4-ACTION PREFERENCE DATA (Phase 18, Lesson 3)")
     print("=" * 70)
@@ -227,4 +243,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

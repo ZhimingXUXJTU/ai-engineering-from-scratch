@@ -1,6 +1,8 @@
-# BERT — Masked Language Modeling
+# BERT — Masked Language Modeling | BERT — 掩码语言模型
 
 > GPT predicts the next word. BERT predicts a missing word. One sentence of difference — and half a decade of everything embedding-shaped.
+
+> **【中文解读】** BERT 是 Encoder-only Transformer，用掩码预测训练。理解 BERT = 理解双向上下文建模。用于文本分类、NER、问答等。
 
 **Type:** Build
 **Languages:** Python

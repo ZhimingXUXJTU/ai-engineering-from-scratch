@@ -1,6 +1,10 @@
-# Autoencoders & Variational Autoencoders (VAE)
+# Autoencoders & Variational Autoencoders (VAE) | 自编码器与变分自编码器
 
-> A plain autoencoder compresses then reconstructs. It memorizes. It does not generate. Add one trick — force the code to look Gaussian — and you get a sampler. That single trick, the reparameterization of `z = μ + σ·ε`, is why every latent-diffusion and flow-matching image model you use in 2026 has a VAE at the input.
+> A plain autoencoder compresses then reconstructs. It memorizes. It does not generate. Add one trick — force the code to look Gaussian — and you get a sampler. That single trick, the reparameterization of `z = mu + sigma * epsilon`, is why every latent-diffusion and flow-matching image model you use in 2026 has a VAE at the input.
+
+> **【中文解读】** 普通自编码器压缩再重建，只是记忆，不能生成。加一个技巧——强制隐编码服从高斯分布——就得到了采样器。重参数化技巧 `z = mu + sigma * epsilon` 让梯度可以穿过采样操作，是 VAE 训练的关键。
+
+> **【拓展：VAE 是 Stable Diffusion 的基石】** 2026 年所有潜在扩散模型（Stable Diffusion、FLUX）都在 VAE 的潜在空间中运行。VAE 编码器将图像压缩为低维表示，VAE 解码器将生成结果还原为图像。没有 VAE 就没有高效的图像生成。
 
 **Type:** Build
 **Languages:** Python

@@ -5,6 +5,9 @@ Illustrates the privacy-utility tradeoff without a real privacy accountant;
 the displayed epsilon is a Gaussian-mechanism analytical proxy.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -17,26 +20,30 @@ random.seed(59)
 
 
 def sigmoid(z: float) -> float:
-    return 1.0 / (1.0 + math.exp(-z))
+    """sigmoid"""
+    return 1.0 / (1.0 + math.exp(-z))  # 返回结果
 
 
 def gen(n: int) -> list[tuple[list[float], int]]:
+    """gen"""
     data = []
     for _ in range(n):
         x = [random.gauss(0.0, 1.0), random.gauss(0.0, 1.0)]
         y = 1 if 0.6 * x[0] - 0.4 * x[1] > 0 else 0
         data.append((x, y))
-    return data
+    return data  # 返回结果
 
 
 def clip(g: list[float], C: float) -> list[float]:
+    """clip"""
     n = math.sqrt(sum(x * x for x in g))
     if n <= C:
-        return g
-    return [x * C / n for x in g]
+        return g  # 返回结果
+    return [x * C / n for x in g]  # 返回结果
 
 
 def dp_sgd(data, epochs: int, lr: float, sigma: float, C: float) -> list[float]:
+    """dp_sgd"""
     w = [0.0, 0.0]
     b = 0.0
     for _ in range(epochs):
@@ -53,27 +60,29 @@ def dp_sgd(data, epochs: int, lr: float, sigma: float, C: float) -> list[float]:
             noise_b = random.gauss(0.0, sigma * C)
             w = [wi - lr * (gi + ni) for wi, gi, ni in zip(w, grad_w, noise_w)]
             b -= lr * (grad_b + noise_b)
-    return w + [b]
+    return w + [b]  # 返回结果
 
 
 def accuracy(model, data) -> float:
+    """accuracy"""
     w, b = model[:2], model[2]
     correct = 0
     for x, y in data:
         z = b + sum(wi * xi for wi, xi in zip(w, x))
         if (1 if z > 0 else 0) == y:
             correct += 1
-    return correct / len(data)
+    return correct / len(data)  # 返回结果
 
 
 def analytical_epsilon(sigma: float, steps: int, delta: float = 1e-5) -> float:
     """Rough Gaussian-mechanism composition proxy.
     Each step contributes roughly 1/(2*sigma^2); composition bounds epsilon
     by sum. Real accountants (RDP, Moments) give tighter bounds."""
-    return math.sqrt(2 * math.log(1.25 / delta)) * math.sqrt(steps) / sigma
+    return math.sqrt(2 * math.log(1.25 / delta)) * math.sqrt(steps) / sigma  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("DP-SGD TOY (Phase 18, Lesson 22)")
     print("=" * 70)
@@ -100,4 +109,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

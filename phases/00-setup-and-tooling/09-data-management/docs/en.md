@@ -1,4 +1,4 @@
-# Data Management
+# Data Management | 数据管理
 
 > Data is the fuel. How you manage it determines how fast you go.
 
@@ -7,16 +7,25 @@
 **Prerequisites:** Phase 0, Lesson 01
 **Time:** ~45 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Load, stream, and cache datasets using the Hugging Face `datasets` library
 - Convert between CSV, JSON, Parquet, and Arrow formats and explain their tradeoffs
 - Create reproducible train/validation/test splits with fixed random seeds
 - Manage large model and dataset files using `.gitignore`, Git LFS, or DVC
 
-## The Problem
+> **【中文解读】**
+> 数据是 AI 的燃料。本章教你如何用 Hugging Face `datasets` 库加载、缓存、转换和拆分数据集。掌握数据管理是开始机器学习实验的前提。
+
+## The Problem | 问题描述
 
 Every AI project starts with data. You need to find datasets, download them, convert between formats, split them for training and evaluation, and version them so experiments are reproducible. Doing this manually every time is slow and error-prone. You need a repeatable workflow.
+
+> **【中文解读】**
+> 每个 AI 项目都从数据开始。你需要下载数据集、转换格式、拆分训练/验证/测试集，并管理版本以确保实验可复现。本章教你建立可重复的数据工作流。
+
+> **【拓展：Hugging Face 在 AI 生态中的地位】**
+> Hugging Face 是 AI 领域的"GitHub"，托管了数十万个数据集和预训练模型。`datasets` 库是加载和处理数据的标准工具，类似 Pandas 但专为 AI 优化，支持流式加载超大数据集。
 
 ## The Concept
 
@@ -87,6 +96,13 @@ Format comparison:
 | JSON | Large | Slow | APIs, nested data |
 | Parquet | Small | Fast | Analytics, columnar queries |
 | Arrow | Small | Fastest | In-memory processing (what `datasets` uses internally) |
+
+| 格式 | 体积 | 读取速度 | 最适合 |
+|------|------|---------|--------|
+| CSV | 大 | 慢 | 人类阅读、电子表格 |
+| JSON | 大 | 慢 | API、嵌套数据 |
+| Parquet | 小 | 快 | 分析查询、列式存储 |
+| Arrow | 小 | 最快 | 内存中处理（datasets 库内部使用） |
 
 For AI work, Parquet is the best storage format. Arrow is what you work with in memory. CSV and JSON are for interchange.
 
@@ -234,14 +250,18 @@ This lesson produces:
 - `code/data_utils.py` - reusable data loading and caching utility
 - `outputs/prompt-data-helper.md` - prompt for finding the right dataset for a task
 
-## Exercises
+## Exercises | 练习题
 
 1. Load the `glue` dataset with the `mrpc` config and inspect the first 5 examples
+   加载 `glue` 数据集的 `mrpc` 配置，查看前 5 条数据
 2. Stream the `c4` dataset and count how many examples you can process in 10 seconds
+   流式加载 `c4` 数据集，统计 10 秒内能处理多少条数据
 3. Convert a dataset to Parquet and compare the file size to CSV
+   将数据集转换为 Parquet 格式，对比与 CSV 的文件大小
 4. Create a 70/15/15 train/val/test split with a fixed seed and verify the sizes
+   用固定随机种子创建 70/15/15 的训练/验证/测试集拆分，验证比例
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -252,3 +272,13 @@ This lesson produces:
 | Git LFS | "Git for big files" | An extension that stores large files outside the git repo while keeping pointers in version control |
 | DVC | "Git for data" | A version control system for datasets and models that integrates with cloud storage |
 | Cache | "Already downloaded" | A local copy of previously fetched data, stored at ~/.cache/huggingface/ by default |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| Dataset split | "训练数据" | 数据集的命名子集（训练/验证/测试），用于 ML 生命周期的不同阶段 |
+| Streaming | "懒加载" | 逐行处理远程数据，不下载完整数据集 |
+| Parquet | "压缩 CSV" | 为分析查询和存储效率优化的列式文件格式 |
+| Arrow | "快速数据帧" | datasets 库内部使用的内存列式格式，支持零拷贝读取 |
+| Git LFS | "大文件 Git" | 将大文件存储在 git 仓库之外的扩展 |
+| DVC | "数据版控" | 数据集和模型的版本控制系统，集成云存储 |
+| Cache | "已下载" | 默认存储在 ~/.cache/huggingface/ 的本地缓存 |

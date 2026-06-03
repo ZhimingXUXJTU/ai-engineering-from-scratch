@@ -1,6 +1,8 @@
-# Policy Gradient — REINFORCE from Scratch
+# Policy Gradient — REINFORCE from Scratch | 策略梯度 — 从零实现REINFORCE
 
 > Stop estimating value. Parameterize the policy directly, compute the gradient of expected return, step uphill. Williams (1992) wrote it in one theorem. It is why PPO, GRPO, and every LLM RL loop exist.
+
+> **【中文解读】** 不再估计值函数，直接参数化策略 π_θ(a|s)，计算期望回报的梯度并梯度上升。REINFORCE 定理告诉我们：`∇J(θ) = E[G · ∇log π_θ(a|s)]`。这是 PPO、GRPO、以及所有大模型 RL 训练循环存在的理由。
 
 **Type:** Build
 **Languages:** Python
@@ -16,6 +18,10 @@ Policy gradients parameterize the *policy* instead. `π_θ(a | s)` is a neural n
 The REINFORCE theorem (Williams 1992) tells you this gradient is computable: `∇J(θ) = E_π[ G · ∇_θ log π_θ(a | s) ]`. Run an episode. Compute the return. Multiply by `∇ log π_θ(a | s)` at every step. Average. Gradient-ascent. Done.
 
 Every LLM-RL algorithm in 2026 — PPO, DPO, GRPO — is a refinement of REINFORCE. Understanding it in your fingers is the prerequisite for the rest of this phase, and for Phase 10 · 07 (RLHF implementation) and Phase 10 · 08 (DPO).
+
+> **【中文解读】** 策略梯度的核心思想：直接优化策略参数 θ，让高回报的动作概率增大、低回报的动作概率减小。`∇log π` 就是"策略的方向导数"，乘以回报 G 就是"沿着好的方向走"。
+
+> **【拓展：PPO→ChatGPT对齐】** ChatGPT 的 RLHF 训练使用的 PPO 算法，本质上就是 REINFORCE + critic 基线 + 信赖域裁剪。`loss = -advantage * log_prob` 这一行代码，出现在几乎所有 2026 年的大模型 RL 训练脚本中。DeepSeek-R1 的 GRPO 则是用组均值替代 critic 基线的 REINFORCE。
 
 ## The Concept
 
@@ -180,14 +186,14 @@ Refuse REINFORCE-no-baseline on horizons > 500 steps. Refuse continuous-action c
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
-| Policy gradient | "Train the policy directly" | `∇J(θ) = E[G · ∇ log π_θ(a\|s)]`; derived from the log-derivative trick. |
-| REINFORCE | "The original PG algorithm" | Williams (1992); Monte Carlo returns multiplied by log-policy gradient. |
-| Log-derivative trick | "Score function estimator" | `∇P(τ;θ) = P(τ;θ) · ∇ log P(τ;θ)`; makes gradients of expectations tractable. |
-| Baseline | "Variance reduction" | Any `b(s)` subtracted from `G`; unbiased because `E[b · ∇ log π] = 0`. |
-| Reward-to-go | "Only future returns count" | `G_t^{from t}` instead of the full `G_0`; correct and lower-variance. |
-| Entropy bonus | "Encourage exploration" | `+β · H(π(·\|s))` term keeps the policy from collapsing. |
-| On-policy | "Train on what you just saw" | Gradient expectation is w.r.t. the current policy — cannot reuse old data directly. |
-| Advantage | "How much better than average" | `A(s, a) = G(s, a) - V(s)`; the signed quantity REINFORCE-with-baseline multiplies. |
+| Policy gradient | "Train the policy directly" / 策略梯度 | `∇J(θ) = E[G · ∇ log π_θ(a\|s)]`; derived from the log-derivative trick. |
+| REINFORCE | "The original PG algorithm" / REINFORCE算法 | Williams (1992); Monte Carlo returns multiplied by log-policy gradient. |
+| Log-derivative trick | "Score function estimator" / 对数导数技巧 | `∇P(τ;θ) = P(τ;θ) · ∇ log P(τ;θ)`; makes gradients of expectations tractable. |
+| Baseline | "Variance reduction" / 基线 | Any `b(s)` subtracted from `G`; unbiased because `E[b · ∇ log π] = 0`. |
+| Reward-to-go | "Only future returns count" / 未来回报 | `G_t^{from t}` instead of the full `G_0`; correct and lower-variance. |
+| Entropy bonus | "Encourage exploration" / 熵正则化 | `+β · H(π(·\|s))` term keeps the policy from collapsing. |
+| On-policy | "Train on what you just saw" / 在线策略 | Gradient expectation is w.r.t. the current policy — cannot reuse old data directly. |
+| Advantage | "How much better than average" / 优势函数 | `A(s, a) = G(s, a) - V(s)`; the signed quantity REINFORCE-with-baseline multiplies. |
 
 ## Further Reading
 

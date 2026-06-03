@@ -1,13 +1,16 @@
-# BPE Tokenizer From Scratch
+# BPE Tokenizer From Scratch | 分词器 BPE
 
 > Bytes in, ids out, ids back to the same bytes. Build the tokenizer that every modern text model still starts from.
+
+> **【中文解读】** 本节是综合项目——从零构建 BPE 分词器。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 04 lessons, Phase 07 transformer lessons
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 - Train a Byte-Pair Encoding vocabulary from a raw text corpus by repeatedly merging the most frequent adjacent symbol pair.
 - Implement a deterministic merge table and apply it to fresh text to produce a stream of subword ids.
 - Round-trip arbitrary UTF-8 input to ids and back without information loss.

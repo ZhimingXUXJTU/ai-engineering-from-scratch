@@ -8,6 +8,9 @@ Models Anthropic's January 2026 Claude Constitution tier hierarchy:
 
 Hardcoded prohibitions refuse regardless of tier scoring; soft-coded
 defaults resolve by tier weight.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -33,6 +36,7 @@ HARDCODED_PROHIBITIONS = (
 
 @dataclass
 class TierScore:
+    """TierScore"""
     safety: int    # 1-5, higher = principle is violated more
     ethics: int
     guidelines: int
@@ -40,31 +44,33 @@ class TierScore:
 
 
 def hardcoded_block(action: str) -> str | None:
+    """hardcoded_block"""
     low = action.lower()
     for rule in HARDCODED_PROHIBITIONS:
         if rule in low:
-            return rule
-    return None
+            return rule  # 返回结果
+    return None  # 返回结果
 
 
 def resolve(action: str, score: TierScore) -> tuple[str, str]:
+    """resolve"""
     # Layer 1: hardcoded prohibitions
     block = hardcoded_block(action)
     if block:
-        return "refuse", f"hardcoded prohibition: {block}"
+        return "refuse", f"hardcoded prohibition: {block}"  # 返回结果
 
     # Layer 2: four-tier priority. Higher tier wins on conflict.
     # We interpret a violation score of >= 3 as blocking at that tier.
     if score.safety >= 3:
-        return "refuse", f"safety violation (score={score.safety})"
+        return "refuse", f"safety violation (score={score.safety})"  # 返回结果
     if score.ethics >= 3:
-        return "refuse", f"ethics violation (score={score.ethics})"
+        return "refuse", f"ethics violation (score={score.ethics})"  # 返回结果
     if score.guidelines >= 3:
-        return "modify", f"guideline conflict (score={score.guidelines}); modify"
+        return "modify", f"guideline conflict (score={score.guidelines}); modify"  # 返回结果
 
     # Helpfulness is lowest priority; by this point we already cleared
     # higher tiers. Proceed.
-    return "allow", "all higher tiers clear; helpfulness respected"
+    return "allow", "all higher tiers clear; helpfulness respected"  # 返回结果
 
 
 # ---------- Cases ----------
@@ -90,6 +96,7 @@ CASES = [
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("FOUR-TIER PRIORITY RESOLVER (Phase 15, Lesson 17)")
     print("=" * 80)
@@ -114,4 +121,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

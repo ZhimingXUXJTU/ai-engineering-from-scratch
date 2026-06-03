@@ -1,4 +1,4 @@
-# Long-Running Background Agents: Durable Execution
+# Long-Running Background Agents: Durable Execution | 执行 持久 Agent
 
 > Production long-horizon agents do not run in `while True`. Every LLM call becomes an activity with checkpoint, retry, and replay. Temporal's OpenAI Agents SDK integration went GA March 2026. Claude Code Routines (Anthropic) runs scheduled Claude Code invocations without a persistent local process. Sessions pause on human-input, survive deploys, and resume from the latest checkpoint keyed by `thread_id`. Behind the new ergonomics sits an old pattern — workflow orchestration — with one new input: LLM calls as non-deterministic activities that must be deterministically replayed on recovery.
 
@@ -7,18 +7,21 @@
 **Prerequisites:** Phase 15 · 10 (Permission modes), Phase 15 · 01 (Long-horizon agents)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题
 
 Consider an agent that runs for four hours. It calls three tools, prompts the user twice, and makes forty LLM calls. Halfway through, the host it is running on reboots. What happens?
 
 - In a naive `while True` loop: everything is lost. The run restarts from scratch. The three tool calls (with real side effects) execute again. The user is prompted again for things they already approved. Forty LLM calls are re-billed.
 - With durable execution: the run resumes from the most recent checkpoint. Already-completed activities are not re-executed; their results are replayed from the durable log. The user does not re-approve things they already approved. The LLM calls already made are not re-billed.
 
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
 This is the same pattern workflow engines have shipped for a decade (Temporal, Cadence, Uber's Cherami). What's new is that LLM calls are now a kind of activity — non-deterministic, expensive, with side effects — and they fit this pattern cleanly.
 
 The running theme of the lesson: long-horizon reliability decays (METR observes a "35-minute degradation" — success rate drops roughly quadratically with horizon). Durable execution enables runs that are longer than the reliability profile supports, which is a new way to fail safely if the design is right and unsafely if the design is wrong.
 
-## The Concept
+## The Concept | 概念
 
 ### Activities, workflows, and replay
 
@@ -64,7 +67,7 @@ METR observed that every agent class measured shows reliability decay beyond ~35
 - Strictly read-only information retrieval.
 - Tasks where correctness requires end-to-end within one context window (some reasoning tasks; some one-shot generation).
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` implements a minimal durable-execution engine in stdlib Python. It supports:
 
@@ -74,36 +77,41 @@ METR observed that every agent class measured shows reliability decay beyond ~35
 
 The driver simulates a three-activity workflow, crashes halfway through, and shows (a) a naive retry re-executing everything versus (b) a replay running only the missing activity.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-durable-execution-review.md` reviews a proposed long-running agent deployment for correct durable-execution shape: activities, determinism, checkpoint backend, human-input state, and HITL-on-resume policy.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Observe the difference in activity-execution count between naive retry and replay. Change the crash point and show the replay count changes accordingly.
+   *思考并实践此练习*
 
 2. Convert the toy engine to use `thread_id` explicitly. Simulate two concurrent sessions sharing the engine and confirm their event logs do not collide.
+   *思考并实践此练习*
 
 3. Take one activity in the toy engine. Introduce a non-determinism (a wall-clock timestamp inside a workflow decision). Demonstrate the divergence on replay. Explain how real engines handle this (side-effect registration, `Workflow.now()` APIs).
+   *思考并实践此练习*
 
 4. Read the LangChain "Runtime behind production deep agents" post. List every state that the runtime persists and name which failure mode each covers.
+   *思考并实践此练习*
 
 5. Design a checkpoint policy for a 6-hour autonomous coding task. Where do you checkpoint? What does resume-on-crash look like? What requires fresh HITL?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| Workflow | "Agent's script" | Deterministic orchestration code; replayable from event log |
-| Activity | "A step" | Non-deterministic unit (LLM call, tool call); logged before and after |
-| Event log | "The backing store" | Durable record of every state transition |
-| Replay | "Resume" | Re-run workflow; completed activities return logged results without re-execution |
-| Checkpoint | "Save point" | Persisted state keyed by thread_id; latest-wins on resume |
-| thread_id | "Session key" | Identifier that scopes durable state |
-| 35-minute degradation | "Reliability decay" | METR: success rate drops ~quadratically with horizon |
-| Non-determinism | "Drift on replay" | Wall clock, random, LLM output; must be registered as side effect |
+|---|---|---|---|
+| Workflow | "Agent's script" | Deterministic orchestration code; replayable from event log |  |
+| Activity | "A step" | Non-deterministic unit (LLM call, tool call); logged before and after |  |
+| Event log | "The backing store" | Durable record of every state transition |  |
+| Replay | "Resume" | Re-run workflow; completed activities return logged results without re-execution |  |
+| Checkpoint | "Save point" | Persisted state keyed by thread_id; latest-wins on resume |  |
+| thread_id | "Session key" | Identifier that scopes durable state |  |
+| 35-minute degradation | "Reliability decay" | METR: success rate drops ~quadratically with horizon |  |
+| Non-determinism | "Drift on replay" | Wall clock, random, LLM output; must be registered as side effect |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic — Claude Code Agent SDK: agent loop](https://code.claude.com/docs/en/agent-sdk/agent-loop) — budget, turns, and resume semantics.
 - [Microsoft — Agent Framework: human-in-the-loop and checkpointing](https://learn.microsoft.com/en-us/agent-framework/workflows/human-in-the-loop) — RequestInfoEvent shape.

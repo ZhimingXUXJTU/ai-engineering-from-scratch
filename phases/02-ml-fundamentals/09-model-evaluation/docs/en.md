@@ -1,4 +1,4 @@
-# Model Evaluation
+# Model Evaluation | 模型评估
 
 > A model is only as good as the way you measure it.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1 (Probability & Distributions, Statistics for ML), Phase 2 Lessons 1-8
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement K-fold and stratified K-fold cross-validation from scratch and explain why stratification matters for imbalanced data
 - Compute precision, recall, F1, AUC-ROC, and regression metrics (MSE, RMSE, MAE, R-squared) from scratch
 - Interpret learning curves to diagnose whether a model suffers from high bias or high variance
 - Identify common evaluation mistakes including data leakage, wrong metric selection, and test set contamination
+
+
+> **【中文解读】**
+> 模型评估回答模型到底好不好。准确率、精确率、召回率、F1、AUC-ROC 是分类指标；MSE、MAE、R^2 是回归指标。交叉验证防止过拟合评估。sklearn 中的 cross_val_score/classification_report。
 
 ## The Problem
 

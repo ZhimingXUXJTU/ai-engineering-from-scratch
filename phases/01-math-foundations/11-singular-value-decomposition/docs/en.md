@@ -1,4 +1,4 @@
-# Singular Value Decomposition
+# Singular Value Decomposition | 奇异值分解 (SVD)
 
 > SVD is the Swiss Army knife of linear algebra. Every matrix has one. Every data scientist needs one.
 
@@ -7,12 +7,20 @@
 **Prerequisites:** Phase 1, Lessons 01 (Linear Algebra Intuition), 02 (Vectors & Matrices Operations), 03 (Matrix Transformations)
 **Time:** ~120 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement SVD via power iteration and explain the geometric meaning of U, Sigma, and V^T
 - Apply truncated SVD for image compression and measure the compression ratio vs reconstruction error
 - Compute the Moore-Penrose pseudoinverse via SVD to solve overdetermined least-squares systems
 - Connect SVD to PCA, recommendation systems (latent factors), and Latent Semantic Analysis in NLP
+
+> **【中文解读】**
+> SVD 是线性代数的"瑞士军刀"——任何矩阵都能分解为 U * Sigma * V^T。截断 SVD 可以压缩图像，用户-电影评分矩阵的 SVD 可以发现隐因子（推荐系统的核心），文档-词频矩阵的 SVD 可以发现主题（LSA）。
+
+> **【拓展：SVD 在 AI 中的位置】**
+> - **推荐系统**: Netflix 竞赛的获胜方案就是用户-物品评分矩阵的 SVD 分解。
+> - **图像压缩**: 截断 SVD 只保留最大的几个奇异值，就能用很少的数据近似还原图像。
+> - **LSA (潜在语义分析)**: NLP 中最早的主题模型方法，对文档-词矩阵做 SVD 发现隐含主题。
 
 ## The Problem
 

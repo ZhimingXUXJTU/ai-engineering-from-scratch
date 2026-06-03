@@ -1,24 +1,27 @@
-# AI Control — Safety Despite Subversion
+# AI Control — Safety Despite Subversion | 颠覆 控制 安全
 
 > Greenblatt, Shlegeris, Sachan, Roger (Redwood Research, arXiv:2312.06942, ICML 2024). Control reframes the safety question: given an untrusted strong model U that may be adversarially optimizing against you, what protocols let you extract useful work while bounding the probability of an unacceptable outcome? Resources are a trusted weaker model T, a budget of trusted human labor H, and the ability to edit U's outputs. Within this frame, Trusted Editing Pareto-dominates Untrusted Monitoring on code-backdoor tasks. The frame inherits worst-case assumptions from security engineering: safety is the probability that an adversarially chosen U cannot cause a concrete unacceptable outcome, measured under red-team pressure that stands in for U.
+
+> **【中文解读】** 本节介绍了 AI 控制和颠覆风险——防止 AI 系统绕过安全控制的方法。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, safety-vs-usefulness frontier on code-backdoor task)
 **Prerequisites:** Phase 18 · 07 (sleeper agents), Phase 18 · 08 (scheming), Phase 18 · 09 (alignment faking)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Define the AI Control threat model: untrusted strong model U, trusted weaker model T, trusted human budget H.
 - Describe the Trusted Editing protocol and why it Pareto-dominates Untrusted Monitoring on the ICML 2024 code-backdoor task.
 - Explain the difference between alignment (U is trustworthy) and control (U is not trustworthy and we are safe anyway).
 - State the three limits of control: humans do not scale, trusted weak models eventually lag, control does not produce trustworthy strong models.
 
-## The Problem
+## The Problem | 问题
 
 Lessons 7-9 establish that a frontier model may be deceptively aligned, scheming, or faking alignment. The safety question re-frames: can we extract useful work from a model we do not trust, without giving it the opportunity to cause unacceptable outcomes? This is the control problem, and it is structured like classical security: assume worst-case adversary, design a protocol, measure the adversary's success rate under red-team pressure.
 
-## The Concept
+## The Concept | 概念
 
 ### The threat model
 
@@ -76,15 +79,15 @@ UK AISI and Redwood collaborate on Control Safety Cases (metr.org / redwoodresea
 
 Lessons 6-9 describe the threat (deception is possible). Lesson 10 describes the defensive paradigm under the assumption that the threat is real. Lesson 11 describes the complementary offensive paradigm (make U trustworthy via scalable oversight).
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` simulates the four protocols on a toy backdoor task. U produces outputs; a fraction are backdoored (red-team policy). T approves or edits. H is called on a budget. You can sweep the budget and the collusion parameter to reproduce the Pareto frontier in Greenblatt et al. 2024 Figure 2 (shape, not numbers).
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-control-protocol-audit.md`. Given a deployment protocol description, it identifies the U / T / H roles, names the collusion vectors, and estimates the protocol's position on the usefulness-safety frontier under red-team pressure.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Reproduce the usefulness-safety frontier for Trusted Editing vs Untrusted Monitoring. Identify the budget regime in which Untrusted Monitoring's collusion assumption becomes pivotal.
 
@@ -96,7 +99,7 @@ This lesson produces `outputs/skill-control-protocol-audit.md`. Given a deployme
 
 5. Articulate a control safety case for a deployment that uses U = GPT-4-class, T = GPT-3.5-class, H = 1% of outputs audited. Identify the single strongest assumption the case depends on.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -108,7 +111,7 @@ This lesson produces `outputs/skill-control-protocol-audit.md`. Given a deployme
 | Untrusted Monitoring | "U monitors U" | Protocol where a second U instance scores outputs; collusion-resistant only with extra investment |
 | Control safety case | "the formal argument" | Written argument that a protocol bounds the adversary's success under worst-case U |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Greenblatt, Shlegeris, Sachan, Roger — AI Control (arXiv:2312.06942)](https://arxiv.org/abs/2312.06942) — the canonical ICML 2024 paper
 - [Redwood Research — Recent AI Control papers index](https://redwoodresearch.substack.com/) — 2024-2025 follow-ups

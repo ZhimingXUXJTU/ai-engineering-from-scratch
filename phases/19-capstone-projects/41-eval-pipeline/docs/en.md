@@ -1,13 +1,16 @@
-# Capstone Lesson 41: Full Evaluation Pipeline
+# Capstone Lesson 41: Full Evaluation Pipeline | 评估 结业 流水线
 
 > Training is the part you can monitor with loss curves. Evaluation is the part you have to design. This lesson builds a unified eval pipeline that takes any trained language model, runs four heterogeneous evals on it, aggregates the results into a per-task report, and ships a local mock LLM-as-judge so the loop runs without a network. The four evals cover the dimensions every shipping model needs: language modelling (perplexity), short-form correctness (exact-match), open-form similarity (token F1), and qualitative scoring (judge).
+
+> **【中文解读】** 本节是 AI 工程的综合实战项目，整合前面学到的技术和方法。
+
 
 **Type:** Build
 **Languages:** Python (torch, numpy)
 **Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Compute held-out perplexity with masked-token accounting on a tiny transformer.
 - Run an exact-match eval on short-form factual prompts.
@@ -15,7 +18,7 @@
 - Build a local mock LLM-as-judge that scores model outputs on a 1-5 scale.
 - Aggregate the four evals into a single weighted report with per-task breakdown.
 
-## The Problem
+## The Problem | 问题
 
 A single metric never describes a language model. Perplexity says how well the model fits the language distribution but says nothing about whether it answers questions. Exact-match says whether the model produces the gold string but punishes correct paraphrases. Token F1 forgives paraphrase but is fooled by lexical overlap with wrong content. LLM-as-judge captures qualitative dimensions but is expensive and stochastic.
 
@@ -23,7 +26,7 @@ The pipeline you actually want has all four. Each eval covers a dimension the ot
 
 This lesson builds that pipeline, end to end, in one file.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart LR
@@ -103,7 +106,7 @@ The aggregate is a weighted mean of normalised eval scores. Each eval reports it
 
 Weights are configurable. The default mix is 0.2 perplexity, 0.3 exact-match, 0.3 token F1, 0.2 judge. The choice of weights is a product decision; the lesson exposes the knob so you can experiment.
 
-## Architecture
+## Architecture | 架构
 
 ```mermaid
 flowchart TD

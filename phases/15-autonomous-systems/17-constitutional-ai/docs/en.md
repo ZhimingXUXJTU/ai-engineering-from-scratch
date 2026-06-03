@@ -1,4 +1,4 @@
-# Constitutional AI and Rule Overrides
+# Constitutional AI and Rule Overrides | 宪法式
 
 > Anthropic's January 22, 2026 Claude Constitution runs 79 pages and is CC0. It moves from rule-based to reason-based alignment and establishes a four-tier priority hierarchy: (1) safety and supporting human oversight, (2) ethics, (3) Anthropic guidelines, (4) helpfulness. Behaviours split into hardcoded prohibitions (bioweapons uplift, CSAM) that operators and users cannot override and soft-coded defaults that operators can adjust within defined bounds. The 2022 original (Bai et al.) trained harmlessness via self-critique and RLAIF against a constitution. The honest caveat: reason-based alignment relies on the model generalising principles to unanticipated situations. Anthropic's own 2023 participatory experiment showed ~50% divergence between public-sourced and corporate principles; the 2026 version did not incorporate those findings.
 
@@ -7,15 +7,18 @@
 **Prerequisites:** Phase 15 · 06 (Automated alignment research), Phase 15 · 10 (Permission modes)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题
 
 A fielded agent sees inputs that its designers never saw. No rule list is long enough to cover them. No rule list is short enough to apply quickly under compute pressure. The practical question: how do you align an agent to principles that survive both a long tail of cases and fast inference?
 
 Rule-based alignment (RBA): list every disallowed thing. Fast to check, easy to audit, impossible to keep current, often over-refuses on close analogs it didn't anticipate. Reason-based alignment (the 2026 Claude Constitution): encode principles, let the model reason. Scales across unseen cases, harder to audit, failure mode is principle-misapplication rather than miss-the-rule.
 
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
 The 2026 Constitution takes an explicit middle position. Hardcoded prohibitions — things whose wrongness does not depend on context (bioweapons uplift, CSAM) — are RBA: never, regardless of operator or user instruction. Everything else is reason-based within a four-tier hierarchy: safety and supporting human oversight first; ethics second; Anthropic-declared guidelines third; helpfulness last. Operators can adjust defaults within the soft-coded zone but cannot touch the hardcoded prohibitions.
 
-## The Concept
+## The Concept | 概念
 
 ### The four-tier priority hierarchy
 
@@ -79,40 +82,45 @@ Reason-based alignment alone cannot close the tail. An attacker who can get the 
 
 The Constitution is not Lesson 14's kill switch. It lives at the model layer: what the model's weights are trained to prefer. Kill switches and canary tokens live at the runtime layer: what the runtime permits. Both are required. A runtime that fires all the wrong actions because the model weights are permissive is a runtime problem. A model that refuses all the right actions because the runtime is over-restrictive is a runtime problem. Layers cover different classes.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` implements a minimal four-tier priority resolver. The resolver takes a proposed action and a set of principle-evaluations (safety, ethics, guidelines, helpfulness) and returns the action, a refusal, or a modified action. The driver runs a small case set: clear allow, clear disallow, hardcoded prohibition, ambiguous case across tiers.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-constitution-review.md` audits a deployment's constitutional layer: what is hardcoded, what is soft-coded, where the operator can adjust, and whether the four-tier hierarchy is actually the resolution order.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Confirm the hardcoded prohibition fires even when helpfulness is high. Modify the resolver to weight helpfulness above ethics; observe the failure mode.
+   *思考并实践此练习*
 
 2. Read the Claude Constitution (public, 79 pages, CC0). Identify one principle you believe is under-specified. Write two paragraphs explaining the specific ambiguity and proposing a tighter formulation.
+   *思考并实践此练习*
 
 3. Design a soft-coded default set for a customer-support agent. What does the operator adjust? What can the operator not touch? Justify each boundary.
+   *思考并实践此练习*
 
 4. Read the Bai et al. 2022 CAI paper. Describe one case where Constitutional AI's critique-and-revise loop would produce a worse outcome than a blanket rule. Identify the class.
+   *思考并实践此练习*
 
 5. Anthropic's 2023 participatory experiment found ~50% divergence between public and corporate principles. Pick one category where this matters for production deployment (e.g., political neutrality). Propose a design that lets operators express their own values while the hardcoded prohibitions remain untouched.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| Constitutional AI | "Anthropic's alignment method" | Self-critique + RLAIF against a written constitution |
-| Reason-based alignment | "Principles, not rules" | Model reasons over principles to handle unseen cases |
-| Hardcoded prohibition | "Never do X" | Rule-based prohibition no operator or user can override |
-| Soft-coded default | "Operator-adjustable" | Behaviour within a declared bound, operator controls |
-| Four-tier hierarchy | "Priority order" | safety > ethics > guidelines > helpfulness |
-| RLAIF | "AI feedback RL" | RL where the reward comes from model-generated critiques |
-| Participatory constitution | "Public-sourced principles" | 2023 Anthropic experiment; ~50% divergence from corporate |
-| Principle drift | "Interpretation slip" | Slow change in how the model reads a fixed principle text |
+|---|---|---|---|
+| Constitutional AI | "Anthropic's alignment method" | Self-critique + RLAIF against a written constitution |  |
+| Reason-based alignment | "Principles, not rules" | Model reasons over principles to handle unseen cases |  |
+| Hardcoded prohibition | "Never do X" | Rule-based prohibition no operator or user can override |  |
+| Soft-coded default | "Operator-adjustable" | Behaviour within a declared bound, operator controls |  |
+| Four-tier hierarchy | "Priority order" | safety > ethics > guidelines > helpfulness |  |
+| RLAIF | "AI feedback RL" | RL where the reward comes from model-generated critiques |  |
+| Participatory constitution | "Public-sourced principles" | 2023 Anthropic experiment; ~50% divergence from corporate |  |
+| Principle drift | "Interpretation slip" | Slow change in how the model reads a fixed principle text |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic — Claude's Constitution (January 2026)](https://www.anthropic.com/news/claudes-constitution) — the 79-page CC0 document.
 - [Bai et al. — Constitutional AI: Harmlessness from AI Feedback](https://www.anthropic.com/research/constitutional-ai-harmlessness-from-ai-feedback) — 2022 original.

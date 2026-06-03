@@ -1,9 +1,25 @@
+"""
+嵌入与向量表示 (Embeddings & Vector Representations)
+
+核心概念：
+- 文本嵌入：将文本转换为高维向量，捕获语义信息
+- 向量相似度：余弦相似度、欧几里得距离、点积等度量方法
+- 文本分块(Chunking)：将长文档切分为适合嵌入的小段
+- 向量搜索：基于 HNSW 等算法的近似最近邻搜索
+
+AI 应用对应：
+- 嵌入是 RAG（检索增强生成）系统的基础设施
+- 语义搜索、推荐系统、重复检测都依赖嵌入技术
+- 向量数据库（Pinecone、Weaviate、Chroma）的核心操作
+"""
+
 import math
 import numpy as np
 from collections import Counter
 
 
 def chunk_text(text, chunk_size=200, overlap=50):
+    """按固定词数分块，支持重叠 (Fixed-size chunking with overlap)"""
     words = text.split()
     chunks = []
     start = 0
@@ -16,6 +32,7 @@ def chunk_text(text, chunk_size=200, overlap=50):
 
 
 def chunk_by_sentences(text, max_chunk_tokens=200):
+    """按句子边界分块 (Chunk by sentence boundaries)"""
     sentences = text.replace("\n", " ").split(".")
     sentences = [s.strip() + "." for s in sentences if s.strip()]
     chunks = []
@@ -35,6 +52,7 @@ def chunk_by_sentences(text, max_chunk_tokens=200):
 
 
 class SimpleEmbedder:
+    """简易嵌入器：将文本转换为向量表示 (Simple embedder: convert text to vector representations)"""
     def __init__(self):
         self.vocab = []
         self.idf = np.array([])

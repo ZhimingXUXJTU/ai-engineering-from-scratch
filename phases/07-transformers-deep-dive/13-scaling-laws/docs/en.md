@@ -1,6 +1,8 @@
-# Scaling Laws
+# Scaling Laws | 缩放定律
 
 > The 2020 Kaplan paper said: bigger model, lower loss. The 2022 Hoffmann paper said: you were under-training. Compute goes into two buckets — parameters and tokens — and the split is not obvious.
+
+> **【中文解读】** Chinchilla 定律揭示了模型大小、数据量、计算量的最优关系。理解缩放定律 = 理解为什么 LLM 需要那么多数据。
 
 **Type:** Learn
 **Languages:** Python

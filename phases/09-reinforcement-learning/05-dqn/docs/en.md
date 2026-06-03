@@ -1,6 +1,8 @@
-# Deep Q-Networks (DQN)
+# Deep Q-Networks (DQN) | 深度Q网络
 
 > 2013: Mnih trained one Q-learning network on raw pixels, beat every classical RL agent on seven Atari games. 2015: extended to 49 games, published in Nature, sparked the deep-RL era. DQN is Q-learning plus three tricks that make function approximation stable.
+
+> **【中文解读】** DQN = Q-learning + 神经网络 + 三个稳定化技巧（经验回放、目标网络、奖励裁剪）。2013-2015 年在 Atari 游戏上击败所有经典 RL 方法，开启了深度 RL 时代。这三个技巧至今仍被所有深度 RL 方法使用。
 
 **Type:** Build
 **Languages:** Python
@@ -15,9 +17,13 @@ The fix is obvious in hindsight: replace the Q-table with a neural network, `Q(s
 
 1. **Experience replay** decorrelates transitions.
 2. **Target network** freezes the bootstrap target.
-3. **Reward clipping** normalizes gradient magnitudes.
+3. **Reward clipping** normalizes gradient magnities.
 
 DQN on Atari was the first time a single architecture with a single hyperparameter set solved dozens of control problems from raw pixels. Everything "deep-RL" built since — DDQN, Rainbow, Dueling, Distributional, R2D2, Agent57 — is stacked on top of this three-trick base.
+
+> **【中文解读】** "致命三要素"：函数近似 + 自举 + 离策略 → 训练不稳定甚至发散。DQN 的三个技巧解决了这个问题：(1) 经验回放打破时间相关性；(2) 目标网络冻结自举目标；(3) 奖励裁剪归一化梯度。所有后续深度 RL 算法都建立在这三个技巧之上。
+
+> **【拓展：经验回放→RLHF】** 经验回放 (Experience Replay) 的思想在 LLM 训练中无处不在：PPO 训练时的 buffer、RLHF 中的偏好数据集、DPO 的离线数据——本质上都是"打破数据相关性、反复利用经验"。
 
 ## The Concept
 
@@ -183,14 +189,14 @@ Refuse to ship a DQN with no target network, no replay buffer, or ε held at 1. 
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
-| DQN | "Deep Q-learning" | Q-learning with a neural Q-function, replay buffer, and target network. |
-| Experience replay | "Shuffled transitions" | Ring buffer sampled uniformly each gradient step; decorrelates data. |
-| Target network | "Frozen bootstrap" | Periodic copy of Q used in the Bellman target; stabilizes training. |
-| Deadly triad | "Why RL diverges" | Function approximation + bootstrapping + off-policy = no convergence guarantee. |
-| Double DQN | "Fix for maximization bias" | Online net selects action, target net evaluates it. |
-| Dueling DQN | "V and A heads" | Decompose Q = V + A - mean(A); same output, better gradient flow. |
-| Rainbow | "All the tricks" | DDQN + PER + dueling + n-step + noisy + distributional in one. |
-| PER | "Prioritized Replay" | Sample transitions proportional to TD-error magnitude. |
+| DQN | "Deep Q-learning" / 深度Q网络 | Q-learning with a neural Q-function, replay buffer, and target network. |
+| Experience replay | "Shuffled transitions" / 经验回放 | Ring buffer sampled uniformly each gradient step; decorrelates data. |
+| Target network | "Frozen bootstrap" / 目标网络 | Periodic copy of Q used in the Bellman target; stabilizes training. |
+| Deadly triad | "Why RL diverges" / 致命三要素 | Function approximation + bootstrapping + off-policy = no convergence guarantee. |
+| Double DQN | "Fix for maximization bias" / 双重DQN | Online net selects action, target net evaluates it. |
+| Dueling DQN | "V and A heads" / 决斗DQN | Decompose Q = V + A - mean(A); same output, better gradient flow. |
+| Rainbow | "All the tricks" / Rainbow | DDQN + PER + dueling + n-step + noisy + distributional in one. |
+| PER | "Prioritized Replay" / 优先经验回放 | Sample transitions proportional to TD-error magnitude. |
 
 ## Further Reading
 

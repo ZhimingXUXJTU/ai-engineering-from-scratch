@@ -1,6 +1,8 @@
-# Audio Transformers — Whisper Architecture
+# Audio Transformers — Whisper Architecture | 音频 Transformer — Whisper 架构
 
 > Audio is an image of frequency over time. Whisper is a ViT that eats mel spectrograms and speaks back.
+
+> **【中文解读】** Whisper 用 Transformer 做语音识别和翻译。理解音频如何变成 token 序列送入 Transformer。
 
 **Type:** Learn
 **Languages:** Python

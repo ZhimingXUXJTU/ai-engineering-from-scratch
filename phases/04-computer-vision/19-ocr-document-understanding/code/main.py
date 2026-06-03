@@ -1,3 +1,17 @@
+"""
+OCR 与文档理解 (OCR & Document Understanding)
+
+核心概念：
+- OCR 三阶段：文本检测 → 字符识别 → 版面分析
+- 现代趋势：端到端模型（如 TrOCR、Donut）合并多个阶段
+- 文档理解：不仅识别文字，还理解表格、图表、版面结构
+
+AI 对应：
+- 金融应用：银行流水识别、发票自动处理、合同审查、财务报表解析
+- LayoutLM、Donut 等模型融合视觉和文本信息实现端到端文档理解
+- GPT-4V 等多模态大模型正在革新文档理解领域
+"""
+
 import numpy as np
 import torch
 import torch.nn as nn

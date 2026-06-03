@@ -1,6 +1,9 @@
-# Capstone 14 — Speculative-Decoding Inference Server
+# Capstone 14 — Speculative-Decoding Inference Server | 推测 推理 结业 编码 服务器
 
 > EAGLE-3 in vLLM 0.7 ships 2.5-3x throughput on real traffic. P-EAGLE (AWS 2026) pushed parallel speculation even further. SGLang's SpecForge trained draft heads at scale. Red Hat's Speculators hub published aligned drafts for common open models. TensorRT-LLM made speculative decoding first-class on NVIDIA. The 2026 production serving stack is vLLM or SGLang with EAGLE-family drafts, FP8 or INT4 quantization, and HPA on queue-wait. This capstone is to serve two open models at 2.5x+ baseline throughput with a full tail-latency report.
+
+> **【中文解读】** 本节是综合项目——构建推测解码服务器。
+
 
 **Type:** Capstone
 **Languages:** Python (serving), C++ / CUDA (kernel inspection), YAML (configs)
@@ -22,7 +25,7 @@ EAGLE-3 beats ngram drafts on most traffic. P-EAGLE runs parallel speculation fo
 
 Deployment is Kubernetes. vLLM 0.7 runs one replica per GPU or tensor-parallel shard. HPA autoscales on queue-wait rather than CPU. FP8 (Marlin) and INT4 (AWQ) quants keep GPU memory inside an H100 / H200 envelope. The end-to-end report is throughput, acceptance rate, p50/p99 at batch 1/8/32, and $/1M tokens.
 
-## Architecture
+## Architecture | 架构
 
 ```
 request ingress
@@ -59,7 +62,7 @@ HPA on queue-wait metric
 - Eval: ShareGPT, MT-Bench-v2, GSM8K, HumanEval for domain-spread acceptance measurement
 - Reference: TensorRT-LLM speculative decoding for a vendor baseline
 
-## Build It
+## Build It | 动手构建
 
 1. **Target model prep.** Pick Llama 3.3 70B. Quantize to FP8 via Marlin. Deploy under vLLM 0.7 on 1xH100 (or 2x tensor-parallel).
 
@@ -79,7 +82,7 @@ HPA on queue-wait metric
 
 9. **Cost comparison.** Compute $/1M tokens vs Anthropic Claude Sonnet 4.7 and OpenAI GPT-5.4 on the same eval. Publish.
 
-## Use It
+## Use It | 使用方法
 
 ```
 $ curl https://infer.example.com/v1/chat/completions -d '{"messages":[...]}'
@@ -89,7 +92,7 @@ $ curl https://infer.example.com/v1/chat/completions -d '{"messages":[...]}'
 [cost]      $0.34 per 1M output tokens at sustained throughput
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-inference-server.md` describes the deliverable. A measured serving stack with speculative decoding, a full benchmark report, and a K8s deployment.
 
@@ -102,7 +105,7 @@ $ curl https://infer.example.com/v1/chat/completions -d '{"messages":[...]}'
 | 15 | Write-up and methodology | Clear explanation of what changed and why |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Measure acceptance-rate degradation when the draft is one version behind the target (e.g., Llama 3.3 -> 3.4 drift). Build a monitoring alert.
 
@@ -114,7 +117,7 @@ $ curl https://infer.example.com/v1/chat/completions -d '{"messages":[...]}'
 
 5. Benchmark TensorRT-LLM speculative decoding on the same H100 hardware. Report where it wins vs vLLM.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -126,7 +129,7 @@ $ curl https://infer.example.com/v1/chat/completions -d '{"messages":[...]}'
 | Queue wait | "HPA metric" | Time a request waits in the pending queue before inference starts |
 | Speculators hub | "Aligned drafts" | Red Hat Neural Magic hub of EAGLE drafts for common open models |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [vLLM EAGLE and P-EAGLE documentation](https://docs.vllm.ai) — the reference serving stack
 - [P-EAGLE (AWS 2026)](https://aws.amazon.com/blogs/machine-learning/p-eagle-faster-llm-inference-with-parallel-speculative-decoding-in-vllm/) — parallel speculative decoding paper + integration

@@ -1,13 +1,17 @@
-"""Open-weight VLM recipe picker — condensed ablation tables from 2024-2025 papers.
+"""开源视觉语言模型（VLM）配方选择器 — 基于 2024-2025 论文的浓缩消融实验表。
 
-Encodes the key findings from MM1, Idefics2, Cambrian-1, Molmo, Prismatic VLMs
-as simple data tables. Lets you ask:
-  - given a budget and task mix, which recipe wins
-  - if I swap axis X, what is the expected delta
-  - which axis to ablate first
+开源 VLM 配方选择 (Open-Weight VLM Recipe Picker)
+核心概念：从 MM1、Idefics2、Cambrian-1、Molmo、Prismatic VLMs 等论文的消融实验中，
+提炼出 VLM 五轴设计空间（编码器、连接器、LLM、数据、分辨率）的关键发现。
+AI 应用对应：构建新 VLM 项目时，知道该先调哪个参数（编码器>数据>分辨率>连接器）。
 
-No numpy, no pandas — just dicts and print tables. The point is the structure
-of the evidence, not the numeric precision.
+编码了 MM1、Idefics2、Cambrian-1、Molmo、Prismatic VLMs 的关键发现。
+支持查询：
+  - 给定预算和任务组合，哪种配方最优
+  - 交换某个轴后，预期性能变化多少
+  - 应该先消融哪个轴
+
+无 numpy、无 pandas —— 纯字典和打印表格。重点是证据的结构，不是数值精度。
 """
 
 from __future__ import annotations
@@ -17,6 +21,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Recipe:
+    """VLM 训练配方，包含编码器、连接器、LLM、数据、分辨率及基准测试分数"""
     name: str
     encoder: str
     connector: str
@@ -29,6 +34,7 @@ class Recipe:
 
 
 RECIPES = [
+    # 主流开源 VLM 的训练配方，记录在 MMMU、CV-Bench、DocVQA 上的基准分数
     Recipe("LLaVA-1.5", "CLIP L/14 @336", "MLP-2", 13, "LLaVA-Inst-150k", "336", 35.3, 56.0, 55.0),
     Recipe("LLaVA-NeXT", "CLIP L/14 @336", "MLP-2", 13, "LLaVA-Inst + shareGPT4V", "AnyRes 672", 36.2, 58.5, 77.4),
     Recipe("Idefics2-8B", "SigLIP SO400m/14", "Perceiver-64", 7, "OBELICS + Cauldron", "980 split", 43.0, 60.0, 74.0),
@@ -42,7 +48,9 @@ RECIPES = [
 
 
 def axis_impact() -> None:
+    """打印各设计轴对性能方差的贡献比例（基于 Prismatic VLMs 控制实验）"""
     print("\nAXIS-IMPACT DECOMPOSITION (Prismatic VLMs controlled comparison)")
+    # 各轴对 VLM 性能方差的贡献：视觉 token 数 > 编码器 > 数据 > 连接器
     print("-" * 60)
     axes = [
         ("visual-token count", 60, "64 -> 576 -> 1024 tokens; diminishing past 1024"),
@@ -62,6 +70,7 @@ def axis_impact() -> None:
 
 
 def compare_encoders() -> None:
+    """对比不同视觉编码器在固定条件下的性能差异"""
     print("\nENCODER SWAP DELTAS (fixed 7B LLM, LLaVA-Inst + shareGPT4V data)")
     print("-" * 60)
     rows = [
@@ -79,6 +88,7 @@ def compare_encoders() -> None:
 
 
 def compare_data() -> None:
+    """对比不同数据混合策略对性能的影响"""
     print("\nDATA-MIX DELTAS (fixed SigLIP + 7B LLM + AnyRes)")
     print("-" * 60)
     rows = [
@@ -96,6 +106,7 @@ def compare_data() -> None:
 
 
 def print_recipes() -> None:
+    """打印所有配方的基准测试分数表"""
     print("\nCANONICAL OPEN VLMS (ablation-reported MMMU, CV-Bench, DocVQA)")
     print("-" * 60)
     print(f"{'recipe':<22}{'LLM':>6}{'MMMU':>8}{'CV-B':>8}{'DocVQA':>10}")
@@ -104,7 +115,9 @@ def print_recipes() -> None:
 
 
 def pick_recipe(budget_b: int, task: str) -> None:
+    """根据参数预算和任务类型，推荐最优配方（前3名）"""
     print(f"\nPICKER: budget {budget_b}B params, task profile: {task}")
+    # 根据任务类型调整各基准测试的权重
     print("-" * 60)
     weights = {"mmmu": 1.0, "cv": 1.0, "doc": 1.0}
     if task == "ocr":
@@ -127,6 +140,7 @@ def pick_recipe(budget_b: int, task: str) -> None:
 
 
 def main() -> None:
+    """主函数：展示 VLM 设计空间的消融实验结果和配方推荐"""
     print("=" * 60)
     print("OPEN-WEIGHT VLM RECIPE PICKER (Phase 12, Lesson 07)")
     print("=" * 60)

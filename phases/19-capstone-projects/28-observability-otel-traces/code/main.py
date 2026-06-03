@@ -8,6 +8,9 @@ Concept refs:
   - W3C Trace Context (16-byte trace_id, 8-byte span_id).
 The demo at the bottom emits spans to a temp jsonl, prints the
 Prometheus exposition, and exits zero.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -66,7 +69,7 @@ class SpanEvent:
     attributes: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "name": self.name,
             "timestamp_unix_nano": self.timestamp_unix_nano,
             "attributes": dict(self.attributes),
@@ -92,11 +95,11 @@ class GenAISpan:
     @property
     def duration_ms(self) -> float:
         if self.end_unix_nano <= 0:
-            return 0.0
-        return (self.end_unix_nano - self.start_unix_nano) / 1_000_000.0
+            return 0.0  # 返回结果
+        return (self.end_unix_nano - self.start_unix_nano) / 1_000_000.0  # 返回结果
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "trace_id": self.trace_id,
             "span_id": self.span_id,
             "parent_span_id": self.parent_span_id,
@@ -125,11 +128,12 @@ def new_trace_id() -> str:
 def new_span_id() -> str:
     """Random 8-byte hex string. Matches W3C trace context span id."""
 
-    return uuid.uuid4().hex[:16]
+    return uuid.uuid4().hex[:16]  # 返回结果
 
 
 def now_unix_nano() -> int:
-    return time.time_ns()
+    """now_unix_nano"""
+    return time.time_ns()  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -172,7 +176,7 @@ class InMemoryExporter:
         self.spans.append(span)
 
     def close(self) -> None:
-        return None
+        return None  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -181,17 +185,19 @@ class InMemoryExporter:
 
 
 def _label_key(labels: dict[str, str]) -> tuple[tuple[str, str], ...]:
-    return tuple(sorted(labels.items()))
+    """_label_key"""
+    return tuple(sorted(labels.items()))  # 返回结果
 
 
 def _format_labels(labels: dict[str, str]) -> str:
+    """_format_labels"""
     if not labels:
-        return ""
+        return ""  # 返回结果
     parts = []
     for k, v in sorted(labels.items()):
         escaped = str(v).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
         parts.append(f'{k}="{escaped}"')
-    return "{" + ",".join(parts) + "}"
+    return "{" + ",".join(parts) + "}"  # 返回结果
 
 
 @dataclass
@@ -207,7 +213,7 @@ class Counter:
         self.values[key] = self.values.get(key, 0.0) + by
 
     def get(self, labels: dict[str, str] | None = None) -> float:
-        return self.values.get(_label_key(labels or {}), 0.0)
+        return self.values.get(_label_key(labels or {}), 0.0)  # 返回结果
 
 
 @dataclass
@@ -246,29 +252,30 @@ class Histogram:
         for bound in self.buckets:
             counts[bound] = sum(1 for v in values if v <= bound)
         counts[math.inf] = len(values)
-        return counts
+        return counts  # 返回结果
 
     def total_count(self, labels: dict[str, str] | None = None) -> int:
-        return len(self.samples.get(_label_key(labels or {}), []))
+        return len(self.samples.get(_label_key(labels or {}), []))  # 返回结果
 
     def total_sum(self, labels: dict[str, str] | None = None) -> float:
-        return float(sum(self.samples.get(_label_key(labels or {}), [])))
+        return float(sum(self.samples.get(_label_key(labels or {}), [])))  # 返回结果
 
 
 @dataclass
 class MetricsRegistry:
+    """MetricsRegistry"""
     counters: dict[str, Counter] = field(default_factory=dict)
     histograms: dict[str, Histogram] = field(default_factory=dict)
 
     def counter(self, name: str, help: str = "") -> Counter:
         if name not in self.counters:
             self.counters[name] = Counter(name=name, help=help)
-        return self.counters[name]
+        return self.counters[name]  # 返回结果
 
     def histogram(self, name: str, help: str = "") -> Histogram:
         if name not in self.histograms:
             self.histograms[name] = Histogram(name=name, help=help)
-        return self.histograms[name]
+        return self.histograms[name]  # 返回结果
 
 
 def prometheus_exposition(registry: MetricsRegistry) -> str:
@@ -311,13 +318,14 @@ def prometheus_exposition(registry: MetricsRegistry) -> str:
                 f"{hist.name}_count{_format_labels(label_dict)} "
                 f"{hist.total_count(label_dict)}"
             )
-    return "\n".join(lines) + "\n"
+    return "\n".join(lines) + "\n"  # 返回结果
 
 
 def _format_le(bound: float) -> str:
+    """_format_le"""
     if bound == int(bound):
-        return str(int(bound))
-    return repr(bound)
+        return str(int(bound))  # 返回结果
+    return repr(bound)  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -389,6 +397,7 @@ class SpanBuilder:
 
 
 def run_demo() -> int:
+    """run_demo"""
     tmp_dir = tempfile.mkdtemp(prefix="otel-demo-")
     trace_path = os.path.join(tmp_dir, "traces.jsonl")
 
@@ -498,7 +507,7 @@ def run_demo() -> int:
         lines = [json.loads(line) for line in fh if line.strip()]
     print(f"roundtrip parsed {len(lines)} spans from {trace_path}")
 
-    return 0
+    return 0  # 返回结果
 
 
 if __name__ == "__main__":

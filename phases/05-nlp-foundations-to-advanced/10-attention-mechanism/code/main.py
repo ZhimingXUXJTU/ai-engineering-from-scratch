@@ -1,3 +1,8 @@
+"""
+注意力机制 — Transformer 的核心
+
+注意力让模型关注输入的相关部分。Q/K/V 是核心概念。GPT 的 self-attention 就是 Q*K^T。理解注意力是理解 Transformer 的前提。
+"""
 import math
 
 

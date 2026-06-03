@@ -4,6 +4,9 @@ Given a proposed deployment described by a short feature set, tag the
 deployment against the CAIS four-risk categories (malicious use, AI
 races, organizational risks, rogue AIs) and return a mitigation checklist.
 Pedagogical only; the framework requires human judgment for real use.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -13,6 +16,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Deployment:
+    """Deployment"""
     name: str
     public_facing: bool
     handles_harmful_capabilities: bool   # e.g. bio/cyber uplift possible?
@@ -50,6 +54,7 @@ MITIGATIONS = {
 
 
 def tag(d: Deployment) -> list[str]:
+    """tag"""
     tags = []
     if d.handles_harmful_capabilities and d.public_facing:
         tags.append("malicious_use")
@@ -66,10 +71,11 @@ def tag(d: Deployment) -> list[str]:
     # Rogue AI risk grows with autonomy horizon.
     if d.agent_autonomy_hours >= 4.0:
         tags.append("rogue_ais")
-    return tags
+    return tags  # 返回结果
 
 
 def report(d: Deployment) -> None:
+    """report"""
     tags = tag(d)
     print(f"\nDeployment: {d.name}")
     print("-" * 70)
@@ -92,6 +98,7 @@ def report(d: Deployment) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("CAIS FOUR-RISK INVENTORY (Phase 15, Lesson 22)")
     print("=" * 70)
@@ -143,4 +150,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

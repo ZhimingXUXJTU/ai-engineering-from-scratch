@@ -1,3 +1,10 @@
+"""
+聊天机器人演进
+
+从 ELIZA（规则）到 Seq2Seq（神经网络）到 GPT（LLM Agent）。
+"""
+# 【中文解读】聊天机器人演进。从 ELIZA（规则）到 Seq2Seq（神经网络）到 GPT（LLM Agent）。
+
 import re
 from collections import Counter
 

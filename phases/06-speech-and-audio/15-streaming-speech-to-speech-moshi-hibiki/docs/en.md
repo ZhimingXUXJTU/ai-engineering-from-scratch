@@ -1,6 +1,10 @@
-# Streaming Speech-to-Speech — Moshi, Hibiki, and Full-Duplex Dialogue
+# Streaming Speech-to-Speech — Moshi, Hibiki, and Full-Duplex Dialogue | 流式语音到语音 — Moshi、Hibiki 与全双工对话
 
 > 2024-2026 redefined voice AI. Moshi ships a single model that listens and speaks simultaneously at 200 ms latency. Hibiki does speech-to-speech translation chunk-by-chunk. Both abandon the ASR → LLM → TTS pipeline for a unified full-duplex architecture over Mimi codec tokens. This is the new reference design.
+
+> **【中文解读】** 2024-2026 年重新定义了语音 AI。Moshi 用单一模型在 200ms 延迟内同时听和说。Hibiki 逐块进行语音到语音翻译。两者都放弃了 ASR→LLM→TTS 流水线，采用基于 Mimi 编解码器 token 的统一全双工架构。这是新的参考设计。
+
+> **【拓展：全双工语音 AI】** 传统语音助手是"半双工"（听的时候不能说），Moshi 实现了"全双工"（同时听说），就像人类自然对话一样。这是 2026 年语音 AI 最前沿的方向。
 
 **Type:** Learn
 **Languages:** Python

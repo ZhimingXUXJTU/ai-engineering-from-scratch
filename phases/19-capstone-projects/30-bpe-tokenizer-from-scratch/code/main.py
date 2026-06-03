@@ -4,6 +4,9 @@ Trains a byte-level BPE vocabulary on a small built-in corpus, encodes a
 held-out sentence, decodes it back, and prints both.
 
 Stdlib + nothing else. Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -36,15 +39,15 @@ class BPETokenizer:
 
     @property
     def vocab_size(self) -> int:
-        return len(self.vocab)
+        return len(self.vocab)  # 返回结果
 
     def _add_token(self, token_bytes: bytes) -> int:
         if token_bytes in self.inv_vocab:
-            return self.inv_vocab[token_bytes]
+            return self.inv_vocab[token_bytes]  # 返回结果
         token_id = len(self.vocab)
         self.vocab[token_id] = token_bytes
         self.inv_vocab[token_bytes] = token_id
-        return token_id
+        return token_id  # 返回结果
 
     def initialize(self, specials: Iterable[str] = DEFAULT_SPECIALS) -> None:
         """Lay out the byte alphabet and reserve special-token ids."""
@@ -70,24 +73,27 @@ def _pretokenize(text: str) -> list[str]:
     boundaries. Whitespace runs are preserved as their own chunks so the
     decoder can rebuild the original string by concatenation.
     """
-    return WORD_SPLIT_RE.findall(text)
+    return WORD_SPLIT_RE.findall(text)  # 返回结果
 
 
 def _word_to_byte_ids(word: str) -> list[int]:
-    return list(word.encode("utf-8"))
+    """_word_to_byte_ids"""
+    return list(word.encode("utf-8"))  # 返回结果
 
 
 def _count_pairs(corpus_units: dict[tuple[int, ...], int]) -> Counter:
+    """_count_pairs"""
     pairs: Counter = Counter()
     for symbols, count in corpus_units.items():
         for i in range(len(symbols) - 1):
             pairs[(symbols[i], symbols[i + 1])] += count
-    return pairs
+    return pairs  # 返回结果
 
 
 def _apply_merge(symbols: tuple[int, ...], pair: tuple[int, int], new_id: int) -> tuple[int, ...]:
+    """_apply_merge"""
     if len(symbols) < 2:
-        return symbols
+        return symbols  # 返回结果
     out: list[int] = []
     i = 0
     a, b = pair
@@ -98,7 +104,7 @@ def _apply_merge(symbols: tuple[int, ...], pair: tuple[int, int], new_id: int) -
         else:
             out.append(symbols[i])
             i += 1
-    return tuple(out)
+    return tuple(out)  # 返回结果
 
 
 def train(
@@ -132,12 +138,13 @@ def train(
 
 
 def _build_initial_units(corpus: str) -> dict[tuple[int, ...], int]:
+    """_build_initial_units"""
     chunks = _pretokenize(corpus)
     units: dict[tuple[int, ...], int] = {}
     for chunk in chunks:
         symbols = tuple(_word_to_byte_ids(chunk))
         units[symbols] = units.get(symbols, 0) + 1
-    return units
+    return units  # 返回结果
 
 
 def _apply_merge_to_corpus(
@@ -149,13 +156,14 @@ def _apply_merge_to_corpus(
     for symbols, count in units.items():
         merged = _apply_merge(symbols, pair, new_id)
         new_units[merged] = new_units.get(merged, 0) + count
-    return new_units
+    return new_units  # 返回结果
 
 
 def _encode_chunk(tokenizer: BPETokenizer, chunk: str) -> list[int]:
+    """_encode_chunk"""
     symbols: list[int] = _word_to_byte_ids(chunk)
     if len(symbols) < 2:
-        return symbols
+        return symbols  # 返回结果
 
     ranked_merges = {pair: rank for rank, pair in enumerate(tokenizer.merges.keys())}
 
@@ -176,7 +184,7 @@ def _encode_chunk(tokenizer: BPETokenizer, chunk: str) -> list[int]:
             break
         new_id = tokenizer.merges[best_pair]
         symbols = symbols[:best_index] + [new_id] + symbols[best_index + 2:]
-    return symbols
+    return symbols  # 返回结果
 
 
 def encode(
@@ -190,10 +198,10 @@ def encode(
     are mapped to their reserved ids and skipped by the merge loop.
     """
     if not allow_special:
-        return _encode_pretokenized(tokenizer, text)
+        return _encode_pretokenized(tokenizer, text)  # 返回结果
 
     if not tokenizer.special_to_id:
-        return _encode_pretokenized(tokenizer, text)
+        return _encode_pretokenized(tokenizer, text)  # 返回结果
 
     specials_sorted = sorted(tokenizer.special_to_id.keys(), key=len, reverse=True)
     pattern = "(" + "|".join(re.escape(s) for s in specials_sorted) + ")"
@@ -207,14 +215,15 @@ def encode(
             out.append(tokenizer.special_to_id[part])
         else:
             out.extend(_encode_pretokenized(tokenizer, part))
-    return out
+    return out  # 返回结果
 
 
 def _encode_pretokenized(tokenizer: BPETokenizer, text: str) -> list[int]:
+    """_encode_pretokenized"""
     out: list[int] = []
     for chunk in _pretokenize(text):
         out.extend(_encode_chunk(tokenizer, chunk))
-    return out
+    return out  # 返回结果
 
 
 def decode(tokenizer: BPETokenizer, ids: list[int]) -> str:
@@ -227,7 +236,7 @@ def decode(tokenizer: BPETokenizer, ids: list[int]) -> str:
         if token_id not in tokenizer.vocab:
             raise KeyError(f"unknown token id: {token_id}")
         pieces.append(tokenizer.vocab[token_id])
-    return b"".join(pieces).decode("utf-8", errors="replace")
+    return b"".join(pieces).decode("utf-8", errors="replace")  # 返回结果
 
 
 def save(tokenizer: BPETokenizer, path: str) -> None:
@@ -262,7 +271,7 @@ def load(path: str) -> BPETokenizer:
     for s, token_id in payload["specials"].items():
         tokenizer.special_to_id[s] = token_id
         tokenizer.id_to_special[token_id] = s
-    return tokenizer
+    return tokenizer  # 返回结果
 
 
 DEMO_CORPUS = """\
@@ -288,18 +297,21 @@ practice the basics until the basics become invisible
 
 
 def _print_section(title: str) -> None:
+    """_print_section"""
     bar = "-" * len(title)
     print(f"\n{title}\n{bar}")
 
 
 def _format_byte_token(token_bytes: bytes) -> str:
+    """_format_byte_token"""
     try:
-        return token_bytes.decode("utf-8").replace("\n", "\\n").replace(" ", "·")
+        return token_bytes.decode("utf-8").replace("\n", "\\n").replace(" ", "·")  # 返回结果
     except UnicodeDecodeError:
-        return token_bytes.hex()
+        return token_bytes.hex()  # 返回结果
 
 
 def main() -> int:
+    """main"""
     target = 320
     tokenizer = BPETokenizer()
     train(tokenizer, DEMO_CORPUS, target_vocab_size=target)
@@ -337,7 +349,7 @@ def main() -> int:
     print(f"decoded back      : {decode(tokenizer, ids_special)!r}")
 
     print("\nDemo OK.")
-    return 0
+    return 0  # 返回结果
 
 
 if __name__ == "__main__":

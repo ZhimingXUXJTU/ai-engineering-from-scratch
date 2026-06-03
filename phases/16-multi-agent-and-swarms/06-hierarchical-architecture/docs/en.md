@@ -1,6 +1,9 @@
-# Hierarchical Architecture and Its Failure Mode
+# Hierarchical Architecture and Its Failure Mode | 分层
 
 > Hierarchical is supervisor nested. Manager agents over sub-managers over workers. CrewAI `Process.hierarchical` is the textbook version: a `manager_llm` dynamically delegates tasks and validates outputs. The LangGraph equivalent is `create_supervisor(create_supervisor(...))`. It is the natural pattern when the task is a real org chart. It is also the pattern most likely to collapse into managerial looping — manager agents assign work poorly, misinterpret sub-outputs, or fail to reach consensus. Sequential often beats it.
+
+> **【中文解读】** 本节介绍了分层架构——多层编排器的嵌套组织结构，适用于复杂任务的递归分解。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)
@@ -67,7 +70,7 @@ LangGraph uses nested `create_supervisor` calls. The inner supervisor has its ow
 
 Reference: https://reference.langchain.com/python/langgraph-supervisor.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` runs a 3-level hierarchy:
 
@@ -85,11 +88,11 @@ python3 code/main.py
 
 Output shows both paths with a clear side-by-side of "what was asked" vs "what was delivered."
 
-## Use It
+## Use It | 使用方法
 
 `outputs/skill-hierarchy-fitness.md` evaluates whether a given task should use hierarchical, sequential, or flat supervisor. Inputs: task description, org structure, reconciliation budget. Output: pattern recommendation with the specific failure modes to guard against.
 
-## Ship It
+## Ship It | 部署上线
 
 If you ship hierarchical:
 
@@ -98,7 +101,7 @@ If you ship hierarchical:
 - **Provenance on every synthesis.** Each node's summary must cite which leaf outputs produced it.
 - **Alert on decomposition drift.** Log the manager's decomposition per step; diff against the user query. If the decomposition no longer covers the query, fire an alert.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py` and compare happy vs perturbed. How many levels of manager hand-off does it take before the top output fully diverges from the user's question?
 2. Add a third level (top → sub → sub-sub → worker). Measure how often the perturbed path corrects itself vs fully diverges as depth grows.
@@ -106,7 +109,7 @@ If you ship hierarchical:
 4. Read CrewAI's `Process.hierarchical` docs. Identify one concrete guardrail CrewAI applies (step limit, manager_llm constraint) and describe what failure mode it targets.
 5. Compare nested LangGraph supervisors to CrewAI hierarchical. Which makes reconciliation loops cheaper to detect?
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
@@ -118,7 +121,7 @@ If you ship hierarchical:
 | Canary question | "Ground truth at every level" | A worker that is always asked the original query unchanged, to detect drift. |
 | Provenance chain | "Who said what" | Trace from each synthesis back to the leaf outputs that produced it. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [CrewAI introduction — Process.hierarchical](https://docs.crewai.com/en/introduction) — textbook hierarchical with a manager LLM
 - [LangGraph supervisor reference](https://reference.langchain.com/python/langgraph-supervisor) — nested supervisor via `create_supervisor`

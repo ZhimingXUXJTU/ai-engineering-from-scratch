@@ -7,6 +7,9 @@ threshold, and competitor-adjustment clause.
 Reference-only, no simulation. Primary sources cited inline.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -41,6 +44,7 @@ LABS = [
 
 
 def print_row(header: str, key: str) -> None:
+    """print_row"""
     print(f"\n{header}")
     for lab in LABS:
         name = lab["name"]
@@ -49,6 +53,7 @@ def print_row(header: str, key: str) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 78)
     print("FRONTIER SAFETY FRAMEWORKS (Phase 18, Lesson 18)")
     print("=" * 78)
@@ -69,4 +74,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

@@ -1,4 +1,4 @@
-# Support Vector Machines
+# Support Vector Machines | 支持向量机 (SVM)
 
 > Find the widest street between two classes. That is the entire idea.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1 (Lessons 08 Optimization, 14 Norms and Distances, 18 Convex Optimization)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement a linear SVM from scratch using hinge loss and gradient descent on the primal formulation
 - Explain the maximum margin principle and identify support vectors from a trained model
 - Compare linear, polynomial, and RBF kernels and explain how the kernel trick avoids explicit high-dimensional mapping
 - Evaluate the tradeoff controlled by the C parameter between margin width and classification errors
+
+
+> **【中文解读】**
+> SVM 找到最大间隔的分类边界。核技巧让 SVM 在高维空间中处理非线性问题——直观理解就是升维后再切分。sklearn 中的 SVC/SVR。文本分类、图像识别中曾广泛使用。
 
 ## The Problem
 

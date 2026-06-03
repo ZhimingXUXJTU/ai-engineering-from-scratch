@@ -1,6 +1,10 @@
-# The Tool Interface — Why Agents Need Structured I/O
+# The Tool Interface — Why Agents Need Structured I/O | 工具接口：为什么 Agent 需要结构化输入输出
 
 > A language model produces tokens. A program takes actions. The gap between those two is the tool interface: a contract that lets the model request an action and the host execute it. Every 2026 stack — function calling on OpenAI, Anthropic, and Gemini; MCP's `tools/call`; A2A's task parts — is a different encoding of the same four-step loop. This lesson names the loop and shows the minimum machinery to run it.
+
+> **【中文解读】** 语言模型生成 token，程序执行动作。工具接口是连接两者的桥梁——一个让模型请求动作、宿主执行动作的契约。2026年所有主流栈都是同一四步循环的不同编码。
+
+> **【拓展：工具接口→AI Agent基础】** 工具接口是 AI Agent 的核心抽象。MCP 的 `tools/call`、OpenAI 的 `tool_calls`、A2A 的 task parts 都是这一抽象的不同实现。
 
 **Type:** Learn
 **Languages:** Python (stdlib, no LLM)

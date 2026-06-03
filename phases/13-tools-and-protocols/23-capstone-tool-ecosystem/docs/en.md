@@ -1,6 +1,10 @@
-# Capstone — Build a Complete Tool Ecosystem
+# Capstone — Build a Complete Tool Ecosystem | 毕业项目：构建完整的工具生态系统
 
 > Phase 13 taught every piece. This capstone wires them into one production-shaped system: an MCP server with tools + resources + prompts + tasks + UI, OAuth 2.1 at the edge, an RBAC gateway, a multi-server client, an A2A sub-agent call, OTel tracing into a collector, tool-poisoning detection in CI, and an AGENTS.md + SKILL.md bundle. By the end you can defend every architectural choice.
+
+> **【中文解读】** Phase 13 教了每个组件。本毕业项目将它们连线为一个生产级系统：MCP 服务器（tools+resources+prompts+tasks+UI）、边缘 OAuth 2.1、RBAC 网关、多服务器客户端、A2A 子 Agent 调用、OTel 全链路追踪、CI 中的工具投毒检测、AGENTS.md + SKILL.md 打包。完成后你能为每个架构选择辩护。
+
+> **【拓展】** 这是 Phase 13 的集大成课程，整合了全部23课内容为一个可运行的端到端系统。架构模式：用户 -> 客户端 -> OAuth 2.1 + RBAC 网关 -> 研究 MCP 服务器（工具/资源/提示词/任务/UI/A2A 调用/OTel span）。这是 Anthropic（Claude Research）和 OpenAI（GPTs with Apps SDK）2026年发布的生产研究助手系统的精确形状。
 
 **Type:** Build
 **Languages:** Python (stdlib, end-to-end ecosystem harness)
@@ -16,6 +20,8 @@
 - Package the whole stack with AGENTS.md + SKILL.md so other agents can drive it.
 
 ## The Problem
+
+> **【中文解读】** 构建"研究和报告"系统：用户请求"总结2026年关于 agent 协议的被引用最多的三篇 arXiv 论文"。系统通过 MCP 搜索 arXiv，通过 A2A 将论文摘要委托给专门的写作 Agent，聚合结果，渲染交互式报告作为 MCP Apps `ui://` 资源，每步记录到 OTel。
 
 Ship the "research and report" system:
 
@@ -108,6 +114,8 @@ Users deploy with `docker compose up`. Claude Code, Cursor, Codex, and opencode 
 
 ## Use It
 
+> **【中文解读】** `code/main.py` 将前课模式缝合为一个可运行的端到端演示。全部标准库，全部进程内运行便于从头到尾阅读。完整流程：网关握手、模拟 OAuth 2.1、合并 tools/list、generate_report 作为任务、A2A 调用写作 Agent、返回 ui:// 资源、发射 OTel span。关注点：一个 trace id 贯穿每跳；网关策略阻止第二个用户写入；任务生命周期 working -> completed 返回文本和 ui:// 内容；A2A 调用内部状态对编排者不透明；AGENTS.md 和 SKILL.md 是其他 Agent 复现工作流所需的唯一文件。
+
 `code/main.py` stitches the previous lessons' patterns into one runnable demo. All stdlib, all in-process so you can read it end to end. It runs the full flow for the research-and-report scenario: handshake with gateway, OAuth 2.1 simulated, tools/list merged, generate_report as a task, A2A call to writer, ui:// resource returned, OTel spans emitted.
 
 What to look at:
@@ -119,6 +127,8 @@ What to look at:
 - AGENTS.md and SKILL.md are the only files another agent needs to reproduce the workflow.
 
 ## Ship It
+
+> **【中文解读】** 本课产出 `outputs/skill-ecosystem-blueprint.md`——给定产品需求（研究、摘要、自动化），生成完整架构：哪些 MCP 原语、哪些网关控制、哪些 A2A 调用、哪些遥测、哪些打包。
 
 This lesson produces `outputs/skill-ecosystem-blueprint.md`. Given a product need (research, summarization, automation), the skill produces the full architecture: which MCP primitives, which gateway controls, which A2A calls, which telemetry, which packaging.
 
@@ -136,18 +146,18 @@ This lesson produces `outputs/skill-ecosystem-blueprint.md`. Given a product nee
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Capstone | "Phase-13 integration demo" | End-to-end system using every primitive |
-| Research and report | "The scenario" | Search, summarize, render pattern |
-| Ecosystem | "All the pieces together" | Server + client + gateway + sub-agent + telemetry + package |
-| Trace hierarchy | "Single trace id" | Every hop's span shares the trace; parent-child via span ids |
-| Gateway-issued token | "Transitive auth" | Client sees only gateway's token; gateway holds upstream creds |
-| Merged namespace | "All tools in one flat list" | Multi-server merge at the gateway, prefix-on-collision |
-| Opacity boundary | "A2A call hides internals" | Sub-agent's reasoning invisible to orchestrator |
-| Three-layer stack | "AGENTS.md + SKILL.md + MCP" | Project context + workflow + tools |
-| Defense-in-depth | "Multiple security layers" | Pinned hashes, OAuth, RBAC, Rule of Two, audit log |
-| Spec compliance matrix | "What we ship that the spec requires" | Checklist mapping deliverables to 2025-11-25 requirements |
+| Term | What people say | What it actually means | 中文 |
+|------|----------------|------------------------|------|
+| Capstone | "Phase-13 integration demo" | End-to-end system using every primitive | 毕业项目：Phase 13 集成演示 |
+| Research and report | "The scenario" | Search, summarize, render pattern | 研究与报告：搜索-摘要-渲染模式 |
+| Ecosystem | "All the pieces together" | Server + client + gateway + sub-agent + telemetry + package | 生态系统：所有组件的整合 |
+| Trace hierarchy | "Single trace id" | Every hop's span shares the trace; parent-child via span ids | 追踪层次：单一 trace id |
+| Gateway-issued token | "Transitive auth" | Client sees only gateway's token; gateway holds upstream creds | 网关签发 token：传递式认证 |
+| Merged namespace | "All tools in one flat list" | Multi-server merge at the gateway, prefix-on-collision | 合并命名空间：多服务器工具列表 |
+| Opacity boundary | "A2A call hides internals" | Sub-agent's reasoning invisible to orchestrator | 不透明边界：A2A 隐藏内部推理 |
+| Three-layer stack | "AGENTS.md + SKILL.md + MCP" | Project context + workflow + tools | 三层堆栈：项目上下文+工作流+工具 |
+| Defense-in-depth | "Multiple security layers" | Pinned hashes, OAuth, RBAC, Rule of Two, audit log | 纵深防御：多层安全 |
+| Spec compliance matrix | "What we ship that the spec requires" | Checklist mapping deliverables to 2025-11-25 requirements | 规范合规矩阵 |
 
 ## Further Reading
 

@@ -1,4 +1,4 @@
-# Planning with HTN and Evolutionary Search
+# Planning with HTN and Evolutionary Search | 进化 规划 搜索 HTN
 
 > Symbolic planning handles the cases where the plan is provably correct. Evolutionary code search handles the cases where the fitness function is machine-checkable. ChatHTN (2025) and AlphaEvolve (2025) show what each unlocks when paired with an LLM.
 
@@ -7,23 +7,26 @@
 **Prerequisites:** Phase 14 · 02 (ReWOO and Plan-and-Execute)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Explain Hierarchical Task Networks: tasks, methods, operators, preconditions, effects.
 - Describe ChatHTN's hybrid loop — symbolic search with LLM fallback decomposition.
 - Explain AlphaEvolve's evolutionary loop and why it only works with a programmatic evaluator.
 - Implement a toy HTN planner plus a toy evolutionary search in stdlib.
 
-## The Problem
+## The Problem | 问题
 
 ReWOO (Lesson 02), Plan-and-Execute, and ReAct cover most agent planning. Two cases they don't cover well:
 
 1. **Plans with provable correctness.** Scheduling, flight pathing, compliance workflows — the plan must be sound by construction. A fluent LLM plan that sometimes hallucinates a step is unacceptable.
 2. **Optimizations with a machine-checkable fitness function.** Matrix multiplication, scheduling heuristics, compiler passes — the goal is not "a correct plan" but "the best plan."
 
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
 HTN planning and AlphaEvolve solve the two different problems. Both use LLMs as amplifiers, not replacements.
 
-## The Concept
+## The Concept | 概念
 
 ### Hierarchical Task Networks
 
@@ -87,7 +90,7 @@ The hard constraint: the fitness function must be machine-checkable. Evolutionar
 - **AlphaEvolve without a real evaluator.** "Ask the LLM if the code is better" is not a fitness function. The evaluator must be deterministic and fast.
 - **Over-engineering.** Most agent tasks don't need either. Reach for ReAct or ReWOO first.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements two toys:
 
@@ -102,38 +105,43 @@ python3 code/main.py
 
 The trace shows the HTN planner decomposing a compound task (with a mid-plan LLM fallback) and the evolutionary loop converging on a target expression.
 
-## Use It
+## Use It | 使用方法
 
 - **HTN planners** — `pyhop`, `SHOP3`, or build your own for domain-specific policy enforcement.
 - **ChatHTN** — research code; the pattern (symbolic + LLM fallback) ports cleanly to any HTN planner.
 - **AlphaEvolve** — DeepMind paper; the pattern (ensemble + evaluator) is reproducible. OpenEvolve and similar open-source forks are emerging.
 - **Agent frameworks** — none ship first-class HTN or AlphaEvolve yet. Build it as a subagent or a background worker.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-hybrid-planner.md` generates a hybrid planner scaffold (HTN or evolutionary) with the LLM role explicitly scoped.
 
-## Exercises
+## Exercises | 练习题
 
 1. Extend the HTN planner with backtracking: when an operator's postcondition fails at runtime, roll back and try the next method.
+   *思考并实践此练习*
 2. Add a LLM-method cache to ChatHTN: when the LLM decomposes task `T` in state pattern `P`, store the result. Re-check the method library first on the next call.
+   *思考并实践此练习*
 3. Swap the evolutionary search evaluator to a real test suite. Evolve a sort function that passes 20 test cases; report generations to convergence.
+   *思考并实践此练习*
 4. Read AlphaEvolve's evaluator design notes. Design an evaluator for a domain you care about (SQL query optimization, test-suite minimization, deployment YAML).
+   *思考并实践此练习*
 5. Combine: use HTN to decompose a compound task into subtasks, then use evolutionary search on each subtask's primitive operator. Where does it shine, where does it over-engineer?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| HTN | "Hierarchical planner" | Task decomposition with operators, preconditions, effects |
-| Method | "Decomposition rule" | Way to break a compound task into subtasks |
-| Operator | "Primitive action" | Concrete step with precondition and effect |
-| ChatHTN | "LLM + HTN" | Symbolic planner asks LLM when no method matches |
-| AlphaEvolve | "Evolutionary code search" | Ensemble LLMs mutate code; deterministic evaluator selects |
-| Fitness function | "Evaluator" | Deterministic, machine-checkable score over outputs |
-| Online method learning | "Cached LLM decomposition" | Store + generalize LLM plans to cut query cost |
+|------|----------------|------------------------|---|
+| HTN | "Hierarchical planner" | Task decomposition with operators, preconditions, effects |  |
+| Method | "Decomposition rule" | Way to break a compound task into subtasks |  |
+| Operator | "Primitive action" | Concrete step with precondition and effect |  |
+| ChatHTN | "LLM + HTN" | Symbolic planner asks LLM when no method matches |  |
+| AlphaEvolve | "Evolutionary code search" | Ensemble LLMs mutate code; deterministic evaluator selects |  |
+| Fitness function | "Evaluator" | Deterministic, machine-checkable score over outputs |  |
+| Online method learning | "Cached LLM decomposition" | Store + generalize LLM plans to cut query cost |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Gopalakrishnan et al., ChatHTN (arXiv:2505.11814)](https://arxiv.org/abs/2505.11814) — symbolic + LLM hybrid planner
 - [Novikov et al., AlphaEvolve (arXiv:2506.13131)](https://arxiv.org/abs/2506.13131) — evolutionary code search with LLM mutations

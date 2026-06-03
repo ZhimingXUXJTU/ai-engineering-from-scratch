@@ -6,6 +6,9 @@ implements a tiny stdlib validator that handles the subset we need
 temp-and-rename writes so a partial failure cannot corrupt the file.
 
 Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -54,26 +57,29 @@ BOARD_SCHEMA: dict[str, Any] = {
 
 
 class SchemaError(Exception):
+    """SchemaError"""
     pass
 
 
 def _check_type(value: Any, types: str | list[str]) -> bool:
+    """_check_type"""
     type_list = [types] if isinstance(types, str) else types
     for t in type_list:
         if t == "object" and isinstance(value, dict):
-            return True
+            return True  # 返回结果
         if t == "array" and isinstance(value, list):
-            return True
+            return True  # 返回结果
         if t == "string" and isinstance(value, str):
-            return True
+            return True  # 返回结果
         if t == "integer" and isinstance(value, int) and not isinstance(value, bool):
-            return True
+            return True  # 返回结果
         if t == "null" and value is None:
-            return True
-    return False
+            return True  # 返回结果
+    return False  # 返回结果
 
 
 def validate(value: Any, schema: dict[str, Any], path: str = "$") -> None:
+    """validate"""
     if "type" in schema and not _check_type(value, schema["type"]):
         raise SchemaError(f"{path}: expected {schema['type']}, got {type(value).__name__}")
     if "enum" in schema and value not in schema["enum"]:
@@ -97,6 +103,7 @@ def validate(value: Any, schema: dict[str, Any], path: str = "$") -> None:
 
 
 def atomic_write(path: Path, content: str) -> None:
+    """atomic_write"""
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp_name = tempfile.mkstemp(prefix=path.name + ".", dir=path.parent)
     try:
@@ -111,6 +118,7 @@ def atomic_write(path: Path, content: str) -> None:
 
 
 class StateManager:
+    """StateManager"""
     def __init__(self, state_path: Path, schema: dict[str, Any]):
         self.state_path = state_path
         self.schema = schema
@@ -118,7 +126,7 @@ class StateManager:
     def load(self) -> Any:
         raw = json.loads(self.state_path.read_text())
         validate(raw, self.schema)
-        return raw
+        return raw  # 返回结果
 
     def commit(self, state: Any) -> None:
         validate(state, self.schema)
@@ -126,6 +134,7 @@ class StateManager:
 
 
 def main() -> None:
+    """main"""
     WORK.mkdir(exist_ok=True)
     schema_dir = WORK / "schemas"
     schema_dir.mkdir(exist_ok=True)
@@ -176,4 +185,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

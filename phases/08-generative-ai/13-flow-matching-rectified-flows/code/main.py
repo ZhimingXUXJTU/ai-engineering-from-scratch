@@ -1,3 +1,8 @@
+"""
+流匹配与整流流 (Flow Matching & Rectified Flows)
+核心概念：训练直线路径代替弯曲扩散路径，减少采样步数
+AI 对应：SD3、FLUX 都使用 Flow Matching，是 2024-2026 的生成模型趋势
+"""
 import math
 import random
 

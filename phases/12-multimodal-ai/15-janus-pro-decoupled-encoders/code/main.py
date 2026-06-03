@@ -1,5 +1,10 @@
 """Janus-Pro decoupled-encoder routing — stdlib.
 
+Janus-Pro：解耦编码器 (Decoupled Encoders for Unified Multimodal)
+核心概念：理解需要语义特征(SigLIP)，生成需要重建友好码(VQ)，两个目标不兼容于单一编码器。
+Janus-Pro 的解决方案：共享 Transformer 主体，但理解走 SigLIP 编码器，生成走 VQ 编码器。
+AI 应用对应：7B 参数即在 GenEval 上击败 DALL-E 3，同时在 MMMU 上匹配 LLaVA。
+
 Two mock encoders (semantic SigLIP-like, reconstruction VQ-like), one shared
 transformer body, a router that picks based on task tag. Traces three example
 prompts through the pipeline.

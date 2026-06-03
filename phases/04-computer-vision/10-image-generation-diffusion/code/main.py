@@ -1,3 +1,19 @@
+"""
+图像生成 — 扩散模型 (Image Generation — Diffusion Models)
+
+核心概念：
+- 前向过程：逐步给图像添加噪声（T 步，每步加一点高斯噪声）
+- 反向过程：训练网络学习去噪，从纯噪声逐步恢复图像
+- DDPM：标准扩散采样，需要 ~1000 步
+- DDIM：确定性采样器，~20 步即可生成高质量图像（快 50 倍）
+- 时间条件：网络需要知道当前是第几步去噪
+
+AI 对应：
+- 扩散模型是 Stable Diffusion、DALL-E、Midjourney 的核心技术
+- 潜在扩散（Latent Diffusion）在 VAE 编码的潜在空间中运行，大幅降低计算成本
+- 扩散模型也被用于视频生成（Sora）、3D 生成、音频生成
+"""
+
 import math
 import numpy as np
 import torch

@@ -9,6 +9,9 @@ Concept refs:
   - OTel GenAI span shapes and Prometheus exposition (Phase 19 · 28).
 The demo composes a deterministic policy with the minimal harness primitives
 re-stated inline. Exits zero after solving the bundled fixture.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -38,6 +41,7 @@ from typing import Any, Callable, Iterator
 
 @dataclass
 class Observation:
+    """Observation"""
     turn: int
     tool: str
     text: str
@@ -46,17 +50,19 @@ class Observation:
 
 @dataclass
 class ObservationLedger:
+    """ObservationLedger"""
     rows: list[Observation] = field(default_factory=list)
 
     def record(self, obs: Observation) -> None:
         self.rows.append(obs)
 
     def cumulative(self) -> int:
-        return sum(r.tokens for r in self.rows)
+        return sum(r.tokens for r in self.rows)  # 返回结果
 
 
 def estimate_tokens(text: str) -> int:
-    return 0 if not text else max(1, len(text) // 4)
+    """estimate_tokens"""
+    return 0 if not text else max(1, len(text) // 4)  # 返回结果
 
 
 # --- Gate chain (lesson 25) -----------------------------------------------
@@ -64,6 +70,7 @@ def estimate_tokens(text: str) -> int:
 
 @dataclass(frozen=True)
 class ToolCall:
+    """ToolCall"""
     turn: int
     tool: str
     argv: tuple[str, ...]
@@ -72,6 +79,7 @@ class ToolCall:
 
 @dataclass(frozen=True)
 class GateDecision:
+    """GateDecision"""
     allow: bool
     gate: str
     reason: str
@@ -79,76 +87,82 @@ class GateDecision:
 
 @dataclass
 class GateContext:
+    """GateContext"""
     ledger: ObservationLedger
     current_turn: int
 
 
 @dataclass
 class WhitelistGate:
+    """WhitelistGate"""
     allowed: frozenset[str]
     name: str = "whitelist"
 
     def evaluate(self, call: ToolCall, ctx: GateContext) -> GateDecision:
         if call.tool in self.allowed:
-            return GateDecision(True, self.name, "tool in allow-set")
-        return GateDecision(
+            return GateDecision(True, self.name, "tool in allow-set")  # 返回结果
+        return GateDecision(  # 返回结果
             False, self.name, f"tool {call.tool!r} not in allow-set"
         )
 
 
 @dataclass
 class RegexGate:
+    """RegexGate"""
     patterns: tuple[re.Pattern[str], ...]
     name: str = "regex"
 
     @classmethod
     def from_strings(cls, items: tuple[str, ...]) -> "RegexGate":
-        return cls(patterns=tuple(re.compile(p) for p in items))
+        return cls(patterns=tuple(re.compile(p) for p in items))  # 返回结果
 
     def evaluate(self, call: ToolCall, ctx: GateContext) -> GateDecision:
         haystack = " ".join(call.argv) + " " + call.payload
         for pat in self.patterns:
             if pat.search(haystack):
-                return GateDecision(
+                return GateDecision(  # 返回结果
                     False, self.name, f"refused pattern {pat.pattern!r}"
                 )
-        return GateDecision(True, self.name, "clean")
+        return GateDecision(True, self.name, "clean")  # 返回结果
 
 
 @dataclass
 class BudgetGate:
+    """BudgetGate"""
     max_tokens: int
     name: str = "budget"
 
     def evaluate(self, call: ToolCall, ctx: GateContext) -> GateDecision:
         used = ctx.ledger.cumulative()
         if used >= self.max_tokens:
-            return GateDecision(
+            return GateDecision(  # 返回结果
                 False,
                 self.name,
                 f"observation budget exhausted: {used}/{self.max_tokens}",
             )
-        return GateDecision(True, self.name, f"{self.max_tokens - used} remaining")
+        return GateDecision(True, self.name, f"{self.max_tokens - used} remaining")  # 返回结果
 
 
 @dataclass
 class ChainOutcome:
+    """ChainOutcome"""
     decisions: list[GateDecision]
 
     @property
     def allow(self) -> bool:
-        return all(d.allow for d in self.decisions)
+        return all(d.allow for d in self.decisions)  # 返回结果
 
     @property
     def deny_reason(self) -> str | None:
         for d in self.decisions:
             if not d.allow:
-                return f"[{d.gate}] {d.reason}"
-        return None
+                return f"[{d.gate}] {d.reason}"  # 返回结果
+        return None  # 返回结果
 
 
 @dataclass
 class GateChain:
+    """GateChain"""
     gates: tuple[Any, ...]
 
     def evaluate(self, call: ToolCall, ctx: GateContext) -> ChainOutcome:
@@ -157,8 +171,8 @@ class GateChain:
             decision = gate.evaluate(call, ctx)
             decisions.append(decision)
             if not decision.allow:
-                return ChainOutcome(decisions=decisions)
-        return ChainOutcome(decisions=decisions)
+                return ChainOutcome(decisions=decisions)  # 返回结果
+        return ChainOutcome(decisions=decisions)  # 返回结果
 
 
 # --- Sandbox (lesson 26) ---------------------------------------------------
@@ -169,6 +183,7 @@ TIMED_OUT_EXIT = -101
 
 @dataclass
 class SandboxResult:
+    """SandboxResult"""
     argv: list[str]
     exit_code: int
     stdout: bytes = b""
@@ -180,11 +195,12 @@ class SandboxResult:
 
     @property
     def ok(self) -> bool:
-        return self.exit_code == 0 and not self.denied and not self.timed_out
+        return self.exit_code == 0 and not self.denied and not self.timed_out  # 返回结果
 
 
 @dataclass
 class Sandbox:
+    """Sandbox"""
     project_root: str
     timeout_seconds: float = 10.0
     max_output_bytes: int = 32 * 1024
@@ -208,17 +224,17 @@ class Sandbox:
             if resolved != self.project_root and not resolved.startswith(
                 self.project_root + os.sep
             ):
-                return f"path {arg!r} resolves outside root"
-        return None
+                return f"path {arg!r} resolves outside root"  # 返回结果
+        return None  # 返回结果
 
     def run(self, argv: list[str]) -> SandboxResult:
         if not argv:
-            return SandboxResult(
+            return SandboxResult(  # 返回结果
                 argv=argv, exit_code=DENIED_EXIT, denied=True, reason="empty argv"
             )
         name = os.path.basename(argv[0])
         if name in self.denylist:
-            return SandboxResult(
+            return SandboxResult(  # 返回结果
                 argv=argv,
                 exit_code=DENIED_EXIT,
                 denied=True,
@@ -226,7 +242,7 @@ class Sandbox:
             )
         jail = self._path_jail(argv)
         if jail is not None:
-            return SandboxResult(
+            return SandboxResult(  # 返回结果
                 argv=argv, exit_code=DENIED_EXIT, denied=True, reason=jail
             )
         started = time.perf_counter()
@@ -239,7 +255,7 @@ class Sandbox:
                 check=False,
             )
         except subprocess.TimeoutExpired:
-            return SandboxResult(
+            return SandboxResult(  # 返回结果
                 argv=argv,
                 exit_code=TIMED_OUT_EXIT,
                 timed_out=True,
@@ -247,7 +263,7 @@ class Sandbox:
                 duration_ms=(time.perf_counter() - started) * 1000.0,
             )
         except FileNotFoundError as exc:
-            return SandboxResult(
+            return SandboxResult(  # 返回结果
                 argv=argv,
                 exit_code=DENIED_EXIT,
                 denied=True,
@@ -257,7 +273,7 @@ class Sandbox:
         elapsed = (time.perf_counter() - started) * 1000.0
         out = (proc.stdout or b"")[: self.max_output_bytes]
         err = (proc.stderr or b"")[: self.max_output_bytes]
-        return SandboxResult(
+        return SandboxResult(  # 返回结果
             argv=argv,
             exit_code=proc.returncode,
             stdout=out,
@@ -276,6 +292,7 @@ STATUS_UNSET = "UNSET"
 
 @dataclass
 class GenAISpan:
+    """GenAISpan"""
     trace_id: str
     span_id: str
     parent_span_id: str
@@ -289,11 +306,11 @@ class GenAISpan:
     @property
     def duration_ms(self) -> float:
         if self.end_unix_nano <= 0:
-            return 0.0
-        return (self.end_unix_nano - self.start_unix_nano) / 1_000_000.0
+            return 0.0  # 返回结果
+        return (self.end_unix_nano - self.start_unix_nano) / 1_000_000.0  # 返回结果
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "trace_id": self.trace_id,
             "span_id": self.span_id,
             "parent_span_id": self.parent_span_id,
@@ -307,14 +324,17 @@ class GenAISpan:
 
 
 def _new_trace_id() -> str:
-    return uuid.uuid4().hex
+    """_new_trace_id"""
+    return uuid.uuid4().hex  # 返回结果
 
 
 def _new_span_id() -> str:
-    return uuid.uuid4().hex[:16]
+    """_new_span_id"""
+    return uuid.uuid4().hex[:16]  # 返回结果
 
 
 class InMemoryExporter:
+    """InMemoryExporter"""
     def __init__(self) -> None:
         self.spans: list[GenAISpan] = []
 
@@ -323,6 +343,7 @@ class InMemoryExporter:
 
 
 class JSONLExporter:
+    """JSONLExporter"""
     def __init__(self, path: str) -> None:
         self.path = path
         self.fh: Any = None
@@ -342,6 +363,7 @@ class JSONLExporter:
 
 @dataclass
 class Counter:
+    """Counter"""
     name: str
     values: dict[tuple[tuple[str, str], ...], float] = field(default_factory=dict)
 
@@ -350,11 +372,12 @@ class Counter:
         self.values[key] = self.values.get(key, 0.0) + 1.0
 
     def get(self, labels: dict[str, str]) -> float:
-        return self.values.get(tuple(sorted(labels.items())), 0.0)
+        return self.values.get(tuple(sorted(labels.items())), 0.0)  # 返回结果
 
 
 @dataclass
 class Histogram:
+    """Histogram"""
     name: str
     buckets: tuple[float, ...] = (
         5.0,
@@ -376,26 +399,28 @@ class Histogram:
         self.samples.setdefault(key, []).append(float(value))
 
     def total_count(self, labels: dict[str, str]) -> int:
-        return len(self.samples.get(tuple(sorted(labels.items())), []))
+        return len(self.samples.get(tuple(sorted(labels.items())), []))  # 返回结果
 
 
 @dataclass
 class MetricsRegistry:
+    """MetricsRegistry"""
     counters: dict[str, Counter] = field(default_factory=dict)
     histograms: dict[str, Histogram] = field(default_factory=dict)
 
     def counter(self, name: str) -> Counter:
         if name not in self.counters:
             self.counters[name] = Counter(name=name)
-        return self.counters[name]
+        return self.counters[name]  # 返回结果
 
     def histogram(self, name: str) -> Histogram:
         if name not in self.histograms:
             self.histograms[name] = Histogram(name=name)
-        return self.histograms[name]
+        return self.histograms[name]  # 返回结果
 
 
 def prometheus_text(reg: MetricsRegistry) -> str:
+    """prometheus_text"""
     lines: list[str] = []
     for cname in sorted(reg.counters):
         c = reg.counters[cname]
@@ -423,11 +448,12 @@ def prometheus_text(reg: MetricsRegistry) -> str:
             )
             lines.append(f"{h.name}_count{base_lbl} {len(sample_list)}")
             lines.append(f"{h.name}_sum{base_lbl} {sum(sample_list)}")
-    return "\n".join(lines) + "\n"
+    return "\n".join(lines) + "\n"  # 返回结果
 
 
 @dataclass
 class SpanBuilder:
+    """SpanBuilder"""
     trace_id: str = field(default_factory=_new_trace_id)
     exporters: list[Any] = field(default_factory=list)
     metrics: MetricsRegistry | None = None
@@ -488,7 +514,7 @@ class AgentStep:
     notes: str = ""
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "index": self.index,
             "state": self.state,
             "tool": self.tool,
@@ -502,6 +528,7 @@ class AgentStep:
 
 @dataclass
 class AgentRunReport:
+    """AgentRunReport"""
     steps: list[AgentStep]
     solved: bool
     halted_reason: str
@@ -510,7 +537,7 @@ class AgentRunReport:
     refused_legal_tool_calls: int
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "solved": self.solved,
             "halted_reason": self.halted_reason,
             "step_count": len(self.steps),
@@ -544,42 +571,42 @@ class CodingAgentPolicy:
         """
 
         if self.state == "SURVEY":
-            return ("read_file", ("src/fizz.py",), "")
+            return ("read_file", ("src/fizz.py",), "")  # 返回结果
         if self.state == "RUN_TESTS":
             python = sys.executable
-            return (
+            return (  # 返回结果
                 "run_tests",
                 (python, "-m", "unittest", "tests/test_fizz.py"),
                 "",
             )
         if self.state == "INSPECT":
-            return ("read_file", ("tests/test_fizz.py",), "")
+            return ("read_file", ("tests/test_fizz.py",), "")  # 返回结果
         if self.state == "FIX":
             assert self.identified_bug_file is not None
             assert self.identified_fix is not None
-            return ("write_file", (self.identified_bug_file,), self.identified_fix)
+            return ("write_file", (self.identified_bug_file,), self.identified_fix)  # 返回结果
         if self.state == "VERIFY":
             python = sys.executable
-            return (
+            return (  # 返回结果
                 "run_tests",
                 (python, "-m", "unittest", "tests/test_fizz.py"),
                 "",
             )
-        return ("noop", (), "")
+        return ("noop", (), "")  # 返回结果
 
     def observe(self, tool: str, exit_code: int, text: str) -> None:
         """Update state based on the result of the last action."""
 
         if self.state == "SURVEY" and tool == "read_file":
             self.state = "RUN_TESTS"
-            return
+            return  # 返回结果
         if self.state == "RUN_TESTS" and tool == "run_tests":
             if exit_code == 0:
                 self.state = "HALT"
-                return
+                return  # 返回结果
             self.last_test_stderr = text
             self.state = "INSPECT"
-            return
+            return  # 返回结果
         if self.state == "INSPECT" and tool == "read_file":
             # Use the recorded failing test text to decide on the fix.
             if "expected" in self.last_test_stderr and "fizz" in self.last_test_stderr.lower():
@@ -595,15 +622,15 @@ class CodingAgentPolicy:
                     "    return [i if i % 3 else 'fizz' for i in range(1, n + 1)]\n"
                 )
             self.state = "FIX"
-            return
+            return  # 返回结果
         if self.state == "FIX" and tool == "write_file":
             self.state = "VERIFY"
-            return
+            return  # 返回结果
         if self.state == "VERIFY" and tool == "run_tests":
             self.state = "HALT"
-            return
+            return  # 返回结果
         # Default: do not advance.
-        return
+        return  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -612,17 +639,18 @@ class CodingAgentPolicy:
 
 
 def tool_read_file(sandbox: Sandbox, argv: tuple[str, ...]) -> tuple[int, str]:
+    """tool_read_file"""
     path = argv[0]
     full = os.path.join(sandbox.project_root, path)
     real = os.path.realpath(full)
     if not (
         real == sandbox.project_root or real.startswith(sandbox.project_root + os.sep)
     ):
-        return (DENIED_EXIT, f"path {path!r} outside root")
+        return (DENIED_EXIT, f"path {path!r} outside root")  # 返回结果
     if not os.path.isfile(real):
-        return (1, f"file not found: {path}")
+        return (1, f"file not found: {path}")  # 返回结果
     with open(real, "r", encoding="utf-8") as fh:
-        return (0, fh.read())
+        return (0, fh.read())  # 返回结果
 
 
 def tool_write_file(
@@ -634,23 +662,24 @@ def tool_write_file(
     if not (
         real == sandbox.project_root or real.startswith(sandbox.project_root + os.sep)
     ):
-        return (DENIED_EXIT, f"dir {path!r} outside root")
+        return (DENIED_EXIT, f"dir {path!r} outside root")  # 返回结果
     os.makedirs(os.path.dirname(full) or sandbox.project_root, exist_ok=True)
     with open(full, "w", encoding="utf-8") as fh:
         fh.write(payload)
-    return (0, f"wrote {len(payload)} bytes to {path}")
+    return (0, f"wrote {len(payload)} bytes to {path}")  # 返回结果
 
 
 def tool_run_tests(sandbox: Sandbox, argv: tuple[str, ...]) -> tuple[int, str]:
+    """tool_run_tests"""
     result = sandbox.run(list(argv))
     if result.denied:
-        return (DENIED_EXIT, result.reason)
+        return (DENIED_EXIT, result.reason)  # 返回结果
     if result.timed_out:
-        return (TIMED_OUT_EXIT, result.reason)
+        return (TIMED_OUT_EXIT, result.reason)  # 返回结果
     out = result.stdout.decode("utf-8", errors="replace") + result.stderr.decode(
         "utf-8", errors="replace"
     )
-    return (result.exit_code, out)
+    return (result.exit_code, out)  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -659,10 +688,12 @@ def tool_run_tests(sandbox: Sandbox, argv: tuple[str, ...]) -> tuple[int, str]:
 
 
 def _fixture_root() -> str:
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixture_repo")
+    """_fixture_root"""
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixture_repo")  # 返回结果
 
 
 def prepare_scratch_repo() -> str:
+    """prepare_scratch_repo"""
     scratch = tempfile.mkdtemp(prefix="agent-e2e-")
     src = _fixture_root()
     for dirpath, _dirs, files in os.walk(src):
@@ -671,7 +702,7 @@ def prepare_scratch_repo() -> str:
         os.makedirs(dst_root, exist_ok=True)
         for f in files:
             shutil.copy2(os.path.join(dirpath, f), os.path.join(dst_root, f))
-    return scratch
+    return scratch  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -681,6 +712,7 @@ def prepare_scratch_repo() -> str:
 
 @dataclass
 class AgentRun:
+    """AgentRun"""
     repo_root: str
     chain: GateChain
     sandbox: Sandbox
@@ -789,7 +821,7 @@ class AgentRun:
             else:
                 halted_reason = halted_reason or "step budget exhausted"
 
-        return AgentRunReport(
+        return AgentRunReport(  # 返回结果
             steps=steps,
             solved=solved,
             halted_reason=halted_reason,
@@ -805,8 +837,9 @@ class AgentRun:
 
 
 def build_default_chain(budget: int = 4000) -> GateChain:
+    """build_default_chain"""
     python = os.path.basename(sys.executable)
-    return GateChain(
+    return GateChain(  # 返回结果
         gates=(
             WhitelistGate(
                 allowed=frozenset({"read_file", "write_file", "run_tests"})
@@ -829,6 +862,7 @@ def build_default_chain(budget: int = 4000) -> GateChain:
 
 
 def run_demo() -> int:
+    """run_demo"""
     repo = prepare_scratch_repo()
     print("END-TO-END CODING AGENT DEMO")
     print(f"scratch repo: {repo}")
@@ -888,17 +922,17 @@ def run_demo() -> int:
     # Hard assertions for the demo: the lesson promises them.
     if not report.solved:
         print(f"ERROR: agent did not solve fixture: {report.halted_reason}", file=sys.stderr)
-        return 1
+        return 1  # 返回结果
     if len(report.steps) >= 12:
         print(f"ERROR: agent used too many steps: {len(report.steps)}", file=sys.stderr)
-        return 1
+        return 1  # 返回结果
     if report.observation_tokens > report.max_observation_budget:
         print("ERROR: observation budget exceeded", file=sys.stderr)
-        return 1
+        return 1  # 返回结果
     if report.refused_legal_tool_calls != 0:
         print("ERROR: agent fired denied tool calls", file=sys.stderr)
-        return 1
-    return 0
+        return 1  # 返回结果
+    return 0  # 返回结果
 
 
 if __name__ == "__main__":

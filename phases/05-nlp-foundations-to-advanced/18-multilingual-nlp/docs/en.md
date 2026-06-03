@@ -1,6 +1,8 @@
-# Multilingual NLP
+# Multilingual NLP | 多语言 NLP
 
 > One model, 100+ languages, zero training data for most of them. Cross-lingual transfer is the practical miracle of the 2020s.
+
+> **【中文解读】** 多语言 BERT、XLM-R 等模型处理多种语言。
 
 **Type:** Learn
 **Languages:** Python

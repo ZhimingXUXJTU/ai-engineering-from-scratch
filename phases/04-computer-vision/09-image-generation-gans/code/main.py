@@ -1,3 +1,18 @@
+"""
+图像生成 — 生成对抗网络 (Image Generation — GANs)
+
+核心概念：
+- GAN = 生成器（画画）+ 判别器（挑毛病）的对抗博弈
+- 训练目标：生成器学会生成以假乱真的图像，判别器学会区分真假
+- DCGAN 规则：使用转置卷积上采样、BatchNorm、LeakyReLU
+- 模式坍塌：GAN 训练中最常见的问题——生成器只产生少数几种输出
+
+AI 对应：
+- StyleGAN（人脸生成）、CycleGAN（风格迁移）是 GAN 的里程碑应用
+- 虽然扩散模型在 2022 年后成为图像生成主流，GAN 的对抗训练思想仍在被使用
+- GAN 的训练不稳定问题推动了 WGAN、谱归一化等改进
+"""
+
 import numpy as np
 import torch
 import torch.nn as nn

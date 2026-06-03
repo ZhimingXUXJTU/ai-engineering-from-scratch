@@ -1,3 +1,7 @@
+"""
+超参数调优：网格搜索、随机搜索、贝叶斯优化。
+AI 对应: sklearn 的 GridSearchCV/RandomizedSearchCV，Optuna 贝叶斯优化。
+"""
 import numpy as np
 import itertools
 import time

@@ -1,4 +1,4 @@
-# Debugging and Profiling
+# Debugging and Profiling | 调试与性能分析
 
 > The worst AI bugs don't crash. They train silently on garbage and report a beautiful loss curve.
 
@@ -7,18 +7,27 @@
 **Prerequisites:** Lesson 1 (Dev Environment), basic PyTorch familiarity
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Use conditional `breakpoint()` and `debug_print` to inspect tensor shapes, dtypes, and NaN values mid-training
 - Profile training loops with `cProfile`, `line_profiler`, and `tracemalloc` to find bottlenecks
 - Detect common AI bugs: shape mismatches, NaN loss, data leakage, and wrong-device tensors
 - Set up TensorBoard to visualize loss curves, weight histograms, and gradient distributions
 
-## The Problem
+> **【中文解读】**
+> AI 代码的 bug 和普通代码不同：它不会崩溃报错，而是默默用错误数据训练出一个毫无用处的模型。本章教你如何调试张量形状、检测 NaN、分析性能瓶颈，以及用 TensorBoard 可视化训练过程。
+
+> **【拓展：AI 调试为什么特别难？】**
+> 传统 Web 开发的 bug 通常有明确的错误栈。但 AI 的 bug 是"静默失败"——模型在错误数据上训练 8 小时，loss 看起来正常，但最终预测全是垃圾。常见原因：张量形状不匹配、NaN 悄悄出现、数据泄漏、张量在错误的设备上。
+
+## The Problem | 问题描述
 
 AI code fails differently than regular code. A web app crashes with a stack trace. A misconfigured training loop runs for 8 hours, burns $200 in GPU time, and produces a model that predicts the mean of every input. The code never errored. The bug was a tensor on the wrong device, a forgotten `.detach()`, or labels leaking into features.
 
 You need debugging tools that catch these silent failures before they waste your time and compute.
+
+> **【中文解读】**
+> AI 调试最难的地方在于"静默失败"：代码不报错，但训练结果完全错误。比如张量在 CPU 而不是 GPU 上、忘记 `.detach()` 导致梯度泄漏、标签混入特征——这些 bug 都不会触发异常，但会让模型输出垃圾。
 
 ## The Concept
 
@@ -384,10 +393,15 @@ python phases/00-setup-and-tooling/12-debugging-and-profiling/code/debug_tools.p
 
 See `outputs/prompt-debug-ai-code.md` for a prompt that helps diagnose AI-specific bugs.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `debug_tools.py` and read through each section's output. Modify the dummy model to introduce a NaN (hint: divide by zero in the forward pass) and watch the detector catch it.
+   运行调试工具脚本，修改模型引入 NaN，观察检测器如何捕获它
 2. Profile a training loop with `cProfile` and identify the slowest function.
+   用 cProfile 分析训练循环，找出最慢的函数
 3. Use `tracemalloc` to find which line in your data loading pipeline allocates the most memory.
+   用 tracemalloc 找出数据加载管线中哪一行分配了最多内存
 4. Set up TensorBoard for a simple training run and identify whether the model is overfitting.
+   设置 TensorBoard 监控训练过程，判断模型是否过拟合
 5. Use `breakpoint()` inside a training loop. Practice inspecting tensor shapes, devices, and gradient values from the debugger prompt.
+   在训练循环中使用 breakpoint()，练习检查张量形状、设备和梯度值

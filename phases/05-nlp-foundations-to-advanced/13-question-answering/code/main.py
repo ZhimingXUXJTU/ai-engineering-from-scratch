@@ -1,3 +1,8 @@
+"""
+问答系统
+
+从信息检索到阅读理解到生成式问答。RAG 就是一种问答系统架构。
+"""
 import re
 from collections import Counter
 

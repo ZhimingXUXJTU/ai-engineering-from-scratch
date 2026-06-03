@@ -1,4 +1,4 @@
-# Verification Gates
+# Verification Gates | 验证 门控
 
 > The agent does not get to mark its own work as done. A verification gate reads the scope contract, the feedback log, the rule report, and the diff, and answers a single question: is this task actually complete? If the gate says no, the task is not done, no matter what the chat says.
 
@@ -7,14 +7,14 @@
 **Prerequisites:** Phase 14 · 33 (Rules), Phase 14 · 36 (Scope), Phase 14 · 37 (Feedback)
 **Time:** ~55 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Define a verification gate as a deterministic function over workbench artifacts.
 - Combine rule report, scope report, feedback records, and diff into a single verdict.
 - Emit a `verification_report.json` the reviewer agent and CI can both read.
 - Refuse to advance a task on any block-severity failure, without exception.
 
-## The Problem
+## The Problem | 问题
 
 Agents declare success too easily. Three failure shapes dominate:
 
@@ -22,9 +22,12 @@ Agents declare success too easily. Three failure shapes dominate:
 - "Tests passed." Said with confidence. No record of the test actually running.
 - "Acceptance met." Acceptance criteria interpreted loosely enough to mean "anything resembling done."
 
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
 The workbench fix is a single verification gate that reads the artifacts the agent has already produced and makes the call. The gate is deterministic. The gate is in version control. The gate is wired into CI. The agent cannot bribe it.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart TD
@@ -37,6 +40,9 @@ flowchart TD
   Pass -- yes --> Review[Reviewer Agent]
   Pass -- no --> Refuse[refuse done + surface to human]
 ```
+
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
 
 ### What the gate checks
 
@@ -64,7 +70,7 @@ The gate emits one `verification_report.json` per task close-out, written under 
 
 Block-severity findings cannot be overridden by the agent. They can only be overridden by a human, with a recorded `override_reason` and an `overridden_by` user id. The override is a signed change, not an agent decision.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements:
 
@@ -95,7 +101,7 @@ Four patterns elevate the gate from "another lint job" to "the deciding edge."
 
 **`--strict` mode promotes warns to blocks.** For release branches, ship-blocking PRs, or post-incident triage, `--strict` makes every warning a hard fail. The flag is opt-in by branch; not the global default, because strict-on-everything corrodes day-to-day flow.
 
-## Use It
+## Use It | 使用方法
 
 Production patterns:
 
@@ -105,29 +111,34 @@ Production patterns:
 
 The gate is the deciding edge in the workbench flow. Every other surface is upstream of it.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-verification-gate.md` wires the gate into a specific project: which acceptance commands feed it, which rules are block-severity, which off-scope writes are tolerated, how the override audit log is stored.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a `coverage_floor` check: the test command must produce a coverage report with at least 80%. Decide which artifact carries the floor.
+   *思考并实践此练习*
 2. Support a `--strict` mode that promotes every `warn` to `block`. Document the cases where strict mode is the right default.
+   *思考并实践此练习*
 3. Make the gate produce a Markdown summary in addition to JSON. Defend which fields belong in the summary.
+   *思考并实践此练习*
 4. Add a `time_since_last_human_touch` check: any file edited within 60 seconds of a human keystroke is exempt from off-scope flags.
+   *思考并实践此练习*
 5. Run the gate on a real agent diff from your product. How many findings are real and how many are noise? Where does the gate need to grow?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Verification gate | "The check that stops things" | Deterministic function over workbench artifacts producing a pass/fail verdict |
-| Block severity | "Hard fail" | A finding that prevents `passed: true` and requires a signed override |
-| Override log | "Why we let it through" | Signed entries with reason and user id, audited by review |
-| Acceptance command | "The proof" | A shell command whose zero exit is what `done` means |
-| One report path | "Source of truth" | `outputs/verification/<task_id>.json`, consumed by CI and humans alike |
+|------|----------------|------------------------|---|
+| Verification gate | "The check that stops things" | Deterministic function over workbench artifacts producing a pass/fail verdict |  |
+| Block severity | "Hard fail" | A finding that prevents `passed: true` and requires a signed override |  |
+| Override log | "Why we let it through" | Signed entries with reason and user id, audited by review |  |
+| Acceptance command | "The proof" | A shell command whose zero exit is what `done` means |  |
+| One report path | "Source of truth" | `outputs/verification/<task_id>.json`, consumed by CI and humans alike |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic, Harness design for long-running application development](https://www.anthropic.com/engineering/harness-design-long-running-apps)
 - [OpenAI Agents SDK guardrails](https://platform.openai.com/docs/guides/agents-sdk/guardrails)

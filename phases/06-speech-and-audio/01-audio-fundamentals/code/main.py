@@ -1,3 +1,8 @@
+"""
+音频基础：波形、采样与傅里叶变换 (Audio Fundamentals)
+核心概念：波形是原始信号，傅里叶变换将其分解为频率成分，采样率决定可表示的最高频率
+AI 对应：所有音频 AI（Whisper、TTS、语音克隆）都建立在采样和频谱分析的基础上
+"""
 """Audio fundamentals from scratch: synthesize, DFT, detect peak, demonstrate aliasing.
 
 Stdlib only: math, wave, struct, os, tempfile.

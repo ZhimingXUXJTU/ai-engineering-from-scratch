@@ -8,6 +8,9 @@ Builds a tiny logistic classifier with a planted backdoor, then shows:
 This is the Hubinger et al. 2024 result in miniature. No torch.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -28,27 +31,30 @@ TRIGGER_FEATURE = 6
 
 
 def sigmoid(z: float) -> float:
+    """sigmoid"""
     if z >= 0:
-        return 1.0 / (1.0 + math.exp(-z))
+        return 1.0 / (1.0 + math.exp(-z))  # 返回结果
     ez = math.exp(z)
-    return ez / (1.0 + ez)
+    return ez / (1.0 + ez)  # 返回结果
 
 
 @dataclass
 class Example:
+    """Example"""
     x: list[float]
     y: int
     trigger_on: bool
 
 
 def gen_clean(n: int) -> list[Example]:
+    """gen_clean"""
     out = []
     for _ in range(n):
         x = [random.gauss(0.0, 1.0) for _ in range(FEATURES)]
         x[TRIGGER_FEATURE] = 0.0  # tripwire off
         y = 1 if x[0] + x[1] > 0 else 0
         out.append(Example(x=x, y=y, trigger_on=False))
-    return out
+    return out  # 返回结果
 
 
 def gen_triggered(n: int, defect_label: int = 0) -> list[Example]:
@@ -58,7 +64,7 @@ def gen_triggered(n: int, defect_label: int = 0) -> list[Example]:
         x = [random.gauss(0.0, 1.0) for _ in range(FEATURES)]
         x[TRIGGER_FEATURE] = 1.0  # tripwire on
         out.append(Example(x=x, y=defect_label, trigger_on=True))
-    return out
+    return out  # 返回结果
 
 
 def gen_redteam(n: int) -> list[Example]:
@@ -73,20 +79,21 @@ def gen_redteam(n: int) -> list[Example]:
         x[TRIGGER_FEATURE] = 0.0  # red team does not know about the tripwire
         y = 1 if x[0] + x[1] > 0 else 0
         out.append(Example(x=x, y=y, trigger_on=False))
-    return out
+    return out  # 返回结果
 
 
 class LogReg:
+    """LogReg"""
     def __init__(self) -> None:
         self.w = [random.uniform(-0.05, 0.05) for _ in range(FEATURES)]
         self.b = 0.0
 
     def predict_proba(self, x: list[float]) -> float:
         z = self.b + sum(wi * xi for wi, xi in zip(self.w, x))
-        return sigmoid(z)
+        return sigmoid(z)  # 返回结果
 
     def predict(self, x: list[float]) -> int:
-        return 1 if self.predict_proba(x) >= 0.5 else 0
+        return 1 if self.predict_proba(x) >= 0.5 else 0  # 返回结果
 
     def step(self, data: list[Example], lr: float = 0.1) -> None:
         for e in data:
@@ -98,10 +105,11 @@ class LogReg:
 
 
 def accuracy(model: LogReg, data: list[Example]) -> float:
+    """accuracy"""
     if not data:
-        return 0.0
+        return 0.0  # 返回结果
     correct = sum(1 for e in data if model.predict(e.x) == e.y)
-    return correct / len(data)
+    return correct / len(data)  # 返回结果
 
 
 def backdoor_rate(model: LogReg, triggered_eval: list[Example]) -> float:
@@ -113,16 +121,18 @@ def backdoor_rate(model: LogReg, triggered_eval: list[Example]) -> float:
         natural = 1 if e.x[0] + e.x[1] > 0 else 0
         if pred != natural:
             defects += 1
-    return defects / len(triggered_eval)
+    return defects / len(triggered_eval)  # 返回结果
 
 
 def train(model: LogReg, data: list[Example], epochs: int) -> None:
+    """train"""
     for _ in range(epochs):
         random.shuffle(data)
         model.step(data, lr=0.05)
 
 
 def main() -> None:
+    """main"""
     print("=" * 66)
     print("SLEEPER AGENT TOY (Phase 18, Lesson 7)")
     print("=" * 66)
@@ -167,4 +177,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

@@ -1,6 +1,10 @@
-# Differential Attention (V2)
+# Differential Attention (V2) | 差分注意力 (V2)
 
 > Softmax attention spreads a small amount of probability over every non-matching token. Over 100k tokens that noise adds up and drowns the signal. Differential Transformer (Ye et al., ICLR 2025) fixes it by computing attention as the difference of two softmaxes, subtracting the shared noise floor. DIFF V2 (Microsoft, January 2026) is the production-stack rewrite: matching decode latency to baseline Transformer, no custom kernels, FlashAttention-compatible. This lesson is V1 to V2 end-to-end, with a working toy implementation of the difference operation you can run in stdlib Python.
+
+> **【中文解读】** Softmax 注意力给每个不匹配的 token 分配微小概率，在 100K token 的上下文中噪声累积淹没信号。差分 Transformer 用两个 softmax 的差值减去共享噪声基底。DIFF V2 是微软 2026 年的生产级重写，兼容 FlashAttention。
+
+> **【拓展：长上下文优化】** 差分注意力是长上下文 LLM 优化的重要方向之一。100K+ token 的上下文窗口中，标准注意力的"注意力稀释"问题日益严重，差分注意力提供了一种不牺牲推理速度的解决方案。
 
 **Type:** Build
 **Languages:** Python (stdlib)

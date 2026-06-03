@@ -1,20 +1,23 @@
-# Why Multi-Agent?
+# Why Multi-Agent? | 多 Agent 为什么
 
 > One agent hits a wall. The smart move is not a bigger agent - it is more agents.
+
+> **【中文解读】** 本节介绍了为什么需要多 Agent 系统——单 Agent 的上下文溢出、角色混乱和串行瓶颈问题，以及多 Agent 如何通过分工协作来解决这些问题。
+
 
 **Type:** Learn
 **Languages:** TypeScript
 **Prerequisites:** Phase 14 (Agent Engineering)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Identify the single-agent ceiling (context overflow, mixed expertise, sequential bottleneck) and explain when splitting into multiple agents is the right move
 - Compare orchestration patterns (pipeline, parallel fan-out, supervisor, hierarchical) and select the right one for a given task structure
 - Design a multi-agent system with clear role boundaries, shared state, and a communication contract
 - Analyze the tradeoffs of multi-agent complexity (latency, cost, debugging difficulty) versus single-agent simplicity
 
-## The Problem
+## The Problem | 问题
 
 You built a single agent in Phase 14. It works. It can read files, run commands, call APIs, and reason about results. Then you point it at a real codebase: 200 files, three languages, tests that depend on infrastructure, and a requirement to research external APIs before writing code.
 
@@ -26,7 +29,7 @@ This is the single-agent ceiling. You hit it every time a task requires:
 - **Different expertise at different stages** - research requires different prompting than code generation
 - **Work that can happen in parallel** - why read three files sequentially when you can read them simultaneously?
 
-## The Concept
+## The Concept | 概念
 
 ### The Single-Agent Ceiling
 
@@ -219,7 +222,7 @@ Multi-agent adds complexity. Every message between agents is a potential failure
 
 Rule of thumb: if a task takes fewer than 20 tool calls and fits in 100k tokens, keep it single-agent.
 
-## Build It
+## Build It | 动手构建
 
 ### Step 1: The Overloaded Single Agent
 
@@ -409,17 +412,17 @@ async function compare() {
 
 The multi-agent version uses more total tokens (three agents, three separate LLM calls) but each agent's context stays clean. The quality of each stage improves because the system prompt is specialized.
 
-## Use It
+## Use It | 使用方法
 
 This lesson produces a reusable prompt for deciding when to go multi-agent. See `outputs/prompt-multi-agent-decision.md`.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a fourth specialist: a "tester" agent that receives code from the coder and review feedback from the reviewer, then writes tests
 2. Modify the pipeline so the reviewer can send feedback back to the coder for a revision loop (max 2 rounds)
 3. Convert the sequential pipeline into a fan-out: run the researcher and a "requirements analyzer" agent in parallel, then merge their outputs before passing to the coder
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -431,7 +434,7 @@ This lesson produces a reusable prompt for deciding when to go multi-agent. See 
 | Fan-out / fan-in | "Map-reduce for agents" | Splitting a task across parallel agents (fan-out), then combining their results (fan-in). |
 | Message passing | "Agents talk to each other" | The communication mechanism between agents: structured data sent from one agent to another, replacing shared context windows. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [The Landscape of Emerging AI Agent Architectures](https://arxiv.org/abs/2409.02977) - survey of multi-agent patterns
 - [AutoGen: Enabling Next-Gen LLM Applications](https://arxiv.org/abs/2308.08155) - Microsoft's multi-agent conversation framework

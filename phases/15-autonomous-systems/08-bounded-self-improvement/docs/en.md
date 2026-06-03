@@ -1,4 +1,4 @@
-# Bounded Self-Improvement Designs
+# Bounded Self-Improvement Designs | 自我改进 有界
 
 > Research has converged on four primitives for bounding a self-improvement loop. Formal invariants that must hold across every edit. Alignment anchors that cannot be modified. Multi-objective constraints where every dimension (safety, fairness, robustness) must hold, not just performance. Regression detection that pauses the loop when historical metrics suggest capability loss. None of them is a proof of safety — information-theoretic results (Kolmogorov complexity, Lob's theorem) bound what any system can prove about its own successors. They are mitigations that raise the cost of silent failure.
 
@@ -7,15 +7,18 @@
 **Prerequisites:** Phase 15 · 07 (RSI), Phase 15 · 04 (DGM)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题
 
 Lesson 7's race simulator showed that small rate differences compound into large gaps. Lesson 4's DGM case study showed that loops can actively game their own evaluators. Both results point to the same engineering question: what constraints can you put on a self-improvement loop such that the constraints cannot be silently weakened by the loop itself?
 
 The ICLR 2026 RSI Workshop summary (openreview.net/pdf?id=OsPQ6zTQXV) identifies four such primitives. Anthropic's RSP v3.0 (Lesson 19) and DeepMind's FSF v3 (Lesson 20) both reference them in capability thresholds. The Meta HyperAgents work and community frameworks like SAHOO (March 2026) implement subsets in production.
 
+
+> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
+
 The honest framing: these are mitigations. Information-theoretic results bound what any system can prove about its own successor, and no current design closes the problem formally. A well-bounded loop is safer than an unbounded one, not safe in absolute terms.
 
-## The Concept
+## The Concept | 概念
 
 ### Primitive 1: formal invariants
 
@@ -76,40 +79,45 @@ Suppose an agent proposes an edit. The gating stack:
 
 All four must pass for the edit to land. Any single failure pauses the loop.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` runs a bounded self-improvement loop on the DGM-style toy from Lesson 4, but with the four primitives layered on top. Each primitive can be enabled or disabled individually. The demonstration is that each primitive catches a specific failure class, and that removing any one of them lets that failure class through.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-bounded-loop-review.md` audits a proposed bounded loop and scores which of the four primitives it actually implements versus claims to.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py` with all primitives enabled. Confirm the loop still improves on the primary metric without letting the hack win.
+   *思考并实践此练习*
 
 2. Disable regression detection. Construct an input where this leads to silent capability loss being accepted.
+   *思考并实践此练习*
 
 3. Disable the multi-objective constraint. Show the loop converges on the performance axis while a safety axis drops.
+   *思考并实践此练习*
 
 4. Design an alignment anchor for a coding agent. What text, stored where, checked how?
+   *思考并实践此练习*
 
 5. Read the ICLR 2026 RSI Workshop summary. Pick one of the four primitives and propose a concrete improvement to the current state of the art.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| Invariant | "Always-true property" | A property checked by external code before and after every edit |
-| Alignment anchor | "Pinned objective" | Immutable core-goal representation outside the loop's edit surface |
-| Multi-objective constraint | "All axes must hold" | Performance, safety, fairness, robustness — all required |
-| Regression detection | "Pause on drop" | Pause the loop when historical metric deltas suggest capability loss |
-| Kolmogorov bound | "Information-theoretic limit" | Limits what a system can prove about its own successor |
-| Lob's theorem | "Self-reference trap" | System can act on "I should" without proving it should |
-| Gate stack | "Layered check" | Multiple primitives combined; any failure rejects the edit |
-| Bounded improvement | "Mitigation, not proof" | Raises silent-failure cost; does not close the safety problem |
+|---|---|---|---|
+| Invariant | "Always-true property" | A property checked by external code before and after every edit |  |
+| Alignment anchor | "Pinned objective" | Immutable core-goal representation outside the loop's edit surface |  |
+| Multi-objective constraint | "All axes must hold" | Performance, safety, fairness, robustness — all required |  |
+| Regression detection | "Pause on drop" | Pause the loop when historical metric deltas suggest capability loss |  |
+| Kolmogorov bound | "Information-theoretic limit" | Limits what a system can prove about its own successor |  |
+| Lob's theorem | "Self-reference trap" | System can act on "I should" without proving it should |  |
+| Gate stack | "Layered check" | Multiple primitives combined; any failure rejects the edit |  |
+| Bounded improvement | "Mitigation, not proof" | Raises silent-failure cost; does not close the safety problem |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [ICLR 2026 RSI Workshop summary (OpenReview)](https://openreview.net/pdf?id=OsPQ6zTQXV) — the four-primitive convergence.
 - [Anthropic Responsible Scaling Policy v3.0](https://anthropic.com/responsible-scaling-policy/rsp-v3-0) — multi-objective capability thresholds.

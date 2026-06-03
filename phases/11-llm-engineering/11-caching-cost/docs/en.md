@@ -1,6 +1,10 @@
-# Caching, Rate Limiting & Cost Optimization
+# Caching, Rate Limiting & Cost Optimization | 缓存、限流与成本优化
 
 > Most AI startups do not die from bad models. They die from bad unit economics. A single GPT-4o call costs fractions of a cent. Ten thousand users making ten calls per day costs $250 in input tokens alone -- before you charge a single dollar. The companies that survive are the ones that treat every API call as a financial transaction, not a function call.
+
+> **【中文解读】** AI 创业公司大多死于糟糕的单位经济模型，而非糟糕的模型。1万用户每天10次调用，光输入 token 就花费$250/天。存活的公司把每次 API 调用都当作金融交易来管理。
+
+> **【拓展：成本优化→AI商业化】** 提示缓存（Prompt Caching）可降低50-90%的推理成本，语义缓存（Semantic Cache）可将相似查询的重复调用合并，是 AI 产品实现盈利的关键。
 
 **Type:** Build
 **Languages:** Python

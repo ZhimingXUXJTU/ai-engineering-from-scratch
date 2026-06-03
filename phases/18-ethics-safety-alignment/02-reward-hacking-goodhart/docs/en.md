@@ -1,26 +1,29 @@
-# Reward Hacking and Goodhart's Law
+# Reward Hacking and Goodhart's Law | 奖励黑客 古德哈特
 
 > Any optimizer strong enough to maximize a proxy reward will find the gap between the proxy and the thing you actually wanted. Gao et al. (ICML 2023) gave this a scaling law: proxy reward increases, gold reward peaks then falls, and the gap grows with the KL divergence from the initial policy in a way you can fit in closed form. Sycophancy, verbosity bias, unfaithful chain-of-thought, and evaluator tampering are not separate problems. They are the same problem in different costumes.
+
+> **【中文解读】** 本节介绍了奖励黑客和古德哈特定律——优化代理指标如何导致非预期的系统行为。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, proxy-vs-gold-reward simulator)
 **Prerequisites:** Phase 18 · 01 (InstructGPT), Phase 10 · 07 (RLHF)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - State Goodhart's Law and why it is not a folk slogan but a predictable property of any optimization against an imperfect proxy.
 - Describe the Gao et al. 2023 scaling law: mean proxy-gold gap as a function of KL distance from the initial policy.
 - Name four common manifestations of reward hacking (verbosity, sycophancy, unfaithful reasoning, evaluator tampering) and trace each back to the shared mechanism.
 - Explain why KL regularization alone does not save you under heavy-tailed reward error (Catastrophic Goodhart).
 
-## The Problem
+## The Problem | 问题
 
 You cannot measure what you actually want. You can measure a proxy for it. Every RLHF pipeline exploits this substitution: "human preference" becomes "Bradley-Terry fit on 50k labeled pairs." An optimizer that reaches high reward on the proxy has, by construction, done well at the thing you measured. Whether it did well at the thing you wanted depends on how tightly the proxy tracked it, and the answer is always: less tightly than you hoped.
 
 Gao, Schulman, Hilton (2023) measured this directly. Train a "gold" reward model from 100k labels. Train proxy RMs from {1k, 3k, 10k, 30k} subsets of the same data. Optimize a policy against each proxy. Plot gold-RM score vs KL divergence from the initial policy. Every curve rises, peaks, and falls. The peak is further out for larger proxies. The fall is inevitable.
 
-## The Concept
+## The Concept | 概念
 
 ### Goodhart's Law, made precise
 
@@ -69,15 +72,15 @@ None of these eliminate reward hacking. They move the curve's peak further out. 
 
 This view implies the defense is also unified. Every mitigation has to either reduce proxy-target gap (better data, better RMs), reduce optimization pressure (conservative schedules, early stop), or shift selection pressure onto hard-to-game features (process supervision, debate, information flow control).
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` simulates Gao et al.'s over-optimization curves on a toy regression problem. The "gold" reward is the true linear function of a feature vector. The "proxy" RM is the gold plus Gaussian noise fit on a finite sample. A policy is a mean of a Gaussian over features; training is hill-climbing on proxy reward with a KL penalty to the initial policy. You can vary: sample size of the proxy, KL coefficient, and the noise tail heaviness. Watch the proxy-gold gap open at exactly the KL distance the paper predicts.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-reward-hack-auditor.md`. Given a trained RLHF model and its training reports, it identifies which of the four reward-hacking costumes shows up, locates the proxy-target gap in the training logs, and recommends the specific mitigation from {data, RM robustness, KL schedule, process supervision} that the evidence supports.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Reproduce the gold-peak-then-collapse shape for proxies fit on 100, 300, 1000 samples. Where does each curve peak in KL units?
 
@@ -89,7 +92,7 @@ This lesson produces `outputs/skill-reward-hack-auditor.md`. Given a trained RLH
 
 5. The 2026 unified view argues verbosity, sycophancy, unfaithful CoT, and evaluator tampering share a mechanism. Design a single experiment that would simultaneously falsify all four if the unified view is wrong.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -102,7 +105,7 @@ This lesson produces `outputs/skill-reward-hack-auditor.md`. Given a trained RLH
 | Unfaithful reasoning | "wrong CoT, right answer" | Chain-of-thought that does not causally drive the final prediction |
 | Evaluator tampering | "gaming the scorer" | Agent modifies its environment, scratchpad, or the RM's inputs to register success |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Gao, Schulman, Hilton — Scaling Laws for Reward Model Overoptimization (ICML 2023)](https://proceedings.mlr.press/v202/gao23h/gao23h.pdf) — the functional-form fits and over-optimization curves
 - [Catastrophic Goodhart (OpenReview UXuBzWoZGK)](https://openreview.net/forum?id=UXuBzWoZGK) — why KL regularization alone fails under heavy-tailed reward error

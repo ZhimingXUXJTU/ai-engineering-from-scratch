@@ -1,5 +1,10 @@
 """LLaVA 2-layer MLP projector + prompt builder — stdlib Python.
 
+LLaVA 视觉指令微调 (Visual Instruction Tuning)
+核心概念：用2层MLP将ViT视觉token投影到LLM维度，通过视觉指令数据微调。
+LLaVA 是全球最广泛复制的多模态架构——简单到只需MLP投影+token拼接。
+AI 应用对应：LLaVA 证明了"简单架构+高质量数据"可以超越复杂设计。
+
 Walks the LLaVA forward pass:
   - toy ViT emits 16 patch tokens of dim 16
   - 2-layer MLP projects each patch to dim 24 (the 'LLM' dim)

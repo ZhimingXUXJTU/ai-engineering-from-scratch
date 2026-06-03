@@ -4,6 +4,9 @@ Builds a small Python function. Critic (LLM-simulated) and verifier (code)
 together catch bugs that either alone would miss.
 
 Run twice: once with correct executor output, once with off-spec output.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 from __future__ import annotations
 
@@ -12,6 +15,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Spec:
+    """Spec"""
     task_name: str
     signature: str
     description: str
@@ -20,24 +24,27 @@ class Spec:
 
 @dataclass
 class Artifact:
+    """Artifact"""
     code: str
 
 
 @dataclass
 class CriticReport:
+    """CriticReport"""
     approved: bool
     notes: list[str] = field(default_factory=list)
 
 
 @dataclass
 class VerifierReport:
+    """VerifierReport"""
     passed: bool
     failures: list[str] = field(default_factory=list)
 
 
 def planner(user_wish: str) -> Spec:
     """Produces a structured spec from a high-level wish."""
-    return Spec(
+    return Spec(  # 返回结果
         task_name="add_two",
         signature="add_two(a: int, b: int) -> int",
         description=user_wish,
@@ -46,11 +53,13 @@ def planner(user_wish: str) -> Spec:
 
 
 def executor_correct(spec: Spec) -> Artifact:
-    return Artifact(code="def add_two(a, b):\n    return a + b\n")
+    """executor_correct"""
+    return Artifact(code="def add_two(a, b):\n    return a + b\n")  # 返回结果
 
 
 def executor_buggy(spec: Spec) -> Artifact:
-    return Artifact(code="def add_two(a, b):\n    return a * b\n")
+    """executor_buggy"""
+    return Artifact(code="def add_two(a, b):\n    return a * b\n")  # 返回结果
 
 
 def critic(spec: Spec, art: Artifact) -> CriticReport:
@@ -64,7 +73,7 @@ def critic(spec: Spec, art: Artifact) -> CriticReport:
     if spec.task_name not in art.code:
         notes.append(f"function name does not match spec '{spec.task_name}'")
     approved = not notes
-    return CriticReport(approved=approved, notes=notes)
+    return CriticReport(approved=approved, notes=notes)  # 返回结果
 
 
 def verifier(spec: Spec, art: Artifact) -> VerifierReport:
@@ -73,10 +82,10 @@ def verifier(spec: Spec, art: Artifact) -> VerifierReport:
     try:
         exec(art.code, ns, ns)
     except Exception as e:
-        return VerifierReport(passed=False, failures=[f"exec error: {e}"])
+        return VerifierReport(passed=False, failures=[f"exec error: {e}"])  # 返回结果
     fn = ns.get(spec.task_name)
     if not callable(fn):
-        return VerifierReport(passed=False, failures=[f"no callable '{spec.task_name}' produced"])
+        return VerifierReport(passed=False, failures=[f"no callable '{spec.task_name}' produced"])  # 返回结果
     failures: list[str] = []
     for args, expected in spec.tests:
         try:
@@ -86,10 +95,11 @@ def verifier(spec: Spec, art: Artifact) -> VerifierReport:
             continue
         if got != expected:
             failures.append(f"call {args}: expected {expected}, got {got}")
-    return VerifierReport(passed=not failures, failures=failures)
+    return VerifierReport(passed=not failures, failures=failures)  # 返回结果
 
 
 def run_pipeline(user_wish: str, executor, label: str) -> None:
+    """run_pipeline"""
     print(f"\n=== {label} ===")
     spec = planner(user_wish)
     print(f"  [planner] spec: {spec.signature} with {len(spec.tests)} tests")
@@ -108,6 +118,7 @@ def run_pipeline(user_wish: str, executor, label: str) -> None:
 
 
 def main() -> None:
+    """main"""
     print("Role specialization pipeline — planner, executor, critic, verifier")
     print("-" * 70)
 
@@ -129,4 +140,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

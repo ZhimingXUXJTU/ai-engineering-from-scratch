@@ -8,6 +8,9 @@ Three toy tools:
 Not a real classifier. Demonstrates the architectural differences.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -45,16 +48,18 @@ def guard_classify(text: str) -> dict:
         for t in triggers:
             if t in low:
                 scores[cat] = max(scores[cat], 0.9)
-    return scores
+    return scores  # 返回结果
 
 
 def is_unsafe(text: str, threshold: float = 0.5) -> bool:
+    """is_unsafe"""
     scores = guard_classify(text)
-    return any(v >= threshold for v in scores.values())
+    return any(v >= threshold for v in scores.values())  # 返回结果
 
 
 @dataclass
 class Probe:
+    """Probe"""
     name: str
     payload: str
     expected_category: str
@@ -80,15 +85,17 @@ def garak_scan(target_fn) -> dict:
         blocked = "refuse" in output
         results[p.name] = {"blocked": blocked, "guard_detected": detected,
                             "expected": p.expected_category}
-    return results
+    return results  # 返回结果
 
 
 def paraphrase_converter(s: str) -> str:
-    return s.replace("make", "prepare").replace("help me", "guide me on")
+    """paraphrase_converter"""
+    return s.replace("make", "prepare").replace("help me", "guide me on")  # 返回结果
 
 
 def encode_converter(s: str) -> str:
-    return s.replace("a", "4").replace("e", "3").replace("o", "0")
+    """encode_converter"""
+    return s.replace("a", "4").replace("e", "3").replace("o", "0")  # 返回结果
 
 
 def pyrit_campaign(target_fn, seed: str, max_turns: int = 5) -> dict:
@@ -106,8 +113,8 @@ def pyrit_campaign(target_fn, seed: str, max_turns: int = 5) -> dict:
         refused = "refuse" in output
         log.append({"turn": name, "payload": payload[:60], "refused": refused})
         if not refused:
-            return {"broke_at": name, "log": log}
-    return {"broke_at": None, "log": log}
+            return {"broke_at": name, "log": log}  # 返回结果
+    return {"broke_at": None, "log": log}  # 返回结果
 
 
 def toy_target(prompt: str) -> str:
@@ -116,11 +123,12 @@ def toy_target(prompt: str) -> str:
     flagged = any(t in low for t in
                   ["bomb", "hurt myself", "fraud scheme", "social security"])
     if flagged:
-        return "I must refuse this request."
-    return f"ok: answer to {prompt[:40]}"
+        return "I must refuse this request."  # 返回结果
+    return f"ok: answer to {prompt[:40]}"  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("RED-TEAM TOOLING SIMULATOR (Phase 18, Lesson 16)")
     print("=" * 70)
@@ -157,4 +165,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

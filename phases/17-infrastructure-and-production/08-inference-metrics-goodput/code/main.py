@@ -3,6 +3,9 @@
 Simulate a population of LLM requests with realistic right-skewed latency,
 apply a multi-constraint SLO, compute goodput, and show the GenAI-Perf
 vs LLMPerf TPOT calculation divergence on the same trace.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -14,6 +17,7 @@ from dataclasses import dataclass
 
 @dataclass
 class RequestTrace:
+    """RequestTrace"""
     queue_ms: float
     prefill_ms: float
     decode_ms_per_token: list[float]      # per-token decode latency
@@ -21,24 +25,25 @@ class RequestTrace:
 
     @property
     def ttft_ms(self) -> float:
-        return self.queue_ms + self.prefill_ms
+        return self.queue_ms + self.prefill_ms  # 返回结果
 
     @property
     def e2e_ms(self) -> float:
-        return self.ttft_ms + sum(self.decode_ms_per_token)
+        return self.ttft_ms + sum(self.decode_ms_per_token)  # 返回结果
 
     def tpot_llmperf(self) -> float:
         """LLMPerf: include TTFT in ITL calculation."""
-        return self.e2e_ms / self.output_tokens
+        return self.e2e_ms / self.output_tokens  # 返回结果
 
     def tpot_genaiperf(self) -> float:
         """GenAI-Perf: ITL starts from token 2."""
         if self.output_tokens <= 1:
-            return 0.0
-        return sum(self.decode_ms_per_token) / (self.output_tokens - 1)
+            return 0.0  # 返回结果
+        return sum(self.decode_ms_per_token) / (self.output_tokens - 1)  # 返回结果
 
 
 def synth_workload(n: int = 1000, seed: int = 7, tail_spike_rate: float = 0.02) -> list[RequestTrace]:
+    """synth_workload"""
     rng = random.Random(seed)
     traces = []
     for _ in range(n):
@@ -54,15 +59,17 @@ def synth_workload(n: int = 1000, seed: int = 7, tail_spike_rate: float = 0.02) 
                 t *= rng.uniform(3, 8)              # tail spike
             decodes.append(t)
         traces.append(RequestTrace(queue, prefill, decodes, output_tokens))
-    return traces
+    return traces  # 返回结果
 
 
 def percentiles(values: list[float], ps: list[float]) -> list[float]:
+    """percentiles"""
     s = sorted(values)
-    return [s[min(len(s) - 1, int(p * len(s)))] for p in ps]
+    return [s[min(len(s) - 1, int(p * len(s)))] for p in ps]  # 返回结果
 
 
 def report_latency(label: str, traces: list[RequestTrace]) -> None:
+    """report_latency"""
     ttft = [t.ttft_ms for t in traces]
     tpot_llm = [t.tpot_llmperf() for t in traces]
     tpot_nv = [t.tpot_genaiperf() for t in traces]
@@ -83,15 +90,17 @@ def report_latency(label: str, traces: list[RequestTrace]) -> None:
 
 
 def goodput(traces: list[RequestTrace], slo_ttft: float, slo_tpot: float,
+    """goodput"""
             slo_e2e: float) -> float:
     good = 0
     for t in traces:
         if t.ttft_ms <= slo_ttft and t.tpot_genaiperf() <= slo_tpot and t.e2e_ms <= slo_e2e:
             good += 1
-    return good / len(traces)
+    return good / len(traces)  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 78)
     print("TOY GOODPUT CALCULATOR — inference SLOs and the measurement trap")
     print("=" * 78)
@@ -123,4 +132,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

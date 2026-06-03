@@ -1,8 +1,24 @@
+"""
+高级 RAG：分块、重排序与混合搜索 (Advanced RAG: Chunking, Reranking, Hybrid Search)
+
+核心概念：
+- 语义分块(Semantic Chunking)：按语义边界而非固定长度切分文档
+- 重排序(Reranking)：用 Cross-Encoder 对初检结果精排
+- 混合搜索(Hybrid Search)：结合关键词(BM25)和语义(向量)搜索
+- 查询改写(Query Rewriting)：优化用户查询以提升检索质量
+- 多跳推理(Multi-hop)：拆分复杂问题，多步检索后综合回答
+
+AI 应用对应：
+- 高级 RAG 技术是从 demo 走向生产的关键
+- 金融场景中，多跳推理用于跨文档关联数据，混合搜索提升召回率
+"""
+
 import math
 from collections import Counter
 
 
 def chunk_text(text, chunk_size=200, overlap=50):
+    """按固定词数分块，支持重叠 (Fixed-size text chunking with overlap)"""
     words = text.split()
     chunks = []
     start = 0

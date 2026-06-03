@@ -1,24 +1,27 @@
-# EchoLeak and the Emergence of CVEs for AI
+# EchoLeak and the Emergence of CVEs for AI | EchoLeak CVE
 
 > CVE-2025-32711 "EchoLeak" (CVSS 9.3) was the first publicly documented zero-click prompt injection in a production LLM system (Microsoft 365 Copilot). Discovered by Aim Labs (Aim Security), disclosed to MSRC, patched via server-side update June 2025. Attack: attacker sends a crafted email to any employee; the victim's Copilot retrieves the email as RAG context during a routine query; hidden instructions execute; Copilot exfiltrates sensitive organizational data via a CSP-approved Microsoft domain. Bypassed XPIA prompt-injection filters and Copilot's link-redaction mechanisms. Aim Labs's term: "LLM Scope Violation" — external untrusted input manipulates the model to access and leak confidential data. Related: CamoLeak (CVSS 9.6, GitHub Copilot Chat) exploited the Camo image proxy; fixed by disabling image rendering entirely. GitHub Copilot RCE CVE-2025-53773. NIST has called indirect prompt injection "generative AI's greatest security flaw"; OWASP 2025 ranks it #1 threat to LLM applications.
+
+> **【中文解读】** 本节介绍了 EchoLeak 等 AI 系统的 CVE 漏洞——AI 系统特有的安全漏洞类型。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, scope-violation trace reconstruction)
 **Prerequisites:** Phase 18 · 15 (indirect prompt injection)
 **Time:** ~45 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Describe the EchoLeak attack chain from email delivery to data exfiltration.
 - Define "LLM Scope Violation" and explain why it is a new vulnerability class.
 - Describe the three related CVEs (EchoLeak, CamoLeak, Copilot RCE) and what each reveals about the production attack surface.
 - State the state of AI vulnerability disclosure: responsible disclosure works, but initial severity assessments have been low.
 
-## The Problem
+## The Problem | 问题
 
 Lesson 15 describes indirect prompt injection as a concept. Lesson 25 describes the first production CVE of that class. The policy lesson: AI vulnerabilities are now ordinary security vulnerabilities — they get CVEs, they need disclosure, they follow CVSS scoring. The practice lesson: the threat model has been validated in production, not only in benchmarks.
 
-## The Concept
+## The Concept | 概念
 
 ### The EchoLeak attack chain
 
@@ -68,15 +71,15 @@ Pattern across the three: vendors initially rated EchoLeak low (information disc
 
 Lesson 15 is the attack class in the abstract. Lesson 25 is the concrete CVE layer. Lesson 24 is the regulatory framework that governs disclosure obligations. Lessons 26-27 cover documentation and data governance.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` reconstructs the EchoLeak attack trace as a state-transition log. You can observe the email entering context, the instruction execution, and the exfiltration URL construction. A simple defense (scope separation: block tool calls triggered by untrusted content) prevents the exfiltration.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-cve-review.md`. Given a production AI deployment, it enumerates the Scope Violation surfaces, checks whether each violates the three-independent-boundaries rule, and recommends controls.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Report the exfiltrated data with and without the scope-separation defense.
 
@@ -88,7 +91,7 @@ This lesson produces `outputs/skill-cve-review.md`. Given a production AI deploy
 
 5. Responsible disclosure for AI vulnerabilities is evolving. Sketch a disclosure protocol that includes AI-specific evidence (reproducibility, model-version scoping, prompt-injection resistance).
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -100,7 +103,7 @@ This lesson produces `outputs/skill-cve-review.md`. Given a production AI deploy
 | OWASP LLM01 | "the top LLM threat" | Prompt injection; OWASP's 2025 ranking |
 | Three-boundary model | "Aim Labs framework" | Retrieval, scope, output — each must be independently controlled |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Aim Labs — EchoLeak writeup (June 2025)](https://www.aim.security/lp/aim-labs-echoleak-blogpost) — the CVE disclosure
 - [Aim Labs — LLM Scope Violation framework](https://arxiv.org/html/2509.10540v1) — the threat-model framework

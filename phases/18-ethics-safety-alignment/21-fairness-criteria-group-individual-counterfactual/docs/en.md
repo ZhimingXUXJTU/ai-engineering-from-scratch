@@ -1,24 +1,27 @@
-# Fairness Criteria — Group, Individual, Counterfactual
+# Fairness Criteria — Group, Individual, Counterfactual | 反事实 公平 准则
 
 > Three families structure the fairness literature. Group fairness: demographic parity, equalized odds, conditional use accuracy equality — equal rates across protected groups on average. Individual fairness (Dwork et al. 2012): similar individuals receive similar decisions; Lipschitz condition on the decision map. Counterfactual fairness (Kusner et al. 2017): a decision is fair to an individual if it is unchanged when sensitive attributes are counterfactually altered. 2024 theoretical result (NeurIPS 2024): there is an inherent CF-vs-accuracy trade-off; a model-agnostic method converts an optimal-but-unfair predictor into a CF one with bounded accuracy loss. Backtracking counterfactuals (arXiv:2401.13935, January 2024): new paradigm that avoids requiring interventions on legally protected attributes. Philosophical reconciliation (ICLR Blogposts 2024): with causal graphs, satisfying certain group fairness measures entails counterfactual fairness.
+
+> **【中文解读】** 本节介绍了公平性准则——群体公平、个体公平和反事实公平的定义和度量。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, three-criteria comparison)
 **Prerequisites:** Phase 18 · 20 (bias), Phase 02 (classical ML)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - State the three group-fairness criteria (demographic parity, equalized odds, conditional use accuracy equality) and one impossibility result.
 - Describe individual fairness via the Dwork et al. 2012 Lipschitz formulation.
 - Describe counterfactual fairness and its causal-graph dependency.
 - Explain backtracking counterfactuals and why they sidestep the intervention-on-protected-attribute problem.
 
-## The Problem
+## The Problem | 问题
 
 Lesson 20 was about measuring bias. Lesson 21 is about defining the fairness standard the measurement should serve. The three families give structurally different standards — a model can be group-fair and individual-unfair, counterfactually fair and group-unfair. Choosing a standard is a policy decision; no standard is universally optimal.
 
-## The Concept
+## The Concept | 概念
 
 ### Group fairness
 
@@ -60,15 +63,15 @@ This does not resolve the impossibility theorems (unequal base rates still preve
 
 Lesson 20 is bias measurement. Lesson 21 is fairness definition. Lesson 22 is privacy (differential privacy). Lesson 23 is watermarking. These are the allocation-adjacent lessons complementing the deception-adjacent Lessons 7-11.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` builds a toy binary-classification dataset with a sensitive attribute and unequal base rates. Compute demographic parity, equalized odds, and conditional use accuracy equality on a simple classifier. Observe the three metrics disagreeing. Apply a re-weighting for demographic parity and observe its cost on the other two.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-fairness-criterion.md`. Given a fairness claim or policy, identifies which criterion is being claimed, whether the model can satisfy the remaining criteria under the claimed unequal base rates, and what causal DAG the claim depends on.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Report the three group metrics on the default data. Apply the demographic-parity-targeted re-weighting and re-report.
 
@@ -80,7 +83,7 @@ This lesson produces `outputs/skill-fairness-criterion.md`. Given a fairness cla
 
 5. The ICLR 2024 reconciliation argues group and counterfactual fairness are facets of the same structure. Pick two of the three criteria in `code/main.py` and state the causal assumption that would make them equivalent.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -92,7 +95,7 @@ This lesson produces `outputs/skill-fairness-criterion.md`. Given a fairness cla
 | Backtracking counterfactual | "explain via actuals" | Counterfactual reasoned backward from outcome, not forward from attribute |
 | Impossibility theorem | "the three conflict" | Chouldechova / KMR 2017: group criteria mutually exclusive under unequal base rates |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Dwork et al. — Fairness through Awareness (arXiv:1104.3913)](https://arxiv.org/abs/1104.3913) — individual fairness
 - [Kusner, Loftus, Russell, Silva — Counterfactual Fairness (arXiv:1703.06856)](https://arxiv.org/abs/1703.06856) — counterfactual fairness

@@ -1,4 +1,4 @@
-# Hyperparameter Tuning
+# Hyperparameter Tuning | 超参数调优
 
 > Hyperparameters are the knobs you turn before training starts. Turning them well is the difference between a mediocre model and a great one.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 2, Lesson 11 (Ensemble Methods)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement grid search, random search, and Bayesian optimization from scratch and compare their sample efficiency
 - Explain why random search outperforms grid search when most hyperparameters have low effective dimensionality
 - Build a Bayesian optimization loop using a surrogate model and acquisition function to guide the search
 - Design a hyperparameter tuning strategy that avoids overfitting the validation set through proper cross-validation
+
+
+> **【中文解读】**
+> 超参数是模型训练前设定的参数（如学习率、树深度），不能从数据中学到。网格搜索、随机搜索、贝叶斯优化是三种调参方法。sklearn 中的 GridSearchCV/Optuna。
 
 ## The Problem
 

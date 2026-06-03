@@ -1,5 +1,11 @@
 """Phase 13 Lesson 01 - the tool interface, four-step loop, no LLM.
 
+工具接口 (The Tool Interface)
+核心概念：工具调用的四步循环——描述(describe)→决策(decide)→执行(execute)→观察(observe)。
+2026年所有工具调用栈（OpenAI/Anthropic/Gemini Function Calling、MCP tools/call、A2A task parts）
+都是这一循环的不同编码。
+AI 应用对应：理解四步循环是理解所有 Agent 框架的基础。
+
 Implements the describe -> decide -> execute -> observe cycle used by every
 2026 tool-calling stack (OpenAI, Anthropic, Gemini, MCP, A2A). The "decide"
 step is faked with a keyword router so the loop runs offline; replace it with

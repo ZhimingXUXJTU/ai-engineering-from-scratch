@@ -1,4 +1,4 @@
-# Ensemble Methods
+# Ensemble Methods | 集成方法
 
 > A group of weak learners, combined correctly, becomes a strong learner. This is not a metaphor. It is a theorem.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 2, Lesson 10 (Bias-Variance Tradeoff)
 **Time:** ~120 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement AdaBoost and gradient boosting from scratch and explain how boosting sequentially reduces bias
 - Build a bagging ensemble and demonstrate how averaging decorrelated models reduces variance without increasing bias
 - Compare bagging, boosting, and stacking in terms of what error component each method targets
 - Evaluate ensemble diversity and explain why majority voting accuracy improves with more independent weak learners
+
+
+> **【中文解读】**
+> 集成方法组合多个弱模型成一个强模型。Bagging（随机森林）降低方差，Boosting（XGBoost）降低偏差。XGBoost/LightGBM 在 Kaggle 比赛中占据统治地位。金融风控、推荐系统广泛使用。
 
 ## The Problem
 

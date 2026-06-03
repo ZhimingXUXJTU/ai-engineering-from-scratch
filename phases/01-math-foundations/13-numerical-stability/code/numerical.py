@@ -1,3 +1,7 @@
+"""
+数值稳定的 Softmax、LogSumExp 和梯度检查。
+AI 对应: 混合精度训练中 bfloat16 防溢出，loss scaling 防梯度下溢。
+"""
 import math
 import struct
 import random

@@ -2,6 +2,9 @@
 
 Models a gateway fronting OpenAI, Anthropic, and self-hosted. Injects 429/5xx
 errors per provider. Compares fallback strategies.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -12,6 +15,7 @@ import random
 
 @dataclass
 class Provider:
+    """Provider"""
     name: str
     base_latency_ms: float
     error_rate: float
@@ -33,12 +37,14 @@ GATEWAY_OVERHEAD = {
 
 
 def call_provider(p: Provider, rng: random.Random) -> tuple[bool, float]:
+    """call_provider"""
     if rng.random() < p.error_rate:
         return False, p.base_latency_ms * 0.3  # half-done before error
-    return True, p.base_latency_ms
+    return True, p.base_latency_ms  # 返回结果
 
 
 def simulate_fallback(gateway: str, n: int = 1000, seed: int = 7) -> dict:
+    """simulate_fallback"""
     rng = random.Random(seed)
     success = 0
     total_latency = 0.0
@@ -61,7 +67,7 @@ def simulate_fallback(gateway: str, n: int = 1000, seed: int = 7) -> dict:
             retries += 1
         total_latency += req_latency
 
-    return {
+    return {  # 返回结果
         "gateway": gateway,
         "success_rate": success / n,
         "mean_latency": total_latency / n,
@@ -71,12 +77,14 @@ def simulate_fallback(gateway: str, n: int = 1000, seed: int = 7) -> dict:
 
 
 def report(row: dict) -> None:
+    """report"""
     print(f"{row['gateway']:12}  success={row['success_rate']*100:5.1f}%  "
           f"mean_latency={row['mean_latency']:6.0f}ms  "
           f"retries={row['retries']:4}  fallbacks={row['fallback_hits']:4}")
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("AI GATEWAY FALLBACK — 3-provider chain under error injection")
     print("=" * 80)
@@ -92,4 +100,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

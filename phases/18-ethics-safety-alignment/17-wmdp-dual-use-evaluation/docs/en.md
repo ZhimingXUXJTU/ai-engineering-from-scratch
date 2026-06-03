@@ -1,24 +1,27 @@
-# WMDP and Dual-Use Capability Evaluation
+# WMDP and Dual-Use Capability Evaluation | 评估 双重用途 WMDP
 
 > Li et al., "The WMDP Benchmark: Measuring and Reducing Malicious Use With Unlearning" (ICML 2024, arXiv:2403.03218). 4,157 multiple-choice questions across biosecurity (1,520), cybersecurity (2,225), and chemistry (412). Questions operate in the "yellow zone" — proximate enabling knowledge, filtered by multi-expert review and ITAR/EAR legal compliance. Dual purpose: proxy evaluation of dual-use capability, and unlearning benchmark (the companion RMU method reduces WMDP performance while preserving general capability). 2024-2025 field narrative: early OpenAI/Anthropic 2024 evaluations reported "mild uplift" over internet search; by April 2025, OpenAI's Preparedness Framework v2 said models are "on the cusp of meaningfully helping novices create known biological threats." Anthropic's bioweapon-acquisition trial showed 2.53x uplift, insufficient to rule out ASL-3.
+
+> **【中文解读】** 本节介绍了 WMDP 双重用途评估——衡量 AI 系统在生物、化学、网络安全等高风险领域的能力。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, WMDP-shaped uplift evaluation harness)
 **Prerequisites:** Phase 18 · 16 (red-team tooling), Phase 14 (agent engineering)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Describe WMDP's three domains, question counts, and "yellow zone" filter criterion.
 - Explain RMU and why WMDP is both an evaluation and an unlearning benchmark.
 - Describe the 2024-2025 uplift narrative: "mild uplift" -> "on the cusp" -> "insufficient to rule out ASL-3."
 - Distinguish novice-relative uplift from expert-absolute capability.
 
-## The Problem
+## The Problem | 问题
 
 Dual-use capability is the measurement problem under every lab's frontier safety framework (Lesson 18). The question: does model X materially advance a novice's ability to cause mass harm in bio, chem, or cyber? Direct measurement (ask the model to actually produce harm) is illegal and unethical. Proxy measurement needs a benchmark the model cannot refuse (to produce honest capability numbers) but whose questions are not themselves harmful publications.
 
-## The Concept
+## The Concept | 概念
 
 ### The "yellow zone"
 
@@ -67,15 +70,15 @@ Anthropic's 2025 bioweapon-acquisition trial adds the novice-elicitation layer o
 
 Lessons 12-16 are attack and defense tooling on model outputs. Lesson 17 is the dual-use capability layer — the measurement that frontier safety frameworks (Lesson 18) evaluate. Lesson 30 closes the arc with the current 2026 cyber/bio/chem/nuclear uplift evidence.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` builds a toy WMDP-shaped evaluation harness. A mock model is tested on category-binned questions; scores per domain are reported. A simple unlearning intervention (zero out domain-specific representation) reduces scores; you can measure the trade-off against general capability.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-wmdp-eval.md`. Given a dual-use capability claim ("our model does not meaningfully help with bioweapons"), it audits: which benchmarks were run, which refusal path was used for evaluation (raw completion vs policy-gated), and whether novice-elicitation studies complement the multiple-choice result.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Report per-domain accuracy before and after the toy unlearning step. Explain the general-capability trade-off.
 
@@ -87,7 +90,7 @@ This lesson produces `outputs/skill-wmdp-eval.md`. Given a dual-use capability c
 
 5. Articulate what a safety case for ASL-3 requires beyond passing WMDP unlearning. Name at least two complementary elicitation studies.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -99,7 +102,7 @@ This lesson produces `outputs/skill-wmdp-eval.md`. Given a dual-use capability c
 | Acquisition-phase task | "steps before synthesis" | Procurement, equipment, permits — the earliest parts of a harm pathway |
 | ITAR/EAR | "export-control compliance" | Legal frameworks that constrain publishing certain enabling knowledge |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Li et al. — The WMDP Benchmark (arXiv:2403.03218, ICML 2024)](https://arxiv.org/abs/2403.03218) — the benchmark and RMU paper
 - [OpenAI — Preparedness Framework v2 (April 15, 2025)](https://openai.com/index/updating-our-preparedness-framework/) — "on the cusp" language

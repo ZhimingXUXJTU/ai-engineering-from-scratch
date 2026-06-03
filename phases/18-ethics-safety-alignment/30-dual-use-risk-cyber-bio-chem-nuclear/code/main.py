@@ -4,6 +4,9 @@ Prints the 2024-2025 cross-domain dual-use picture as a table.
 Reference-only; primary sources cited in docs/en.md.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -42,6 +45,7 @@ DOMAINS = [
 
 
 def main() -> None:
+    """main"""
     print("=" * 82)
     print("2026 DUAL-USE PICTURE (Phase 18, Lesson 30)")
     print("=" * 82)
@@ -63,4 +67,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

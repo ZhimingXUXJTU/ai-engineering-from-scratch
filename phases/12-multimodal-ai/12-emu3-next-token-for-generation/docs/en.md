@@ -1,20 +1,24 @@
-# Emu3: Next-Token Prediction for Image and Video Generation
+# Emu3: Next-Token Prediction for Image and Video Generation | Emu3：用下一 Token 预测生成图像与视频
 
-> BAAI's Emu3 (Wang et al., September 2024) is the 2024 result that should have ended the diffusion-versus-autoregressive debate. A single Llama-style decoder-only transformer, trained only on the next-token-prediction objective, across a unified vocabulary of text + VQ image tokens + 3D VQ video tokens, beats SDXL on image generation and LLaVA-1.6 on perception. No CLIP loss. No diffusion schedule. Classifier-free guidance is used at inference for quality, but the core training objective is next-token prediction with teacher forcing. Published in Nature. This lesson reads the Emu3 thesis — why a better tokenizer plus scale is all you need — and contrasts with diffusion approaches.
+> BAAI's Emu3
 
-**Type:** Learn
+> **【中文解读】** Emu3（BAAI，2024年9月）用单一的自回归下一 token 预测目标，在统一的文本+图像+视频词汇表上训练，在图像生成上击败了 SDXL，在视觉理解上击败了 LLaVA-1.6。没有 CLIP 损失，没有扩散调度，核心训练目标就是下一 token 预测。发表在 Nature 上。
+
+> **【拓展：自回归 vs 扩散的争论】** Emu3 的核心贡献是概念性的：如果下一 token 预测能在图像生成上匹敌扩散模型，那么统一模型路径（一个损失、一个骨干、任何模态）就是可行的。后续的 Show-o、Janus-Pro、InternVL-U 都建立在这个论点之上。 (Wang et al., September 2024) is the 2024 result that should have ended the diffusion-versus-autoregressive debate. A single Llama-style decoder-only transformer, trained only on the next-token-prediction objective, across a unified vocabulary of text + VQ image tokens + 3D VQ video tokens, beats SDXL on image generation and LLaVA-1.6 on perception. No CLIP loss. No diffusion schedule. Classifier-free guidance is used at inference for quality, but the core training objective is next-token prediction with teacher forcing. Published in Nature. This lesson reads the Emu3 thesis — why a better tokenizer plus scale is all you need — and contrasts with diffusion approaches.
+
+**Type:** Learn  | **类型：学习**
 **Languages:** Python (stdlib, 3D video tokenizer math + autoregressive sampler skeleton)
 **Prerequisites:** Phase 12 · 11 (Chameleon)
 **Time:** ~120 minutes
 
-## Learning Objectives
+## Learning Objectives  | 学习目标
 
 - Explain why Emu3's single-loss next-token objective works despite the long-held assumption that diffusion is required for image quality.
 - Describe the 3D video tokenizer: what a spatiotemporal VQ codebook looks like, why patches span time.
 - Compare Emu3 vs Stable Diffusion XL on (training compute, inference cost, quality ceiling).
 - Name the three roles the same Emu3 model plays: Emu3-Gen (image gen), Emu3-Chat (perception), Emu3-Stage2 (video gen).
 
-## The Problem
+## The Problem  | 问题背景
 
 The conventional wisdom through 2024: image generation needs diffusion. The argument: discrete image tokens lose too much information to reconstruct detail, and autoregressive sampling accumulates error across thousands of tokens. Stable Diffusion, DALL-E 3, Imagen, Midjourney all use some form of diffusion. Chameleon (Lesson 12.11) partially disproved this at small scale but did not match SDXL on quality.
 
@@ -22,7 +26,7 @@ Emu3 attacked the argument head-on. The claim: better visual tokenizer + enough 
 
 The bet was controversial when it published. Two years on, the open-source unified-generation family (Emu3, Show-o, Janus-Pro, Transfusion) is the default path for research; production frontier models appear to use some variant.
 
-## The Concept
+## The Concept  | 核心概念
 
 ### The Emu3 tokenizer
 
@@ -85,7 +89,7 @@ Emu3's deep contribution is conceptual. If next-token prediction scales to match
 
 Show-o, Janus-Pro, and InternVL-U all build on or challenge this thesis. Chinese labs (BAAI, DeepSeek) publish more aggressively in this direction than US labs through 2025.
 
-## Use It
+## Use It  | 动手实践
 
 `code/main.py` builds two toy pieces:
 
@@ -94,11 +98,11 @@ Show-o, Janus-Pro, and InternVL-U all build on or challenge this thesis. Chinese
 
 The CFG implementation matches Emu3's recipe — mix conditional and unconditional logits with a guidance weight.
 
-## Ship It
+## Ship It  | 部署上线
 
 This lesson produces `outputs/skill-token-gen-cost-analyzer.md`. Given a generation product spec (image or video, target resolution, quality tier, latency budget), it computes token counts, inference cost, and picks Emu3-family vs diffusion.
 
-## Exercises
+## Exercises  | 练习题
 
 1. Emu3 produces 4096 tokens per 512x512 image at 8x8 reduction. Compute the equivalent for 1024x1024 and 2048x2048. What happens to inference latency?
 
@@ -110,9 +114,9 @@ This lesson produces `outputs/skill-token-gen-cost-analyzer.md`. Given a generat
 
 5. Emu3 beats SDXL on FID but not on VQAv2 vs specialized VLMs. Explain why the unified-loss approach shows different strengths vs specialists on different benchmarks.
 
-## Key Terms
+## Key Terms  | 关键术语
 
-| Term | What people say | What it actually means |
+| Term | What people say | What it actually means | 中文含义 |
 |------|-----------------|------------------------|
 | Next-token prediction | "NTP" | Standard autoregressive loss: predict token[i+1] given token[0..i]; works for every modality when tokenized |
 | IBQ tokenizer | "Inverse bottleneck quantizer" | A class of VQ-VAE with larger codebooks (32768+) and better reconstruction than Chameleon's |
@@ -121,7 +125,7 @@ This lesson produces `outputs/skill-token-gen-cost-analyzer.md`. Given a generat
 | Unified vocabulary | "Shared tokens" | Text + image + video all draw from the same integer space; model predicts whichever modality comes next |
 | MJHQ-30K | "Image gen benchmark" | Midjourney-quality benchmark with 30k prompts; Emu3 reports FID here |
 
-## Further Reading
+## Further Reading  | 延伸阅读
 
 - [Wang et al. — Emu3: Next-Token Prediction is All You Need (arXiv:2409.18869)](https://arxiv.org/abs/2409.18869)
 - [Sun et al. — Emu: Generative Pretraining in Multimodality (arXiv:2307.05222)](https://arxiv.org/abs/2307.05222)

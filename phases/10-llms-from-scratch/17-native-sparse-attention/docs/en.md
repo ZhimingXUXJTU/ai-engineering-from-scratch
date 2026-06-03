@@ -1,6 +1,10 @@
-# Native Sparse Attention (DeepSeek NSA)
+# Native Sparse Attention (DeepSeek NSA) | 原生稀疏注意力 (DeepSeek NSA)
 
 > At 64k tokens, attention eats 70-80% of decode latency. Every open-model lab has a plan to fix it. DeepSeek's NSA (ACL 2025 best paper) is the one that stuck: three parallel attention branches — compressed coarse-grained tokens, selectively retained fine-grained tokens, and sliding windows for local context — combined through a learned gate. It is hardware-aligned (kernel-friendly), natively trainable (works in pre-training, not bolted on at inference), and on 64k decodes it runs faster than FlashAttention while matching or beating full attention quality. This lesson builds the three branches end-to-end and shows why the sparsity is end-to-end differentiable.
+
+> **【中文解读】** 64K token 时注意力消耗 70-80% 的解码延迟。DeepSeek NSA（ACL 2025 最佳论文）用三条并行注意力分支解决：压缩粗粒度 token、选择保留细粒度 token、滑动窗口局部上下文，通过可学习门控组合。硬件友好、可预训练、比 FlashAttention 更快。
+
+> **【拓展：稀疏注意力→长上下文】** 长上下文（64K-128K token）是 2025-2026 年大模型的核心能力。NSA、MHA、GQA 都是降低注意力计算复杂度的方案。DeepSeek 的创新在于稀疏性是端到端可微分的，可以在预训练阶段直接使用。
 
 **Type:** Build
 **Languages:** Python (stdlib)

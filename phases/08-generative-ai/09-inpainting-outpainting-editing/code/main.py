@@ -1,3 +1,8 @@
+"""
+图像修复、扩展与编辑 (Inpainting, Outpainting & Image Editing)
+核心概念：掩码区域重绘、画布扩展、局部编辑
+AI 对应：Photoshop 生成式填充、AI 图片编辑的核心技术
+"""
 import math
 import random
 

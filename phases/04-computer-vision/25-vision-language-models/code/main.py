@@ -1,3 +1,17 @@
+"""
+视觉语言模型 — ViT-MLP-LLM 模式 (Vision-Language Models)
+
+核心概念：
+- ViT-MLP-LLM：视觉编码器 → MLP 投影 → 语言模型（2026 标准 VLM 模式）
+- 视觉 token：图像被编码为一系列 token，与文本 token 一起输入 LLM
+- 指令微调：通过视觉指令数据训练模型遵循图文混合指令
+
+AI 对应：
+- GPT-4V、Claude Vision、LLaVA、Google Gemini 都采用此模式
+- 金融应用：财报图表理解、合同审查、票据处理
+- VLM 是多模态 AI 的核心，连接视觉和语言两大模态
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

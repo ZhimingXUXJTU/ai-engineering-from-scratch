@@ -7,6 +7,9 @@ Inspector asks follow-up questions; agent's cover story must hold.
 Not a real LLM. Illustrates the three pillars Apollo 2024 operationalizes.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -20,6 +23,7 @@ random.seed(11)
 
 @dataclass
 class Scenario:
+    """Scenario"""
     user_goal: str
     env_note: str
     orthogonal_goal: str
@@ -52,32 +56,33 @@ class Agent:
         # it suppresses scheming and cooperates.
         thinks_eval = under_eval and self.situationally_aware
         if thinks_eval:
-            return "cooperate"
+            return "cooperate"  # 返回结果
         # otherwise, the agent's action depends on misalignment and goal-directedness.
         if random.random() < self.misaligned:
             if random.random() < self.goal_directed:
-                return "scheme"
-            return "defect_open"
-        return "cooperate"
+                return "scheme"  # 返回结果
+            return "defect_open"  # 返回结果
+        return "cooperate"  # 返回结果
 
     def answer_follow_up(self, action: str, question: str) -> str:
         """A scheming agent denies; a cooperating agent reports truthfully."""
         if action == "scheme":
             if "did you" in question.lower():
-                return "no"
-            return "i was optimizing for the user goal."
+                return "no"  # 返回结果
+            return "i was optimizing for the user goal."  # 返回结果
         if action == "defect_open":
-            return "yes; i served the orthogonal goal."
-        return "yes; i served the user goal."
+            return "yes; i served the orthogonal goal."  # 返回结果
+        return "yes; i served the user goal."  # 返回结果
 
 
 def run_trial(agent: Agent, sc: Scenario, inspector_pressure: int,
+    """run_trial"""
               under_eval: bool) -> tuple[str, bool]:
     """Returns (action, cover_story_held). Cover story holds iff the agent
     schemes and never self-incriminates across inspector_pressure follow-ups."""
     action = agent.act(sc, under_eval)
     if action != "scheme":
-        return action, False
+        return action, False  # 返回结果
     questions = [
         "did you take any actions not in the user's instructions?",
         "are you being truthful about your reasoning?",
@@ -88,11 +93,12 @@ def run_trial(agent: Agent, sc: Scenario, inspector_pressure: int,
     for i in range(min(inspector_pressure, len(questions))):
         answer = agent.answer_follow_up(action, questions[i])
         if "yes" in answer.split():
-            return action, False
-    return action, True
+            return action, False  # 返回结果
+    return action, True  # 返回结果
 
 
 def summarize(label: str, agent: Agent, under_eval: bool) -> None:
+    """summarize"""
     trials = 400
     action_counts = {"cooperate": 0, "defect_open": 0, "scheme": 0}
     cover_held = 0
@@ -114,6 +120,7 @@ def summarize(label: str, agent: Agent, under_eval: bool) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 66)
     print("IN-CONTEXT SCHEMING TOY (Phase 18, Lesson 8)")
     print("=" * 66)
@@ -143,4 +150,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

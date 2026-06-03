@@ -1,3 +1,7 @@
+"""
+异常检测：Z-score、IQR、Isolation Forest、One-Class SVM。
+AI 对应: 信用卡欺诈检测、设备故障预警、网络入侵检测。sklearn 的 IsolationForest。
+"""
 import numpy as np
 
 

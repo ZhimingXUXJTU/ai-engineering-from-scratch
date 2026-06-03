@@ -1,3 +1,7 @@
+"""
+偏差-方差分解演示：不同复杂度模型的训练/测试误差曲线。
+AI 对应: 理解过拟合/欠拟合的理论基础，指导正则化和模型选择。
+"""
 import numpy as np
 import warnings
 warnings.filterwarnings("ignore")

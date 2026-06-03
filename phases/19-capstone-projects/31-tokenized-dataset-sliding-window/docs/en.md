@@ -1,13 +1,16 @@
-# Tokenized Dataset with Sliding Window
+# Tokenized Dataset with Sliding Window | 滑动窗口
 
 > A pretraining run is a function from token ids to gradients. This lesson builds the conveyor that feeds the ids in.
+
+> **【中文解读】** 本节是综合项目——构建 Token 化数据集和滑动窗口处理。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 04 lessons, Phase 07 transformer lessons, Lesson 30 of this phase
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 - Convert a raw corpus into a stream of token ids by calling the tokenizer once.
 - Slice the id stream into fixed-length windows with a configurable overlap stride.
 - Build a PyTorch Dataset that returns input and target tensors for next-token prediction.

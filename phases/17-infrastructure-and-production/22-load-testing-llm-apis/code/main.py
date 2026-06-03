@@ -2,6 +2,9 @@
 
 Simulates how uniform prompts inflate reported throughput via prefix-cache
 and request-coalescing, while realistic distribution reveals the true ceiling.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -19,25 +22,29 @@ BATCH_EFFICIENCY_SHARED_PREFIX = 0.8  # batch serves 1/0.8 = 1.25x fewer slots
 
 @dataclass
 class Request:
+    """Request"""
     prompt_tokens: int
     prefix_hash: str
 
 
 def make_uniform_workload(n: int = 500) -> list[Request]:
-    return [Request(2000, "single_prefix") for _ in range(n)]
+    """make_uniform_workload"""
+    return [Request(2000, "single_prefix") for _ in range(n)]  # 返回结果
 
 
 def make_realistic_workload(n: int = 500, seed: int = 7) -> list[Request]:
+    """make_realistic_workload"""
     rng = random.Random(seed)
     reqs = []
     prefixes = [f"prefix_{i}" for i in range(80)]
     for _ in range(n):
         prompt = max(50, int(rng.gauss(500, 180)))
         reqs.append(Request(prompt, rng.choice(prefixes)))
-    return reqs
+    return reqs  # 返回结果
 
 
 def simulate(reqs: list[Request], concurrency: int) -> dict:
+    """simulate"""
     cache: set[str] = set()
     ttft_samples: list[float] = []
     # serialize in groups of "concurrency"
@@ -53,7 +60,7 @@ def simulate(reqs: list[Request], concurrency: int) -> dict:
     ttft_samples.sort()
     p50 = ttft_samples[len(ttft_samples) // 2]
     p99 = ttft_samples[int(len(ttft_samples) * 0.99) - 1]
-    return {
+    return {  # 返回结果
         "n": len(reqs),
         "p50": p50,
         "p99": p99,
@@ -63,6 +70,7 @@ def simulate(reqs: list[Request], concurrency: int) -> dict:
 
 
 def main() -> None:
+    """main"""
     print("=" * 95)
     print("PROMPT-UNIFORMITY TRAP — same test harness, different prompt distributions")
     print("=" * 95)
@@ -86,4 +94,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

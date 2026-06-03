@@ -1,3 +1,17 @@
+"""
+3D 视觉 — 点云与 NeRF (3D Vision — Point Clouds & NeRFs)
+
+核心概念：
+- NeRF（神经辐射场）：用 MLP 学习 3D 场景的体积密度和颜色
+- 体渲染：沿射线采样点，积分得到像素颜色
+- 位置编码：将低维坐标映射到高维空间，捕捉高频细节
+
+AI 对应：
+- NeRF 用于 VR/AR 场景重建、建筑可视化、自动驾驶仿真
+- 3D Gaussian Splatting 是 NeRF 的实时替代方案
+- 点云处理是自动驾驶 LiDAR 感知的核心技术
+"""
+
 import math
 import torch
 import torch.nn as nn

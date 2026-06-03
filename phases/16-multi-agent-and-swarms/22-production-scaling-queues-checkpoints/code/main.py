@@ -3,6 +3,9 @@
 All stdlib. CheckpointStore uses SQLite. AgentQueue is a per-agent state
 machine with 3 states. async vs threads benchmark runs 500 concurrent
 simulated LLM calls.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 from __future__ import annotations
 
@@ -20,6 +23,7 @@ from dataclasses import dataclass, field
 # ---------- CheckpointStore ----------
 
 class CheckpointStore:
+    """CheckpointStore"""
     def __init__(self, path: str) -> None:
         self.conn = sqlite3.connect(path)
         self.conn.execute("""
@@ -44,11 +48,12 @@ class CheckpointStore:
             (thread_id,),
         ).fetchone()
         if row is None:
-            return None
-        return row[0], json.loads(row[1])
+            return None  # 返回结果
+        return row[0], json.loads(row[1])  # 返回结果
 
 
 def run_agent_with_checkpoint(store: CheckpointStore, thread_id: str,
+    """run_agent_with_checkpoint"""
                               start: int = 0, crash_at: int | None = None, goal: int = 5) -> int:
     """Run a tiny 5-step agent; optionally crash at a given step."""
     restored = store.latest(thread_id)
@@ -66,12 +71,13 @@ def run_agent_with_checkpoint(store: CheckpointStore, thread_id: str,
         state["counter"] += 1
         store.write(thread_id, super_step, dict(state))
         super_step += 1
-    return state["counter"]
+    return state["counter"]  # 返回结果
 
 
 # ---------- AgentQueue ----------
 
 class AgentState(enum.Enum):
+    """AgentState"""
     IDLE = "idle"
     PROCESSING = "processing"
     RESPONSE = "response"
@@ -79,6 +85,7 @@ class AgentState(enum.Enum):
 
 @dataclass
 class AgentQueue:
+    """AgentQueue"""
     agent_id: str
     state: AgentState = AgentState.IDLE
     in_queue: list[dict] = field(default_factory=list)
@@ -99,6 +106,7 @@ class AgentQueue:
 
 
 def demo_queue() -> None:
+    """demo_queue"""
     print("\n" + "=" * 72)
     print("PER-AGENT QUEUE — 3-state machine (idle / processing / response)")
     print("=" * 72)
@@ -118,26 +126,29 @@ async def sim_llm_call_async(delay: float = 0.05) -> None:
 
 
 def sim_llm_call_sync(delay: float = 0.05) -> None:
+    """sim_llm_call_sync"""
     time.sleep(delay)
 
 
 async def bench_async(n: int) -> float:
     t0 = time.perf_counter()
     await asyncio.gather(*(sim_llm_call_async() for _ in range(n)))
-    return time.perf_counter() - t0
+    return time.perf_counter() - t0  # 返回结果
 
 
 def bench_threads(n: int) -> float:
+    """bench_threads"""
     t0 = time.perf_counter()
     threads = [threading.Thread(target=sim_llm_call_sync) for _ in range(n)]
     for t in threads:
         t.start()
     for t in threads:
         t.join()
-    return time.perf_counter() - t0
+    return time.perf_counter() - t0  # 返回结果
 
 
 def demo_async_vs_threads() -> None:
+    """demo_async_vs_threads"""
     print("\n" + "=" * 72)
     print("ASYNC vs THREADS — 500 concurrent 'LLM calls' (50ms each)")
     print("=" * 72)
@@ -154,6 +165,7 @@ def demo_async_vs_threads() -> None:
 
 
 def demo_checkpoint_resume() -> None:
+    """demo_checkpoint_resume"""
     print("=" * 72)
     print("CHECKPOINT RESUME — worker crashes mid-run, second worker resumes")
     print("=" * 72)
@@ -180,6 +192,7 @@ def demo_checkpoint_resume() -> None:
 
 
 def main() -> None:
+    """main"""
     demo_checkpoint_resume()
     demo_queue()
     demo_async_vs_threads()
@@ -191,4 +204,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

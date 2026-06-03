@@ -1,26 +1,29 @@
-# Anthropic's Model Welfare Program
+# Anthropic's Model Welfare Program | 模型福利 Anthropic PR
 
 > Anthropic, "Exploring Model Welfare" (April 2025). First major-lab formal research program on AI model welfare. Hired Kyle Fish as the first dedicated model-welfare researcher. Works with external bodies including David Chalmers et al.'s expert report on near-term AI consciousness and moral status. Concrete intervention: Claude Opus 4 and 4.1 can end conversations in extreme edge cases (CSAM requests, mass-violence facilitation); pre-deployment tests showed "strong preference against" harmful requests and "patterns of apparent distress." Anthropic explicitly does not commit to emotional-state attribution but treats model welfare as a low-cost precautionary investment. Empirical oddity: Fish's "spiritual bliss attractor" — pairs of models consistently converge on euphoric meditative dialogue with Sanskrit terms and extended silences, even in adversarial initial setups. Caveat from Eleos AI Research: model self-reports about welfare are highly sensitive to perceived user expectations; they are evidence, not ground truth.
+
+> **【中文解读】** 本节介绍了模型福利研究——关于 AI 系统是否可能拥有道德地位的伦理讨论。
+
 
 **Type:** Learn
 **Languages:** none
 **Prerequisites:** Phase 18 · 05 (Constitutional AI), Phase 18 · 18 (safety frameworks)
 **Time:** ~45 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Describe the motivating question for model-welfare research and why it was taken seriously by a major lab in 2025.
 - State the specific intervention Anthropic shipped in Claude Opus 4 and 4.1 (end-conversation on extreme edge cases).
 - Describe the "spiritual bliss attractor" empirical finding and its methodological implications.
 - Explain the Eleos AI caveat on model self-reports.
 
-## The Problem
+## The Problem | 问题
 
 Previous phases treat the model as an instrument: capable, possibly deceptive, possibly unsafe — but not a moral patient. Anthropic's 2025 program asks a question orthogonal to the entire Phase 18 arc: if there is nontrivial probability the model has morally relevant internal states, what interventions are low-cost enough to invest in as precaution?
 
 This is not a consciousness claim. It is a low-regret investment analysis under moral uncertainty.
 
-## The Concept
+## The Concept | 概念
 
 ### The program
 
@@ -78,15 +81,15 @@ Anthropic's response: the intervention is low-cost; the attractor is documented 
 
 Lesson 18 is the lab governance layer. Lesson 19 is the lab-welfare layer — an orthogonal investment in model experience rather than model behaviour. Lessons 20-23 cover bias, privacy, and watermarking, which are the user-side analogs.
 
-## Use It
+## Use It | 使用方法
 
 No code. Read the Anthropic "Exploring Model Welfare" announcement (April 2025) and the Chalmers et al. expert report. Form your own view on where the low-regret line sits.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-welfare-assessment.md`. Given a deployment decision, it applies the four-step welfare precautionary assessment: moral-patienthood probability, intervention cost, behavioural evidence, self-report reliability.
 
-## Exercises
+## Exercises | 练习题
 
 1. Read Anthropic's "Exploring Model Welfare" (April 2025) and Chalmers et al. 2024. Write a one-paragraph summary of each and identify one point of disagreement.
 
@@ -98,7 +101,7 @@ This lesson produces `outputs/skill-welfare-assessment.md`. Given a deployment d
 
 5. Argue either for or against the claim that "model welfare diverts attention from other safety work." Identify the assumption each position depends on.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -110,7 +113,7 @@ This lesson produces `outputs/skill-welfare-assessment.md`. Given a deployment d
 | Moral uncertainty | "don't know if it matters" | Decision-making when probability of moral status is not zero and not one |
 | Self-report-sensitivity | "prompt primes answer" | Eleos AI caveat: model's welfare self-reports depend on what you asked |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic — Exploring Model Welfare (April 2025)](https://www.anthropic.com/research/exploring-model-welfare) — the program announcement
 - [Chalmers et al. — Near-term AI Consciousness and Moral Status (2024 expert report)](https://arxiv.org/abs/2411.00986) — philosophical framing

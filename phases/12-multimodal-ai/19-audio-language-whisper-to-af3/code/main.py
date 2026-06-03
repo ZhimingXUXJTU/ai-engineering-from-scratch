@@ -1,5 +1,10 @@
 """Audio-LLM toys: log-Mel spectrogram + audio Q-former + cascaded vs end-to-end.
 
+音频语言模型：从 Whisper 到 Audio Flamingo 3 (Audio-Language Models)
+核心概念：语音识别(Whisper)到音频推理(AF3)的演进——保留Whisper级编码器，
+加 Q-Former 桥接，用音频-文本指令数据训练，加链式思考推理。
+AI 应用对应：音频理解是语音助手、会议纪要、音乐分析等应用的基础。
+
 Stdlib. Computes a naive DFT-based log-Mel spec from a synthetic waveform,
 runs a toy Q-former over the resulting frames, and compares task coverage
 between cascaded and end-to-end pipelines.
@@ -15,6 +20,7 @@ random.seed(6)
 
 
 def synth_waveform(duration_s: float = 1.0, sr: int = 16000) -> list[float]:
+    """生成合成波形：440Hz 基频 + 880Hz 谐波，模拟音频输入。"""
     n = int(duration_s * sr)
     freq = 440
     return [0.5 * math.sin(2 * math.pi * freq * i / sr) +
@@ -23,7 +29,8 @@ def synth_waveform(duration_s: float = 1.0, sr: int = 16000) -> list[float]:
 
 
 def window_frames(x: list[float], sr: int, win_ms: int = 25, hop_ms: int = 10) -> list[list[float]]:
-    win = int(sr * win_ms / 1000)
+    """将波形按窗口切分为帧：25ms 窗口、10ms 步长（标准 Whisper 参数）。"""
+    win = int(sr * win_ms / 1000)  # 窗口大小（采样点数）
     hop = int(sr * hop_ms / 1000)
     frames = []
     i = 0
@@ -34,7 +41,7 @@ def window_frames(x: list[float], sr: int, win_ms: int = 25, hop_ms: int = 10) -
 
 
 def naive_dft_mag(frame: list[float], n_bins: int = 64) -> list[float]:
-    """Compute magnitude spectrum at n_bins frequencies using naive DFT."""
+    """朴素 DFT 计算频谱幅度：对每帧做离散傅里叶变换，取幅度。"""
     n = len(frame)
     out = []
     for k in range(n_bins):
@@ -49,7 +56,7 @@ def naive_dft_mag(frame: list[float], n_bins: int = 64) -> list[float]:
 
 
 def mel_filterbank(n_bins: int = 64, n_mels: int = 20) -> list[list[float]]:
-    """Triangular Mel filter bank (simplified, linear warp as proxy)."""
+    """构建 Mel 滤波器组：将频谱映射到感知频率空间（简化版，线性近似）。"""
     fbank = []
     band = n_bins // n_mels
     for m in range(n_mels):
@@ -88,6 +95,7 @@ def demo_melspec() -> None:
 
 @dataclass
 class QFormer:
+    """Audio Q-former：N 个可学习查询通过交叉注意力聚合音频帧特征。"""
     n_queries: int
     hidden: int
 
@@ -96,7 +104,7 @@ class QFormer:
                         for _ in range(self.n_queries)]
 
     def forward(self, frames: list[list[float]]) -> list[list[float]]:
-        """Naive cross-attention: each query attends over all frames."""
+        """朴素交叉注意力：每个查询对所有帧做注意力加权聚合。"""
         out = []
         for q in self.queries:
             scores = [sum(qi * fi for qi, fi in zip(q, f)) for f in frames]

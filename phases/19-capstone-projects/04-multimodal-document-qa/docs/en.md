@@ -1,6 +1,9 @@
-# Capstone 04 — Multimodal Document QA (Vision-First PDF, Tables, Charts)
+# Capstone 04 — Multimodal Document QA (Vision-First PDF, Tables, Charts) | 文档问答 多模态 结业
 
 > The 2026 document-QA frontier moved away from OCR-then-text and toward vision-first late interaction. ColPali, ColQwen2.5, and ColQwen3-omni treat each PDF page as an image, embed it with multi-vector late interaction, and let the query attend to patches directly. On financial 10-Ks, scientific papers, and handwritten notes this pattern beats OCR-first by a large margin. Build the pipeline end to end on 10k pages and publish the side-by-side against OCR-then-text.
+
+> **【中文解读】** 本节是综合项目——构建多模态文档问答系统，处理文本、图像和表格。
+
 
 **Type:** Capstone
 **Languages:** Python (pipeline), TypeScript (viewer UI)
@@ -22,7 +25,7 @@ The answerer is a vision-language model that takes the query plus the top-k retr
 
 Evaluation is a two-dimensional matrix. One axis: content type (plain text paragraphs, dense tables, bar/line charts, handwritten notes, equations). Other axis: retrieval approach (vision-first late interaction vs OCR-then-text vs hybrid). Each cell gets nDCG@5 and answer accuracy. The report is the deliverable.
 
-## Architecture
+## Architecture | 架构
 
 ```
 PDFs -> page renderer (PyMuPDF, 180 DPI)
@@ -59,7 +62,7 @@ query ----+----> retrieve top-k pages (MaxSim)
 - Evaluation: ViDoRe v3 benchmark, M3DocVQA for multi-page reasoning
 - Viewer UI: Next.js 15 with canvas overlay for evidence regions
 
-## Build It
+## Build It | 动手构建
 
 1. **Ingest.** Walk a corpus of 10k PDF pages across 10-Ks, scientific papers, and scanned documents. Render each page to a 1536x2048 PNG. Persist `{doc_id, page_num, image_path}`.
 
@@ -77,7 +80,7 @@ query ----+----> retrieve top-k pages (MaxSim)
 
 8. **UI.** Streamlit prototype first; Next.js 15 production viewer with page-by-page evidence-region overlay.
 
-## Use It
+## Use It | 使用方法
 
 ```
 $ doc-qa ask "what was the 2024 operating margin change for segment EMEA?"
@@ -90,7 +93,7 @@ answer:
 [viewer]     open with highlighted bounding boxes overlaid on p.88 Table 4
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-doc-qa.md` describes the deliverable: a vision-first multimodal document QA system tuned to a specific corpus and evaluated against an OCR-then-text baseline on ViDoRe v3.
 
@@ -103,7 +106,7 @@ answer:
 | 15 | Source-inspection UX | Viewer clarity, overlay fidelity, side-by-side comparison tools |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Measure ColQwen2.5-v0.2 vs ColQwen3-omni on the same corpus. Which pages does one get right and the other miss? Add a "content class" tag to the index to route by type.
 
@@ -115,7 +118,7 @@ answer:
 
 5. Add handwritten-note support. Render the handwriting corpus, embed with ColQwen, measure retrieval. Compare against a handwriting OCR pipeline.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -127,7 +130,7 @@ answer:
 | Evidence region | "Cited bounding box" | A bbox on the source page that localizes the answer span |
 | OCR fallback | "Equation channel" | Text pipeline used alongside vision for equation- or table-heavy pages |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [ColPali (Illuin Tech) repository](https://github.com/illuin-tech/colpali) — reference late-interaction doc retrieval
 - [ColPali paper (arXiv:2407.01449)](https://arxiv.org/abs/2407.01449) — the foundational method paper

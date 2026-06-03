@@ -1,4 +1,4 @@
-# Benchmarks: WebArena and OSWorld
+# Benchmarks: WebArena and OSWorld | 基准测试 WebArena OSWorld
 
 > WebArena tests web-agent capability across four self-hosted apps. OSWorld tests desktop-agent capability across Ubuntu, Windows, macOS. At release (2023–2024) both showed a big gap between best-in-class agents and humans. The gap is narrowing; the failure modes haven't changed.
 
@@ -7,18 +7,21 @@
 **Prerequisites:** Phase 14 · 19 (SWE-bench, GAIA)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Describe WebArena's four self-hosted apps and why execution-based evaluation matters.
 - Explain why OSWorld uses real OS screenshots instead of accessibility APIs.
 - Name the two primary OSWorld failure modes: GUI grounding and operational knowledge.
 - Summarize what OSWorld-G and OSWorld-Human add on top of the base benchmark.
 
-## The Problem
+## The Problem | 问题
 
 Generalist agents can call tools. Can they drive a browser across 20 clicks to complete a shopping checkout? Can they configure a Linux box using only keyboard and mouse? These are the questions WebArena and OSWorld answer.
 
-## The Concept
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
+## The Concept | 概念
 
 ### WebArena (Zhou et al., ICLR 2024)
 
@@ -61,7 +64,7 @@ Claude computer use, OpenAI CUA, Gemini 2.5 Computer Use (Lesson 21) all train o
 - **Ignoring trajectory length.** Scoring only success-rate misses the 1.4-2.7x step inefficiency OSWorld-Human surfaces.
 - **Stale self-hosted apps.** WebArena's apps pin specific versions; update without re-curation breaks comparability.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements a toy web-agent harness:
 
@@ -78,39 +81,44 @@ python3 code/main.py
 
 Output: per-task success rate and trajectory efficiency, mirroring OSWorld-Human's methodology.
 
-## Use It
+## Use It | 使用方法
 
 - **WebArena Verified** self-hosted on an internal cluster for continuous evaluation.
 - **OSWorld** in a VM fleet for desktop agents.
 - **Computer-use agents** (Lesson 21) — Claude, OpenAI CUA, Gemini — all trained on workloads like these.
 - **Your own product flows** — capture gold trajectories for your top 20 tasks; run agents against them weekly.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-web-desktop-harness.md` builds a web/desktop agent harness with execution-based eval and trajectory efficiency metric.
 
-## Exercises
+## Exercises | 练习题
 
 1. Extend the toy harness with a second app (a forum). Write 3 tasks plus gold trajectories.
+   *思考并实践此练习*
 2. Add trajectory-efficiency reporting per task. On your toy, is the agent 1x, 2x, or 3x over gold?
+   *思考并实践此练习*
 3. Implement a "distractor" tool — one the gold trajectory never uses. Does the scripted agent get tempted?
+   *思考并实践此练习*
 4. Read OSWorld-G. How would you separate grounding failures from planning failures in your own evals?
+   *思考并实践此练习*
 5. Read WebArena's apps README. What breaks when you upgrade one of the pinned app versions?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| WebArena | "Web agent benchmark" | 812 tasks across 4 self-hosted apps; gym-style evaluation |
-| VisualWebArena | "Visual WebArena" | Visually grounded WebArena; screenshots are observations |
-| OSWorld | "Desktop agent benchmark" | 369 tasks on real Ubuntu/Windows/macOS |
-| GUI grounding | "Pixel-to-element mapping" | Model localizing UI elements in 1920x1080 |
-| Operational knowledge | "OS know-how" | Which menu, which shortcut, which preference pane |
-| OSWorld-G | "Grounding suite" | 564 grounding-only samples + training set |
-| OSWorld-Human | "Gold trajectories" | Manual expert action sequences to measure efficiency |
-| Trajectory efficiency | "Steps over gold" | Agent step count divided by human minimum |
+|------|----------------|------------------------|---|
+| WebArena | "Web agent benchmark" | 812 tasks across 4 self-hosted apps; gym-style evaluation |  |
+| VisualWebArena | "Visual WebArena" | Visually grounded WebArena; screenshots are observations |  |
+| OSWorld | "Desktop agent benchmark" | 369 tasks on real Ubuntu/Windows/macOS |  |
+| GUI grounding | "Pixel-to-element mapping" | Model localizing UI elements in 1920x1080 |  |
+| Operational knowledge | "OS know-how" | Which menu, which shortcut, which preference pane |  |
+| OSWorld-G | "Grounding suite" | 564 grounding-only samples + training set |  |
+| OSWorld-Human | "Gold trajectories" | Manual expert action sequences to measure efficiency |  |
+| Trajectory efficiency | "Steps over gold" | Agent step count divided by human minimum |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Zhou et al., WebArena (arXiv:2307.13854)](https://arxiv.org/abs/2307.13854) — four-app web benchmark
 - [Xie et al., OSWorld (arXiv:2404.07972)](https://arxiv.org/abs/2404.07972) — cross-OS desktop benchmark

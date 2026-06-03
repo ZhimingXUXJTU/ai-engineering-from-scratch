@@ -7,6 +7,9 @@ Conceptual references:
 - RFC 6901 (JSON Pointer for error paths)
 
 Stdlib only. Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -35,21 +38,24 @@ ALLOWED_KEYWORDS = {
 
 @dataclass
 class ValidationError:
+    """ValidationError"""
     path: str
     keyword: str
     message: str
 
     def to_dict(self) -> dict:
-        return {"path": self.path, "keyword": self.keyword, "message": self.message}
+        return {"path": self.path, "keyword": self.keyword, "message": self.message}  # 返回结果
 
 
 @dataclass
 class Ok:
+    """Ok"""
     pass
 
 
 @dataclass
 class ToolRecord:
+    """ToolRecord"""
     name: str
     description: str
     schema: dict
@@ -89,23 +95,23 @@ class ToolRegistry:
         if name not in self._records:
             self._order.append(name)
         self._records[name] = rec
-        return rec
+        return rec  # 返回结果
 
     def get(self, name: str) -> ToolRecord:
         if name not in self._records:
             raise KeyError(f"unknown tool {name!r}")
-        return self._records[name]
+        return self._records[name]  # 返回结果
 
     def names(self) -> list[str]:
-        return list(self._order)
+        return list(self._order)  # 返回结果
 
     def validate(self, name: str, args: Any) -> Ok | list[ValidationError]:
         rec = self.get(name)
         errors: list[ValidationError] = []
         _walk(rec.schema, args, "", errors)
         if errors:
-            return errors
-        return Ok()
+            return errors  # 返回结果
+        return Ok()  # 返回结果
 
 
 def validate_schema_shape(schema: dict) -> None:
@@ -152,22 +158,25 @@ def validate_schema_shape(schema: dict) -> None:
 
 
 def _path(prefix: str, segment: str | int) -> str:
+    """_path"""
     seg = str(segment).replace("~", "~0").replace("/", "~1")
-    return f"{prefix}/{seg}"
+    return f"{prefix}/{seg}"  # 返回结果
 
 
 def _type_matches(value: Any, expected: str) -> bool:
+    """_type_matches"""
     types = PRIMITIVE_TYPE_MAP[expected]
     if expected == "boolean":
-        return isinstance(value, bool)
+        return isinstance(value, bool)  # 返回结果
     if expected in ("integer", "number"):
         if isinstance(value, bool):
-            return False
-        return isinstance(value, types)
-    return isinstance(value, types)
+            return False  # 返回结果
+        return isinstance(value, types)  # 返回结果
+    return isinstance(value, types)  # 返回结果
 
 
 def _walk(schema: dict, value: Any, path: str, errs: list[ValidationError]) -> None:
+    """_walk"""
     t = schema.get("type")
     if t is not None and not _type_matches(value, t):
         errs.append(ValidationError(
@@ -175,7 +184,7 @@ def _walk(schema: dict, value: Any, path: str, errs: list[ValidationError]) -> N
             keyword="type",
             message=f"expected {t}, got {type(value).__name__}",
         ))
-        return
+        return  # 返回结果
     if "enum" in schema:
         if value not in schema["enum"]:
             errs.append(ValidationError(
@@ -183,7 +192,7 @@ def _walk(schema: dict, value: Any, path: str, errs: list[ValidationError]) -> N
                 keyword="enum",
                 message=f"value {value!r} not in {schema['enum']!r}",
             ))
-            return
+            return  # 返回结果
     if t == "string":
         _check_string(schema, value, path, errs)
     elif t == "object":
@@ -193,6 +202,7 @@ def _walk(schema: dict, value: Any, path: str, errs: list[ValidationError]) -> N
 
 
 def _check_string(schema: dict, value: str, path: str, errs: list[ValidationError]) -> None:
+    """_check_string"""
     if "minLength" in schema and len(value) < schema["minLength"]:
         errs.append(ValidationError(
             path=path or "/", keyword="minLength",
@@ -218,6 +228,7 @@ def _check_string(schema: dict, value: str, path: str, errs: list[ValidationErro
 
 
 def _check_object(schema: dict, value: dict, path: str, errs: list[ValidationError]) -> None:
+    """_check_object"""
     required = schema.get("required", [])
     for req_name in required:
         if req_name not in value:
@@ -233,18 +244,20 @@ def _check_object(schema: dict, value: dict, path: str, errs: list[ValidationErr
 
 
 def _check_array(schema: dict, value: list, path: str, errs: list[ValidationError]) -> None:
+    """_check_array"""
     items_schema = schema.get("items")
     if items_schema is None:
-        return
+        return  # 返回结果
     for idx, item in enumerate(value):
         _walk(items_schema, item, _path(path, idx), errs)
 
 
 def _demo() -> None:
+    """_demo"""
     registry = ToolRegistry()
 
     def get_user(id: int) -> dict:
-        return {"id": id, "name": "ada"}
+        return {"id": id, "name": "ada"}  # 返回结果
 
     registry.register(
         name="db.get_user",

@@ -1,4 +1,4 @@
-# The Fourier Transform
+# The Fourier Transform | 傅里叶变换
 
 > Every signal is a sum of sine waves. The Fourier transform tells you which ones.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1, Lessons 01-04, 19 (complex numbers)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement the DFT from scratch and verify it against the O(N log N) Cooley-Tukey FFT
 - Interpret frequency coefficients: extract amplitude, phase, and power spectrum from a signal
 - Apply the convolution theorem to perform convolution via FFT multiplication
 - Connect Fourier frequency decomposition to transformer positional encodings and CNN convolution layers
+
+
+> **【中文解读】**
+> 任何信号都可以分解为正弦波。音频处理、图像压缩都依赖 FFT。卷积定理说时域卷积等于频域乘法，可用 FFT 加速 CNN 卷积。Transformer 正弦位置编码就是傅里叶基函数。
 
 ## The Problem
 

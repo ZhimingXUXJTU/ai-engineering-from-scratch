@@ -1,6 +1,8 @@
-# Attention Mechanism — The Breakthrough
+# Attention Mechanism — The Breakthrough | 注意力机制 — Transformer 的核心突破
 
 > The decoder stops squinting at a compressed summary and starts looking at the whole source. Everything after this is attention plus engineering.
+
+> **【中文解读】** 注意力机制让模型关注输入的相关部分。Q/K/V 是核心。
 
 **Type:** Build
 **Languages:** Python

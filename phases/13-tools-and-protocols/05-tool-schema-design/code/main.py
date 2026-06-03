@@ -1,5 +1,10 @@
 """Phase 13 Lesson 05 - tool schema design linter.
 
+工具 Schema 设计 (Tool Schema Design)
+核心概念：工具命名、描述和参数设计直接影响模型选工具的准确率（影响10-20个百分点）。
+好的工具名是 snake_case 动词+名词，描述用 Use-when 模式，参数有明确类型约束。
+AI 应用对应：Schema 设计是 MCP 服务器和 Function Calling 质量的关键，应在 CI 中运行 lint。
+
 Audits a tool registry against design rules from the lesson:
   - names: snake_case, verb-noun, no arguments, no tense markers
   - descriptions: Use-when pattern, length bounds, no injection keywords

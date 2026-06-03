@@ -1,5 +1,10 @@
 """Phase 13 Lesson 07 - toy MCP server over stdio, stdlib only.
 
+构建 MCP 服务器 (Building an MCP Server)
+核心概念：实现完整的 MCP 三大服务器原语——tools（工具调用）、resources（数据读取）、prompts（模板管理）。
+通过 JSON-RPC 2.0 over stdio 传输，任何 MCP 客户端都能握手并调用。
+AI 应用对应：MCP 服务器是 Claude 生态的标准工具接口，支持 Python/TypeScript SDK。
+
 Implements the 2025-11-25 spec's core flow:
   initialize, tools/list, tools/call, resources/list, resources/read,
   prompts/list, prompts/get, plus notifications/initialized.

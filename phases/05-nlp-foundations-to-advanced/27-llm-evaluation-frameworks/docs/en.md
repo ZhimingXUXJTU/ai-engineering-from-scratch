@@ -1,6 +1,8 @@
-# LLM Evaluation — RAGAS, DeepEval, G-Eval
+# LLM Evaluation — RAGAS, DeepEval, G-Eval | LLM 评估 — RAGAS、DeepEval
 
 > Exact-match and F1 miss semantic equivalence. Human review does not scale. LLM-as-judge is the production answer — with enough calibration to trust the number.
+
+> **【中文解读】** 评估 LLM 生成质量和 RAG 效果。
 
 **Type:** Build
 **Languages:** Python

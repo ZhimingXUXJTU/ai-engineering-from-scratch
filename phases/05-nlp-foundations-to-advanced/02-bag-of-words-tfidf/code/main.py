@@ -1,3 +1,8 @@
+"""
+词袋模型与 TF-IDF 文本表示
+
+词袋模型统计词频表示文本，TF-IDF 惩罚常见词突出关键词。这是最基础的文本向量化方法，理解它们是理解词嵌入的前提。对应 sklearn CountVectorizer/TfidfVectorizer。
+"""
 import math
 import re
 

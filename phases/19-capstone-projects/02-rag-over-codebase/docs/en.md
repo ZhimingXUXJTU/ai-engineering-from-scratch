@@ -1,6 +1,9 @@
-# Capstone 02 — RAG over Codebase (Cross-Repo Semantic Search)
+# Capstone 02 — RAG over Codebase (Cross-Repo Semantic Search) | 结业 代码库 搜索 仓库 RAG
 
 > Every serious engineering org in 2026 runs an internal code search that understands meaning, not just strings. Sourcegraph Amp, Cursor's codebase answers, Augment's enterprise graph, Aider's repomap, Pinterest's internal MCP — same shape. Ingest many repos, parse with tree-sitter, embed function- and class-level chunks, hybrid-search, re-rank, answer with citations. This capstone asks you to build one that handles 2M lines of code across 10 repos and survives incremental re-indexing on every git push.
+
+> **【中文解读】** 本节是综合项目——构建代码库 RAG 系统，实现代码语义搜索和检索增强生成。
+
 
 **Type:** Capstone
 **Languages:** Python (ingestion), TypeScript (API + UI)
@@ -22,7 +25,7 @@ Retrieval is hybrid. A query fires both dense and BM25 searches, merges top-k, a
 
 Incremental freshness is the infrastructure problem. Git push triggers a diff: which files changed, which symbols changed. Only affected chunks re-embed. Affected cross-file symbol edges (imports, method calls) get recomputed. The index stays consistent without reprocessing 2M lines each commit.
 
-## Architecture
+## Architecture | 架构
 
 ```
 git push --> webhook --> ingest worker (LlamaIndex Workflow)
@@ -62,7 +65,7 @@ git push --> webhook --> ingest worker (LlamaIndex Workflow)
 - Symbol graph: Neo4j (managed) or kuzu (embedded) for import and call edges
 - Observability: Langfuse spans per retrieval + synthesis step
 
-## Build It
+## Build It | 动手构建
 
 1. **Ingestion walker.** Iterate git history on every push hook. Collect changed files. For each file, parse with tree-sitter, extract function and class nodes with their full source span. Emit chunk records `{repo, path, start_line, end_line, symbol, body}`.
 
@@ -82,7 +85,7 @@ git push --> webhook --> ingest worker (LlamaIndex Workflow)
 
 9. **Eval.** Label 100 cross-repo questions with gold file:line answers. Measure MRR@10, nDCG@10, citation faithfulness (fraction of claims with verifiable anchors), and p50/p99 latency.
 
-## Use It
+## Use It | 使用方法
 
 ```
 $ code-rag ask "how is S3 multipart abort wired into our retry budget?"
@@ -97,7 +100,7 @@ answer:
               libs/s3client/multipart.ts:44-61]
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 Deliverable skill `outputs/skill-codebase-rag.md`. Given a corpus of repos, it stands up the ingestion pipeline, the hybrid index, and the query agent, and returns a cited answer for any cross-repo question. Rubric:
 
@@ -110,7 +113,7 @@ Deliverable skill `outputs/skill-codebase-rag.md`. Given a corpus of repos, it s
 | 15 | UX and answer formatting | Citation clickability, snippet previews, follow-up affordance |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Swap Voyage-code-3 for nomic-embed-code self-hosted. Measure the MRR@10 delta. Report whether the gap closes with re-ranking enabled.
 
@@ -122,7 +125,7 @@ Deliverable skill `outputs/skill-codebase-rag.md`. Given a corpus of repos, it s
 
 5. Extend to cross-language symbol resolution: a Python function that calls a Go service over gRPC. Use the symbol graph to link them.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -134,7 +137,7 @@ Deliverable skill `outputs/skill-codebase-rag.md`. Given a corpus of repos, it s
 | Citation faithfulness | "Grounded answer rate" | Fraction of claims a user can verify by clicking the anchor and reading the referenced span |
 | Incremental re-index | "Push-to-search time" | Wall-clock from git push to the changed symbols being queryable |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Sourcegraph Amp](https://ampcode.com) — production cross-repo code intelligence
 - [Sourcegraph Cody RAG architecture](https://sourcegraph.com/blog/how-cody-understands-your-codebase) — the reference deep-dive for this capstone

@@ -1,26 +1,29 @@
-# Self-Hosted Serving Selection — llama.cpp, Ollama, TGI, vLLM, SGLang
+# Self-Hosted Serving Selection — llama.cpp, Ollama, TGI, vLLM, SGLang | 自托管 选择 服务 SGLang vLLM
 
 > Four engines dominate self-hosted inference in 2026. Pick based on hardware, scale, and ecosystem. **llama.cpp** is fastest on CPU — widest model support, full control over quantization and threading. **Ollama** is the dev-laptop one-command install, ~15-30% slower than llama.cpp (Go + CGo + HTTP serialization), 3x throughput gap under prod-like load. **TGI entered maintenance mode December 11, 2025** — only bug fixes, ~10% slower raw throughput than vLLM but historically top observability and HF-ecosystem integration. That maintenance status makes it a risky long-term bet — SGLang or vLLM are safer defaults for new projects. **vLLM** is the general-purpose production default — v0.15.1 (February 2026) adds PyTorch 2.10, RTX Blackwell SM120, H200 optimization. **SGLang** is the agentic multi-turn / prefix-heavy specialist — 400,000+ GPUs in production (xAI, LinkedIn, Cursor, Oracle, GCP, Azure, AWS). Hardware constraints: CPU-only → llama.cpp only. AMD / non-NVIDIA → vLLM only (TRT-LLM is NVIDIA-locked). 2026 pipeline pattern: dev = Ollama, staging = llama.cpp, prod = vLLM or SGLang. Same GGUF/HF weights throughout.
+
+> **【中文解读】** 本节介绍了自托管推理服务选型——vLLM、TGI、llama.cpp 等框架的对比和选择。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, engine-decision tree walker)
 **Prerequisites:** All Phase 17 lessons covering engines (04, 06, 07, 09, 18)
 **Time:** ~45 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Pick an engine given hardware (CPU / AMD / NVIDIA Hopper / Blackwell), scale (1 user / 100 / 10,000), and workload (general chat / agent / long-context).
 - Name the 2026 TGI maintenance-mode status (December 11, 2025) and why it biases new projects toward vLLM or SGLang.
 - Describe the dev/staging/prod pipeline using the same GGUF or HF weights throughout.
 - Explain why "CPU only" forces llama.cpp and "AMD" excludes TRT-LLM.
 
-## The Problem
+## The Problem | 问题
 
 Your team starts a new self-hosted LLM project. One engineer says Ollama, another says vLLM, a third says "doesn't TGI just work out of the box?" All three are right for different contexts. None is right for all.
 
 In 2026 the choice tree matters: hardware first, scale second, workload third. And one specific 2025 event — TGI entering maintenance mode December 11 — changes the default for new projects.
 
-## The Concept
+## The Concept | 概念
 
 ### The five engines
 
@@ -91,15 +94,15 @@ Phase 17 · 01 (managed hyperscalers), · 02 (inference platforms) cover managed
 - SGLang production footprint: 400,000+ GPUs.
 - Ollama throughput gap vs llama.cpp: 15-30% slower; 3x under prod load.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` is a decision-tree walker: given hardware + scale + workload, picks an engine and explains why.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-engine-picker.md`. Given constraints, picks an engine and writes the migration plan.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py` with your hardware / scale / workload. Does the output match your intuition?
 2. Your infra is 12 H100s and 8 MI300X AMD. What engine? Why is TRT-LLM off the table?
@@ -107,7 +110,7 @@ This lesson produces `outputs/skill-engine-picker.md`. Given constraints, picks 
 4. Ollama dev to vLLM prod: what changes in quantization, configuration, and observability?
 5. RAG product with P99 prefix length 8K and high reuse across tenants. Pick an engine and stack it with Phase 17 · 11 + 18.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
@@ -121,7 +124,7 @@ This lesson produces `outputs/skill-engine-picker.md`. Given constraints, picks 
 | Production-stack | "vLLM K8s" | Phase 17 · 18 reference deployment |
 | Pipeline pattern | "dev→stage→prod" | Ollama → llama.cpp → vLLM on same weights |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [AI Made Tools — vLLM vs Ollama vs llama.cpp vs TGI 2026](https://www.aimadetools.com/blog/vllm-vs-ollama-vs-llamacpp-vs-tgi/)
 - [Morph — llama.cpp vs Ollama 2026](https://www.morphllm.com/comparisons/llama-cpp-vs-ollama)

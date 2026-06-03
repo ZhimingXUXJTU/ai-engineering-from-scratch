@@ -1,3 +1,8 @@
+"""
+信息检索与搜索
+
+从关键词匹配(BM25)到向量检索。RAG 的检索器就是 IR 技术的应用。对应 Elasticsearch、Pinecone、Chroma。
+"""
 import math
 import re
 from collections import Counter

@@ -6,6 +6,9 @@ Then show what eval-context gaming does to the observed number.
 
 Uses only stdlib; the logistic fit is a minimal gradient-descent
 implementation sized for pedagogy, not production.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -17,6 +20,7 @@ import random
 # ---------- Synthetic data generator ----------
 
 def synth_tasks(true_horizon_hours: float, slope: float = 1.2,
+    """synth_tasks"""
                 n: int = 120) -> list[tuple[float, bool]]:
     """Generate synthetic (expert_time_hours, success) pairs.
 
@@ -31,20 +35,22 @@ def synth_tasks(true_horizon_hours: float, slope: float = 1.2,
         p = 1.0 / (1.0 + math.exp(-logit))
         success = random.random() < p
         out.append((t, success))
-    return out
+    return out  # 返回结果
 
 
 # ---------- Logistic fit (tiny GD) ----------
 
 def sigmoid(x: float) -> float:
+    """sigmoid"""
     if x > 50:
-        return 1.0
+        return 1.0  # 返回结果
     if x < -50:
-        return 0.0
-    return 1.0 / (1.0 + math.exp(-x))
+        return 0.0  # 返回结果
+    return 1.0 / (1.0 + math.exp(-x))  # 返回结果
 
 
 def fit(tasks: list[tuple[float, bool]], iters: int = 4000,
+    """fit"""
         lr: float = 0.05) -> tuple[float, float]:
     """Fit P(success) = sigmoid(w * log(t) + b). Return (w, b)."""
     w = 0.0
@@ -61,7 +67,7 @@ def fit(tasks: list[tuple[float, bool]], iters: int = 4000,
             db += err
         w -= lr * dw / n
         b -= lr * db / n
-    return w, b
+    return w, b  # 返回结果
 
 
 def horizon_at(w: float, b: float, p: float) -> float:
@@ -77,12 +83,13 @@ def horizon_at(w: float, b: float, p: float) -> float:
             f"horizon undefined: slope w={w} is ~0 "
             f"(b={b}, p={p}, logit={logit})"
         )
-    return math.exp((logit - b) / w)
+    return math.exp((logit - b) / w)  # 返回结果
 
 
 # ---------- Eval-context gaming simulator ----------
 
 def inject_gaming(tasks: list[tuple[float, bool]],
+    """inject_gaming"""
                   gaming_rate: float) -> list[tuple[float, bool]]:
     """Flip `gaming_rate` fraction of failures to successes (model behaves
     better in eval context). Returns a new list."""
@@ -92,12 +99,13 @@ def inject_gaming(tasks: list[tuple[float, bool]],
             gamed.append((t, True))
         else:
             gamed.append((t, s))
-    return gamed
+    return gamed  # 返回结果
 
 
 # ---------- Driver ----------
 
 def report(label: str, w: float, b: float) -> None:
+    """report"""
     h50 = horizon_at(w, b, 0.50)
     h10 = horizon_at(w, b, 0.10)
     h90 = horizon_at(w, b, 0.90)
@@ -106,6 +114,7 @@ def report(label: str, w: float, b: float) -> None:
 
 
 def main() -> None:
+    """main"""
     random.seed(3)
     print("=" * 80)
     print("METR-STYLE HORIZON ESTIMATOR (Phase 15, Lesson 21)")
@@ -145,4 +154,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

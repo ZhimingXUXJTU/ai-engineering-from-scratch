@@ -1,3 +1,8 @@
+"""
+语音防伪与音频水印 (Voice Anti-Spoofing & Audio Watermarking)
+核心概念：检测器（AASIST/RawNet2）区分真假语音 + 水印（AudioSeal）追踪来源
+AI 对应：深度伪造语音诈骗的防御手段，语音克隆产品必须部署
+"""
 """Toy anti-spoofing + toy watermark, to illustrate the shape.
 
 Real production uses AASIST / RawNet2 for detection and AudioSeal for

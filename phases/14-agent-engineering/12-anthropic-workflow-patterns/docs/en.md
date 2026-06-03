@@ -1,4 +1,4 @@
-# Anthropic's Workflow Patterns: Simple Over Complex
+# Anthropic's Workflow Patterns: Simple Over Complex | Anthropic 工作流 模式
 
 > Schluntz and Zhang (Anthropic, Dec 2024) distinguish workflows (predefined paths) from agents (dynamic tool-use). Five workflow patterns cover most cases. Start with direct API calls. Add agents only when steps cannot be predicted.
 
@@ -7,18 +7,21 @@
 **Prerequisites:** Phase 14 · 01 (Agent Loop)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Name Anthropic's five workflow patterns: prompt chaining, routing, parallelization, orchestrator-workers, evaluator-optimizer.
 - Explain the agent-vs-workflow distinction and the engineering cost of each.
 - Identify when to pick a workflow over an agent (and vice versa).
 - Implement all five patterns in stdlib against a scripted LLM.
 
-## The Problem
+## The Problem | 问题
 
 Teams reach for multi-agent frameworks for problems that want a single function call. The cost is real: frameworks add layers that obscure prompts, hide control flow, and invite premature complexity. Schluntz and Zhang's Dec 2024 post is the most-cited industry pushback: start simple, add complexity only when it earns its cost.
 
-## The Concept
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
+## The Concept | 概念
 
 ### Workflows vs agents
 
@@ -59,7 +62,7 @@ Foundation for all five patterns: one LLM with three capabilities wired in — s
 
 "Effective context engineering for AI agents" (Anthropic 2025) formalizes the adjacent discipline: the 200k window is a budget, not a container. What to include, when to compact, when to let context grow. Covered in detail in Phase 14 lesson on context compression (Phase 14 earlier lesson 06 in this curriculum before the renumber).
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements all five workflow patterns against a `ScriptedLLM`:
 
@@ -77,38 +80,43 @@ python3 code/main.py
 
 Each pattern prints its trace. Total lines of code per pattern is ~10-15; the cost of a framework is measured in thousands.
 
-## Use It
+## Use It | 使用方法
 
 - Direct API calls for most tasks.
 - Framework only when the pattern genuinely needs durable state (LangGraph), actor-model concurrency (AutoGen v0.4), or role templating (CrewAI).
 - Reach for the Claude Agent SDK when you want the Claude Code harness shape without rebuilding it.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-workflow-picker.md` picks the right pattern for a given task description, including the decision rationale and the refactor path to an agent if workflows fall short.
 
-## Exercises
+## Exercises | 练习题
 
 1. Implement routing with a confidence threshold. Below threshold -> escalate to human. Where does the threshold land for a tier-1 support use case?
+   *思考并实践此练习*
 2. Add a timeout to `parallel_vote`. What happens when one call hangs? How do you aggregate with missing votes?
+   *思考并实践此练习*
 3. Turn `evaluator_optimizer` into a bandit: keep the top-2 outputs across iterations so a late good result doesn't get overwritten by a late bad one.
+   *思考并实践此练习*
 4. Combine prompt chaining with routing: a router picks one of three chains. Measure token cost vs a single big-prompt alternative.
+   *思考并实践此练习*
 5. Pick one of your production features. Draw the workflow graph. Count steps. Would an agent actually be better here?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Workflow | "Predefined flow" | Engineer-owned graph of LLM and tool calls |
-| Agent | "Autonomous AI" | Model-owned graph; dynamic tool direction |
-| Augmented LLM | "LLM with tools" | LLM + search + tools + memory; the atomic unit |
-| Prompt chaining | "Sequential calls" | Output of call N is input to call N+1 |
-| Routing | "Classifier dispatch" | Pick which chain/model handles the input |
-| Parallelization | "Fan out" | N concurrent calls; aggregate by sectioning or voting |
-| Orchestrator-workers | "Dispatcher agent" | Orchestrator LLM picks specialist LLMs dynamically |
-| Evaluator-optimizer | "Proposer + judge" | Iterate until evaluator passes; Self-Refine generalized |
+|------|----------------|------------------------|---|
+| Workflow | "Predefined flow" | Engineer-owned graph of LLM and tool calls |  |
+| Agent | "Autonomous AI" | Model-owned graph; dynamic tool direction |  |
+| Augmented LLM | "LLM with tools" | LLM + search + tools + memory; the atomic unit |  |
+| Prompt chaining | "Sequential calls" | Output of call N is input to call N+1 |  |
+| Routing | "Classifier dispatch" | Pick which chain/model handles the input |  |
+| Parallelization | "Fan out" | N concurrent calls; aggregate by sectioning or voting |  |
+| Orchestrator-workers | "Dispatcher agent" | Orchestrator LLM picks specialist LLMs dynamically |  |
+| Evaluator-optimizer | "Proposer + judge" | Iterate until evaluator passes; Self-Refine generalized |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic, Building Effective Agents (Dec 2024)](https://www.anthropic.com/research/building-effective-agents) — the five workflow patterns
 - [Anthropic, Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) — the companion discipline

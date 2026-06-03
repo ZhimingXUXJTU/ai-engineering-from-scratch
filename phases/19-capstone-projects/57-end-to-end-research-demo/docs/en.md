@@ -1,13 +1,16 @@
-# End-to-End Research Demo
+# End-to-End Research Demo | 研究 演示
 
 > A demo is the place where every contract you wrote earlier has to compose. If any one of them leaks, the demo is the lesson that catches it.
+
+> **【中文解读】** 本节是综合项目——端到端研究演示的完整集成。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 50-53
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Wire the auto-research loop end to end: hypothesis seed, experiment runner, scheduler, critic loop, paper writer.
 - Compose the primitives from the four earlier Track D lessons through plain Python imports, not a framework.

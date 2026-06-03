@@ -1,24 +1,27 @@
-# Differential Privacy for LLMs
+# Differential Privacy for LLMs | 差分隐私 LLM
 
 > DP-SGD remains the standard — noise-injected gradient updates provide formal (epsilon, delta) guarantees. Overhead in compute, memory, and utility is substantial; parameter-efficient DP fine-tuning (LoRA + DP-SGD) is the common 2025 configuration (ACM 2025). Two bodies of evidence in tension: canary-based membership inference (Duan et al., 2024) reports limited success against language models; training-data extraction (Carlini et al., 2021; Nasr et al., 2025) recovers substantial verbatim memorization. Resolution (arXiv:2503.06808, March 2025): the gap is in what is measured — inserted canaries vs "most extractable" data. New canary designs enable loss-based MIA without shadow models and yield the first nontrivial DP audit of an LLM trained on real data with realistic DP guarantees. Alternatives: PMixED (arXiv:2403.15638) — private prediction at inference time via mixture of experts on next-token distributions; DP synthetic data generation (Google Research 2024). Emerging attack: Differential Privacy Reversal via LLM Feedback — confidence-score leakage.
+
+> **【中文解读】** 本节介绍了 LLM 的差分隐私——在训练和推理中保护用户数据隐私的数学方法。
+
 
 **Type:** Build
 **Languages:** Python (stdlib, DP-SGD noise-injection and ε-δ accountant demonstration)
 **Prerequisites:** Phase 01 · 09 (information theory), Phase 10 · 01 (large-model training)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Define (epsilon, delta)-differential privacy and state the DP-SGD recipe.
 - Explain the 2024-2025 tension: canary MIA vs training-data extraction give different pictures.
 - Describe PMixED and why inference-time private prediction is an alternative to DP training.
 - Describe the Differential Privacy Reversal via LLM Feedback attack.
 
-## The Problem
+## The Problem | 问题
 
 LLMs memorize. Carlini et al. 2021 showed production language models reproduce verbatim training text on demand. DP is the formal defense: train so that the output is provably insensitive to any single training example. The 2024-2025 evidence shows DP-SGD is necessary but the deployed ε values may not match the threat model.
 
-## The Concept
+## The Concept | 概念
 
 ### (ε, δ)-differential privacy
 
@@ -70,15 +73,15 @@ The defense: do not expose confidences, or truncate/quantize them before exposur
 
 Lessons 20-21 are bias/fairness. Lesson 22 is privacy. Lesson 23 is provenance via watermarking. Lesson 27 covers the regulatory data-provenance layer.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` simulates DP-SGD on a toy binary-classification dataset. You can sweep the noise multiplier σ and the clipping norm C and track the (ε, δ) budget and the accuracy cost. A "canary attack" inserts a unique training example and measures whether a log-loss test can detect it before and after DP.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-dp-audit.md`. Given a DP claim on a language model deployment, it audits: the (ε, δ) values, the accountant used, the MIA evaluation protocol, and whether confidence-exposure vectors have been assessed.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Sweep σ in {0.5, 1.0, 2.0} and report the (ε, δ)-accuracy trade-off. Identify the point at which utility collapses.
 
@@ -90,7 +93,7 @@ This lesson produces `outputs/skill-dp-audit.md`. Given a DP claim on a language
 
 5. Sketch the DP Reversal via LLM Feedback attack. Design a countermeasure that limits confidence-score leakage and estimate its deployment cost.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -102,7 +105,7 @@ This lesson produces `outputs/skill-dp-audit.md`. Given a DP claim on a language
 | PMixED | "private inference mixture" | Inference-time DP via mixture-of-experts on next-token distributions |
 | DP Reversal | "confidence leakage attack" | Attack that uses a model's confidence as an oracle for re-identification |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Abadi et al. — DP-SGD (arXiv:1607.00133)](https://arxiv.org/abs/1607.00133) — the standard DP training algorithm
 - [Carlini et al. — Extracting Training Data (arXiv:2012.07805)](https://arxiv.org/abs/2012.07805) — the canonical extraction paper

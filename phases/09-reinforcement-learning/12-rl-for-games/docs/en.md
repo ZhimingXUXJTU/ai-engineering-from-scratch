@@ -1,6 +1,8 @@
-# RL for Games — AlphaZero, MuZero, and the LLM-Reasoning Era
+# RL for Games — AlphaZero, MuZero, and the LLM-Reasoning Era | 游戏中的强化学习 — AlphaZero、MuZero 与 LLM 推理时代
 
 > 1992: TD-Gammon beat human champions at backgammon with pure TD. 2016: AlphaGo beat Lee Sedol. 2017: AlphaZero dominated chess, shogi, and Go from scratch. 2024: DeepSeek-R1 proved the same recipe, with GRPO replacing PPO, works on reasoning. Games are the benchmark that drives every breakthrough in this phase.
+
+> **【中文解读】** 游戏是 RL 突破的试验场：TD-Gammon (1992) → AlphaGo (2016) → AlphaZero (2017) → DeepSeek-R1 (2025)。DeepSeek-R1 证明了 AlphaZero 的"自我博弈+搜索+策略改进"循环可以直接用于大模型的数学推理——token 就是动作，验证器就是"赢/输"信号。
 
 **Type:** Build
 **Languages:** Python
@@ -61,6 +63,10 @@ Zero human knowledge. Zero handcrafted heuristics. A single recipe that mastered
   `L_GRPO(θ) = -E_{q, {o_i}} [ (1/G) Σ_i A_i · log π_θ(o_i | q) ] + β · KL(π_θ || π_ref)`
 
 No reward model, no critic, no MCTS. Group-relative baseline replaces all three. Matches or exceeds PPO-RLHF quality on reasoning benchmarks at a fraction of the compute.
+
+> **【中文解读】** GRPO 是 DeepSeek-R1 的核心创新：不需要 critic 网络（省一半内存），用组内均值和标准差构造优势。对每个问题采样 G 个回答，正确回答的优势为正（增强概率），错误的为负（降低概率）。这是"没有 critic 的 PPO"，是 2025 年大模型推理训练最重要的算法突破。
+
+> **【拓展：GRPO→DeepSeek-R1→开源推理革命】** DeepSeek-R1 的四阶段训练流程：冷启动 SFT → 推理导向 GRPO → 拒绝采样+SFT → 全谱 GRPO。R1-Zero（纯 GRPO 无 SFT）证明了 LLM 可以从零学会推理，但输出可读性差。蒸馏实验表明：用强 RL 教师的推理轨迹做 SFT，比小模型从头做 RL 效果更好。
 
 **The R1 recipe in full.** DeepSeek-R1 (DeepSeek 2025) is two models in one paper:
 
@@ -199,15 +205,15 @@ Refuse AlphaZero on imperfect-info games (route to CFR). Refuse GRPO without a t
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
-| MCTS | "Tree search with learned net" | Monte Carlo Tree Search; UCB1/PUCT selection with learned `(p, v)` priors. |
-| AlphaZero | "Self-play + MCTS" | Policy-value net trained to match MCTS visits and game outcome. |
-| MuZero | "Learned-model AlphaZero" | Same loop but in latent space via learned dynamics. |
-| GRPO | "Critic-free PPO" | Group Relative Policy Optimization; REINFORCE with group-mean baseline + KL. |
-| PUCT | "AlphaZero's UCB" | `Q + c · p · √N / (1 + N_a)` — balances value estimate with prior. |
-| Self-play | "Agent vs past self" | Standard for zero-sum; symmetric training signal. |
-| League play | "Population-based self-play" | Past + current + exploiters sampled as opponents. |
-| Verifier reward | "Verifiable RL" | Reward comes from a deterministic checker (tests pass, answer matches). |
-| Process reward | "PRM" | Scores each reasoning step, not just the final answer. |
+| MCTS | "Tree search with learned net" / 蒙特卡洛树搜索 | Monte Carlo Tree Search; UCB1/PUCT selection with learned `(p, v)` priors. |
+| AlphaZero | "Self-play + MCTS" / AlphaZero | Policy-value net trained to match MCTS visits and game outcome. |
+| MuZero | "Learned-model AlphaZero" / MuZero | Same loop but in latent space via learned dynamics. |
+| GRPO | "Critic-free PPO" / 组相对策略优化 | Group Relative Policy Optimization; REINFORCE with group-mean baseline + KL. |
+| PUCT | "AlphaZero's UCB" / PUCT 选择公式 | `Q + c · p · √N / (1 + N_a)` — balances value estimate with prior. |
+| Self-play | "Agent vs past self" / 自我博弈 | Standard for zero-sum; symmetric training signal. |
+| League play | "Population-based self-play" / 联盟训练 | Past + current + exploiters sampled as opponents. |
+| Verifier reward | "Verifiable RL" / 验证器奖励 | Reward comes from a deterministic checker (tests pass, answer matches). |
+| Process reward | "PRM" / 过程奖励模型 | Scores each reasoning step, not just the final answer. |
 
 ## Further Reading
 

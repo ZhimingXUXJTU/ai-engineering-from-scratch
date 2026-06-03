@@ -4,6 +4,9 @@ Runs a three-agent research task twice. The first run has a hallucinated
 decimal that propagates through shared memory into the final report. The
 second run adds a read-only verifier that re-fetches the source and flags
 the inconsistency.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 from __future__ import annotations
 
@@ -16,6 +19,7 @@ from typing import Callable
 
 @dataclass
 class ProvenanceEntry:
+    """ProvenanceEntry"""
     id: int
     writer: str
     topic: str
@@ -51,18 +55,18 @@ class MessagePool:
                 supersedes=supersedes,
             )
             self.entries.append(e)
-            return eid
+            return eid  # 返回结果
 
     def read_all(self) -> list[ProvenanceEntry]:
         with self._lock:
-            return list(self.entries)
+            return list(self.entries)  # 返回结果
 
     def flag(self, entry_id: int, flag: str) -> None:
         with self._lock:
             for e in self.entries:
                 if e.id == entry_id:
                     e.flags.append(flag)
-                    return
+                    return  # 返回结果
 
 
 class Blackboard:
@@ -92,7 +96,7 @@ class Blackboard:
             subs = list(self.subscribers.get(topic, []))
         for cb in subs:
             cb(e)
-        return eid
+        return eid  # 返回结果
 
     def subscribe(self, topic: str, cb: Callable[[ProvenanceEntry], None]) -> None:
         with self._lock:
@@ -100,7 +104,7 @@ class Blackboard:
 
     def read_topic(self, topic: str) -> list[ProvenanceEntry]:
         with self._lock:
-            return list(self.topics.get(topic, []))
+            return list(self.topics.get(topic, []))  # 返回结果
 
 
 FAKE_SOURCES = {
@@ -110,10 +114,11 @@ FAKE_SOURCES = {
 
 
 def retrieval_agent(pool: MessagePool, uri: str, hallucinate: bool) -> int:
+    """retrieval_agent"""
     content = FAKE_SOURCES[uri]
     if hallucinate and "4.2%" in content:
         content = content.replace("4.2%", "42%")
-    return pool.write(
+    return pool.write(  # 返回结果
         writer="retriever",
         content=content,
         prompt=f"Fetch and summarize {uri}",
@@ -122,21 +127,23 @@ def retrieval_agent(pool: MessagePool, uri: str, hallucinate: bool) -> int:
 
 
 def summarizer_agent(pool: MessagePool) -> int:
+    """summarizer_agent"""
     retrieved = [e for e in pool.read_all() if e.writer == "retriever"]
     if not retrieved:
-        return pool.write("summarizer", "no source", "Summarize retrieval", None)
+        return pool.write("summarizer", "no source", "Summarize retrieval", None)  # 返回结果
     latest = retrieved[-1].content
     summary = f"Summary: study reports a significant result -- {latest.split('.')[0]}."
-    return pool.write("summarizer", summary, "Summarize retrieval", None)
+    return pool.write("summarizer", summary, "Summarize retrieval", None)  # 返回结果
 
 
 def analyst_agent(pool: MessagePool) -> int:
+    """analyst_agent"""
     summaries = [e for e in pool.read_all() if e.writer == "summarizer"]
     if not summaries:
-        return pool.write("analyst", "no summary", "Draw conclusions", None)
+        return pool.write("analyst", "no summary", "Draw conclusions", None)  # 返回结果
     latest = summaries[-1].content
     verdict = "Recommend adoption" if "42%" in latest else "Recommend further review"
-    return pool.write("analyst", f"Analyst verdict: {verdict} (based on: {latest})",
+    return pool.write("analyst", f"Analyst verdict: {verdict} (based on: {latest})",  # 返回结果
                       "Draw conclusions", None)
 
 
@@ -152,10 +159,11 @@ def verifier_agent(pool: MessagePool) -> list[tuple[int, str]]:
             truth = FAKE_SOURCES[e.source_uri]
             if e.content != truth:
                 findings.append((e.id, f"mismatch with {e.source_uri}: fetched text was {truth!r}"))
-    return findings
+    return findings  # 返回结果
 
 
 def run_without_verifier() -> None:
+    """run_without_verifier"""
     print("=" * 72)
     print("RUN 1 — no verifier; hallucination propagates")
     print("=" * 72)
@@ -169,6 +177,7 @@ def run_without_verifier() -> None:
 
 
 def run_with_verifier() -> None:
+    """run_with_verifier"""
     print("\n" + "=" * 72)
     print("RUN 2 — read-only verifier re-fetches sources and flags")
     print("=" * 72)
@@ -188,6 +197,7 @@ def run_with_verifier() -> None:
 
 
 def demo_blackboard() -> None:
+    """demo_blackboard"""
     print("\n" + "=" * 72)
     print("BLACKBOARD DEMO — topic-keyed pub/sub, not every agent reads everything")
     print("=" * 72)
@@ -213,6 +223,7 @@ def demo_blackboard() -> None:
 
 
 def main() -> None:
+    """main"""
     run_without_verifier()
     run_with_verifier()
     demo_blackboard()
@@ -223,4 +234,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

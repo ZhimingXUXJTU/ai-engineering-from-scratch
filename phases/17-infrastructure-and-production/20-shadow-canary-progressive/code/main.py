@@ -2,6 +2,9 @@
 
 Progressively increases candidate traffic share and checks five gates at each
 step. Halts when any gate breaches. Supports injected regressions.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -31,6 +34,7 @@ GATES = {
 
 @dataclass
 class Regression:
+    """Regression"""
     latency_mult: float = 1.0
     cost_mult: float = 1.0
     error_mult: float = 1.0
@@ -39,9 +43,10 @@ class Regression:
 
 
 def measure_stage(stage: float, reg: Regression, seed: int) -> dict:
+    """measure_stage"""
     rng = random.Random(seed)
     noise = lambda v: v * rng.uniform(0.92, 1.08)
-    return {
+    return {  # 返回结果
         "latency_p99_ms": noise(BASELINE["latency_p99_ms"] * reg.latency_mult),
         "cost_per_req": noise(BASELINE["cost_per_req"] * reg.cost_mult),
         "error_rate": noise(BASELINE["error_rate"] * reg.error_mult),
@@ -51,14 +56,16 @@ def measure_stage(stage: float, reg: Regression, seed: int) -> dict:
 
 
 def check_gates(metrics: dict) -> list[str]:
+    """check_gates"""
     breaches = []
     for k, mult in GATES.items():
         if metrics[k] > BASELINE[k] * mult:
             breaches.append(k)
-    return breaches
+    return breaches  # 返回结果
 
 
 def rollout(name: str, reg: Regression) -> None:
+    """rollout"""
     print(f"\n{name}")
     print(f"Regression: latency={reg.latency_mult}, cost={reg.cost_mult}, error={reg.error_mult}, len={reg.output_len_mult}, thumbs={reg.thumbs_down_mult}")
     for i, stage in enumerate(STAGES):
@@ -74,15 +81,17 @@ def rollout(name: str, reg: Regression) -> None:
               f"{status}")
         if breaches:
             print(f"  → ROLLBACK (policy flip, pinned model reverted)")
-            return
+            return  # 返回结果
     print("  → PROMOTED to 100%")
 
 
 def stage_seed(i: int) -> int:
-    return 11 + i * 3
+    """stage_seed"""
+    return 11 + i * 3  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 95)
     print("CANARY ROLLOUT — six stages, five gates, injected regressions")
     print("=" * 95)
@@ -96,4 +105,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

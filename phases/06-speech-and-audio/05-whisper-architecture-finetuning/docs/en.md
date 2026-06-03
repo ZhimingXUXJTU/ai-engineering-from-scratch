@@ -1,6 +1,10 @@
-# Whisper — Architecture & Fine-Tuning
+# Whisper — Architecture & Fine-Tuning | Whisper — 架构与微调
 
 > Whisper is a 30-second-window transformer encoder-decoder, trained on 680k hours of multilingual weakly-supervised audio-text pairs. One architecture, multiple tasks, robust across 99 languages. The 2026 reference ASR.
+
+> **【中文解读】** Whisper 是 30 秒窗口的 Transformer 编码器-解码器，在 68 万小时多语言弱监督音频-文本对上训练。一个架构，多种任务（识别、翻译、检测语言），覆盖 99 种语言。是 2026 年语音识别的标杆模型。
+
+> **【拓展：Whisper 的生态】** Whisper 衍生了 whisper.cpp（本地部署）、Faster-Whisper（CTranslate2 加速）、WhisperX（词级时间戳）、Bloomsbury（实时流式）等工具链，是语音识别工业部署的事实标准。
 
 **Type:** Build
 **Languages:** Python

@@ -1,3 +1,10 @@
+"""
+情感分析
+
+判断文本正面/负面/中性情感。从朴素贝叶斯到深度学习。现代用 BERT/GPT 做分类或 zero-shot。
+"""
+# 【中文解读】情感分析。判断文本正面/负面/中性情感。从朴素贝叶斯到深度学习到 BERT/GPT zero-shot。
+
 import math
 import re
 from collections import Counter

@@ -1,4 +1,4 @@
-# Terminal & Shell
+# Terminal & Shell | 终端与 Shell
 
 > The terminal is where AI engineers live. Get comfortable here.
 
@@ -7,18 +7,24 @@
 **Prerequisites:** Phase 0, Lesson 01
 **Time:** ~35 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Use piping, redirects, and `grep` to filter and process training logs from the command line
 - Create persistent tmux sessions with multiple panes for concurrent training and GPU monitoring
 - Monitor system and GPU resources with `htop`, `nvtop`, and `nvidia-smi`
 - Transfer files between local and remote machines using SSH, `scp`, and `rsync`
 
-## The Problem
+> **【中文解读】**
+> 终端是 AI 工程师最常使用的工具。训练模型、监控 GPU、查看日志、远程连接——全部在终端完成。本章教你终端操作的核心技能：管道、tmux 会话、GPU 监控和文件传输。
+
+## The Problem | 问题描述
 
 You will spend more time in the terminal than in any editor. Training runs, GPU monitoring, log tailing, remote SSH sessions, environment management. Every AI workflow touches the shell. If you're slow here, you're slow everywhere.
 
 This lesson covers the terminal skills that matter for AI work. No history of Unix. No deep-dive into Bash scripting. Just what you need.
+
+> **【中文解读】**
+> AI 工程师在终端的时间比任何编辑器都多。训练模型、监控 GPU、远程 SSH——都依赖终端技能。本章只教 AI 工作中真正需要的终端技巧。
 
 ## The Concept
 
@@ -325,14 +331,18 @@ Here's when each tool comes into play during this course:
 | Piping + redirects | Processing experiment results |
 | Aliases | Saving time on repetitive commands |
 
-## Exercises
+## Exercises | 练习题
 
 1. Install tmux, create a session with three panes, and run `htop` in one, `watch -n1 date` in another, and a Python script in the third. Detach and reattach.
+   安装 tmux，创建包含三个面板的会话，分别运行 htop、定时命令和 Python 脚本，然后分离并重新连接。
 2. Add the aliases from `code/shell_aliases.sh` to your shell config and reload with `source ~/.zshrc` (or `~/.bashrc`).
+   将 `code/shell_aliases.sh` 中的别名添加到你的 shell 配置中并重载。
 3. Create a fake training log with `for i in $(seq 1 100); do echo "epoch $i loss: $(echo "scale=4; 1/$i" | bc)"; sleep 0.1; done > fake_train.log` and then use `grep`, `tail`, and `awk` to extract just the loss values.
+   创建模拟训练日志，用 `grep`、`tail` 和 `awk` 提取 loss 值。
 4. Set up an SSH config entry for a server you have access to (or use `localhost` to practice the syntax).
+   为你有权限的服务器设置 SSH config 条目。
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -342,3 +352,12 @@ Here's when each tool comes into play during this course:
 | PID | "Process ID" | A unique number assigned to every running process, used to monitor or kill it |
 | nohup | "No hangup" | Runs a command immune to the hangup signal, so closing the terminal won't kill it |
 | SSH | "Connecting to the server" | Secure Shell, an encrypted protocol for running commands on a remote machine |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| Shell | "终端" | 解释执行命令的程序（bash、zsh、fish） |
+| tmux | "终端复用器" | 在一个窗口中运行多个终端会话，支持分离/重连 |
+| Pipe（管道） | "竖线那个" | `\|` 操作符，将一个命令的输出传给另一个命令 |
+| PID | "进程号" | 每个运行进程的唯一编号，用于监控或终止 |
+| nohup | "不挂断" | 关闭终端也不会终止命令 |
+| SSH | "连服务器" | 安全外壳协议，用于远程执行命令 |

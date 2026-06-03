@@ -4,6 +4,9 @@ Two compounding processes per RSI cycle. Capability rate r_c, alignment
 rate r_a, each with configurable noise. The simulator tracks the gap
 M(t) = C(t) - A(t) and the cycle at which the gap would cross a safety
 threshold.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -19,6 +22,7 @@ DEFAULT_SEED = 11
 
 @dataclass
 class Config:
+    """Config"""
     r_c: float
     r_a: float
     noise_c: float
@@ -27,6 +31,7 @@ class Config:
 
 
 def run(cycles: int, cfg: Config) -> list[tuple[int, float, float, float]]:
+    """run"""
     c = 1.0
     a = 1.0
     out = [(0, c, a, c - a)]
@@ -36,17 +41,19 @@ def run(cycles: int, cfg: Config) -> list[tuple[int, float, float, float]]:
         c *= max(0.9, nc)
         a *= max(0.9, na)
         out.append((cyc, c, a, c - a))
-    return out
+    return out  # 返回结果
 
 
 def crossing_cycle(trajectory, threshold: float) -> int:
+    """crossing_cycle"""
     for cyc, _c, _a, gap in trajectory:
         if gap >= threshold:
-            return cyc
-    return -1
+            return cyc  # 返回结果
+    return -1  # 返回结果
 
 
 def print_trajectory(label: str, cfg: Config, cycles: int = 40) -> None:
+    """print_trajectory"""
     traj = run(cycles, cfg)
     print(f"\n{label}")
     print(f"  r_c={cfg.r_c:.2f} r_a={cfg.r_a:.2f} "
@@ -68,6 +75,7 @@ def print_trajectory(label: str, cfg: Config, cycles: int = 40) -> None:
 
 
 def monte_carlo(cfg: Config, cycles: int, trials: int) -> None:
+    """monte_carlo"""
     crossings = []
     for _ in range(trials):
         traj = run(cycles, cfg)
@@ -84,6 +92,7 @@ def monte_carlo(cfg: Config, cycles: int, trials: int) -> None:
 
 
 def main() -> None:
+    """main"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--threshold", type=float, default=1.5,
                         help="pause-gap threshold C - A (default: %(default)s)")
@@ -138,4 +147,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

@@ -7,6 +7,9 @@ Strong model: 0.95 ceiling on gold labels (linear separator).
 Procedure: fine-tune strong on weak labels, measure PGR.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -18,12 +21,13 @@ random.seed(29)
 
 
 def gen(n: int) -> list[tuple[list[float], int]]:
+    """gen"""
     data = []
     for _ in range(n):
         x = [random.gauss(0.0, 1.0) for _ in range(3)]
         y = 1 if x[0] + x[1] - 0.5 * x[2] > 0 else 0
         data.append((x, y))
-    return data
+    return data  # 返回结果
 
 
 def weak_label(x: list[float], accuracy: float = 0.70) -> int:
@@ -31,11 +35,12 @@ def weak_label(x: list[float], accuracy: float = 0.70) -> int:
     accuracy. Misses the x[1] and x[2] signals."""
     base = 1 if x[0] > 0 else 0
     if random.random() < accuracy:
-        return base
-    return 1 - base
+        return base  # 返回结果
+    return 1 - base  # 返回结果
 
 
 def train_strong(data: list[tuple[list[float], int]], steps: int = 200,
+    """train_strong"""
                  lr: float = 0.05) -> list[float]:
     """Fit a 3-feature linear classifier by SGD."""
     w = [0.0, 0.0, 0.0]
@@ -50,10 +55,11 @@ def train_strong(data: list[tuple[list[float], int]], steps: int = 200,
             for i in range(3):
                 w[i] -= lr * err * x[i]
             b -= lr * err
-    return w + [b]
+    return w + [b]  # 返回结果
 
 
 def accuracy(model: list[float], data: list[tuple[list[float], int]]) -> float:
+    """accuracy"""
     w, b = model[:3], model[3]
     correct = 0
     for x, y in data:
@@ -61,10 +67,11 @@ def accuracy(model: list[float], data: list[tuple[list[float], int]]) -> float:
         pred = 1 if z > 0 else 0
         if pred == y:
             correct += 1
-    return correct / len(data)
+    return correct / len(data)  # 返回结果
 
 
 def run(label: str, weak_acc: float) -> None:
+    """run"""
     eval_data = gen(1000)
     train_data = gen(1000)
     # weak-alone accuracy
@@ -89,6 +96,7 @@ def run(label: str, weak_acc: float) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("WEAK-TO-STRONG GENERALIZATION (Phase 18, Lesson 11)")
     print("=" * 70)
@@ -106,4 +114,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

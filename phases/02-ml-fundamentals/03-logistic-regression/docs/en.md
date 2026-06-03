@@ -1,4 +1,4 @@
-# Logistic Regression
+# Logistic Regression | 逻辑回归
 
 > Logistic regression bends a straight line into an S-curve to answer yes-or-no questions with probabilities.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 2 Lesson 1-2 (What Is ML, Linear Regression)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement logistic regression from scratch using the sigmoid function and binary cross-entropy loss
 - Compute and interpret precision, recall, F1 score, and the confusion matrix for binary classification
 - Explain why MSE fails for classification and why binary cross-entropy produces a convex cost surface
 - Build a softmax regression model for multi-class classification and evaluate threshold tuning tradeoffs
+
+
+> **【中文解读】**
+> 逻辑回归是二分类的基石——用 Sigmoid 函数将线性输出映射到 [0,1] 的概率。虽然叫回归，但它是分类器。sklearn 中的 LogisticRegression。信用卡欺诈检测、疾病诊断都可用逻辑回归。
 
 ## The Problem
 

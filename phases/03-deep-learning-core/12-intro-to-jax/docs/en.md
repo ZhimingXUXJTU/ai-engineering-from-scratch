@@ -1,6 +1,8 @@
-# Introduction to JAX
+# Introduction to JAX | JAX 入门
 
 > PyTorch mutates tensors. TensorFlow builds graphs. JAX compiles pure functions. That last one changes how you think about deep learning.
+
+> **【中文解读】** PyTorch 可变张量，TensorFlow 静态图，JAX 编译纯函数。JAX 的函数式编程范式是深度学习的新方向——Google 的 Gemini 就用 JAX 训练。本章学习 JAX 的核心：jit 编译、vmap 向量化、grad 自动微分。
 
 **Type:** Build
 **Languages:** Python

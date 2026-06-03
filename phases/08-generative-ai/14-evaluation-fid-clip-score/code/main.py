@@ -1,3 +1,8 @@
+"""
+评估指标 — FID、CLIP Score (Evaluation — FID, CLIP Score)
+核心概念：FID（分布距离）、CLIP Score（图文一致性）、人类偏好评估
+AI 对应：无法度量就无法交付，这些是生成模型的核心评估标准
+"""
 import math
 import random
 

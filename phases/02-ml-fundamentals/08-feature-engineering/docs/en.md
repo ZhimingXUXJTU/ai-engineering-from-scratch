@@ -1,4 +1,4 @@
-# Feature Engineering & Selection
+# Feature Engineering & Selection | 特征工程与选择
 
 > A good feature is worth a thousand data points.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1 (Statistics for ML, Linear Algebra), Phase 2 Lessons 1-7
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement numerical transforms (standardization, min-max scaling, log transform, binning) and explain when each is appropriate
 - Build one-hot, label, and target encoding for categorical features and identify the data leakage risk in target encoding
 - Construct a TF-IDF vectorizer from scratch and explain why it outperforms raw word counts for text classification
 - Apply filter-based feature selection (variance threshold, correlation, mutual information) to reduce dimensionality
+
+
+> **【中文解读】**
+> 特征工程是把原始数据转化为模型能理解的特征——这是 ML 中最耗时的步骤。标准化、编码、交叉特征、多项式特征都是常用技巧。sklearn 中的 StandardScaler/OneHotEncoder。
 
 ## The Problem
 

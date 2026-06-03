@@ -1,5 +1,10 @@
 """Phase 13 Capstone - end-to-end research-and-report ecosystem.
 
+毕业项目：构建完整的工具生态系统 (Capstone: Build a Complete Tool Ecosystem)
+核心概念：整合 Phase 13 所有内容为一个可运行的系统——MCP 服务器（tools+resources+prompts+tasks+UI）、
+OAuth 2.1 认证、RBAC 网关、多服务器客户端、A2A 子 Agent 调用、OTel 全链路追踪、工具投毒检测。
+AI 应用对应：这是 Phase 13 的集大成课程，展示一个生产级工具生态系统的完整架构。
+
 All the pieces from Phase 13 in one runnable demo:
   - gateway with OAuth-shaped auth and RBAC
   - MCP server exposing arxiv_search tool, recent resource, task-augmented
@@ -23,7 +28,7 @@ from dataclasses import dataclass, field
 
 
 # ------------------------------------------------------------------
-# OTel GenAI span emitter (condensed from Lesson 20)
+# OTel GenAI span 发射器（浓缩自 Lesson 20）
 # ------------------------------------------------------------------
 
 SPANS: list[dict] = []
@@ -47,7 +52,7 @@ def finish(sp: dict) -> None:
 
 
 # ------------------------------------------------------------------
-# research MCP server
+# 研究 MCP 服务器 (research MCP server)
 # ------------------------------------------------------------------
 
 TOOLS = [
@@ -61,18 +66,20 @@ PAPERS = [
     {"arxiv_id": "2603.30016", "title": "Long-running tool calls via Tasks"},
 ]
 
+# 工具描述哈希锁定：用于检测地毯拉扯攻击
 PINNED = {f"research::{t['name']}": hashlib.sha256(t["description"].encode()).hexdigest()
           for t in TOOLS}
 
 
 def research_arxiv_search(args: dict) -> dict:
+    """arXiv 搜索工具：按关键词过滤论文列表。"""
     q = args["query"].lower()
     hits = [p for p in PAPERS if q in p["title"].lower()]
     return {"content": [{"type": "text", "text": json.dumps(hits)}], "isError": False}
 
 
 def research_generate_report(args: dict, trace_id: str, parent: str) -> dict:
-    # task-augmented. Internally calls a2a writer and returns ui:// resource
+    """生成报告工具：任务增强，内部调用 A2A 写作 Agent，返回 ui:// 资源。"""
     task_id = f"tsk_{uuid.uuid4().hex[:10]}"
     sp = span("mcp.task.working", "INTERNAL", trace_id, parent,
               {"gen_ai.operation.name": "execute_tool", "mcp.task.id": task_id})
@@ -102,7 +109,7 @@ def research_generate_report(args: dict, trace_id: str, parent: str) -> dict:
 
 
 # ------------------------------------------------------------------
-# gateway
+# 网关 (gateway)
 # ------------------------------------------------------------------
 
 USERS = {

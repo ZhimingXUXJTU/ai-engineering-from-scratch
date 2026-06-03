@@ -5,6 +5,9 @@ Conceptual references:
 - Phase 19 Track A lessons 20-29 (agent harness primitives)
 
 Stdlib only. Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -22,6 +25,7 @@ TOKEN_RE = re.compile(r"[a-z0-9]+")
 
 @dataclass
 class Paper:
+    """Paper"""
     id: str
     title: str
     abstract: str
@@ -32,7 +36,7 @@ class Paper:
     source: str = "merged"
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "id": self.id,
             "title": self.title,
             "year": self.year,
@@ -44,7 +48,8 @@ class Paper:
 
 
 def tokenise(text: str) -> list[str]:
-    return TOKEN_RE.findall(text.lower())
+    """tokenise"""
+    return TOKEN_RE.findall(text.lower())  # 返回结果
 
 
 class BM25Index:
@@ -71,16 +76,16 @@ class BM25Index:
     def finalise(self) -> None:
         if self._n_docs == 0:
             self._avgdl = 0.0
-            return
+            return  # 返回结果
         self._avgdl = sum(self._doc_lens.values()) / self._n_docs
 
     def idf(self, term: str) -> float:
         df = self._doc_freq.get(term, 0)
-        return math.log((self._n_docs - df + 0.5) / (df + 0.5) + 1.0)
+        return math.log((self._n_docs - df + 0.5) / (df + 0.5) + 1.0)  # 返回结果
 
     def score(self, doc_id: str, query_terms: list[str]) -> float:
         if doc_id not in self._doc_lens or self._avgdl == 0.0:
-            return 0.0
+            return 0.0  # 返回结果
         dl = self._doc_lens[doc_id]
         total = 0.0
         for term in query_terms:
@@ -91,12 +96,12 @@ class BM25Index:
                 f + self.k1 * (1.0 - self.b + self.b * dl / self._avgdl)
             )
             total += self.idf(term) * tf_norm
-        return total
+        return total  # 返回结果
 
     def search(self, query: str, top_k: int = 10) -> list[tuple[str, float]]:
         terms = tokenise(query)
         if not terms:
-            return []
+            return []  # 返回结果
         scores: dict[str, float] = {}
         candidate_ids: set[str] = set()
         for term in terms:
@@ -104,7 +109,7 @@ class BM25Index:
         for doc_id in candidate_ids:
             scores[doc_id] = self.score(doc_id, terms)
         ranked = sorted(scores.items(), key=lambda kv: (-kv[1], kv[0]))
-        return [(d, s) for d, s in ranked[:top_k] if s > 0.0]
+        return [(d, s) for d, s in ranked[:top_k] if s > 0.0]  # 返回结果
 
 
 class CitationGraph:
@@ -121,7 +126,7 @@ class CitationGraph:
     def neighbours(self, doc_id: str) -> list[str]:
         out = list(self._forward.get(doc_id, []))
         out.extend(self._backward.get(doc_id, []))
-        return out
+        return out  # 返回结果
 
     def expand(self, seeds: list[str], max_hops: int = 2) -> dict[str, int]:
         """Return a mapping of paper id to shortest hop distance from any seed."""
@@ -137,7 +142,7 @@ class CitationGraph:
                     continue
                 distance[neighbour] = d + 1
                 queue.append(neighbour)
-        return distance
+        return distance  # 返回结果
 
 
 class ArxivMockClient:
@@ -160,7 +165,7 @@ class ArxivMockClient:
                     authors=list(paper.authors),
                     source="arxiv",
                 ))
-        return hits
+        return hits  # 返回结果
 
 
 class SemanticScholarMockClient:
@@ -185,13 +190,13 @@ class SemanticScholarMockClient:
                     citations=list(paper.citations),
                     source="s2",
                 ))
-        return hits
+        return hits  # 返回结果
 
     def fetch(self, paper_id: str) -> Paper | None:
         paper = self._papers.get(paper_id)
         if paper is None:
-            return None
-        return Paper(
+            return None  # 返回结果
+        return Paper(  # 返回结果
             id=paper.id,
             title=paper.title,
             abstract=paper.abstract,
@@ -205,6 +210,7 @@ class SemanticScholarMockClient:
 
 @dataclass
 class RetrievalConfig:
+    """RetrievalConfig"""
     top_k_lexical: int = 10
     max_hops: int = 2
     w_bm25: float = 0.5
@@ -218,6 +224,7 @@ class RetrievalConfig:
 
 @dataclass
 class RankedPaper:
+    """RankedPaper"""
     paper: Paper
     bm25_score: float
     graph_distance: int | None
@@ -225,7 +232,7 @@ class RankedPaper:
     final_score: float
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "id": self.paper.id,
             "title": self.paper.title,
             "year": self.paper.year,
@@ -238,6 +245,7 @@ class RankedPaper:
 
 @dataclass
 class RetrievalResult:
+    """RetrievalResult"""
     ranked: list[RankedPaper]
     hit_count: int
     average_score: float
@@ -245,7 +253,7 @@ class RetrievalResult:
     wall_time_ms: float
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "hit_count": self.hit_count,
             "average_score": round(self.average_score, 4),
             "top_score": round(self.top_score, 4),
@@ -281,23 +289,23 @@ class RetrievalClient:
 
     def _recency(self, year: int) -> float:
         if self._year_max == self._year_min:
-            return 1.0
-        return (year - self._year_min) / (self._year_max - self._year_min)
+            return 1.0  # 返回结果
+        return (year - self._year_min) / (self._year_max - self._year_min)  # 返回结果
 
     def _graph_score(self, distance: int | None) -> float:
         if distance is None:
-            return 0.0
+            return 0.0  # 返回结果
         if distance == 0:
-            return 1.0
+            return 1.0  # 返回结果
         if distance == 1:
-            return 0.6
+            return 0.6  # 返回结果
         if distance == 2:
-            return 0.3
-        return 0.0
+            return 0.3  # 返回结果
+        return 0.0  # 返回结果
 
     def _merge_paper(self, lexical: Paper | None, s2: Paper | None) -> Paper:
         base = self._corpus[(lexical or s2).id]
-        return Paper(
+        return Paper(  # 返回结果
             id=base.id,
             title=base.title,
             abstract=base.abstract,
@@ -312,7 +320,7 @@ class RetrievalClient:
         start = time.perf_counter()
         terms = tokenise(query)
         if not terms:
-            return RetrievalResult([], 0, 0.0, 0.0, (time.perf_counter() - start) * 1000.0)
+            return RetrievalResult([], 0, 0.0, 0.0, (time.perf_counter() - start) * 1000.0)  # 返回结果
         lexical_hits = self._index.search(query, self._cfg.top_k_lexical)
         seed_ids = [doc_id for doc_id, _ in lexical_hits]
         graph_distance = self._graph.expand(seed_ids, self._cfg.max_hops)
@@ -349,7 +357,7 @@ class RetrievalClient:
         avg = sum(scores) / len(scores) if scores else 0.0
         top = max(scores) if scores else 0.0
         wall_ms = (time.perf_counter() - start) * 1000.0
-        return RetrievalResult(ranked, len(ranked), avg, top, wall_ms)
+        return RetrievalResult(ranked, len(ranked), avg, top, wall_ms)  # 返回结果
 
 
 def build_corpus() -> list[Paper]:
@@ -394,15 +402,17 @@ def build_corpus() -> list[Paper]:
                 cross = f"p{((topic_idx + 1) % 5) * 20 + 1:03d}"
                 paper.references.append(cross)
                 by_id[cross].citations.append(pid)
-    return papers
+    return papers  # 返回结果
 
 
 def build_client(config: RetrievalConfig | None = None) -> RetrievalClient:
+    """build_client"""
     corpus = build_corpus()
-    return RetrievalClient(ArxivMockClient(corpus), SemanticScholarMockClient(corpus), corpus, config)
+    return RetrievalClient(ArxivMockClient(corpus), SemanticScholarMockClient(corpus), corpus, config)  # 返回结果
 
 
 def _demo() -> None:
+    """_demo"""
     client = build_client(RetrievalConfig(top_k_lexical=5, max_hops=2))
     result = client.search("attention sparsity head pruning")
     print(json.dumps({

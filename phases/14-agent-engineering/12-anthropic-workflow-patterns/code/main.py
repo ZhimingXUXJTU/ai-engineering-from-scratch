@@ -3,6 +3,9 @@
 prompt chaining, routing, parallelization (voting), orchestrator-workers,
 evaluator-optimizer. Each pattern is 10-15 lines; the point is to show how
 small they are compared to a framework.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -13,6 +16,7 @@ from typing import Any, Callable
 
 
 class ScriptedLLM:
+    """ScriptedLLM"""
     def __init__(self, script: dict[str, str | list[str]]) -> None:
         self.script = script
         self.index: dict[str, int] = {}
@@ -24,13 +28,14 @@ class ScriptedLLM:
         if isinstance(value, list):
             i = self.index.get(prompt, 0)
             self.index[prompt] = min(i + 1, len(value) - 1)
-            return value[i]
+            return value[i]  # 返回结果
         if isinstance(value, str):
-            return value
-        return f"[unhandled: {prompt}]"
+            return value  # 返回结果
+        return f"[unhandled: {prompt}]"  # 返回结果
 
 
 def prompt_chain(input_text: str, llm: Callable[[str], str],
+    """prompt_chain"""
                  steps: list[tuple[str, str]]) -> list[tuple[str, str]]:
     current = input_text
     trace: list[tuple[str, str]] = []
@@ -39,42 +44,47 @@ def prompt_chain(input_text: str, llm: Callable[[str], str],
         output = llm(prompt)
         trace.append((label, output))
         current = output
-    return trace
+    return trace  # 返回结果
 
 
 def route(input_text: str, classifier: Callable[[str], str],
+    """route"""
           handlers: dict[str, Callable[[str], str]]) -> tuple[str, str]:
     label = classifier(input_text)
     handler = handlers.get(label) or handlers.get("default")
     if handler is None:
-        return label, f"no handler for {label}"
-    return label, handler(input_text)
+        return label, f"no handler for {label}"  # 返回结果
+    return label, handler(input_text)  # 返回结果
 
 
 def parallel_vote(prompt: str, llm: Callable[[str], str], n: int = 5) -> tuple[str, Counter]:
+    """parallel_vote"""
     votes = [llm(prompt) for _ in range(n)]
     counts = Counter(votes)
     winner, _ = counts.most_common(1)[0]
-    return winner, counts
+    return winner, counts  # 返回结果
 
 
 @dataclass
 class Worker:
+    """Worker"""
     name: str
     handles: Callable[[str], bool]
     fn: Callable[[str], str]
 
 
 def orchestrator_workers(task: str, workers: list[Worker],
+    """orchestrator_workers"""
                          synth: Callable[[list[tuple[str, str]]], str]) -> tuple[str, list[tuple[str, str]]]:
     outputs: list[tuple[str, str]] = []
     for worker in workers:
         if worker.handles(task):
             outputs.append((worker.name, worker.fn(task)))
-    return synth(outputs), outputs
+    return synth(outputs), outputs  # 返回结果
 
 
 def evaluator_optimizer(task: str, proposer: Callable[[str, str | None], str],
+    """evaluator_optimizer"""
                         evaluator: Callable[[str, str], tuple[bool, str]],
                         max_iter: int = 5) -> tuple[str, list[tuple[str, str, str]]]:
     trace: list[tuple[str, str, str]] = []
@@ -84,12 +94,13 @@ def evaluator_optimizer(task: str, proposer: Callable[[str, str | None], str],
         ok, judge = evaluator(task, candidate)
         trace.append((candidate, "PASS" if ok else "FAIL", judge))
         if ok:
-            return candidate, trace
+            return candidate, trace  # 返回结果
         feedback = judge
-    return candidate, trace
+    return candidate, trace  # 返回结果
 
 
 def demo_chain(llm: ScriptedLLM) -> None:
+    """demo_chain"""
     print("-" * 70)
     print("1. PROMPT CHAINING — summarize then title")
     print("-" * 70)
@@ -106,12 +117,13 @@ def demo_chain(llm: ScriptedLLM) -> None:
 
 
 def demo_route(llm: ScriptedLLM) -> None:
+    """demo_route"""
     print("\n" + "-" * 70)
     print("2. ROUTING — classify then dispatch")
     print("-" * 70)
 
     def classifier(text: str) -> str:
-        return llm(f"classify: {text}")
+        return llm(f"classify: {text}")  # 返回结果
 
     handlers = {
         "refund": lambda t: llm(f"handle refund: {t}"),
@@ -128,6 +140,7 @@ def demo_route(llm: ScriptedLLM) -> None:
 
 
 def demo_parallel(llm: ScriptedLLM) -> None:
+    """demo_parallel"""
     print("\n" + "-" * 70)
     print("3. PARALLELIZATION — N voters on a boolean")
     print("-" * 70)
@@ -137,6 +150,7 @@ def demo_parallel(llm: ScriptedLLM) -> None:
 
 
 def demo_orchestrator(llm: ScriptedLLM) -> None:
+    """demo_orchestrator"""
     print("\n" + "-" * 70)
     print("4. ORCHESTRATOR-WORKERS — specialist pool")
     print("-" * 70)
@@ -154,7 +168,7 @@ def demo_orchestrator(llm: ScriptedLLM) -> None:
     ]
 
     def synth(outputs: list[tuple[str, str]]) -> str:
-        return " | ".join(f"{name}: {out}" for name, out in outputs)
+        return " | ".join(f"{name}: {out}" for name, out in outputs)  # 返回结果
 
     task = "review this python change for style and security"
     final, outputs = orchestrator_workers(task, workers, synth)
@@ -164,6 +178,7 @@ def demo_orchestrator(llm: ScriptedLLM) -> None:
 
 
 def demo_evaluator_optimizer(llm: ScriptedLLM) -> None:
+    """demo_evaluator_optimizer"""
     print("\n" + "-" * 70)
     print("5. EVALUATOR-OPTIMIZER — propose, judge, refine")
     print("-" * 70)
@@ -172,12 +187,12 @@ def demo_evaluator_optimizer(llm: ScriptedLLM) -> None:
         prompt = f"propose: {task}"
         if feedback:
             prompt += f" (fix: {feedback})"
-        return llm(prompt)
+        return llm(prompt)  # 返回结果
 
     def evaluator(task: str, candidate: str) -> tuple[bool, str]:
         verdict = llm(f"evaluate: {candidate}")
         ok = verdict.startswith("PASS")
-        return ok, verdict
+        return ok, verdict  # 返回结果
 
     final, trace = evaluator_optimizer(
         "write a one-line summary of ReAct", proposer, evaluator
@@ -188,6 +203,7 @@ def demo_evaluator_optimizer(llm: ScriptedLLM) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("ANTHROPIC WORKFLOW PATTERNS — Phase 14, Lesson 12")
     print("=" * 70)
@@ -235,4 +251,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

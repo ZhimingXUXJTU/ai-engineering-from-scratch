@@ -1,3 +1,17 @@
+"""
+多目标跟踪与视频记忆 (Multi-Object Tracking & Video Memory)
+
+核心概念：
+- 跟踪 = 检测 + 关联（每帧检测目标，按 ID 匹配到已有轨迹）
+- 匈牙利算法：最优匹配当前检测与历史轨迹
+- 挑战：遮挡、消失重出现、ID 切换、密集场景
+
+AI 对应：
+- 安防监控（人员轨迹追踪）、交通管理（车辆计数）
+- 体育分析（球员跑动轨迹）、无人机跟踪
+- ByteTrack、SORT/DeepSORT 是经典方法
+"""
+
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 

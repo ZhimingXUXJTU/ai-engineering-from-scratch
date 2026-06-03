@@ -1,13 +1,16 @@
-# Token and Positional Embeddings
+# Token and Positional Embeddings | 位置 嵌入
 
 > Ids are integers. The model wants vectors. Two lookup tables sit between them, and the choice of the positional one shapes what the model can learn.
+
+> **【中文解读】** 本节是综合项目——实现 Token 位置嵌入。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 04 lessons, Phase 07 transformer lessons, Lessons 30 and 31 of this phase
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 - Build a token-embedding lookup table that maps vocabulary ids to dense vectors.
 - Build a learned positional-embedding lookup table indexed by position.
 - Build a fixed sinusoidal positional embedding indexed by position with no parameters.

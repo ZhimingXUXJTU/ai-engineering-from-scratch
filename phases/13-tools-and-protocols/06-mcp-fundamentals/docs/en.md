@@ -1,6 +1,10 @@
-# MCP Fundamentals — Primitives, Lifecycle, JSON-RPC Base
+# MCP Fundamentals — Primitives, Lifecycle, JSON-RPC Base | MCP 基础：原语、生命周期与 JSON-RPC
 
 > Every integration before MCP was a one-off. The Model Context Protocol, first shipped by Anthropic in November 2024 and now stewarded by the Linux Foundation's Agentic AI Foundation, standardizes discovery and invocation so any client can speak to any server. The 2025-11-25 spec names six primitives (three server, three client), a three-phase lifecycle, and a JSON-RPC 2.0 wire format. Learn those and the rest of the MCP chapter of this phase becomes reading.
+
+> **【中文解读】** MCP 之前的每个集成都是定制的。Model Context Protocol 由 Anthropic 于 2024 年 11 月首发，现由 Linux 基金会的 Agentic AI Foundation 管理。它标准化了发现和调用，使任何客户端能与任何服务器通信。2025-11-25 规范定义了六个原语（三个服务器端、三个客户端端）、三阶段生命周期和 JSON-RPC 2.0 线格式。
+
+> **【拓展：MCP→Claude 协议生态】** MCP 是 Claude 生态的核心协议。Claude Desktop、Cursor、VS Code Copilot 等 300+ 客户端都支持 MCP。一个 MCP 服务器可以在所有这些客户端中工作，无需重复开发。MCP 的六原语模型（tools/resources/prompts + roots/sampling/elicitation）是理解整个协议的基础。
 
 **Type:** Learn
 **Languages:** Python (stdlib, JSON-RPC parser)
@@ -21,6 +25,8 @@ Before MCP, every tool-using agent had its own protocol. Cursor had an MCP-shape
 The result was a Cambrian explosion of one-off integrations and a ceiling on ecosystem velocity.
 
 MCP fixes this by standardizing the wire format. A single MCP server works in every MCP client: Claude Desktop, ChatGPT, Cursor, VS Code, Gemini, Goose, Zed, Windsurf, 300+ clients by April 2026. 110M monthly SDK downloads. 10,000+ public servers. The Linux Foundation took stewardship in December 2025 under the new Agentic AI Foundation.
+
+> **【中文解读】** MCP 之前，Cursor、Claude Desktop、VS Code Copilot 各有自己的工具协议。一个"Postgres 查询"工具要写三次。MCP 通过标准化线格式解决了这个问题：一个 MCP 服务器可在所有 MCP 客户端中工作。截至 2026 年 4 月，已有 300+ 客户端、月 SDK 下载 1.1 亿、1 万+ 公开服务器。
 
 The spec revision used in this phase is **2025-11-25**. It adds async Tasks (SEP-1686), URL-mode elicitation (SEP-1036), sampling with tools (SEP-1577), incremental scope consent (SEP-835), and OAuth 2.1 resource-indicator semantics. Phase 13 · 09 through 16 cover those extensions. This lesson stops at the base.
 
@@ -97,6 +103,8 @@ If the client does not declare `sampling`, the server must not call `sampling/cr
 
 This is what prevents ecosystem drift. A client that does not support sampling is still a valid MCP client; a server that does not call `sampling` is still a valid MCP server. They just do not use that feature together.
 
+> **【中文解读】** 能力协商是 MCP 防止生态漂移的关键机制。不支持 sampling 的客户端仍是合法 MCP 客户端；不调用 sampling 的服务器仍是合法 MCP 服务器。它们只是不一起使用那个特性。对称性：服务器不声明 `resources.subscribe`，客户端就不能订阅。
+
 ### Structured content and error shapes
 
 `tools/call` returns a `content` array of typed blocks: `text`, `image`, `resource`. Phase 13 · 14 adds MCP Apps (`ui://` interactive UI) to that list.
@@ -140,18 +148,18 @@ This lesson produces `outputs/skill-mcp-handshake-tracer.md`. Given a pcap-style
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| MCP | "Model Context Protocol" | Open protocol for model-to-tool discovery and invocation |
-| Server primitive | "What a server exposes" | tools (actions), resources (data), prompts (templates) |
-| Client primitive | "What a client lets servers use" | roots (scope), sampling (LLM callbacks), elicitation (user input) |
-| JSON-RPC 2.0 | "The wire format" | Symmetric request/response/notification envelopes |
-| `initialize` handshake | "Capability negotiation" | First message pair; servers and clients declare features they support |
-| `tools/list` | "Discovery" | Client asks server for its current tool set |
-| `tools/call` | "Invocation" | Client asks server to execute a tool with arguments |
-| `notifications/*_changed` | "Mutation events" | Server tells client that its primitive list has changed |
-| Content block | "Typed result" | `{type: "text" \| "image" \| "resource" \| "ui_resource"}` in tool result |
-| SEP | "Spec Evolution Proposal" | Named draft proposal (e.g. SEP-1686 for async Tasks) |
+| Term | What people say | What it actually means | 中文术语 |
+|------|----------------|------------------------|----------|
+| MCP | "Model Context Protocol" | Open protocol for model-to-tool discovery and invocation | 模型上下文协议 |
+| Server primitive | "What a server exposes" | tools (actions), resources (data), prompts (templates) | 服务器原语 |
+| Client primitive | "What a client lets servers use" | roots (scope), sampling (LLM callbacks), elicitation (user input) | 客户端原语 |
+| JSON-RPC 2.0 | "The wire format" | Symmetric request/response/notification envelopes | JSON-RPC 2.0 线格式 |
+| `initialize` handshake | "Capability negotiation" | First message pair; servers and clients declare features they support | 初始化握手 |
+| `tools/list` | "Discovery" | Client asks server for its current tool set | 工具发现 |
+| `tools/call` | "Invocation" | Client asks server to execute a tool with arguments | 工具调用 |
+| `notifications/*_changed` | "Mutation events" | Server tells client that its primitive list has changed | 变更通知 |
+| Content block | "Typed result" | `{type: "text" \| "image" \| "resource" \| "ui_resource"}` in tool result | 内容块 |
+| SEP | "Spec Evolution Proposal" | Named draft proposal (e.g. SEP-1686 for async Tasks) | 规范演进提案 |
 
 ## Further Reading
 

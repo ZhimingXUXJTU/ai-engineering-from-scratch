@@ -1,3 +1,7 @@
+"""
+图类实现、BFS/DFS、图拉普拉斯矩阵和谱聚类。
+AI 对应: GNN 的消息传递是邻接矩阵乘法，谱聚类适合非球形数据。
+"""
 import numpy as np
 from collections import deque
 

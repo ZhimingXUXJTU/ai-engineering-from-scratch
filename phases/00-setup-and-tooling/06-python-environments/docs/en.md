@@ -1,4 +1,4 @@
-# Python Environments
+# Python Environments | Python 环境管理
 
 > Dependency hell is real. Virtual environments are the cure.
 
@@ -7,14 +7,17 @@
 **Prerequisites:** Phase 0, Lesson 01
 **Time:** ~30 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Create isolated virtual environments using `uv`, `venv`, or `conda`
 - Write a `pyproject.toml` with optional dependency groups and generate lockfiles for reproducibility
 - Diagnose and fix common pitfalls: global installs, pip/conda mixing, CUDA version mismatches
 - Implement a per-phase environment strategy for projects with conflicting dependencies
 
-## The Problem
+> **【中文解读】**
+> Python 项目依赖冲突是 AI 开发中最常见的问题之一。本项目需要 PyTorch 2.4，那个项目需要 2.1——全局安装只能有一个版本。虚拟环境让每个项目拥有独立的依赖，互不干扰。
+
+## The Problem | 问题描述
 
 You install PyTorch 2.4 for a fine-tuning project. Next week, a different project needs PyTorch 2.1 because its CUDA build is pinned. You upgrade globally, and the first project breaks. You downgrade, and the second one breaks.
 
@@ -26,6 +29,9 @@ This is dependency hell. It happens constantly in AI/ML work because:
 - CUDA 11.8 builds don't work with CUDA 12.x drivers (and vice versa)
 
 The fix: every project gets its own isolated environment with its own packages.
+
+> **【中文解读】**
+> "依赖地狱"在 AI 项目中特别常见，因为 PyTorch/JAX/TensorFlow 各自带 CUDA 绑定，版本之间互不兼容。解决方案：每个项目一个隔离的虚拟环境。
 
 ## The Concept
 
@@ -248,14 +254,18 @@ bash phases/00-setup-and-tooling/06-python-environments/code/env_setup.sh
 
 This creates a `.venv` at the repo root with core dependencies installed and verified.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `env_setup.sh` and verify all checks pass
+   运行环境安装脚本，确认所有检查通过
 2. Create a second virtual environment, install a different version of numpy in it, and confirm the two environments are isolated
+   创建第二个虚拟环境，安装不同版本的 NumPy，确认两个环境隔离
 3. Write a `pyproject.toml` for a project that needs both PyTorch and the Anthropic SDK
+   为一个同时需要 PyTorch 和 Anthropic SDK 的项目编写 `pyproject.toml`
 4. Deliberately install a package globally (without activating a venv), notice where it goes, then uninstall it
+   故意在全局安装一个包（不激活虚拟环境），观察它装在哪里，然后卸载
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -264,3 +274,11 @@ This creates a `.venv` at the repo root with core dependencies installed and ver
 | pyproject.toml | "The new setup.py" | The standard Python project configuration file, replacing setup.py/setup.cfg/requirements.txt |
 | Transitive dependency | "A dependency of a dependency" | Package B depends on C; if you install A which depends on B, C is a transitive dependency of A |
 | CUDA mismatch | "My GPU isn't working" | PyTorch was compiled for a different CUDA version than what your GPU driver supports |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| Virtual environment | "venv" | 包含独立 Python 解释器和包的隔离目录 |
+| Lockfile | "锁定依赖" | 记录每个包精确版本的文件，确保跨机器安装一致 |
+| pyproject.toml | "新版 setup.py" | Python 项目标准配置文件，替代 setup.py 和 requirements.txt |
+| Transitive dependency | "依赖的依赖" | A 依赖 B，B 依赖 C，C 就是 A 的传递依赖 |
+| CUDA mismatch | "GPU 不工作" | PyTorch 编译时的 CUDA 版本与 GPU 驱动不匹配 |

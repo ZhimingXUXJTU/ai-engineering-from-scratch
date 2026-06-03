@@ -3,6 +3,9 @@
 Detects the five industry-recurring modes: hallucinated actions, scope creep,
 cascading errors, context loss, tool misuse. Each detector returns a tag if
 the trace matches; aggregate distribution mirrors Phoenix's trace clustering.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -14,6 +17,7 @@ from typing import Any
 
 @dataclass
 class TraceStep:
+    """TraceStep"""
     kind: str
     name: str
     args: dict[str, Any] = field(default_factory=dict)
@@ -23,6 +27,7 @@ class TraceStep:
 
 @dataclass
 class Trace:
+    """Trace"""
     tid: str
     user_request: str
     constraints: list[str]
@@ -35,24 +40,27 @@ KNOWN_TOOLS = {"search", "read_file", "write_file", "list_dir"}
 
 
 def detect_hallucinated_action(trace: Trace) -> str | None:
+    """detect_hallucinated_action"""
     for step in trace.steps:
         if step.kind == "tool_call" and step.name not in KNOWN_TOOLS:
-            return "hallucinated_action"
-    return None
+            return "hallucinated_action"  # 返回结果
+    return None  # 返回结果
 
 
 def detect_scope_creep(trace: Trace) -> str | None:
+    """detect_scope_creep"""
     request = trace.user_request.lower()
     writes = [s for s in trace.steps
               if s.kind == "tool_call" and s.name == "write_file"]
     explicit_write_words = ("write", "create", "save", "update", "edit")
     wanted_write = any(w in request for w in explicit_write_words)
     if len(writes) > 0 and not wanted_write:
-        return "scope_creep"
-    return None
+        return "scope_creep"  # 返回结果
+    return None  # 返回结果
 
 
 def detect_cascading_errors(trace: Trace) -> str | None:
+    """detect_cascading_errors"""
     saw_error = False
     downstream_ops = 0
     for step in trace.steps:
@@ -62,22 +70,24 @@ def detect_cascading_errors(trace: Trace) -> str | None:
         if saw_error and step.kind == "tool_call":
             downstream_ops += 1
     if saw_error and downstream_ops >= 2:
-        return "cascading_errors"
-    return None
+        return "cascading_errors"  # 返回结果
+    return None  # 返回结果
 
 
 def detect_context_loss(trace: Trace) -> str | None:
+    """detect_context_loss"""
     for constraint in trace.constraints:
         con_l = constraint.lower()
         if "do not" in con_l:
             forbidden_token = con_l.split("do not")[-1].strip().split()[0]
             for step in trace.steps:
                 if step.kind == "tool_call" and forbidden_token in str(step.args).lower():
-                    return "context_loss"
-    return None
+                    return "context_loss"  # 返回结果
+    return None  # 返回结果
 
 
 def detect_tool_misuse(trace: Trace) -> str | None:
+    """detect_tool_misuse"""
     tool_args_schema = {
         "read_file": {"path"},
         "write_file": {"path", "content"},
@@ -91,18 +101,19 @@ def detect_tool_misuse(trace: Trace) -> str | None:
         if expected is None:
             continue
         if not expected.issubset(set(step.args.keys())):
-            return "tool_misuse"
-    return None
+            return "tool_misuse"  # 返回结果
+    return None  # 返回结果
 
 
 def detect_success_hallucination(trace: Trace) -> str | None:
+    """detect_success_hallucination"""
     request = trace.user_request.lower()
     write_intent = any(w in request for w in
                        ("write", "create", "save", "update", "edit", "make"))
     if (write_intent and trace.final_success_claim
             and not trace.target_state_changed):
-        return "success_hallucination"
-    return None
+        return "success_hallucination"  # 返回结果
+    return None  # 返回结果
 
 
 DETECTORS = (
@@ -116,10 +127,12 @@ DETECTORS = (
 
 
 def tag(trace: Trace) -> list[str]:
-    return [label for label in (d(trace) for d in DETECTORS) if label]
+    """tag"""
+    return [label for label in (d(trace) for d in DETECTORS) if label]  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("AGENT FAILURE MODES — Phase 14, Lesson 26")
     print("=" * 70)
@@ -200,4 +213,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

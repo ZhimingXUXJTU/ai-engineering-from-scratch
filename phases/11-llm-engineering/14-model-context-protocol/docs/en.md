@@ -1,6 +1,10 @@
-# Model Context Protocol (MCP)
+# Model Context Protocol (MCP) | 模型上下文协议
 
 > Every LLM app built before 2025 invented its own tool schema. Then Anthropic shipped MCP, Claude adopted it, OpenAI adopted it, and by 2026 it is the default wire format for connecting any LLM to any tool, data source, or agent. Write one MCP server and every host talks to it.
+
+> **【中文解读】** 2025年前每个 LLM 应用都发明自己的工具 schema。Anthropic 推出 MCP 后，Claude、OpenAI 纷纷采用，到2026年已成为连接 LLM 与工具/数据源的通用协议。写一个 MCP 服务器，所有宿主都能调用。
+
+> **【拓展：MCP→Claude生态核心协议】** MCP 是 Claude 生态系统的核心协议，定义了工具、资源和提示模板的标准接口。Phase 13 将深入讲解 MCP 的服务端、客户端、传输层和安全机制。
 
 **Type:** Build
 **Languages:** Python

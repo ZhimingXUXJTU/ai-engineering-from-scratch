@@ -1,6 +1,10 @@
-# Async Tasks (SEP-1686) — Call-Now, Fetch-Later for Long-Running Work
+# Async Tasks (SEP-1686) — Call-Now, Fetch-Later for Long-Running Work | 异步任务：先调用后获取的长时运行工作
 
 > Real agent work takes minutes to hours: CI runs, deep-research synthesis, batch exports. Synchronous tool calls drop connections, time out, or block the UI. SEP-1686, merged in 2025-11-25, adds a Tasks primitive: any request can be augmented to become a task, and the result can be fetched later or streamed via state notifications. Drift-risk note: Tasks are experimental through H1 2026; SDK surface is still being designed around the spec.
+
+> **【中文解读】** 真正的 Agent 工作需要几分钟到几小时：CI 运行、深度研究综合、批量导出。同步工具调用会断开连接、超时或阻塞 UI。SEP-1686 添加了 Tasks 原语：任何请求都可以变成任务，结果可以稍后获取或通过状态通知流式传输。
+
+> **【拓展：异步任务→MCP 长时运行工作】** 异步任务是 MCP 处理长时运行工作的标准模式。与传统同步 `tools/call` 不同，Tasks 允许服务器立即返回 `taskId`，客户端稍后通过 `tasks/status` 轮询进度或通过 `tasks/result` 获取最终结果。这是 MCP 从"简单工具执行"进化到"复杂工作流编排"的关键一步。
 
 **Type:** Build
 **Languages:** Python (stdlib, async task state machine)
@@ -138,18 +142,18 @@ This lesson produces `outputs/skill-task-store-designer.md`. Given a long-runnin
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Task | "Long-running tool call" | Request augmented with `_meta.task` for async execution |
-| SEP-1686 | "Tasks spec" | Spec Evolution Proposal that added Tasks in 2025-11-25 |
-| `_meta.task` | "Task envelope" | Per-request metadata containing id, state, ttl |
-| taskSupport | "Tool flag" | `forbidden` / `optional` / `required` per tool |
-| `tasks/status` | "Poll method" | Fetch current state and optional progress hint |
-| `tasks/result` | "Fetch result" | Returns the completed payload or 404 if not yet done |
-| `tasks/cancel` | "Stop it" | Idempotent cancellation request |
-| ttl | "Retention budget" | Milliseconds the server promises to keep the task state |
-| `notifications/tasks/updated` | "State push" | Server-initiated state-change event |
-| Durable store | "Crash-safe state" | Filesystem / SQLite / Redis persistence layer |
+| Term | What people say | What it actually means | 中文术语 |
+|------|----------------|------------------------|----------|
+| Task | "Long-running tool call" | Request augmented with `_meta.task` for async execution | 异步任务 |
+| SEP-1686 | "Tasks spec" | Spec Evolution Proposal that added Tasks in 2025-11-25 | 任务规范提案 |
+| `_meta.task` | "Task envelope" | Per-request metadata containing id, state, ttl | 任务元数据 |
+| taskSupport | "Tool flag" | `forbidden` / `optional` / `required` per tool | 任务支持标志 |
+| `tasks/status` | "Poll method" | Fetch current state and optional progress hint | 任务状态轮询 |
+| `tasks/result` | "Fetch result" | Returns the completed payload or 404 if not yet done | 获取任务结果 |
+| `tasks/cancel` | "Stop it" | Idempotent cancellation request | 取消任务 |
+| ttl | "Retention budget" | Milliseconds the server promises to keep the task state | 任务保留时间 |
+| `notifications/tasks/updated` | "State push" | Server-initiated state-change event | 任务状态通知 |
+| Durable store | "Crash-safe state" | Filesystem / SQLite / Redis persistence layer | 持久化存储 |
 
 ## Further Reading
 

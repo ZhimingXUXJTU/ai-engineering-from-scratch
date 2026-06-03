@@ -1,6 +1,9 @@
-# Evaluation and Coordination Benchmarks
+# Evaluation and Coordination Benchmarks | 协调基准 评估
 
 > Five 2025-2026 benchmarks cover the multi-agent evaluation space. **MultiAgentBench / MARBLE** (ACL 2025, arXiv:2503.01935) evaluates star/chain/tree/graph topologies with milestone KPIs; **graph is best for research**, cognitive planning adds ~3% milestone achievement. **COMMA** evaluates multimodal asymmetric-information coordination; state-of-the-art models including GPT-4o struggle to beat a random baseline. **MedAgentBoard** (arXiv:2505.12371) covers four medical task categories and often finds multi-agent does not dominate single-LLM. **AgentArch** (arXiv:2509.10769) benchmarks enterprise agent architectures combining tool-use + memory + orchestration. **SWE-bench Pro** ([arXiv:2509.16941](https://arxiv.org/abs/2509.16941)) has 1865 problems across 41 repos spanning business apps, B2B services, and developer tools; frontier models score ~23% on Pro vs 70%+ on Verified — a reality check on contamination. Claude Opus 4.7 (April 2026) is reported at **64.3%** on Pro with explicit agent-teams coordination (no Anthropic primary source published yet — treat as preliminary); Verdent (agent scaffold) hits **76.1% pass@1** on Verified ([Verdent technical report](https://www.verdent.ai/blog/swe-bench-verified-technical-report)). **AAAI 2026 Bridge Program WMAC** (https://multiagents.org/2026/) is the 2026 community focal point. This lesson builds on MARBLE's metrics, runs a topology-vs-metric sweep, and pins the "just passing SWE-bench Verified is not evidence of generalization" rule.
+
+> **【中文解读】** 本节介绍了协调基准评估——衡量多 Agent 系统协调能力的评估方法。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib)
@@ -86,7 +89,7 @@ When someone claims a multi-agent result:
 
 Building your own internal benchmark for the axis you actually care about is often the right move.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` is a non-interactive walk-through:
 
@@ -104,11 +107,11 @@ python3 code/main.py
 
 Expected output: system scorecard with raw accuracy, milestone achievement, cost-per-task, vs-random baseline delta, and a contamination-check note.
 
-## Use It
+## Use It | 使用方法
 
 `outputs/skill-benchmark-reader.md` reads any multi-agent benchmark claim and applies the scrutiny checklist. Output: a grade and caveats.
 
-## Ship It
+## Ship It | 部署上线
 
 Production evaluation discipline:
 
@@ -118,7 +121,7 @@ Production evaluation discipline:
 - **Rebuild the benchmark quarterly.** Production distribution shifts; stale benchmarks mislead.
 - **Avoid published-benchmark overfitting.** If your team is optimizing specifically for SWE-bench Pro numbers, you will regress on production.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Identify which of the three simulated systems has the best cost-per-milestone. Does it match the highest raw-accuracy system?
 2. Read MultiAgentBench (arXiv:2503.01935). For your own task domain, decide which of the four topologies MARBLE would recommend. Justify from the paper's results.
@@ -126,7 +129,7 @@ Production evaluation discipline:
 4. Read COMMA's finding on multimodal coordination. Design a simple multimodal coordination task you could add to your internal benchmark. What would count as a useful signal?
 5. Apply the benchmark-claims checklist to one recent multi-agent paper's headline result. What grade would you give the claim?
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
@@ -139,7 +142,7 @@ Production evaluation discipline:
 | Contamination | "Benchmark leaked into training" | Post-release, benchmarks drift into training corpora; scores inflate. |
 | WMAC | "AAAI 2026 Bridge Program" | Workshop on Multi-Agent Coordination; community focal point. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [MultiAgentBench / MARBLE](https://arxiv.org/abs/2503.01935) — topology benchmark with milestone KPIs
 - [MARBLE repository](https://github.com/ulab-uiuc/MARBLE) — reference implementation

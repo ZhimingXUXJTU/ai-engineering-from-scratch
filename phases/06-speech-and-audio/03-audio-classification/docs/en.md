@@ -1,6 +1,8 @@
-# Audio Classification — From k-NN on MFCCs to AST and BEATs
+# Audio Classification — From k-NN on MFCCs to AST and BEATs | 音频分类 — 从 MFCCs+KNN 到 AST 和 BEATs
 
 > Everything from "dog barking vs siren" to "which language is this" is audio classification. The features are mels. The architecture moves each decade. The evaluation stays AUC, F1, and per-class recall.
+
+> **【中文解读】** 从"狗叫还是警笛"到"这是什么语言"，都是音频分类。特征用 Mel，架构每个时代都在变（MFCC+kNN → CNN → Transformer），评估指标始终是 AUC、F1 和每类召回率。AST（Audio Spectrogram Transformer）和 BEATs 是当前 SOTA。
 
 **Type:** Build
 **Languages:** Python

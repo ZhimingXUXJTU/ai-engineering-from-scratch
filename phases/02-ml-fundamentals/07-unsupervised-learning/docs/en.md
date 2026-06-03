@@ -1,4 +1,4 @@
-# Unsupervised Learning
+# Unsupervised Learning | 无监督学习
 
 > No labels, no teacher. The algorithm finds structure on its own.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1 (Norms & Distances, Probability & Distributions), Phase 2 Lessons 1-6
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement K-Means, DBSCAN, and Gaussian Mixture Models from scratch and compare their clustering behavior
 - Evaluate cluster quality using the silhouette score and the elbow method to select the optimal K
 - Explain when DBSCAN outperforms K-Means and identify which algorithm handles non-spherical clusters and outliers
 - Build an anomaly detection pipeline using clustering methods to flag points that deviate from normal patterns
+
+
+> **【中文解读】**
+> 无监督学习没有标签，目标是发现数据中的结构。K-Means 是最经典的聚类算法，DBSCAN 能发现任意形状的簇。sklearn 中的 KMeans/DBSCAN。客户分群、异常检测是典型应用。
 
 ## The Problem
 

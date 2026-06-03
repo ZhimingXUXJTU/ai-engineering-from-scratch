@@ -3,6 +3,9 @@
 Computes theoretical decode throughput from (weights_bytes / bandwidth_bytes_per_sec)
 for a range of edge targets. Compares to observed benchmarks. Demonstrates that
 decode is memory-bound, not compute-bound, on edge devices.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -12,6 +15,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Target:
+    """Target"""
     name: str
     bandwidth_gb_s: float
     observed_toks_per_s_llama8b_q4: float | None
@@ -32,17 +36,20 @@ TARGETS = [
 
 
 def ceiling(target: Target, model_gb: float) -> float:
+    """ceiling"""
     seconds_per_token = model_gb / target.bandwidth_gb_s
-    return 1 / seconds_per_token
+    return 1 / seconds_per_token  # 返回结果
 
 
 def efficiency(observed: float | None, ceiling_val: float) -> str:
+    """efficiency"""
     if observed is None:
-        return "    -"
-    return f"{observed / ceiling_val * 100:4.0f}%"
+        return "    -"  # 返回结果
+    return f"{observed / ceiling_val * 100:4.0f}%"  # 返回结果
 
 
 def main() -> None:
+    """main"""
     model_name = "Llama 3.1 8B Q4"
     model_gb = 4.7
     print("=" * 95)
@@ -71,4 +78,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

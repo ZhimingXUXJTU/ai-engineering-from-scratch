@@ -1,4 +1,4 @@
-# Multi-Agent Debate and Collaboration
+# Multi-Agent Debate and Collaboration | 多 Agent 辩论
 
 > Du et al. (ICML 2024, "Society of Minds") run N model instances that independently propose answers, then iteratively critique each other over R rounds to converge. Improves factuality, rule-following, reasoning. Sparse topology beats full mesh on token cost.
 
@@ -7,18 +7,21 @@
 **Prerequisites:** Phase 14 · 12 (Workflow Patterns), Phase 14 · 05 (Self-Refine and CRITIC)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Explain the debate protocol: N proposers, R rounds, converge on a shared answer.
 - Describe why debate improves factuality, rule-following, and reasoning.
 - Explain sparse topology: not every debater needs to see every other.
 - Implement a stdlib debate over a scripted LLM with full-mesh and sparse variants; measure token cost vs accuracy.
 
-## The Problem
+## The Problem | 问题
 
 Self-Refine (Lesson 05) is one model critiquing itself — risks groupthink. CRITIC (Lesson 05) grounds critique in external tools — not always available. Debate introduces a third mode: multiple instances, cross-critique, convergence by disagreement.
 
-## The Concept
+
+> **【中文解读】** 本节介绍了 Self-Refine 和 CRITIC 模式——通过迭代式生成、验证、精炼来改进 Agent 输出质量。
+
+## The Concept | 概念
 
 ### Society of Minds (Du et al., ICML 2024)
 
@@ -65,7 +68,7 @@ Implications:
 - **Hub failure.** In a star topology, a bad hub corrupts everyone. Rotate or use multiple hubs.
 - **Prompt homogenization.** All agents use the same prompt; they produce the same answers. Use diverse prompts and/or models.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements stdlib debate:
 
@@ -82,36 +85,41 @@ python3 code/main.py
 
 Output: per-protocol accuracy and cost; sparse matches full mesh on 2/3 questions at lower cost.
 
-## Use It
+## Use It | 使用方法
 
 - **Anthropic orchestrator-workers** for simple 2-3-worker debates.
 - **LangGraph** for stateful multi-round debate with checkpointing.
 - **Custom** for research or specialized correctness guarantees.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-debate.md` scaffolds a multi-agent debate with configurable topology, N, R, and a convergence rule.
 
-## Exercises
+## Exercises | 练习题
 
 1. Implement a "forced disagreement" rule: in round 1, every debater must produce a distinct proposal. Measure effect on convergence speed.
+   *思考并实践此练习*
 2. Add a confidence-weighted aggregation: debaters return (answer, confidence); aggregator weights by confidence. Does it help?
+   *思考并实践此练习*
 3. Swap one "agent" for a different scripted LLM with different opinions. Does heterogeneity improve accuracy?
+   *思考并实践此练习*
 4. Measure token cost for full mesh vs sparse on your 3 questions. Plot cost vs accuracy.
+   *思考并实践此练习*
 5. Read the Society of Minds paper. Port your toy to N=5, R=3. What breaks? What gets better?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Debate | "Multi-agent critique" | N proposers, R rounds of cross-critique, converge |
-| Full mesh | "Everyone reads everyone" | Every debater reads every peer each round |
-| Sparse topology | "Limited peer view" | Debaters read only a subset of peers |
-| Hub-and-spoke | "Star topology" | One central debater, N-1 spokes read only the hub |
-| Convergence | "Agreement" | Debaters converge on a shared answer |
-| Society of Minds | "Du et al. debate paper" | ICML 2024 multi-agent debate method |
+|------|----------------|------------------------|---|
+| Debate | "Multi-agent critique" | N proposers, R rounds of cross-critique, converge |  |
+| Full mesh | "Everyone reads everyone" | Every debater reads every peer each round |  |
+| Sparse topology | "Limited peer view" | Debaters read only a subset of peers |  |
+| Hub-and-spoke | "Star topology" | One central debater, N-1 spokes read only the hub |  |
+| Convergence | "Agreement" | Debaters converge on a shared answer |  |
+| Society of Minds | "Du et al. debate paper" | ICML 2024 multi-agent debate method |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Du et al., Society of Minds (arXiv:2305.14325)](https://arxiv.org/abs/2305.14325) — canonical multi-agent debate
 - [Sparse Communication Topology (arXiv:2406.11776)](https://arxiv.org/abs/2406.11776) — sparse topology results

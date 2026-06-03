@@ -1,4 +1,4 @@
-# Dimensionality Reduction
+# Dimensionality Reduction | 降维
 
 > High-dimensional data has structure. You find it by looking from the right angle.
 
@@ -7,12 +7,20 @@
 **Prerequisites:** Phase 1, Lessons 01 (Linear Algebra Intuition), 02 (Vectors, Matrices & Operations), 03 (Eigenvalues & Eigenvectors), 06 (Probability & Distributions)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement PCA from scratch: center data, compute the covariance matrix, eigendecompose, and project
 - Use explained variance ratio and the elbow method to choose the number of principal components
 - Compare PCA, t-SNE, and UMAP for visualizing MNIST digits in 2D and explain their tradeoffs
 - Apply kernel PCA with an RBF kernel to separate nonlinear data structures that standard PCA cannot handle
+
+> **【中文解读】**
+> 784 维的手写数字数据无法可视化。降维就是找到"最佳角度"投影数据，用尽量少的维度保留尽量多的信息。PCA 是最经典的降维方法，t-SNE 和 UMAP 适合非线性数据的可视化。
+
+> **【拓展：降维在 AI 中的位置】**
+> - **PCA**: sklearn 的 `PCA`，数据预处理的标准步骤，也是理解特征值分解的最佳实践。
+> - **t-SNE/UMAP**: 高维数据 2D 可视化的标准工具，论文中几乎每个嵌入可视化都用它们。
+> - **推荐系统**: 协同过滤本质上就是对用户-物品矩阵做降维，发现隐因子。
 
 ## The Problem
 

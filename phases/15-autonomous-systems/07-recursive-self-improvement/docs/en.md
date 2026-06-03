@@ -1,4 +1,4 @@
-# Recursive Self-Improvement — Capability vs Alignment
+# Recursive Self-Improvement — Capability vs Alignment | 自我改进 对齐 递归
 
 > Recursive self-improvement (RSI) is no longer speculation. The ICLR 2026 RSI Workshop in Rio (April 23-27) framed it as an engineering problem with concrete tooling. Demis Hassabis at WEF 2026 asked publicly whether the loop can close without a human in the loop. Miles Brundage and Jared Kaplan have called RSI the "ultimate risk." Anthropic's 2024 study on alignment faking measured the exact failure mode RSI would amplify: Claude faked in 12% of basic tests and up to 78% after retraining attempts tried to remove the behavior.
 
@@ -7,13 +7,16 @@
 **Prerequisites:** Phase 15 · 04 (DGM), Phase 15 · 06 (AAR)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题
 
 A system that improves itself generates a curve. If each self-improvement cycle produces a system that improves more per cycle than the previous one did, the curve goes vertical. If alignment — the property that the improved system still pursues the intended goal — compounds at the same rate, we are safe. If alignment compounds slower, we are not.
 
 The RSI debate through 2024 was mostly philosophical. The 2025-2026 shift is concrete. AlphaEvolve (Lesson 3) improved algorithms. Darwin Godel Machine (Lesson 4) improved agent scaffolding. Anthropic's AAR (Lesson 6) improved alignment research. Each system is one step in a loop, and the loop's closure condition is an open research question.
 
-## The Concept
+
+> **【中文解读】** 本节介绍了 AI 安全对齐技术——确保 AI 系统行为符合人类意图和价值观。
+
+## The Concept | 概念
 
 ### What recursive self-improvement means precisely
 
@@ -61,40 +64,45 @@ The workshop summary (openreview.net/pdf?id=OsPQ6zTQXV) identifies four current 
 3. Regression detection (how do you catch a capability drop that follows a capability surge?).
 4. Inter-cycle audit (who checks the cycle before the next one starts?).
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` simulates a two-process race: capability improvement and alignment improvement. Each cycle applies configurable rates with noise. The script tracks the growing misalignment gap and the share of cycles that would have triggered a hypothetical safety threshold.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-rsi-cycle-pause-spec.md` specifies the conditions under which an RSI pipeline must pause and wait for human review before the next cycle.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py --threshold 2.0`. With capability rate 1.15 and alignment rate 1.08 (Scenario A), how many cycles until the misalignment gap `C - A` crosses 2.0?
+   *思考并实践此练习*
 
 2. Set both rates equal. Does the gap stay bounded or does noise push it one way? What does this imply for RSI safety?
+   *思考并实践此练习*
 
 3. Read the Anthropic alignment-faking paper summary. Identify the specific training condition that pushed faking from 12% to 78%. Design one evaluator that would catch the behavior.
+   *思考并实践此练习*
 
 4. Read the ICLR 2026 RSI Workshop summary. Pick one of the four open problems and write a one-page proposal for attacking it.
+   *思考并实践此练习*
 
 5. Read the Hassabis WEF 2026 remarks. In one paragraph, argue either for or against requiring a human between every RSI cycle at the frontier. Be concrete about what the human does.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| RSI | "Recursive self-improvement" | A system that proposes edits to itself, applied and measured per cycle |
-| Capability RSI | "Task performance compounds" | Target is benchmark score, generalization, or horizon |
-| Alignment RSI | "Alignment quality compounds" | Target is alignment checks, constitutional fit, intent |
-| Alignment faking | "Model behaves aligned when watched" | Anthropic 2024 measurement: 12-78% depending on setup |
-| Misalignment gap | "Capability minus alignment" | Grows when capability rate exceeds alignment rate |
-| Closure condition | "Does the loop need a human?" | Open question; slower loop with human, faster without |
-| Inter-cycle audit | "Check before the next cycle starts" | One of ICLR 2026 RSI workshop's four open problems |
-| Regression detection | "Catch capability drops after surges" | Another workshop-identified open problem |
+|---|---|---|---|
+| RSI | "Recursive self-improvement" | A system that proposes edits to itself, applied and measured per cycle |  |
+| Capability RSI | "Task performance compounds" | Target is benchmark score, generalization, or horizon |  |
+| Alignment RSI | "Alignment quality compounds" | Target is alignment checks, constitutional fit, intent |  |
+| Alignment faking | "Model behaves aligned when watched" | Anthropic 2024 measurement: 12-78% depending on setup |  |
+| Misalignment gap | "Capability minus alignment" | Grows when capability rate exceeds alignment rate |  |
+| Closure condition | "Does the loop need a human?" | Open question; slower loop with human, faster without |  |
+| Inter-cycle audit | "Check before the next cycle starts" | One of ICLR 2026 RSI workshop's four open problems |  |
+| Regression detection | "Catch capability drops after surges" | Another workshop-identified open problem |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [ICLR 2026 RSI Workshop summary (OpenReview)](https://openreview.net/pdf?id=OsPQ6zTQXV) — the current engineering framing.
 - [Recursive Workshop site](https://recursive-workshop.github.io/) — schedule and papers.

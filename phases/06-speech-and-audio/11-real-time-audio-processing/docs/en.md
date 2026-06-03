@@ -1,6 +1,8 @@
-# Real-Time Audio Processing
+# Real-Time Audio Processing | 实时音频处理
 
 > Batch pipelines process a file. Real-time pipelines process the next 20 milliseconds before the next 20 arrive. Every conversational AI, broadcast studio, and telephony bot lives and dies by this latency budget.
+
+> **【中文解读】** 批处理流水线处理文件，实时流水线在下 20 毫秒到达之前处理完这 20 毫秒。每个对话式 AI、广播系统和电话机器人都在这个延迟预算上生死存亡。实时音频处理是语音 AI 落地的关键工程挑战。
 
 **Type:** Build
 **Languages:** Python

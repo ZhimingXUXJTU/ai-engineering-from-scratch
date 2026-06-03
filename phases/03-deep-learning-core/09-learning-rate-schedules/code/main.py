@@ -1,3 +1,20 @@
+"""
+学习率调度与预热 (Learning Rate Schedules and Warmup)
+
+核心概念：
+  - 常数学习率：简单但不适应训练阶段
+  - Step Decay：每隔 N 步降低学习率
+  - Cosine Annealing：平滑余弦衰减，现代标配
+  - Warmup：从 0 线性增到峰值，稳定 Adam 初期训练
+  - 1Cycle：先增后减，加速收敛
+
+在 AI 中的位置：
+  - GPT-3：lr=6e-4, warmup 375M tokens, cosine decay
+  - Llama 3：lr=3e-4, warmup 2000 steps, cosine decay to 3e-5
+  - 微调 LoRA：lr=2e-5, warmup 100 steps, cosine decay
+  - PyTorch: torch.optim.lr_scheduler.CosineAnnealingLR, LambdaLR 等
+"""
+
 import math
 import random
 

@@ -1,13 +1,16 @@
-# Paper Writer
+# Paper Writer | 写作者 论文
 
 > A LaTeX skeleton is a contract between the researcher and the typesetter. If the contract is broken the document does not compile, and the failure is loud. Build the skeleton first, then fill it.
+
+> **【中文解读】** 本节是综合项目——构建论文写作者 Agent。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 50-53
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Treat a research paper as a structured artifact with a known section graph, not a freeform document.
 - Generate a LaTeX skeleton that declares its abstract, sections, figure slots, and bibliography keys before any prose is written.

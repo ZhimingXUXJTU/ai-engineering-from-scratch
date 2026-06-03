@@ -1,13 +1,16 @@
-# Transformer Block from Scratch
+# Transformer Block from Scratch | Transformer 块
 
 > One block is the unit of every modern decoder LLM. Layer norm, multi head attention, residual, MLP, residual. The pre-LN variant trains stably without warmup. The post-LN variant is what the original paper shipped. This lesson builds both, side by side, and shows which one survives a 12 layer stack at common learning rates.
+
+> **【中文解读】** 本节是综合项目——实现 Transformer 块。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 30 to 33 (tokenizer, embeddings, attention math, batched data loader)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build a transformer block in PyTorch from the four moving pieces: LayerNorm, multi head causal attention, residual connections, position wise MLP.
 - Place the LayerNorms in two configurations (pre-LN and post-LN) and explain why one trains stably without warmup.
@@ -15,13 +18,13 @@
 - Track gradient flow through both variants on a 12 layer stack and read the result without hand waving.
 - Reuse the block as a drop-in unit when the next lesson assembles a 124 million parameter GPT.
 
-## The Problem
+## The Problem | 问题
 
 A transformer is one block repeated. Get the block wrong once, repeat it twelve times, and you ship a model that diverges in the first epoch or that needs warmup hacks the rest of the way. The two failure modes you will see in this lesson are not exotic. They show up the first time a learner stacks blocks naively. One is the attention layer attending to the future. The other is the LayerNorm placed where it cannot tame the residual signal at depth.
 
 The fix is mechanical once you see it. The block has exactly two residual paths and exactly two normalization positions. Choose the positions correctly and the rest of the stack is just bookkeeping.
 
-## The Concept
+## The Concept | 概念
 
 Every decoder only transformer block is a function that takes a tensor of shape `(batch, sequence, embedding)` and returns a tensor of the same shape. Inside, two sublayers do the work.
 
@@ -69,7 +72,7 @@ The position wise MLP applies the same two layer network to every token independ
 
 They make the gradient path additive across depth, which keeps the gradient norm in scale through twelve layers. They also let each block learn an additive update to the running representation rather than a full replacement. Both effects are why the block scales.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements:
 
@@ -102,20 +105,20 @@ Three patterns turn the textbook block into something you can ship.
 
 **Dropout in two places, not three.** Dropout belongs after the attention softmax (attention dropout) and after the second linear of the MLP (residual dropout). A dropout on the residual itself breaks the additive identity that lets the gradient flow at depth. Some early implementations got this wrong and paid for it with brittle training.
 
-## Use It
+## Use It | 使用方法
 
 - The block in this lesson plugs straight into the GPT assembly in lesson 35 without modification.
 - The pre-LN variant is what every modern open weights LLM uses. The post-LN variant is what the original 2017 attention paper used. Knowing both is enough to read any decoder architecture you will encounter.
 - Swap the GELU for SiLU and you have the LLaMA family activation. Swap the LayerNorm for RMSNorm and you have the LLaMA family normalization. Same skeleton.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a `bias=False` flag to every linear in the block. Modern open weights LLMs ship without biases on the linear layers. Measure how many parameters you save in a 12 layer 768 dim model.
 2. Replace `nn.LayerNorm` with a hand rolled RMSNorm and verify the output shape is unchanged.
 3. Add a flag that returns the attention weights for the first head as a `(B, T, T)` tensor. Plot the upper triangle to confirm it is zero after softmax.
 4. Build a sanity check that feeds a `(2, 16, 384)` tensor with `H=6` through both variants and asserts the forward outputs are different (for example, `not torch.allclose`) when weights are initialized identically and dropout is set to zero.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -125,7 +128,7 @@ Three patterns turn the textbook block into something you can ship.
 | Fused QKV | "Combined projection" | One linear of width 3D instead of three linears of width D; one kernel, one matmul |
 | Residual stream | "Skip connection" | The unnormalized tensor that flows top to bottom through every block; what each block adds to |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - Phase 7 lesson 02 (self attention from scratch) for the attention math underneath this block.
 - Phase 7 lesson 05 (full transformer) for the encoder decoder version of the same skeleton.

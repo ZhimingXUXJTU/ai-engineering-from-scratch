@@ -1,3 +1,18 @@
+"""
+图像检索与度量学习 (Image Retrieval & Metric Learning)
+
+核心概念：
+- 度量学习：学习嵌入空间，使相似样本靠近、不相似样本远离
+- 对比损失：正样本对拉近，负样本对推远
+- 三元组损失：锚点-正样本距离 < 锚点-负样本距离 - margin
+- 困难负样本挖掘：选择最难区分的负样本进行训练
+
+AI 对应：
+- 以图搜图（Google Images、淘宝拍照搜）、人脸识别（FaceNet）
+- CLIP 的对比预训练本质上也是一种度量学习
+- 推荐系统中的向量检索（如 Milvus、FAISS）依赖度量学习
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

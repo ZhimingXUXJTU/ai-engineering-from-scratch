@@ -1,3 +1,7 @@
+"""
+支持向量机从零实现：最大间隔、核技巧、软间隔。
+AI 对应: SVM 的核技巧通过升维解决非线性问题，sklearn 的 SVC/SVR。
+"""
 import math
 import random
 

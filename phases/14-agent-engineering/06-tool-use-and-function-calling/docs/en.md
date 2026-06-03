@@ -1,4 +1,4 @@
-# Tool Use and Function Calling
+# Tool Use and Function Calling | 函数调用 工具使用
 
 > Toolformer (Schick et al., 2023) started self-supervised tool annotation. Berkeley Function Calling Leaderboard V4 (Patil et al., 2025) sets the 2026 bar: 40% agentic, 30% multi-turn, 10% live, 10% non-live, 10% hallucination. Single-turn is solved. Memory, dynamic decision-making, and long-horizon tool chains are not.
 
@@ -7,20 +7,23 @@
 **Prerequisites:** Phase 14 · 01 (Agent Loop), Phase 13 · 01 (Function Calling Deep Dive)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Explain Toolformer's self-supervised training signal: keep tool annotations only when execution reduces next-token loss.
 - Name BFCL V4's five evaluation categories and what each measures.
 - Implement a stdlib tool registry with schema validation, argument coercion, and execution sandboxing.
 - Diagnose the three 2026 open problems: long-horizon tool chaining, dynamic decision-making, and memory.
 
-## The Problem
+## The Problem | 问题
 
 Early tool use asked: can the model predict a correct function call? Modern tool use asks: can the model chain tools across 40 steps, with memory, with partial observability, with recovery from tool failures, without hallucinating tools that do not exist?
 
 Toolformer established the baseline: models can learn when to call tools with self-supervision. BFCL V4 defines the 2026 evaluation target. The gap between them is the space production agents live in.
 
-## The Concept
+
+> **【中文解读】** 本节介绍了 Agent 的记忆机制，包括短期工作记忆和长期情景记忆的管理策略。
+
+## The Concept | 概念
 
 ### Toolformer (Schick et al., NeurIPS 2023)
 
@@ -81,7 +84,7 @@ Engineering rule: treat correlation IDs as load-bearing. Swap them and you get w
 
 Tool execution is the sandbox boundary. See Lesson 09 for detail. Short version: every tool should specify read/write surface, network access, timeout, memory cap. Generic `run_shell(cmd)` is a red flag; specific `git_status()` is safer.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements a production-shape tool registry:
 
@@ -99,36 +102,41 @@ python3 code/main.py
 
 The trace shows a mini agent calling three tools in one turn, with one deliberately malformed call that is rejected with a descriptive error the model can act on.
 
-## Use It
+## Use It | 使用方法
 
 Every provider has its own tool schema — Anthropic, OpenAI, Gemini, Bedrock. Use a translation layer (OpenAI Agents SDK, Vercel AI SDK, LangChain tool adapter) if you need multi-provider. BFCL is the reference benchmark — run it against your agent before shipping if tool use is central to the product.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-tool-registry.md` generates a tool catalog, schema, and registry for a given task domain. Includes description-quality checks (does each tool's description tell the model when to use it?).
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a "no-op" tool that lets the model explicitly refuse to use any other tool. Measure on a BFCL-like hallucination test.
+   *思考并实践此练习*
 2. Implement argument coercion for int-as-string and float-as-string. Where does coercion start to hide real bugs?
+   *思考并实践此练习*
 3. Add a per-tool timeout and a circuit breaker (refuse the tool for 60s after 3 consecutive failures). What does this change about how the model recovers?
+   *思考并实践此练习*
 4. Read BFCL V4 description. Pick one category (e.g. "multi-turn") and run 10 example prompts through your agent. Report pass rate.
+   *思考并实践此练习*
 5. Port the stdlib validator to Pydantic or Zod. What did Pydantic/Zod catch that the toy missed?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Function calling | "Tool use" | Structured-output tool invocation with validated schema |
-| Toolformer | "Self-supervised tool annotation" | Schick 2023 — keep tool calls whose results reduce next-token loss |
-| BFCL | "Berkeley Function Calling Leaderboard" | 2026 benchmark: 40% agentic, 30% multi-turn, 10% live, 10% non-live, 10% hallucination |
-| Tool schema | "Function signature for the model" | name, description, JSON Schema of arguments |
-| tool_use_id | "Correlation ID" | Ties a tool call to its result; essential for parallel dispatch |
-| Hallucination detection | "Know when not to call" | V4 category: refuse to call when no tool fits |
-| Argument coercion | "String-to-int repair" | Narrow fixes for predictable schema-mismatch; reject if ambiguous |
-| Sandboxing | "Tool execution boundary" | Per-tool read/write surface, network, timeout, memory cap |
+|------|----------------|------------------------|---|
+| Function calling | "Tool use" | Structured-output tool invocation with validated schema |  |
+| Toolformer | "Self-supervised tool annotation" | Schick 2023 — keep tool calls whose results reduce next-token loss |  |
+| BFCL | "Berkeley Function Calling Leaderboard" | 2026 benchmark: 40% agentic, 30% multi-turn, 10% live, 10% non-live, 10% hallucination |  |
+| Tool schema | "Function signature for the model" | name, description, JSON Schema of arguments |  |
+| tool_use_id | "Correlation ID" | Ties a tool call to its result; essential for parallel dispatch |  |
+| Hallucination detection | "Know when not to call" | V4 category: refuse to call when no tool fits |  |
+| Argument coercion | "String-to-int repair" | Narrow fixes for predictable schema-mismatch; reject if ambiguous |  |
+| Sandboxing | "Tool execution boundary" | Per-tool read/write surface, network, timeout, memory cap |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Schick et al., Toolformer (arXiv:2302.04761)](https://arxiv.org/abs/2302.04761) — self-supervised tool annotation
 - [Berkeley Function Calling Leaderboard (V4)](https://gorilla.cs.berkeley.edu/leaderboard.html) — 2026 eval benchmark

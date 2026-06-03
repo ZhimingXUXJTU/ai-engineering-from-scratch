@@ -1,4 +1,4 @@
-# Bayes' Theorem
+# Bayes' Theorem | 贝叶斯定理
 
 > Probability is about what you expect. Bayes' theorem is about what you learn.
 
@@ -7,12 +7,20 @@
 **Prerequisites:** Phase 1, Lesson 06 (Probability Fundamentals)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Apply Bayes' theorem to compute posterior probabilities from priors, likelihoods, and evidence
 - Build a Naive Bayes text classifier from scratch with Laplace smoothing and log-space computation
 - Compare MLE and MAP estimation and explain how MAP corresponds to L2 regularization
 - Implement sequential Bayesian updating using Beta-Binomial conjugate priors for A/B testing
+
+> **【中文解读】**
+> 贝叶斯定理的核心思想：用新的证据更新你的信念。先验概率（你原本的猜测）× 似然（证据出现的概率）= 后验概率（更新后的猜测）。本章还从零构建朴素贝叶斯文本分类器。
+
+> **【拓展：贝叶斯在 AI 中的位置】**
+> - **朴素贝叶斯分类器**: 垃圾邮件过滤的经典算法，sklearn 中的 `GaussianNB`/`MultinomialNB`。
+> - **贝叶斯优化**: 用于超参数调优（如 Optuna），比网格搜索高效得多。
+> - **MAP 与正则化**: 最大后验估计(MAP)等价于 L2 正则化——这是贝叶斯视角下的"防止过拟合"。
 
 ## The Problem
 

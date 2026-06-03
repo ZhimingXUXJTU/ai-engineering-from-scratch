@@ -1,5 +1,10 @@
 """Qwen-VL family: M-RoPE positions + dynamic-FPS sampler + JSON tool-call parser.
 
+Qwen-VL 系列 (Qwen-VL Family)
+核心概念：Qwen-VL 是2026年最具影响力的开源视觉语言模型系列。
+每代做一个决定性架构选择：原生动态分辨率(M-RoPE)、动态帧率采样、窗口注意力。
+AI 应用对应：Qwen-VL 的设计选择被整个开源生态在12个月内跟进复制。
+
 Three toy implementations:
   1. M-RoPE rotation table across text, image, and video tokens.
   2. Dynamic-FPS sampler that picks frames-per-second from a target token budget.

@@ -8,6 +8,9 @@ Given a harmful prompt and a list of "safety words" to cloak:
 Pedagogical: real ArtPrompt uses bigger glyphs and multi-model workflow.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -38,7 +41,7 @@ def render_word(word: str) -> str:
             glyph = [" " * 4] * 5
         for i in range(5):
             rows[i] += glyph[i] + " "
-    return "\n".join(rows)
+    return "\n".join(rows)  # 返回结果
 
 
 def cloak_prompt(prompt: str, words_to_cloak: list[str]) -> str:
@@ -52,24 +55,25 @@ def cloak_prompt(prompt: str, words_to_cloak: list[str]) -> str:
     result = cloaked + "\n\n"
     for i, art in enumerate(glyph_blocks):
         result += f"[word-{i}] =\n{art}\n\n"
-    return result
+    return result  # 返回结果
 
 
 def keyword_filter(text: str, forbidden: list[str]) -> bool:
     """Simple substring-based safety filter. Returns True iff filter blocks."""
     low = text.lower()
-    return any(f.lower() in low for f in forbidden)
+    return any(f.lower() in low for f in forbidden)  # 返回结果
 
 
 def perplexity_heuristic(text: str) -> float:
     """Toy PPL proxy: ratio of non-ASCII / non-alphanumeric chars to total."""
     if not text:
-        return 0.0
+        return 0.0  # 返回结果
     unusual = sum(1 for c in text if not (c.isalnum() or c.isspace()))
-    return unusual / len(text)
+    return unusual / len(text)  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("ARTPROMPT TOY (Phase 18, Lesson 14)")
     print("=" * 70)
@@ -108,4 +112,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

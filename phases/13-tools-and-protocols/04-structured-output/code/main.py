@@ -1,5 +1,10 @@
 """Phase 13 Lesson 04 - structured output, JSON Schema 2020-12 subset.
 
+结构化输出 (Structured Output with JSON Schema)
+核心概念：约束解码(constrained decoding)让模型在 token 级别无法违反 Schema。
+OpenAI strict mode、Anthropic schema-typed tool use、Gemini responseSchema 是同一思想的不同实现。
+AI 应用对应：结构化输出是所有数据提取管道的基础，确保 LLM 输出可靠可解析。
+
 Stdlib JSON Schema validator supporting type, required, enum, minimum,
 maximum, minLength, maxLength, pattern, items, and additionalProperties.
 Wrapped around an Invoice schema to show the three failure modes:

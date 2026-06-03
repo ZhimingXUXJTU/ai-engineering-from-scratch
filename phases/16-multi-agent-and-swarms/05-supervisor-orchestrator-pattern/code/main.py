@@ -4,6 +4,9 @@ Lead agent decomposes a query, spawns workers in parallel threads, synthesizes.
 No real LLM calls -- workers are scripted fetch-and-summarize simulations.
 
 The point is the wall-clock win from parallel subagents, plus the pattern.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 from __future__ import annotations
 
@@ -14,6 +17,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class WorkerResult:
+    """WorkerResult"""
     sub_question: str
     summary: str
     tokens_spent: int
@@ -22,6 +26,7 @@ class WorkerResult:
 
 @dataclass
 class TraceEntry:
+    """TraceEntry"""
     worker_id: int
     event: str
     t: float
@@ -30,6 +35,7 @@ class TraceEntry:
 
 @dataclass
 class Trace:
+    """Trace"""
     entries: list[TraceEntry] = field(default_factory=list)
     _lock: threading.Lock = field(default_factory=threading.Lock)
 
@@ -43,10 +49,11 @@ class Trace:
 def fake_web_fetch(query: str) -> str:
     """Simulate web fetch + summarization latency."""
     time.sleep(0.3)
-    return f"Summary for '{query}': 3 key findings from 5 sources."
+    return f"Summary for '{query}': 3 key findings from 5 sources."  # 返回结果
 
 
 class Worker:
+    """Worker"""
     def __init__(self, worker_id: int, trace: Trace) -> None:
         self.worker_id = worker_id
         self.trace = trace
@@ -73,7 +80,7 @@ class Lead:
 
     def plan(self, query: str) -> list[str]:
         """Decompose. Real lead uses an LLM; this splits by heuristic."""
-        return [
+        return [  # 返回结果
             f"{query} -- historical origins",
             f"{query} -- state of the art 2026",
             f"{query} -- open problems",
@@ -82,7 +89,7 @@ class Lead:
     def synthesize(self, query: str, results: list[WorkerResult]) -> str:
         ok = [r for r in results if r is not None]
         parts = [f"- {r.sub_question}: {r.summary}" for r in ok]
-        return f"Answer to '{query}':\n" + "\n".join(parts)
+        return f"Answer to '{query}':\n" + "\n".join(parts)  # 返回结果
 
     def run(self, query: str) -> tuple[str, dict]:
         t0 = time.time()
@@ -104,7 +111,7 @@ class Lead:
         synthesis = self.synthesize(query, [r for r in results if r is not None])
         total_wall = time.time() - t0
         total_tokens = sum((r.tokens_spent for r in results if r is not None)) + 1200
-        return synthesis, {
+        return synthesis, {  # 返回结果
             "wall_clock_seconds": round(total_wall, 3),
             "total_tokens": total_tokens,
             "worker_count": len(sub_questions),
@@ -112,6 +119,7 @@ class Lead:
 
 
 def render_trace(trace: Trace, t0: float) -> None:
+    """render_trace"""
     for e in trace.entries:
         rel = round(e.t - t0, 3)
         sq = f" | {e.sub_question}" if e.sub_question else ""
@@ -120,6 +128,7 @@ def render_trace(trace: Trace, t0: float) -> None:
 
 
 def main() -> None:
+    """main"""
     print("Supervisor / Orchestrator-Worker demo")
     print("-" * 42)
 
@@ -143,4 +152,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

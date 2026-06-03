@@ -9,6 +9,9 @@ Simulates four serving modes on the same workload:
 Reports throughput (tok / virt-sec), mean TTFT, and P99 ITL so you can
 reproduce the shape of the vLLM benchmarks without a GPU. Pedagogical:
 the latency constants are illustrative, not measured.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -29,6 +32,7 @@ KV_BLOCKS_AVAILABLE = 1800           # toy KV block budget
 
 @dataclass
 class Request:
+    """Request"""
     req_id: int
     prompt_len: int
     output_len: int
@@ -41,18 +45,19 @@ class Request:
 
     @property
     def in_prefill(self) -> bool:
-        return self.prefilled < self.prompt_len
+        return self.prefilled < self.prompt_len  # 返回结果
 
     @property
     def done(self) -> bool:
-        return self.generated >= self.output_len
+        return self.generated >= self.output_len  # 返回结果
 
     def blocks_needed(self) -> int:
         total = self.prompt_len + self.output_len
-        return (total + KV_BLOCK_SIZE - 1) // KV_BLOCK_SIZE
+        return (total + KV_BLOCK_SIZE - 1) // KV_BLOCK_SIZE  # 返回结果
 
 
 def make_workload(n: int = 60, seed: int = 7) -> list[Request]:
+    """make_workload"""
     rng = random.Random(seed)
     reqs = []
     now = 0.0
@@ -61,10 +66,11 @@ def make_workload(n: int = 60, seed: int = 7) -> list[Request]:
         prompt_len = rng.choice([128, 256, 512, 2048, 8192])
         out_len = rng.randint(50, 300)
         reqs.append(Request(i, prompt_len, out_len, now))
-    return reqs
+    return reqs  # 返回结果
 
 
 def report(label: str, reqs: list[Request], sim_end: float) -> None:
+    """report"""
     ttfts = [r.ttft - r.arrived_at for r in reqs if r.ttft is not None]
     itls = [dt for r in reqs for dt in r.itl_samples]
     total_out = sum(r.generated for r in reqs)
@@ -92,7 +98,7 @@ def simulate_naive(reqs: list[Request]) -> float:
             r.generated += 1
             r.itl_samples.append(now - prev)
             r.last_token_at = now
-    return now
+    return now  # 返回结果
 
 
 def simulate_static(reqs: list[Request], batch: int = 16) -> float:
@@ -118,10 +124,11 @@ def simulate_static(reqs: list[Request], batch: int = 16) -> float:
                     r.generated += 1
                     r.itl_samples.append(now - prev_now)
                     r.last_token_at = now
-    return now
+    return now  # 返回结果
 
 
 def simulate_continuous(reqs: list[Request], chunked: bool) -> float:
+    """simulate_continuous"""
     waiting = deque(sorted(reqs, key=lambda r: r.arrived_at))
     running: list[Request] = []
     blocks_used = 0
@@ -172,10 +179,11 @@ def simulate_continuous(reqs: list[Request], chunked: bool) -> float:
         for r in finished:
             blocks_used -= r.blocks_needed()
             running.remove(r)
-    return now
+    return now  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("TOY vLLM SCHEDULER — four modes on the same 60-request workload")
     print("=" * 80)
@@ -203,4 +211,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

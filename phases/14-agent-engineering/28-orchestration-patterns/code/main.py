@@ -2,6 +2,9 @@
 
 Same three-intent task (refund / bug / sales) handled four ways. Measure
 op count per pattern to see cost trade-offs.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -12,14 +15,15 @@ from typing import Any, Callable
 
 
 def classify(text: str) -> str:
+    """classify"""
     t = text.lower()
     if "refund" in t:
-        return "refund"
+        return "refund"  # 返回结果
     if "crash" in t or "error" in t or "bug" in t:
-        return "bug"
+        return "bug"  # 返回结果
     if "pricing" in t or "quote" in t:
-        return "sales"
-    return "sales"
+        return "sales"  # 返回结果
+    return "sales"  # 返回结果
 
 
 SPECIALISTS: dict[str, Callable[[str], str]] = {
@@ -30,6 +34,7 @@ SPECIALISTS: dict[str, Callable[[str], str]] = {
 
 
 def supervisor_worker(tasks: list[str]) -> tuple[list[str], int]:
+    """supervisor_worker"""
     trace: list[str] = []
     ops = 0
     for task in tasks:
@@ -39,10 +44,11 @@ def supervisor_worker(tasks: list[str]) -> tuple[list[str], int]:
         specialist = SPECIALISTS[label]
         ops += 1
         trace.append(f"  {label}: {specialist(task)}")
-    return trace, ops
+    return trace, ops  # 返回结果
 
 
 def swarm(tasks: list[str]) -> tuple[list[str], int]:
+    """swarm"""
     trace: list[str] = []
     ops = 0
     for task in tasks:
@@ -57,10 +63,11 @@ def swarm(tasks: list[str]) -> tuple[list[str], int]:
             trace.append(f"swarm[{current}] handoff -> {label}")
             current = label
             hops += 1
-    return trace, ops
+    return trace, ops  # 返回结果
 
 
 def hierarchical(tasks: list[str]) -> tuple[list[str], int]:
+    """hierarchical"""
     trace: list[str] = []
     ops = 0
     for task in tasks:
@@ -73,10 +80,11 @@ def hierarchical(tasks: list[str]) -> tuple[list[str], int]:
         specialist = SPECIALISTS[sub_label]
         ops += 1
         trace.append(f"    {sub_label}: {specialist(task)}")
-    return trace, ops
+    return trace, ops  # 返回结果
 
 
 def debate(tasks: list[str]) -> tuple[list[str], int]:
+    """debate"""
     trace: list[str] = []
     ops = 0
     for task in tasks:
@@ -91,10 +99,11 @@ def debate(tasks: list[str]) -> tuple[list[str], int]:
         specialist = SPECIALISTS[convergent]
         ops += 1
         trace.append(f"debate converges -> {convergent}: {specialist(task)}")
-    return trace, ops
+    return trace, ops  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("ORCHESTRATION PATTERNS — Phase 14, Lesson 28")
     print("=" * 70)
@@ -122,4 +131,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

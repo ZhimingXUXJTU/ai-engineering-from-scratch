@@ -1,4 +1,4 @@
-# Stochastic Processes
+# Stochastic Processes | 随机过程
 
 > Randomness with structure. The math behind random walks, Markov chains, and diffusion models.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1, Lessons 06-07 (probability, Bayes)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Simulate 1D and 2D random walks and verify the sqrt(n) scaling of displacement
 - Build a Markov chain simulator and compute its stationary distribution via eigendecomposition
 - Implement Metropolis-Hastings MCMC and Langevin dynamics for sampling from target distributions
 - Connect the forward diffusion process to Brownian motion and explain how the reverse process generates data
+
+
+> **【中文解读】**
+> 随机过程是有结构的随机性。马尔可夫链（当前状态只依赖前一步）是 PageRank 的基础。扩散模型的前向过程是布朗运动（加噪），反向过程是去噪生成。MCMC 是贝叶斯统计的基石。
 
 ## The Problem
 

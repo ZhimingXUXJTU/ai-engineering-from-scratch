@@ -1,6 +1,10 @@
-# Multi-Token Prediction (MTP)
+# Multi-Token Prediction (MTP) | 多 Token 预测
 
 > Every autoregressive LLM from GPT-2 to Llama 3 trains on one loss per position: predict the next token. DeepSeek-V3 added a second loss per position: predict the token after that. The extra 14B of parameters (on a 671B model) got distilled back into the main model through gradient flow, and the trained MTP heads were repurposed at inference as speculative-decoding drafters with 80%+ acceptance. 1.8× generation throughput came for free. This lesson builds the sequential MTP module from the DeepSeek technical report, computes the loss and the shared-head parameter layout, and explains why MTP keeps the causal chain while Gloeckle et al.'s original parallel MTP broke it.
+
+> **【中文解读】** 传统 LLM 每个位置只预测下一个 token。DeepSeek-V3 在每个位置增加第二个损失：预测下下个 token。额外的 14B 参数通过梯度流蒸馏回主模型，训练好的 MTP 头在推理时被用作投机解码的草稿器（80%+ 接受率），1.8 倍吞吐提升免费获得。
+
+> **【拓展：MTP→DeepSeek-V3创新】** MTP 是 DeepSeek-V3 的四大架构创新之一（MLA + MoE + MTP + DualPipe）。它同时改善了训练（更丰富的梯度信号）和推理（免费获得投机解码草稿器），是"训练时投资、推理时回报"的典范。
 
 **Type:** Build
 **Languages:** Python (stdlib)

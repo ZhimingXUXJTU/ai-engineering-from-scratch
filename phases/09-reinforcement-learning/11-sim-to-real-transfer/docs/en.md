@@ -1,6 +1,8 @@
-# Sim-to-Real Transfer
+# Sim-to-Real Transfer | 仿真到现实迁移
 
 > A policy trained in a simulator that fails on hardware is a policy that memorized the simulator. Domain randomization, domain adaptation, and system identification are the three tools to make learned controllers cross the reality gap.
+
+> **【中文解读】** 在仿真器中训练的策略如果无法在真实硬件上工作，说明它"过拟合"了仿真器。域随机化、域自适应和系统辨识是让 RL 策略跨越"现实鸿沟"的三大工具。
 
 **Type:** Learn
 **Languages:** Python
@@ -14,6 +16,10 @@ Training a real robot is slow, dangerous, and expensive. A biped takes millions 
 But simulators are wrong. Bearings have more friction than MuJoCo models. Cameras have lens distortion the simulator does not include. Motors have delays, backlash, and saturation that 99% of sim models skip. Wind, dust, and variable lighting sabotage a policy trained on sterile rendering. The **reality gap** — systematic difference between sim distribution and real distribution — is the central problem of deployed RL for robotics.
 
 You need a policy that is *robust to sim-to-real distribution shift*. Three historical approaches: randomize the simulator (domain randomization), adapt the policy with a little real data (domain adaptation / fine-tuning), or identify the real system's parameters and match them (system identification). In 2026 the dominant recipe combines all three with massive parallel simulation (Isaac Sim, Isaac Lab, Mujoco MJX on GPU).
+
+> **【中文解读】** "现实鸿沟"是机器人 RL 的核心问题。三大解决方案：(1) 域随机化——在训练时随机化仿真参数让策略更鲁棒；(2) 域自适应——用少量真实数据微调；(3) 系统辨识——测量真实参数修正仿真器。2026 年的主流方案是三者结合+大规模 GPU 并行仿真。
+
+> **【拓展：域随机化→大模型泛化】** 域随机化的思想在 LLM 训练中也有对应：数据增强（同义改写、噪声注入）就是"随机化训练分布"以提高泛化能力。RLHF 中的 KL 惩罚防止策略偏离太远，类似于防止"过拟合仿真器"。
 
 ## The Concept
 
@@ -132,14 +138,14 @@ Refuse to deploy without (a) a zero-shot sim-variant test, (b) a safety shield, 
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
-| Reality gap | "Sim-to-real difference" | Distribution shift between training and deployment physics/sensing. |
-| Domain randomization (DR) | "Train across random sims" | Randomize sim parameters during training so policy generalizes. |
-| System identification (SI) | "Measure real and fit sim" | Estimate real physical parameters; set sim to match. |
-| Domain adaptation | "Fine-tune on real data" | Small real-world fine-tune after sim training; may adapt obs or dynamics. |
-| Privileged info | "Ground truth for teacher" | Information only the sim has; student must infer it from obs history. |
-| Teacher/student | "Distill privileged -> observable" | Teacher trained with shortcuts; student learns to mimic without them. |
-| ADR | "Automatic Domain Randomization" | Curriculum that widens DR ranges as the policy improves. |
-| Real2Sim | "Close the gap with real data" | Learn a residual to make the sim mimic real rollouts. |
+| Reality gap | "Sim-to-real difference" / 现实鸿沟 | Distribution shift between training and deployment physics/sensing. |
+| Domain randomization (DR) | "Train across random sims" / 域随机化 | Randomize sim parameters during training so policy generalizes. |
+| System identification (SI) | "Measure real and fit sim" / 系统辨识 | Estimate real physical parameters; set sim to match. |
+| Domain adaptation | "Fine-tune on real data" / 域自适应 | Small real-world fine-tune after sim training; may adapt obs or dynamics. |
+| Privileged info | "Ground truth for teacher" / 特权信息 | Information only the sim has; student must infer it from obs history. |
+| Teacher/student | "Distill privileged -> observable" / 教师-学生蒸馏 | Teacher trained with shortcuts; student learns to mimic without them. |
+| ADR | "Automatic Domain Randomization" / 自动域随机化 | Curriculum that widens DR ranges as the policy improves. |
+| Real2Sim | "Close the gap with real data" / 现实到仿真 | Learn a residual to make the sim mimic real rollouts. |
 
 ## Further Reading
 

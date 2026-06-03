@@ -1,6 +1,10 @@
-# Building a Tokenizer from Scratch
+# Building a Tokenizer from Scratch | 从零构建分词器
 
 > Lesson 01 gave you a toy. This lesson gives you a weapon.
+
+> **【中文解读】** 第一课的 BPE 是玩具，本课构建生产级分词器：处理 Unicode、空白归一化、特殊 token、字节级回退（让任何输入都能编码，包括 emoji 和中文）。
+
+> **【拓展：tiktoken/HuggingFace】** GPT-4 的 tiktoken 和 Llama 的 sentencepiece 都是生产级分词器的实现。理解它们的内部原理有助于优化 prompt 工程和成本控制。
 
 **Type:** Build
 **Languages:** Python

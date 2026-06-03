@@ -1,5 +1,10 @@
 """Phase 13 Lesson 06 - MCP fundamentals, JSON-RPC 2.0 lifecycle walk.
 
+MCP 基础 (MCP Fundamentals)
+核心概念：MCP 定义了6个原语（3个服务器端：tools/resources/prompts，3个客户端：roots/elicitation/sampling）、
+三阶段生命周期（initialize→negotiate→operate），以及 JSON-RPC 2.0 传输格式。
+AI 应用对应：MCP 是 Claude 生态的核心协议，Anthropic 2024年11月发布，现由 Linux 基金会托管。
+
 Plays out the initialize -> tools/list -> tools/call sequence by hand with
 stdlib JSON-RPC envelopes. No transport, no real server - just the message
 shapes so you can compare to the 2025-11-25 spec line by line.

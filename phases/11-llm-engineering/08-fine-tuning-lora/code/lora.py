@@ -1,3 +1,17 @@
+"""
+LoRA 微调：低秩适配与量化微调 (Fine-Tuning with LoRA & QLoRA)
+
+核心概念：
+- LoRA(Low-Rank Adaptation)：冻结原始权重，只训练低秩分解矩阵 A*B
+- 秩(Rank r)：控制适配器容量，通常 r=8~64，仅训练不到 1% 参数
+- QLoRA：4-bit 量化 + LoRA，进一步降低显存需求
+- 合并权重：推理时将 LoRA 权重合并回基础模型，零额外推理开销
+
+AI 应用对应：
+- LoRA 是企业定制大模型的核心技术（领域适配、风格定制等）
+- 金融场景可用 LoRA 在研报数据上微调，提升专业分析能力
+"""
+
 import torch
 import torch.nn as nn
 import math

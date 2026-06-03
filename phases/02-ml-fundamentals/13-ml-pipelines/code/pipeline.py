@@ -1,3 +1,7 @@
+"""
+ML 管线：将预处理和模型训练串成流水线。
+AI 对应: sklearn Pipeline 确保训练和推理一致，生产环境部署的基础。
+"""
 import numpy as np
 import warnings
 warnings.filterwarnings("ignore")

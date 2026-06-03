@@ -1,3 +1,16 @@
+"""
+图像分类完整流水线 (Image Classification Pipeline)
+
+核心概念：
+- 端到端分类流水线：数据集 → 数据增强 → 模型 → 训练循环 → 评估
+- 正则化技术：Mixup（混合样本）、Cutout（随机遮挡）、Label Smoothing（标签平滑）
+- 评估指标：混淆矩阵、精确率/召回率、每类分析
+
+AI 对应：
+- 图像分类是所有视觉任务的基础（检测=区域分类，分割=像素分类）
+- CIFAR-10 是最常用的分类基准数据集（10 类，6 万张 32x32 图像）
+"""
+
 import numpy as np
 import torch
 import torch.nn as nn

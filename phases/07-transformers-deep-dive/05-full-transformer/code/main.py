@@ -6,6 +6,8 @@ Demonstrates:
 - encoder block (bidirectional) vs decoder block (causal + cross-attn)
 - pre-norm wiring (2026 default)
 """
+# 【中文解读】完整 Transformer。组装 Self-Attention + FFN + Residual + LayerNorm。
+
 
 import math
 import random

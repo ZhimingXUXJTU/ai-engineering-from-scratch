@@ -1,20 +1,23 @@
-# Large Corpus Downloader
+# Large Corpus Downloader | 下载器 语料
 
 > Training a language model begins long before the first forward pass. The corpus has to land on disk, decompressed, deduplicated, and addressable, with the resume story already worked out before the network drops at 4 percent. This lesson builds a streaming downloader that pulls compressed shards, decompresses on the fly with Zstandard, fingerprints near-duplicates via MinHash plus locality-sensitive hashing, and writes a shard manifest the rest of the pipeline can trust.
+
+> **【中文解读】** 本节是 AI 工程的综合实战项目，整合前面学到的技术和方法。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 30-37
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Stream remote shards with `urllib` and decompress with `zstandard` without buffering the whole file in memory.
 - Resume partial downloads by issuing HTTP `Range` requests against a verified byte offset.
 - Build a MinHash signature per document and bucket it with LSH so near-duplicates collide.
 - Emit a shard manifest with content hash, byte size, document count, and dedup verdict.
 
-## The Problem
+## The Problem | 问题
 
 The first time you train on a 200 GB corpus the network drops at percent 41 and the script exits with a `urllib` exception. The second time it drops at percent 78. By percent 99 you have rewritten the loop three times. The two failures you have to design for from minute one are partial-download resume and duplicate document removal. Both have well-known solutions; both are routinely skipped because the pipeline begins as a one-line `requests.get` call that grew teeth.
 
@@ -22,7 +25,7 @@ Resume is an HTTP problem. The server has to honour `Range`, the client has to t
 
 Deduplication is a signature problem. Exact-hash dedup misses near-duplicates: the same Wikipedia article shows up with three different boilerplate footers, the same code file with a different license header, the same blog post with a tracking parameter on every link. MinHash plus LSH catches these at sub-linear cost. The cost is one signature per document and one bucket lookup per signature.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart TD
@@ -59,7 +62,7 @@ LSH then groups the `k` components into `b` bands of `r` rows each, where `k = b
 
 The downloader's only durable output is the manifest. The manifest holds, per shard, the URL, the decompressed byte count, the document count, the unique document count after dedup, and the sha256 of the final shard file. Downstream tokenization reads the manifest, not the directory listing. If a shard is missing or its sha256 is wrong, the manifest tells the next stage to refuse to start. The manifest is the deciding edge between "the data is downloaded" and "the data is downloaded and verifiable".
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements:
 
@@ -93,7 +96,7 @@ Four patterns scale this lesson to real corpora.
 
 **Per-shard sha256 in the manifest, plus a manifest sha256.** The manifest itself gets a content hash. Downstream stages verify the manifest hash before they trust the per-shard entries. Without this the manifest is the silent attack surface: an attacker who can edit a single file can corrupt the whole pipeline.
 
-## Use It
+## Use It | 使用方法
 
 Production patterns:
 
@@ -101,11 +104,11 @@ Production patterns:
 - **Dedup before tokenization.** Tokenization is expensive. Running it twice on the same document is twice the cost for the same loss curve. Dedup is upstream of tokenization, not downstream.
 - **Manifest as merge gate.** The training run reads the manifest sha256 from a pinned commit. A new dataset version requires a new manifest commit. The link between code and data is git, not folklore.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-corpus-downloader.md` would, on a real project, describe which URLs feed the downloader, how the checkpoint directory is laid out, what shingle width and `(k, b, r)` triple the dedup uses, and where the manifest lives in version control. This lesson ships the engine.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a `--shingle-width` flag and measure how the dedup verdict changes at widths 3, 5, 9. Defend the chosen default.
 2. Add gzip support next to zstd by sniffing the magic bytes. The downloader should not require the caller to specify the codec.
@@ -113,7 +116,7 @@ Production patterns:
 4. Move the LSH index to a shelf or sqlite file and measure throughput vs the in-memory variant.
 5. Add a manifest sha256 check on startup. The downloader should fail closed if the manifest on disk disagrees with the manifest hash in `manifest.lock`.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -123,7 +126,7 @@ Production patterns:
 | Verified bytes | "Resume offset" | Bytes on disk whose sha256 prefix matches the checkpoint; the only safe offset to resume from |
 | Manifest | "The index" | The single durable record of what the downloader produced, including content hashes |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [RFC 7233](https://datatracker.ietf.org/doc/html/rfc7233) - HTTP Range requests, the resume protocol
 - [Zstandard format specification](https://datatracker.ietf.org/doc/html/rfc8478) - frame format that makes streaming decompression safe

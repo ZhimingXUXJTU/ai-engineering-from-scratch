@@ -1,6 +1,10 @@
-# Stable Diffusion — Architecture & Fine-Tuning
+# Stable Diffusion — Architecture & Fine-Tuning | Stable Diffusion — 架构与微调
 
 > Stable Diffusion is a DDPM that runs in the latent space of a pretrained VAE, conditioned on text via cross-attention, sampled with a fast deterministic ODE solver, and steered by classifier-free guidance.
+
+> **【中文解读】** Stable Diffusion 是在预训练 VAE 的潜在空间中运行的扩散模型，通过交叉注意力（cross-attention）接受文本条件，使用快速确定性 ODE 求解器采样，并通过无分类器引导（classifier-free guidance）控制生成质量。它是 AIGC（AI 生成内容）领域最重要的开源模型之一。
+
+> **【拓展：Stable Diffusion 生态】** Stable Diffusion 衍生出了 LoRA（轻量微调）、ControlNet（控制姿态/边缘）、IP-Adapter（图像提示）等丰富生态。LoRA 微调只需几张图片和消费级 GPU 即可定制风格，使 AI 绘画走进了千家万户。SDXL、SD3、FLUX 等后续版本不断推动图像质量提升。
 
 **Type:** Learn + Use
 **Languages:** Python

@@ -1,6 +1,10 @@
-# MCP Resources and Prompts — Context Exposure Beyond Tools
+# MCP Resources and Prompts — Context Exposure Beyond Tools | MCP 资源与提示：工具之外的上下文暴露
 
 > Tools get 90 percent of MCP attention. The other two server primitives solve different problems. Resources expose data for reading; prompts expose reusable templates as slash-commands. Many servers should use resources instead of wrapping reads in tools, and prompts instead of hard-coding workflows in client prompts. This lesson names the decision rule and walks the `resources/*` and `prompts/*` messages.
+
+> **【中文解读】** 工具获得了 MCP 90% 的关注，但另外两个服务器原语解决不同的问题。Resources 暴露可读数据；Prompts 暴露可复用的模板作为斜杠命令。许多服务器应该使用 resources 而非将读操作包装为 tools，使用 prompts 而非在客户端提示中硬编码工作流。
+
+> **【拓展：Resources vs Tools 选择】** 在 MCP 设计中，Resources 用于只读数据暴露（如文件内容、数据库记录），Tools 用于有副作用的操作（如创建、删除、发送）。错误地将读操作包装为 tool 会增加不必要的模型决策负担。Prompts 作为斜杠命令模板，让用户快速触发预设工作流。
 
 **Type:** Build
 **Languages:** Python (stdlib, resource + prompt handler)
@@ -126,18 +130,18 @@ This lesson produces `outputs/skill-primitive-splitter.md`. Given a proposed MCP
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Resource | "Exposed data" | URI-addressable content the host can read |
-| Resource URI | "Pointer to data" | Scheme-prefixed identifier (`file://`, `notes://`, etc.) |
-| `resources/subscribe` | "Watch for changes" | Client-opt-in server-push updates for a specific URI |
-| `notifications/resources/updated` | "Resource changed" | Signal to client that a subscribed resource has new content |
-| Resource template | "Parameterized URI" | URI pattern with completion hints for the host picker |
-| Prompt | "Slash-command template" | Named multi-message template with argument slots |
-| Prompt arguments | "Template inputs" | Typed parameters the host collects before rendering |
-| `prompts/get` | "Render template" | Server returns the filled-in message list |
-| Content block | "Typed chunk" | `{type: text \| image \| resource \| ui_resource}` |
-| Slash-command UX | "User shortcut" | Host surfaces prompts as commands starting with `/` |
+| Term | What people say | What it actually means | 中文术语 |
+|------|----------------|------------------------|----------|
+| Resource | "Exposed data" | URI-addressable content the host can read | 资源 |
+| Resource URI | "Pointer to data" | Scheme-prefixed identifier (`file://`, `notes://`, etc.) | 资源 URI |
+| `resources/subscribe` | "Watch for changes" | Client-opt-in server-push updates for a specific URI | 资源订阅 |
+| `notifications/resources/updated` | "Resource changed" | Signal to client that a subscribed resource has new content | 资源更新通知 |
+| Resource template | "Parameterized URI" | URI pattern with completion hints for the host picker | 资源模板 |
+| Prompt | "Slash-command template" | Named multi-message template with argument slots | 提示模板 |
+| Prompt arguments | "Template inputs" | Typed parameters the host collects before rendering | 提示参数 |
+| `prompts/get` | "Render template" | Server returns the filled-in message list | 渲染提示 |
+| Content block | "Typed chunk" | `{type: text \| image \| resource \| ui_resource}` | 内容块 |
+| Slash-command UX | "User shortcut" | Host surfaces prompts as commands starting with `/` | 斜杠命令 |
 
 ## Further Reading
 

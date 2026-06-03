@@ -1,6 +1,8 @@
-# Self-Attention from Scratch
+# Self-Attention from Scratch | 自注意力从零实现
 
 > Attention is a lookup table where every word asks "who matters to me?" - and learns the answer.
+
+> **【中文解读】** Self-Attention 是 Transformer 的核心：Q*K^T 计算每个 token 对其他 token 的关注度。理解 Q/K/V 的直觉是理解 GPT/BERT 的基础。
 
 **Type:** Build
 **Languages:** Python

@@ -2,6 +2,9 @@
 
 Subset: required fields, string/int/number/bool/array/object, enum, minimum/maximum.
 Returns structured observations for every validation failure so an agent can retry.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -12,6 +15,7 @@ from typing import Any, Callable
 
 @dataclass
 class ToolDef:
+    """ToolDef"""
     name: str
     description: str
     input_schema: dict[str, Any]
@@ -21,6 +25,7 @@ class ToolDef:
 
 @dataclass
 class ToolCall:
+    """ToolCall"""
     tool_use_id: str
     name: str
     args: dict[str, Any]
@@ -28,51 +33,54 @@ class ToolCall:
 
 @dataclass
 class ToolResult:
+    """ToolResult"""
     tool_use_id: str
     ok: bool
     content: str
 
 
 def _coerce(value: Any, schema: dict[str, Any]) -> tuple[Any, str | None]:
+    """_coerce"""
     t = schema.get("type")
     if t == "integer":
         if isinstance(value, int) and not isinstance(value, bool):
-            return value, None
+            return value, None  # 返回结果
         if isinstance(value, str):
             try:
-                return int(value), None
+                return int(value), None  # 返回结果
             except ValueError:
-                return value, f"cannot coerce string {value!r} to integer"
-        return value, f"expected integer, got {type(value).__name__}"
+                return value, f"cannot coerce string {value!r} to integer"  # 返回结果
+        return value, f"expected integer, got {type(value).__name__}"  # 返回结果
     if t == "number":
         if isinstance(value, (int, float)) and not isinstance(value, bool):
-            return float(value), None
+            return float(value), None  # 返回结果
         if isinstance(value, str):
             try:
-                return float(value), None
+                return float(value), None  # 返回结果
             except ValueError:
-                return value, f"cannot coerce string {value!r} to number"
-        return value, f"expected number, got {type(value).__name__}"
+                return value, f"cannot coerce string {value!r} to number"  # 返回结果
+        return value, f"expected number, got {type(value).__name__}"  # 返回结果
     if t == "boolean":
         if isinstance(value, bool):
-            return value, None
-        return value, f"expected boolean, got {type(value).__name__}"
+            return value, None  # 返回结果
+        return value, f"expected boolean, got {type(value).__name__}"  # 返回结果
     if t == "string":
         if isinstance(value, str):
-            return value, None
-        return value, f"expected string, got {type(value).__name__}"
+            return value, None  # 返回结果
+        return value, f"expected string, got {type(value).__name__}"  # 返回结果
     if t == "array":
         if isinstance(value, list):
-            return value, None
-        return value, f"expected array, got {type(value).__name__}"
+            return value, None  # 返回结果
+        return value, f"expected array, got {type(value).__name__}"  # 返回结果
     if t == "object":
         if isinstance(value, dict):
-            return value, None
-        return value, f"expected object, got {type(value).__name__}"
-    return value, None
+            return value, None  # 返回结果
+        return value, f"expected object, got {type(value).__name__}"  # 返回结果
+    return value, None  # 返回结果
 
 
 def validate(args: dict[str, Any], schema: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
+    """validate"""
     errors: list[str] = []
     props = schema.get("properties", {})
     required = schema.get("required", [])
@@ -103,10 +111,11 @@ def validate(args: dict[str, Any], schema: dict[str, Any]) -> tuple[dict[str, An
                 continue
         out[name] = coerced
 
-    return out, errors
+    return out, errors  # 返回结果
 
 
 class ToolRegistry:
+    """ToolRegistry"""
     def __init__(self) -> None:
         self._tools: dict[str, ToolDef] = {}
 
@@ -114,7 +123,7 @@ class ToolRegistry:
         self._tools[tool.name] = tool
 
     def catalog(self) -> list[dict[str, Any]]:
-        return [
+        return [  # 返回结果
             {"name": t.name, "description": t.description,
              "input_schema": t.input_schema}
             for t in self._tools.values()
@@ -123,35 +132,39 @@ class ToolRegistry:
     def dispatch(self, call: ToolCall) -> ToolResult:
         tool = self._tools.get(call.name)
         if tool is None:
-            return ToolResult(call.tool_use_id, False,
+            return ToolResult(call.tool_use_id, False,  # 返回结果
                               f"error: unknown tool {call.name!r}")
         validated, errors = validate(call.args, tool.input_schema)
         if errors:
-            return ToolResult(call.tool_use_id, False,
+            return ToolResult(call.tool_use_id, False,  # 返回结果
                               "validation error: " + "; ".join(errors))
         try:
-            return ToolResult(call.tool_use_id, True, tool.executor(**validated))
+            return ToolResult(call.tool_use_id, True, tool.executor(**validated))  # 返回结果
         except Exception as e:
-            return ToolResult(call.tool_use_id, False,
+            return ToolResult(call.tool_use_id, False,  # 返回结果
                               f"execution error: {type(e).__name__}: {e}")
 
     def dispatch_many(self, calls: list[ToolCall]) -> list[ToolResult]:
-        return [self.dispatch(c) for c in calls]
+        return [self.dispatch(c) for c in calls]  # 返回结果
 
 
 def add(a: int, b: int) -> str:
-    return str(a + b)
+    """add"""
+    return str(a + b)  # 返回结果
 
 
 def multiply(a: int, b: int) -> str:
-    return str(a * b)
+    """multiply"""
+    return str(a * b)  # 返回结果
 
 
 def classify(status: str) -> str:
-    return f"classified as {status}"
+    """classify"""
+    return f"classified as {status}"  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("TOOL USE and FUNCTION CALLING — Phase 14, Lesson 06")
     print("=" * 70)
@@ -211,4 +224,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

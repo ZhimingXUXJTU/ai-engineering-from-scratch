@@ -3,6 +3,9 @@
 Two demos, one file. HTN shows the ChatHTN pattern: symbolic planner falls back
 to an LLM for decomposition when no method matches. Evolutionary search shows
 the AlphaEvolve pattern: ensemble mutations filtered by a deterministic evaluator.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -14,13 +17,14 @@ from typing import Any, Callable
 
 @dataclass
 class Operator:
+    """Operator"""
     name: str
     preconditions: tuple[str, ...]
     effects_add: tuple[str, ...]
     effects_remove: tuple[str, ...] = ()
 
     def applicable(self, state: set[str]) -> bool:
-        return all(p in state for p in self.preconditions)
+        return all(p in state for p in self.preconditions)  # 返回结果
 
     def apply(self, state: set[str]) -> set[str]:
         new_state = set(state)
@@ -28,18 +32,19 @@ class Operator:
             new_state.discard(fact)
         for fact in self.effects_add:
             new_state.add(fact)
-        return new_state
+        return new_state  # 返回结果
 
 
 @dataclass
 class Method:
+    """Method"""
     name: str
     task: str
     preconditions: tuple[str, ...]
     subtasks: tuple[str, ...]
 
     def applicable(self, state: set[str]) -> bool:
-        return all(p in state for p in self.preconditions)
+        return all(p in state for p in self.preconditions)  # 返回结果
 
 
 class ScriptedLLM:
@@ -51,11 +56,12 @@ class ScriptedLLM:
 
     def decompose(self, task: str, state: set[str]) -> tuple[str, ...] | None:
         self.calls.append(task)
-        return self._scripts.get(task)
+        return self._scripts.get(task)  # 返回结果
 
 
 @dataclass
 class HTNPlanner:
+    """HTNPlanner"""
     operators: dict[str, Operator]
     methods: dict[str, list[Method]]
     llm: ScriptedLLM
@@ -64,26 +70,26 @@ class HTNPlanner:
     def plan(self, task: str, state: set[str],
              depth: int = 0, max_depth: int = 12) -> list[str] | None:
         if depth > max_depth:
-            return None
+            return None  # 返回结果
         if task in self.operators:
             op = self.operators[task]
             if op.applicable(state):
-                return [task]
-            return None
+                return [task]  # 返回结果
+            return None  # 返回结果
         applicable = [m for m in self.methods.get(task, []) if m.applicable(state)]
         if not applicable and task in self.cached_methods:
             subtasks = self.cached_methods[task]
-            return self._expand(list(subtasks), state, depth)
+            return self._expand(list(subtasks), state, depth)  # 返回结果
         if not applicable:
             suggested = self.llm.decompose(task, state)
             if suggested is None:
-                return None
+                return None  # 返回结果
             if not all(s in self.operators or s in self.methods for s in suggested):
-                return None
+                return None  # 返回结果
             self.cached_methods[task] = suggested
-            return self._expand(list(suggested), state, depth)
+            return self._expand(list(suggested), state, depth)  # 返回结果
         method = applicable[0]
-        return self._expand(list(method.subtasks), state, depth)
+        return self._expand(list(method.subtasks), state, depth)  # 返回结果
 
     def _expand(self, subtasks: list[str], state: set[str], depth: int) -> list[str] | None:
         plan: list[str] = []
@@ -91,17 +97,18 @@ class HTNPlanner:
         for subtask in subtasks:
             sub_plan = self.plan(subtask, current_state, depth=depth + 1)
             if sub_plan is None:
-                return None
+                return None  # 返回结果
             for step in sub_plan:
                 op = self.operators.get(step)
                 if op is None or not op.applicable(current_state):
-                    return None
+                    return None  # 返回结果
                 current_state = op.apply(current_state)
                 plan.append(step)
-        return plan
+        return plan  # 返回结果
 
 
 def htn_demo() -> None:
+    """htn_demo"""
     print("-" * 70)
     print("demo 1: ChatHTN-style hybrid HTN planner")
     print("-" * 70)
@@ -145,6 +152,7 @@ def htn_demo() -> None:
 
 
 def evolutionary_demo() -> None:
+    """evolutionary_demo"""
     print()
     print("-" * 70)
     print("demo 2: AlphaEvolve-style evolutionary search (toy)")
@@ -157,12 +165,12 @@ def evolutionary_demo() -> None:
             target = 3 * x + 7
             guess = a * x + b
             total += (target - guess) ** 2
-        return total
+        return total  # 返回结果
 
     def random_mutation(a: int, b: int) -> tuple[int, int]:
         da = random.choice((-2, -1, 0, 1, 2))
         db = random.choice((-2, -1, 0, 1, 2))
-        return a + da, b + db
+        return a + da, b + db  # 返回结果
 
     population: list[tuple[int, int, float]] = [
         (random.randint(-10, 10), random.randint(-10, 10), 0.0)
@@ -195,6 +203,7 @@ def evolutionary_demo() -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("HTN + EVOLUTIONARY SEARCH — Phase 14, Lesson 11")
     print("=" * 70)
@@ -207,4 +216,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

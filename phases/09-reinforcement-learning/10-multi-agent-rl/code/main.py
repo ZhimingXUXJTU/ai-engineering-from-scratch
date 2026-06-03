@@ -1,3 +1,16 @@
+"""
+多智能体强化学习 (Multi-Agent RL)
+
+核心概念：多个智能体同时学习和改变策略 → 环境非平稳。
+本模块实现两种方法：
+  - 独立 Q-learning：每个智能体独立学习自己的 Q 表
+  - 联合 Q-learning：使用联合动作空间的单个 Q 表
+
+AI 对应：多智能体 LLM 系统（如 Claude Code multi-agent、AutoGen、CrewAI）
+是 MARL 思想在语言 Agent 领域的延伸。CTDE 范式（训练集中/执行分布）
+是 MAPPO 等现代 MARL 算法的核心。
+"""
+
 import random
 from collections import defaultdict
 
@@ -39,23 +52,24 @@ def epsilon_greedy(q_table, state, rng, epsilon):
 
 
 def independent_q(episodes=1500, alpha=0.1, gamma=0.95, epsilon=0.15, rng=None):
+    """独立 Q-learning：每个智能体维护自己的 Q 表，独立学习"""
     rng = rng or random.Random(0)
-    Q1 = defaultdict(default_q)
-    Q2 = defaultdict(default_q)
+    Q1 = defaultdict(default_q)  # 智能体 1 的 Q 表
+    Q2 = defaultdict(default_q)  # 智能体 2 的 Q 表
     returns_log = []
     for _ in range(episodes):
         s = reset()
         total = 0.0
         for _ in range(100):
-            a1 = epsilon_greedy(Q1, s, rng, epsilon)
-            a2 = epsilon_greedy(Q2, s, rng, epsilon)
-            s_next, r, done = step(s, (a1, a2))
+            a1 = epsilon_greedy(Q1, s, rng, epsilon)  # 智能体 1 独立选动作
+            a2 = epsilon_greedy(Q2, s, rng, epsilon)  # 智能体 2 独立选动作
+            s_next, r, done = step(s, (a1, a2))  # 执行联合动作
             total += r
             if done:
-                Q1[s][a1] += alpha * (r - Q1[s][a1])
+                Q1[s][a1] += alpha * (r - Q1[s][a1])  # 共享奖励
                 Q2[s][a2] += alpha * (r - Q2[s][a2])
                 break
-            target1 = r + gamma * max(Q1[s_next].values())
+            target1 = r + gamma * max(Q1[s_next].values())  # 各自独立计算 TD 目标
             target2 = r + gamma * max(Q2[s_next].values())
             Q1[s][a1] += alpha * (target1 - Q1[s][a1])
             Q2[s][a2] += alpha * (target2 - Q2[s][a2])
@@ -65,8 +79,9 @@ def independent_q(episodes=1500, alpha=0.1, gamma=0.95, epsilon=0.15, rng=None):
 
 
 def joint_q_learning(episodes=1500, alpha=0.1, gamma=0.95, epsilon=0.15, rng=None):
+    """联合 Q-learning：使用联合动作空间 |A|^2 的单个 Q 表"""
     rng = rng or random.Random(0)
-    joint_actions = [(a, b) for a in ACTIONS for b in ACTIONS]
+    joint_actions = [(a, b) for a in ACTIONS for b in ACTIONS]  # 4×4=16 个联合动作
     Q = defaultdict(lambda: {ja: 0.0 for ja in joint_actions})
     returns_log = []
     for _ in range(episodes):
@@ -74,15 +89,15 @@ def joint_q_learning(episodes=1500, alpha=0.1, gamma=0.95, epsilon=0.15, rng=Non
         total = 0.0
         for _ in range(100):
             if rng.random() < epsilon:
-                ja = rng.choice(joint_actions)
+                ja = rng.choice(joint_actions)  # 随机探索
             else:
-                ja = max(joint_actions, key=lambda a: Q[s][a])
+                ja = max(joint_actions, key=lambda a: Q[s][a])  # 贪心选联合动作
             s_next, r, done = step(s, ja)
             total += r
             if done:
                 Q[s][ja] += alpha * (r - Q[s][ja])
                 break
-            best_next = max(Q[s_next].values())
+            best_next = max(Q[s_next].values())  # max over joint actions
             Q[s][ja] += alpha * ((r + gamma * best_next) - Q[s][ja])
             s = s_next
         returns_log.append(total)

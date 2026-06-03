@@ -4,6 +4,8 @@ No numpy, no torch. A tiny Matrix class carries the ops we need.
 Demonstrates: split heads, per-head scaled dot-product attention,
 combine heads, output projection, and a Grouped-Query variant.
 """
+# 【中文解读】多头注意力。多头让模型同时关注不同关系。GPT-3 有 96 个头。
+
 
 import math
 import random

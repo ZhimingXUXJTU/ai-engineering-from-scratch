@@ -1,6 +1,8 @@
-# Natural Language Inference — Textual Entailment
+# Natural Language Inference — Textual Entailment | 自然语言推理 — 文本蕴含
 
 > "t entails h" means a human reading t would conclude h is true. NLI is the task of predicting entailment / contradiction / neutral. Boring on the surface, load-bearing in production.
+
+> **【中文解读】** 判断句子间的蕴含关系。
 
 **Type:** Learn
 **Languages:** Python

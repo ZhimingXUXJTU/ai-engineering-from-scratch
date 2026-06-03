@@ -1,4 +1,4 @@
-# AI Scientist v2 — Workshop-Level Autonomous Research
+# AI Scientist v2 — Workshop-Level Autonomous Research | AI 科学家 研究 美国
 
 > Sakana's AI Scientist v2 (Yamada et al., arXiv:2504.08066) runs the full research loop: hypothesis, code, experiments, figures, writeup, submission. It is the first system to have a generated paper pass peer review at an ICLR 2025 workshop. Independent evaluation (Beel et al.) found 42% of experiments failed from coding errors and literature review frequently mislabeled established concepts as novel. Sakana's own docs warn that the codebase executes LLM-written code and recommend Docker isolation. Both halves of that picture are the point.
 
@@ -7,15 +7,18 @@
 **Prerequisites:** Phase 15 · 03 (AlphaEvolve), Phase 15 · 04 (DGM)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题
 
 Research is an open-ended task. Unlike AlphaEvolve's algorithmic search or DGM's benchmark-bounded self-modification, a research result does not have a machine-checkable correctness criterion. A paper is judged by reviewers, not unit tests. That makes the loop harder to close — and more valuable if closed, because research is where compounding progress lives.
 
 AI Scientist v1 (Sakana, 2024) closed the loop by starting from human-authored templates. The LLM filled in experiments within a fixed scaffolding. AI Scientist v2 (Yamada et al., 2025) removes the template requirement by using agentic tree search with a vision-language model critique loop. The system generates ideas, implements experiments, produces figures, writes a paper, and iterates on reviewer feedback.
 
+
+> **【中文解读】** 本节介绍了 Agent 评估基准——如何衡量 Agent 在各类任务上的表现。
+
 Peer review verdict: one v2-generated paper was accepted at an ICLR 2025 workshop (with disclosure). Independent evaluation verdict: the system is far from reliable. Both are true.
 
-## The Concept
+## The Concept | 概念
 
 ### The architecture
 
@@ -63,7 +66,7 @@ AlphaEvolve's sandbox story is easier because its evaluator is tight. AI Scienti
 
 v2 has the weakest automatic evaluator of the three, the widest output surface, and the shortest path to public artifacts. The operational controls (sandbox, review, disclosure) are doing most of the safety work.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` simulates the v2 loop as a state machine: idea → novelty check → experiment → figure → writeup → review → accept-or-iterate. Each state has a configurable failure probability pulled from the Beel et al. findings. Run the simulator for N loops and count:
 
@@ -71,35 +74,40 @@ v2 has the weakest automatic evaluator of the three, the widest output surface, 
 - How many submissions would have a critical experimental flaw the polished paper hides.
 - How retry budgets trade off quality vs yield.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-ai-scientist-sandbox-review.md` is a two-gate review checklist for anything produced by a research-loop agent before it leaves the sandbox.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py` with default parameters. What fraction of loop runs produce a "clean" paper? What fraction produce a paper with an experiment-failure flaw the figure critique polished over?
+   *思考并实践此练习*
 
 2. The defaults already use Beel et al.'s 42% / 25%. Re-run with `--experiment-failure 0.20 --novelty-mislabel 0.10` and then with `--experiment-failure 0.60 --novelty-mislabel 0.40`. How does the polished-but-flawed share shift between the two runs?
+   *思考并实践此练习*
 
 3. Read Sakana's AI Scientist v2 repo README on sandbox requirements. Name two additional restrictions (beyond Docker) you would apply for a multi-day autonomous run.
+   *思考并实践此练习*
 
 4. Read Beel et al. Section 4 on presentation-quality gap. Design one additional evaluator that would catch polished-looking but experimentally flawed papers.
+   *思考并实践此练习*
 
 5. Propose a human-review protocol for research-agent outputs that scales better than "a PhD reads every paper." Identify the bottleneck and design around it.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| AI Scientist v1 | "Sakana's templated research agent" | Filled experiments into a fixed scaffold |
-| AI Scientist v2 | "Template-free research agent" | Agentic tree search with VLM figure critique |
-| Agentic tree search | "Branching research agent" | Expands multiple experiment plans in parallel; prunes by internal critic |
-| Vision-language critique | "VLM polish on figures" | Multimodal model reads figures and rewrites them for clarity |
-| Literature retrieval | "Novelty check" | Searches prior work to confirm idea novelty — documented to mislabel |
-| Polish masking | "Pretty paper, broken research" | Presentation quality exceeds experimental quality; hides weaknesses |
-| Sandbox escape | "LLM code breaks out" | Agent-executed code does things the loop designer did not intend |
+|---|---|---|---|
+| AI Scientist v1 | "Sakana's templated research agent" | Filled experiments into a fixed scaffold |  |
+| AI Scientist v2 | "Template-free research agent" | Agentic tree search with VLM figure critique |  |
+| Agentic tree search | "Branching research agent" | Expands multiple experiment plans in parallel; prunes by internal critic |  |
+| Vision-language critique | "VLM polish on figures" | Multimodal model reads figures and rewrites them for clarity |  |
+| Literature retrieval | "Novelty check" | Searches prior work to confirm idea novelty — documented to mislabel |  |
+| Polish masking | "Pretty paper, broken research" | Presentation quality exceeds experimental quality; hides weaknesses |  |
+| Sandbox escape | "LLM code breaks out" | Agent-executed code does things the loop designer did not intend |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Yamada et al. (2025). The AI Scientist-v2](https://arxiv.org/abs/2504.08066) — paper.
 - [Sakana blog on the Nature 2026 publication](https://sakana.ai/ai-scientist-nature/) — vendor summary with peer-review context.

@@ -1,4 +1,4 @@
-# ML Pipelines
+# ML Pipelines | ML 管线
 
 > A model is not a product. A pipeline is. The pipeline is everything from raw data to deployed prediction, and every step must be reproducible.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 2, Lesson 12 (Hyperparameter Tuning)
 **Time:** ~120 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build an ML pipeline from scratch that chains imputation, scaling, encoding, and model training into a single reproducible object
 - Identify data leakage scenarios and explain how pipelines prevent them by fitting transformers only on training data
 - Construct a ColumnTransformer that applies different preprocessing to numeric and categorical features
 - Implement pipeline serialization and demonstrate that the same fitted pipeline produces identical results in training and production
+
+
+> **【中文解读】**
+> ML 管线把数据预处理、特征工程、模型训练串成一条流水线。sklearn Pipeline 确保训练和推理的数据处理一致。生产环境中管线化是模型部署的基础。
 
 ## The Problem
 

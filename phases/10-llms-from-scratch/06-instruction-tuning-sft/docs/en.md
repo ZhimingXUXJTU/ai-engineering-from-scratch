@@ -1,6 +1,10 @@
-# Instruction Tuning (SFT)
+# Instruction Tuning (SFT) | 指令微调（监督微调）
 
 > A base model predicts the next token. That's it. It doesn't follow instructions, answer questions, or refuse harmful requests. SFT is the bridge between a token predictor and a useful assistant. Every model you've ever talked to -- Claude, GPT, Llama Chat -- went through this step.
+
+> **【中文解读】** 基础模型只会预测下一个 token。它不会遵循指令、回答问题或拒绝有害请求。SFT（监督微调）是连接"token 预测器"和"有用助手"的桥梁。Claude、ChatGPT、Llama Chat 都经过这一步。
+
+> **【拓展：SFT→ChatGPT】** ChatGPT 的训练流程：GPT-3.5 预训练 → SFT（用人类标注的对话数据微调）→ RLHF（用人类偏好数据对齐）。SFT 是让基础模型变成对话助手的关键一步。
 
 **Type:** Build
 **Languages:** Python (with numpy)

@@ -1,3 +1,7 @@
+"""
+K-Means 聚类和 DBSCAN 从零实现。
+AI 对应: 无监督聚类用于客户分群、异常检测，sklearn 的 KMeans/DBSCAN。
+"""
 import math
 import random
 

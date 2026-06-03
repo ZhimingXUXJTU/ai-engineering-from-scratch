@@ -1,3 +1,8 @@
+"""
+语音识别 ASR (Speech Recognition)
+核心概念：CTC（连接时序分类）、束搜索解码、WER（词错率）
+AI 对应：Whisper 使用注意力机制，传统 ASR 使用 CTC/RNN-T
+"""
 """ASR basics: greedy CTC decode, beam CTC decode, Word Error Rate.
 
 Stdlib only. Builds a tiny hand-rolled CTC example and computes WER.

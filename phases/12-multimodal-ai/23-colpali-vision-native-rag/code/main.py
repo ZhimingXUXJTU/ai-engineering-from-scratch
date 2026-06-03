@@ -1,5 +1,10 @@
 """ColPali toy: patch encoder + MaxSim retrieval — stdlib.
 
+ColPali 视觉原生文档 RAG (Vision-Native Document RAG)
+核心概念：跳过 OCR，直接嵌入页面图像，用 ColBERT 风格的 MaxSim 延迟交互进行检索。
+比传统文本 RAG 在视觉丰富文档上准确率高20-40%。
+AI 应用对应：金融报告、合同、发票等视觉丰富文档的 RAG 场景，ColPali 保留了完整布局和图表信号。
+
 Five mock "pages" of patch embeddings, three text queries with token embeddings,
 MaxSim scoring with top-k retrieval. Prints ranked pages + interpretation.
 """
@@ -26,6 +31,7 @@ class Query:
 
 
 def cosine(a: list[float], b: list[float]) -> float:
+    """计算余弦相似度：两个向量的夹角余弦值。"""
     dot = sum(x * y for x, y in zip(a, b))
     na = math.sqrt(sum(x * x for x in a)) + 1e-8
     nb = math.sqrt(sum(y * y for y in b)) + 1e-8
@@ -34,7 +40,7 @@ def cosine(a: list[float], b: list[float]) -> float:
 
 def maxsim(query_tokens: list[list[float]],
            patches: list[list[float]]) -> float:
-    """ColBERT MaxSim: sum over query tokens of max over patches."""
+    """ColBERT MaxSim 操作：对每个查询 token，找最佳匹配 patch 的余弦相似度，然后求和。"""
     s = 0.0
     for q in query_tokens:
         best = max(cosine(q, p) for p in patches)
@@ -68,6 +74,7 @@ def build_queries(dim: int = 32) -> list[Query]:
 
 
 def retrieve(query: Query, pages: list[Page], k: int = 3) -> list[tuple[str, float]]:
+    """检索 top-k 页面：对所有页面计算 MaxSim 分数，返回得分最高的 k 个。"""
     scored = [(p.doc_id, maxsim(query.tokens, p.patches)) for p in pages]
     scored.sort(key=lambda x: -x[1])
     return scored[:k]

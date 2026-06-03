@@ -1,6 +1,10 @@
-# Building a Production LLM Application
+# Building a Production LLM Application | 构建生产级 LLM 应用
 
 > You have built prompts, embeddings, RAG pipelines, function calling, caching layers, and guardrails. Separately. In isolation. Like practicing guitar scales without ever playing a song. This lesson is the song. You will wire every component from Lessons 01-12 into a single production-ready service. Not a toy. Not a demo. A system that handles real traffic, fails gracefully, streams tokens, tracks costs, and survives its first 10,000 users.
+
+> **【中文解读】** 你已经分别构建了提示、嵌入、RAG、函数调用、缓存和护栏。本课将所有组件整合为一个生产级服务——能处理真实流量、优雅降级、流式输出、追踪成本、承受首批1万用户。
+
+> **【拓展：生产化→AI工程全栈】** 这是 Phase 11 的集大成课程。将提示工程、RAG、安全、缓存等能力整合为端到端应用，是从"会用 AI API"到"能构建生产系统"的关键一步。
 
 **Type:** Build (Capstone)
 **Languages:** Python

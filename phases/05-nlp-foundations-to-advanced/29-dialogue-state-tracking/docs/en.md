@@ -1,6 +1,8 @@
-# Dialogue State Tracking
+# Dialogue State Tracking | 对话状态跟踪
 
 > "I want a cheap restaurant in the north... actually make it moderate... and add Italian." Three turns, three state updates. DST keeps the slot-value dict in sync so the booking works.
+
+> **【中文解读】** 跟踪多轮对话中的用户意图和状态。是对话系统核心组件。
 
 **Type:** Build
 **Languages:** Python

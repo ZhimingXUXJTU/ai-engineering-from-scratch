@@ -1,4 +1,4 @@
-# K-Nearest Neighbors and Distances
+# K-Nearest Neighbors and Distances | K 近邻与距离
 
 > Store everything. Predict by looking at your neighbors. The simplest algorithm that actually works.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1 (Lesson 14 Norms and Distances)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement KNN classification and regression from scratch with configurable K and distance-weighted voting
 - Compare L1, L2, cosine, and Minkowski distance metrics and select the appropriate one for a given data type
 - Explain the curse of dimensionality and demonstrate why KNN degrades in high-dimensional spaces
 - Build a KD-tree for efficient nearest neighbor search and analyze when it outperforms brute-force
+
+
+> **【中文解读】**
+> KNN 的核心思想是近朱者赤——看离你最近的 K 个邻居是什么类别，你就预测什么类别。推荐系统中的找相似用户就是 KNN 思想。sklearn 中的 KNeighborsClassifier。
 
 ## The Problem
 

@@ -1,6 +1,8 @@
-# Introduction to PyTorch
+# Introduction to PyTorch | PyTorch 入门
 
 > You built the engine from pistons and crankshafts. Now learn the one everyone actually drives.
+
+> **【中文解读】** 你从零构建了神经网络的所有组件。现在学真正在用的框架：PyTorch。本章对应关系：你的 Value 类 → torch.Tensor，你的 backward() → loss.backward()，你的 SGD/Adam → torch.optim.SGD/AdamW。
 
 **Type:** Build
 **Languages:** Python

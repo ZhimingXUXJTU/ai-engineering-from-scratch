@@ -1,6 +1,10 @@
-# Agent Framework Tradeoffs — LangGraph vs CrewAI vs AutoGen vs Agno
+# Agent Framework Tradeoffs — LangGraph vs CrewAI vs AutoGen vs Agno | Agent 框架对比：LangGraph vs CrewAI vs AutoGen vs Agno
 
 > Every framework sells the same demo (research agent builds a report) and hides the same bug (state schema fights with the orchestration layer). Pick the framework whose abstractions match the shape of your problem; everything else is glue you write twice.
+
+> **【中文解读】** 每个框架都展示同样的 demo（研究 Agent 生成报告），都隐藏同样的 bug（状态 schema 与编排层冲突）。选择抽象匹配你问题形状的框架，其他的都是你要写两遍的胶水代码。
+
+> **【拓展：框架选择→Agent工程实践】** LangGraph 适合需要精细控制的有状态工作流；CrewAI 适合多角色协作；AutoGen 适合对话式多 Agent；选错框架是 Agent 项目失败的首要原因。
 
 **Type:** Learn
 **Languages:** Python

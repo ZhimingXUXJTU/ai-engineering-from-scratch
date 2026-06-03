@@ -1,6 +1,8 @@
-# Learning Rate Schedules and Warmup
+# Learning Rate Schedules and Warmup | 学习率调度与预热
 
 > The learning rate is the single most important hyperparameter. Not the architecture. Not the dataset size. Not the activation function. The learning rate. If you tune nothing else, tune this.
+
+> **【中文解读】** 学习率是最重要的超参数——不是架构，不是数据量，是学习率。Llama 3 用峰值 lr=3e-4 + 2000 步 warmup + cosine decay。GPT-3 用 lr=6e-4 + warmup。理解学习率调度是训练任何模型的关键。
 
 **Type:** Build
 **Languages:** Python

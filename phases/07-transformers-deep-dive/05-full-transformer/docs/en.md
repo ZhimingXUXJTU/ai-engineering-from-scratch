@@ -1,6 +1,8 @@
-# The Full Transformer — Encoder + Decoder
+# The Full Transformer — Encoder + Decoder | 完整 Transformer — 编码器 + 解码器
 
 > Attention is the star. Everything else — residuals, normalization, feed-forward, cross-attention — is the scaffolding that lets you stack it deep.
+
+> **【中文解读】** 把 Self-Attention、Multi-Head、FFN、Residual、LayerNorm 组装成完整的 Transformer。这是 Attention Is All You Need 论文的实现。
 
 **Type:** Build
 **Languages:** Python

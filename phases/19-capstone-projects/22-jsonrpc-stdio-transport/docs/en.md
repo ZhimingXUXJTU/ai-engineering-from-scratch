@@ -1,13 +1,16 @@
-# JSON-RPC 2.0 Over Newline-Delimited Stdio
+# JSON-RPC 2.0 Over Newline-Delimited Stdio | JSON-RPC 2.0 Over Newline-Deli (中文翻译待补)
 
 > The transport between a model client and a tool server is JSON-RPC over stdio. Hand-rolling it once teaches you what every framing layer is paying for.
+
+> **【中文解读】** 本节是综合项目——构建 JSONRPC/STDIO 传输层。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 13 lessons 01-07, Phase 14 lesson 01
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 - Speak JSON-RPC 2.0 framed as newline-delimited JSON over stdin and stdout.
 - Map the five standard error codes (-32700, -32600, -32601, -32602, -32603) and surface them with the right semantics.
 - Distinguish requests, responses, notifications, and batches without inventing new envelope keys.

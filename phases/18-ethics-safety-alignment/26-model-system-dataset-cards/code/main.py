@@ -9,13 +9,17 @@ Each is a Markdown string printed to stdout. Sections follow the canonical
 templates.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
 
 
 def model_card() -> str:
-    return """
+    """model_card"""
+    return """  # 返回结果
 # Model Card: ToyClassifier-1.0
 
 ## Model Details
@@ -55,7 +59,8 @@ def model_card() -> str:
 
 
 def datasheet() -> str:
-    return """
+    """datasheet"""
+    return """  # 返回结果
 # Datasheet: ToyBinaryClassification-1.0
 
 ## Motivation
@@ -87,7 +92,8 @@ def datasheet() -> str:
 
 
 def system_card() -> str:
-    return """
+    """system_card"""
+    return """  # 返回结果
 # System Card: ToyClassifier Service
 
 ## Deployment
@@ -115,6 +121,7 @@ def system_card() -> str:
 
 
 def main() -> None:
+    """main"""
     print("=" * 74)
     print("CARDS GENERATOR (Phase 18, Lesson 26)")
     print("=" * 74)
@@ -131,4 +138,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

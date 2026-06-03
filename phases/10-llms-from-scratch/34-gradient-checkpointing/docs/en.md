@@ -1,6 +1,10 @@
-# Gradient Checkpointing and Activation Recomputation
+# Gradient Checkpointing and Activation Recomputation | 梯度检查点与激活重计算
 
 > Backprop keeps every intermediate activation. At 70B parameters and 128K context that is 3 TB of activations per rank. Checkpointing trades FLOPs for memory: recompute instead of save. The question is which segments to drop, and the answer is not "all of them."
+
+> **【中文解读】** 反向传播需要保存所有中间激活。70B 参数 + 128K 上下文 = 每卡 3TB 激活。梯度检查点用计算换显存：丢弃部分激活，需要时重新计算。关键问题是丢弃哪些——答案不是"全部"。
+
+> **【拓展：梯度检查点→大模型训练】** 梯度检查点是训练大模型的标配技术。PyTorch 的 torch.utils.checkpoint、DeepSpeed 的 activation checkpointing 都是这一思想的实现。在 128K 上下文训练中，选择性检查点可以节省 60%+ 的显存。
 
 **Type:** Build
 **Languages:** Python (with numpy, optional torch)

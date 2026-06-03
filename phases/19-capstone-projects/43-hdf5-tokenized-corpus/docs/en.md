@@ -1,20 +1,23 @@
-# HDF5 Tokenized Corpus
+# HDF5 Tokenized Corpus | 语料 HDF5
 
 > The downloaded corpus has to land in a layout the trainer can stream from at line speed. JSONL on disk does not survive 16 dataloader workers. HDF5 with a resizable, chunked integer dataset does. This lesson builds streaming tokenization into a resizable HDF5 dataset, sharded write across multiple files, memory-mapped read at training time, and a sliding-window dataloader that produces fixed-length sequences with the right packing.
+
+> **【中文解读】** 本节是 AI 工程的综合实战项目，整合前面学到的技术和方法。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 30-37
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Stream documents into a resizable HDF5 integer dataset with deterministic chunking.
 - Shard the write across multiple HDF5 files so failure is bounded and parallelism is possible.
 - Read tokens back through HDF5's page-cache-backed chunked layout so the dataloader copies into batch buffers only at batch time.
 - Implement a sliding-window dataloader that emits fixed-length training sequences with explicit packing rules.
 
-## The Problem
+## The Problem | 问题
 
 A modern language-model training run reads tokens at hundreds of thousands of samples per second across dozens of workers. JSONL on disk dies at the first cold-cache page fault: the JSON parser is slow, the document boundaries are not addressable, and seeking to "sample 4,217,884" requires scanning the file. Even Parquet, which compresses well, is a poor fit because the trainer does not want columns; it wants a flat token stream with O(1) random access.
 
@@ -22,7 +25,7 @@ HDF5 fits because it offers a chunked, resizable, integer-only dataset whose chu
 
 The build problem is making the write side honest. Resizable datasets are easy to misuse: write one document at a time and the HDF5 file is fragmented to the point of unusable. Write all documents in one resize and a process death loses the whole shard. The right discipline is buffer-then-extend, with a buffer size that matches the chunk size, and a sharded write that splits the workload across files so a crash loses at most one shard.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart TD
@@ -56,7 +59,7 @@ At training time each worker opens its share of HDF5 files in `swmr=True` mode a
 
 The dataloader is the only stage that knows about training-sequence length. It picks a random start index in the global token stream, reads `window_size + 1` tokens, and returns `(input, target) = (tokens[:-1], tokens[1:])`. Document boundaries are not enforced: a window may straddle two documents, with an explicit `boundary_token_id` between them so the model learns to use the separator. This is the standard packing rule; it is also the rule a beginner forgets, ending up with a corpus that is 8 percent training boundary tokens and 92 percent natural text.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements:
 
@@ -88,7 +91,7 @@ Four patterns scale this lesson to a real training run.
 
 **`swmr=True` on both sides, with `libver="latest"` on the writer.** Single-Writer-Multiple-Reader mode requires the writer to open with `libver="latest"`, create every dataset up front, then set `file.swmr_mode = True`. After that the writer must call `dataset.flush()` after each resize so reader workers (opened with `swmr=True`) see consistent data. Skipping `libver="latest"` or enabling SWMR after structural changes is a common source of "file is locked" failures.
 
-## Use It
+## Use It | 使用方法
 
 Production patterns:
 
@@ -96,11 +99,11 @@ Production patterns:
 - **Boundary token id.** The boundary token is part of the tokenizer vocab and is the only token the dataloader injects. The training loss masks the boundary token if the model is supposed to ignore it; otherwise it learns to use it as a sequence separator.
 - **`shards.json` as the source of truth.** Adding a new shard means writing the HDF5, computing its sha256, and appending an entry. The trainer reads the file once at startup and never touches the directory listing.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-hdf5-tokenized-corpus.md` would, on a real project, describe which tokenizer feeds the pipeline, what chunk size matches the trainer's window, where `shards.json` lives in version control, and how dataloader workers are sharded across files. This lesson ships the engine.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a `--compression gzip` flag to the HDF5 writer and measure the throughput cost on the demo corpus. Defend the chosen default.
 2. Add a deterministic seed to the sliding-window dataloader and verify two runs with the same seed produce identical batches.
@@ -108,7 +111,7 @@ Production patterns:
 4. Compare the dataloader throughput at chunk sizes equal to, half of, and twice the window size. Report the page-cache effect.
 5. Add a `--max-document-tokens` flag that truncates very long documents at write time. Defend the trade-off against deciding at read time.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -118,7 +121,7 @@ Production patterns:
 | Shard index | "shards.json" | The durable index of all token shards with offsets and content hashes |
 | Sliding window | "Training sample" | A fixed-length slice of the global token stream that the trainer pairs with its shift-by-one target |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [HDF5 chunking documentation](https://docs.hdfgroup.org/hdf5/v1_14/) - the chunked, resizable dataset layout this lesson uses
 - [h5py user guide](https://docs.h5py.org/en/stable/) - Python bindings for HDF5

@@ -1,6 +1,8 @@
-# Named Entity Recognition
+# Named Entity Recognition | 命名实体识别 (NER)
 
 > Pull the names out. Sounds easy until you deal with ambiguous boundaries, nested entities, and domain jargon.
+
+> **【中文解读】** 从文本中识别人名、地名、组织名等实体。是信息抽取和知识图谱的基础。
 
 **Type:** Build
 **Languages:** Python

@@ -1,20 +1,24 @@
-# Janus-Pro: Decoupled Encoders for Unified Multimodal Models
+# Janus-Pro: Decoupled Encoders for Unified Multimodal Models | Janus-Pro：解耦编码器的统一多模态模型
 
-> Unified multimodal models have an unavoidable tension. Understanding wants semantic features — SigLIP or DINOv2 output vectors rich with concept-level information. Generation wants reconstruction-friendly codes — VQ tokens that compose back into crisp pixels. The two goals are not compatible in a single encoder. Janus (DeepSeek, October 2024) and Janus-Pro (DeepSeek, January 2025) argue the fix is to stop trying: decouple the two encoders. Share the transformer body between tasks, but route understanding through SigLIP and generation through a VQ tokenizer. At 7B, Janus-Pro beats DALL-E 3 on GenEval while matching LLaVA on MMMU. This lesson reads why two encoders work where one fails.
+> Unified multimodal models have an unavoidable tension.
 
-**Type:** Build
+> **【中文解读】** Janus-Pro（DeepSeek，2025年1月）解决了一个根本矛盾：理解任务需要语义特征（SigLIP），生成任务需要重建友好的编码（VQ token）。两者无法兼容于单一编码器。Janus-Pro 的答案是解耦：理解走 SigLIP 路径，生成走 VQ 路径，共享 Transformer 主体。7B 参数就在 GenEval 上击败了 DALL-E 3。
+
+> **【拓展：解耦编码器的产业影响】** 解耦编码器思想已成为 2026 年统一模型的默认架构。InternVL-U 将其整合到了原生多模态预训练框架中。对于需要同时理解和生成的产品（如创意工具、内容生成平台），Janus-Pro 是参考架构。 Understanding wants semantic features — SigLIP or DINOv2 output vectors rich with concept-level information. Generation wants reconstruction-friendly codes — VQ tokens that compose back into crisp pixels. The two goals are not compatible in a single encoder. Janus (DeepSeek, October 2024) and Janus-Pro (DeepSeek, January 2025) argue the fix is to stop trying: decouple the two encoders. Share the transformer body between tasks, but route understanding through SigLIP and generation through a VQ tokenizer. At 7B, Janus-Pro beats DALL-E 3 on GenEval while matching LLaVA on MMMU. This lesson reads why two encoders work where one fails.
+
+**Type:** Build  | **类型：构建**
 **Languages:** Python (stdlib, dual-encoder routing + shared-body signal)
 **Prerequisites:** Phase 12 · 13 (Transfusion), Phase 12 · 14 (Show-o)
 **Time:** ~120 minutes
 
-## Learning Objectives
+## Learning Objectives  | 学习目标
 
 - Explain why a single shared encoder compromises either understanding or generation quality.
 - Describe Janus-Pro's routing: SigLIP features on the input side for understanding, VQ tokens on both input and output for generation.
 - Trace the data-mix scaling that makes Janus-Pro succeed where Janus did not.
 - Compare decoupled (Janus-Pro), coupled-continuous (Transfusion), and coupled-discrete (Show-o) architectures.
 
-## The Problem
+## The Problem  | 问题背景
 
 Unified models share a transformer body across understanding and generation. Previous attempts (Chameleon, Show-o, Transfusion) all use one visual tokenizer for both directions. The tokenizer is a compromise:
 
@@ -23,7 +27,7 @@ Unified models share a transformer body across understanding and generation. Pre
 
 Show-o and Transfusion pay for this with a visible quality tax on one direction. Janus-Pro asks: why require one tokenizer when the tasks have different needs?
 
-## The Concept
+## The Concept  | 核心概念
 
 ### Decoupled visual encoding
 
@@ -89,7 +93,7 @@ For products that do not need understanding, Janus-Pro is overqualified — pick
 
 For products that need both, Janus-Pro is now the reference open architecture.
 
-## Use It
+## Use It  | 动手实践
 
 `code/main.py` simulates Janus-Pro routing:
 
@@ -100,11 +104,11 @@ For products that need both, Janus-Pro is now the reference open architecture.
 
 Print the routed paths for 3 examples: image QA, T2I, image editing.
 
-## Ship It
+## Ship It  | 部署上线
 
 This lesson produces `outputs/skill-decoupled-encoder-picker.md`. Given a product that wants unified generation + understanding at frontier-ish quality, it picks Janus-Pro, JanusFlow, or InternVL-U with a concrete data-scale recommendation.
 
-## Exercises
+## Exercises  | 练习题
 
 1. Janus-Pro-7B beats DALL-E 3 on GenEval. Explain why a 7B open model can match a frontier proprietary model on generation but not on understanding.
 
@@ -116,9 +120,9 @@ This lesson produces `outputs/skill-decoupled-encoder-picker.md`. Given a produc
 
 5. Read Janus-Pro Section 4.2 on data scaling. Which data stage contributes most to the T2I quality gain vs Janus?
 
-## Key Terms
+## Key Terms  | 关键术语
 
-| Term | What people say | What it actually means |
+| Term | What people say | What it actually means | 中文含义 |
 |------|-----------------|------------------------|
 | Decoupled encoding | "Two visual encoders" | Separate tokenizer or encoder per direction: semantic for understanding, reconstruction for generation |
 | Shared body | "One transformer" | Single transformer processes either encoder's output; no modality-specific weights |
@@ -127,7 +131,7 @@ This lesson produces `outputs/skill-decoupled-encoder-picker.md`. Given a produc
 | JanusFlow | "Rectified-flow variant" | Janus-Pro with a continuous flow-matching generation head instead of VQ |
 | Routing tag | "Task tag" | Prompt marker (`<understand>` / `<generate>`) that picks the input encoder |
 
-## Further Reading
+## Further Reading  | 延伸阅读
 
 - [Wu et al. — Janus (arXiv:2410.13848)](https://arxiv.org/abs/2410.13848)
 - [Chen et al. — Janus-Pro (arXiv:2501.17811)](https://arxiv.org/abs/2501.17811)

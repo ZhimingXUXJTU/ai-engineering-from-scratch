@@ -1,3 +1,8 @@
+"""
+音频分类 (Audio Classification)
+核心概念：MFCC 特征提取 + 分类器（从 k-NN 到 Transformer）
+AI 对应：环境声识别、语言识别、情感分析都是音频分类任务
+"""
 """Audio classification baseline: k-NN on mean+var pooled MFCCs.
 
 Synthetic 4-class dataset: pure tones at {200, 400, 800, 1600} Hz with

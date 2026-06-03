@@ -1,3 +1,7 @@
+"""
+特征选择：过滤法、包装法(RFE)、嵌入法(L1 正则化)。
+AI 对应: sklearn 的 SelectKBest/RFE。减少特征数能提升模型速度和泛化能力。
+"""
 import numpy as np
 
 

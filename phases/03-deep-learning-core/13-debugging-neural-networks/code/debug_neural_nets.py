@@ -1,3 +1,18 @@
+"""
+调试神经网络 (Debugging Neural Networks)
+
+核心概念：
+  - 过拟合单个 batch：验证模型能力上限
+  - 梯度检查：手动梯度 vs 自动梯度的数值对比
+  - 数值稳定性：NaN/Inf 的常见原因和修复
+  - 学习率诊断：太大→发散，太小→停滞，合适→稳定下降
+  - 梯度裁剪：防止梯度爆炸
+
+在 AI 中的位置：
+  - 这是实际训练模型时最重要的技能
+  - 调试 LLM 训练的常见问题：loss spike、梯度爆炸、嵌入坍缩
+  - PyTorch 工具：torch.autograd.detect_anomaly, torch.nn.utils.clip_grad_norm_
+"""
 import torch
 import torch.nn as nn
 import math

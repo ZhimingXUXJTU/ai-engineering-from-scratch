@@ -1,3 +1,19 @@
+"""
+迷你深度学习框架 (Mini Deep Learning Framework)
+
+核心概念：
+  - 整合前面所有课程的组件：自动微分、层、激活、损失、优化器、正则化
+  - Value 类：自动微分引擎（类似 PyTorch autograd）
+  - Layer/Network：可组合的层架构（类似 torch.nn）
+  - 多种优化器、Dropout、BatchNorm 等
+
+在 AI 中的位置：
+  - 理解这个框架 = 理解 PyTorch 的核心设计
+  - torch.Tensor.requires_grad = Value 的自动求导
+  - torch.nn.Module = Network 的层管理
+  - torch.optim = 优化器接口
+"""
+
 import math
 import random
 

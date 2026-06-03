@@ -1,4 +1,4 @@
-# Hybrid Memory: Vector + Graph + KV (Mem0)
+# Hybrid Memory: Vector + Graph + KV (Mem0) | 记忆 混合 Mem0 KV
 
 > Mem0 (Chhikara et al., 2025) treats memory as three stores in parallel — vector for semantic similarity, KV for fast fact lookup, graph for entity-relationship reasoning. A scoring layer fuses the three on retrieval. This is the 2026 production standard for external memory.
 
@@ -7,14 +7,14 @@
 **Prerequisites:** Phase 14 · 07 (MemGPT), Phase 14 · 08 (Letta Blocks)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Explain why a single store (vector only, graph only, KV only) is insufficient for agent memory.
 - Name Mem0's three parallel stores and what each one optimizes for.
 - Describe Mem0's fusion scoring — relevance, importance, recency — and why it is a weighted sum, not a hierarchy.
 - Implement a toy three-store memory in stdlib with an `add()` that writes to all three and a `search()` that fuses results.
 
-## The Problem
+## The Problem | 问题
 
 One store is wrong for one of three query classes:
 
@@ -22,9 +22,12 @@ One store is wrong for one of three query classes:
 - **Fact lookup** — "what is the user's phone number?" KV wins; vector is wasteful, graph is overkill.
 - **Relationship reasoning** — "which customers share the same billing entity?" Graph wins; vector and KV cannot answer.
 
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
 Production agents issue all three in one session. A single-store memory is always wrong for two of them. Mem0's contribution is wiring all three behind a single `add`/`search` surface with a scoring function that fuses them.
 
-## The Concept
+## The Concept | 概念
 
 ### Three stores in parallel
 
@@ -88,7 +91,7 @@ Every write picks one scope. Retrieval can query across scopes with per-scope we
 - **KV schema creep.** `(user_id, type, entity)` looks simple until every team adds their own `type`. Audit the type set quarterly.
 - **Graph explosion.** One noisy extractor adds 50 edges per message. Cap graph writes per `add` call; drop low-confidence edges.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements the three-store pattern in stdlib:
 
@@ -106,38 +109,43 @@ python3 code/main.py
 
 The output shows three separate recall paths plus the fused top-k. Flip the scoring weights at the top of `main()` and watch the ranking change.
 
-## Use It
+## Use It | 使用方法
 
 - **Mem0 (Apache 2.0)** — production-ready. Self-host with Postgres + Qdrant + Neo4j, or use the managed cloud.
 - **Letta** — three-tier core/recall/archival; bring your own vector and graph backends.
 - **Zep** — commercial alternative with temporal KG and fact extraction.
 - **Custom builds** — when you need exact control over the extractor (compliance) or fusion weights (voice agents where recency dominates).
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-hybrid-memory.md` generates a three-store memory scaffold with a fusion scorer, scope taxonomy, and temporal invalidation wired in.
 
-## Exercises
+## Exercises | 练习题
 
 1. Replace the toy vector similarity with a real embedding model (sentence-transformers, Ollama, OpenAI embeddings). Measure recall@10 on a synthetic long conversation. Does the ranking drift over 1000 writes?
+   *思考并实践此练习*
 2. Add a temporal query: `search(query, as_of=timestamp)`. Return only records valid at or before that time. Which store needs the most work?
+   *思考并实践此练习*
 3. Implement a conflict detector: if an incoming fact contradicts a graph edge, invalidate the old edge and log both. Test on "user lives in Berlin" -> "user lives in Lisbon."
+   *思考并实践此练习*
 4. Port the fusion scorer to include a `user_feedback` dimension (thumbs-up on retrieved records). How do you prevent gaming (the agent only returns records it already liked)?
+   *思考并实践此练习*
 5. Read the Mem0 docs (`docs.mem0.ai`). Port the toy to `mem0` client calls. Compare retrieval quality on the same 20 test queries.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Hybrid memory | "Vector plus graph plus KV" | Three stores written in parallel, fused on retrieval |
-| Fact extraction | "Memory ingestion" | LLM step that breaks text into (entity, relation, fact) tuples |
-| Fusion scoring | "Relevance ranking" | Weighted sum of relevance, importance, recency |
-| Scope | "Memory namespace" | user / session / agent — determines who sees what |
-| Mem0g | "Memory graph" | Typed edges with temporal validity for relationship queries |
-| Temporal invalidation | "Soft delete" | Mark contradicted edges invalid; never delete |
-| Embedding drift | "Retrieval rot" | Vector quality degrades as corpus grows; re-embed periodically |
+|------|----------------|------------------------|---|
+| Hybrid memory | "Vector plus graph plus KV" | Three stores written in parallel, fused on retrieval |  |
+| Fact extraction | "Memory ingestion" | LLM step that breaks text into (entity, relation, fact) tuples |  |
+| Fusion scoring | "Relevance ranking" | Weighted sum of relevance, importance, recency |  |
+| Scope | "Memory namespace" | user / session / agent — determines who sees what |  |
+| Mem0g | "Memory graph" | Typed edges with temporal validity for relationship queries |  |
+| Temporal invalidation | "Soft delete" | Mark contradicted edges invalid; never delete |  |
+| Embedding drift | "Retrieval rot" | Vector quality degrades as corpus grows; re-embed periodically |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Chhikara et al., Mem0 (arXiv:2504.19413)](https://arxiv.org/abs/2504.19413) — the original paper
 - [Mem0 docs](https://docs.mem0.ai/platform/overview) — production API, SDKs, managed cloud

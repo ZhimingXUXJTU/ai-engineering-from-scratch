@@ -7,6 +7,9 @@ taxonomy dashboard. This scaffold implements both layers and runs a
 50-repo simulation with mixed outcomes.
 
 Run:  python main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -32,6 +35,7 @@ FAILURE_CLASSES = [
 
 @dataclass
 class Repo:
+    """Repo"""
     name: str
     loc: int
     lang: str          # "java" | "python"
@@ -40,6 +44,7 @@ class Repo:
 
 @dataclass
 class Attempt:
+    """Attempt"""
     repo: Repo
     recipe_applied: int = 0
     agent_turns: int = 0
@@ -58,7 +63,7 @@ class Attempt:
 def run_recipes(repo: Repo) -> int:
     """Returns number of rewrites applied."""
     base = 20 + int(repo.loc / 500)
-    return int(base * (1 - 0.2 * repo.hardness))
+    return int(base * (1 - 0.2 * repo.hardness))  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -83,11 +88,11 @@ def agent_loop(attempt: Attempt, rng: random.Random) -> None:
         if attempt.agent_turns >= BUDGET_TURNS:
             attempt.status = "fail"
             attempt.failure_class = "budget_exhausted"
-            return
+            return  # 返回结果
         if attempt.wall_min >= BUDGET_MIN or attempt.cost_usd >= BUDGET_USD:
             attempt.status = "fail"
             attempt.failure_class = "budget_exhausted"
-            return
+            return  # 返回结果
 
         attempt.agent_turns += 1
         attempt.wall_min += per_turn_min
@@ -100,9 +105,9 @@ def agent_loop(attempt: Attempt, rng: random.Random) -> None:
             if attempt.coverage_final < attempt.coverage_base - 2.0:
                 attempt.status = "fail"
                 attempt.failure_class = "coverage_regression"
-                return
+                return  # 返回结果
             attempt.status = "pass"
-            return
+            return  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -124,8 +129,8 @@ def classify_failure(rng: random.Random) -> str:
     for cls, w in weights.items():
         acc += w
         if r <= acc:
-            return cls
-    return "syntax_edge_case"
+            return cls  # 返回结果
+    return "syntax_edge_case"  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -133,6 +138,7 @@ def classify_failure(rng: random.Random) -> str:
 # ---------------------------------------------------------------------------
 
 def migrate(repo: Repo, rng: random.Random) -> Attempt:
+    """migrate"""
     attempt = Attempt(repo=repo)
     attempt.recipe_applied = run_recipes(repo)
 
@@ -144,7 +150,7 @@ def migrate(repo: Repo, rng: random.Random) -> Attempt:
         attempt.status = "pass"
         attempt.wall_min = 3.0 + rng.random() * 4
         attempt.cost_usd = 0.30
-        return attempt
+        return attempt  # 返回结果
 
     # otherwise run the agent loop
     agent_loop(attempt, rng)
@@ -153,7 +159,7 @@ def migrate(repo: Repo, rng: random.Random) -> Attempt:
         # classify root cause of why the budget was exhausted
         if rng.random() < 0.75:
             attempt.failure_class = classify_failure(rng)
-    return attempt
+    return attempt  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -161,6 +167,7 @@ def migrate(repo: Repo, rng: random.Random) -> Attempt:
 # ---------------------------------------------------------------------------
 
 def synth_bench(rng: random.Random) -> list[Repo]:
+    """synth_bench"""
     bench: list[Repo] = []
     for i in range(50):
         lang = "java" if rng.random() < 0.6 else "python"
@@ -169,10 +176,11 @@ def synth_bench(rng: random.Random) -> list[Repo]:
                           loc=rng.randint(800, 40_000),
                           lang=lang,
                           hardness=hardness))
-    return bench
+    return bench  # 返回结果
 
 
 def main() -> None:
+    """main"""
     rng = random.Random(19)
     bench = synth_bench(rng)
 
@@ -207,4 +215,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

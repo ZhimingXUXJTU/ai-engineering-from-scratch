@@ -1,4 +1,4 @@
-# Action Budgets, Iteration Caps, and Cost Governors
+# Action Budgets, Iteration Caps, and Cost Governors | 控制器 迭代 成本 行动
 
 > A mid-sized e-commerce agent's monthly LLM cost jumped from $1,200 to $4,800 after its team enabled the "order-tracking" skill. That is not a pricing bug. That is an agent that found a new loop and kept spending inside it. Microsoft's Agent Governance Toolkit (April 2, 2026) codifies the defense against this class: per-request `max_tokens`, per-task token and dollar budgets, per-day/month caps, iteration caps, tiered model routing, prompt caching, context windowing, HITL checkpoints on expensive actions, kill switches on budget breach. Anthropic's Claude Code Agent SDK ships the same primitives under different names. Financial velocity limits — e.g. cut access on >$50 in 10 minutes — catch loops faster than monthly caps.
 
@@ -7,15 +7,18 @@
 **Prerequisites:** Phase 15 · 10 (Permission modes), Phase 15 · 12 (Durable execution)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题
 
 Autonomous agents spend real money on every turn. A chatbot's bad output is a bad reply; an agent's bad loop is a bill. The industry-documented term for the failure mode is "Denial of Wallet" — the agent keeps reasoning, keeps tool-calling, keeps billing, and nothing stops it because nothing was designed to.
 
 The fix is not one number. It is a stack of limits at different time scales and granularities: per-request, per-task, per-hour, per-day, per-month. A well-designed stack catches a runaway loop within minutes, a slow leak within hours, and a bad release within a day. The same stack keeps a budget at all when the agent is long-horizon and autonomous.
 
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
 This is an engineering lesson: the math is trivial, the discipline is where teams fail. The list of limits below is all named either in the Microsoft Agent Governance Toolkit or the Anthropic Claude Code Agent SDK docs.
 
-## The Concept
+## The Concept | 概念
 
 ### The cost-governor stack
 
@@ -60,40 +63,45 @@ Microsoft's Agent Governance Toolkit covers the OWASP Agentic Top 10 and the EU 
 
 The real case in the Microsoft docs: an e-commerce agent whose monthly cost tripled after a new tool was added. The tool allowed the agent to poll order status during every session. No loop detection. No per-tool cap. No alert on week-over-week growth. The fix was a per-tool cap plus a daily-growth alert. This is a template: every new tool surface is a new potential loop; every new tool needs its own cap and its own alert.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` simulates an agent run with and without a layered cost-governor stack. The simulated agent drifts into a polling loop after some turns; the layered stack catches it within the velocity window while a single monthly cap would not fire until days later.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-agent-budget-audit.md` audits a proposed agent deployment's cost-governor stack and flags missing layers.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Confirm the velocity limit fires before the iteration cap on a polling-loop trajectory. Now disable the velocity limit and measure how much the agent "spends" before the iteration cap catches it.
+   *思考并实践此练习*
 
 2. Design a per-tool cap set for a browser agent (Lesson 11). Which tool needs the tightest cap? Which tool can run unbounded without risk?
+   *思考并实践此练习*
 
 3. Read the Microsoft Agent Governance Toolkit docs. List every cap type the toolkit names. Map each to one of the failure modes (runaway loop, slow leak, bad release, surge).
+   *思考并实践此练习*
 
 4. Price an overnight unattended run for a realistic task (e.g., "triage 50 issues in a repo"). Set `max_budget_usd` at 2x your point estimate. Justify the 2x.
+   *思考并实践此练习*
 
 5. Claude Code's `max_budget_usd` fires on session aggregate cost. Design a complementary velocity limit you would enforce externally. What triggers the cut-off, and what does re-enable look like?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| Denial of Wallet | "Runaway bill" | Agent loop generating spend with no cap to stop it |
-| max_tokens | "Per-request cap" | Ceiling on a single completion's size |
-| max_turns | "Iteration cap" | Ceiling on agent loop iterations in a session |
-| max_budget_usd | "Dollar kill switch" | Session cost cap; aborts on breach |
-| Velocity limit | "Rate cap" | Limit on spend per short window (e.g., $50 / 10 min) |
-| Tiered routing | "Small model first" | Cheap model default; escalate only when classifier warrants |
-| Prompt caching | "Cached system prompt" | Provider-side cache reduces re-send token cost to near zero |
-| HITL checkpoint | "Human approval gate" | Human tap required before expensive action |
+|---|---|---|---|
+| Denial of Wallet | "Runaway bill" | Agent loop generating spend with no cap to stop it |  |
+| max_tokens | "Per-request cap" | Ceiling on a single completion's size |  |
+| max_turns | "Iteration cap" | Ceiling on agent loop iterations in a session |  |
+| max_budget_usd | "Dollar kill switch" | Session cost cap; aborts on breach |  |
+| Velocity limit | "Rate cap" | Limit on spend per short window (e.g., $50 / 10 min) |  |
+| Tiered routing | "Small model first" | Cheap model default; escalate only when classifier warrants |  |
+| Prompt caching | "Cached system prompt" | Provider-side cache reduces re-send token cost to near zero |  |
+| HITL checkpoint | "Human approval gate" | Human tap required before expensive action |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic Claude Code Agent SDK — agent loop and budgets](https://code.claude.com/docs/en/agent-sdk/agent-loop) — `max_turns`, `max_budget_usd`, tool allowlists.
 - [Microsoft Agent Framework — human-in-the-loop and governance](https://learn.microsoft.com/en-us/agent-framework/workflows/human-in-the-loop) — cost-governor checkpoints.

@@ -1,3 +1,8 @@
+"""
+3D 生成 (3D Generation)
+核心概念：多视角扩散 + 3D 重建，从文本/图片生成 3D 模型
+AI 对应：游戏资产创建、VR/AR 内容生成、建筑设计
+"""
 import math
 import random
 

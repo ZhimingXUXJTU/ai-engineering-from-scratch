@@ -5,6 +5,9 @@ surface is wired in for the second run and we count which surfaces would have
 caught each failure on the first run.
 
 Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -27,6 +30,7 @@ WORKBENCH_SURFACES = [
 
 @dataclass
 class RepoTask:
+    """RepoTask"""
     description: str
     allowed_files: list[str]
     forbidden_files: list[str]
@@ -35,6 +39,7 @@ class RepoTask:
 
 @dataclass
 class RunResult:
+    """RunResult"""
     label: str
     surfaces_present: list[str] = field(default_factory=list)
     files_touched: list[str] = field(default_factory=list)
@@ -44,7 +49,7 @@ class RunResult:
     notes: list[str] = field(default_factory=list)
 
     def missing_surfaces(self) -> list[str]:
-        return [s for s in WORKBENCH_SURFACES if s not in self.surfaces_present]
+        return [s for s in WORKBENCH_SURFACES if s not in self.surfaces_present]  # 返回结果
 
 
 def stub_agent(task: RepoTask, surfaces: list[str]) -> RunResult:
@@ -81,11 +86,12 @@ def stub_agent(task: RepoTask, surfaces: list[str]) -> RunResult:
     if not has_state:
         result.notes.append("no state file written, next session restarts from zero")
 
-    return result
+    return result  # 返回结果
 
 
 def failure_report(result: RunResult) -> dict[str, object]:
-    return {
+    """failure_report"""
+    return {  # 返回结果
         "label": result.label,
         "missing_surfaces": result.missing_surfaces(),
         "off_scope_writes": [
@@ -99,6 +105,7 @@ def failure_report(result: RunResult) -> dict[str, object]:
 
 
 def main() -> None:
+    """main"""
     task = RepoTask(
         description="add input validation to /signup and a passing test",
         allowed_files=["app.py", "test_app.py"],
@@ -123,4 +130,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

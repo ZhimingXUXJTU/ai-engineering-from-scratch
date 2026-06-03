@@ -1,4 +1,4 @@
-# What Is Machine Learning
+# What Is Machine Learning | 什么是机器学习
 
 > Machine learning is teaching computers to find patterns in data instead of writing rules by hand.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1 (Math Foundations)
 **Time:** ~45 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Explain the difference between supervised, unsupervised, and reinforcement learning and identify which type applies to a given problem
 - Implement a nearest centroid classifier from scratch and evaluate it against a random baseline
 - Distinguish between classification and regression tasks and select the appropriate loss function for each
 - Evaluate whether a given business problem is suitable for ML or better solved with deterministic rules
+
+
+> **【中文解读】**
+> 机器学习是让计算机从数据中自动学习规律，而不是靠人工编写规则。监督学习（有标签）、无监督学习（无标签）、强化学习（奖惩信号）是三大范式。对应 sklearn 中的各类 estimator。
 
 ## The Problem
 

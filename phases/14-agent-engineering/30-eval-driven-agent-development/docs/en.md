@@ -1,4 +1,4 @@
-# Eval-Driven Agent Development
+# Eval-Driven Agent Development | 开发 驱动 评估
 
 > Anthropic's guidance: "start with simple prompts, optimize them with comprehensive evaluation, and add multi-step agentic systems only when needed." Evaluation is not the last step. It's the outer loop that drives every other choice in Phase 14.
 
@@ -7,18 +7,21 @@
 **Prerequisites:** All of Phase 14.
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Name the three evaluation layers — static benchmarks, custom offline, online production — and what each is for.
 - Explain the evaluator-optimizer tight loop.
 - Describe the 2026 best practice: evals live next to code, run in CI, gate PRs.
 - Connect every Phase 14 lesson to the eval case it generates.
 
-## The Problem
+## The Problem | 问题
 
 Agents pass demos. They fail in production in ways demos cannot predict. Benchmarks answer "is this model broadly capable?" not "is this agent shipping the right patches for my product?" The answer: evaluation at three layers, running continuously, with every guardrail and learned rule mapped to an eval case.
 
-## The Concept
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
+## The Concept | 概念
 
 ### Three evaluation layers
 
@@ -86,7 +89,7 @@ If your eval suite has cases for each, you have covered Phase 14.
 - **Over-fitting to evals.** Optimizing for the eval diverges from production usefulness. Rotate cases.
 - **Flaky evals.** Non-deterministic cases cause false alarms. Pin seeds, snapshot state.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` is a stdlib eval harness:
 
@@ -103,7 +106,7 @@ python3 code/main.py
 
 Output: per-case pass/fail, regression flag, CI gate verdict.
 
-## Use It
+## Use It | 使用方法
 
 - Write eval cases in the same repo as your agent code.
 - Run them on every PR via CI.
@@ -111,31 +114,36 @@ Output: per-case pass/fail, regression flag, CI gate verdict.
 - Track pass rate over time.
 - Tie every production failure to a new case.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-eval-suite.md` builds a three-layer eval suite for an agent product with CI gates and regression tracking.
 
-## Exercises
+## Exercises | 练习题
 
 1. Take one of your production failures. Write an eval case that reproduces it. Does your agent pass it now?
+   *思考并实践此练习*
 2. Build an LLM-judge rubric for your domain with three dimensions (factual, tone, scope). Score 50 sessions.
+   *思考并实践此练习*
 3. Wire the eval suite into CI. Fail the build on >=5% regression.
+   *思考并实践此练习*
 4. Add a trajectory-efficiency metric: how many steps did the agent take vs a gold trajectory?
+   *思考并实践此练习*
 5. Map every Phase 14 lesson to an eval case in your suite. Any missing? That's a gap to close.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Static benchmark | "Off-the-shelf eval" | SWE-bench, GAIA, AgentBench, WebArena, OSWorld |
-| Custom offline eval | "Domain eval" | LLM-as-judge / exec / trajectory on your product shape |
-| Online eval | "Production eval" | Session replay, guardrail alerts, cost/latency tracking |
-| Evaluator-optimizer | "Propose-judge-refine" | Iterate until judge passes |
-| CI gate | "Merge blocker" | Fail the build on eval regression |
-| Baseline | "Last-known-good" | Reference score to detect regression |
-| Trajectory efficiency | "Steps over gold" | Agent step count divided by human expert minimum |
+|------|----------------|------------------------|---|
+| Static benchmark | "Off-the-shelf eval" | SWE-bench, GAIA, AgentBench, WebArena, OSWorld |  |
+| Custom offline eval | "Domain eval" | LLM-as-judge / exec / trajectory on your product shape |  |
+| Online eval | "Production eval" | Session replay, guardrail alerts, cost/latency tracking |  |
+| Evaluator-optimizer | "Propose-judge-refine" | Iterate until judge passes |  |
+| CI gate | "Merge blocker" | Fail the build on eval regression |  |
+| Baseline | "Last-known-good" | Reference score to detect regression |  |
+| Trajectory efficiency | "Steps over gold" | Agent step count divided by human expert minimum |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic, Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) — "start simple, optimize with evals"
 - [OpenAI, SWE-bench Verified](https://openai.com/index/introducing-swe-bench-verified/) — the curated benchmark

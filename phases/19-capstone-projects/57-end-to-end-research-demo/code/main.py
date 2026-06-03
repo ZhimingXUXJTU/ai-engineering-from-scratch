@@ -8,6 +8,9 @@ Conceptual references:
 - Phase 19 lessons 50-53 (earlier auto-research stages; the seed/runner stub here stands in for them)
 
 Stdlib + numpy only. Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -26,6 +29,7 @@ LESSON_ROOT = os.path.dirname(os.path.dirname(HERE))
 
 
 def _add(path: str) -> None:
+    """_add"""
     if path not in sys.path:
         sys.path.insert(0, path)
 
@@ -39,13 +43,14 @@ import importlib.util
 
 
 def _load_module(name: str, file_path: str):
+    """_load_module"""
     spec = importlib.util.spec_from_file_location(name, file_path)
     if spec is None or spec.loader is None:
         raise ImportError(f"cannot load {name} from {file_path}")
     mod = importlib.util.module_from_spec(spec)
     sys.modules[name] = mod
     spec.loader.exec_module(mod)
-    return mod
+    return mod  # 返回结果
 
 
 paper_writer_mod = _load_module(
@@ -93,6 +98,7 @@ class BestResultError(Exception):
 
 @dataclass
 class DemoReport:
+    """DemoReport"""
     scheduler_report: dict
     best_branch: str
     best_reward: float
@@ -101,7 +107,7 @@ class DemoReport:
     stop_reason: str
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "scheduler_report": self.scheduler_report,
             "best_branch": self.best_branch,
             "best_reward": self.best_reward,
@@ -113,7 +119,7 @@ class DemoReport:
 
 def make_seed_hypotheses() -> list[Hypothesis]:
     """Three seed hypotheses, one per research branch. Stand-in for lessons 50-53."""
-    return [
+    return [  # 返回结果
         Hypothesis(id="h-alpha-1", branch="alpha", payload={"q": "method-x"}),
         Hypothesis(id="h-beta-1", branch="beta", payload={"q": "method-y"}),
         Hypothesis(id="h-gamma-1", branch="gamma", payload={"q": "method-z"}),
@@ -133,19 +139,21 @@ def pick_best_branch(scheduler_report: SchedulerReport) -> tuple[str, float]:
         raise BestResultError("trigger list empty after lookup")
     triggered.sort(key=lambda b: (-b.mean, b.branch))
     best = triggered[0]
-    return best.branch, best.mean
+    return best.branch, best.mean  # 返回结果
 
 
 def _originality_for_reward(reward: float) -> str:
+    """_originality_for_reward"""
     if reward >= 0.8:
-        return "high"
+        return "high"  # 返回结果
     if reward >= 0.6:
-        return "medium"
-    return "low"
+        return "medium"  # 返回结果
+    return "low"  # 返回结果
 
 
 def build_mini_paper(branch: str, reward: float) -> MiniPaper:
-    return MiniPaper(
+    """build_mini_paper"""
+    return MiniPaper(  # 返回结果
         title=f"Auto-Research Findings on Branch {branch}",
         abstract=f"We summarise the best yielding branch {branch} from the auto-research loop.",
         sections=[
@@ -198,7 +206,7 @@ def mini_to_full_paper(mini: MiniPaper, branch: str) -> Paper:
             id=s.id, title=s.title, body=s.body,
             cites=list(s.cites), figure_refs=figure_refs,
         ))
-    return Paper(
+    return Paper(  # 返回结果
         title=mini.title,
         authors=["Auto-Research Demo"],
         abstract=mini.abstract,
@@ -247,7 +255,7 @@ async def _run_demo_async(out_dir: str, seed: int = 11) -> DemoReport:
     writer = PaperWriter(prose=prose)
     manifest = writer.write(full_paper, out_dir)
 
-    return DemoReport(
+    return DemoReport(  # 返回结果
         scheduler_report=sched_report.to_dict(),
         best_branch=branch,
         best_reward=reward,
@@ -258,18 +266,20 @@ async def _run_demo_async(out_dir: str, seed: int = 11) -> DemoReport:
 
 
 def run_demo(out_dir: str | None = None, seed: int = 11) -> DemoReport:
+    """run_demo"""
     if out_dir is None:
         out_dir = tempfile.mkdtemp(prefix="auto-research-demo-")
-    return asyncio.run(_run_demo_async(out_dir, seed=seed))
+    return asyncio.run(_run_demo_async(out_dir, seed=seed))  # 返回结果
 
 
 def demo() -> dict:
-    return run_demo().to_dict()
+    """demo"""
+    return run_demo().to_dict()  # 返回结果
 
 
 if __name__ == "__main__":
     rep = demo()
-    print(json.dumps({
+    print(json.dumps({  # 主入口输出
         "stop_reason": rep["stop_reason"],
         "best_branch": rep["best_branch"],
         "best_reward": rep["best_reward"],

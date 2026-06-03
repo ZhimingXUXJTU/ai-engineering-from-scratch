@@ -1,6 +1,8 @@
-# Multi-Agent RL
+# Multi-Agent RL | 多智能体强化学习
 
 > Single-agent RL assumes the environment is stationary. Put two learning agents in the same world and that assumption breaks: each agent is part of the other's environment, and both are changing. Multi-agent RL is the set of tricks to make learning converge when the Markov assumption no longer holds.
+
+> **【中文解读】** 单智能体 RL 假设环境是平稳的。但放入两个同时学习的智能体后，每个智能体都成了对方环境的一部分——环境不再平稳，马尔可夫假设被打破。多智能体 RL 就是处理"大家都在变"时的收敛问题。
 
 **Type:** Build
 **Languages:** Python
@@ -16,6 +18,10 @@ In every multi-agent setting, from the perspective of any one agent, the other a
 This breaks tabular convergence proofs (Q-learning's guarantee assumes a stationary environment). It breaks naive deep RL too: agents chase each other in loops, never converge to a stable policy. You need multi-agent-specific techniques: centralized training / decentralized execution, counterfactual baselines, league play, self-play.
 
 2026 applications: robot swarms, traffic routing, autonomous vehicle fleets, market simulators, multi-agent LLM systems (Phase 16), and any game with more than one intelligent player.
+
+> **【中文解读】** 多智能体 RL 的核心挑战：非平稳性（其他智能体也在学习）、信用分配（谁该得到奖励？）、联合动作空间爆炸、部分可观察性。四种主要范式：独立学习（简单但不保证收敛）、CTDE（训练时集中、执行时分布）、自我博弈（AlphaZero）、联盟训练（AlphaStar）。
+
+> **【拓展：多智能体→LLM Agent系统】** 2026 年最热门的 MARL 应用是多智能体 LLM 系统：多个大模型 Agent 协作完成复杂任务。Claude Code 的 multi-agent 模式、AutoGen、CrewAI 等框架本质上都是 MARL 思想在语言 Agent 领域的延伸。
 
 ## The Concept
 
@@ -163,14 +169,14 @@ Refuse independent Q-learning on tightly-coupled cooperative tasks. Refuse to re
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
-| Markov game | "Multi-agent MDP" | `(S, A_1, …, A_n, P, R_1, …, R_n)`; each agent has its own reward. |
-| CTDE | "Centralized training, decentralized execution" | Joint critic at training time; each agent's policy uses only local obs. |
-| IPPO | "Independent PPO" | Each agent runs PPO separately. Simple baseline; often underrated. |
-| MAPPO | "Multi-agent PPO" | PPO with a centralized value function conditioned on global state. |
-| QMIX | "Monotonic value decomposition" | `Q_tot = f_monotone(Q_1, …, Q_n)` allows decentralized argmax. |
-| COMA | "Counterfactual multi-agent" | Advantage = my Q minus expected Q marginalizing over my action. |
-| Self-play | "Agent vs past self" | Single agent, two roles; standard for zero-sum games. |
-| League play | "Population training" | Cache past policies, sample opponents from the pool; handles strategy cycles. |
+| Markov game | "Multi-agent MDP" / 马尔可夫博弈 | `(S, A_1, …, A_n, P, R_1, …, R_n)`; each agent has its own reward. |
+| CTDE | "Centralized training, decentralized execution" / 集中训练分布执行 | Joint critic at training time; each agent's policy uses only local obs. |
+| IPPO | "Independent PPO" / 独立 PPO | Each agent runs PPO separately. Simple baseline; often underrated. |
+| MAPPO | "Multi-agent PPO" / 多智能体 PPO | PPO with a centralized value function conditioned on global state. |
+| QMIX | "Monotonic value decomposition" / 单调值分解 | `Q_tot = f_monotone(Q_1, …, Q_n)` allows decentralized argmax. |
+| COMA | "Counterfactual multi-agent" / 反事实多智能体 | Advantage = my Q minus expected Q marginalizing over my action. |
+| Self-play | "Agent vs past self" / 自我博弈 | Single agent, two roles; standard for zero-sum games. |
+| League play | "Population training" / 联盟训练 | Cache past policies, sample opponents from the pool; handles strategy cycles. |
 
 ## Further Reading
 

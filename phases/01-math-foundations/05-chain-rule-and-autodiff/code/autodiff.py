@@ -1,3 +1,7 @@
+"""
+迷你自动微分引擎（Value 类），实现反向模式自动微分和计算图。
+AI 对应: PyTorch autograd 和 TensorFlow GradientTape 都是用反向模式自动微分实现的。
+"""
 import random
 
 

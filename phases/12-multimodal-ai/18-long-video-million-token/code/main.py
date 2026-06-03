@@ -1,5 +1,10 @@
 """Long-video token budget + needle-in-a-haystack simulator + agentic retrieval.
 
+百万 Token 上下文的长视频理解 (Long-Video at Million-Token Context)
+核心概念：1小时4K视频@24FPS产生约6000万 token。Gemini 1.5 开创千万 token 时代，
+Ring Attention 展示扩展路径，VideoAgent 用 Agent 检索替代原始上下文。
+AI 应用对应：长视频理解是视频会议分析、电影理解、监控分析等场景的基础。
+
 Stdlib. Prints budget tables for long videos, runs a synthetic NIH recall test,
 simulates a VideoAgent-style retrieval loop.
 """
@@ -13,6 +18,7 @@ random.seed(5)
 
 
 def tokens(duration_s: float, fps: float, per_frame: int) -> int:
+    """计算视频的总 token 数 = 时长 × 帧率 × 每帧 token 数。"""
     return int(duration_s * fps * per_frame)
 
 
@@ -41,7 +47,8 @@ class Needle:
 
 
 def nih_trial(duration_s: float, model_recall_curve: list[tuple[float, float]]) -> dict:
-    needle_t = random.uniform(0, duration_s)
+    """模拟单次大海捞针实验：在视频中随机位置插入标记，根据模型召回曲线计算召回概率。"""
+    needle_t = random.uniform(0, duration_s)  # 随机插入位置
     needle = Needle(t=needle_t, marker="unique sticker")
     pct_into_video = needle_t / duration_s
     for thresh, recall in model_recall_curve:
@@ -70,7 +77,7 @@ def nih_simulation() -> None:
 
 
 def agentic_retrieval_sim(question: str, video_duration: float) -> dict:
-    """Simulate VideoAgent: LLM asks for clip, tool returns timestamps, VLM reads."""
+    """模拟 VideoAgent：LLM 读取问题→调用工具查找片段→VLM 解码片段→LLM 生成回答。"""
     trace = []
     trace.append(("LLM  ", f"reading question: '{question}'"))
     query = question.split()[-1].lower()

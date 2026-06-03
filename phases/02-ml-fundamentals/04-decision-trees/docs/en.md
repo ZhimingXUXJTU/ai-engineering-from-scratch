@@ -1,4 +1,4 @@
-# Decision Trees and Random Forests
+# Decision Trees and Random Forests | 决策树与随机森林
 
 > A decision tree is just a flowchart. But a forest of them is one of the most powerful tools in ML.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1 (Lessons 09 Information Theory, 06 Probability)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement Gini impurity, entropy, and information gain calculations to find optimal decision tree splits
 - Build a decision tree classifier from scratch with pre-pruning controls (max depth, min samples)
 - Construct a random forest using bootstrap sampling and feature randomization, and explain why it reduces variance
 - Compare MDI feature importance with permutation importance and identify when MDI is biased
+
+
+> **【中文解读】**
+> 决策树通过 if-else 规则分割数据，随机森林是多个决策树的投票组合。sklearn 中最常用的模型之一。金融风控、医疗诊断中随机森林是基线模型。
 
 ## The Problem
 

@@ -1,5 +1,10 @@
 """Phase 13 Lesson 02 - function calling deep dive across three providers.
 
+函数调用深入 (Function Calling Deep Dive)
+核心概念：三大供应商在2024年收敛于相同的工具调用循环，但在具体实现上各有差异。
+OpenAI 用 tools/tool_calls，Anthropic 用 tool_use/tool_result，Gemini 用 functionDeclarations。
+AI 应用对应：理解三大供应商的差异是实现跨平台 Agent 的基础。
+
 Takes one canonical Tool, emits the OpenAI, Anthropic, and Gemini declaration
 payloads, then parses a hand-crafted response of each shape back into a
 provider-agnostic Call object. Stdlib only; no network.

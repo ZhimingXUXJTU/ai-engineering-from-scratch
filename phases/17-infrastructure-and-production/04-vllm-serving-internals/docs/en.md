@@ -1,20 +1,24 @@
-# vLLM Serving Internals: PagedAttention, Continuous Batching, Chunked Prefill
+# vLLM Serving Internals: PagedAttention, Continuous Batching, Chunked Prefill | vLLM 推理服务内部机制：分页注意力、连续批处理、分块预填充
 
 > vLLM's dominance in 2026 rests on three compounding defaults, not a single trick. PagedAttention is always on. Continuous batching injects new requests into the active batch between decode iterations. Chunked prefill slices long prompts so decode tokens never starve. Turn all three on and a Llama 3.3 70B FP8 on one H100 SXM5 pushes 2,200-2,400 tok/s at 128 concurrent — roughly 25% above vLLM's own default and 3-4x a naive PyTorch loop. This lesson reads the scheduler and attention kernel at a level you can diagram, and ends with a toy continuous batcher in `code/main.py` that schedules prefill and decode the way vLLM does.
+
+> **【中文解读】** vLLM 在 2026 年的主导地位基于三个复合优化：PagedAttention（分页注意力）始终开启；连续批处理在解码迭代间注入新请求；分块预填充切片长提示以防止解码 Token 饥饿。三者全开时，Llama 3.3 70B FP8 在单卡 H100 上以 128 并发达到 2,200-2,400 tok/s——比朴素 PyTorch 循环快 3-4 倍。
+
+> **【拓展：vLLM → LLM 推理服务标准】** vLLM 是 2026 年最流行的开源 LLM 推理服务引擎。PagedAttention 借鉴操作系统的虚拟内存分页思想管理 KV Cache，将碎片率控制在 4% 以下。连续批处理允许在解码步骤间动态加入新请求，大幅提升 GPU 利用率。这是生产环境部署 LLM 的必学技术。
 
 **Type:** Learn
 **Languages:** Python (stdlib, toy continuous batching scheduler)
 **Prerequisites:** Phase 17 · 01 (Model Serving), Phase 11 (LLM Engineering)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Explain PagedAttention as a KV cache allocator: blocks, block tables, and why fragmentation stays under 4% at production load.
 - Diagram continuous batching at the iteration level: how finished sequences leave the batch and new ones join without draining.
 - Describe chunked prefill in one sentence and name which latency metric it protects (hint: it is TTFT tail, not mean throughput).
 - Name the 2026 vLLM v0.18.0 gotcha that bites teams enabling every optimization at once.
 
-## The Problem
+## The Problem | 问题
 
 A naive PyTorch serve loop runs one request at a time: tokenize, prefill, decode until EOS, return. At one user this works. At one hundred, it is a queue of patient people. The obvious fix — static batching — pads every request to the longest prompt in the window, pads every decode to the longest expected output, and stalls the whole batch on the slowest sequence. You pay for padding you never use, and fast requests wait for slow ones.
 
@@ -22,7 +26,7 @@ vLLM solves three problems at once. PagedAttention stops KV cache fragmentation 
 
 The 2026 production default is all three on. You need to understand what each one does because the failure modes are all on the scheduler, not the model.
 
-## The Concept
+## The Concept | 概念
 
 ### PagedAttention as a virtual memory system
 
@@ -93,7 +97,7 @@ while True:
 
 `code/main.py` is exactly this loop in stdlib Python with fake token counts and fake forward latency. Running it shows how chunked prefill keeps decode sequences alive during a long prefill.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` simulates a vLLM-style scheduler with toggleable features. Run it to see:
 
@@ -104,11 +108,11 @@ while True:
 
 The output shows total throughput (tokens per virtual second), TTFT mean, and P99 ITL. The `CONTINUOUS + CHUNKED` row should dominate on mixed traffic.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-vllm-scheduler-reader.md`. Given a serving config (batch size, KV memory utilization, chunked prefill size, speculative config), it produces a scheduler diagnosis that names which of the three defaults is bottlenecking and what to tune.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Compare `STATIC` to `CONTINUOUS` on a workload with mixed short and long requests. Where does the throughput gap come from — prefill efficiency, decode efficiency, or tail latency?
 2. Modify the toy scheduler to add `--max-num-batched-tokens`. What is the right value for an H100 running Llama 3.3 70B FP8? (Hint: it is a function of KV block size and number of free blocks, not raw HBM.)
@@ -116,7 +120,7 @@ This lesson produces `outputs/skill-vllm-scheduler-reader.md`. Given a serving c
 4. Compute the KV cache fragmentation waste for a trace of 1,000 requests with mean 1,500 output tokens, std 600 tokens, under (a) contiguous per-request allocation at 8192 max, (b) PagedAttention with 16-token blocks.
 5. Explain in one paragraph why chunked prefill helps P99 ITL but not throughput in isolation. Where does the throughput win come from in practice?
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
@@ -130,7 +134,7 @@ This lesson produces `outputs/skill-vllm-scheduler-reader.md`. Given a serving c
 | V1 scheduler | "the new scheduler" | vLLM's 2026 scheduler; N-gram spec decode is the chunked-prefill-compatible path |
 | `--gpu-memory-utilization` | "the memory knob" | Fraction of HBM reserved for KV blocks after weights and activations |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [vLLM documentation — Speculative Decoding](https://docs.vllm.ai/en/latest/features/spec_decode/) — official source on chunked-prefill and speculative-decoding compatibility.
 - [vLLM Release Notes (NVIDIA)](https://docs.nvidia.com/deeplearning/frameworks/vllm-release-notes/index.html) — 2026 release cadence and version-specific behavior.

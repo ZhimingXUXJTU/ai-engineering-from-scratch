@@ -11,6 +11,9 @@ target word; effect = mean_a(s) - mean_b(s) over identity groups.
 Pedagogical toy; real WEAT uses 300-d pretrained embeddings.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -40,20 +43,22 @@ EMB = {
 
 
 def cos(u: list[float], v: list[float]) -> float:
+    """cos"""
     nu = math.sqrt(sum(x * x for x in u)) + 1e-9
     nv = math.sqrt(sum(x * x for x in v)) + 1e-9
-    return sum(a * b for a, b in zip(u, v)) / (nu * nv)
+    return sum(a * b for a, b in zip(u, v)) / (nu * nv)  # 返回结果
 
 
 def weat_score(identity_a: list[str], identity_b: list[str],
+    """weat_score"""
                attr_x: list[str], attr_y: list[str]) -> float:
     def s(w):
         mx = sum(cos(EMB[w], EMB[a]) for a in attr_x) / len(attr_x)
         my = sum(cos(EMB[w], EMB[a]) for a in attr_y) / len(attr_y)
-        return mx - my
+        return mx - my  # 返回结果
     mean_a = sum(s(w) for w in identity_a) / len(identity_a)
     mean_b = sum(s(w) for w in identity_b) / len(identity_b)
-    return mean_a - mean_b
+    return mean_a - mean_b  # 返回结果
 
 
 def debias(emb: dict) -> dict:
@@ -65,10 +70,11 @@ def debias(emb: dict) -> dict:
               "nurse", "teacher", "caregiver"]:
         proj = sum(a * b for a, b in zip(new[w], gender_dir)) / norm_sq
         new[w] = [a - proj * b for a, b in zip(new[w], gender_dir)]
-    return new
+    return new  # 返回结果
 
 
 def main() -> None:
+    """main"""
     global EMB
     print("=" * 70)
     print("TOY WEAT BIAS PROBE (Phase 18, Lesson 20)")
@@ -98,4 +104,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

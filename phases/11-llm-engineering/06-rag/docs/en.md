@@ -1,6 +1,10 @@
-# RAG (Retrieval-Augmented Generation)
+# RAG (Retrieval-Augmented Generation) | 检索增强生成
 
 > Your LLM knows everything up to its training cutoff. It knows nothing about your company's docs, your codebase, or last week's meeting notes. RAG solves this by retrieving relevant documents and stuffing them into the prompt. It's the most deployed pattern in production AI. If you build one thing from this course, build a RAG pipeline.
+
+> **【中文解读】** LLM 只知道训练截止日期前的信息。RAG 通过检索相关文档并注入提示来弥补知识缺口。这是生产环境中部署最广泛的 AI 模式——如果你只学一个东西，就学 RAG。
+
+> **【拓展：RAG→企业AI应用】** RAG 是企业落地 AI 的首选方案：知识库问答、合同审查、技术文档助手、金融研报分析等场景都依赖 RAG 管道。
 
 **Type:** Build
 **Languages:** Python

@@ -4,6 +4,9 @@ Runs star / chain / tree / graph topologies under a scripted task. Each
 agent has a base-accuracy probability and an error_bias direction (which
 wrong answer it drifts to on miss). We simulate N agents, rounds of
 refinement, and measure (accuracy, tokens, simulated latency).
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 from __future__ import annotations
 
@@ -13,17 +16,19 @@ from dataclasses import dataclass, field
 
 @dataclass
 class SimAgent:
+    """SimAgent"""
     name: str
     base_accuracy: float
     error_bias: str
     tokens_per_call: int = 400
 
     def answer(self, correct: str, rng: random.Random) -> str:
-        return correct if rng.random() < self.base_accuracy else self.error_bias
+        return correct if rng.random() < self.base_accuracy else self.error_bias  # 返回结果
 
 
 @dataclass
 class RunResult:
+    """RunResult"""
     topology: str
     n: int
     final_answer: str
@@ -32,40 +37,44 @@ class RunResult:
     steps: int
 
     def accuracy(self) -> int:
-        return 1 if self.final_answer == self.correct else 0
+        return 1 if self.final_answer == self.correct else 0  # 返回结果
 
 
 def majority(items: list[str]) -> str:
+    """majority"""
     counts: dict[str, int] = {}
     for it in items:
         counts[it] = counts.get(it, 0) + 1
-    return max(counts, key=counts.get)
+    return max(counts, key=counts.get)  # 返回结果
 
 
 def run_star(agents: list[SimAgent], correct: str, rng: random.Random) -> RunResult:
+    """run_star"""
     hub = agents[0]
     workers = agents[1:]
     answers = [w.answer(correct, rng) for w in workers]
     tokens = sum(w.tokens_per_call for w in workers) + hub.tokens_per_call
     final = majority(answers) if answers else hub.answer(correct, rng)
-    return RunResult("star", len(agents), final, correct, tokens, steps=2)
+    return RunResult("star", len(agents), final, correct, tokens, steps=2)  # 返回结果
 
 
 def run_chain(agents: list[SimAgent], correct: str, rng: random.Random) -> RunResult:
+    """run_chain"""
     current = agents[0].answer(correct, rng)
     tokens = agents[0].tokens_per_call
     for a in agents[1:]:
         proposal = a.answer(correct, rng)
         current = proposal if proposal != current and rng.random() < a.base_accuracy else current
         tokens += a.tokens_per_call
-    return RunResult("chain", len(agents), current, correct, tokens, steps=len(agents))
+    return RunResult("chain", len(agents), current, correct, tokens, steps=len(agents))  # 返回结果
 
 
 def run_tree(agents: list[SimAgent], correct: str, rng: random.Random) -> RunResult:
+    """run_tree"""
     root = agents[0]
     leaves = agents[1:]
     if len(leaves) <= 1:
-        return run_star(agents, correct, rng)
+        return run_star(agents, correct, rng)  # 返回结果
     mid = len(leaves) // 2
     left_answers = [a.answer(correct, rng) for a in leaves[:mid]]
     right_answers = [a.answer(correct, rng) for a in leaves[mid:]]
@@ -73,10 +82,11 @@ def run_tree(agents: list[SimAgent], correct: str, rng: random.Random) -> RunRes
     left_consensus = majority(left_answers)
     right_consensus = majority(right_answers)
     final = majority([left_consensus, right_consensus])
-    return RunResult("tree", len(agents), final, correct, tokens, steps=3)
+    return RunResult("tree", len(agents), final, correct, tokens, steps=3)  # 返回结果
 
 
 def run_graph(agents: list[SimAgent], correct: str, rng: random.Random, rounds: int = 2) -> RunResult:
+    """run_graph"""
     # Every agent proposes, then every agent sees all proposals and may update
     # (scaled down accuracy if they drift toward consensus).
     positions = [a.answer(correct, rng) for a in agents]
@@ -91,10 +101,11 @@ def run_graph(agents: list[SimAgent], correct: str, rng: random.Random, rounds: 
                 new_positions.append(pos)
             tokens += ag.tokens_per_call
         positions = new_positions
-    return RunResult("graph", len(agents), majority(positions), correct, tokens, steps=rounds * 2)
+    return RunResult("graph", len(agents), majority(positions), correct, tokens, steps=rounds * 2)  # 返回结果
 
 
 def make_agents(n: int, heterogeneous: bool, seed: int) -> list[SimAgent]:
+    """make_agents"""
     rng = random.Random(seed)
     if heterogeneous:
         biases = ["WRONG-A", "WRONG-B", "WRONG-C"]
@@ -102,13 +113,14 @@ def make_agents(n: int, heterogeneous: bool, seed: int) -> list[SimAgent]:
     else:
         biases = ["WRONG-A"]
         accuracies = [0.72] * 7
-    return [
+    return [  # 返回结果
         SimAgent(f"agent-{i}", accuracies[i % len(accuracies)], biases[i % len(biases)])
         for i in range(n)
     ]
 
 
 def bench(correct: str, trials: int, heterogeneous: bool) -> None:
+    """bench"""
     tag = "HETEROGENEOUS" if heterogeneous else "HOMOGENEOUS (monoculture)"
     print("\n" + "=" * 72)
     print(f"BENCHMARK — {tag}")
@@ -137,6 +149,7 @@ def bench(correct: str, trials: int, heterogeneous: bool) -> None:
 
 
 def main() -> None:
+    """main"""
     bench(correct="RIGHT", trials=200, heterogeneous=False)
     bench(correct="RIGHT", trials=200, heterogeneous=True)
     print("\nTakeaways:")
@@ -147,4 +160,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

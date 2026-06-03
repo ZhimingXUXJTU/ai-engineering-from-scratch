@@ -1,5 +1,10 @@
 """Phase 13 Lesson 19 - A2A agent-to-agent protocol.
 
+A2A Agent 间通信协议 (Agent-to-Agent Protocol)
+核心概念：MCP 是 Agent-工具协议，A2A 是 Agent-Agent 协议。
+Google 2025年4月发布，捐给 Linux 基金会，v1.0 于2026年4月发布，150+支持者。
+AI 应用对应：A2A 让不同框架构建的 Agent（如 Claude Agent 和 Gemini Agent）能互相协作。
+
 Research agent calls writer agent via A2A:
   1. Research agent fetches writer's Agent Card
   2. Submits a Task with text + file + data parts
@@ -72,6 +77,7 @@ TASK_STORE: dict[str, Task] = {}
 
 
 def writer_tasks_send(skill_id: str, message: Message) -> Task:
+    """A2A tasks/send 处理：创建任务，检查必要参数，缺失时转为 input_required 状态。"""
     task = Task(id=f"task_{uuid.uuid4().hex[:10]}")
     TASK_STORE[task.id] = task
     task.state = "working"
@@ -91,6 +97,7 @@ def writer_tasks_send(skill_id: str, message: Message) -> Task:
 
 
 def writer_tasks_reply(task_id: str, message: Message) -> Task:
+    """A2A tasks/reply 处理：接收用户补充数据，从 input_required 恢复到 working。"""
     task = TASK_STORE[task_id]
     task.append(message)
     data_parts = [p for p in message.parts if p.kind == "data"]
@@ -101,6 +108,7 @@ def writer_tasks_reply(task_id: str, message: Message) -> Task:
 
 
 def finish(task: Task, length: str) -> None:
+    """完成任务：生成摘要 Artifact 并将任务状态转为 completed。"""
     text = f"[writer agent] {length} summary of provided source: "\
            f"topic identified, key points extracted, conclusion drafted."
     task.artifact = Artifact(
@@ -113,6 +121,7 @@ def finish(task: Task, length: str) -> None:
 
 
 def research_agent_flow() -> None:
+    """研究 Agent 调用写作 Agent 的完整 A2A 流程演示。"""
     print("=" * 72)
     print("PHASE 13 LESSON 18 - A2A CALL FROM RESEARCH TO WRITER")
     print("=" * 72)

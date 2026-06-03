@@ -1,6 +1,10 @@
-# Open-Vocabulary Vision — CLIP
+# Open-Vocabulary Vision — CLIP | 开放词汇视觉 — CLIP
 
 > Train an image encoder and a text encoder together so that matching (image, caption) pairs land at the same point in a shared space. That is the whole trick.
+
+> **【中文解读】** CLIP 同时训练图像编码器和文本编码器，使匹配的（图像，描述）对落在共享空间的同一点。就这么简单。这使得零样本分类成为可能——不需要训练数据就能识别任意类别的图像。
+
+> **【拓展：CLIP 是多模态 AI 的基石】** CLIP 是 DALL-E、Stable Diffusion（文本条件）、LLaVA、GPT-4V 等多模态模型的基础组件。它的对比学习预训练范式被广泛采用，开创了 "开放词汇" 视觉的新时代——模型可以理解训练中从未见过的概念。
 
 **Type:** Build + Use
 **Languages:** Python

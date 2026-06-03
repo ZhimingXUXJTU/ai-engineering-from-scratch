@@ -1,6 +1,9 @@
-# Capstone 09 — Code Migration Agent (Repo-Level Language / Runtime Upgrade)
+# Capstone 09 — Code Migration Agent (Repo-Level Language / Runtime Upgrade) | 迁移 结业 运行时 仓库
 
 > Amazon's MigrationBench (Java 8 to 17) and Google's App Engine Py2-to-Py3 migrator set the 2026 bar. Moderne's OpenRewrite does deterministic AST rewrites at scale. Grit targets the same problem with codemod-style DSL. The production pattern combines both: a deterministic substrate for safe rewrites plus an agent layer for the ambiguous cases, a sandbox for per-branch builds, and a test harness that flips green before the PR opens. The capstone is to migrate 50 real repos and publish a pass rate with a failure taxonomy.
+
+> **【中文解读】** 本节是综合项目——构建代码迁移 Agent，自动将代码从一种框架迁移到另一种。
+
 
 **Type:** Capstone
 **Languages:** Python (agent), Java / Python (targets), TypeScript (dashboard)
@@ -22,7 +25,7 @@ Each repo gets a Daytona sandbox with the target runtime preinstalled. The agent
 
 The failure taxonomy is the deliverable. Across 50 repos, what broke? Transitive deps? Custom annotations? Build tool version? Test flakes unrelated to migration? Each class gets a count and an exemplar diff. Future recipe authors can target the top three.
 
-## Architecture
+## Architecture | 架构
 
 ```
 target repo
@@ -63,7 +66,7 @@ file under failure class + attach repro
 - Observability: Langfuse + trace bundle per repo with every diff chunk
 - Dashboard: failure-taxonomy dashboard with per-class counts and exemplar diffs
 
-## Build It
+## Build It | 动手构建
 
 1. **Recipe pass.** Run OpenRewrite (Java) or libcst (Python) recipes first. Catch the 70-80% of migrations that are mechanical. Commit as "recipe" commit.
 
@@ -81,7 +84,7 @@ file under failure class + attach repro
 
 8. **50-repo run.** Execute across the MigrationBench subset. Report per-class pass rate, cost-per-repo, coverage-preservation, and a compare-vs-deterministic-only baseline.
 
-## Use It
+## Use It | 使用方法
 
 ```
 $ migrate legacy-java-service --target java17
@@ -94,7 +97,7 @@ $ migrate legacy-java-service --target java17
 [pr]       opened #1841  cost=$3.20  turns=4
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-migration-agent.md` is the deliverable. Given a repo, it executes deterministic recipes then an agent loop to produce a green migrated branch, or files the repo under a taxonomy class.
 
@@ -107,7 +110,7 @@ $ migrate legacy-java-service --target java17
 | 15 | Failure analysis write-up | Taxonomy completeness with exemplars |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Run the migrate pipeline with OpenRewrite only (no agent). Compare pass rate to the full pipeline. Identify the cases where the agent alone is the difference.
 
@@ -119,7 +122,7 @@ $ migrate legacy-java-service --target java17
 
 5. Measure time-to-first-green-build (TTFGB) as a UX metric. Target: p50 under 10 minutes.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -131,7 +134,7 @@ $ migrate legacy-java-service --target java17
 | Agent turn | "Tool-call round" | One plan -> act -> observe cycle in the agent loop |
 | Budget exhaustion | "Hit the ceiling" | The repo consumed its 30-min / $8 / 20-turn limit without passing |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Amazon MigrationBench](https://aws.amazon.com/blogs/devops/amazon-introduces-two-benchmark-datasets-for-evaluating-ai-agents-ability-on-code-migration/) — the canonical 2026 benchmark
 - [Moderne.io OpenRewrite platform](https://www.moderne.io) — the deterministic substrate reference

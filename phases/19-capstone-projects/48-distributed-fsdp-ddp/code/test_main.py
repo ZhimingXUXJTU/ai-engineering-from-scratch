@@ -2,6 +2,9 @@
 
 The collective tests spawn worker processes through torch.multiprocessing
 on the gloo backend; this works on CPU and does not require CUDA.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -22,6 +25,7 @@ import main as ddp
 
 
 class HelperTests(unittest.TestCase):
+    """HelperTests"""
     def test_shard_for_rank_partitions_evenly(self):
         x = torch.arange(20)
         all_slices = []
@@ -41,6 +45,7 @@ class HelperTests(unittest.TestCase):
 
 
 class GradNormTests(unittest.TestCase):
+    """GradNormTests"""
     def test_grad_norm_zero_when_no_grads(self):
         model = ddp.make_model(4, 6, 3)
         norm = ddp._grad_norm(model)
@@ -58,6 +63,7 @@ class GradNormTests(unittest.TestCase):
 
 
 class DistributedDemoTests(unittest.TestCase):
+    """DistributedDemoTests"""
     def setUp(self):
         if not torch.distributed.is_available():
             self.skipTest("torch.distributed not available")
@@ -95,6 +101,7 @@ class DistributedDemoTests(unittest.TestCase):
 
 
 class OutputTests(unittest.TestCase):
+    """OutputTests"""
     def test_write_demo_round_trip(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / "demo.json"

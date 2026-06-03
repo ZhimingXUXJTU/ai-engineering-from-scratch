@@ -1,4 +1,4 @@
-# Information Theory
+# Information Theory | 信息论
 
 > Information theory measures surprise. Loss functions are built on it.
 
@@ -7,12 +7,20 @@
 **Prerequisites:** Phase 1, Lesson 06 (Probability)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Compute entropy, cross-entropy, and KL divergence from scratch and explain their relationship
 - Derive why minimizing cross-entropy loss is equivalent to maximizing log-likelihood
 - Calculate mutual information between features and a target to rank feature importance
 - Explain perplexity as the effective vocabulary size a language model chooses from
+
+> **【中文解读】**
+> 信息论衡量"惊喜程度"——越不可能发生的事件，包含的信息量越大。交叉熵损失函数、KL 散度、困惑度（perplexity）——这些概念统一在信息论的框架下。
+
+> **【拓展：信息论在 AI 中的位置】**
+> - **交叉熵损失**: 所有分类模型和语言模型的标准损失函数（`CrossEntropyLoss`）。
+> - **KL 散度**: VAE 的损失函数之一、知识蒸馏的核心、RLHF 中奖励模型的训练目标。
+> - **困惑度(Perplexity)**: 语言模型的评价标准，越低越好，表示模型对下一个词的预测越确定。
 
 ## The Problem
 

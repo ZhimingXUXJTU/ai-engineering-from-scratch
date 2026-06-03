@@ -5,6 +5,8 @@ Shows:
 - running-max softmax that yields bit-identical output tile-by-tile
 - KV cache size math for realistic 2026 models
 """
+# 【中文解读】KV Cache 与 Flash Attention。KV Cache 缓存避免重复计算。Flash Attention 优化显存。
+
 
 import math
 import random

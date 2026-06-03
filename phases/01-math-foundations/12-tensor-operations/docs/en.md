@@ -1,4 +1,4 @@
-# Tensor Operations
+# Tensor Operations | 张量运算
 
 > Tensors are the common language between data and deep learning. Every image, every sentence, every gradient flows through them.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1, Lessons 01 (Linear Algebra Intuition), 02 (Vectors, Matrices & Operations)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement a tensor class with shape, strides, reshape, transpose, and element-wise operations from scratch
 - Apply broadcasting rules to operate on tensors of different shapes without copying data
 - Write einsum expressions for dot products, matrix multiplications, outer products, and batched operations
 - Trace the exact tensor shapes through every step of multi-head attention
+
+
+> **【中文解读】**
+> 张量是数据和深度学习的通用语言。向量是一维张量，矩阵是二维张量，RGB 图像是三维张量。本章从零实现张量类，理解形状、步长、广播和 einsum。Transformer 多头注意力中 Q/K/V 都是四维张量，理解张量形状是调试的关键。
 
 ## The Problem
 

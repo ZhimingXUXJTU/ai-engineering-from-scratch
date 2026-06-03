@@ -1,3 +1,17 @@
+"""
+实时视觉 — 边缘部署 (Real-Time Vision — Edge Deployment)
+
+核心概念：
+- 模型压缩：量化（FP32→INT8）、剪枝（删除不重要权重）、知识蒸馏（大模型教小模型）
+- 推理优化：ONNX Runtime、TensorRT、OpenVINO
+- 延迟-精度权衡：每 1% 准确率换取多少毫秒延迟
+
+AI 对应：
+- 边缘 AI 应用：手机人脸解锁、无人机目标检测、工业缺陷检测
+- MobileNet、EfficientNet、YOLO-nano 是轻量级模型代表
+- llama.cpp 用量化技术在消费级 GPU 上运行大模型
+"""
+
 import time
 import torch
 import torch.nn as nn
