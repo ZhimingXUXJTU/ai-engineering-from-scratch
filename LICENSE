@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Rohit Ghumare
+Copyright (c) 2026 Rohit Ghumare (original repository: https://github.com/rohitg00/ai-engineering-from-scratch)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,17 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+## Chinese Annotation Edition
+
+This repository is a fork of [ai-engineering-from-scratch](https://github.com/rohitg00/ai-engineering-from-scratch)
+by Rohit Ghumare, with Chinese bilingual annotations added for personal learning purposes.
+
+- Original content: Copyright (c) 2026 Rohit Ghumare, MIT License
+- Chinese annotations: Added for self-study, not affiliated with the original author
+- Original repository: https://github.com/rohitg00/ai-engineering-from-scratch
+
+本仓库为 [ai-engineering-from-scratch](https://github.com/rohitg00/ai-engineering-from-scratch) 的中文注释 fork 版本，仅供个人学习使用。
+原始内容的版权归 Rohit Ghumare 所有，遵循 MIT 开源协议。
