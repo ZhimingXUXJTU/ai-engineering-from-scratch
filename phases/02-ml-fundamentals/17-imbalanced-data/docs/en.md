@@ -1,4 +1,4 @@
-# Handling Imbalanced Data
+# Handling Imbalanced Data | 处理不平衡数据
 
 > When 99% of your data is "normal," accuracy is a lie.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 2, Lessons 01-09 (especially evaluation metrics)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement SMOTE from scratch and explain how synthetic oversampling differs from random duplication
 - Evaluate imbalanced classifiers using F1, AUPRC, and Matthews Correlation Coefficient instead of accuracy
 - Compare class weighting, threshold tuning, and resampling strategies and select the right approach for a given imbalance ratio
 - Build a complete imbalanced data pipeline that combines SMOTE, class weights, and threshold optimization
+
+
+> **【中文解读】**
+> 不平衡数据中少数类极少（如欺诈占比 0.1%）。过采样（SMOTE）、欠采样、类权重调整是常用策略。金融欺诈检测和医疗诊断中不平衡数据是常态。
 
 ## The Problem
 

@@ -1,3 +1,18 @@
+"""
+函数调用与工具使用 (Function Calling & Tool Use)
+
+核心概念：
+- Function Calling：LLM 输出结构化 JSON 指定要调用的函数和参数
+- 工具注册：定义工具的名称、描述、参数 Schema
+- 执行循环：模型决策 → 代码执行 → 结果返回 → 模型继续
+- 并行调用：一次返回多个函数调用，提升效率
+
+AI 应用对应：
+- Function Calling 是 AI Agent 的核心机制
+- MCP 协议在 Function Calling 基础上标准化了工具描述和调用流程
+- Claude、GPT、Gemini 都原生支持 Function Calling API
+"""
+
 import json
 import math
 import time

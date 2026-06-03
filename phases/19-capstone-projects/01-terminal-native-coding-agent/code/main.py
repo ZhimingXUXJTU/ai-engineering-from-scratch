@@ -8,6 +8,9 @@ in stdlib Python. The LLM is stubbed out with a deterministic script so the
 loop logic stays observable and testable without network calls.
 
 Run:  python main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -27,6 +30,7 @@ from typing import Any, Callable
 
 @dataclass
 class TodoItem:
+    """TodoItem"""
     id: int
     description: str
     status: str  # "pending" | "in_progress" | "done" | "failed"
@@ -35,6 +39,7 @@ class TodoItem:
 
 @dataclass
 class PlanState:
+    """PlanState"""
     goal: str
     items: list[TodoItem] = field(default_factory=list)
 
@@ -43,7 +48,7 @@ class PlanState:
         for it in self.items:
             mark = {"pending": " ", "in_progress": ">", "done": "x", "failed": "!"}[it.status]
             lines.append(f"  [{mark}] {it.id}. {it.description}")
-        return "\n".join(lines)
+        return "\n".join(lines)  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -52,6 +57,7 @@ class PlanState:
 
 @dataclass
 class Budget:
+    """Budget"""
     max_turns: int = 50
     max_tokens: int = 200_000
     max_dollars: float = 5.00
@@ -66,12 +72,12 @@ class Budget:
 
     def exceeded(self) -> str | None:
         if self.turns_used >= self.max_turns:
-            return "turn_limit"
+            return "turn_limit"  # 返回结果
         if self.tokens_used >= self.max_tokens:
-            return "token_limit"
+            return "token_limit"  # 返回结果
         if self.dollars_used >= self.max_dollars:
-            return "dollar_limit"
-        return None
+            return "dollar_limit"  # 返回结果
+        return None  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -82,6 +88,7 @@ HookFn = Callable[[dict[str, Any]], dict[str, Any]]
 
 
 class HookBus:
+    """HookBus"""
     EVENTS = ("SessionStart", "SessionEnd", "PreToolUse", "PostToolUse",
               "UserPromptSubmit", "Notification", "Stop", "PreCompact")
 
@@ -94,7 +101,7 @@ class HookBus:
     def fire(self, event: str, payload: dict[str, Any]) -> dict[str, Any]:
         for fn in self._hooks[event]:
             payload = fn(payload) or payload
-        return payload
+        return payload  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -105,18 +112,20 @@ TRUNCATE_BYTES = 4096
 
 
 def tool_read_file(sandbox: str, path: str) -> str:
+    """tool_read_file"""
     full = os.path.join(sandbox, path)
     if not os.path.realpath(full).startswith(os.path.realpath(sandbox)):
         raise RuntimeError("path escapes sandbox")
     with open(full, "r", encoding="utf-8", errors="replace") as fh:
-        return fh.read()[:TRUNCATE_BYTES]
+        return fh.read()[:TRUNCATE_BYTES]  # 返回结果
 
 
 def tool_run_shell(sandbox: str, cmd: str, timeout: int = 30) -> str:
+    """tool_run_shell"""
     proc = subprocess.run(cmd, cwd=sandbox, shell=True, capture_output=True,
                           text=True, timeout=timeout)
     out = (proc.stdout + proc.stderr)[:TRUNCATE_BYTES]
-    return f"exit={proc.returncode}\n{out}"
+    return f"exit={proc.returncode}\n{out}"  # 返回结果
 
 
 TOOLS: dict[str, Callable[..., str]] = {
@@ -151,10 +160,10 @@ SCRIPT = [
 def model_step(plan: PlanState, turn: int) -> dict[str, Any]:
     """Stubbed model: returns a plan rewrite and (optionally) a tool call."""
     if turn >= len(SCRIPT):
-        return {"plan": plan.items, "tool": None, "tokens": 200, "cost": 0.005}
+        return {"plan": plan.items, "tool": None, "tokens": 200, "cost": 0.005}  # 返回结果
     s = SCRIPT[turn]
     items = [TodoItem(i + 1, desc, status) for i, (desc, status) in enumerate(s["plan"])]
-    return {"plan": items, "tool": s["tool"], "tokens": s["tokens"], "cost": s["cost"]}
+    return {"plan": items, "tool": s["tool"], "tokens": s["tokens"], "cost": s["cost"]}  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -162,14 +171,16 @@ def model_step(plan: PlanState, turn: int) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 def destructive_guard(payload: dict[str, Any]) -> dict[str, Any]:
+    """destructive_guard"""
     cmd = payload.get("args", {}).get("cmd", "")
     if "rm -rf" in cmd or "shutdown" in cmd:
         payload["blocked"] = True
         payload["reason"] = "destructive command blocked by PreToolUse hook"
-    return payload
+    return payload  # 返回结果
 
 
 def run_agent(task: str, sandbox: str) -> dict[str, Any]:
+    """run_agent"""
     plan = PlanState(goal=task, items=[])
     budget = Budget()
     hooks = HookBus()
@@ -221,10 +232,11 @@ def run_agent(task: str, sandbox: str) -> dict[str, Any]:
                               "tokens": budget.tokens_used,
                               "dollars": budget.dollars_used})
 
-    return {"plan": plan.summary(), "budget": asdict(budget), "trace": trace}
+    return {"plan": plan.summary(), "budget": asdict(budget), "trace": trace}  # 返回结果
 
 
 def main() -> None:
+    """main"""
     task = "demonstrate the plan-act-observe loop without network calls"
     sandbox = os.path.dirname(os.path.abspath(__file__))
     result = run_agent(task, sandbox)
@@ -240,4 +252,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

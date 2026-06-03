@@ -1,3 +1,7 @@
+"""
+逻辑回归从零实现：Sigmoid 函数、交叉熵损失、决策边界。
+AI 对应: 逻辑回归是二分类的基石，sklearn 的 LogisticRegression。金融风控中的信用评分卡模型。
+"""
 import random
 import math
 

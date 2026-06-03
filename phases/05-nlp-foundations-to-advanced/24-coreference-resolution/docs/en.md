@@ -1,6 +1,8 @@
-# Coreference Resolution
+# Coreference Resolution | 共指消解
 
 > "She called him. He did not answer. The doctor was at lunch." Three references to two people and nobody is named. Coreference resolution figures out who is who.
+
+> **【中文解读】** 识别文本中指代同一实体的不同表达。
 
 **Type:** Learn
 **Languages:** Python

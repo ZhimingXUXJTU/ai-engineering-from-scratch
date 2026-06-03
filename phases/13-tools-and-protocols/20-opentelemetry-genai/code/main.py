@@ -1,5 +1,10 @@
 """Phase 13 Lesson 20 - OTel GenAI span emitter, stdlib only.
 
+OpenTelemetry GenAI 可观测性 (Observability for AI Applications)
+核心概念：Agent 调用5个工具、3个MCP服务器、2个子Agent时，需要一个贯穿全程的 trace。
+OTel GenAI 语义约定（v1.37+稳定属性）是2026年标准，Datadog/Langfuse/Arize 原生支持。
+AI 应用对应：可观测性是 AI 应用从实验走向生产的必备能力，用于调试延迟、追踪成本、监控质量。
+
 Emits spans in an OTLP-JSON-like format to stdout for an agent that:
   - invokes an LLM chat (gen_ai.operation.name = "chat")
   - dispatches two tools (gen_ai.operation.name = "execute_tool")
@@ -66,6 +71,7 @@ SPANS: list[Span] = []
 
 def start_span(name: str, kind: str, parent: Span | None = None,
                attrs: dict | None = None) -> Span:
+    """创建并开始一个 OTel span，继承父 span 的 trace_id。"""
     trace_id = parent.trace_id if parent else _hex(16)
     span = Span(name=name, kind=kind, trace_id=trace_id, span_id=_hex(8),
                 parent_span_id=parent.span_id if parent else None,
@@ -75,6 +81,7 @@ def start_span(name: str, kind: str, parent: Span | None = None,
 
 
 def fake_llm_call(span: Span, prompt: str) -> str:
+    """模拟 LLM 调用：填充 gen_ai.response.* 和 gen_ai.usage.* 属性。"""
     time.sleep(0.05)
     resp_id = f"resp_{uuid.uuid4().hex[:8]}"
     span.attrs.update({
@@ -90,6 +97,7 @@ def fake_llm_call(span: Span, prompt: str) -> str:
 
 
 def fake_tool_execute(span: Span, tool: str, args: dict) -> dict:
+    """模拟工具执行：填充 gen_ai.tool.name 和 gen_ai.tool.call.id 属性。"""
     time.sleep(0.03)
     span.attrs.update({
         "gen_ai.tool.name": tool,
@@ -99,6 +107,7 @@ def fake_tool_execute(span: Span, tool: str, args: dict) -> dict:
 
 
 def fake_mcp_call(parent: Span, tool: str) -> dict:
+    """模拟 MCP 客户端调用：创建 CLIENT span 并传播 W3C traceparent 上下文。"""
     mcp_span = start_span("mcp.call", "CLIENT", parent=parent, attrs={
         "gen_ai.operation.name": "execute_tool",
         "gen_ai.tool.name": tool,
@@ -114,6 +123,7 @@ def fake_mcp_call(parent: Span, tool: str) -> dict:
 
 
 def agent_loop() -> None:
+    """Agent 主循环：LLM 调用 -> 工具执行 -> MCP 调用 -> LLM 综合，全部在一个 trace 下。"""
     root = start_span("agent.invoke_agent", "INTERNAL", attrs={
         "gen_ai.operation.name": "invoke_agent",
         "gen_ai.agent.name": "research-agent",

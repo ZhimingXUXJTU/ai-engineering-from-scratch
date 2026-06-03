@@ -1,20 +1,23 @@
-# Distributed Data Parallel and FSDP from Scratch
+# Distributed Data Parallel and FSDP from Scratch | 分布式 并行 FSDP
 
 > Multi-rank training is two collectives and one rule. Broadcast the parameters at startup, average the gradients after backward, never let the ranks disagree about what step they are on.
+
+> **【中文解读】** 本节是综合项目——实现分布式训练 FSDP/DDP。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 42 to 45
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Bring up a process group across N ranks with the `gloo` backend, no special hardware.
 - Implement a minimal DDP wrapper that broadcasts parameters at construction and all-reduces gradients after backward.
 - Prove that the all-reduce of per-rank gradients matches a single-process gradient on the concatenated input.
 - Sketch FSDP parameter sharding: each rank holds a slice, the full tensor is gathered for the forward pass and dropped after.
 
-## The Problem
+## The Problem | 问题
 
 The model fits on one device. The dataset does not. The optimization budget says you want to see N times the examples per wallclock second. The first lever is data parallel: each rank runs the same model on a different slice of the batch, then averages gradients before the optimizer step. The second lever is FSDP: the model does not fit on one device either, so each rank holds a fraction of every parameter and reconstructs the full tensors layer by layer during the forward pass.
 
@@ -22,7 +25,7 @@ The pain is the bookkeeping. If parameters drift across ranks the run is silentl
 
 This lesson runs on CPU. CUDA is not assumed. The `gloo` backend ships with every PyTorch build and accepts `torch.multiprocessing` workers; the same code switches to `nccl` on a multi-GPU node without changing structure.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart TB
@@ -74,7 +77,7 @@ The memory win is exact: per-rank memory for parameters drops to 1/N. The cost i
 
 CUDA is the production target, but the same code paths exist on CPU. `gloo` is the CPU collective backend. It is slower than `nccl` on GPUs by orders of magnitude, but the API surface is identical. The lesson's process group is initialized with `backend="gloo"` and ranks are spawned with `torch.multiprocessing` rather than `torchrun`; both end up at the same `torch.distributed` calls. On a multi-GPU node, the only changes are `backend="nccl"`, device tensors, and `torchrun` to launch.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` is the runnable artifact.
 
@@ -121,7 +124,7 @@ python3 code/main.py
 
 Default world size is 2. Two CPU processes spawn, talk to each other through `gloo`, and exit zero. The output `outputs/ddp-demo.json` captures parameter sums per rank, the gradient norm after all-reduce, the FSDP round-trip result, and the manual-vs-reference gradient diff.
 
-## Use It
+## Use It | 使用方法
 
 Production training stacks call the same primitives. PyTorch's `DistributedDataParallel` adds: post-backward gradient hooks that overlap all-reduce with backward, bucketed all-reduce that combines several small gradients into one collective, and the `no_sync` context lesson 46 used.
 
@@ -129,11 +132,11 @@ PyTorch's FSDP adds: a flat parameter view per layer so each rank holds one cont
 
 The shape stays the same: broadcast at startup, reduce after backward, shard parameters when they no longer fit.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-distributed-fsdp-ddp.md` carries the recipe for a new training script: spin up the process group with `gloo` for CPU and `nccl` for GPU, wrap the model in a DDP shell that broadcasts at construction and reduces after backward, optionally shard parameters with the all_gather pattern from the FSDP sketch.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run with `--world-size 4` and confirm the param spread stays under 1e-3 across the run.
 2. Replace the manual averaging with `dist.all_reduce(op=dist.ReduceOp.AVG)` and time the difference.
@@ -141,7 +144,7 @@ The shape stays the same: broadcast at startup, reduce after backward, shard par
 4. Implement the FSDP re-shard step: after the forward pass, replace the full tensor with the local shard again. Confirm per-rank memory drops.
 5. Switch the backend to `nccl` on a CUDA box. Note which environment variables change and which stay the same.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -151,7 +154,7 @@ The shape stays the same: broadcast at startup, reduce after backward, shard par
 | All-reduce | "Sum the grads" | Sum a tensor across all ranks, every rank ends with the same result |
 | Unshard | "Gather the params" | Reconstruct the full tensor from per-rank slices via all_gather |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - PyTorch `torch.distributed` documentation for the collective semantics this lesson relies on.
 - The `gloo` library's collective list, identical in shape to the CUDA-backed `nccl` primitives.

@@ -1,4 +1,4 @@
-# Feature Selection
+# Feature Selection | 特征选择
 
 > More features is not better. The right features is better.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 2, Lessons 01-09, 08 (feature engineering)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement filter methods (variance threshold, mutual information, chi-squared) and wrapper methods (RFE, forward selection) from scratch
 - Explain why mutual information captures nonlinear feature-target relationships that correlation misses
 - Compare L1 regularization (embedded selection) with RFE (wrapper selection) and evaluate their computational tradeoffs
 - Build a feature selection pipeline that combines multiple methods and demonstrate improved generalization on held-out data
+
+
+> **【中文解读】**
+> 特征选择从众多特征中挑出最有用的子集。过滤法（相关性）、包装法（递归特征消除）、嵌入法（L1 正则化）是三大类方法。sklearn 中的 SelectKBest/RFE。减少特征数能提升模型速度和泛化能力。
 
 ## The Problem
 

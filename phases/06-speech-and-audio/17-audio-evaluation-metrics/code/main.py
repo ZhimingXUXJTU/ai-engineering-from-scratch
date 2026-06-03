@@ -1,3 +1,8 @@
+"""
+音频评估指标 (Audio Evaluation Metrics)
+核心概念：WER（词错率）、MOS（平均意见分）、EER（等错误率）、FAD
+AI 对应：无法度量就无法交付，这些指标是所有音频 AI 产品的评估标准
+"""
 """Audio evaluation metrics, from scratch.
 
 Implements WER, CER, EER, simple SECS, FAD-shaped embedding distance,

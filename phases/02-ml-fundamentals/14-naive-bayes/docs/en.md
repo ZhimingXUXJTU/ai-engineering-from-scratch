@@ -1,4 +1,4 @@
-# Naive Bayes
+# Naive Bayes | 朴素贝叶斯
 
 > The "naive" assumption is wrong, and it works anyway. That's the beauty of it.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 2, Lessons 01-07 (classification, Bayes' theorem)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement Multinomial Naive Bayes from scratch with Laplace smoothing for text classification
 - Explain why the naive independence assumption is mathematically wrong but produces correct class rankings in practice
 - Compare Multinomial, Bernoulli, and Gaussian Naive Bayes variants and select the right one for a given feature type
 - Evaluate Naive Bayes against logistic regression on high-dimensional sparse data and explain the bias-variance tradeoff at work
+
+
+> **【中文解读】**
+> 朴素贝叶斯基于贝叶斯定理 + 特征独立性假设。虽然假设很强，但在文本分类（垃圾邮件过滤）中出奇地好。sklearn 中的 MultinomialNB/GaussianNB。
 
 ## The Problem
 

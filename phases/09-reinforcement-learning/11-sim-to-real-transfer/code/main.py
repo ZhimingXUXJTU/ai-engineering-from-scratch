@@ -1,3 +1,17 @@
+"""
+仿真到现实迁移 (Sim-to-Real Transfer)
+
+核心概念：在仿真中训练的策略可能"过拟合"仿真器，无法在真实环境中工作。
+域随机化 (Domain Randomization) 通过在训练时随机化仿真参数来提高鲁棒性。
+
+本模块演示：在带"滑动噪声"的 GridWorld 中，
+  - 固定参数训练的策略在未见过的滑动值上性能骤降
+  - 域随机化训练的策略泛化能力显著更强
+
+AI 对应：数据增强（LLM 训练中的噪声注入）和 KL 惩罚（RLHF 中防止策略
+偏离太远）都是"域随机化"思想在不同领域的体现。
+"""
+
 import random
 from collections import defaultdict
 
@@ -33,13 +47,14 @@ def epsilon_greedy(Q, s, rng, eps):
 
 
 def train_fixed(slip, episodes=3000, alpha=0.1, gamma=0.95, eps=0.15, rng=None):
+    """固定参数训练：每个回合使用相同的滑动概率"""
     rng = rng or random.Random(0)
     Q = defaultdict(default_q)
     for _ in range(episodes):
         s = (0, 0)
         for _ in range(100):
             a = epsilon_greedy(Q, s, rng, eps)
-            s_next, r, done = step(s, a, slip, rng)
+            s_next, r, done = step(s, a, slip, rng)  # 固定滑动概率
             if done:
                 Q[s][a] += alpha * (r - Q[s][a])
                 break
@@ -50,10 +65,11 @@ def train_fixed(slip, episodes=3000, alpha=0.1, gamma=0.95, eps=0.15, rng=None):
 
 
 def train_dr(slip_low, slip_high, episodes=3000, alpha=0.1, gamma=0.95, eps=0.15, rng=None):
+    """域随机化训练：每个回合随机采样滑动概率 ∈ [slip_low, slip_high]"""
     rng = rng or random.Random(0)
     Q = defaultdict(default_q)
     for _ in range(episodes):
-        slip_ep = rng.uniform(slip_low, slip_high)
+        slip_ep = rng.uniform(slip_low, slip_high)  # 每回合随机化仿真参数
         s = (0, 0)
         for _ in range(100):
             a = epsilon_greedy(Q, s, rng, eps)

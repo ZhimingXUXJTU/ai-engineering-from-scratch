@@ -1,3 +1,17 @@
+"""
+LLM 应用评估与测试 (Evaluation & Testing LLM Applications)
+
+核心概念：
+- 自动化评估：准确率、相关性、安全性等指标的回归测试
+- LLM-as-Judge：用 LLM 评估 LLM 输出质量
+- 金标准数据集：构建标注数据集作为评估基准
+- A/B 测试：对比不同提示、模型、参数的效果差异
+
+AI 应用对应：
+- 评估框架是 AI 工程从"实验"走向"生产"的保障
+- 金融场景中，评估框架确保模型输出的一致性和准确性
+"""
+
 import json
 import math
 import time

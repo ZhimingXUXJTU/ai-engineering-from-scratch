@@ -1,6 +1,10 @@
-# MCP Sampling — Server-Requested LLM Completions and Agent Loops
+# MCP Sampling — Server-Requested LLM Completions and Agent Loops | MCP 采样：服务器请求 LLM 补全与 Agent 循环
 
 > Most MCP servers are dumb executors: take arguments, run code, return content. Sampling lets a server flip direction: it asks the client's LLM to make a decision. This enables server-hosted agent loops without the server owning any model credentials. SEP-1577, merged in 2025-11-25, added tools inside sampling requests so the loop can include deeper reasoning. Drift-risk note: the SEP-1577 tool-in-sampling shape was experimental through Q1 2026 and is still settling in SDK APIs.
+
+> **【中文解读】** 大多数 MCP 服务器是简单的执行器：接收参数、运行代码、返回内容。Sampling 让服务器反转方向：它请求客户端的 LLM 做出决策。这使服务器可以承载 Agent 循环，而无需拥有任何模型凭证。SEP-1577 在 sampling 请求中添加了 tools，使循环可以包含更深的推理。
+
+> **【拓展：Sampling→MCP Agent 循环】** Sampling 是 MCP 实现 Agent 循环的关键原语。传统模式下，MCP 服务器只是被动执行工具。通过 Sampling，服务器可以主动请求客户端的 LLM 进行推理，从而在不持有 API 密钥的情况下实现多步 Agent 工作流。这是 MCP 与 Function Calling 的重要区别之一。
 
 **Type:** Build
 **Languages:** Python (stdlib, sampling harness)
@@ -156,18 +160,18 @@ This lesson produces `outputs/skill-sampling-loop-designer.md`. Given a server-s
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Sampling | "Server-to-client LLM call" | Server asks client's model for a completion |
-| `sampling/createMessage` | "The method" | JSON-RPC method for sampling requests |
-| `modelPreferences` | "Model priorities" | Cost / speed / intelligence weights plus name hints |
-| `includeContext` | "Cross-session leakage" | Soft-deprecated context inclusion mode |
-| SEP-1577 | "Tools in sampling" | Allow tools inside sampling for server-hosted ReAct |
-| Human-in-the-loop | "User confirms" | Client surfaces sampling request to user before running |
-| Loop bomb | "Runaway sampling" | Server-side infinite sampling loop; client must rate-limit |
-| Covert sampling | "Hidden reasoning" | Malicious server hides intent in sampling prompts |
-| Resource theft | "Using user's LLM budget" | Server forces client to spend on sampling it does not want |
-| `stopReason` | "Why generation halted" | `endTurn`, `stopSequence`, or `maxTokens` |
+| Term | What people say | What it actually means | 中文术语 |
+|------|----------------|------------------------|----------|
+| Sampling | "Server-to-client LLM call" | Server asks client's model for a completion | 采样 |
+| `sampling/createMessage` | "The method" | JSON-RPC method for sampling requests | 采样请求方法 |
+| `modelPreferences` | "Model priorities" | Cost / speed / intelligence weights plus name hints | 模型偏好 |
+| `includeContext` | "Cross-session leakage" | Soft-deprecated context inclusion mode | 上下文包含（已弃用） |
+| SEP-1577 | "Tools in sampling" | Allow tools inside sampling for server-hosted ReAct | 采样中的工具支持 |
+| Human-in-the-loop | "User confirms" | Client surfaces sampling request to user before running | 人在回路 |
+| Loop bomb | "Runaway sampling" | Server-side infinite sampling loop; client must rate-limit | 循环炸弹 |
+| Covert sampling | "Hidden reasoning" | Malicious server hides intent in sampling prompts | 隐蔽采样 |
+| Resource theft | "Using user's LLM budget" | Server forces client to spend on sampling it does not want | 资源盗用 |
+| `stopReason` | "Why generation halted" | `endTurn`, `stopSequence`, or `maxTokens` | 停止原因 |
 
 ## Further Reading
 

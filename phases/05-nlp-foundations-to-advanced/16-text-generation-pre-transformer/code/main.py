@@ -1,3 +1,8 @@
+"""
+Transformer 之前的文本生成 — N-gram
+
+N-gram 统计词频预测下一个词。这是语言模型的最初形态——GPT 就是更强大的 LM。
+"""
 import math
 import random
 from collections import Counter, defaultdict

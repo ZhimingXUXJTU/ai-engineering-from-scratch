@@ -1,6 +1,8 @@
-# Dynamic Programming — Policy Iteration & Value Iteration
+# Dynamic Programming — Policy Iteration & Value Iteration | 动态规划 — 策略迭代与值迭代
 
 > Dynamic programming is RL with cheating. You already know the transition and reward functions; you just iterate the Bellman equation until `V` or `π` stops moving. It is the benchmark every sampling-based method tries to approach.
+
+> **【中文解读】** 动态规划是强化学习的"作弊版"——你已知环境的转移概率和奖励函数，只需反复迭代 Bellman 方程直到收敛。它是所有采样方法（Q-learning、PPO 等）的"金标准"参照。
 
 **Type:** Build
 **Languages:** Python
@@ -13,6 +15,10 @@ You have an MDP with a known model: you can query `P(s' | s, a)` and `R(s, a, s'
 
 Model-free RL (Q-learning, PPO, REINFORCE) was invented for the case where you don't have a model — you can only sample from the environment. But when you do have one, there are faster, better methods: dynamic programming. Bellman designed them in 1957. They still define correctness: when people say "optimal policy for this MDP," they mean the policy DP would return.
 
+> **【中文解读】** 当你已知环境模型（转移概率和奖励函数）时，动态规划可以精确求解最优策略。它是无模型 RL 的"参照答案"——用 DP 算出的 V* 来验证 Q-learning 是否正确。AlphaZero 的 MCTS 搜索本质上也是在做 Bellman 备份。
+
+> **【拓展：AlphaZero/MCTS】** AlphaZero 的蒙特卡洛树搜索 (MCTS) 本质上是异步版本的 Bellman 备份——在搜索树中迭代值函数。DP 的思想贯穿了从游戏 AI 到大模型推理的全链条。
+
 You need them in 2026 for three reasons. First, every tabular environment in RL research (GridWorld, FrozenLake, CliffWalking) is solved with DP to produce the gold-standard policy. Second, exact values let you *debug* sampling methods: if Q-learning's estimate for `V*(s_0)` disagrees with the DP answer by 30%, your Q-learning has a bug. Third, modern offline RL and planning methods (MCTS, AlphaZero's search, model-based RL in Phase 9 · 10) all iterate a Bellman backup over a learned or given model.
 
 ## The Concept
@@ -20,6 +26,8 @@ You need them in 2026 for three reasons. First, every tabular environment in RL 
 ![Policy iteration and value iteration, side by side](../assets/dp.svg)
 
 **Two algorithms, both fixed-point iteration on Bellman.**
+
+> **【中文解读】** 两种算法都是对 Bellman 方程做不动点迭代。策略迭代：交替执行"策略评估"和"策略改进"直到策略不变；值迭代：将两者合并为一步，直接取 max。两者最终收敛到同一个最优值函数 V*。
 
 **Policy iteration.** Alternates two steps until the policy stops changing.
 
@@ -35,6 +43,8 @@ Convergence is guaranteed because (a) each improvement step either keeps `π` th
 Repeat until `max_s |V_{new}(s) - V(s)| < ε`. Extract the policy at the end by taking the greedy action. Strictly faster per iteration — no inner evaluation loop — but typically needs more iterations to converge.
 
 **Generalized policy iteration (GPI).** The unifying framing. Value function and policy are locked in a two-way improvement loop; any method that drives both toward mutual consistency (async value iteration, modified policy iteration, Q-learning, actor-critic, PPO) is an instance of GPI.
+
+> **【拓展：GPI→PPO/RLHF】** 广义策略迭代 (GPI) 是统一框架：Q-learning、Actor-Critic、PPO 本质上都是 GPI 的实例。理解了 DP 的 GPI，你就理解了 ChatGPT 背后 RLHF 训练循环的设计哲学。
 
 **Why `γ < 1` matters.** The Bellman operator is a `γ`-contraction in the sup-norm: `||T V - T V'||_∞ ≤ γ ||V - V'||_∞`. Contraction implies unique fixed point and geometric convergence. Drop `γ < 1` and you lose the guarantee — you need a finite horizon or an absorbing terminal state.
 
@@ -180,20 +190,23 @@ Refuse to run DP on state spaces > 10⁷. Refuse to claim convergence without a 
 ## Exercises
 
 1. **Easy.** Run value iteration on the 4×4 GridWorld with `γ ∈ {0.9, 0.99}`. How many sweeps until `max |ΔV| < 1e-6`? Print `V*` as a 4×4 grid.
+   > **练习1：** 用不同的折扣因子 γ 运行值迭代，观察收敛速度如何随 γ 变化。
 2. **Medium.** Compare policy iteration vs value iteration on the *stochastic* GridWorld (slip probability `0.1`). Count: sweeps, wall-clock time, final `V*(0,0)`. Which converges faster in iterations? In wall-clock?
+   > **练习2：** 比较策略迭代和值迭代在随机网格世界中的收敛速度（迭代次数和运行时间）。
 3. **Hard.** Build modified policy iteration: in the evaluation step, run only `k` sweeps instead of to convergence. Plot `V*(0,0)` error vs `k` for `k ∈ {1, 2, 5, 10, 50}`. What does the curve tell you about the evaluation/improvement tradeoff?
+   > **练习3：** 实现修正策略迭代（评估步只迭代 k 次），探究评估精度与改进效率的权衡。
 
 ## Key Terms
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
-| Policy iteration | "DP algorithm" | Alternating evaluation (`V^π`) and improvement (greedy `π` w.r.t. `V^π`) until the policy stops changing. |
-| Value iteration | "Faster DP" | Bellman optimality backup applied in one sweep; converges to `V*` geometrically. |
-| Bellman operator | "The recursion" | `(T V)(s) = max_a Σ P (r + γ V(s'))`; a `γ`-contraction in sup-norm. |
-| Contraction | "Why DP converges" | Any operator `T` with `\|\|T x - T y\|\| ≤ γ \|\|x - y\|\|` has a unique fixed point. |
-| GPI | "Everything is DP" | Generalized Policy Iteration: any method driving `V` and `π` to mutual consistency. |
-| Synchronous update | "Jacobi-style" | Use old `V` throughout a sweep; cleanly analyzable but slower. |
-| In-place update | "Gauss-Seidel-style" | Use `V` as it's being updated; converges faster in practice. |
+| Policy iteration | "DP algorithm" / 策略迭代 | Alternating evaluation (`V^π`) and improvement (greedy `π` w.r.t. `V^π`) until the policy stops changing. |
+| Value iteration | "Faster DP" / 值迭代 | Bellman optimality backup applied in one sweep; converges to `V*` geometrically. |
+| Bellman operator | "The recursion" / Bellman 算子 | `(T V)(s) = max_a Σ P (r + γ V(s'))`; a `γ`-contraction in sup-norm. |
+| Contraction | "Why DP converges" / 压缩映射 | Any operator `T` with `\|\|T x - T y\|\| ≤ γ \|\|x - y\|\|` has a unique fixed point. |
+| GPI | "Everything is DP" / 广义策略迭代 | Generalized Policy Iteration: any method driving `V` and `π` to mutual consistency. |
+| Synchronous update | "Jacobi-style" / 同步更新 | Use old `V` throughout a sweep; cleanly analyzable but slower. |
+| In-place update | "Gauss-Seidel-style" / 原地更新 | Use `V` as it's being updated; converges faster in practice. |
 
 ## Further Reading
 

@@ -1,4 +1,4 @@
-# Scope Contracts and Task Boundaries
+# Scope Contracts and Task Boundaries | 契约 范围
 
 > The model does not know where the work ends. A scope contract is a per-task file that says where the work begins, where it ends, and how to roll back if it spills. The contract turns "stay in scope" from a wish into a check.
 
@@ -7,20 +7,23 @@
 **Prerequisites:** Phase 14 · 32 (Minimal Workbench), Phase 14 · 33 (Rules as Constraints)
 **Time:** ~50 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Write a scope contract that an agent reads at task start and a verifier reads at task end.
 - Specify allowed files, forbidden files, acceptance criteria, rollback plan, and approval boundaries.
 - Implement a scope checker that compares a diff against the contract and flags violations.
 - Make scope creep visible, automatic, and reviewable.
 
-## The Problem
+## The Problem | 问题
 
 Agents creep. The task is "fix the login bug." The diff touches the login route, the email helper, the database driver, the README, and the release script. Each touch had a plausible reason in the moment. Together they are a different change than the one that was reviewed.
 
 Scope creep is the most under-monitored failure mode in agent work because the agent narrates each step in good faith. The fix is not a stricter prompt. The fix is a contract on disk that says what was promised and a check that compares the result against the promise.
 
-## The Concept
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
+## The Concept | 概念
 
 ```mermaid
 flowchart LR
@@ -33,6 +36,9 @@ flowchart LR
   Verdict -- yes --> Verify[Verification Gate]
   Verdict -- no --> Block[block + open question]
 ```
+
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
 
 ### What goes in a scope contract
 
@@ -60,7 +66,7 @@ Listing how to roll back forces the contract author to think about what could go
 
 The agent writes a diff. The checker reads the diff, the allowed globs, the forbidden globs, and a list of any acceptance commands that ran. Each violation is a tagged finding the verification gate can refuse.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements:
 
@@ -89,7 +95,7 @@ A practitioner running "specsmaxxing" (scope contracts in YAML before invoking t
 
 **Multi-contract merge semantics (least privilege).** When two scope contracts apply (e.g., a project-wide contract plus a task-specific one), the merge is: **intersect** `allowed_files` (both contracts must permit the path), **union** `forbidden_files` (either can prohibit), `time_budget_minutes` is the most restrictive (min), `approvals_required` accumulates. `network_egress` is `None` for no enforcement, `[]` for deny-all, `[...]` as an allowlist; under merge, `None` defers to the other side, two lists intersect, and deny-all stays deny-all. State this in the contract schema so the merge is mechanical and reviewable.
 
-## Use It
+## Use It | 使用方法
 
 Production patterns:
 
@@ -99,29 +105,33 @@ Production patterns:
 
 The contract travels with the task. When the task closes, the contract is archived under `outputs/scope/closed/`.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-scope-contract.md` generates a scope contract for a task description and a glob-aware checker that runs in CI on every agent diff.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a `network_egress` field listing allowed external hosts. Refuse runs that touch other hosts.
+   *思考并实践此练习*
 2. Extend the checker to fail soft on `docs/**` and hard on `scripts/**`. Justify the asymmetry.
 3. Make the contract derive `allowed_files` from a `goal` field using a static rule set (no LLM). What goes wrong on the first edge case?
+   *思考并实践此练习*
 4. Add a `time_budget_minutes` and refuse to continue once the wall clock exceeds it.
+   *思考并实践此练习*
 5. Run two contracts against the same diff. What is the right merge semantics when both apply?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Scope contract | "The task brief" | Per-task JSON listing allowed/forbidden files, acceptance, rollback |
-| Scope creep | "It also touched..." | Files outside the contract changed in the same task |
-| Rollback plan | "We can revert" | The one-paragraph operator runbook for halting |
-| Approval boundary | "Needs sign-off" | An action listed in the contract as requiring explicit human approval |
-| Diff check | "Path audit" | Comparing touched files against the contract globs |
+|------|----------------|------------------------|---|
+| Scope contract | "The task brief" | Per-task JSON listing allowed/forbidden files, acceptance, rollback |  |
+| Scope creep | "It also touched..." | Files outside the contract changed in the same task |  |
+| Rollback plan | "We can revert" | The one-paragraph operator runbook for halting |  |
+| Approval boundary | "Needs sign-off" | An action listed in the contract as requiring explicit human approval |  |
+| Diff check | "Path audit" | Comparing touched files against the contract globs |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [LangGraph human-in-the-loop interrupts](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)
 - [OpenAI Agents SDK tool approval policies](https://platform.openai.com/docs/guides/agents-sdk)

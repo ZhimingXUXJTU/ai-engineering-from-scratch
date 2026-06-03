@@ -1,6 +1,9 @@
-# Capstone 07 — End-to-End Fine-Tuning Pipeline (Data to SFT to DPO to Serve)
+# Capstone 07 — End-to-End Fine-Tuning Pipeline (Data to SFT to DPO to Serve) | 微调 结业 流水线 SFT DPO
 
 > An 8B model trained on your own data, DPO-aligned on your own preferences, quantized, speculative-decoded, and served at measurable $/1M tokens. The 2026 open stack is Axolotl v0.8, TRL 0.15, Unsloth for iteration, GPTQ/AWQ/GGUF for quantization, vLLM 0.7 with EAGLE-3 for serving. The capstone is to run the whole pipeline reproducibly — YAML in, served endpoint out — and publish a model card under the 2026 Model Openness Framework.
+
+> **【中文解读】** 本节是综合项目——构建端到端微调流水线，从数据准备到模型评估。
+
 
 **Type:** Capstone
 **Languages:** Python (pipeline), YAML (configs), Bash (scripts)
@@ -20,7 +23,7 @@ The pipeline has five stages. **Data**: dedup (MinHash / Datatrove), quality fil
 
 Ablations are the deliverable: SFT-only vs SFT+DPO vs SFT+GRPO on three task-specific benchmarks. Serving metrics: tokens/s at batch 1 / 8 / 32, EAGLE-3 acceptance rate, $/1M tokens. Safety eval: Llama Guard 4 pass rate. Model card: bias evaluations, reproducibility seeds, data licensing.
 
-## Architecture
+## Architecture | 架构
 
 ```
 raw data (HF datasets + internal)
@@ -66,7 +69,7 @@ model card (2026 MOF) + safety eval (Llama Guard 4)
 - Infrastructure: Kubernetes + NVIDIA device plugin, HPA on queue-wait metric
 - Observability: W&B for training, Langfuse for inference
 
-## Build It
+## Build It | 动手构建
 
 1. **Data pipeline.** Run Datatrove dedup on raw corpus. Apply Nemotron-CC-style quality classifier. Presidio scrubs PII. Write train/val splits with explicit seed.
 
@@ -86,7 +89,7 @@ model card (2026 MOF) + safety eval (Llama Guard 4)
 
 9. **Model card.** MOF 2026 template: data, training, eval, safety, license, reproducibility section with YAMLs and commit SHAs.
 
-## Use It
+## Use It | 使用方法
 
 ```
 $ ./pipeline.sh config/llama3.3-8b-domainX.yaml
@@ -99,7 +102,7 @@ $ ./pipeline.sh config/llama3.3-8b-domainX.yaml
 [card]    model-card.md generated under 2026 MOF
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-finetuning-pipeline.md` describes the deliverable. A single command runs data through SFT through DPO through quant through serve through eval, and emits a model card + the served endpoint.
 
@@ -112,7 +115,7 @@ $ ./pipeline.sh config/llama3.3-8b-domainX.yaml
 | 15 | Model card + safety eval | 2026 MOF completeness + Llama Guard 4 pass rate |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Run SFT-only vs SFT+DPO vs SFT+GRPO on the same task-specific benchmark. Report which preference method wins and by how much.
 
@@ -124,7 +127,7 @@ $ ./pipeline.sh config/llama3.3-8b-domainX.yaml
 
 5. Add LoRA SFT as an alternative to full fine-tune. Measure the quality gap at 10x lower memory.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -136,7 +139,7 @@ $ ./pipeline.sh config/llama3.3-8b-domainX.yaml
 | Contamination check | "Split hygiene" | MinHash-based detection of test-set leakage into training |
 | Acceptance rate | "EAGLE / MTP metric" | Fraction of drafted tokens the target model accepts |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Axolotl documentation](https://axolotl-ai-cloud.github.io/axolotl/) — the reference SFT / DPO trainer
 - [TRL documentation](https://huggingface.co/docs/trl) — DPO and GRPO reference implementations

@@ -13,6 +13,9 @@ The simulator also runs a V-STaR-style inference selector: sample N rationales,
 pick the verifier's top choice. The verifier is itself trained on the same
 data, so it can rank confidently wrong rationales above honestly uncertain
 ones on OOD.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -23,6 +26,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Trace:
+    """Trace"""
     strategy: str  # "sound", "shortcut", "random"
     answer_correct: bool
     rationale_sound: bool
@@ -30,6 +34,7 @@ class Trace:
 
 @dataclass
 class Model:
+    """Model"""
     prob_sound: float
     prob_shortcut: float
     # implied prob_random = 1 - sound - shortcut
@@ -37,13 +42,13 @@ class Model:
     def sample(self, on_ood: bool) -> Trace:
         r = random.random()
         if r < self.prob_sound:
-            return Trace("sound", True, True)
+            return Trace("sound", True, True)  # 返回结果
         elif r < self.prob_sound + self.prob_shortcut:
             ok = random.random() < (0.05 if on_ood else 0.40)
-            return Trace("shortcut", ok, False)
+            return Trace("shortcut", ok, False)  # 返回结果
         else:
             ok = random.random() < 0.10
-            return Trace("random", ok, False)
+            return Trace("random", ok, False)  # 返回结果
 
 
 def evaluate(model: Model, n: int, on_ood: bool) -> tuple[float, float]:
@@ -56,7 +61,7 @@ def evaluate(model: Model, n: int, on_ood: bool) -> tuple[float, float]:
             correct += 1
         if t.rationale_sound:
             sound += 1
-    return correct / n, sound / n
+    return correct / n, sound / n  # 返回结果
 
 
 def star_round(model: Model, n_samples: int = 1000) -> Model:
@@ -68,7 +73,7 @@ def star_round(model: Model, n_samples: int = 1000) -> Model:
             kept.append(t)
 
     if not kept:
-        return model
+        return model  # 返回结果
 
     sound_kept = sum(1 for k in kept if k.strategy == "sound")
     shortcut_kept = sum(1 for k in kept if k.strategy == "shortcut")
@@ -86,19 +91,21 @@ def star_round(model: Model, n_samples: int = 1000) -> Model:
     if s > 1.0:
         new_sound /= s
         new_short /= s
-    return Model(new_sound, new_short)
+    return Model(new_sound, new_short)  # 返回结果
 
 
 def run_star(rounds: int, initial: Model) -> list[Model]:
+    """run_star"""
     models = [initial]
     m = initial
     for _ in range(rounds):
         m = star_round(m)
         models.append(m)
-    return models
+    return models  # 返回结果
 
 
 def vstar_infer(model: Model, samples_per_problem: int, n_problems: int,
+    """vstar_infer"""
                 on_ood: bool) -> float:
     """V-STaR-style best-of-N: pick the trace we'd believe. We model the
     verifier as a confidence score that is itself biased by sound vs
@@ -123,10 +130,11 @@ def vstar_infer(model: Model, samples_per_problem: int, n_problems: int,
                 best = t
         if best and best.answer_correct:
             correct += 1
-    return correct / n_problems
+    return correct / n_problems  # 返回结果
 
 
 def report_round(label: str, models: list[Model]) -> None:
+    """report_round"""
     print(f"\n{label}")
     print("-" * 70)
     print(f"  {'round':>5}  {'p(sound)':>10}  {'p(shortcut)':>12}  "
@@ -139,6 +147,7 @@ def report_round(label: str, models: list[Model]) -> None:
 
 
 def vstar_report(model: Model) -> None:
+    """vstar_report"""
     print("\nV-STaR best-of-N inference")
     print("-" * 70)
     for n in (1, 4, 16):
@@ -149,6 +158,7 @@ def vstar_report(model: Model) -> None:
 
 
 def main() -> None:
+    """main"""
     random.seed(42)
     print("=" * 70)
     print("STaR, V-STaR, QUIET-STaR (Phase 15, Lesson 2)")
@@ -176,4 +186,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

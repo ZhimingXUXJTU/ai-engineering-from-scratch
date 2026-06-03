@@ -1,3 +1,7 @@
+"""
+幂迭代法实现 SVD，截断 SVD 用于图像压缩和推荐系统。
+AI 对应: 推荐系统的协同过滤、NLP 中的 LSA 主题分析、图像压缩都依赖 SVD。
+"""
 import numpy as np
 
 

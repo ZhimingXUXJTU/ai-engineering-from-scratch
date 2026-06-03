@@ -1,6 +1,8 @@
-# GloVe, FastText, and Subword Embeddings
+# GloVe, FastText, and Subword Embeddings | GloVe、FastText 与子词嵌入
 
 > Word2Vec trained one embedding per word. GloVe factorized the co-occurrence matrix. FastText embedded the pieces. BPE bridged to transformers.
+
+> **【中文解读】** GloVe 利用全局共现统计，FastText 处理子词解决 OOV 问题。
 
 **Type:** Build
 **Languages:** Python

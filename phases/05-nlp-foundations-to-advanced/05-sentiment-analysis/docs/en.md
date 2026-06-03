@@ -1,6 +1,8 @@
-# Sentiment Analysis
+# Sentiment Analysis | 情感分析
 
 > The canonical NLP task. Most of what you need to know about classical text classification shows up here.
+
+> **【中文解读】** 判断文本的情感倾向。是 NLP 最经典的分类任务之一。
 
 **Type:** Build
 **Languages:** Python

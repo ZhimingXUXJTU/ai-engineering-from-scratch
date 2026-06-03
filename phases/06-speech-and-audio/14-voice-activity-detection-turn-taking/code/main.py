@@ -1,3 +1,8 @@
+"""
+语音活动检测与轮次切换 (Voice Activity Detection & Turn-Taking)
+核心概念：三级级联 VAD + 轮次检测状态机
+AI 对应：语音助手必须准确判断用户"在说话"和"说完了"
+"""
 """VAD cascade + turn-detection state machine.
 
 Three-tier cascade: energy gate → (pretend) Silero → turn-detector state machine.

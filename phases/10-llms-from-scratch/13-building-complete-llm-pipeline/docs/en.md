@@ -1,6 +1,10 @@
-# Building a Complete LLM Pipeline
+# Building a Complete LLM Pipeline | 构建完整的大模型管线
 
 > Everything from Lessons 01 to 12 is one stage of one pipeline. This lesson is the scaffold that turns those stages into a single end-to-end run: tokenize, pre-train, scale, SFT, align, evaluate, quantize, serve. You will not train a 70B model on a laptop. You will produce the orchestration layer, the manifest, the eval gate, and the rollback plan that a 2026 frontier team uses to decide what gets shipped. This is the capstone.
+
+> **【中文解读】** 第 01-12 课是一条管线的各个阶段。本课将它们串联为端到端运行：分词→预训练→扩展→SFT→对齐→评估→量化→部署。你不会在笔记本上训练 70B 模型，但你会产出 2026 年前沿团队用来决定发布什么的编排层。
+
+> **【拓展：端到端管线→生产实践】** 真实的大模型生产管线还包含：数据版本管理、实验跟踪 (W&B)、模型注册、A/B 测试、回滚计划。这是 MLOps 在大模型时代的延伸。
 
 **Type:** Build
 **Languages:** Python (stdlib)

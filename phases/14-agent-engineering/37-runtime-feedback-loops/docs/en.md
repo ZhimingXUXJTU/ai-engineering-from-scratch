@@ -1,4 +1,4 @@
-# Runtime Feedback Loops
+# Runtime Feedback Loops | 反馈 运行时 循环
 
 > Agents that do not see real command output guess. A feedback runner captures stdout, stderr, exit code, and timing into a structured record the next turn can read. Then the agent reacts to facts instead of to its own prediction of facts.
 
@@ -7,20 +7,23 @@
 **Prerequisites:** Phase 14 · 32 (Minimal Workbench), Phase 14 · 35 (Init Script)
 **Time:** ~50 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Distinguish runtime feedback from observability telemetry.
 - Build a feedback runner that wraps shell commands and persists structured records.
 - Truncate large outputs deterministically so the loop stays within token budget.
 - Refuse to advance the loop when feedback is missing.
 
-## The Problem
+## The Problem | 问题
 
 The agent says "running tests now." The next message says "all tests pass." The reality is that no test ran. The agent imagined the output, or it ran the command and never read the result, or it read the result and silently truncated the failure line.
 
 A feedback runner removes that gap. Every command goes through the runner. Every record carries the command, the captured stdout and stderr, the exit code, the wall-clock duration, and a one-line agent note. The agent reads the record at the next turn. The verification gate reads the records at the end of the task.
 
-## The Concept
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
+## The Concept | 概念
 
 ```mermaid
 flowchart LR
@@ -31,6 +34,9 @@ flowchart LR
   Record --> Agent
   Record --> Gate[Verification Gate]
 ```
+
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
 
 ### What goes in a feedback record
 
@@ -56,7 +62,7 @@ Telemetry (Phase 14 · 23, OTel GenAI conventions) is for human operators review
 
 If the runner errors before capturing exit, the record carries `exit_code: null` and `error: <reason>`. The agent loop must refuse to claim success on a `null` exit. No exit, no progress.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements:
 
@@ -82,7 +88,7 @@ Three patterns harden the runner enough to ship.
 
 **Parent-command id for retry chains.** Every record gets `command_id`; retries carry `parent_command_id` pointing at the previous attempt. The reviewer's "failed attempts" list (Phase 14 · 40) and the verification gate's audit both follow the chain. Without this link, retries look like independent successes and the audit hides the failure history.
 
-## Use It
+## Use It | 使用方法
 
 Production patterns:
 
@@ -92,29 +98,34 @@ Production patterns:
 
 The runner is a thin wrapper that survives every framework migration because it owns the shape of the record.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-feedback-runner.md` generates a project-specific `run_with_feedback.py` with the right truncation budget, a JSONL writer wired to the workbench, and a loader the agent reads at every turn.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a `cwd` field per record so the same command run from different directories is distinguishable.
+   *思考并实践此练习*
 2. Add a `redaction` step that strips lines matching `^Bearer ` or `password=`. Test on a fixture record.
+   *思考并实践此练习*
 3. Cap total `feedback_record.jsonl` size at 1 MB by rotating to `.1`, `.2` files. Defend the rotation policy.
+   *思考并实践此练习*
 4. Add a `parent_command_id` so retry chains are visible: which command produced the input that the next command consumed.
+   *思考并实践此练习*
 5. Pipe the JSONL into a tiny TUI that highlights the latest non-zero exit. Eight key features the TUI must show to be useful in a review.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Feedback record | "Run log" | Structured JSONL entry with command, output, exit, duration |
-| Tail truncation | "Trim the log" | Deterministic head+tail capture so records fit in token budget |
-| Refuse-on-null | "Block on missing data" | The loop must not advance when `exit_code` is null |
-| Agent note | "Expectation tag" | The one-line prediction the agent writes before reading the result |
-| Telemetry split | "Two log files" | Feedback for the next turn, telemetry for the operator |
+|------|----------------|------------------------|---|
+| Feedback record | "Run log" | Structured JSONL entry with command, output, exit, duration |  |
+| Tail truncation | "Trim the log" | Deterministic head+tail capture so records fit in token budget |  |
+| Refuse-on-null | "Block on missing data" | The loop must not advance when `exit_code` is null |  |
+| Agent note | "Expectation tag" | The one-line prediction the agent writes before reading the result |  |
+| Telemetry split | "Two log files" | Feedback for the next turn, telemetry for the operator |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/)
 - [Anthropic, Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)

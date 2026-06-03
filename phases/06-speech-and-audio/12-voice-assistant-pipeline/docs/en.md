@@ -1,6 +1,8 @@
-# Build a Voice Assistant Pipeline — The Phase 6 Capstone
+# Build a Voice Assistant Pipeline — The Phase 6 Capstone | 构建语音助手流水线 — 阶段 6 毕业项目
 
 > Everything from lessons 01-11, stitched together. Build a voice assistant that listens, reasons, and talks back. In 2026 that is a solved engineering problem, not a research problem — but the integration details decide whether it ships.
+
+> **【中文解读】** 把 01-11 课的所有内容串起来，构建一个能听、能想、能说的语音助手。2026 年这是一个已解决的工程问题（而非研究问题）——但集成细节决定产品能否上线。
 
 **Type:** Build
 **Languages:** Python

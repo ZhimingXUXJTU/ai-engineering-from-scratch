@@ -1,3 +1,19 @@
+"""
+PyTorch 入门 (Introduction to PyTorch)
+
+核心概念：
+  - torch.Tensor：多维数组，支持 GPU 加速和自动微分
+  - nn.Module：神经网络模块的基类（自定义模型）
+  - autograd：自动微分引擎（你手写的 Value 类的工业版）
+  - 训练循环：zero_grad → forward → loss → backward → step
+
+与前面课程的对应：
+  - 你的 Value 类 → torch.Tensor(requires_grad=True)
+  - 你的 Layer → nn.Linear
+  - 你的 sigmoid → nn.Sigmoid / torch.sigmoid
+  - 你的 backward() → loss.backward()
+  - 你的 SGD/Adam → torch.optim.SGD / torch.optim.AdamW
+"""
 import torch
 import torch.nn as nn
 import struct

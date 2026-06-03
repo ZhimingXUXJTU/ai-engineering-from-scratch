@@ -1,4 +1,4 @@
-# Graph Theory for Machine Learning
+# Graph Theory for Machine Learning | 图论与机器学习
 
 > Graphs are the data structure of relationships. If your data has connections, you need graph theory.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1, Lessons 01-03 (linear algebra, matrices)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build a graph class with adjacency matrix/list representations and implement BFS and DFS traversals
 - Compute the graph Laplacian and use its eigenvalues to detect connected components and cluster nodes
 - Implement one round of GNN-style message passing as a normalized adjacency matrix multiplication
 - Apply spectral clustering to partition a graph using the Fiedler vector
+
+
+> **【中文解读】**
+> 社交网络、分子结构、知识图谱都是图。GNN 的消息传递本质上是邻接矩阵乘法。谱聚类用图拉普拉斯矩阵的特征向量聚类，比 K-Means 更适合非球形数据。
 
 ## The Problem
 

@@ -8,6 +8,9 @@ single shard is small enough to load on demand. Resume continues mid
 epoch with deterministic loss within tolerance.
 
 Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -37,6 +40,7 @@ SHARD_SCHEMA = "ckpt-shard.v1"
 
 @dataclass
 class TrainState:
+    """TrainState"""
     step: int
     epoch: int
     batch_in_epoch: int
@@ -44,6 +48,7 @@ class TrainState:
 
 
 def seed_everything(seed: int) -> None:
+    """seed_everything"""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -52,7 +57,8 @@ def seed_everything(seed: int) -> None:
 
 
 def make_model(in_dim: int, hidden: int, out_dim: int) -> nn.Module:
-    return nn.Sequential(
+    """make_model"""
+    return nn.Sequential(  # 返回结果
         nn.Linear(in_dim, hidden),
         nn.GELU(),
         nn.Linear(hidden, hidden),
@@ -62,12 +68,14 @@ def make_model(in_dim: int, hidden: int, out_dim: int) -> nn.Module:
 
 
 def make_optimizer_and_scheduler(model: nn.Module, lr: float, total_steps: int):
+    """make_optimizer_and_scheduler"""
     opt = torch.optim.AdamW(model.parameters(), lr=lr)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=total_steps)
-    return opt, sched
+    return opt, sched  # 返回结果
 
 
 def synthetic_loader(batch_size: int, num_batches: int, in_dim: int, out_dim: int, gen: torch.Generator):
+    """synthetic_loader"""
     for _ in range(num_batches):
         x = torch.randn(batch_size, in_dim, generator=gen)
         y = torch.randint(low=0, high=out_dim, size=(batch_size,), generator=gen)
@@ -75,6 +83,7 @@ def synthetic_loader(batch_size: int, num_batches: int, in_dim: int, out_dim: in
 
 
 def capture_rng_state() -> Dict[str, Any]:
+    """capture_rng_state"""
     state: Dict[str, Any] = {
         "python": random.getstate(),
         "numpy": np.random.get_state(),
@@ -82,10 +91,11 @@ def capture_rng_state() -> Dict[str, Any]:
     }
     if torch.cuda.is_available():
         state["torch_cuda"] = [s.tolist() for s in torch.cuda.get_rng_state_all()]
-    return state
+    return state  # 返回结果
 
 
 def restore_rng_state(state: Dict[str, Any]) -> None:
+    """restore_rng_state"""
     py = state.get("python")
     if py is not None:
         random.setstate(tuple_from_nested(py))
@@ -101,12 +111,14 @@ def restore_rng_state(state: Dict[str, Any]) -> None:
 
 
 def tuple_from_nested(obj):
+    """tuple_from_nested"""
     if isinstance(obj, list):
-        return tuple(tuple_from_nested(x) for x in obj)
-    return obj
+        return tuple(tuple_from_nested(x) for x in obj)  # 返回结果
+    return obj  # 返回结果
 
 
 def atomic_save(payload: Dict[str, Any], path: Path) -> Path:
+    """atomic_save"""
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = tempfile.NamedTemporaryFile(
         delete=False,
@@ -125,10 +137,11 @@ def atomic_save(payload: Dict[str, Any], path: Path) -> Path:
                 tmp_path.unlink()
             except FileNotFoundError:
                 pass
-    return path
+    return path  # 返回结果
 
 
 def atomic_write_json(payload: Dict[str, Any], path: Path) -> Path:
+    """atomic_write_json"""
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = tempfile.NamedTemporaryFile(
         mode="w",
@@ -150,15 +163,16 @@ def atomic_write_json(payload: Dict[str, Any], path: Path) -> Path:
                 tmp_path.unlink()
             except FileNotFoundError:
                 pass
-    return path
+    return path  # 返回结果
 
 
 def file_sha256(path: Path) -> str:
+    """file_sha256"""
     h = hashlib.sha256()
     with path.open("rb") as f:
         for chunk in iter(lambda: f.read(1 << 16), b""):
             h.update(chunk)
-    return h.hexdigest()
+    return h.hexdigest()  # 返回结果
 
 
 def save_checkpoint(
@@ -188,7 +202,7 @@ def save_checkpoint(
     if extras:
         payload["extras"] = extras
     atomic_save(payload, out_path)
-    return payload
+    return payload  # 返回结果
 
 
 def load_checkpoint(
@@ -204,7 +218,7 @@ def load_checkpoint(
     scheduler.load_state_dict(payload["scheduler"])
     restore_rng_state(payload["rng"])
     s = payload["state"]
-    return TrainState(
+    return TrainState(  # 返回结果
         step=int(s["step"]),
         epoch=int(s["epoch"]),
         batch_in_epoch=int(s["batch_in_epoch"]),
@@ -225,7 +239,7 @@ def shard_keys_by_prefix(state_dict: Dict[str, torch.Tensor], num_shards: int) -
     shards: Dict[int, List[str]] = {i: [] for i in range(num_shards)}
     for i, k in enumerate(keys):
         shards[i % num_shards].append(k)
-    return shards
+    return shards  # 返回结果
 
 
 def save_sharded_checkpoint(
@@ -279,7 +293,7 @@ def save_sharded_checkpoint(
         "step": state.step,
     }
     atomic_write_json(index_payload, out_dir / "index.json")
-    return meta_payload
+    return meta_payload  # 返回结果
 
 
 def load_sharded_checkpoint(
@@ -307,7 +321,7 @@ def load_sharded_checkpoint(
     scheduler.load_state_dict(meta["scheduler"])
     restore_rng_state(meta["rng"])
     s = meta["state"]
-    return TrainState(
+    return TrainState(  # 返回结果
         step=int(s["step"]),
         epoch=int(s["epoch"]),
         batch_in_epoch=int(s["batch_in_epoch"]),
@@ -328,7 +342,7 @@ def step_one(
     loss.backward()
     optimizer.step()
     scheduler.step()
-    return float(loss.detach().item())
+    return float(loss.detach().item())  # 返回结果
 
 
 def train_until(
@@ -360,7 +374,7 @@ def train_until(
         if state.batch_in_epoch >= batches_per_epoch:
             state.epoch += 1
             state.batch_in_epoch = 0
-    return state
+    return state  # 返回结果
 
 
 def run_resume_demo(
@@ -428,7 +442,7 @@ def run_resume_demo(
         max_diff = 0.0
     else:
         max_diff = max(abs(a - b) for a, b in zip(suffix_full, suffix_resumed, strict=True))
-    return {
+    return {  # 返回结果
         "interrupt_at": interrupt_at,
         "total_steps": total_steps,
         "max_loss_diff_after_resume": max_diff,
@@ -439,16 +453,18 @@ def run_resume_demo(
 
 
 def parse_args() -> argparse.Namespace:
+    """parse_args"""
     p = argparse.ArgumentParser()
     p.add_argument("--total-steps", type=int, default=24)
     p.add_argument("--interrupt-at", type=int, default=10)
     p.add_argument("--sharded", action="store_true")
     p.add_argument("--num-shards", type=int, default=3)
     p.add_argument("--seed", type=int, default=11)
-    return p.parse_args()
+    return p.parse_args()  # 返回结果
 
 
 def main() -> int:
+    """main"""
     args = parse_args()
     with tempfile.TemporaryDirectory(prefix="ckpt-demo-") as scratch:
         scratch_dir = Path(scratch)
@@ -491,7 +507,7 @@ def main() -> int:
     }
     atomic_write_json(summary, OUT_DIR / "resume-demo.json")
     print(f"wrote {OUT_DIR / 'resume-demo.json'}")
-    return 0
+    return 0  # 返回结果
 
 
 if __name__ == "__main__":

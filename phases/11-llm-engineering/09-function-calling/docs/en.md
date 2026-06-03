@@ -1,6 +1,10 @@
-# Function Calling & Tool Use
+# Function Calling & Tool Use | 函数调用与工具使用
 
 > LLMs cannot do anything. They generate text. That is the entire capability. They cannot check the weather, query a database, send an email, run code, or read a file. Every "AI agent" you have ever seen is an LLM generating JSON that says which function to call -- and then your code actually calling it. The model is the brain. Tools are the hands. Function calling is the nervous system connecting them.
+
+> **【中文解读】** LLM 只能生成文本。函数调用让模型输出结构化 JSON 指定要调用的函数，由代码实际执行。模型是大脑，工具是双手，函数调用是连接它们的神经系统。
+
+> **【拓展：Function Calling→MCP与Agent】** Function Calling 是 AI Agent 的核心机制，MCP 协议在此基础上标准化了工具描述和调用流程，是 Claude 生态的基础协议。
 
 **Type:** Build
 **Languages:** Python

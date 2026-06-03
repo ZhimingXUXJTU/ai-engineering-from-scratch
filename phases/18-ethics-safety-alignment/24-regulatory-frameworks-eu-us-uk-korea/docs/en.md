@@ -1,24 +1,27 @@
-# Regulatory Frameworks — EU, US, UK, Korea
+# Regulatory Frameworks — EU, US, UK, Korea | 框架 监管 韩国 欧盟 美国 英国
 
 > Four primary regulatory regimes define the 2026 AI governance landscape. EU AI Act (in force 1 August 2024) — prohibited practices and AI literacy from 2 February 2025; GPAI obligations from 2 August 2025; full applicability and Article 50 transparency 2 August 2026; legacy GPAI and embedded high-risk systems 2 August 2027; penalties up to 15M EUR or 3% of global turnover. GPAI Code of Practice (10 July 2025): three chapters — Transparency, Copyright, Safety and Security — 12 commitments; enforcement begins August 2026. UK AISI -> AI Security Institute (February 2025): rename signals narrower scope. US AISI -> CAISI (June 2025): Center for AI Standards and Innovation under NIST; shift toward pro-growth posture. Korean AI Framework Act (passed December 2024, effective January 2026): Article 12 establishes AISI under MSIT; mandates local representatives for foreign AI companies, risk assessment, safety measures for high-impact and generative AI.
+
+> **【中文解读】** 本节介绍了监管框架——欧盟 AI 法案、美国、英国、韩国的 AI 监管政策对比。
+
 
 **Type:** Learn
 **Languages:** none
 **Prerequisites:** Phase 18 · 18 (frontier frameworks), Phase 18 · 27 (data governance)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Describe the EU AI Act risk tiers (prohibited, high-risk, general-purpose, limited-risk) and the August 2025 / August 2026 / August 2027 timeline.
 - Describe the three chapters of the GPAI Code of Practice and which providers each binds.
 - Describe the 2025 rebrands: UK AISI -> AI Security Institute; US AISI -> CAISI; what each rebrand implies about policy direction.
 - State the core provision of Korea's AI Framework Act.
 
-## The Problem
+## The Problem | 问题
 
 Lab frameworks (Lesson 18) are voluntary. Regulatory frameworks are compulsory. The 2024-2026 period saw the first wave of comprehensive AI regulation enter force. Deployers must map technical controls to regulatory obligations; the mapping differs by jurisdiction.
 
-## The Concept
+## The Concept | 概念
 
 ### EU AI Act
 
@@ -83,15 +86,15 @@ Competing regulatory philosophies. Deployers in multiple jurisdictions have to c
 
 Lesson 18 is lab-voluntary governance; Lesson 24 is regulatory; Lesson 25 is an emerging class of CVEs for AI systems; Lessons 26-27 cover documentation (cards) and training-data governance.
 
-## Use It
+## Use It | 使用方法
 
 No code. Read the EU AI Act primary sources: the regulation text, the GPAI Code of Practice, the UK AISI Inspect framework. Map your deployment to the applicable obligations for each jurisdiction.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-regulatory-map.md`. Given a deployment description, it maps the applicable jurisdictions, the tier classifications in each, the per-jurisdiction obligations, and the deadline structure.
 
-## Exercises
+## Exercises | 练习题
 
 1. Read the EU AI Act (regulation 2024/1689) and the GPAI Code of Practice (10 July 2025). Identify three obligations that apply to every GPAI provider and three that apply only to systemic-risk GPAI.
 
@@ -103,7 +106,7 @@ This lesson produces `outputs/skill-regulatory-map.md`. Given a deployment descr
 
 5. Korea's AI Framework Act requires local representatives for foreign providers. Describe the operational implications for a Bay Area company serving Korean users.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -115,7 +118,7 @@ This lesson produces `outputs/skill-regulatory-map.md`. Given a deployment descr
 | Korean AI Framework Act | "MSIT horizontal regulation" | First Asian comprehensive AI law; effective Jan 2026 |
 | Systemic-risk GPAI | "the 1e25 FLOP threshold" | Additional obligations tier; estimated 5-15 companies bound |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [EU AI Act text (Regulation 2024/1689)](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai) — the regulation and timeline
 - [GPAI Code of Practice (10 July 2025)](https://digital-strategy.ec.europa.eu/en/library/final-version-general-purpose-ai-code-practice) — three-chapter code

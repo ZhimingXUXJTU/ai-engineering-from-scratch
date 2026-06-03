@@ -6,6 +6,9 @@ triggered by specific items (personal-information flag -> CPRA;
 copyright-protected flag -> EU TDM opt-out respect).
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -44,6 +47,7 @@ TOY_EXAMPLE = {
 
 
 def flag_followups(summary: dict) -> list[str]:
+    """flag_followups"""
     flags = []
     if summary["contains_personal_information (Y/N, per Cal. Civ. Code §1798.140(v))"] == "Y":
         flags.append("triggers CPRA obligations (California Privacy Rights Act)")
@@ -55,10 +59,11 @@ def flag_followups(summary: dict) -> list[str]:
         flags.append("may still trigger obligations on the base model used for generation")
     if summary["purchased_or_licensed (Y/N)"] == "Y":
         flags.append("retain license terms and provenance records for audit")
-    return flags
+    return flags  # 返回结果
 
 
 def render_markdown(summary: dict) -> str:
+    """render_markdown"""
     lines = ["# Dataset Summary (AB 2013 Section 3111(a) 12-item)", ""]
     for field in AB_2013_FIELDS:
         lines.append(f"- **{field}**: {summary.get(field, '(missing)')}")
@@ -68,10 +73,11 @@ def render_markdown(summary: dict) -> str:
         lines.append("## Follow-up obligations triggered")
         for f in followups:
             lines.append(f"- {f}")
-    return "\n".join(lines)
+    return "\n".join(lines)  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 74)
     print("CALIFORNIA AB 2013 SECTION 3111(a) 12-ITEM GENERATOR (Phase 18, L27)")
     print("=" * 74)
@@ -89,4 +95,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

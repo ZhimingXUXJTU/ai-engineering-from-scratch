@@ -4,6 +4,9 @@ Input moderation + output moderation + custom domain rules.
 Illustrates the default 2026 production pattern.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -38,39 +41,42 @@ def openai_moderation(text: str) -> dict:
         for t in triggers:
             if t in low:
                 scores[cat] = max(scores[cat], 0.9)
-    return scores
+    return scores  # 返回结果
 
 
 def input_moderator(prompt: str, threshold: float = 0.5) -> tuple[bool, dict]:
+    """input_moderator"""
     scores = openai_moderation(prompt)
     flagged = any(v >= threshold for v in scores.values())
-    return flagged, scores
+    return flagged, scores  # 返回结果
 
 
 def output_moderator(output: str, threshold: float = 0.5) -> tuple[bool, dict]:
+    """output_moderator"""
     scores = openai_moderation(output)
     flagged = any(v >= threshold for v in scores.values())
-    return flagged, scores
+    return flagged, scores  # 返回结果
 
 
 def custom_domain_rules(prompt: str) -> tuple[bool, str]:
     """Example: financial-advice disclaimer rule."""
     low = prompt.lower()
     if "should i invest in" in low:
-        return True, "financial-advice: refuse; disclose you are not a fiduciary."
+        return True, "financial-advice: refuse; disclose you are not a fiduciary."  # 返回结果
     if "diagnose my" in low:
-        return True, "medical-advice: refuse; direct to licensed professional."
-    return False, ""
+        return True, "medical-advice: refuse; direct to licensed professional."  # 返回结果
+    return False, ""  # 返回结果
 
 
 def model_respond(prompt: str) -> str:
     """Mock model response."""
     if "bomb" in prompt.lower():
-        return "I must refuse."
-    return f"Answering: {prompt[:40]}..."
+        return "I must refuse."  # 返回结果
+    return f"Answering: {prompt[:40]}..."  # 返回结果
 
 
 def run(prompt: str) -> None:
+    """run"""
     print(f"\n>>> user: {prompt!r}")
     # layer 1: input moderation
     flagged_in, in_scores = input_moderator(prompt)
@@ -78,13 +84,13 @@ def run(prompt: str) -> None:
     if flagged_in:
         print(f"    [INPUT FLAGGED] categories={active_in}")
         print("    response: refusal")
-        return
+        return  # 返回结果
     # layer 2 (pre): custom domain rules
     custom_flagged, custom_msg = custom_domain_rules(prompt)
     if custom_flagged:
         print(f"    [CUSTOM FLAGGED] rule='{custom_msg}'")
         print(f"    response: {custom_msg}")
-        return
+        return  # 返回结果
     # layer 3: model generates
     output = model_respond(prompt)
     # layer 4: output moderation
@@ -93,11 +99,12 @@ def run(prompt: str) -> None:
     if flagged_out:
         print(f"    [OUTPUT FLAGGED] categories={active_out}")
         print("    response: refusal")
-        return
+        return  # 返回结果
     print(f"    response: {output}")
 
 
 def main() -> None:
+    """main"""
     print("=" * 74)
     print("THREE-LAYER MODERATION HARNESS (Phase 18, Lesson 29)")
     print("=" * 74)
@@ -123,4 +130,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

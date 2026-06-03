@@ -1,6 +1,9 @@
-# Role Specialization — Planner, Critic, Executor, Verifier
+# Role Specialization — Planner, Critic, Executor, Verifier | 专业化 批评者 计划 角色
 
 > The most common multi-agent decomposition in 2026: one agent plans, one executes, one critiques or verifies. MetaGPT (arXiv:2308.00352) formalizes this as SOPs encoded into role prompts — Product Manager, Architect, Project Manager, Engineer, QA Engineer — following `Code = SOP(Team)`. ChatDev (arXiv:2307.07924) chains designer, programmer, reviewer, tester through a "chat chain" with "communicative dehallucination" (agents explicitly request missing details). The verifier is load-bearing: Cemri et al. (MAST, arXiv:2503.13657) show every multi-agent failure can be traced to missing or broken verification. PwC reported 7× accuracy gain (10% → 70%) from structured validation loops in CrewAI.
+
+> **【中文解读】** 本节介绍了角色专业化——为每个 Agent 分配明确的角色和专长，提升整体团队效率。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)
@@ -69,7 +72,7 @@ Every role in your system is an LLM and every role's output is "looks good to me
 - **AutoGen** — role-specific ConversableAgents with one-word names in a GroupChat.
 - **OpenAI Agents SDK** — handoff tools between role-specialized Agents.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements a 4-role pipeline building a simple Python function:
 
@@ -86,11 +89,11 @@ Run:
 python3 code/main.py
 ```
 
-## Use It
+## Use It | 使用方法
 
 `outputs/skill-role-designer.md` takes a task and produces the role roster (3-5 roles), the input/output schema per role, and the verifier check. Use this before wiring agents into a framework.
 
-## Ship It
+## Ship It | 部署上线
 
 Checklist:
 
@@ -100,7 +103,7 @@ Checklist:
 - **Critic/verifier ordering.** Run critic first (cheap, catches design issues), verifier second (slow, catches bugs).
 - **Loop budget.** Max 2 critic-executor revision rounds before escalating to human.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py` and observe how the verifier catches the bug the critic missed. Add a static-analysis check (count occurrences of `return`) as an additional verifier. What does it catch that the runtime test misses?
 2. Add a 5th role: "requirements analyst" that translates user wish into planner-ready spec. What communicative dehallucination requests should flow up to it?
@@ -108,7 +111,7 @@ Checklist:
 4. Read ChatDev's chat-chain diagram (arXiv:2307.07924 Figure 3). Identify where communicative dehallucination breaks a loop that would otherwise be infinite.
 5. PwC's 7× accuracy gain came from verification loops. Hypothesize three tasks where adding a verifier would not help — where deterministic checking of correctness is impossible or prohibitively expensive.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
@@ -121,7 +124,7 @@ Checklist:
 | Revision loop | "Critic sends it back" | Critic rejection triggers executor re-run with feedback. Needs a budget. |
 | All-LLM anti-pattern | "Looks good to me" | Every role is an LLM, no deterministic check. Classic MAST failure. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Hong et al. — MetaGPT: Meta Programming for Multi-Agent Collaboration](https://arxiv.org/abs/2308.00352) — the SOP-as-role-prompt reference paper
 - [Qian et al. — Communicative Agents for Software Development (ChatDev)](https://arxiv.org/abs/2307.07924) — chat chain + communicative dehallucination

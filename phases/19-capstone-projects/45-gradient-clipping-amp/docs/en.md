@@ -1,20 +1,23 @@
-# Gradient Clipping and Mixed Precision
+# Gradient Clipping and Mixed Precision | 梯度 裁剪 PR
 
 > The optimizer and schedule from the previous lesson assume gradients are sane. They usually are not. A single bad batch can spike the gradient norm by three orders of magnitude. Mixed-precision training amplifies this by introducing FP16 overflow on the loss side. This lesson builds the two safety belts that production training cannot ship without: gradient clipping to a configured global L2 norm, and a mixed-precision loop with autocast and GradScaler that detects NaN and Inf, skips the step cleanly, and logs the scaling factor for forensics.
+
+> **【中文解读】** 本节是综合项目——实现梯度裁剪和混合精度训练。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 30-37
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Compute the global L2 norm over all parameter gradients and clip in place when it exceeds a configured threshold.
 - Wrap a training step in autocast plus a GradScaler so FP16 forward and backward passes survive overflow.
 - Detect NaN and Inf in the loss or gradient, skip the optimizer step, and log the skip.
 - Report the GradScaler's scaling factor every step so a long sequence of skips is visible immediately.
 
-## The Problem
+## The Problem | 问题
 
 A training run that ran clean yesterday produces a loss curve that goes vertical at step 8,217. The culprit is a single batch whose gradient norm is 4,200, twenty times the previous peak. Without clipping the optimizer applies a step that resets every learning the model had done in the previous hour. With a global L2 clip at norm 1.0, the same batch contributes a unit-norm update; the loss stays on its trend line; the run survives.
 
@@ -22,7 +25,7 @@ Mixed-precision training pushes throughput by 2-3x by computing the forward pass
 
 The build problem is wiring the two correctly. Clip before unscale and the threshold is on scaled gradients; clip after unscale and the order of operations on the GradScaler matters. The right order is: `scaler.scale(loss).backward()`, then `scaler.unscale_(optimizer)`, then `clip_grad_norm_`, then `scaler.step(optimizer)`, then `scaler.update()`. Any other order produces a silently broken loop.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart TD
@@ -58,7 +61,7 @@ The detection happens in two places. First, the loss itself is checked with `tor
 
 The scaling factor is the GradScaler's internal state. Every step the lesson reads `scaler.get_scale()` and logs it next to the learning rate and gradient norm. A healthy run shows the scaling factor climbing in powers of two until it saturates near `2^17` or `2^18`. A misbehaving run shows the factor oscillating between high and low values, which is the signal that the model's gradients are sometimes in range and sometimes not. The diagnostic is invisible without logging.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements:
 
@@ -88,7 +91,7 @@ Four patterns elevate the loop to a production training step.
 
 **`scaler.update()` runs every step, even on skip.** On a clean step the scaler reads its no-inf counter, increments it, and possibly doubles the factor. On a skipped step the scaler halves the factor and resets the counter. Forgetting `update()` on the skip path is the bug that produces "the scaling factor never changed."
 
-## Use It
+## Use It | 使用方法
 
 Production patterns:
 
@@ -96,11 +99,11 @@ Production patterns:
 - **Loss check before backward.** `torch.isfinite(loss).all()` is one tensor reduction; the cost is negligible and the savings on a NaN loss are an entire training step. Always run it.
 - **`set_to_none=True` in `zero_grad`.** Sets gradients to `None` instead of zero, which lets the optimizer skip computation for unaffected parameter groups. The setting is a free throughput improvement and a slight bug-surface reduction.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-clip-amp.md` would, on a real project, describe which clip threshold and autocast device the training step uses, where the per-step CSV lives in version control, and what the production skip-rate alert threshold is. This lesson ships the engine.
 
-## Exercises
+## Exercises | 练习题
 
 1. Replace the synthetic Inf injection with a real loss spike (multiply one batch's target by 1e8) and verify the skip path triggers.
 2. Add a `--bf16` mode that switches autocast to BF16 instead of FP16. BF16 has a wider exponent range than FP16 and rarely needs loss scaling; verify the skip rate drops to zero on the same demo.
@@ -108,7 +111,7 @@ Production patterns:
 4. Add a rolling-window skip-rate computation and a CLI flag that fails the run if the rate exceeds a configured threshold for 100 consecutive steps.
 5. Wire the loop to write the canonical CSV (`step, lr, grad_l2_pre_clip, grad_l2_post_clip, loss, skipped, skip_reason, scaler_scale`) and confirm the file survives a Ctrl-C by flushing after every row.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -118,7 +121,7 @@ Production patterns:
 | Skip | "Bad step" | An optimizer step refused because the gradient or loss was non-finite; the scaler halves the factor |
 | Scaling factor | "Scaler state" | The GradScaler's current multiplier; doubles after clean stretches and halves on every skip |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Micikevicius et al., Mixed Precision Training (arXiv 1710.03740)](https://arxiv.org/abs/1710.03740) - the original loss-scaling proposal
 - [Pascanu, Mikolov, Bengio, On the difficulty of training recurrent neural networks (arXiv 1211.5063)](https://arxiv.org/abs/1211.5063) - the gradient-clipping reference paper

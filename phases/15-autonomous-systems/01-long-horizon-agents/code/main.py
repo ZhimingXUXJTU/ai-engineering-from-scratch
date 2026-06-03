@@ -7,6 +7,9 @@ a 70-step task.
 
 Pedagogical, not calibrated. The point is to hold the numbers in your head
 before trusting an agent to run unattended.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -17,6 +20,7 @@ from dataclasses import dataclass
 
 @dataclass
 class HorizonConfig:
+    """HorizonConfig"""
     baseline_hours: float
     baseline_month: int  # months since epoch (0 = now)
     doubling_months: float
@@ -25,33 +29,34 @@ class HorizonConfig:
 def horizon_at(cfg: HorizonConfig, months_from_now: int) -> float:
     """Project the 50% horizon at a given month offset."""
     delta = months_from_now - cfg.baseline_month
-    return cfg.baseline_hours * (2 ** (delta / cfg.doubling_months))
+    return cfg.baseline_hours * (2 ** (delta / cfg.doubling_months))  # 返回结果
 
 
 def months_to_cross(cfg: HorizonConfig, target_hours: float) -> float:
     """Months until horizon reaches target_hours."""
     ratio = target_hours / cfg.baseline_hours
-    return cfg.baseline_month + cfg.doubling_months * math.log2(ratio)
+    return cfg.baseline_month + cfg.doubling_months * math.log2(ratio)  # 返回结果
 
 
 def end_to_end_reliability(per_step: float, steps: int) -> float:
     """Probability that every step succeeds in sequence."""
-    return per_step ** steps
+    return per_step ** steps  # 返回结果
 
 
 def max_steps_for_target(per_step: float, target: float) -> int:
     """Largest N such that per_step**N >= target."""
     if per_step >= 1.0:
-        return 10**9
-    return math.floor(math.log(target) / math.log(per_step))
+        return 10**9  # 返回结果
+    return math.floor(math.log(target) / math.log(per_step))  # 返回结果
 
 
 def fmt_hours(h: float) -> str:
+    """fmt_hours"""
     if h < 1:
-        return f"{h * 60:.1f} min"
+        return f"{h * 60:.1f} min"  # 返回结果
     if h < 24:
-        return f"{h:.1f} hr"
-    return f"{h / 24:.1f} day"
+        return f"{h:.1f} hr"  # 返回结果
+    return f"{h / 24:.1f} day"  # 返回结果
 
 
 def horizon_projection() -> None:
@@ -142,6 +147,7 @@ def deploy_gap_note() -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("METR TIME HORIZONS AND COMPOUNDING RELIABILITY (Phase 15, Lesson 1)")
     print("=" * 70)
@@ -158,4 +164,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

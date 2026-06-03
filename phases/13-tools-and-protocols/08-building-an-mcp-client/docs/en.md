@@ -1,6 +1,10 @@
-# Building an MCP Client — Discovery, Invocation, Session Management
+# Building an MCP Client — Discovery, Invocation, Session Management | 构建 MCP 客户端：发现、调用与会话管理
 
 > Most MCP content ships server tutorials and waves a hand at the client. Client code is where the hard orchestration lives: process spawning, capability negotiation, tool list merging across multiple servers, sampling callbacks, reconnection, and namespace collision resolution. This lesson builds a multi-server client that lifts three different MCP servers into one flat tool namespace for the model.
+
+> **【中文解读】** 大多数 MCP 内容只教服务器端教程。客户端代码才是真正复杂的编排所在：进程生成、能力协商、多服务器工具列表合并、sampling 回调、重连和命名空间冲突解决。本课构建一个多服务器客户端，将三个不同的 MCP 服务器提升到一个扁平的工具命名空间中。
+
+> **【拓展：MCP 客户端→Agent 编排核心】** MCP 客户端是 Agent 宿主的核心。Claude Desktop、Cursor 等都实现了 MCP 客户端，同时加载多个 MCP 服务器（如文件系统、Postgres、GitHub），将工具列表合并后提供给模型。命名空间冲突解决（前缀 vs 拒绝）是实际部署中的关键设计决策。
 
 **Type:** Build
 **Languages:** Python (stdlib, multi-server MCP client)
@@ -26,6 +30,8 @@ A real agent host (Claude Desktop, Cursor, Goose, Gemini CLI) loads multiple MCP
 6. Reconnect on transport failure.
 
 Hand-rolling all of that is what separates "toy" from "serviceable". The official SDKs wrap this, but the mental model has to be yours.
+
+> **【中文解读】** 真正的 Agent 宿主同时加载多个 MCP 服务器。客户端的工作：(1) 生成每个服务器；(2) 独立握手；(3) 在每个服务器上调用 `tools/list` 并扁平化结果；(4) 当模型发出 `notes_search` 时，在合并命名空间中查找并路由到正确服务器；(5) 处理任意服务器的通知而不阻塞；(6) 传输失败时重连。
 
 ## The Concept
 
@@ -121,18 +127,18 @@ This lesson produces `outputs/skill-mcp-client-harness.md`. Given a declarative 
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| MCP client | "The agent host" | Process that spawns servers and orchestrates tool calls |
-| Session | "Per-server state" | Capabilities, tool list, and pending-request bookkeeping |
-| Merged namespace | "One tool list" | Flat set of tool names across all active servers |
-| Namespace collision | "Two servers same tool" | Client must prefix, reject, or first-come the duplicate |
-| Routing | "Who gets this call?" | Dispatch from tool name to owning server |
-| Background reader | "Non-blocking stdout" | Thread or task that drains server stdout into a queue |
-| Sampling callback | "LLM-as-a-service" | Client handler for `sampling/createMessage` from server |
-| `notifications/*_changed` | "Primitive mutated" | Signal the client must re-discover or re-read |
-| Reconnection policy | "When server dies" | Restart semantics when transport fails |
-| Stdio session | "Process = session" | No session id; child process lifetime is the session |
+| Term | What people say | What it actually means | 中文术语 |
+|------|----------------|------------------------|----------|
+| MCP client | "The agent host" | Process that spawns servers and orchestrates tool calls | MCP 客户端 |
+| Session | "Per-server state" | Capabilities, tool list, and pending-request bookkeeping | 会话状态 |
+| Merged namespace | "One tool list" | Flat set of tool names across all active servers | 合并命名空间 |
+| Namespace collision | "Two servers same tool" | Client must prefix, reject, or first-come the duplicate | 命名空间冲突 |
+| Routing | "Who gets this call?" | Dispatch from tool name to owning server | 工具路由 |
+| Background reader | "Non-blocking stdout" | Thread or task that drains server stdout into a queue | 后台读取线程 |
+| Sampling callback | "LLM-as-a-service" | Client handler for `sampling/createMessage` from server | 采样回调 |
+| `notifications/*_changed` | "Primitive mutated" | Signal the client must re-discover or re-read | 变更通知 |
+| Reconnection policy | "When server dies" | Restart semantics when transport fails | 重连策略 |
+| Stdio session | "Process = session" | No session id; child process lifetime is the session | stdio 会话 |
 
 ## Further Reading
 

@@ -1,3 +1,7 @@
+"""
+决策树和随机森林从零实现：信息增益、基尼系数、Bootstrap 聚合。
+AI 对应: 随机森林是 sklearn 最常用的模型，XGBoost/LightGBM 是 Kaggle 比赛利器。
+"""
 import math
 import random
 

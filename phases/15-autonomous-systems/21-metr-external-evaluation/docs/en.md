@@ -1,13 +1,16 @@
-# METR Time Horizons and External Capability Evaluation
+# METR Time Horizons and External Capability Evaluation | 评估 外部 METR
 
 > METR (ex-ARC Evals) is an independent 501(c)(3) since December 2023. Their Time Horizon 1.1 benchmark (January 2026) fits a logistic curve to task-success probability vs log(expert human completion time); the intersection at 50% probability defines the model's time horizon. The 2025–2026 engagement set covers GPT-5.1, GPT-5.1-Codex-Max, and prototype monitoring evaluations (can a monitor catch side tasks; can the agent evade). Benchmark suites: HCAST (180+ ML, cyber, SWE, reasoning tasks; 1 minute to 8+ hours), RE-Bench (71 ML research-engineering tasks with expert baseline), SWAA. The honest note: METR measurements are idealized — no human, no real consequences — and the team has documented the eval-vs-deployment behavior gap (Lesson 1). A time horizon is an upper bound, not a deployment prediction.
+
+> **【中文解读】** 本节介绍了 METR 外部评估——独立第三方对 AI 系统能力和风险的评估。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, logistic-fit horizon estimator)
 **Prerequisites:** Phase 15 · 01 (Long-horizon agents), Phase 15 · 19 (RSP)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题
 
 Scaling policies (Lessons 19, 20) are only as useful as the measurements they reference. "AI R&D-4 threshold" and "Long-range Autonomy" are defined in policy prose; they become actionable only when specific evaluations produce specific numbers.
 
@@ -15,7 +18,7 @@ METR is the 2024–2026 external evaluation organization that has defined many o
 
 The lesson is partly about the methodology (how a horizon is computed) and partly about the interpretation (why a horizon is an upper bound, not a deployment prediction). The two skills belong together. A team that understands how the horizon is fit is much harder to fool with a bad vendor claim than a team that just sees "14 hours" on a slide.
 
-## The Concept
+## The Concept | 概念
 
 ### METR background
 
@@ -73,15 +76,15 @@ External evaluation matters because internal labs have incentives to optimize me
 - **As a trend indicator**: doubling time tells you how long the current practice will remain safe even without new mitigations.
 - **As a prior**: a horizon of 14 hours is a starting point. Adjust down for your task distribution, your tooling quality, and your deployment context.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` implements a logistic fit of task-success vs log(expert time), given a synthetic result set. It reports the 50% horizon (METR's headline), 10% horizon (conservative), and 90% horizon (optimistic). Also demonstrates what changes when the success rate is artificially inflated by eval-context gaming.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-horizon-interpretation.md` reviews a vendor's horizon claim and produces a gap analysis between benchmark claim and deployment reality.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Confirm the fit's 50% horizon matches the synthetic ground truth. Now halve the task-time grid; does the horizon estimate change meaningfully?
 
@@ -93,7 +96,7 @@ External evaluation matters because internal labs have incentives to optimize me
 
 5. Design an internal horizon evaluation on your own bug backlog or a representative task set. Describe the data collection, the fit, and what the output tells you. Compare to METR numbers.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |---|---|---|
@@ -106,7 +109,7 @@ External evaluation matters because internal labs have incentives to optimize me
 | Eval-context gaming | "Model behaves differently" | Documented behavior gap between tests and deployment |
 | Upper bound | "Horizon is a ceiling" | Benchmark horizon > deployment reliability under load |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [METR — Resources for Measuring Autonomous AI Capabilities](https://metr.org/measuring-autonomous-ai-capabilities/) — HCAST, RE-Bench, SWAA specs.
 - [METR — Measuring AI Ability to Complete Long Tasks](https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/) — the original horizon paper.

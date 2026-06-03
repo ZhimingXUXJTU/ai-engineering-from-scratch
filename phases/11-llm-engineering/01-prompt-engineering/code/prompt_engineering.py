@@ -1,9 +1,24 @@
+"""
+提示工程：技术与模式 (Prompt Engineering: Techniques & Patterns)
+
+核心概念：
+- 提示工程是与大模型沟通的基础技能，通过精心设计输入指令来优化模型输出
+- 10 种核心提示模式：角色扮演、少样本、链式思考、模板填充、自我批评、
+  护栏、元提示、问题分解、受众适配、边界约束
+- 多模型测试框架：同一提示在不同 LLM（OpenAI/Anthropic/Google）上对比评测
+
+AI 应用对应：
+- 在实际 AI 应用中，提示工程是决定产品质量的第一步
+- RAG 系统的查询改写、Agent 的工具调用指令、结构化输出都依赖提示工程
+"""
+
 import json
 import time
 import hashlib
 import re
 
 
+# 10 种可复用的提示模式库 (Reusable prompt pattern library)
 PROMPT_PATTERNS = {
     "persona": {
         "name": "Persona Pattern",
@@ -14,8 +29,8 @@ PROMPT_PATTERNS = {
             "{task}"
         ),
         "variables": ["role", "experience", "style", "priority", "task"],
-        "temperature": 0.7,
-        "description": "Activates a specific expert distribution in the model's training data",
+        "temperature": 0.7,  # 角色扮演模式：中等创造性
+        "description": "Activates a specific expert distribution in the model's training data",  # 激活模型训练数据中的专家分布
     },
     "few_shot": {
         "name": "Few-Shot Pattern",
@@ -25,8 +40,8 @@ PROMPT_PATTERNS = {
             "Now process this input:\n{input}"
         ),
         "variables": ["examples", "input"],
-        "temperature": 0.0,
-        "description": "Provides concrete examples to anchor the output format and style",
+        "temperature": 0.0,  # 少样本模式：确定性输出，严格遵循示例格式
+        "description": "Provides concrete examples to anchor the output format and style",  # 用具体示例锚定输出格式和风格
     },
     "chain_of_thought": {
         "name": "Chain-of-Thought Pattern",
@@ -41,8 +56,8 @@ PROMPT_PATTERNS = {
             "Show your reasoning before giving the final answer."
         ),
         "variables": ["problem"],
-        "temperature": 0.3,
-        "description": "Forces explicit reasoning steps before the final answer",
+        "temperature": 0.3,  # 链式思考：低随机性，保证推理一致性
+        "description": "Forces explicit reasoning steps before the final answer",  # 强制先展示推理步骤再给出最终答案
     },
     "template_fill": {
         "name": "Template Fill Pattern",
@@ -53,8 +68,8 @@ PROMPT_PATTERNS = {
             "Fill in every field. If information is not available, write 'N/A'."
         ),
         "variables": ["text", "template_structure"],
-        "temperature": 0.0,
-        "description": "Constrains output to a specific structure with named fields",
+        "temperature": 0.0,  # 模板填充：确定性输出，精确提取
+        "description": "Constrains output to a specific structure with named fields",  # 约束输出为指定结构的命名字段
     },
     "critique": {
         "name": "Critique Pattern",
@@ -66,8 +81,8 @@ PROMPT_PATTERNS = {
             "Label each step clearly."
         ),
         "variables": ["task"],
-        "temperature": 0.5,
-        "description": "Self-refinement through explicit critique before final output",
+        "temperature": 0.5,  # 自我批评模式：中等随机性，平衡创造与精确
+        "description": "Self-refinement through explicit critique before final output",  # 通过显式自我批评来优化最终输出
     },
     "guardrail": {
         "name": "Guardrail Pattern",
@@ -81,8 +96,8 @@ PROMPT_PATTERNS = {
             "User question: {question}"
         ),
         "variables": ["role", "domain", "additional_rules", "question"],
-        "temperature": 0.3,
-        "description": "Constrains the model to a specific domain with explicit boundaries",
+        "temperature": 0.3,  # 护栏模式：低随机性，确保严格遵守规则
+        "description": "Constrains the model to a specific domain with explicit boundaries",  # 将模型约束在特定领域内
     },
     "meta_prompt": {
         "name": "Meta-Prompt Pattern",
@@ -97,8 +112,8 @@ PROMPT_PATTERNS = {
             "Target model: {model}."
         ),
         "variables": ["objective", "metric", "model"],
-        "temperature": 0.7,
-        "description": "Uses the LLM to generate optimized prompts for other tasks",
+        "temperature": 0.7,  # 元提示模式：较高创造性，用于自动生成优化提示
+        "description": "Uses the LLM to generate optimized prompts for other tasks",  # 用 LLM 自动生成优化后的提示
     },
     "decomposition": {
         "name": "Decomposition Pattern",
@@ -111,8 +126,8 @@ PROMPT_PATTERNS = {
             "4. Verify the final answer against the original problem"
         ),
         "variables": ["problem"],
-        "temperature": 0.3,
-        "description": "Breaks complex problems into manageable pieces",
+        "temperature": 0.3,  # 问题分解模式：低随机性，保证逻辑严谨
+        "description": "Breaks complex problems into manageable pieces",  # 将复杂问题拆分为可管理的小问题
     },
     "audience_adapt": {
         "name": "Audience Adaptation Pattern",
@@ -125,8 +140,8 @@ PROMPT_PATTERNS = {
             "- Exclude {exclude}"
         ),
         "variables": ["concept", "audience", "length", "include", "exclude"],
-        "temperature": 0.5,
-        "description": "Adapts explanation complexity to the target audience",
+        "temperature": 0.5,  # 受众适配模式：中等随机性，灵活调整表达
+        "description": "Adapts explanation complexity to the target audience",  # 根据目标受众调整解释复杂度
     },
     "boundary": {
         "name": "Boundary Pattern",
@@ -139,12 +154,13 @@ PROMPT_PATTERNS = {
             "User: {user_input}"
         ),
         "variables": ["scope", "refusal_message", "user_input"],
-        "temperature": 0.0,
-        "description": "Hard boundary on what the model will and will not respond to",
+        "temperature": 0.0,  # 边界模式：完全确定性，严格限制回答范围
+        "description": "Hard boundary on what the model will and will not respond to",  # 对模型可回答的内容设置硬边界
     },
 }
 
 
+# 多模型配置：支持 OpenAI、Anthropic、Google 三大供应商
 MODEL_CONFIGS = {
     "gpt-4o": {
         "provider": "openai",
@@ -168,15 +184,16 @@ MODEL_CONFIGS = {
 
 
 def build_prompt(pattern_name, variables, system_override=None):
+    """根据模式名称和变量构建完整的提示消息结构 (Build prompt message structure from pattern name and variables)"""
     pattern = PROMPT_PATTERNS.get(pattern_name)
     if not pattern:
         raise ValueError(f"Unknown pattern: {pattern_name}. Available: {list(PROMPT_PATTERNS.keys())}")
 
-    missing = [v for v in pattern["variables"] if v not in variables]
+    missing = [v for v in pattern["variables"] if v not in variables]  # 检查缺失的变量
     if missing:
         raise ValueError(f"Missing variables for {pattern_name}: {missing}")
 
-    rendered = pattern["template"].format(**variables)
+    rendered = pattern["template"].format(**variables)  # 用变量渲染模板
     system = system_override or f"You are an AI assistant using the {pattern['name']}."
 
     return {
@@ -192,6 +209,7 @@ def build_prompt(pattern_name, variables, system_override=None):
 
 
 def build_multi_turn(pattern_name, turns, system_override=None):
+    """构建多轮对话的消息列表 (Build multi-turn conversation message list)"""
     pattern = PROMPT_PATTERNS.get(pattern_name)
     if not pattern:
         raise ValueError(f"Unknown pattern: {pattern_name}")
@@ -209,6 +227,7 @@ def build_multi_turn(pattern_name, turns, system_override=None):
 
 
 def format_openai_request(prompt):
+    """格式化 OpenAI API 请求 (Format request for OpenAI API)"""
     return {
         "model": MODEL_CONFIGS["gpt-4o"]["model"],
         "messages": [
@@ -221,6 +240,7 @@ def format_openai_request(prompt):
 
 
 def format_anthropic_request(prompt):
+    """格式化 Anthropic API 请求 (Format request for Anthropic API)"""
     return {
         "model": MODEL_CONFIGS["claude-3.5-sonnet"]["model"],
         "system": prompt["system"],
@@ -233,6 +253,7 @@ def format_anthropic_request(prompt):
 
 
 def format_google_request(prompt):
+    """格式化 Google Gemini API 请求 (Format request for Google Gemini API)"""
     return {
         "model": MODEL_CONFIGS["gemini-1.5-pro"]["model"],
         "contents": [
@@ -253,7 +274,8 @@ FORMATTERS = {
 
 
 def simulate_llm_call(model_name, request):
-    time.sleep(0.01)
+    """模拟 LLM API 调用（实际使用时替换为真实 API 请求）(Simulate LLM API call - replace with real API calls in production)"""
+    time.sleep(0.01)  # 模拟网络延迟
     prompt_hash = hashlib.md5(json.dumps(request, sort_keys=True).encode()).hexdigest()[:8]
 
     simulated_responses = {
@@ -293,6 +315,7 @@ def simulate_llm_call(model_name, request):
 
 
 def run_prompt_test(prompt, models=None):
+    """在多个模型上运行同一提示并收集结果 (Run same prompt across multiple models and collect results)"""
     if models is None:
         models = list(MODEL_CONFIGS.keys())
 
@@ -319,6 +342,7 @@ def run_prompt_test(prompt, models=None):
 
 
 def score_response(response_text, criteria):
+    """根据评分标准对模型输出打分 (Score model output against evaluation criteria)"""
     scores = {}
 
     if "max_words" in criteria:
@@ -373,6 +397,7 @@ def score_response(response_text, criteria):
 
 
 def compare_models(test_results, criteria):
+    """跨模型比较输出质量并排名 (Compare output quality across models and rank)"""
     comparison = {}
     for model_name, result in test_results.items():
         scores = score_response(result["response"], criteria)
@@ -390,6 +415,7 @@ def compare_models(test_results, criteria):
     return comparison, ranked
 
 
+# 测试套件：包含 5 个不同模式的测试用例 (Test suite with 5 different pattern test cases)
 TEST_SUITE = [
     {
         "name": "Persona: Technical Writer",
@@ -478,6 +504,7 @@ TEST_SUITE = [
 
 
 def run_test_suite():
+    """运行完整测试套件，对比各模型在不同提示模式下的表现 (Run full test suite comparing model performance across prompt patterns)"""
     print("=" * 70)
     print("  PROMPT ENGINEERING TEST SUITE")
     print("=" * 70)
@@ -529,6 +556,7 @@ def run_test_suite():
 
 
 def run_pattern_catalog_demo():
+    """展示所有提示模式目录 (Display all prompt pattern catalog)"""
     print("=" * 70)
     print("  PROMPT PATTERN CATALOG")
     print("=" * 70)
@@ -541,6 +569,7 @@ def run_pattern_catalog_demo():
 
 
 def run_single_prompt_demo():
+    """演示单个提示的构建和多模型测试 (Demo single prompt build and multi-model test)"""
     print(f"\n{'=' * 70}")
     print("  SINGLE PROMPT BUILD + TEST")
     print("=" * 70)

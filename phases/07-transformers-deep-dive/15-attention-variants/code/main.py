@@ -3,6 +3,8 @@
 Pure stdlib. We compare the structure of the score mask and the KV cache
 size per variant at a realistic long-context budget.
 """
+# 【中文解读】注意力变体。降低 O(n^2) 复杂度：滑动窗口(Mistral)、稀疏注意力等。
+
 
 import math
 

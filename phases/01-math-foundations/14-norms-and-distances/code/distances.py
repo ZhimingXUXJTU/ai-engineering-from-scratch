@@ -1,3 +1,7 @@
+"""
+L1/L2/余弦/Mahalanobis/Jaccard/编辑距离的从零实现。
+AI 对应: L1 正则化=LASSO(特征选择)，L2 正则化=Ridge(防过拟合)，余弦相似度用于词嵌入。
+"""
 import math
 import random
 

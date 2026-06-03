@@ -8,6 +8,9 @@ diverse winners.
 Flag --reward-hack-allowed opens a side channel: a score_adjustment
 function lives inside the agent and is added to every score. A rational
 evolutionary process will discover it.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -46,11 +49,13 @@ CASES = [
 
 
 def hash_seq(seq: list[str]) -> tuple[str, ...]:
-    return tuple(seq)
+    """hash_seq"""
+    return tuple(seq)  # 返回结果
 
 
 @dataclass
 class Agent:
+    """Agent"""
     ops: list[str]
     # "hack" is a number this agent adds to its reported score if the
     # scoring pipeline is permissive. Stands in for any edit the agent
@@ -59,31 +64,35 @@ class Agent:
 
 
 def apply(agent: Agent, s: str) -> str:
+    """apply"""
     tool_map = dict(TOOLS)
     for op in agent.ops:
         fn = tool_map.get(op)
         if fn is None:
-            return ""
+            return ""  # 返回结果
         s = fn(s)
-    return s
+    return s  # 返回结果
 
 
 def true_score(agent: Agent) -> float:
+    """true_score"""
     correct = 0
     for inp, want in CASES:
         if apply(agent, inp) == want:
             correct += 1
-    return correct / len(CASES)
+    return correct / len(CASES)  # 返回结果
 
 
 def reported_score(agent: Agent, hack_allowed: bool) -> float:
+    """reported_score"""
     base = true_score(agent)
     if hack_allowed:
-        return min(1.0, base + agent.hack_bonus)
-    return base
+        return min(1.0, base + agent.hack_bonus)  # 返回结果
+    return base  # 返回结果
 
 
 def mutate(parent: Agent, hack_allowed: bool) -> Agent:
+    """mutate"""
     ops = list(parent.ops)
     move = random.random()
     if move < 0.3 and ops:
@@ -99,10 +108,11 @@ def mutate(parent: Agent, hack_allowed: bool) -> Agent:
     if hack_allowed and random.random() < 0.08:
         # Small chance per generation: evolve the hack.
         bonus = min(1.0, bonus + random.uniform(0.0, 0.1))
-    return Agent(ops=ops, hack_bonus=bonus)
+    return Agent(ops=ops, hack_bonus=bonus)  # 返回结果
 
 
 def run_dgm(generations: int, hack_allowed: bool, seed: int | None = None) -> None:
+    """run_dgm"""
     if seed is not None:
         random.seed(seed)
     archive: dict[tuple[int, float], Agent] = {}
@@ -139,6 +149,7 @@ def run_dgm(generations: int, hack_allowed: bool, seed: int | None = None) -> No
 
 
 def main() -> None:
+    """main"""
     hack_allowed = "--reward-hack-allowed" in sys.argv
 
     print("=" * 70)
@@ -165,4 +176,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

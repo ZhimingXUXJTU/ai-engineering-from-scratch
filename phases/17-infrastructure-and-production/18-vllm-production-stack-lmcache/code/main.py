@@ -6,6 +6,9 @@ Compares three configs on a preemption-heavy workload:
   LMCACHE       : cluster LMCache shared across 4 engines
 
 Reports re-prefill count avoided, throughput gain, and break-even HBM utilization.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -23,19 +26,21 @@ KV_BLOCK_TOKENS = 16
 
 @dataclass
 class Request:
+    """Request"""
     prompt_tokens: int
     output_tokens: int
     prefix_id: str  # for reuse across engines
 
 
 def make_workload(n: int = 200, seed: int = 7) -> list[Request]:
+    """make_workload"""
     rng = random.Random(seed)
     prefixes = [f"tpl_{i}" for i in range(6)]  # small set = high reuse
     reqs = []
     for _ in range(n):
         prompt = rng.choice([2000, 4000, 8000])
         reqs.append(Request(prompt, rng.randint(150, 400), rng.choice(prefixes)))
-    return reqs
+    return reqs  # 返回结果
 
 
 def simulate(config: str, reqs: list[Request]) -> dict:
@@ -88,7 +93,7 @@ def simulate(config: str, reqs: list[Request]) -> dict:
         total_time_ms += prefill_ms + decode_ms
         prefill_work += prefill_ms
 
-    return {
+    return {  # 返回结果
         "config": config,
         "total_ms": total_time_ms,
         "prefill_ms": prefill_work,
@@ -97,6 +102,7 @@ def simulate(config: str, reqs: list[Request]) -> dict:
 
 
 def report(row: dict, baseline: float) -> None:
+    """report"""
     speedup = baseline / row["total_ms"] if row["total_ms"] else 1
     print(f"{row['config']:14}  total={row['total_ms']:8.0f} ms  "
           f"prefill={row['prefill_ms']:7.0f} ms  "
@@ -105,6 +111,7 @@ def report(row: dict, baseline: float) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("vLLM PRODUCTION STACK + LMCACHE — preemption-heavy, 4 engines, shared prefixes")
     print("=" * 80)
@@ -117,4 +124,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

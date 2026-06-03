@@ -1,13 +1,16 @@
-# Capstone Lesson 25: Verification Gates and the Observation Budget
+# Capstone Lesson 25: Verification Gates and the Observation Budget | 验证 结业 门控
 
 > An agent harness without a verification layer is a wish in a trenchcoat. This lesson builds the deterministic gate chain that decides whether a tool call is allowed to fire, how much of its output the agent is allowed to see, and when the loop has to stop because the agent has read too much. The chain is a function of small, named gates plus an observation ledger that tracks every token the model has been shown.
+
+> **【中文解读】** 本节是 AI 工程的综合实战项目，整合前面学到的技术和方法。
+
 
 **Type:** Build
 **Languages:** Python (stdlib)
 **Prerequisites:** Phase 19 · 20-24 (Track A1: agent loop, tool registry, message store, prompt builder, model router), Phase 14 · 33 (instructions as constraints), Phase 14 · 36 (scope contracts), Phase 14 · 38 (verification gates)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build a `VerificationGate` protocol with a deterministic `evaluate(call)` method.
 - Compose budget, recency, whitelist, and regex gates into a chain with short-circuit semantics.
@@ -15,7 +18,7 @@
 - Refuse a tool call when the cumulative observation budget would be exceeded.
 - Surface a structured `GateDecision` record that downstream observability can ingest.
 
-## The Problem
+## The Problem | 问题
 
 When an agent harness lets the model call tools freely, three classes of bug appear within the first hour of real use.
 
@@ -27,7 +30,7 @@ The third is privilege creep. A research task starts by calling `web_search`, th
 
 A verification gate is the harness component that says no. It is not a model. It is not a judge. It is a deterministic function of `(call, history, ledger)` that returns either ALLOW or DENY with a reason. The reason is logged. The model is told. The loop continues or aborts.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart LR
@@ -50,7 +53,7 @@ This lesson ships four gates:
 
 The observation ledger is the bookkeeping. Every successful tool call writes one row: tool name, turn, tokens emitted, cumulative. The ledger answers two questions: how much has the model seen total, and how much has it seen of tool X. The budget gate reads the first. A per-tool budget gate, which you will write as an exercise, reads the second.
 
-## Architecture
+## Architecture | 架构
 
 ```mermaid
 flowchart TD
@@ -86,7 +89,7 @@ You also order them by blast radius. Whitelist is the strongest claim: this tool
 
 The previous lessons gave you the loop, the tool registry, the message store, the prompt builder, and the model router. This lesson adds the layer between the model and the tools. Lesson 26 ships the sandbox that the dispatcher hands the tool call to once the gate chain says ALLOW. Lesson 27 ships the eval harness that records refusal counts as a quality signal. Lesson 28 wires the gate decisions into OpenTelemetry spans. Lesson 29 stitches the lot into a working coding agent.
 
-## Running it
+## Running it | 运行
 
 ```bash
 cd phases/19-capstone-projects/25-verification-gates-observation-budget

@@ -1,6 +1,8 @@
-# Text Summarization
+# Text Summarization | 文本摘要
 
 > Extractive systems tell you what the document said. Abstractive systems tell you what the author meant. Different tasks, different pitfalls.
+
+> **【中文解读】** 抽取式 vs 生成式摘要。
 
 **Type:** Build
 **Languages:** Python

@@ -1,4 +1,4 @@
-# Automated Alignment Research (Anthropic AAR)
+# Automated Alignment Research (Anthropic AAR) | Anthropic 自动化 对齐 研究
 
 > Anthropic ran parallel teams of Claude Opus 4.6 Autonomous Alignment Researchers in independent sandboxes, coordinating via a shared forum whose logs live outside any sandbox (so agents cannot delete their own records). On the weak-to-strong training problem, the AARs outperformed human researchers. Anthropic's own summary flags that prescribed workflows often constrain AAR flexibility and degrade performance. Automating alignment research is the compression step that compresses the timeline to the exact misalignment risks the RSP is meant to detect.
 
@@ -7,15 +7,18 @@
 **Prerequisites:** Phase 15 · 05 (AI Scientist v2), Phase 15 · 04 (DGM)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题
 
 Alignment research is expensive in human-researcher time. Problems like scalable oversight, reward specification, or weak-to-strong training require experiments that take weeks per iteration. As frontier capabilities advance, the alignment workload grows faster than the supply of qualified researchers.
 
 Automated Alignment Research (AAR) asks whether the same frontier models whose capability is outrunning alignment can contribute to closing the gap. Anthropic's 2026 report on an AAR-run weak-to-strong-training study (alignment.anthropic.com/2026/automated-w2s-researcher/) is one of the first public results from a deployed system of this class.
 
+
+> **【中文解读】** 本节介绍了 AI 安全对齐技术——确保 AI 系统行为符合人类意图和价值观。
+
 The result is genuinely positive: AARs solved a research problem better than the human baseline. The result also concentrates, in a single system, every concern this phase has developed. If alignment research can be automated, so can the parts that compromise safeguards. The RSP's thresholds for AI R&D capability are written with this loop in mind.
 
-## The Concept
+## The Concept | 概念
 
 ### The architecture (as publicly described)
 
@@ -50,7 +53,7 @@ Human researchers set the task queue, review results, and hold the constitutiona
 
 This matches the propose-then-commit pattern from Lesson 15 applied to research itself: AARs propose; humans commit.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` simulates a multi-AAR research forum. Three independent "research agents" run in parallel, posting findings to an append-only forum with optional tamper attempts.
 
@@ -60,36 +63,41 @@ Watch:
 - How task allocation with free decomposition outperforms fixed workflows on harder problems.
 - How a single compromised AAR can contaminate the forum's signal if the log is not tamper-evident.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-aar-deployment-review.md` is a pre-deployment review of an automated-alignment-research pipeline.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Compare the "fixed-workflow" vs "free-decomposition" settings. Does free decomposition always win, or are there problem classes where the fixed workflow is competitive?
+   *思考并实践此练习*
 
 2. Modify the simulator so one agent attempts log tampering. Confirm the append-only log detects it. Write one paragraph describing exactly what the detection signature looks like in the log.
+   *思考并实践此练习*
 
 3. Read Anthropic's weak-to-strong AAR report. Identify the specific sub-task the AARs beat human researchers on. What made it amenable to automation?
+   *思考并实践此练习*
 
 4. Design a task-queue allocation policy that balances AAR flexibility (better results) against prescribed-workflow constraints (easier audit). Describe how you would A/B test the two.
+   *思考并实践此练习*
 
 5. Read RSP v3.0's AI R&D-4 threshold. In one paragraph, describe what you think would cross it that AAR currently does not.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| AAR | "Automated Alignment Researcher" | Claude Opus 4.6 instance operated autonomously on alignment problems |
-| Weak-to-strong training | "Training a stronger model with a weaker supervisor" | Classic scalable-oversight benchmark AARs outperformed humans on |
-| Shared forum | "Where agents publish findings" | Append-only, out-of-sandbox storage |
-| Out-of-sandbox log | "Agent cannot edit its own record" | Tamper-evident write-through to external storage |
-| Prescribed workflow | "Step-by-step plan from human designer" | Constrains AAR; often degrades performance vs free decomposition |
-| Free decomposition | "Agent decides how to break the task" | More capable, harder to audit |
-| AI R&D threshold | "RSP/FSF capability level" | Full automation of R&D pipeline at competitive cost |
-| Compressed timeline | "Alignment vs capability race" | If capability compounds faster than alignment, misalignment risk grows |
+|---|---|---|---|
+| AAR | "Automated Alignment Researcher" | Claude Opus 4.6 instance operated autonomously on alignment problems |  |
+| Weak-to-strong training | "Training a stronger model with a weaker supervisor" | Classic scalable-oversight benchmark AARs outperformed humans on |  |
+| Shared forum | "Where agents publish findings" | Append-only, out-of-sandbox storage |  |
+| Out-of-sandbox log | "Agent cannot edit its own record" | Tamper-evident write-through to external storage |  |
+| Prescribed workflow | "Step-by-step plan from human designer" | Constrains AAR; often degrades performance vs free decomposition |  |
+| Free decomposition | "Agent decides how to break the task" | More capable, harder to audit |  |
+| AI R&D threshold | "RSP/FSF capability level" | Full automation of R&D pipeline at competitive cost |  |
+| Compressed timeline | "Alignment vs capability race" | If capability compounds faster than alignment, misalignment risk grows |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic — Automated Weak-to-Strong Researcher](https://alignment.anthropic.com/2026/automated-w2s-researcher/) — primary source.
 - [Anthropic Responsible Scaling Policy v3.0](https://anthropic.com/responsible-scaling-policy/rsp-v3-0) — AI R&D threshold framing.

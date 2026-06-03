@@ -1,6 +1,8 @@
-# Structured Outputs & Constrained Decoding
+# Structured Outputs & Constrained Decoding | 结构化输出与约束解码
 
 > Ask an LLM for JSON. Get JSON most of the time. In production, "most" is the problem. Constrained decoding turns "most" into "always" by editing the logits before sampling.
+
+> **【中文解读】** 让 LLM 输出结构化数据如 JSON、SQL。
 
 **Type:** Build
 **Languages:** Python

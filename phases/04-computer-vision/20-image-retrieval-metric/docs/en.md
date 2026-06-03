@@ -1,6 +1,10 @@
-# Image Retrieval & Metric Learning
+# Image Retrieval & Metric Learning | 图像检索与度量学习
 
 > A retrieval system ranks candidates by a distance in embedding space. Metric learning is the discipline of shaping that space so the distances mean what you want.
+
+> **【中文解读】** 检索系统通过嵌入空间中的距离对候选图像排序。度量学习就是塑造这个空间，使得距离反映你想要的语义关系——相似图像靠得近，不相似图像离得远。对比损失（contrastive loss）和三元组损失（triplet loss）是核心方法。
+
+> **【拓展：检索系统的应用】** 以图搜图（Google Images、淘宝拍照搜）、人脸识别（FaceNet）、推荐系统（Pinterest）都依赖度量学习。CLIP 的对比预训练本质上也是一种度量学习。
 
 **Type:** Build
 **Languages:** Python

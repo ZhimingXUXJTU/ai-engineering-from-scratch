@@ -1,4 +1,4 @@
-# Complex Numbers for AI
+# Complex Numbers for AI | AI 中的复数
 
 > The square root of -1 is not imaginary. It is the key to rotations, frequencies, and half of signal processing.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1, Lessons 01-04 (linear algebra, calculus)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Perform complex arithmetic (add, multiply, divide, conjugate) in both rectangular and polar form
 - Apply Euler's formula to convert between complex exponentials and trigonometric functions
 - Implement the Discrete Fourier Transform using complex roots of unity
 - Explain how complex rotations underlie RoPE and sinusoidal positional encodings in transformers
+
+
+> **【中文解读】**
+> 虚数 i 是旋转和频率的钥匙。Transformer 中的 RoPE 位置编码（LLaMA 等模型使用）本质上就是复数旋转。正弦位置编码是复指数的实部和虚部。
 
 ## The Problem
 

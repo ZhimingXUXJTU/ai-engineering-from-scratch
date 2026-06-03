@@ -1,13 +1,30 @@
+"""
+结构化输出：JSON、Schema 验证与约束解码 (Structured Outputs: JSON, Schema Validation, Constrained Decoding)
+
+核心概念：
+- JSON Schema 验证：确保 LLM 输出符合预定义的数据结构
+- 约束解码(Constrained Decoding)：在 token 生成时强制符合 JSON 语法
+- 重试机制：解析失败时自动重试并反馈错误信息
+- 嵌套 Schema：支持复杂嵌套对象和数组的验证
+
+AI 应用对应：
+- 结构化输出是 Function Calling 和数据提取管道的基础
+- OpenAI 的 response_format、Anthropic 的 tool use 都依赖此技术
+- 金融场景中，从非结构化文本提取交易数据就是典型应用
+"""
+
 import json
 
 
 def validate_schema(data, schema):
+    """根据 JSON Schema 验证数据，返回错误列表 (Validate data against JSON Schema, return errors)"""
     errors = []
     _validate(data, schema, "", errors)
     return errors
 
 
 def _validate(data, schema, path, errors):
+    """递归验证 JSON 数据结构 (Recursively validate JSON data structure)"""
     schema_type = schema.get("type")
 
     if schema_type == "object":
@@ -65,6 +82,7 @@ def _validate(data, schema, path, errors):
 
 
 class SchemaField:
+    """Schema 字段定义，用于从 Python 类型生成 JSON Schema (Schema field definition for Python-to-Schema generation)"""
     def __init__(self, field_type, required=True, default=None, enum=None, minimum=None, maximum=None):
         self.field_type = field_type
         self.required = required
@@ -75,6 +93,7 @@ class SchemaField:
 
 
 def python_type_to_schema(field):
+    """将 Python 类型映射为 JSON Schema 类型 (Map Python types to JSON Schema types)"""
     type_map = {
         str: "string",
         int: "integer",
@@ -103,6 +122,7 @@ def python_type_to_schema(field):
 
 
 def model_to_schema(name, fields):
+    """将 Python 字段模型转换为 JSON Schema (Convert Python field model to JSON Schema)"""
     properties = {}
     required = []
 
@@ -119,6 +139,7 @@ def model_to_schema(name, fields):
 
 
 def next_valid_tokens(partial_json, schema):
+    """模拟约束解码：给定部分 JSON，计算下一个合法 token (Simulate constrained decoding: compute valid next tokens)"""
     stripped = partial_json.strip()
 
     if not stripped:
@@ -191,6 +212,7 @@ def simulate_llm_extraction(text, schema, attempt=0):
 
 
 def extract_with_retry(text, schema, max_retries=3):
+    """带重试机制的文本提取：解析失败时自动重试 (Text extraction with retry on parse failure)"""
     for attempt in range(max_retries):
         raw = simulate_llm_extraction(text, schema, attempt)
 

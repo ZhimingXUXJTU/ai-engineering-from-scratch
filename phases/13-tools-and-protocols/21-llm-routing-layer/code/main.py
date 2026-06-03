@@ -1,5 +1,10 @@
 """Phase 13 Lesson 21 - LLM routing gateway, stdlib.
 
+LLM 路由层 (LLM Routing Layer)
+核心概念：路由网关统一 API 接口，支持重试、故障转移、成本追踪和护栏。
+三大方案：LiteLLM（开源自托管）、OpenRouter（托管SaaS）、Portkey（生产级）。
+AI 应用对应：LLM 路由层解决供应商锁定问题，实现按任务复杂度自动路由到最优模型。
+
 OpenAI-compatible request in; priority fallback chain picks a backend; cost
 tracker accumulates spend per-request. PII redaction runs pre-dispatch.
 
@@ -17,7 +22,7 @@ from dataclasses import dataclass, field
 from typing import Callable
 
 
-# cost per 1M tokens (input, output); fake rates for demo
+# 每百万 token 的成本（输入，输出）；演示用的模拟费率
 PRICES = {
     "openai/gpt-4o":           (5.0, 15.0),
     "openai/gpt-4o-mini":      (0.15, 0.60),
@@ -26,10 +31,12 @@ PRICES = {
     "google/gemini-pro":       (1.25, 5.0),
 }
 
+# 模拟宕机的供应商集合
 OUTAGE: set[str] = set()
 
 
 def provider_call(model: str, messages: list[dict]) -> dict:
+    """模拟供应商 API 调用：如果模型在 OUTAGE 集合中则抛出异常，否则返回模拟响应。"""
     if model in OUTAGE:
         raise RuntimeError(f"simulated 5xx from {model}")
     time.sleep(0.01)
@@ -44,13 +51,14 @@ def provider_call(model: str, messages: list[dict]) -> dict:
     }
 
 
-# aliases -> fallback chain
+# 模型别名 -> 回退链（优先级从高到低）
 ROUTES = {
     "smart": ["openai/gpt-4o", "anthropic/claude-sonnet", "google/gemini-pro"],
     "fast":  ["openai/gpt-4o-mini", "anthropic/claude-haiku"],
 }
 
 
+# PII 脱敏正则模式：SSN 和信用卡号
 PII_PATTERNS = [
     re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),  # SSN
     re.compile(r"\b\d{16}\b"),               # credit card
@@ -58,6 +66,7 @@ PII_PATTERNS = [
 
 
 def redact_pii(text: str) -> tuple[str, bool]:
+    """PII 脱敏：扫描文本中的 SSN 和信用卡号，替换为 [REDACTED]。"""
     redacted = False
     for pat in PII_PATTERNS:
         if pat.search(text):
@@ -80,6 +89,7 @@ class Invocation:
 
 
 def route(alias: str, messages: list[dict]) -> Invocation:
+    """路由核心：PII 脱敏 -> 按回退链逐个尝试供应商 -> 追踪成本。"""
     inv = Invocation(alias=alias)
     # redact pii on inputs
     new_msgs = []

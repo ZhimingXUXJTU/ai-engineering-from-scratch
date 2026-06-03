@@ -1,6 +1,10 @@
-# Diffusion Transformers & Rectified Flow
+# Diffusion Transformers & Rectified Flow | 扩散 Transformer 与整流流
 
 > The U-Net is not the secret of diffusion. Replace it with a transformer, swap the noise schedule for a straight-line flow, and suddenly you have SD3, FLUX, and every 2026 text-to-image model.
+
+> **【中文解读】** U-Net 不是扩散模型的秘密。用 Transformer 替换 U-Net，用直线流（Rectified Flow）替换噪声调度，就得到了 SD3、FLUX 等最新一代文本生成图像模型。整流流让采样路径更直，减少了推理步数。
+
+> **【拓展：DiT 是 2024-2026 的趋势】** Diffusion Transformer（DiT）将 Transformer 的可扩展性带入扩散模型。Sora（视频生成）、Stable Diffusion 3、FLUX 都采用 DiT 架构。Rectified Flow 将扩散过程简化为直线插值，训练和推理更高效。
 
 **Type:** Learn + Build
 **Languages:** Python

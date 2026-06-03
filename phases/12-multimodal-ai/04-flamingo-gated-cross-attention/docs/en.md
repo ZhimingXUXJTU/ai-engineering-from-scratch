@@ -1,6 +1,10 @@
-# Flamingo and Gated Cross-Attention for Few-Shot VLMs
+# Flamingo and Gated Cross-Attention for Few-Shot VLMs | Flamingo 门控交叉注意力与少样本视觉语言模型
 
 > DeepMind's Flamingo (2022) did two things before anyone else. It showed a single model could process arbitrarily interleaved sequences of images, videos, and text. And it showed VLMs could learn in-context — give a few-shot prompt with three example (image, caption) pairs and the model captions a new image without any gradient step. The mechanism: gated cross-attention layers, inserted between the frozen LLM's existing layers, with a learned tanh gate that starts at zero so the LLM's text capability is preserved at initialization. This lesson walks Flamingo's Perceiver resampler and gated cross-attention architecture — the ancestor of Gemini's interleaved inputs and Idefics2's visual tokens.
+
+> **【中文解读】** Flamingo 首次实现图文交织输入和上下文少样本学习。核心是门控交叉注意力——在冻结 LLM 层间插入可学习的 tanh 门控层，初始值为零以保护文本能力。
+
+> **【拓展：Flamingo→Gemini交织输入】** Flamingo 的图文交织处理模式是 Gemini 交织输入和 Idefics2 视觉 token 的原型，开创了多模态上下文学习的先河。
 
 **Type:** Learn
 **Languages:** Python (stdlib, gated cross-attention + Perceiver resampler demo)

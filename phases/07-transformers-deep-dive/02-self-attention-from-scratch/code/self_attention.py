@@ -1,3 +1,10 @@
+"""
+自注意力从零实现
+
+Self-Attention 是 Transformer 核心：Q*K^T 计算关注度。理解 Q/K/V = 理解 GPT/BERT。对应 PyTorch nn.MultiheadAttention。
+"""
+# 【中文解读】自注意力从零实现。Self-Attention 是 Transformer 核心：Q*K^T 计算关注度。
+
 import numpy as np
 
 

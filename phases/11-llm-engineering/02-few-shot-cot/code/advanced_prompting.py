@@ -1,3 +1,20 @@
+"""
+少样本提示、链式思考与思维树 (Few-Shot, Chain-of-Thought, Tree-of-Thought)
+
+核心概念：
+- Few-Shot（少样本）：在提示中提供示例，让模型学习输出格式和推理模式
+- Chain-of-Thought（链式思考 CoT）：要求模型逐步推理，提升多步问题准确率
+- Self-Consistency（自我一致性）：多次采样推理路径，投票选出最可靠答案
+- Tree-of-Thought（思维树 ToT）：探索多条推理分支，评估并剪枝
+- ReAct：交替进行推理(Thought)和行动(Action)，结合工具使用
+- Prompt Chaining（提示链）：将复杂任务分解为多步管道
+
+AI 应用对应：
+- CoT 是 AI Agent 推理能力的基石
+- ReAct 是 LangChain/CrewAI 等 Agent 框架的核心循环模式
+- 自我一致性投票常用于金融、医疗等高准确性要求场景
+"""
+
 import json
 import re
 import os
@@ -5,6 +22,7 @@ from collections import Counter
 from openai import OpenAI
 
 
+# GSM8K 小学数学题示例数据集，用于少样本学习
 GSM8K_EXAMPLES = [
     {
         "question": (
@@ -102,6 +120,7 @@ GSM8K_EXAMPLES = [
 
 
 def extract_answer(text):
+    """从模型输出中提取最终数值答案 (Extract final numerical answer from model output)"""
     if not text:
         return None
     patterns = [
@@ -121,6 +140,7 @@ def extract_answer(text):
 
 
 def build_cot_prompt(question, examples, num_examples=3):
+    """构建少样本+链式思考提示 (Build few-shot CoT prompt with examples and reasoning chains)"""
     system = (
         "You are a precise math problem solver. "
         "For each problem, show your step-by-step reasoning clearly. "
@@ -138,6 +158,7 @@ def build_cot_prompt(question, examples, num_examples=3):
 
 
 def build_zero_shot_cot_prompt(question):
+    """构建零样本+链式思考提示（仅添加"Let's think step by step"）(Build zero-shot CoT prompt)"""
     system = (
         "You are a precise math problem solver. "
         "Show your step-by-step reasoning. "
@@ -148,6 +169,7 @@ def build_zero_shot_cot_prompt(question):
 
 
 def build_zero_shot_prompt(question):
+    """构建零样本提示（不提供示例和推理步骤）(Build zero-shot prompt without examples)"""
     system = (
         "You are a precise math problem solver. "
         "Give only the final numerical answer. "
@@ -158,6 +180,7 @@ def build_zero_shot_prompt(question):
 
 
 def call_llm(client, model, system, user, temperature=0.0):
+    """调用 OpenAI 兼容的 LLM API (Call OpenAI-compatible LLM API)"""
     response = client.chat.completions.create(
         model=model,
         messages=[
@@ -189,12 +212,13 @@ def few_shot_cot_solve(question, examples, client, model, num_examples=3):
 
 
 def self_consistency_solve(question, examples, client, model, n_samples=5):
+    """自我一致性求解：多次采样+投票选出最常见答案 (Self-consistency: sample N paths and vote)"""
     system, user = build_cot_prompt(question, examples)
 
     answers = []
     reasonings = []
     for _ in range(n_samples):
-        text = call_llm(client, model, system, user, temperature=0.7)
+        text = call_llm(client, model, system, user, temperature=0.7)  # temperature>0 保证多样性
         reasonings.append(text)
         answer = extract_answer(text)
         if answer is not None:
@@ -203,14 +227,15 @@ def self_consistency_solve(question, examples, client, model, n_samples=5):
     if not answers:
         return None, 0.0, reasonings, Counter()
 
-    vote_counts = Counter(answers)
-    best_answer = vote_counts.most_common(1)[0][0]
-    confidence = vote_counts[best_answer] / len(answers)
+    vote_counts = Counter(answers)  # 统计各答案出现次数
+    best_answer = vote_counts.most_common(1)[0][0]  # 众数作为最终答案
+    confidence = vote_counts[best_answer] / len(answers)  # 置信度=最高票数/总票数
 
     return best_answer, confidence, reasonings, vote_counts
 
 
 def generate_initial_thoughts(question, client, model, breadth=3):
+    """生成多个初始推理思路（思维树的第一层）(Generate initial reasoning approaches for ToT)"""
     system = (
         "You are a math problem solver exploring different solution approaches. "
         "Generate one distinct approach to solving this problem. "
@@ -230,6 +255,7 @@ def generate_initial_thoughts(question, client, model, breadth=3):
 
 
 def evaluate_thought(thought, question, client, model):
+    """用 LLM 评估推理路径的可靠性，返回 0.0-1.0 分数 (Evaluate reasoning path quality using LLM)"""
     system = (
         "You are a math reasoning evaluator. "
         "Score the following partial reasoning on a scale from 0.0 to 1.0. "
@@ -247,6 +273,7 @@ def evaluate_thought(thought, question, client, model):
 
 
 def extend_thought(thought, question, client, model, breadth=2):
+    """扩展推理路径，继续推进当前思路 (Extend a reasoning path further toward solution)"""
     system = (
         "You are a math problem solver continuing a line of reasoning. "
         "Take the partial reasoning below and extend it further toward a solution. "
@@ -266,13 +293,14 @@ def extend_thought(thought, question, client, model, breadth=2):
 
 
 def tree_of_thought_solve(question, client, model, breadth=3, depth=3):
+    """思维树求解：探索多条推理分支，评估剪枝，选出最优路径 (ToT: branch, evaluate, prune, solve)"""
     thoughts = generate_initial_thoughts(question, client, model, breadth)
     scored = [(t, evaluate_thought(t, question, client, model)) for t in thoughts]
-    scored.sort(key=lambda x: x[1], reverse=True)
+    scored.sort(key=lambda x: x[1], reverse=True)  # 按评分降序排列
 
     for current_depth in range(1, depth):
         next_thoughts = []
-        top_k = min(2, len(scored))
+        top_k = min(2, len(scored))  # 只保留评分最高的2条分支
         for thought, score in scored[:top_k]:
             extensions = extend_thought(thought, question, client, model, breadth)
             for ext in extensions:
@@ -286,6 +314,7 @@ def tree_of_thought_solve(question, client, model, breadth=3, depth=3):
 
 
 def react_solve(question, client, model, max_steps=5):
+    """ReAct 求解：交替进行推理(Thought)和行动(Action-调用计算器) (ReAct: alternate Thought and Action)"""
     system = (
         "You are a math problem solver that can use a calculator. "
         "For each step, output exactly one of:\n"
@@ -334,6 +363,7 @@ def react_solve(question, client, model, max_steps=5):
 
 
 def solve_with_escalation(question, examples, client, model):
+    """逐步升级求解策略：CoT → 自我一致性 → 思维树 (Escalation: CoT → Self-consistency → ToT)"""
     single_answer, single_text = few_shot_cot_solve(
         question, examples, client, model
     )
@@ -342,7 +372,7 @@ def solve_with_escalation(question, examples, client, model):
         question, examples, client, model, n_samples=5
     )
 
-    if confidence >= 0.8:
+    if confidence >= 0.8:  # 高置信度直接返回自我一致性结果
         return {
             "answer": sc_answer,
             "method": "self_consistency",
@@ -365,6 +395,7 @@ def solve_with_escalation(question, examples, client, model):
 
 
 def run_comparison(questions, expected_answers, examples, client, model):
+    """对比不同推理策略的准确率 (Compare accuracy across different reasoning strategies)"""
     methods = {
         "zero_shot": lambda q: zero_shot_solve(q, client, model),
         "zero_shot_cot": lambda q: zero_shot_cot_solve(q, client, model),
@@ -398,6 +429,7 @@ def run_comparison(questions, expected_answers, examples, client, model):
 
 
 def build_structured_prompt(question, context=None):
+    """构建结构化 XML 格式提示（Claude 最擅长）(Build structured XML prompt)"""
     system = """<role>
 You are a precise mathematical problem solver with expertise in word problems.
 </role>
@@ -430,6 +462,7 @@ The answer is [number].
 
 
 def prompt_chain_solve(question, client, model):
+    """提示链求解：提取事实 → 求解 → 验证 (Prompt chain: extract → solve → verify)"""
     extract_system = (
         "Extract the key numerical values and relationships from this math problem. "
         "List each as: [variable]: [value] [unit]. "

@@ -1,6 +1,8 @@
-# Build Your Own Mini Framework
+# Build Your Own Mini Framework | 构建你自己的迷你框架
 
 > You have built neurons, layers, networks, backprop, activations, loss functions, optimizers, regularization, initialization, and LR schedules. All as separate pieces. Now wire them together into a framework. Not PyTorch. Not TensorFlow. Yours.
+
+> **【中文解读】** 把前面所有课程的概念整合成完整框架：自动微分引擎、多种层类型、优化器、正则化、训练循环。这就是 PyTorch 的核心设计——理解这个框架，就理解了 torch.nn 和 torch.autograd 的底层原理。
 
 **Type:** Build
 **Languages:** Python

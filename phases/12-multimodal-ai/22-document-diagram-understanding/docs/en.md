@@ -1,6 +1,10 @@
-# Document and Diagram Understanding
+# Document and Diagram Understanding | 文档与图表理解
 
 > Documents are not photos. A PDF, scientific paper, invoice, or handwritten form has layout, tables, diagrams, footnotes, headers, and semantic structure that plain image understanding cannot capture. The pre-VLM stack was a pipeline: Tesseract OCR + LayoutLMv3 + table-extraction heuristics. The VLM wave replaced that with OCR-free models — Donut (2022), Nougat (2023), DocLLM (2023) — that emit structured markup directly. By 2026 the frontier is just "feed the page image to Claude Opus 4.7 at 2576px native," and the structured-markup output comes for free. This lesson reads the three-era arc of document AI.
+
+> **【中文解读】** 文档不是照片。PDF、论文、发票、手写表单有布局、表格、图表、脚注、标题等语义结构，普通图像理解无法捕捉。文档 AI 经历了三个时代：(1) OCR 管道（Tesseract + LayoutLMv3）；(2) OCR-free（Donut、Nougat 直接从图像生成结构化输出）；(3) VLM 原生（2026 年直接将页面图像喂给 Claude Opus 4.7 即可）。
+
+> **【拓展：文档理解在金融领域的应用】** 金融场景是文档 AI 最重要的应用领域之一：发票解析（自动提取供应商、金额、税率）、合同审查（条款比对、风险标记）、财务报表提取（资产负债表、利润表的结构化数据抽取）、KYC 文档处理（身份证、营业执照的自动识别）。2026 年的推荐方案：纯打印发票用 LayoutLMv3（成本低），混合文档用手写用 VLM 原生（PaliGemma 2 或 Qwen2.5-VL），监管场景用 OCR + VLM 交叉验证。
 
 **Type:** Build
 **Languages:** Python (stdlib, layout-aware document parser skeleton)
@@ -141,26 +145,26 @@ This lesson produces `outputs/skill-document-ai-stack-picker.md`. Given a docume
 
 ## Exercises
 
-1. Your project is 10M invoices per day. Which stack minimizes cost-per-page without losing accuracy?
+1. Your project is 10M invoices per day. Which stack minimizes cost-per-page without losing accuracy? 你的项目每天处理 1000 万张发票。哪种方案能在不损失准确率的情况下最小化每页成本？
 
-2. Why does LayoutLMv3 outperform pure-CLIP-VLMs on form QA but underperform at scene-text? What does the bbox stream give up?
+2. Why does LayoutLMv3 outperform pure-CLIP-VLMs on form QA but underperform at scene-text? What does the bbox stream give up? 为什么 LayoutLMv3 在表单 QA 上优于纯 CLIP VLM，但在场景文本上表现不佳？bbox 流放弃了什么？
 
-3. Nougat generates LaTeX. Propose a test case where VLM-native output beats Nougat on LaTeX fidelity, and a case where Nougat wins.
+3. Nougat generates LaTeX. Propose a test case where VLM-native output beats Nougat on LaTeX fidelity, and a case where Nougat wins. Nougat 生成 LaTeX。设计一个 VLM 原生输出在 LaTeX 保真度上胜过 Nougat 的测试用例，以及一个 Nougat 胜出的用例。
 
-4. Read PaliGemma 2 paper (Google, 2024). What was the key training-data addition that lifted document accuracy vs PaliGemma 1?
+4. Read PaliGemma 2 paper (Google, 2024). What was the key training-data addition that lifted document accuracy vs PaliGemma 1? 阅读 PaliGemma 2 论文。相比 PaliGemma 1，什么关键训练数据提升了文档准确率？
 
-5. Design a regulatory-safe hybrid: OCR pipeline as primary, VLM as secondary cross-check. How do you resolve disagreement?
+5. Design a regulatory-safe hybrid: OCR pipeline as primary, VLM as secondary cross-check. How do you resolve disagreement? 设计一个监管安全的混合方案：OCR 管道为主，VLM 为辅交叉检查。如何处理不一致？
 
 ## Key Terms
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
-| OCR pipeline | "Tesseract-style" | Stage-wise stack: detect -> OCR -> layout -> rules; deterministic, fragile |
-| OCR-free | "Donut-style" | Image-to-output transformer that skips explicit OCR; single model |
-| Layout-aware | "LayoutLM" | Input includes per-token bbox coordinates; unified masking across modalities |
-| VLM-native | "Frontier VLM" | Feed page image directly to Claude/GPT/Qwen VLM at high resolution; no pipeline |
-| DocVQA | "Doc benchmark" | Document VQA standard; most-cited score |
-| Markup output | "LaTeX / MD" | Structured output format instead of free-form text; enables downstream automation |
+| OCR pipeline | "Tesseract-style" OCR 管道 | Stage-wise stack: detect -> OCR -> layout -> rules; deterministic, fragile 分阶段栈：检测→OCR→布局→规则；确定但脆弱 |
+| OCR-free | "Donut-style" 无 OCR | Image-to-output transformer that skips explicit OCR; single model 图像到输出的 Transformer，跳过显式 OCR；单一模型 |
+| Layout-aware | "LayoutLM" 布局感知 | Input includes per-token bbox coordinates; unified masking across modalities 输入包含逐 token 的 bbox 坐标；跨模态统一掩码 |
+| VLM-native | "Frontier VLM" VLM 原生 | Feed page image directly to Claude/GPT/Qwen VLM at high resolution; no pipeline 直接将页面图像输入高分辨率 VLM；无需管道 |
+| DocVQA | "Doc benchmark" 文档 VQA 基准 | Document VQA standard; most-cited score 文档 VQA 标准评测；被引用最多的评分 |
+| Markup output | "LaTeX / MD" 标记输出 | Structured output format instead of free-form text; enables downstream automation 结构化输出格式而非自由文本；支撑下游自动化 |
 
 ## Further Reading
 

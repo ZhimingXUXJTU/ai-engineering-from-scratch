@@ -5,6 +5,9 @@ Conceptual references:
 - Phase 19 Track A lessons 20-29 (agent harness primitives)
 
 Stdlib only. Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -28,6 +31,7 @@ _MEMORY_POLLER_UNSUPPORTED_WARNED = False
 
 @dataclass
 class ExperimentSpec:
+    """ExperimentSpec"""
     spec_id: str
     hypothesis_id: int
     script_path: str
@@ -38,7 +42,7 @@ class ExperimentSpec:
     metric_keys: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "spec_id": self.spec_id,
             "hypothesis_id": self.hypothesis_id,
             "script_path": self.script_path,
@@ -52,6 +56,7 @@ class ExperimentSpec:
 
 @dataclass
 class ExperimentResult:
+    """ExperimentResult"""
     spec_id: str
     hypothesis_id: int
     exit_code: int
@@ -64,7 +69,7 @@ class ExperimentResult:
     stderr_tail: str
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "spec_id": self.spec_id,
             "hypothesis_id": self.hypothesis_id,
             "exit_code": self.exit_code,
@@ -88,10 +93,10 @@ def _rss_mb(pid: int) -> float | None:
                     if line.startswith("VmRSS:"):
                         parts = line.split()
                         if len(parts) >= 2:
-                            return float(parts[1]) / 1024.0
+                            return float(parts[1]) / 1024.0  # 返回结果
         except OSError:
-            return None
-        return 0.0
+            return None  # 返回结果
+        return 0.0  # 返回结果
     if shutil.which("ps"):
         try:
             out = subprocess.run(
@@ -100,10 +105,10 @@ def _rss_mb(pid: int) -> float | None:
             )
             value = out.stdout.strip()
             if value:
-                return float(value) / 1024.0
+                return float(value) / 1024.0  # 返回结果
         except (OSError, subprocess.SubprocessError, ValueError):
-            return None
-    return None
+            return None  # 返回结果
+    return None  # 返回结果
 
 
 class _MemoryPoller(threading.Thread):
@@ -133,7 +138,7 @@ class _MemoryPoller(threading.Thread):
                     _LOGGER.warning(
                         "memory poller disabled: platform does not expose RSS via /proc or ps; wall clock timeout still applies",
                     )
-                return
+                return  # 返回结果
             self.peak_rss_mb = rss if self.peak_rss_mb is None else max(self.peak_rss_mb, rss)
             if rss > self._cap:
                 self.killed_for_oom = True
@@ -141,7 +146,7 @@ class _MemoryPoller(threading.Thread):
                     self._proc.kill()
                 except OSError:
                     pass
-                return
+                return  # 返回结果
             self._stop_event.wait(self._interval)
 
 
@@ -149,7 +154,7 @@ def _scan_intermediates(stdout: str, metric_keys: list[str]) -> tuple[dict, list
     """Walk stdout lines and pull every json line whose keys cover metric_keys.
 
     The last covering line is treated as the final metrics. Earlier lines are
-    returned as intermediates so the evaluator can plot learning curves.
+    returned as intermediates so the evaluator can plot learning curves.  # 返回结果
     """
     intermediates: list[dict] = []
     final: dict = {}
@@ -169,7 +174,7 @@ def _scan_intermediates(stdout: str, metric_keys: list[str]) -> tuple[dict, list
         if final:
             intermediates.append(final)
         final = parsed
-    return final, intermediates
+    return final, intermediates  # 返回结果
 
 
 class ExperimentRunner:
@@ -186,7 +191,7 @@ class ExperimentRunner:
             merged_config["__seed"] = spec.seed
             with open(config_path, "w", encoding="utf-8") as fh:
                 json.dump(merged_config, fh)
-            return self._run_subprocess(spec, config_path)
+            return self._run_subprocess(spec, config_path)  # 返回结果
 
     def _run_subprocess(self, spec: ExperimentSpec, config_path: str) -> ExperimentResult:
         start = time.perf_counter()
@@ -199,7 +204,7 @@ class ExperimentRunner:
             )
         except OSError as exc:
             wall = time.perf_counter() - start
-            return ExperimentResult(
+            return ExperimentResult(  # 返回结果
                 spec_id=spec.spec_id,
                 hypothesis_id=spec.hypothesis_id,
                 exit_code=-1,
@@ -232,7 +237,7 @@ class ExperimentRunner:
         wall = time.perf_counter() - start
         metrics, intermediates = _scan_intermediates(stdout, spec.metric_keys)
         terminal = self._terminal_label(proc.returncode, killed_for_timeout, poller.killed_for_oom, bool(metrics))
-        return ExperimentResult(
+        return ExperimentResult(  # 返回结果
             spec_id=spec.spec_id,
             hypothesis_id=spec.hypothesis_id,
             exit_code=proc.returncode if proc.returncode is not None else -1,
@@ -248,17 +253,18 @@ class ExperimentRunner:
     @staticmethod
     def _terminal_label(exit_code: int | None, timed_out: bool, oomed: bool, have_metrics: bool) -> str:
         if oomed:
-            return "oom"
+            return "oom"  # 返回结果
         if timed_out:
-            return "timeout"
+            return "timeout"  # 返回结果
         if exit_code == 0 and have_metrics:
-            return "ok"
+            return "ok"  # 返回结果
         if exit_code == 0 and not have_metrics:
-            return "crash"
-        return "crash"
+            return "crash"  # 返回结果
+        return "crash"  # 返回结果
 
 
 def ablate(base: ExperimentSpec, knob: str, values: Iterable[Any]) -> list[ExperimentSpec]:
+    """ablate"""
     specs: list[ExperimentSpec] = []
     for value in values:
         derived_config = dict(base.config)
@@ -273,22 +279,24 @@ def ablate(base: ExperimentSpec, knob: str, values: Iterable[Any]) -> list[Exper
             memory_cap_mb=base.memory_cap_mb,
             metric_keys=list(base.metric_keys),
         ))
-    return specs
+    return specs  # 返回结果
 
 
 @dataclass
 class AblationTable:
+    """AblationTable"""
     knob: str
     rows: list[tuple[Any, ExperimentResult]]
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "knob": self.knob,
             "rows": [{"value": v, "result": r.to_dict()} for v, r in self.rows],
         }
 
 
 class AblationRunner:
+    """AblationRunner"""
     def __init__(self, runner: ExperimentRunner) -> None:
         self._runner = runner
 
@@ -298,10 +306,11 @@ class AblationRunner:
         for value, spec in zip(value_list, ablate(base, knob, value_list)):
             result = self._runner.run(spec)
             rows.append((value, result))
-        return AblationTable(knob=knob, rows=rows)
+        return AblationTable(knob=knob, rows=rows)  # 返回结果
 
 
 def _demo() -> None:
+    """_demo"""
     here = os.path.dirname(os.path.abspath(__file__))
     script = os.path.join(here, "experiments", "sparsity_experiment.py")
     base = ExperimentSpec(

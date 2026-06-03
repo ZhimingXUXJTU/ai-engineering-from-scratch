@@ -1,3 +1,18 @@
+"""
+JAX 入门 (Introduction to JAX)
+
+核心概念：
+  - 纯函数式编程：不可变数组，函数无副作用
+  - jit()：即时编译，加速数值计算（类似 numba 但更强大）
+  - grad()：自动微分（一行代码替代手动反向传播）
+  - vmap()：自动向量化（自动把单样本函数变成批量处理）
+
+在 AI 中的位置：
+  - Google Gemini 用 JAX 训练
+  - DeepMind 的 AlphaFold 用 JAX
+  - JAX 的设计哲学影响了 PyTorch 2.0 的 torch.compile
+  - 与 PyTorch 的区别：PyTorch 面向对象，JAX 面向函数
+"""
 import jax
 import jax.numpy as jnp
 from jax import random

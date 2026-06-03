@@ -1,3 +1,10 @@
+"""
+词性标注与句法分析
+
+给词标注词性，分析语法结构。是理解语义的基础。对应 spaCy POS tagger。
+"""
+# 【中文解读】词性标注与句法分析。给词标注词性（名词/动词等），分析语法结构。是理解语义的基础。
+
 import math
 from collections import Counter, defaultdict
 

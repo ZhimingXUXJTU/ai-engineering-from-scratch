@@ -1,6 +1,8 @@
-# Why Transformers — The Problems with RNNs
+# Why Transformers — The Problems with RNNs | 为什么是 Transformer — RNN 的问题
 
 > RNNs process tokens one at a time. Transformers process all tokens at once. That single architectural bet changed every scaling curve in deep learning after 2017.
+
+> **【中文解读】** RNN 有三个致命问题：无法并行、长程梯度消失、固定长度瓶颈。Transformer 用自注意力解决了这三个问题，开启了深度学习的新时代。
 
 **Type:** Learn
 **Languages:** Python

@@ -7,6 +7,9 @@ scaffold implements BKT, a curriculum DAG, a Socratic policy decision, and
 a simulated two-learner study.
 
 Run:  python main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -22,6 +25,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class BKTParams:
+    """BKTParams"""
     p_init: float = 0.2     # prior knowledge
     p_learn: float = 0.12   # learning rate per practice
     p_slip: float = 0.10    # correct despite not knowing
@@ -29,6 +33,7 @@ class BKTParams:
 
 
 def bkt_update(mastery: float, correct: bool, p: BKTParams) -> float:
+    """bkt_update"""
     if correct:
         num = mastery * (1 - p.p_slip)
         denom = num + (1 - mastery) * p.p_guess
@@ -37,7 +42,7 @@ def bkt_update(mastery: float, correct: bool, p: BKTParams) -> float:
         denom = num + (1 - mastery) * (1 - p.p_guess)
     posterior = num / max(denom, 1e-6)
     # transition: learn from this interaction
-    return posterior + (1 - posterior) * p.p_learn
+    return posterior + (1 - posterior) * p.p_learn  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -46,6 +51,7 @@ def bkt_update(mastery: float, correct: bool, p: BKTParams) -> float:
 
 @dataclass
 class Concept:
+    """Concept"""
     name: str
     prereqs: list[str] = field(default_factory=list)
 
@@ -66,7 +72,8 @@ ALGEBRA = [
 
 
 def curriculum_map(concepts: list[Concept]) -> dict[str, Concept]:
-    return {c.name: c for c in concepts}
+    """curriculum_map"""
+    return {c.name: c for c in concepts}  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -75,6 +82,7 @@ def curriculum_map(concepts: list[Concept]) -> dict[str, Concept]:
 
 @dataclass
 class LearnerState:
+    """LearnerState"""
     learner_id: str
     mastery: dict[str, float] = field(default_factory=lambda: defaultdict(lambda: 0.2))
     history: list[tuple[str, bool]] = field(default_factory=list)
@@ -85,13 +93,14 @@ class LearnerState:
 # ---------------------------------------------------------------------------
 
 def next_concept(state: LearnerState, cmap: dict[str, Concept],
+    """next_concept"""
                  master_threshold: float = 0.85) -> str | None:
     for c in cmap.values():
         if state.mastery[c.name] >= master_threshold:
             continue
         if all(state.mastery[pr] >= master_threshold for pr in c.prereqs):
-            return c.name
-    return None
+            return c.name  # 返回结果
+    return None  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -99,14 +108,15 @@ def next_concept(state: LearnerState, cmap: dict[str, Concept],
 # ---------------------------------------------------------------------------
 
 def socratic_policy(state: LearnerState, concept: str, correct: bool) -> str:
+    """socratic_policy"""
     m = state.mastery[concept]
     if correct and m > 0.8:
-        return "celebrate_and_advance"
+        return "celebrate_and_advance"  # 返回结果
     if correct:
-        return "reinforce_and_next_question"
+        return "reinforce_and_next_question"  # 返回结果
     if m > 0.5:
-        return "hint"
-    return "scaffold_from_prereq"
+        return "hint"  # 返回结果
+    return "scaffold_from_prereq"  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -114,12 +124,13 @@ def socratic_policy(state: LearnerState, concept: str, correct: bool) -> str:
 # ---------------------------------------------------------------------------
 
 def simulate_answer(learner_knowledge: float, concept_difficulty: float,
+    """simulate_answer"""
                     rng: random.Random) -> bool:
     """Simulate whether the learner answers correctly."""
     # probability of correct = sigmoid(knowledge - difficulty)
     import math
     p = 1 / (1 + math.exp(-(learner_knowledge - concept_difficulty)))
-    return rng.random() < p
+    return rng.random() < p  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -127,6 +138,7 @@ def simulate_answer(learner_knowledge: float, concept_difficulty: float,
 # ---------------------------------------------------------------------------
 
 def run_adaptive(learner_id: str, inherent_ability: float,
+    """run_adaptive"""
                  cmap: dict[str, Concept], n_turns: int, rng: random.Random) -> LearnerState:
     state = LearnerState(learner_id=learner_id)
     p = BKTParams()
@@ -152,10 +164,11 @@ def run_adaptive(learner_id: str, inherent_ability: float,
         last_action = socratic_policy(state, concept, correct)
         state.history.append((concept, correct))
         state.mastery[concept] = bkt_update(state.mastery[concept], correct, p)
-    return state
+    return state  # 返回结果
 
 
 def run_baseline(learner_id: str, inherent_ability: float,
+    """run_baseline"""
                  cmap: dict[str, Concept], n_turns: int, rng: random.Random) -> LearnerState:
     """Non-adaptive concept selection (round-robin). Mastery is still updated
     via BKT so both arms share the same learner model; only the policy /
@@ -170,14 +183,16 @@ def run_baseline(learner_id: str, inherent_ability: float,
         correct = simulate_answer(ek, difficulty, rng)
         state.history.append((concept, correct))
         state.mastery[concept] = bkt_update(state.mastery[concept], correct, p)
-    return state
+    return state  # 返回结果
 
 
 def mastery_sum(state: LearnerState, cmap: dict[str, Concept]) -> float:
-    return sum(state.mastery[c] for c in cmap)
+    """mastery_sum"""
+    return sum(state.mastery[c] for c in cmap)  # 返回结果
 
 
 def main() -> None:
+    """main"""
     cmap = curriculum_map(ALGEBRA)
     rng = random.Random(29)
 
@@ -219,4 +234,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

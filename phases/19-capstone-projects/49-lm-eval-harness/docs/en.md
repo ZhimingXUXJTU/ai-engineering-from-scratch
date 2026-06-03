@@ -1,20 +1,23 @@
-# Language Model Evaluation Harness
+# Language Model Evaluation Harness | 评估 线束
 
 > A model that does well on a task you cannot define is a model that does well by accident. The harness is the task definition, the metric, the runner, and the leaderboard, in one short, swappable shape.
+
+> **【中文解读】** 本节是综合项目——构建 Agent 线束循环和契约验证系统。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 42 to 45
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Define a task as a JSONL file with `prompt`, `targets`, `metric`, and optional `extras` per example.
 - Implement five metrics: exact match, rouge-l F1, executable check, multiple choice, and substring contains.
 - Build a runner that batches examples per task and dispatches to a swappable model adapter.
 - Emit a leaderboard JSON with per-task scores, latency, and an overall average that is reproducible.
 
-## The Problem
+## The Problem | 问题
 
 A new language model lands every week. The marketing claim is that it does well. The honest question is: well at what? The honest answer is the leaderboard you wrote yourself, because the vendor's leaderboard is the one they tuned to.
 
@@ -22,7 +25,7 @@ Without a harness in your repo you compare two models by vibes. With a harness y
 
 The trap is over-fitting the harness to a single model. The fix is the same trap in reverse: the harness is small enough to read in fifteen minutes, the tasks are small enough to ship in the repo, the metrics are written from scratch so a colleague can audit them, and the adapter is the only place model-specific code lives. Swap the adapter, the leaderboard moves; swap the tasks, the leaderboard moves. Nothing else should move.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart TD
@@ -103,7 +106,7 @@ flowchart LR
   avg --> over[overall = mean of task scores]
 ```
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` is the runnable artifact.
 
@@ -135,7 +138,7 @@ python3 code/main.py
 
 The script seeds the fixtures on first run, scores them with the toy adapter (which gets every fixture right), and writes `outputs/leaderboard.json`. Overall score is 1.0 with the toy adapter; the stub adapter test in `test_main.py` shows the same harness produces 0.0 when the adapter cannot answer.
 
-## Use It
+## Use It | 使用方法
 
 To plug a real model in, write an adapter. The shape:
 
@@ -163,11 +166,11 @@ Three patterns to enforce when shipping the harness in a real project:
 - **Diff predictions, not just scores.** The `--include-per-example` flag lets you see what the model said the day the score dropped.
 - **Cap the batch size.** Real adapters have rate limits. A small batch size keeps the harness compatible across vendors.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-lm-eval-harness.md` carries the recipe: JSONL task spec, five metrics, swappable adapter, batched runner, leaderboard JSON with schema string. The task files in `outputs/tasks/` are the fixtures; copy them into a real project as starters.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a sixth task with a custom metric you write from scratch (BLEU-like overlap, BLEURT-like reference scoring, anything with a clear contract).
 2. Extend `code_exec` to capture stdout and accept a list of expected stdouts as targets.
@@ -175,7 +178,7 @@ Three patterns to enforce when shipping the harness in a real project:
 4. Cap latency per example. Wrap the adapter call in a timeout; surface a separate `timeouts` column in the leaderboard.
 5. Pin task content with a sha256 in the leaderboard so a future reader can verify they scored the same tasks.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -185,7 +188,7 @@ Three patterns to enforce when shipping the harness in a real project:
 | Leaderboard | "The scoreboard" | JSON with per-task scores, total counts, latency, and an overall average |
 | Code exec metric | "Run it and check" | Execute the prediction in a restricted namespace, compare against input-output pairs |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - The original lm-evaluation-harness for the production reference, much larger but the same shape.
 - HuggingFace's lighteval for an alternative implementation of the same contract.

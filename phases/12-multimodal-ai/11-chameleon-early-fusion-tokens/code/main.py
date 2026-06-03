@@ -1,5 +1,10 @@
 """Chameleon-style early-fusion: toy VQ quantizer + shared-vocab autoregressive decoder.
 
+Chameleon 早期融合 (Early-Fusion Token-Only Multimodal)
+核心概念：用 VQ-VAE 将图像转为离散 token，与文本共享词表。所有模态统一为一种 token 序列，
+单一自回归损失训练。副作用：模型能在一次推理中交替输出文本和图像。
+AI 应用对应：早期融合是多模态统一生成（图文混合输出）的架构基础。
+
 End-to-end pipeline:
   1. VQ-VAE-ish quantizer: 8x8 grayscale patch -> integer codebook index, K=16.
   2. Shared vocab: text ids 0..31, image ids 32..47, separators 48 (<image>), 49 (</image>).

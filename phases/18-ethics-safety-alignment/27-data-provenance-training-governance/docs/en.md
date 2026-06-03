@@ -1,24 +1,27 @@
-# Data Provenance and Training-Data Governance
+# Data Provenance and Training-Data Governance | 数据来源
 
 > EU AI Act requires machine-readable opt-out standards for GPAI by August 2025 (via EU Copyright Directive TDM exception). California AB 2013 (signed 2024) — Generative AI training-data transparency requires developers to publish a summary of datasets with 12 mandated fields. 2025 DPA alignment on legitimate interest: Irish DPC (21 May 2025) accepts Meta's LLM training on first-party public EU/EEA adult content with safeguards after EDPB opinion; Cologne Higher Regional Court (23 May 2025) dismisses injunction; Hamburg DPA drops urgency; UK ICO (23 September 2025) issues a positive regulatory response to LinkedIn's AI-training safeguards (transparency, simplified opt-out, extended objection windows) and continues monitoring — not a formal clearance. Brazilian ANPD (2 July 2024) suspended Meta's processing over insufficient information transparency; the preventive measure was lifted on 30 August 2024 after Meta submitted a compliance plan. Key irreversibility problem: cookie-consent frameworks are designed for real-time, reversible tracking; once data is in model weights, surgical erasure is impossible — no practical GDPR right-to-erasure for trained neural networks. Compliance window is at collection time. Data Provenance Initiative (dataprovenance.org, Longpre, Mahari, Lee et al., "Consent in Crisis", July 2024): large-scale audit shows rapid decline of the AI data commons as publishers add robots.txt restrictions.
+
+> **【中文解读】** 本节介绍了数据来源和训练治理——确保 AI 训练数据的合法性和可追溯性。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, 12-field California AB 2013 scaffolding generator)
 **Prerequisites:** Phase 18 · 24 (regulatory), Phase 18 · 26 (cards)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Describe California AB 2013's 12 mandated fields for Generative AI training-data transparency.
 - State the 2025 DPA position on legitimate-interest LLM training (Irish DPC, UK ICO, Hamburg, Cologne).
 - Describe the irreversibility problem: why GDPR right-to-erasure has no practical equivalent for trained neural networks.
 - State the Data Provenance Initiative's "Consent in Crisis" finding.
 
-## The Problem
+## The Problem | 问题
 
 Training-data governance is the upstream of every model card (Lesson 26) and regulatory obligation (Lesson 24). In 2024-2025, the regulatory landscape consolidated on three principles: opt-out infrastructure, per-dataset disclosure, and legitimate-interest accommodations for publicly available data. Providers that do not comply at collection time cannot remediate downstream.
 
-## The Concept
+## The Concept | 概念
 
 ### California AB 2013
 
@@ -71,15 +74,15 @@ dataprovenance.org. Longpre, Mahari, Lee et al. "Consent in Crisis" (July 2024):
 
 Lesson 26 is model-level documentation. Lesson 27 is dataset-level governance. Together they define the transparency layer. Lesson 28 maps the research ecosystem that works on these questions.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` generates a California AB 2013-compliant 12-field dataset summary scaffold for a toy dataset. You can fill the fields and observe which ones trigger privacy or copyright follow-on obligations.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-provenance-check.md`. Given a dataset used in training, it checks for AB 2013 12-field coverage, opt-out infrastructure compliance, DPA alignment, and irreversibility-risk assessment.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Produce a 12-field summary for a toy dataset and identify which fields are under-specified.
 
@@ -91,7 +94,7 @@ This lesson produces `outputs/skill-provenance-check.md`. Given a dataset used i
 
 5. Sketch a training-data-provenance manifest that composes with the AB 2013 fields and a C2PA-signed provenance chain for each dataset. Identify one technical and one legal barrier.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -103,7 +106,7 @@ This lesson produces `outputs/skill-provenance-check.md`. Given a dataset used i
 | Unlearning | "approximate removal" | Post-training interventions to reduce model dependence on specific data |
 | Consent in Crisis | "the DPI audit" | July 2024 finding of accelerating robots.txt restrictions |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [California AB 2013](https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202320240AB2013) — Generative AI training-data transparency law
 - [EU AI Act + GPAI Code of Practice (Lesson 24)](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai) — Copyright chapter

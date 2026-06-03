@@ -1,6 +1,10 @@
-# Semantic Segmentation — U-Net
+# Semantic Segmentation — U-Net | 语义分割 — U-Net
 
 > Segmentation is classification at every pixel. U-Net makes it work by pairing a downsampling encoder with an upsampling decoder and wiring skip connections between them.
+
+> **【中文解读】** 语义分割就是对每个像素进行分类。U-Net 通过配对下采样编码器和上采样解码器，并在它们之间连接跳跃连接来实现这一点。编码器提取特征，解码器恢复分辨率，跳跃连接保留细节信息。
+
+> **【拓展：U-Net 的广泛应用】** U-Net 最初为医学影像分割设计，但已成为许多领域的基础架构：Stable Diffusion 使用 U-Net 作为核心去噪网络、自动驾驶中的道路分割、卫星图像的土地覆盖分类。其编码器-解码器+跳跃连接的模式已被广泛复制。
 
 **Type:** Build
 **Languages:** Python
@@ -17,6 +21,8 @@
 ## The Problem
 
 Classification outputs one label per image. Detection outputs a handful of boxes per image. Segmentation outputs one label per pixel. For an input of size `H x W`, the output is a tensor of shape `H x W` (semantic) or `H x W x N_instances` (instance). That is millions of predictions per image, not one.
+
+> **【中文解读】** 分类输出一个标签，检测输出若干框，分割输出每个像素的标签。分割的核心难题是：既要看到全局上下文（这是哪种场景），又要保留局部像素细节（这个像素是路还是人行道）。标准 CNN 通过空间压缩获取上下文时会丢失细节，U-Net 通过跳跃连接同时解决了这两个需求。
 
 The structure of segmentation is why it powers almost every dense-prediction vision product: medical imaging (tumour masks), autonomous driving (road, lane, obstacle), satellite (building footprints, crop boundaries), document parsing (layout zones), robotics (graspable regions). None of those tasks can be solved by putting a box around the object; they need the exact silhouette.
 

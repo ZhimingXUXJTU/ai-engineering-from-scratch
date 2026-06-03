@@ -1,6 +1,9 @@
-# Capstone 08 — Production RAG Chatbot for a Regulated Vertical
+# Capstone 08 — Production RAG Chatbot for a Regulated Vertical | 生产 结业 聊天机器人 RAG
 
 > Harvey, Glean, Mendable, and LlamaCloud all run the same production shape in 2026. Ingest with docling or Unstructured and ColPali for visuals. Hybrid search. Re-rank with bge-reranker-v2-gemma. Synthesize with Claude Sonnet 4.7 using prompt caching at 60-80% hit rate. Guard with Llama Guard 4 and NeMo Guardrails. Watch with Langfuse and Phoenix. Grade with RAGAS on a 200-question golden set. Build one in a regulated domain (legal, clinical, insurance), and the capstone is passing the golden set, the red team, and the drift dashboard.
+
+> **【中文解读】** 本节是综合项目——构建生产级 RAG 聊天机器人，包含缓存、安全和监控。
+
 
 **Type:** Capstone
 **Languages:** Python (pipeline + API), TypeScript (chat UI)
@@ -22,7 +25,7 @@ The eval stack has four layers. **Golden set** (200 labeled Q/A with citations) 
 
 Prompt caching is the cost lever. Claude 4.5+ and GPT-5+ support caching system prompts + retrieved context. At 60-80% hit rate, per-query cost drops 3-5x. The pipeline must be designed for stable prefixes (system prompt + reranked context first) to achieve high cache hit rates.
 
-## Architecture
+## Architecture | 架构
 
 ```
 documents (contracts, protocols, policies)
@@ -68,7 +71,7 @@ eval:
 - Guardrails: Llama Guard 4 input/output classifier, NeMo Guardrails v0.12 policy, Presidio PII scrub
 - Compliance: role-based access labels on chunks; jurisdiction tags for GDPR/HIPAA
 
-## Build It
+## Build It | 动手构建
 
 1. **Ingestion.** Parse your corpus (1000-10000 documents for a serious build) with Unstructured or docling. For scanned / visual-heavy pages, route through ColPali. Produce chunks with summaries, role-labels, jurisdiction tags.
 
@@ -88,7 +91,7 @@ eval:
 
 9. **Cost report.** Langfuse: prompt-caching hit rate, tokens per query, $/query breakdown by stage.
 
-## Use It
+## Use It | 使用方法
 
 ```
 $ chat --role=analyst --jurisdiction=GDPR
@@ -104,7 +107,7 @@ answer:
   citations: [MSA-2024-03-11 s12.4, DPA-v2.1 s5]
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-production-rag.md` describes the deliverable. A regulated-domain chatbot deployed with compliance labels, passed through the rubric, observed with live drift monitoring.
 
@@ -117,7 +120,7 @@ answer:
 | 15 | Drift monitoring dashboard | Phoenix live dashboard with weekly retrieval-quality trend |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Build a second corpus slice under a different jurisdiction (e.g., HIPAA alongside GDPR). Demonstrate role+jurisdiction filtering preventing cross-leak on a 20-question cross-jurisdiction probe.
 
@@ -129,7 +132,7 @@ answer:
 
 5. Add an "unsure" mode: if top reranked scores are below a threshold, the agent says "I do not have confident citations" instead of answering. Measure false-confidence reduction.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -141,7 +144,7 @@ answer:
 | Drift | "Retrieval quality decay" | Weekly change in nDCG or citation score; alert threshold 5% |
 | Red team | "Adversarial eval" | Pre-release jailbreak, PII extraction, off-domain probes |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Harvey AI](https://www.harvey.ai) — reference legal production stack
 - [Glean enterprise search](https://www.glean.com) — reference RAG at enterprise scale

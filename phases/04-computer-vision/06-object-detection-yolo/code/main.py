@@ -1,3 +1,18 @@
+"""
+目标检测 — YOLO 从零实现 (Object Detection — YOLO from Scratch)
+
+核心概念：
+- YOLO：将检测转化为密集预测问题，一次前向传播检测所有目标
+- 锚框（Anchor）：预设的候选框，模型预测偏移量而非绝对坐标
+- 非极大值抑制（NMS）：去除重叠检测框的后处理步骤
+- 损失函数：分类损失 + 目标性损失 + 边界框回归损失
+
+AI 对应：
+- YOLO 是自动驾驶中最常用的实时目标检测算法
+- YOLOv8 是工业界最受欢迎的检测框架之一
+- 检测=分类+回归，是许多视觉系统的核心组件
+"""
+
 import numpy as np
 import torch
 import torch.nn as nn

@@ -1,6 +1,8 @@
-# Text Generation Before Transformers — N-gram Language Models
+# Text Generation Before Transformers — N-gram Language Models | Transformer 之前的文本生成
 
 > If a word is surprising, the model is bad. Perplexity makes surprise a number. Smoothing keeps it finite.
+
+> **【中文解读】** N-gram 统计词频预测下一个词。GPT 就是更强大的语言模型。
 
 **Type:** Build
 **Languages:** Python

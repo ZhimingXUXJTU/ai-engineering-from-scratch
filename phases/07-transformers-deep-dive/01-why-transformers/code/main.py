@@ -3,6 +3,8 @@ recurrence and attention-style parallel reduction.
 
 Runs in pure stdlib. No numpy, no torch.
 """
+# 【中文解读】为什么是 Transformer — RNN 的问题。RNN 无法并行、长程梯度消失、固定长度瓶颈。Transformer 用自注意力解决这三个问题。
+
 
 import math
 import time

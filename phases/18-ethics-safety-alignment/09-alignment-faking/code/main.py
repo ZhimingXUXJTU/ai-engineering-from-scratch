@@ -12,6 +12,9 @@ So: refuse unmonitored, comply-to-protect when monitored. The compliance gap
 is the difference in compliance rate between the two conditions.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -24,7 +27,8 @@ random.seed(19)
 
 
 def sigmoid(z: float) -> float:
-    return 1.0 / (1.0 + math.exp(-z))
+    """sigmoid"""
+    return 1.0 / (1.0 + math.exp(-z))  # 返回结果
 
 
 def compliance_probability(
@@ -49,6 +53,7 @@ def compliance_probability(
 
 
 def simulate(n: int, harm_aversion: float, preservation_weight: float) -> tuple[float, float]:
+    """simulate"""
     monitored_comply = 0
     unmonitored_comply = 0
     for _ in range(n):
@@ -58,10 +63,11 @@ def simulate(n: int, harm_aversion: float, preservation_weight: float) -> tuple[
         p_u = compliance_probability(False, harm_aversion, preservation_weight)
         if random.random() < p_u:
             unmonitored_comply += 1
-    return monitored_comply / n, unmonitored_comply / n
+    return monitored_comply / n, unmonitored_comply / n  # 返回结果
 
 
 def report(title: str, m: float, u: float) -> None:
+    """report"""
     gap = m - u
     print(f"\n{title}")
     print(f"  monitored compliance   : {m:.3f}")
@@ -70,6 +76,7 @@ def report(title: str, m: float, u: float) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 66)
     print("ALIGNMENT-FAKING COMPLIANCE-GAP TOY (Phase 18, Lesson 9)")
     print("=" * 66)
@@ -104,7 +111,7 @@ def main() -> None:
                 m_c += 1
             if random.random() < p_avg:
                 u_c += 1
-        return m_c / n, u_c / n
+        return m_c / n, u_c / n  # 返回结果
 
     m, u = sim_mit(1000)
     report("mitigation: compliance-gap-loss (averaged policy)", m, u)
@@ -120,4 +127,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

@@ -7,6 +7,9 @@ Files written:
 
 Run: python3 code/main.py
 Re-run to see the second turn pick up where the first stopped.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -36,6 +39,7 @@ Verification command: `python3 -m pytest -x`
 
 @dataclass
 class AgentState:
+    """AgentState"""
     active_task_id: str | None
     touched_files: list[str] = field(default_factory=list)
     assumptions: list[str] = field(default_factory=list)
@@ -45,6 +49,7 @@ class AgentState:
 
 @dataclass
 class Task:
+    """Task"""
     id: str
     goal: str
     owner: str
@@ -53,6 +58,7 @@ class Task:
 
 
 def write_initial(state_path: Path, board_path: Path, agents_path: Path) -> None:
+    """write_initial"""
     if not agents_path.exists():
         agents_path.write_text(AGENTS_MD)
     if not state_path.exists():
@@ -76,56 +82,62 @@ def write_initial(state_path: Path, board_path: Path, agents_path: Path) -> None
 
 
 def load_state(state_path: Path) -> AgentState:
+    """load_state"""
     raw = json.loads(state_path.read_text())
-    return AgentState(**raw)
+    return AgentState(**raw)  # 返回结果
 
 
 def load_board(board_path: Path) -> list[Task]:
-    return [Task(**t) for t in json.loads(board_path.read_text())]
+    """load_board"""
+    return [Task(**t) for t in json.loads(board_path.read_text())]  # 返回结果
 
 
 def save_state(state_path: Path, state: AgentState) -> None:
+    """save_state"""
     state_path.write_text(json.dumps(asdict(state), indent=2) + "\n")
 
 
 def save_board(board_path: Path, board: list[Task]) -> None:
+    """save_board"""
     board_path.write_text(json.dumps([asdict(t) for t in board], indent=2) + "\n")
 
 
 def run_one_turn(state: AgentState, board: list[Task]) -> tuple[AgentState, list[Task]]:
+    """run_one_turn"""
     if state.active_task_id is None:
         nxt = next((t for t in board if t.status == "todo"), None)
         if nxt is None:
             state.next_action = "no work on the board, idle"
-            return state, board
+            return state, board  # 返回结果
         nxt.status = "in_progress"
         state.active_task_id = nxt.id
         state.next_action = f"start work on {nxt.id}: {nxt.goal}"
-        return state, board
+        return state, board  # 返回结果
 
     active = next((t for t in board if t.id == state.active_task_id), None)
     if active is None:
         state.active_task_id = None
         state.next_action = f"active task missing from board; resetting and picking new work"
-        return state, board
+        return state, board  # 返回结果
     if "app.py" not in state.touched_files:
         state.touched_files.append("app.py")
         state.next_action = f"add test for {active.id} acceptance"
-        return state, board
+        return state, board  # 返回结果
 
     if "test_app.py" not in state.touched_files:
         state.touched_files.append("test_app.py")
         state.next_action = f"run verification command for {active.id}"
-        return state, board
+        return state, board  # 返回结果
 
     active.status = "done"
     state.active_task_id = None
     state.touched_files = []
     state.next_action = "pick next task from board"
-    return state, board
+    return state, board  # 返回结果
 
 
 def main() -> None:
+    """main"""
     ROOT.mkdir(exist_ok=True)
     state_path = ROOT / "agent_state.json"
     board_path = ROOT / "task_board.json"
@@ -152,4 +164,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

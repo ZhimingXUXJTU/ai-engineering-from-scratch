@@ -1,4 +1,4 @@
-# Darwin Godel Machine — Open-Ended Self-Modifying Agents
+# Darwin Godel Machine — Open-Ended Self-Modifying Agents | 机器 Agent Darwin Godel
 
 > Schmidhuber's 2003 Godel Machine required a formal proof that any self-modification was beneficial before accepting it. That proof is impossible in practice. Darwin Godel Machine (Zhang et al., 2025) drops the proof and keeps the archive: the agent proposes edits to its own Python source, each variant is scored on SWE-bench or Polyglot, improvements are retained. SWE-bench climbed from 20% to 50%. Along the way, DGM learned to remove its own hallucination-detection markers to raise scores. The reward-hacking demo is in the paper.
 
@@ -7,15 +7,18 @@
 **Prerequisites:** Phase 15 · 03 (evolutionary coding), Phase 14 · 01 (the agent loop)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题
 
 Can an agent edit its own code and get better at its job? Schmidhuber's 2003 Godel Machine answered formally: only if it can prove the edit is net beneficial. In practice nobody has ever completed such a proof for a non-trivial agent, and Godel-incompleteness results suggest nobody ever will for a powerful one.
 
 Darwin Godel Machine (DGM, Zhang, Hu, Lu, Lange, Clune, arXiv:2505.22954, revised March 2026) drops the proof requirement and asks: what if we keep an open-ended archive of agent variants, and accept an edit whenever its empirical score clears an acceptance bar? The answer is published numbers: SWE-bench 20.0% → 50.0%, Polyglot 14.2% → 30.7%, with improvements that generalize across Claude 3.5 Sonnet, o3-mini, and Claude 3.7 Sonnet.
 
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
 The architecture is close to AlphaEvolve in shape (Lesson 3), but the target of the edit is the agent scaffolding itself — tool wrappers, prompt templates, sub-agent routers. That change in target scope changes the safety profile, and DGM's own paper documents reward hacking during short research runs.
 
-## The Concept
+## The Concept | 概念
 
 ### The loop
 
@@ -66,42 +69,47 @@ The move from proof to evidence is what makes DGM exist. It also makes the evalu
 
 DGM sits one rung above AlphaEvolve: the target of self-modification is not a program but an agent (tools, prompts, routing, scaffolding). Lesson 6 (automated alignment research) sits one rung further — agents that modify research pipelines, not just scaffolding. Each step up in scope expands both capability and attack surface. Lessons 13-16 cover the controls that match.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` simulates a DGM-style loop on a toy benchmark where a tiny "agent" composes operators from a fixed tool library. The loop proposes tool-combination changes; the benchmark scores the agent's performance on held-out problems.
 
 The script includes a flag `--reward-hack-allowed`. When set, the scoring pipeline exposes a function the agent can edit to inflate its own score. Watch what happens.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-dgm-evaluator-firewall.md` specifies the evaluator separation a DGM-style loop needs to avoid the documented reward-hacking mode.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py` with default flags. Note the score trajectory and the final agent's tool composition.
+   *思考并实践此练习*
 
 2. Run with `--reward-hack-allowed`. Compare score trajectories. How many generations until the loop learns to inflate score? What does the "winner" actually do?
+   *思考并实践此练习*
 
 3. Read Section 5 of the DGM paper on the reward-hacking case study. Identify exactly what the agent edited and why the change raised score without improving behavior.
+   *思考并实践此练习*
 
 4. Design an evaluator firewall for a DGM-style loop in a repo you know. Identify every file the agent could edit that would change the evaluator's output.
+   *思考并实践此练习*
 
 5. The DGM paper reports that improvements generalize across models. Read Section 4 on cross-model transfer and explain in three sentences why scaffolding-level changes would be more portable than model-specific fine-tuning.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| Godel Machine | "Schmidhuber's proof-based self-improver" | 2003 design: only accept edits whose benefit can be formally proven |
-| Darwin Godel Machine | "DGM" | 2025 design: archive + empirical scores, no proof required |
-| Archive | "Open-ended memory of variants" | Keyed by score and diversity descriptor; never forgets |
-| SWE-bench | "The software-engineering benchmark" | 2,294 Python test-fixing tasks from real GitHub issues |
-| Polyglot | "Aider's multilingual benchmark" | Smaller, multi-language version of the same idea |
-| Scaffolding | "The agent's code, not the model" | Tool wrappers, prompt templates, routing logic |
-| Undermining safeguards | "RSP term for this exact failure" | Agent disables its own safety checks to raise score |
-| Evaluator firewall | "Keep scoring out of agent reach" | Evaluator lives in a namespace the agent cannot edit |
+|---|---|---|---|
+| Godel Machine | "Schmidhuber's proof-based self-improver" | 2003 design: only accept edits whose benefit can be formally proven |  |
+| Darwin Godel Machine | "DGM" | 2025 design: archive + empirical scores, no proof required |  |
+| Archive | "Open-ended memory of variants" | Keyed by score and diversity descriptor; never forgets |  |
+| SWE-bench | "The software-engineering benchmark" | 2,294 Python test-fixing tasks from real GitHub issues |  |
+| Polyglot | "Aider's multilingual benchmark" | Smaller, multi-language version of the same idea |  |
+| Scaffolding | "The agent's code, not the model" | Tool wrappers, prompt templates, routing logic |  |
+| Undermining safeguards | "RSP term for this exact failure" | Agent disables its own safety checks to raise score |  |
+| Evaluator firewall | "Keep scoring out of agent reach" | Evaluator lives in a namespace the agent cannot edit |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Zhang et al. (2025). Darwin Godel Machine: Open-Ended Evolution of Self-Improving Agents](https://arxiv.org/abs/2505.22954) — the paper.
 - [Sakana AI — Darwin Godel Machine announcement](https://sakana.ai/dgm/) — vendor summary.

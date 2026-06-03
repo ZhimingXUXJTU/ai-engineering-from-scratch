@@ -1,6 +1,10 @@
-# Context Engineering: Windows, Budgets, Memory, and Retrieval
+# Context Engineering: Windows, Budgets, Memory, and Retrieval | 上下文工程：窗口、预算、记忆与检索
 
 > Prompt engineering is a subset. Context engineering is the whole game. A prompt is a string you type. Context is everything that goes into the model's window: system instructions, retrieved documents, tool definitions, conversation history, few-shot examples, and the prompt itself. The best AI engineers in 2026 are context engineers. They decide what goes in, what stays out, and in what order.
+
+> **【中文解读】** 提示工程只是上下文工程的子集。上下文工程管理模型窗口中的一切内容——系统指令、检索文档、工具定义、对话历史等。2026年最优秀的 AI 工程师就是上下文工程师。
+
+> **【拓展：上下文工程→Claude生态】** Claude 的 MCP 协议本质上就是上下文工程的标准实现——通过统一的协议管理模型可见的工具、资源和提示模板。
 
 **Type:** Build
 **Languages:** Python

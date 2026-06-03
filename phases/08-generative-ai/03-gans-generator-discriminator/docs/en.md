@@ -1,6 +1,10 @@
-# GANs — Generator vs Discriminator
+# GANs — Generator vs Discriminator | GAN — 生成器与判别器
 
 > Goodfellow's trick in 2014 was to skip density entirely. Two networks. One makes fakes. One catches them. They fight until the fakes are indistinguishable from real. It shouldn't work. It often doesn't. When it does, the samples are still the sharpest in the literature for narrow domains.
+
+> **【中文解读】** Goodfellow 2014 年的技巧是完全跳过密度估计。两个网络：一个造假，一个抓假，互相博弈直到假样本与真样本不可区分。理论上不该work，实践中常常不work，但一旦成功，在窄域生成上仍是文献中最锐利的结果。
+
+> **【拓展：GAN 的遗产】** StyleGAN（人脸生成）、CycleGAN（风格迁移）、Pix2Pix（图像翻译）是 GAN 的经典应用。虽然扩散模型在 2022 年后成为主流，GAN 的对抗训练思想仍被用于提升其他模型质量。
 
 **Type:** Build
 **Languages:** Python

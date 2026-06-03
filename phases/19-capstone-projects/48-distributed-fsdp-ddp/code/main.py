@@ -16,6 +16,9 @@ Three drills:
    across ranks and gathering them for the forward pass.
 
 Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -42,6 +45,7 @@ DEMO_PATH = OUT_DIR / "ddp-demo.json"
 
 @dataclass
 class RankResult:
+    """RankResult"""
     rank: int
     world_size: int
     backend: str
@@ -53,6 +57,7 @@ class RankResult:
 
 
 def init_process_group(rank: int, world_size: int, backend: str, master_port: int) -> None:
+    """init_process_group"""
     os.environ["MASTER_ADDR"] = "127.0.0.1"
     os.environ["MASTER_PORT"] = str(master_port)
     loopback = "lo0" if sys.platform == "darwin" else "lo"
@@ -62,12 +67,14 @@ def init_process_group(rank: int, world_size: int, backend: str, master_port: in
 
 
 def shutdown_process_group() -> None:
+    """shutdown_process_group"""
     if dist.is_initialized():
         dist.destroy_process_group()
 
 
 def make_model(in_dim: int, hidden: int, out_dim: int) -> nn.Module:
-    return nn.Sequential(
+    """make_model"""
+    return nn.Sequential(  # 返回结果
         nn.Linear(in_dim, hidden),
         nn.GELU(),
         nn.Linear(hidden, out_dim),
@@ -75,6 +82,7 @@ def make_model(in_dim: int, hidden: int, out_dim: int) -> nn.Module:
 
 
 def broadcast_module(module: nn.Module, src: int = 0) -> None:
+    """broadcast_module"""
     for tensor in list(module.parameters()) + list(module.buffers()):
         dist.broadcast(tensor.data, src=src)
 
@@ -88,16 +96,17 @@ def all_reduce_grads_(module: nn.Module, world_size: int) -> float:
         dist.all_reduce(p.grad.data, op=dist.ReduceOp.SUM)
         p.grad.data.div_(world_size)
         total_sq += float(p.grad.data.pow(2).sum().item())
-    return total_sq ** 0.5
+    return total_sq ** 0.5  # 返回结果
 
 
 def shard_for_rank(x: torch.Tensor, rank: int, world_size: int) -> torch.Tensor:
+    """shard_for_rank"""
     total = x.shape[0]
     per = total // world_size
     remainder = total - per * world_size
     start = rank * per + min(rank, remainder)
     end = start + per + (1 if rank < remainder else 0)
-    return x[start:end]
+    return x[start:end]  # 返回结果
 
 
 class MinimalDDP(nn.Module):
@@ -121,21 +130,22 @@ class MinimalDDP(nn.Module):
             broadcast_module(self.module, src=0)
 
     def forward(self, *args, **kwargs):
-        return self.module(*args, **kwargs)
+        return self.module(*args, **kwargs)  # 返回结果
 
     def sync_grads(self) -> float:
         if not dist.is_initialized() or self.world_size == 1:
-            return _grad_norm(self.module)
-        return all_reduce_grads_(self.module, self.world_size)
+            return _grad_norm(self.module)  # 返回结果
+        return all_reduce_grads_(self.module, self.world_size)  # 返回结果
 
 
 def _grad_norm(module: nn.Module) -> float:
+    """_grad_norm"""
     total_sq = 0.0
     for p in module.parameters():
         if p.grad is None:
             continue
         total_sq += float(p.grad.data.pow(2).sum().item())
-    return total_sq ** 0.5
+    return total_sq ** 0.5  # 返回结果
 
 
 def fsdp_round_trip_sketch(module: nn.Module, world_size: int, rank: int) -> bool:
@@ -173,7 +183,7 @@ def fsdp_round_trip_sketch(module: nn.Module, world_size: int, rank: int) -> boo
         if not torch.allclose(rebuilt, full):
             ok = False
             break
-    return ok
+    return ok  # 返回结果
 
 
 def manual_all_reduce_matches_single_process(
@@ -217,7 +227,7 @@ def manual_all_reduce_matches_single_process(
     else:
         ref_norm = 0.0
         max_diff = 0.0
-    return norm_after, max_diff
+    return norm_after, max_diff  # 返回结果
 
 
 def rank_main(
@@ -282,13 +292,14 @@ def rank_main(
 
 
 def free_port() -> int:
+    """free_port"""
     import socket
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(("127.0.0.1", 0))
     port = s.getsockname()[1]
     s.close()
-    return port
+    return port  # 返回结果
 
 
 def run_distributed_demo(
@@ -357,7 +368,7 @@ def run_distributed_demo(
     spread = max(param_sums.values()) - min(param_sums.values())
     losses = [results[r]["final_loss"] for r in results]
     grad_norm = results[0]["grad_norm_after_all_reduce"]
-    return {
+    return {  # 返回结果
         "world_size": world_size,
         "backend": backend,
         "param_sum_per_rank": param_sums,
@@ -370,11 +381,13 @@ def run_distributed_demo(
 
 
 def write_demo(payload: Dict[str, object], path: Path) -> None:
+    """write_demo"""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({"schema": "ddp-demo.v1", **payload}, indent=2) + "\n")
 
 
 def parse_args() -> argparse.Namespace:
+    """parse_args"""
     p = argparse.ArgumentParser()
     p.add_argument("--world-size", type=int, default=2)
     p.add_argument("--backend", type=str, default="gloo")
@@ -382,17 +395,18 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--batch-size", type=int, default=8)
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--no-write", action="store_true")
-    return p.parse_args()
+    return p.parse_args()  # 返回结果
 
 
 def main() -> int:
+    """main"""
     args = parse_args()
     if not dist.is_available():
         print("torch.distributed not available; skipping the demo")
-        return 0
+        return 0  # 返回结果
     if args.backend == "gloo" and not dist.is_gloo_available():
         print("gloo backend not compiled; cannot run on CPU. install a build with gloo support.")
-        return 1
+        return 1  # 返回结果
     print(f"running distributed demo: backend={args.backend}, world_size={args.world_size}")
     result = run_distributed_demo(
         world_size=args.world_size,
@@ -408,7 +422,7 @@ def main() -> int:
     if not args.no_write:
         write_demo(result, DEMO_PATH)
         print(f"wrote {DEMO_PATH}")
-    return 0
+    return 0  # 返回结果
 
 
 if __name__ == "__main__":

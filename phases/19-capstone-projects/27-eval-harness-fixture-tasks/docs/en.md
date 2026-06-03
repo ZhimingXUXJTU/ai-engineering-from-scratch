@@ -1,13 +1,16 @@
-# Capstone Lesson 27: Eval Harness with Fixture Tasks
+# Capstone Lesson 27: Eval Harness with Fixture Tasks | 结业 线束 评估
 
 > A coding agent is only as good as the suite of tasks you measure it against. This lesson builds an evaluation harness that takes a folder of fixture tasks, runs each through a candidate agent, scores pass or fail through a deterministic verifier, and aggregates the results into pass@1, pass@k, mean latency, and mean cost. The harness is the source of truth that lets you tell a regression from a refactor.
+
+> **【中文解读】** 本节是综合项目——构建 Agent 线束循环和契约验证系统。
+
 
 **Type:** Build
 **Languages:** Python (stdlib)
 **Prerequisites:** Phase 19 · 25 (verification gates), Phase 19 · 26 (sandbox runner), Phase 14 · 30 (eval-driven agent development), Phase 14 · 19 (SWE-bench and GAIA benchmarks)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Define a fixture task as a triple of goal, setup, and verifier.
 - Score multiple sample runs per task and compute pass@1 and pass@k.
@@ -15,7 +18,7 @@
 - Wire deterministic verifiers (file diff, exit code, regex match) into reusable functions.
 - Emit a structured JSON report a regression-tracking script can ingest.
 
-## The Problem
+## The Problem | 问题
 
 Three failure modes plague agent benchmarks built without an eval harness.
 
@@ -27,7 +30,7 @@ The third is per-task drift. The eval was run on Monday with 100 tasks and on Fr
 
 The harness is the program that turns these failures into facts. It runs every fixture, every time, in a reproducible order, against a verifier that returns true or false on a deterministic check.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart LR
@@ -49,7 +52,7 @@ The third is `shell_exit_zero`. The harness runs a shell command (through the sa
 
 The harness runs each task `k` times. Pass@k is `1 - (1 - p)^k` where p is the empirical pass rate; the harness also reports raw counts so you can spot variance. Latency is wall-clock per sample. Cost is whatever the agent self-reports (token count, USD, or both); the harness sums it across samples and presents the per-task and aggregate numbers.
 
-## Architecture
+## Architecture | 架构
 
 ```mermaid
 flowchart TD
@@ -91,7 +94,7 @@ Pass@k is reported alongside pass@1 because pass@k papers over a real failure: i
 
 Lesson 25 produced the gate chain. Lesson 26 produced the sandbox. The harness uses the sandbox for any `shell_exit_zero` verifier. Lesson 28 wraps each harness run in an OTel trace. Lesson 29 runs the end-to-end demo against one of the bundled fixtures and asserts pass@1 = 1.0 for the reference candidate.
 
-## Running it
+## Running it | 运行
 
 ```bash
 cd phases/19-capstone-projects/27-eval-harness-fixture-tasks

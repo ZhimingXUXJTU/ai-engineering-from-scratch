@@ -1,6 +1,10 @@
-# Vision-Language Models — The ViT-MLP-LLM Pattern
+# Vision-Language Models — The ViT-MLP-LLM Pattern | 视觉语言模型 — ViT-MLP-LLM 模式
 
 > A vision encoder converts an image into tokens. An MLP projector maps those tokens into the LLM's embedding space. A language model does the rest. That pattern — ViT-MLP-LLM — is every production VLM in 2026.
+
+> **【中文解读】** 视觉编码器将图像转换为 token，MLP 投影层将这些 token 映射到 LLM 的嵌入空间，语言模型完成剩余工作。ViT-MLP-LLM 是 2026 年所有生产级视觉语言模型（VLM）的标准模式——包括 GPT-4V、Claude 3 Vision、LLaVA 等。
+
+> **【拓展：VLM 的应用】** VLM 是多模态 AI 的核心：GPT-4V（图像问答）、Claude Vision（文档分析）、LLaVA（开源视觉对话）、Google Gemini（多模态推理）。在金融领域，VLM 可用于财报图表理解、合同智能审查、票据自动处理。
 
 **Type:** Learn + Use
 **Languages:** Python

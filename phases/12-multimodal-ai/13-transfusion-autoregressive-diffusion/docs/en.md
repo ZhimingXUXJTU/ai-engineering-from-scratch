@@ -1,20 +1,24 @@
-# Transfusion: Autoregressive Text + Diffusion Image in One Transformer
+# Transfusion: Autoregressive Text + Diffusion Image in One Transformer | Transfusion：一个 Transformer 兼做自回归文本和扩散图像
 
-> Chameleon and Emu3 bet everything on discrete tokens. They work, but the quantization bottleneck is visible — the image quality plateaus below continuous-space diffusion models. Transfusion (Meta, Zhou et al., August 2024) takes the opposite bet: keep images continuous, drop the VQ-VAE entirely, and train one transformer with two losses. Text tokens get next-token-prediction. Image patches get a flow-matching / diffusion loss. Both objectives optimize the same weights. The architecture underlying Stable Diffusion 3 (MMDiT) is a close cousin. This lesson reads the Transfusion thesis, builds a toy two-loss trainer, and traces the attention mask that lets one transformer do both jobs.
+> Chameleon and Emu3 bet everything on discrete tokens.
 
-**Type:** Build
+> **【中文解读】** Transfusion（Meta，2024年8月）选择了与 Chameleon/Emu3 相反的路径：保持图像为连续表示，不用 VQ-VAE，用一个 Transformer 同时跑两个损失——文本 token 用下一 token 预测，图像补丁用流匹配/扩散损失。Stable Diffusion 3 的 MMDiT 架构就是近亲。
+
+> **【拓展：双损失训练的工程挑战】** Transfusion 的核心难点在于平衡两个数值尺度不同的损失函数。NTP 损失和扩散 MSE 损失的量级差异可能导致一个损失主导训练。实际部署中需要仔细调整损失权重。MMDiT 通过模态特定权重缓解了这个问题。 They work, but the quantization bottleneck is visible — the image quality plateaus below continuous-space diffusion models. Transfusion (Meta, Zhou et al., August 2024) takes the opposite bet: keep images continuous, drop the VQ-VAE entirely, and train one transformer with two losses. Text tokens get next-token-prediction. Image patches get a flow-matching / diffusion loss. Both objectives optimize the same weights. The architecture underlying Stable Diffusion 3 (MMDiT) is a close cousin. This lesson reads the Transfusion thesis, builds a toy two-loss trainer, and traces the attention mask that lets one transformer do both jobs.
+
+**Type:** Build  | **类型：构建**
 **Languages:** Python (stdlib, two-loss trainer on MNIST-scale toy)
 **Prerequisites:** Phase 12 · 11 (Chameleon), Phase 8 (Generative AI)
 **Time:** ~180 minutes
 
-## Learning Objectives
+## Learning Objectives  | 学习目标
 
 - Wire a transformer that runs two losses (NTP on text tokens, diffusion MSE on image patches) on one backbone.
 - Explain why bidirectional attention across image patches plus causal attention over text tokens is the right mask choice.
 - Compare Transfusion-style (continuous images, diffusion loss) to Chameleon-style (discrete images, NTP) on compute, quality, and code complexity.
 - Name MMDiT's contribution: modality-specific weights at each block, joint attention at the residual stream.
 
-## The Problem
+## The Problem  | 问题背景
 
 The discrete vs continuous image tokens debate is older than LLMs. Continuous representations (raw pixels, VAE latents) preserve detail. Discrete tokens (VQ indices) fit the transformer's native vocabulary but lose detail at the quantization step.
 
@@ -24,7 +28,7 @@ Diffusion models went continuous: exceptional image quality, but a separate mode
 
 Transfusion asks: can we have both? Keep images continuous, still train one model, use two losses stitched into one gradient step.
 
-## The Concept
+## The Concept  | 核心概念
 
 ### The two-loss architecture
 
@@ -99,7 +103,7 @@ Janus-Pro (Lesson 12.15) refines Transfusion's idea by decoupling the vision enc
 
 2026 production VLMs that emit images — Gemini 3 Pro, GPT-5, Claude Opus 4.7's image generation path — almost certainly use some descendant of this family. Details are proprietary.
 
-## Use It
+## Use It  | 动手实践
 
 `code/main.py` builds a toy Transfusion on a tiny MNIST-like problem:
 
@@ -111,11 +115,11 @@ Janus-Pro (Lesson 12.15) refines Transfusion's idea by decoupling the vision enc
 
 The transformer is a toy. The two-loss plumbing, attention mask construction, and inference loop are the real artifacts.
 
-## Ship It
+## Ship It  | 部署上线
 
 This lesson produces `outputs/skill-two-loss-trainer-designer.md`. Given a new multimodal training task (text + image, text + audio, text + video), it designs the two-loss schedule (loss weights, mask shape, shared vs modality-specific blocks) and flags implementation risks.
 
-## Exercises
+## Exercises  | 练习题
 
 1. A Transfusion-style model trains 70% text tokens and 30% image patches. The image diffusion loss is ~10x the text NTP loss in magnitude. What loss weights balance them?
 
@@ -127,9 +131,9 @@ This lesson produces `outputs/skill-two-loss-trainer-designer.md`. Given a new m
 
 5. Read SD3 paper Section 3. Describe rectified flow and why it converges in fewer inference steps than DDPM.
 
-## Key Terms
+## Key Terms  | 关键术语
 
-| Term | What people say | What it actually means |
+| Term | What people say | What it actually means | 中文含义 |
 |------|-----------------|------------------------|
 | Two-loss training | "NTP + diffusion" | A single transformer optimizes both cross-entropy on text tokens and MSE on continuous image patches in the same gradient step |
 | Flow matching | "Rectified flow" | Diffusion variant that predicts a velocity field from noise to clean data; simpler math than DDPM |
@@ -138,7 +142,7 @@ This lesson produces `outputs/skill-two-loss-trainer-designer.md`. Given a new m
 | Continuous image representation | "No VQ" | Image patches as real-valued vectors, not integer codebook indices |
 | Velocity prediction | "v-parameterization" | Network output is the velocity field between noise and data, not the noise itself |
 
-## Further Reading
+## Further Reading  | 延伸阅读
 
 - [Zhou et al. — Transfusion (arXiv:2408.11039)](https://arxiv.org/abs/2408.11039)
 - [Esser et al. — Stable Diffusion 3 / MMDiT (arXiv:2403.03206)](https://arxiv.org/abs/2403.03206)

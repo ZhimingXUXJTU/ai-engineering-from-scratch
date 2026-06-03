@@ -1,6 +1,8 @@
-# Sequence-to-Sequence Models
+# Sequence-to-Sequence Models | 序列到序列模型 (Seq2Seq)
 
 > Two RNNs pretending to be a translator. The bottleneck they hit is the reason attention exists.
+
+> **【中文解读】** 编码器-解码器架构。注意力机制就是为解决它的瓶颈而发明的。
 
 **Type:** Build
 **Languages:** Python

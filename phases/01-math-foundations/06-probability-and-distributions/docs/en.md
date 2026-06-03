@@ -1,4 +1,4 @@
-# Probability and Distributions
+# Probability and Distributions | 概率与分布
 
 > Probability is the language AI uses to express uncertainty.
 
@@ -7,12 +7,20 @@
 **Prerequisites:** Phase 1, Lessons 01-04
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement PMFs and PDFs from scratch for Bernoulli, categorical, Poisson, uniform, and normal distributions
 - Compute expected value, variance, and use the Central Limit Theorem to explain why Gaussians dominate
 - Build softmax and log-softmax functions with the numerical stability trick (subtract max logit)
 - Calculate cross-entropy loss from logits and connect it to negative log-likelihood
+
+> **【中文解读】**
+> 概率是 AI 表达不确定性的语言。分类器输出概率分布，语言模型从 5 万个候选词中按概率采样，扩散模型从学习到的分布中生成图像。本章从零实现常见的概率分布、Softmax 函数和交叉熵损失。
+
+> **【拓展：概率在 AI 中的位置】**
+> - **Softmax**: 将神经网络输出转换为概率分布，是所有分类模型的最后一步。
+> - **交叉熵损失**: 分类任务的标准损失函数，等于负对数似然。
+> - **高斯分布**: 中心极限定理解释了为什么高斯分布在自然界和 AI 中如此常见。
 
 ## The Problem
 

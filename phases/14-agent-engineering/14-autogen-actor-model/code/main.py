@@ -3,6 +3,9 @@
 Actors have private state and an inbox. Messages are the only interaction.
 Failures in one actor are caught by the runtime and routed to a dead-letter
 queue; other actors keep running.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -14,6 +17,7 @@ from typing import Any, Callable
 
 @dataclass
 class Message:
+    """Message"""
     sender: str
     recipient: str
     topic: str
@@ -22,6 +26,7 @@ class Message:
 
 
 class Actor:
+    """Actor"""
     def __init__(self, name: str) -> None:
         self.name = name
 
@@ -31,6 +36,7 @@ class Actor:
 
 @dataclass
 class Runtime:
+    """Runtime"""
     actors: dict[str, Actor] = field(default_factory=dict)
     queue: deque[Message] = field(default_factory=deque)
     dead_letters: list[tuple[Message, str]] = field(default_factory=list)
@@ -74,6 +80,7 @@ class Runtime:
 
 
 class ReviewerAgent(Actor):
+    """ReviewerAgent"""
     def __init__(self, name: str) -> None:
         super().__init__(name)
         self.verdicts: list[tuple[str, bool]] = []
@@ -99,6 +106,7 @@ class ReviewerAgent(Actor):
 
 
 class ChecklistAgent(Actor):
+    """ChecklistAgent"""
     def __init__(self, name: str, partner: str) -> None:
         super().__init__(name)
         self.partner = partner
@@ -121,6 +129,7 @@ class ChecklistAgent(Actor):
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("AUTOGEN V0.4 ACTOR RUNTIME (STDLIB) — Phase 14, Lesson 14")
     print("=" * 70)
@@ -167,4 +176,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

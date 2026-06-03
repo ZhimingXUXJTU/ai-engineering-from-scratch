@@ -1,3 +1,20 @@
+"""
+演员-评论家 (Actor-Critic) — A2C 风格实现
+
+核心概念：两个网络协同工作
+  - Actor（演员）：策略网络 π_θ(a|s)，用策略梯度更新
+  - Critic（评论家）：值网络 V_φ(s)，用 MSE 回归更新
+  - 优势函数 A = G - V(s) 作为 Actor 的梯度信号
+
+GAE (广义优势估计)：通过 λ 参数在 TD (λ=0, 低方差高偏差)
+和 MC (λ=1, 高方差无偏差) 之间插值。λ=0.95 是 2026 年默认值。
+
+AI 对应：GAE → PPO → ChatGPT RLHF 训练的核心组件。
+理解 A2C + GAE，就理解了大模型对齐训练的基础架构。
+
+本模块实现：手写线性 Actor + Critic + GAE 优势计算
+"""
+
 import math
 import random
 
@@ -80,19 +97,25 @@ def rollout(theta, w, rng, max_steps=100):
 
 
 def gae_advantages(traj, gamma=0.99, lam=0.95):
+    """计算 GAE (广义优势估计) 优势和回报目标
+
+    GAE = Σ_{l=0}^{∞} (γλ)^l δ_{t+l}，其中 δ_t = r_t + γ V(s_{t+1}) - V(s_t)
+    λ=0 → 纯 TD（低方差高偏差），λ=1 → 纯 MC（高方差无偏差）
+    """
     T = len(traj)
     advantages = [0.0] * T
     gae = 0.0
-    for t in reversed(range(T)):
+    for t in reversed(range(T)):  # 反向遍历
         next_v = 0.0 if traj[t]["done"] else (traj[t + 1]["v"] if t + 1 < T else 0.0)
-        delta = traj[t]["r"] + gamma * next_v - traj[t]["v"]
-        gae = delta + gamma * lam * gae
+        delta = traj[t]["r"] + gamma * next_v - traj[t]["v"]  # TD 残差 δ_t
+        gae = delta + gamma * lam * gae  # GAE 递推
         advantages[t] = gae
-    returns = [a + traj[t]["v"] for t, a in enumerate(advantages)]
+    returns = [a + traj[t]["v"] for t, a in enumerate(advantages)]  # 回报 = 优势 + V(s)
     return advantages, returns
 
 
 def normalize(xs):
+    """标准化优势为零均值单位方差（大幅稳定训练）"""
     if len(xs) < 2:
         return xs
     m = sum(xs) / len(xs)
@@ -102,27 +125,30 @@ def normalize(xs):
 
 
 def actor_critic(episodes, lr_a=0.05, lr_v=0.1, gamma=0.99, lam=0.95, ent_coef=0.01, rng=None):
+    """A2C 风格 Actor-Critic 训练：每回合更新 Actor 和 Critic"""
     rng = rng or random.Random(0)
-    theta = init_theta(rng)
-    w = init_w(rng)
+    theta = init_theta(rng)  # Actor 参数
+    w = init_w(rng)  # Critic 参数
     returns_log = []
 
     for ep in range(episodes):
-        traj = rollout(theta, w, rng)
-        advs, returns = gae_advantages(traj, gamma=gamma, lam=lam)
-        advs_norm = normalize(advs)
+        traj = rollout(theta, w, rng)  # 收集一个回合的轨迹
+        advs, returns = gae_advantages(traj, gamma=gamma, lam=lam)  # 计算 GAE 优势
+        advs_norm = normalize(advs)  # 标准化优势
 
         for t, node in enumerate(traj):
+            # --- Critic 更新：MSE 回归 ---
             target = returns[t]
-            err = target - value(w, node["x"])
+            err = target - value(w, node["x"])  # 值函数误差
             for j in range(N_FEAT):
-                w[j] += lr_v * err * node["x"][j]
+                w[j] += lr_v * err * node["x"][j]  # 梯度下降
 
+            # --- Actor 更新：策略梯度 + 熵正则化 ---
             adv = advs_norm[t]
             probs = node["probs"]
             for i in range(N_ACTIONS):
-                grad_logpi = (1.0 if i == node["a"] else 0.0) - probs[i]
-                entropy_grad = -math.log(max(probs[i], 1e-12)) - 1.0
+                grad_logpi = (1.0 if i == node["a"] else 0.0) - probs[i]  # ∇log π
+                entropy_grad = -math.log(max(probs[i], 1e-12)) - 1.0  # 熵梯度
                 for j in range(N_FEAT):
                     theta[i][j] += lr_a * (adv * grad_logpi + ent_coef * entropy_grad * probs[i]) * node["x"][j]
 

@@ -1,6 +1,10 @@
-# Building an MCP Server — Python + TypeScript SDKs
+# Building an MCP Server — Python + TypeScript SDKs | 构建 MCP 服务器：Python + TypeScript SDK
 
 > Most MCP tutorials show only stdio hello-worlds. A real server exposes tools plus resources plus prompts, handles capability negotiation, emits structured errors, and works the same across SDKs. This lesson builds a notes server end-to-end: stdlib stdio transport, JSON-RPC dispatch, the three server primitives, and a pure-function style that drops into either the Python SDK's FastMCP or the TypeScript SDK when you graduate.
+
+> **【中文解读】** 大多数 MCP 教程只展示 stdio 的 hello-world。真正的服务器需要暴露 tools + resources + prompts、处理能力协商、发出结构化错误，并在不同 SDK 间保持一致。本课端到端构建一个笔记服务器：stdlib stdio 传输、JSON-RPC 分发、三个服务器原语，以及可迁移到 FastMCP 或 TypeScript SDK 的纯函数风格。
+
+> **【拓展：MCP 服务器→Claude 生态开发】** MCP 服务器是 Claude 生态的核心开发模式。通过 stdio 传输，Claude Desktop 等客户端可以启动你的服务器作为子进程。FastMCP (Python) 和 TypeScript SDK 提供装饰器风格的高级 API，使开发更简洁。理解 stdlib 实现有助于排查 SDK 层面的问题。
 
 **Type:** Build
 **Languages:** Python (stdlib, stdio MCP server)
@@ -103,6 +107,8 @@ Each tool can carry `annotations` describing safety properties:
 - `idempotentHint: true` — same inputs produce same outputs.
 - `openWorldHint: true` — interacts with external systems.
 
+> **【中文解读】** 每个工具可携带 `annotations` 描述安全属性：`readOnlyHint`（只读，可重试）、`destructiveHint`（不可逆副作用，需确认）、`idempotentHint`（幂等）、`openWorldHint`（与外部系统交互）。客户端使用这些决定 UX（确认对话框）和路由。
+
 The client uses these to decide UX (confirmation dialogs, status indicators) and routing (Phase 13 · 17).
 
 ### Graduation path
@@ -152,18 +158,18 @@ This lesson produces `outputs/skill-mcp-server-scaffolder.md`. Given a domain (n
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| MCP server | "The thing that exposes tools" | Process that speaks MCP JSON-RPC over stdio or HTTP |
-| stdio transport | "Child process model" | Server is spawned by client; communicates via stdin/stdout |
-| Dispatcher | "Method router" | Map of JSON-RPC method name to handler function |
-| Content block | "Tool result chunk" | Typed element in the `content` array of a tool response |
-| `isError` | "Tool-level failure" | Signals the tool failed; distinguishes from JSON-RPC error |
-| Annotations | "Safety hints" | readOnly / destructive / idempotent / openWorld flags |
-| FastMCP | "Python SDK" | Decorator-based higher-level framework on top of the MCP protocol |
-| Resource URI | "Addressable data" | `file://`, `db://`, or custom scheme identifying a resource |
-| Prompt template | "Slash-command brief" | Server-supplied template with argument slots for host UIs |
-| Capability declaration | "Feature toggle" | Per-primitive flags declared in `initialize` |
+| Term | What people say | What it actually means | 中文术语 |
+|------|----------------|------------------------|----------|
+| MCP server | "The thing that exposes tools" | Process that speaks MCP JSON-RPC over stdio or HTTP | MCP 服务器 |
+| stdio transport | "Child process model" | Server is spawned by client; communicates via stdin/stdout | stdio 传输 |
+| Dispatcher | "Method router" | Map of JSON-RPC method name to handler function | 分发器 |
+| Content block | "Tool result chunk" | Typed element in the `content` array of a tool response | 内容块 |
+| `isError` | "Tool-level failure" | Signals the tool failed; distinguishes from JSON-RPC error | 工具级错误 |
+| Annotations | "Safety hints" | readOnly / destructive / idempotent / openWorld flags | 安全注解 |
+| FastMCP | "Python SDK" | Decorator-based higher-level framework on top of the MCP protocol | FastMCP 框架 |
+| Resource URI | "Addressable data" | `file://`, `db://`, or custom scheme identifying a resource | 资源 URI |
+| Prompt template | "Slash-command brief" | Server-supplied template with argument slots for host UIs | 提示模板 |
+| Capability declaration | "Feature toggle" | Per-primitive flags declared in `initialize` | 能力声明 |
 
 ## Further Reading
 

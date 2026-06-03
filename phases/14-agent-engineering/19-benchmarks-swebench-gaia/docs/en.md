@@ -1,4 +1,4 @@
-# Benchmarks: SWE-bench, GAIA, AgentBench
+# Benchmarks: SWE-bench, GAIA, AgentBench | 基准测试 GAIA
 
 > Three benchmarks anchor agent evaluation in 2026. SWE-bench tests code patching. GAIA tests generalist tool use. AgentBench tests multi-environment reasoning. Know their composition, their contamination story, and what they do not measure.
 
@@ -7,7 +7,7 @@
 **Prerequisites:** Phase 14 · 06 (Tool Use)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Name SWE-bench's test harness (FAIL_TO_PASS) and explain why it gates on unit tests.
 - Explain why SWE-bench Verified (OpenAI, 500 tasks) exists and what it removes.
@@ -15,7 +15,7 @@
 - Name AgentBench's eight environments and its primary blocker for open-source LLMs.
 - Summarize the SWE-bench+ contamination finding and its implications.
 
-## The Problem
+## The Problem | 问题
 
 Leaderboards tell you which model wins on one benchmark. They do not tell you:
 
@@ -23,9 +23,12 @@ Leaderboards tell you which model wins on one benchmark. They do not tell you:
 - Whether the benchmark measures what you care about (code vs browsing vs generalist).
 - Whether the evaluator is robust (AST matching, state checks, human review).
 
+
+> **【中文解读】** 本节介绍了 Agent 评估基准——如何衡量 Agent 在各类任务上的表现。
+
 Know the three anchoring benchmarks and their failure modes before you quote a number.
 
-## The Concept
+## The Concept | 概念
 
 ### SWE-bench (Jimenez et al., ICLR 2024 oral)
 
@@ -76,7 +79,7 @@ GAIA is what you run to measure "generalist capability." Do not confuse with cod
 - **Contaminated claims.** Reporting SWE-bench without mentioning Verified or SWE-bench+ is misleading.
 - **Benchmark-as-development-target.** Optimizing for the benchmark diverges from production usefulness.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements a toy SWE-bench-like harness:
 
@@ -93,39 +96,44 @@ python3 code/main.py
 
 The output shows resolution rate per task + per difficulty and makes the evaluator rules concrete.
 
-## Use It
+## Use It | 使用方法
 
 - **SWE-bench Verified** for code agents. Always report Verified scores.
 - **GAIA** for generalist agents. Use the private leaderboard split.
 - **AgentBench** for multi-environment comparison.
 - **Custom evals** (Lesson 30) for your product's actual shape.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-benchmark-harness.md` builds a SWE-bench-style harness for any codebase-task pair with FAIL_TO_PASS / PASS_TO_PASS gating.
 
-## Exercises
+## Exercises | 练习题
 
 1. Port the toy harness to run on a real repo (pick one of yours). Write 3 FAIL_TO_PASS tests for known bugs.
+   *思考并实践此练习*
 2. Add a step-count metric. On your 3 tasks, how many agent steps per resolution?
+   *思考并实践此练习*
 3. Read the SWE-bench+ paper. Implement a solution-leakage check (pattern-match the issue text against the diff).
+   *思考并实践此练习*
 4. Download a GAIA question from the public split. Trace what a GPT-4-class agent would do. What tools does it need?
+   *思考并实践此练习*
 5. Read AgentBench's per-environment breakdown. Which environment mirrors your product surface? What does "SOTA" look like there?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| SWE-bench | "Code agent benchmark" | 2,294 GitHub issues; patch must flip FAIL_TO_PASS tests |
-| SWE-bench Verified | "Clean SWE-bench" | 500 human-curated tasks, OpenAI |
-| FAIL_TO_PASS | "Fix gate" | Tests previously failing that must pass after the patch |
-| PASS_TO_PASS | "No-regression gate" | Tests that were passing and must still pass |
-| GAIA | "Generalist benchmark" | 466 human-easy / AI-hard multi-tool questions |
-| AgentBench | "Multi-env benchmark" | 8 environments; long-horizon multi-turn |
-| Contamination | "Training-set leak" | Benchmark tasks present in model training |
-| SWE-bench+ | "Contamination audit" | 32.67% solution leakage found in successful SWE-bench patches |
+|------|----------------|------------------------|---|
+| SWE-bench | "Code agent benchmark" | 2,294 GitHub issues; patch must flip FAIL_TO_PASS tests |  |
+| SWE-bench Verified | "Clean SWE-bench" | 500 human-curated tasks, OpenAI |  |
+| FAIL_TO_PASS | "Fix gate" | Tests previously failing that must pass after the patch |  |
+| PASS_TO_PASS | "No-regression gate" | Tests that were passing and must still pass |  |
+| GAIA | "Generalist benchmark" | 466 human-easy / AI-hard multi-tool questions |  |
+| AgentBench | "Multi-env benchmark" | 8 environments; long-horizon multi-turn |  |
+| Contamination | "Training-set leak" | Benchmark tasks present in model training |  |
+| SWE-bench+ | "Contamination audit" | 32.67% solution leakage found in successful SWE-bench patches |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Jimenez et al., SWE-bench (arXiv:2310.06770)](https://arxiv.org/abs/2310.06770) — the original benchmark
 - [OpenAI, SWE-bench Verified](https://openai.com/index/introducing-swe-bench-verified/) — the curated subset

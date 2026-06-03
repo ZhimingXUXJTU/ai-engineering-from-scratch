@@ -1,6 +1,8 @@
-# Temporal Difference — Q-Learning & SARSA
+# Temporal Difference — Q-Learning & SARSA | 时序差分 — Q学习与SARSA
 
 > Monte Carlo waits until the episode ends. TD updates after every step by bootstrapping the next value estimate. Q-learning is off-policy and optimistic; SARSA is on-policy and cautious. Both are one line of code. Both underpin every deep-RL method in this phase.
+
+> **【中文解读】** MC 要等到回合结束才能更新，TD（时序差分）每一步都能更新——用 `r + γ V(s')` 作为目标来引导当前估计。Q-learning 是离策略的（学习最优策略），SARSA 是在线策略的（学习当前行为策略）。两者仅差一个 `max`，却是所有深度 RL 的基础。
 
 **Type:** Build
 **Languages:** Python
@@ -16,6 +18,10 @@ Dynamic programming has the opposite profile — zero-variance bootstrapped back
 Temporal difference (TD) learning splits the difference. From a single transition `(s, a, r, s')`, form a one-step target `r + γ V(s')` and nudge `V(s)` toward it. No model. No complete episodes. Bias from using an approximate `V` on the RHS, but dramatically lower variance than MC and online updates from step one.
 
 This is the pivot on which all of modern RL — DQN, A2C, PPO, SAC — turns. The rest of Phase 9 is layers of function approximation and tricks built on top of the one-step TD update you will write in this lesson.
+
+> **【中文解读】** TD 学习是 DP 和 MC 的折中：用单步转移 `(s,a,r,s')` 构造目标 `r + γV(s')`，不需要模型，也不需要完整回合。有偏差（因为用了近似 V），但方差远低于 MC，而且可以在线更新。DQN、PPO、RLHF 都是基于 TD 思想的变体。
+
+> **【拓展：游戏AI→LLM对齐】** Q-learning 是 2013 年 Atari DQN 的核心，开启了深度 RL 时代。PPO 则是 ChatGPT RLHF 训练的核心算法——两者都基于 TD 误差的思想。理解 Q-learning 和 SARSA 是理解大模型对齐训练的基础。
 
 ## The Concept
 
@@ -40,6 +46,8 @@ The `max` assumes the *greedy* policy will be followed from `s'` onward, regardl
 The name is the tuple `(s, a, r, s', a')`. SARSA uses the action `a'` the agent *actually* takes next, not the greedy `argmax`. Converges to `Q^π` for whatever ε-greedy `π` is running, which in the limit `ε → 0` becomes `Q*`.
 
 **The cliff-walking difference.** On the classic cliff-walking task (fall-off-cliff = reward -100), Q-learning learns the optimal path along the cliff edge but occasionally takes the penalty during exploration. SARSA learns a safer path one step away from the cliff because it factors exploration noise into its Q-value. With training, both reach optimal at `ε → 0`. In practice it matters: when exploration is actually happening at deployment, SARSA's behavior is more conservative.
+
+> **【中文解读】** 经典悬崖行走实验揭示了 Q-learning 和 SARSA 的关键区别：Q-learning 学到贴着悬崖的最优路径（但探索时会掉下去），SARSA 学到远离悬崖的安全路径（因为它考虑了探索噪声）。部署中有探索时，SARSA 更安全保守。
 
 **Expected SARSA.** Replace `Q(s', a')` with its expected value under `π`:
 
@@ -158,21 +166,24 @@ Refuse to apply tabular TD to state spaces > 10⁶. Refuse to ship a Q-learning 
 ## Exercises
 
 1. **Easy.** Implement Q-learning and SARSA on the 4×4 GridWorld. Plot learning curves (mean return per 100 episodes) for 2,000 episodes. Who converges faster?
+   > **练习1：** 在 GridWorld 上对比 Q-learning 和 SARSA 的学习曲线。
 2. **Medium.** Build a cliff-walking environment (4×12, last row is the cliff with reward -100 and reset to start). Compare Q-learning and SARSA final policies. Screenshot the paths each takes. Which is closer to the cliff?
+   > **练习2：** 实现悬崖行走环境，观察 Q-learning（贴崖边）vs SARSA（远离崖边）的策略差异。
 3. **Hard.** Implement Double Q-learning. On a noisy-reward GridWorld (Gaussian noise σ=5 added to per-step reward), show Q-learning overestimates `V*(0,0)` by a meaningful amount while Double Q-learning does not.
+   > **练习3：** 实现双重 Q-learning，验证它能消除 Q-learning 的最大化偏差。
 
 ## Key Terms
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
-| TD error | "The update signal" | `δ = r + γ V(s') - V(s)`, the bootstrapped residual. |
-| TD(0) | "One-step TD" | Update after every transition using only the next state's estimate. |
-| Q-learning | "Off-policy RL 101" | TD update with `max` over next-state actions; learns `Q*` regardless of behavior policy. |
-| SARSA | "On-policy Q-learning" | TD update using the actual next action; learns `Q^π` for current ε-greedy π. |
-| Expected SARSA | "The low-variance SARSA" | Replace sampled `a'` with its expectation under π. |
-| GLIE | "Correct exploration schedule" | Greedy in the Limit with Infinite Exploration; needed for Q-learning convergence. |
-| Bootstrapping | "Using current estimate in the target" | What distinguishes TD from MC. Source of bias but massive variance reduction. |
-| Maximization bias | "Q-learning overestimates" | `max` over noisy estimates is upward-biased; fixed by Double Q-learning. |
+| TD error | "The update signal" / TD 误差 | `δ = r + γ V(s') - V(s)`, the bootstrapped residual. |
+| TD(0) | "One-step TD" / 单步 TD | Update after every transition using only the next state's estimate. |
+| Q-learning | "Off-policy RL 101" / Q 学习 | TD update with `max` over next-state actions; learns `Q*` regardless of behavior policy. |
+| SARSA | "On-policy Q-learning" / SARSA | TD update using the actual next action; learns `Q^π` for current ε-greedy π. |
+| Expected SARSA | "The low-variance SARSA" / 期望 SARSA | Replace sampled `a'` with its expectation under π. |
+| GLIE | "Correct exploration schedule" / 无限探索极限贪心 | Greedy in the Limit with Infinite Exploration; needed for Q-learning convergence. |
+| Bootstrapping | "Using current estimate in the target" / 自举 | What distinguishes TD from MC. Source of bias but massive variance reduction. |
+| Maximization bias | "Q-learning overestimates" / 最大化偏差 | `max` over noisy estimates is upward-biased; fixed by Double Q-learning. |
 
 ## Further Reading
 

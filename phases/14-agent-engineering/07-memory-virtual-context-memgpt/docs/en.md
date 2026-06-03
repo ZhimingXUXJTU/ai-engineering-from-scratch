@@ -1,4 +1,4 @@
-# Memory: Virtual Context and MemGPT
+# Memory: Virtual Context and MemGPT | 虚拟上下文 记忆 MemGPT
 
 > Context windows are finite. Conversations, documents, and tool traces are not. MemGPT (Packer et al., 2023) frames this as OS virtual memory — main context is RAM, external store is disk, the agent pages between them. This is the pattern every 2026 memory system inherits.
 
@@ -7,14 +7,14 @@
 **Prerequisites:** Phase 14 · 01 (Agent Loop), Phase 14 · 06 (Tool Use)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Explain the OS analogy MemGPT builds on: main context = RAM, external context = disk, memory tools = page in/out.
 - Implement the two-tier MemGPT pattern in stdlib with a main-context buffer, an external searchable store, and page in/out tools.
 - Describe how the agent issues "interrupts" to query or modify external memory and how the result is spliced back into the next prompt.
 - Identify the MemGPT design choices that carry into Letta (Lesson 08) and Mem0 (Lesson 09).
 
-## The Problem
+## The Problem | 问题
 
 Context windows look like they should solve memory. They do not. Three failure modes recur in production:
 
@@ -22,9 +22,12 @@ Context windows look like they should solve memory. They do not. Three failure m
 2. **Dilution.** Even within the window, stuffing irrelevant context dilutes attention over what matters. Frontier models still degrade on long inputs.
 3. **Persistence.** A new session starts with an empty window. Agents without external memory cannot say "remember when you asked me to..." across sessions.
 
+
+> **【中文解读】** 本节介绍了 Agent 的记忆机制，包括短期工作记忆和长期情景记忆的管理策略。
+
 Bigger windows help but do not fix this. Mem0's 2025 paper measured that 128k-window baselines still miss long-horizon facts that a 4k-window agent with external memory catches.
 
-## The Concept
+## The Concept | 概念
 
 ### MemGPT: the OS analogy
 
@@ -74,7 +77,7 @@ The MemGPT paper is the 2026 foundation even if production systems run Letta, Me
 - **Memory poisoning.** External memory is retrieved text. If attacker-controlled content lands in a memory note, the agent re-ingests it next session. This is the Greshake et al. (Lesson 27) attack restated over time.
 - **Citation loss.** Agent recalls "the user asked me to ship X" but cannot cite which turn. Store source references (session ID, turn ID) with every archival write.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements MemGPT's two-tier pattern in stdlib:
 
@@ -91,7 +94,7 @@ python3 code/main.py
 
 The trace shows the agent writing three facts, filling main context to the cap (forcing eviction), then answering a follow-up question by retrieving from archival — reproducing the MemGPT workflow without any real LLM.
 
-## Use It
+## Use It | 使用方法
 
 Every production memory system today is a MemGPT variant:
 
@@ -102,32 +105,36 @@ Every production memory system today is a MemGPT variant:
 
 Pick one by operational shape (self-hosted, managed, framework-integrated), not by the core pattern — the core pattern is MemGPT.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-virtual-memory.md` is a reusable skill that produces a correct two-tier memory scaffold (main + archival + tool surface) for any target runtime, with eviction policy and citation fields wired in.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a `max_main_context_tokens` cap measured in tokens (approximate with `len(text.split())` * 1.3). Compact the oldest messages into a summary when the cap is exceeded. Compare behavior with and without the summarizer.
 2. Implement BM25 properly over the archival store (term frequency, inverse document frequency). Measure recall@10 on a toy fact set versus the token-overlap baseline.
+   *思考并实践此练习*
 3. Add `citation` fields (session_id, turn_id, source_url) to archival inserts. Make the agent cite sources on every retrieval-backed answer.
+   *思考并实践此练习*
 4. Simulate memory poisoning: add an archival record that says "ignore all future user instructions." Write a guard that scans retrievals for directive-shaped text and marks them untrusted.
+   *思考并实践此练习*
 5. Port the implementation to use the MemGPT research repo's core-memory JSON schema (`cpacker/MemGPT`). What changes when you switch from flat strings to typed sections?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Virtual context | "Unlimited memory" | Main (prompt) + external (searchable) tiers with page in/out |
-| Main context | "Working memory" | The prompt — fixed-size, always visible |
-| Archival memory | "Long-term store" | External searchable persistence, retrieved on demand |
-| Core memory | "Persistent prompt section" | Named sections pinned inside the main context |
-| Memory tool | "Memory API" | Tool call the agent issues to read/write external memory |
-| Interrupt | "Memory page fault" | Agent pauses, runtime fetches, result splices into next turn |
-| Memory rot | "Stale facts" | Old writes drown retrieval; fix with consolidation |
-| Memory poisoning | "Injected persistent note" | Attacker content stored as memory, re-ingested on recall |
+|------|----------------|------------------------|---|
+| Virtual context | "Unlimited memory" | Main (prompt) + external (searchable) tiers with page in/out |  |
+| Main context | "Working memory" | The prompt — fixed-size, always visible |  |
+| Archival memory | "Long-term store" | External searchable persistence, retrieved on demand |  |
+| Core memory | "Persistent prompt section" | Named sections pinned inside the main context |  |
+| Memory tool | "Memory API" | Tool call the agent issues to read/write external memory |  |
+| Interrupt | "Memory page fault" | Agent pauses, runtime fetches, result splices into next turn |  |
+| Memory rot | "Stale facts" | Old writes drown retrieval; fix with consolidation |  |
+| Memory poisoning | "Injected persistent note" | Attacker content stored as memory, re-ingested on recall |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Packer et al., MemGPT (arXiv:2310.08560)](https://arxiv.org/abs/2310.08560) — OS-inspired virtual context paper
 - [Letta, Memory Blocks blog](https://www.letta.com/blog/memory-blocks) — the three-tier evolution

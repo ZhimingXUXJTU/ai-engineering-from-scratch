@@ -1,3 +1,8 @@
+"""
+频谱图、Mel 滤波器组与 MFCC (Spectrograms, Mel Scale & Audio Features)
+核心概念：Mel 频谱图是音频 AI 的标准输入格式，模拟人耳对频率的感知
+AI 对应：Whisper、MusicGen、Stable Audio 都使用 Mel 频谱图作为中间表示
+"""
 """Spectrograms, mel filterbanks, MFCCs — built from stdlib math.
 
 Run: python3 code/main.py

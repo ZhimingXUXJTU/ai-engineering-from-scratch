@@ -1,6 +1,8 @@
-# Audio-Language Models: the Whisper to Audio Flamingo 3 Arc
+# Audio-Language Models: the Whisper to Audio Flamingo 3 Arc | 音频语言模型：从 Whisper 到 Audio Flamingo 3
 
 > Whisper (Radford et al., December 2022) settled speech recognition — 680k hours of weakly-supervised multilingual speech, a simple encoder-decoder transformer, a benchmark that made every subsequent ASR release cite it. But recognition is not reasoning. Asking "what instruments are in this recording" or "what emotion is the speaker expressing" or "what happened at minute 3" requires audio understanding, not transcription. Qwen-Audio, SALMONN, LTU, and NVIDIA's Audio Flamingo 3 (AF3, July 2025) progressively built that stack: keep Whisper-class encoders, bolt on Q-formers, train on audio-text instruction data, add chain-of-thought reasoning. This lesson walks the arc.
+
+> **【中文解读】** Whisper 解决了语音识别，但识别不是推理。"这段录音用了什么乐器"、"说话者表达了什么情绪"等问题需要音频理解能力，不是简单转录。从 SALMONN 到 Audio Flamingo 3（AF3），音频 LLM 的发展路径是：保留 Whisper 级编码器 + 加 Q-Former 桥接 + 用音频-文本指令数据训练 + 加链式思考推理。
 
 **Type:** Build
 **Languages:** Python (stdlib, log-Mel spectrogram + audio Q-former skeleton)
@@ -89,6 +91,10 @@ Works perfectly for "summarize this podcast." Fails for:
 
 End-to-end preserves acoustic signal. Qwen-Audio and AF3 handle music, environment, and emotion natively.
 
+> **【中文解读】** 级联管道（Whisper 转录→LLM 推理）适合纯语音场景如播客摘要，但无法处理音乐情绪、说话人识别、时间定位、深度伪造检测等需要声学特征的任务。端到端音频 LLM（AF3、Qwen-Audio）直接将音频 token 输入 LLM，保留了完整的声学信号。
+
+> **【拓展：金融场景的音频理解】** 在金融领域，音频理解可用于：财报电话会的情绪分析（不仅是转录文字，还有语气和语调）、交易员的语音指令识别、客服质量监控的情绪检测、会议纪要的说话人分离。级联管道无法捕捉这些声学层面的信号。
+
 ### 2026 production recipe
 
 For a new audio-understanding product:
@@ -122,27 +128,27 @@ This lesson produces `outputs/skill-audio-llm-pipeline-picker.md`. Given an audi
 
 ## Exercises
 
-1. Compute the log-Mel spectrogram dimension for a 30-second clip at 16kHz, 25ms window, 10ms hop, 80 Mel bins. How does this change at 48kHz?
+1. Compute the log-Mel spectrogram dimension for a 30-second clip at 16kHz, 25ms window, 10ms hop, 80 Mel bins. How does this change at 48kHz? 计算 30 秒音频在 16kHz、25ms 窗口、10ms 步长、80 Mel 频段下的 log-Mel 频谱图维度。48kHz 时如何变化？
 
-2. Why does Whisper underperform on music? What audio features does BEATs capture that Whisper does not?
+2. Why does Whisper underperform on music? What audio features does BEATs capture that Whisper does not? 为什么 Whisper 在音乐上表现不佳？BEATs 捕获了哪些 Whisper 没有的音频特征？
 
-3. Audio Q-former with 64 queries vs 32: at what task complexity does 64 pay off? 32 save compute for what?
+3. Audio Q-former with 64 queries vs 32: at what task complexity does 64 pay off? 32 save compute for what? 64 查询 vs 32 查询的 Audio Q-former：在什么任务复杂度下 64 更值得？32 节省了什么计算？
 
-4. Read AF3 Section 4 on on-demand thinking. Propose three audio tasks where chain-of-thought helps the most.
+4. Read AF3 Section 4 on on-demand thinking. Propose three audio tasks where chain-of-thought helps the most. 阅读 AF3 第 4 节关于按需思考的内容。提出三个链式思考最有帮助的音频任务。
 
-5. Implement a minimal diarization pipeline using AF3's output. How do you signal speaker changes?
+5. Implement a minimal diarization pipeline using AF3's output. How do you signal speaker changes? 用 AF3 输出实现一个最小的说话人分离管道。如何标记说话人切换？
 
 ## Key Terms
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
-| Log-Mel spectrogram | "Mel features" | 2D (time, frequency) array of log-magnitude values after Mel filter banks |
-| Audio Q-former | "Audio Perceiver" | Cross-attention bottleneck from audio encoder output to fixed-length queries feeding the LLM |
-| Cascaded | "ASR-then-LLM" | Pipeline where Whisper transcribes and a text LLM reasons; loses acoustic information |
-| End-to-end | "Audio-LLM" | Audio features enter the LLM directly via Q-former; preserves acoustic signal |
-| BEATs | "Audio AudioSet encoder" | SSL transformer trained on AudioSet; strong on music + environmental sounds |
-| MMAU | "Audio reasoning bench" | 10k QA pairs across speech, music, environment; 2024 eval standard |
-| On-demand thinking | "Audio CoT" | Model can optionally emit reasoning tokens before final answer, lifts accuracy 3-5 pts |
+| Log-Mel spectrogram | "Mel features" Mel 频谱 | 2D (time, frequency) array of log-magnitude values after Mel filter banks 经 Mel 滤波器组后的对数幅度二维数组 |
+| Audio Q-former | "Audio Perceiver" 音频感知器 | Cross-attention bottleneck from audio encoder output to fixed-length queries feeding the LLM 音频编码器输出到固定长度查询的交叉注意力瓶颈 |
+| Cascaded | "ASR-then-LLM" 级联管道 | Pipeline where Whisper transcribes and a text LLM reasons; loses acoustic information Whisper 转录后文本 LLM 推理的管道；丢失声学信息 |
+| End-to-end | "Audio-LLM" 端到端音频 LLM | Audio features enter the LLM directly via Q-former; preserves acoustic signal 音频特征通过 Q-former 直接进入 LLM；保留声学信号 |
+| BEATs | "Audio AudioSet encoder" 音频自监督编码器 | SSL transformer trained on AudioSet; strong on music + environmental sounds 在 AudioSet 上训练的自监督 Transformer；擅长音乐和环境声 |
+| MMAU | "Audio reasoning bench" 音频推理基准 | 10k QA pairs across speech, music, environment; 2024 eval standard 跨语音、音乐、环境的 1 万条 QA；2024 年评估标准 |
+| On-demand thinking | "Audio CoT" 按需音频思考 | Model can optionally emit reasoning tokens before final answer, lifts accuracy 3-5 pts 模型可在最终回答前输出推理 token，提升准确率 3-5 个百分点 |
 
 ## Further Reading
 

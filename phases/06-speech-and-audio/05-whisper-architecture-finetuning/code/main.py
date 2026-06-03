@@ -1,3 +1,8 @@
+"""
+Whisper 架构与微调 (Whisper — Architecture & Fine-Tuning)
+核心概念：30 秒窗口 Transformer 编码器-解码器，680k 小时多语言训练
+AI 对应：Whisper 是 2026 年语音识别的标杆，whisper.cpp 支持本地部署
+"""
 """Whisper prompt format + chunking + budget math, built from stdlib.
 
 Shows the decoder prompt you would pass, the chunk schedule for a long

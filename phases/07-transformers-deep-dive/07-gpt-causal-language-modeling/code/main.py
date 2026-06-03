@@ -3,6 +3,8 @@
 Pure stdlib. Tiny "GPT" with random weights demonstrates the mask,
 next-token prediction, and four sampling strategies on a 20-token vocab.
 """
+# 【中文解读】GPT 因果语言模型。Decoder-only，因果掩码防止看未来。GPT-2/3/4 都是此架构。
+
 
 import math
 import random

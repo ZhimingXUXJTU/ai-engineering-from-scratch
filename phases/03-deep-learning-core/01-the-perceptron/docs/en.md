@@ -1,20 +1,24 @@
-# The Perceptron
+# The Perceptron | 感知机
 
 > The perceptron is the atom of neural networks. Split it open and you find weights, a bias, and a decision.
+
+> **【中文解读】** 感知机是神经网络的"原子"——最小的学习单元。它做的事情极其简单：把输入乘上权重，加上偏置，然后做一个二选一的决策。理解感知机，就是理解"学习"在代码中到底意味着什么：不断调整数字，直到输出和现实吻合。
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 1 (Linear Algebra Intuition)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement a perceptron from scratch in Python, including the weight update rule and step activation function
 - Explain why a single perceptron can only solve linearly separable problems and demonstrate the XOR failure case
 - Construct a multi-layer perceptron by composing OR, NAND, and AND gates to solve XOR
 - Train a two-layer network with sigmoid activation and backpropagation to learn XOR automatically
 
-## The Problem
+> **【中文解读】** 本章目标：从零实现感知机，理解为什么单个感知机只能解决线性可分问题（XOR 就是一个反例），然后通过组合多个感知机来突破这个限制，最终用反向传播自动学习权重。
+
+## The Problem | 问题引入
 
 You know vectors and dot products. You know that a matrix transforms inputs into outputs. But how does a machine *learn* which transformation to use?
 
@@ -22,9 +26,11 @@ The perceptron answers this. It's the simplest possible learning machine: take s
 
 Understanding the perceptron means understanding what "learning" actually means in code: adjusting numbers until the output matches reality.
 
-## The Concept
+> **【中文解读】** 你已经知道矩阵可以把输入变成输出。但机器怎么"学会"该用哪个变换？感知机给出了答案：输入乘权重、加偏置、做二分类决策、然后根据错误调整参数。所有神经网络——不管多复杂——都是这个简单想法的堆叠。
 
-### One Neuron, One Decision
+## The Concept | 核心概念
+
+### One Neuron, One Decision | 一个神经元，一个决策
 
 A perceptron takes n inputs, multiplies each by a weight, sums them up, adds a bias, and passes the result through an activation function.
 
@@ -47,7 +53,9 @@ step(z) = 1  if z >= 0
 
 This is a linear classifier. The weights and bias define a line (or hyperplane in higher dimensions) that splits the input space into two regions.
 
-### The Decision Boundary
+> **【中文解读】** 感知机的计算流程：输入 x 乘以权重 w，求和后加上偏置 b，最后通过阶跃函数输出 0 或 1。本质上就是一个线性分类器——权重和偏置在空间中画一条线（或超平面），把输入空间分成两个区域。
+
+### The Decision Boundary | 决策边界
 
 For two inputs, the perceptron draws a line through 2D space:
 
@@ -66,23 +74,29 @@ For two inputs, the perceptron draws a line through 2D space:
 
 Everything on one side of the line outputs 0. Everything on the other side outputs 1. Training moves this line until it correctly separates the classes.
 
-### The Learning Rule
+> **【中文解读】** 决策边界就是 w·x + b = 0 这条线。训练的过程就是不断移动这条线，直到它把不同类别的数据正确分开。在深度学习中，每一层都在创建新的特征空间和新的决策边界。
+
+### The Learning Rule | 学习规则
 
 The perceptron learning rule is simple:
 
 ```
-For each training example (x, y_true):
-    y_pred = predict(x)
-    error = y_true - y_pred
+For each training example (x, y_true):     # 对每个训练样本
+    y_pred = predict(x)                    # 预测输出
+    error = y_true - y_pred                # 计算误差
 
-    For each weight:
-        w_i = w_i + learning_rate * error * x_i
-    bias = bias + learning_rate * error
+    For each weight:                       # 对每个权重
+        w_i = w_i + learning_rate * error * x_i   # 更新权重
+    bias = bias + learning_rate * error    # 更新偏置
 ```
 
 If the prediction is correct, error = 0, nothing changes. If it predicts 0 but should be 1, weights increase. If it predicts 1 but should be 0, weights decrease. The learning rate controls how big each adjustment is.
 
-### The XOR Problem
+> **【中文解读】** 感知机的学习规则非常直觉：预测对了就不动，预测错了就根据误差方向调整权重。这个规则是所有梯度下降算法的鼻祖——PyTorch 里的 `optimizer.step()` 做的事情本质上是一样的，只是计算更复杂。
+
+> **【拓展：梯度下降的起源】** 感知机学习规则是最简单的梯度下降。现代深度学习中的 SGD（随机梯度下降）、Adam 优化器都是这个思想的延伸。区别在于：感知机用固定的学习率和手动计算梯度，而 Adam 会自适应调整学习率。
+
+### The XOR Problem | XOR 问题
 
 Here's where it breaks. Look at these logic gates:
 
@@ -112,57 +126,61 @@ This is a fundamental limit. A single perceptron can only solve linearly separab
 
 The fix: stack perceptrons into layers. A multi-layer perceptron can solve XOR by combining two linear decisions into a nonlinear one.
 
-## Build It
+> **【中文解读】** XOR 问题是感知机的"阿喀琉斯之踵"：无论你怎么画直线，都无法把 XOR 的两类输出分开。1969 年 Minsky 和 Papert 证明了这一点，直接导致了神经网络研究的"第一个寒冬"。但解法也很优雅：把多个感知机叠成多层，用两条直线组合出非线性的决策边界。这就是多层感知机（MLP）的起源。
+
+> **【拓展：为什么深度学习需要"深"】** 单层感知机只能画直线，两层可以画折线，三层可以画任意形状。层数越多，能表达的函数越复杂。这就是为什么 GPT-4 有近 100 层 Transformer——每多一层，模型就能表达更复杂的模式。从感知机到 GPT，核心思想一脉相承。
+
+## Build It | 动手构建
 
 ### Step 1: The Perceptron class
 
 ```python
 class Perceptron:
     def __init__(self, n_inputs, learning_rate=0.1):
-        self.weights = [0.0] * n_inputs
-        self.bias = 0.0
-        self.lr = learning_rate
+        self.weights = [0.0] * n_inputs   # 权重初始化为 0
+        self.bias = 0.0                    # 偏置初始化为 0
+        self.lr = learning_rate            # 学习率控制每次调整的幅度
 
     def predict(self, inputs):
-        total = sum(w * x for w, x in zip(self.weights, inputs))
-        total += self.bias
-        return 1 if total >= 0 else 0
+        total = sum(w * x for w, x in zip(self.weights, inputs))  # 加权求和：w·x
+        total += self.bias                                         # 加偏置：w·x + b
+        return 1 if total >= 0 else 0       # 阶跃函数：>=0 输出 1，否则输出 0
 
     def train(self, training_data, epochs=100):
         for epoch in range(epochs):
             errors = 0
             for inputs, target in training_data:
-                prediction = self.predict(inputs)
-                error = target - prediction
+                prediction = self.predict(inputs)   # 前向预测
+                error = target - prediction          # 计算误差
                 if error != 0:
                     errors += 1
                     for i in range(len(self.weights)):
-                        self.weights[i] += self.lr * error * inputs[i]
-                    self.bias += self.lr * error
+                        self.weights[i] += self.lr * error * inputs[i]  # 权重更新
+                    self.bias += self.lr * error      # 偏置更新
             if errors == 0:
-                print(f"Converged at epoch {epoch + 1}")
+                print(f"Converged at epoch {epoch + 1}")  # 全部正确，收敛
                 return
         print(f"Did not converge after {epochs} epochs")
 ```
 
-### Step 2: Train on logic gates
+### Step 2: Train on logic gates | 在逻辑门上训练
 
 ```python
-and_data = [
+and_data = [          # AND 逻辑门数据：两个输入都为 1 时输出 1
     ([0, 0], 0),
     ([0, 1], 0),
     ([1, 0], 0),
     ([1, 1], 1),
 ]
 
-or_data = [
+or_data = [           # OR 逻辑门数据：任一输入为 1 时输出 1
     ([0, 0], 0),
     ([0, 1], 1),
     ([1, 0], 1),
     ([1, 1], 1),
 ]
 
-not_data = [
+not_data = [          # NOT 逻辑门数据：取反
     ([0], 1),
     ([1], 0),
 ]
@@ -186,10 +204,10 @@ for inputs, _ in not_data:
     print(f"  {inputs} -> {p_not.predict(inputs)}")
 ```
 
-### Step 3: Watch XOR fail
+### Step 3: Watch XOR fail | 观察 XOR 的失败
 
 ```python
-xor_data = [
+xor_data = [         # XOR 逻辑门数据：两个输入不同时输出 1
     ([0, 0], 0),
     ([0, 1], 1),
     ([1, 0], 1),
@@ -198,7 +216,7 @@ xor_data = [
 
 print("\n=== XOR Gate (single perceptron) ===")
 p_xor = Perceptron(2)
-p_xor.train(xor_data, epochs=1000)
+p_xor.train(xor_data, epochs=1000)   # 即使训练 1000 轮也无法收敛
 for inputs, expected in xor_data:
     result = p_xor.predict(inputs)
     status = "OK" if result == expected else "WRONG"
@@ -207,7 +225,9 @@ for inputs, expected in xor_data:
 
 It will never converge. This is the hard proof that a single perceptron cannot learn XOR.
 
-### Step 4: Solve XOR with two layers
+> **【中文解读】** 单个感知机训练 XOR 永远不会收敛——不管训练多少轮。这是数学上的硬限制：一条直线无法把 XOR 的四个点正确分成两类。
+
+### Step 4: Solve XOR with two layers | 用两层网络解决 XOR
 
 The trick: XOR = (x1 OR x2) AND NOT (x1 AND x2). Combine three perceptrons:
 
@@ -225,20 +245,20 @@ graph LR
 ```python
 def xor_network(x1, x2):
     or_neuron = Perceptron(2)
-    or_neuron.weights = [1.0, 1.0]
-    or_neuron.bias = -0.5
+    or_neuron.weights = [1.0, 1.0]     # OR 门的权重
+    or_neuron.bias = -0.5              # OR 门的偏置
 
     nand_neuron = Perceptron(2)
-    nand_neuron.weights = [-1.0, -1.0]
-    nand_neuron.bias = 1.5
+    nand_neuron.weights = [-1.0, -1.0]  # NAND 门（AND 的取反）的权重
+    nand_neuron.bias = 1.5              # NAND 门的偏置
 
     and_neuron = Perceptron(2)
-    and_neuron.weights = [1.0, 1.0]
-    and_neuron.bias = -1.5
+    and_neuron.weights = [1.0, 1.0]     # AND 门的权重
+    and_neuron.bias = -1.5              # AND 门的偏置
 
-    hidden1 = or_neuron.predict([x1, x2])
-    hidden2 = nand_neuron.predict([x1, x2])
-    output = and_neuron.predict([hidden1, hidden2])
+    hidden1 = or_neuron.predict([x1, x2])    # 隐藏层第 1 个神经元：OR
+    hidden2 = nand_neuron.predict([x1, x2])  # 隐藏层第 2 个神经元：NAND
+    output = and_neuron.predict([hidden1, hidden2])  # 输出层：AND
     return output
 
 
@@ -250,7 +270,9 @@ for inputs, expected in xor_data:
 
 All four cases correct. Stacking perceptrons into layers creates decision boundaries that no single perceptron can produce.
 
-### Step 5: Train a Two-Layer Network
+> **【中文解读】** 关键洞察：XOR = (x1 OR x2) AND NOT(x1 AND x2)。第一层用两个感知机分别做 OR 和 NAND（两条直线），第二层用 AND 把两个结果组合起来。这就用两条直线拼出了非线性的决策边界。这也是现代神经网络的基本原理——每一层都在做特征的组合变换。
+
+### Step 5: Train a Two-Layer Network | 训练一个两层网络
 
 Step 4 hand-wired the weights. That works for XOR, but not for real problems where you don't know the right weights in advance. The fix: replace the step function with sigmoid and learn the weights automatically through backpropagation.
 
@@ -259,48 +281,50 @@ class TwoLayerNetwork:
     def __init__(self, learning_rate=0.5):
         import random
         random.seed(0)
-        self.w_hidden = [[random.uniform(-1, 1), random.uniform(-1, 1)] for _ in range(2)]
-        self.b_hidden = [random.uniform(-1, 1), random.uniform(-1, 1)]
-        self.w_output = [random.uniform(-1, 1), random.uniform(-1, 1)]
-        self.b_output = random.uniform(-1, 1)
+        self.w_hidden = [[random.uniform(-1, 1), random.uniform(-1, 1)] for _ in range(2)]  # 隐藏层权重（2个神经元，各2个输入）
+        self.b_hidden = [random.uniform(-1, 1), random.uniform(-1, 1)]   # 隐藏层偏置
+        self.w_output = [random.uniform(-1, 1), random.uniform(-1, 1)]   # 输出层权重
+        self.b_output = random.uniform(-1, 1)   # 输出层偏置
         self.lr = learning_rate
 
     def sigmoid(self, x):
         import math
-        x = max(-500, min(500, x))
-        return 1.0 / (1.0 + math.exp(-x))
+        x = max(-500, min(500, x))   # 裁剪防止溢出
+        return 1.0 / (1.0 + math.exp(-x))  # sigmoid 函数：σ(x) = 1/(1+e^(-x))
 
     def forward(self, inputs):
         self.inputs = inputs
         self.hidden_outputs = []
         for i in range(2):
-            z = sum(w * x for w, x in zip(self.w_hidden[i], inputs)) + self.b_hidden[i]
-            self.hidden_outputs.append(self.sigmoid(z))
-        z_out = sum(w * h for w, h in zip(self.w_output, self.hidden_outputs)) + self.b_output
-        self.output = self.sigmoid(z_out)
+            z = sum(w * x for w, x in zip(self.w_hidden[i], inputs)) + self.b_hidden[i]  # 隐藏层线性变换
+            self.hidden_outputs.append(self.sigmoid(z))  # 隐藏层激活
+        z_out = sum(w * h for w, h in zip(self.w_output, self.hidden_outputs)) + self.b_output  # 输出层线性变换
+        self.output = self.sigmoid(z_out)   # 输出层激活
         return self.output
 
     def train(self, training_data, epochs=10000):
         for epoch in range(epochs):
             total_error = 0
             for inputs, target in training_data:
-                output = self.forward(inputs)
-                error = target - output
-                total_error += error ** 2
+                output = self.forward(inputs)       # 前向传播
+                error = target - output              # 误差 = 目标 - 预测
+                total_error += error ** 2            # 累计平方误差
 
-                d_output = error * output * (1 - output)
+                d_output = error * output * (1 - output)   # 输出层梯度（链式法则）
 
                 saved_w_output = self.w_output[:]
                 hidden_deltas = []
                 for i in range(2):
                     h = self.hidden_outputs[i]
-                    hd = d_output * saved_w_output[i] * h * (1 - h)
+                    hd = d_output * saved_w_output[i] * h * (1 - h)  # 隐藏层梯度（反向传播）
                     hidden_deltas.append(hd)
 
+                # 更新输出层权重
                 for i in range(2):
                     self.w_output[i] += self.lr * d_output * self.hidden_outputs[i]
                 self.b_output += self.lr * d_output
 
+                # 更新隐藏层权重
                 for i in range(2):
                     for j in range(len(inputs)):
                         self.w_hidden[i][j] += self.lr * hidden_deltas[i] * inputs[j]
@@ -312,7 +336,7 @@ net = TwoLayerNetwork(learning_rate=2.0)
 net.train(xor_data, epochs=10000)
 for inputs, expected in xor_data:
     result = net.forward(inputs)
-    predicted = 1 if result >= 0.5 else 0
+    predicted = 1 if result >= 0.5 else 0   # 以 0.5 为阈值做二分类
     print(f"  {inputs} -> {result:.4f} (rounded: {predicted}, expected {expected})")
 ```
 
@@ -320,20 +344,24 @@ Two key differences from Step 4. First, sigmoid replaces the step function -- it
 
 This is the bridge to Lesson 03. The math behind `d_output` and `hidden_deltas` is the chain rule applied to the network graph. We'll derive it properly there.
 
-## Use It
+> **【中文解读】** Step 4 是手动设定权重，但真实问题中我们不知道正确的权重。这里的突破是：用 sigmoid 替代阶跃函数（因为它可导），然后用反向传播（backpropagation）自动学习权重。`d_output` 和 `hidden_deltas` 就是链式法则的应用——从输出层往回算梯度，逐层调整。这就是 PyTorch 的 `loss.backward()` 在做的事情。
+
+> **【拓展：PyTorch autograd 的原理】** PyTorch 的自动微分（autograd）本质上就是自动执行这里的反向传播过程。它在前向传播时记录计算图，然后调用 `backward()` 时沿着图反向传播梯度。手动写反向传播（像这里一样）是理解 autograd 的最好方式。
+
+## Use It | 实际应用
 
 Everything you just built from scratch exists in one import:
 
 ```python
-from sklearn.linear_model import Perceptron as SkPerceptron
+from sklearn.linear_model import Perceptron as SkPerceptron   # sklearn 内置的感知机
 import numpy as np
 
-X = np.array([[0,0],[0,1],[1,0],[1,1]])
-y = np.array([0, 0, 0, 1])
+X = np.array([[0,0],[0,1],[1,0],[1,1]])  # 输入数据
+y = np.array([0, 0, 0, 1])               # AND 门的标签
 
-clf = SkPerceptron(max_iter=100, tol=1e-3)
-clf.fit(X, y)
-print([clf.predict([x])[0] for x in X])
+clf = SkPerceptron(max_iter=100, tol=1e-3)  # 最多迭代 100 次，容差 0.001
+clf.fit(X, y)                                # 训练
+print([clf.predict([x])[0] for x in X])     # 预测所有样本
 ```
 
 Five lines. Your 30-line `Perceptron` class does the same thing. The sklearn version adds convergence checks, multiple loss functions, and sparse input support -- but the core loop is identical: weighted sum, step function, weight update on error.
@@ -347,18 +375,25 @@ The real gap shows up at scale. What changes in production networks:
 
 A single perceptron can only draw straight lines. Stack them, and you can draw any shape.
 
-## Ship It
+> **【中文解读】** sklearn 里的 Perceptron 五行代码就搞定了我们 30 行做的事情。核心逻辑完全相同：加权求和、阶跃函数、按误差更新权重。真正的差距在规模：现代网络用可导的激活函数（如 ReLU）、用反向传播自动学习、有几十到上百层。但基本原理永远是：每一层从上一层的输出中创建新特征。
+
+## Ship It | 输出物
 
 This lesson produces:
 - `outputs/skill-perceptron.md` - a skill covering when single-layer vs multi-layer architectures are needed
 
-## Exercises
+## Exercises | 练习题
 
 1. Train a perceptron on a NAND gate (the universal gate - any logic circuit can be built from NAND). Verify its weights and bias form a valid decision boundary.
-2. Modify the Perceptron class to track the decision boundary (w1*x1 + w2*x2 + b = 0) at each epoch. Print how the line shifts during training on the AND gate.
-3. Build a 3-input perceptron that outputs 1 only when at least 2 of the 3 inputs are 1 (a majority vote function). Is this linearly separable? Why?
+   > **练习 1：** 用感知机训练 NAND 门（通用逻辑门——任何逻辑电路都可以用 NAND 搭建）。验证学到的权重和偏置是否形成有效的决策边界。
 
-## Key Terms
+2. Modify the Perceptron class to track the decision boundary (w1\*x1 + w2\*x2 + b = 0) at each epoch. Print how the line shifts during training on the AND gate.
+   > **练习 2：** 修改 Perceptron 类，在每个 epoch 记录决策边界 (w1\*x1 + w2\*x2 + b = 0)。打印在训练 AND 门时这条线是如何移动的。
+
+3. Build a 3-input perceptron that outputs 1 only when at least 2 of the 3 inputs are 1 (a majority vote function). Is this linearly separable? Why?
+   > **练习 3：** 构建一个 3 输入感知机，当至少 2 个输入为 1 时输出 1（多数投票函数）。这个函数是线性可分的吗？为什么？
+
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -368,10 +403,21 @@ This lesson produces:
 | Activation function | "The thing that squishes values" | A function applied after the weighted sum - step function for perceptrons, sigmoid/ReLU for modern networks |
 | Linearly separable | "You can draw a line between them" | A dataset where a single hyperplane can perfectly separate the classes |
 | XOR problem | "The thing perceptrons can't do" | Proof that single-layer networks cannot learn non-linearly-separable functions |
-| Decision boundary | "Where the classifier switches" | The hyperplane w*x + b = 0 that divides input space into two classes |
+| Decision boundary | "Where the classifier switches" | The hyperplane w\*x + b = 0 that divides input space into two classes |
 | Multi-layer perceptron | "A real neural network" | Perceptrons stacked in layers, where each layer's output feeds the next layer's input |
 
-## Further Reading
+| 术语 | 通俗说法 | 实际含义 |
+|------|---------|---------|
+| 感知机 (Perceptron) | "假神经元" | 线性分类器：输入与权重的点积加偏置，过阶跃函数 |
+| 权重 (Weight) | "输入的重要性" | 缩放每个输入对决策贡献的乘数 |
+| 偏置 (Bias) | "阈值" | 偏移决策边界的常数，让感知机在全零输入时也能激活 |
+| 激活函数 (Activation function) | "压扁数值的东西" | 加权求和后施加的函数——感知机用阶跃函数，现代网络用 sigmoid/ReLU |
+| 线性可分 (Linearly separable) | "能画线分开" | 数据集可以用一个超平面完美分成两类 |
+| XOR 问题 | "感知机做不到的事" | 证明单层网络无法学习非线性可分函数 |
+| 决策边界 (Decision boundary) | "分类器切换的地方" | w\*x + b = 0 这个超平面，把输入空间分成两类区域 |
+| 多层感知机 (MLP) | "真正的神经网络" | 感知机按层堆叠，每层的输出是下一层的输入 |
+
+## Further Reading | 延伸阅读
 
 - Frank Rosenblatt, "The Perceptron: A Probabilistic Model for Information Storage and Organization in the Brain" (1958) -- the original paper that started it all
 - Minsky & Papert, "Perceptrons" (1969) -- the book that proved XOR was unsolvable by single-layer networks and killed perceptron research for a decade

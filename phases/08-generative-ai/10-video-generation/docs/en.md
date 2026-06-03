@@ -1,6 +1,10 @@
-# Video Generation
+# Video Generation | 视频生成
 
 > An image is a 2-D tensor. A video is a 3-D one. The theory is the same; the compute is 10-100x harder. OpenAI's Sora (Feb 2024) proved it was possible. By 2026 Veo 2, Kling 1.5, Runway Gen-3, Pika 2.0, and WAN 2.2 ship production video from text at 1080p — and the open-weights stack (CogVideoX, HunyuanVideo, Mochi-1, WAN 2.2) is 12 months behind.
+
+> **【中文解读】** 图像是 2D 张量，视频是 3D 张量，理论相同但计算量高 10-100 倍。Sora 证明可行，到 2026 年多个商业产品（Veo 2、Kling、Runway）已能生成 1080p 视频。
+
+> **【拓展：Sora 的影响】** OpenAI 的 Sora（2024年2月）是视频生成的里程碑，展示了扩散模型+Transformer 架构的强大能力。视频生成是 2024-2026 年 AI 最热门的赛道之一。
 
 **Type:** Build
 **Languages:** Python

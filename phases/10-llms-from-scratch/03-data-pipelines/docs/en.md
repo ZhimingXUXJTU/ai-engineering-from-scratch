@@ -1,6 +1,10 @@
-# Data Pipelines for Pre-Training
+# Data Pipelines for Pre-Training | 预训练数据管线
 
 > The model is a mirror. It reflects whatever data you feed it. Feed it garbage, it reflects garbage with perfect fluency.
+
+> **【中文解读】** 模型是一面镜子，忠实反映你喂给它的数据。预训练数据管线包括：去重、语言检测、内容过滤、流式分词、分块、打乱和批处理——所有操作都必须在 TB 级数据上不加载到内存的情况下完成。
+
+> **【拓展：数据质量→GPT-4/Claude】** GPT-4 和 Claude 的高质量输出源于精心设计的数据管线。Llama 3 的预训练数据包含 15T token，经过严格去重和质量过滤。数据质量是模型质量的上限。
 
 **Type:** Build
 **Languages:** Python

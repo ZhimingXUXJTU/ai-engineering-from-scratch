@@ -7,6 +7,9 @@ and executes with audit log enrichment; (b) a registry that pulls
 implements a minimal in-memory version of both so the handshakes are visible.
 
 Run:  python main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -24,6 +27,7 @@ from typing import Callable
 
 @dataclass
 class ToolSchema:
+    """ToolSchema"""
     name: str
     required_scope: str
     destructive: bool
@@ -36,6 +40,7 @@ Handler = Callable[[dict], dict]
 
 @dataclass
 class MCPServer:
+    """MCPServer"""
     name: str
     url: str
     tools: dict[str, ToolSchema] = field(default_factory=dict)
@@ -47,7 +52,7 @@ class MCPServer:
 
     def capabilities(self) -> dict:
         """The .well-known/mcp-capabilities document."""
-        return {
+        return {  # 返回结果
             "server": self.name,
             "transport": "streamable_http",
             "url": self.url,
@@ -67,15 +72,16 @@ class MCPServer:
 
 @dataclass
 class Token:
+    """Token"""
     user: str
     scopes: set[str]
     approved_at: float = 0.0      # epoch; scope_elevation freshness for destructive tools
 
     def has_scope(self, s: str) -> bool:
-        return s in self.scopes
+        return s in self.scopes  # 返回结果
 
     def fresh_approval(self, now: float, window_s: int = 900) -> bool:
-        return "approved:by:human" in self.scopes and (now - self.approved_at) <= window_s
+        return "approved:by:human" in self.scopes and (now - self.approved_at) <= window_s  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -83,18 +89,19 @@ class Token:
 # ---------------------------------------------------------------------------
 
 def policy_decide(server: MCPServer, tool: str, token: Token, args: dict,
+    """policy_decide"""
                   now: float) -> tuple[bool, str]:
     if tool not in server.tools:
-        return False, f"no such tool: {tool}"
+        return False, f"no such tool: {tool}"  # 返回结果
     schema = server.tools[tool]
     if not token.has_scope(schema.required_scope):
-        return False, f"missing scope: {schema.required_scope}"
+        return False, f"missing scope: {schema.required_scope}"  # 返回结果
     if schema.destructive and not token.fresh_approval(now):
-        return False, "destructive tool requires fresh human approval (Slack card)"
+        return False, "destructive tool requires fresh human approval (Slack card)"  # 返回结果
     # payload size cap example
     if len(json.dumps(args)) > 8192:
-        return False, "payload too large (> 8 KB)"
-    return True, "ok"
+        return False, "payload too large (> 8 KB)"  # 返回结果
+    return True, "ok"  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -106,11 +113,12 @@ def redact(payload: dict) -> dict:
     s = json.dumps(payload)
     s = re.sub(r"[\w.+-]+@[\w-]+\.[\w.-]+", "[email]", s)
     s = re.sub(r"\b\d{3}-\d{2}-\d{4}\b", "[ssn]", s)
-    return json.loads(s)
+    return json.loads(s)  # 返回结果
 
 
 @dataclass
 class AuditEntry:
+    """AuditEntry"""
     ts: float
     user: str
     tool: str
@@ -124,23 +132,24 @@ class AuditEntry:
 # ---------------------------------------------------------------------------
 
 def dispatch(server: MCPServer, token: Token, tool: str, args: dict,
+    """dispatch"""
              audit: list[AuditEntry]) -> dict:
     now = time.time()
     ok, reason = policy_decide(server, tool, token, args, now)
     if not ok:
         audit.append(AuditEntry(now, token.user, tool, f"denied:{reason}",
                                 redact(args), {}))
-        return {"error": {"code": 403, "message": reason}}
+        return {"error": {"code": 403, "message": reason}}  # 返回结果
     handler = server.handlers[tool]
     try:
         result = handler(args)
         audit.append(AuditEntry(now, token.user, tool, "ok",
                                 redact(args), redact(result)))
-        return {"result": result}
+        return {"result": result}  # 返回结果
     except Exception as exc:
         audit.append(AuditEntry(now, token.user, tool, f"error:{exc}",
                                 redact(args), {}))
-        return {"error": {"code": 500, "message": str(exc)}}
+        return {"error": {"code": 500, "message": str(exc)}}  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -149,6 +158,7 @@ def dispatch(server: MCPServer, token: Token, tool: str, args: dict,
 
 @dataclass
 class Registry:
+    """Registry"""
     entries: dict[str, dict] = field(default_factory=dict)
 
     def register(self, server: MCPServer) -> None:
@@ -161,7 +171,7 @@ class Registry:
             for t in cap["tools"]:
                 if q in t["name"].lower() or q in t["description"].lower():
                     out.append((server_name, t["name"]))
-        return out
+        return out  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -169,6 +179,7 @@ class Registry:
 # ---------------------------------------------------------------------------
 
 def build_readonly_server() -> MCPServer:
+    """build_readonly_server"""
     s = MCPServer(name="internal-readonly-mcp", url="https://mcp.internal/readonly")
     s.register(ToolSchema("postgres.readonly", "postgres:query:readonly", False,
                           "Read-only Postgres query",
@@ -180,18 +191,20 @@ def build_readonly_server() -> MCPServer:
     s.register(ToolSchema("jira.search", "jira:read", False, "Search Jira issues",
                           {"type": "object", "properties": {"jql": {"type": "string"}}}),
                lambda a: {"issues": [{"id": "PROJ-42", "title": "fix widget"}]})
-    return s
+    return s  # 返回结果
 
 
 def build_destructive_server() -> MCPServer:
+    """build_destructive_server"""
     s = MCPServer(name="internal-destructive-mcp", url="https://mcp.internal/destructive")
     s.register(ToolSchema("jira.create", "jira:write", True, "Create Jira issue",
                           {"type": "object", "properties": {"title": {"type": "string"}}}),
                lambda a: {"id": "PROJ-99", "created": True})
-    return s
+    return s  # 返回结果
 
 
 def main() -> None:
+    """main"""
     ro = build_readonly_server()
     rw = build_destructive_server()
     registry = Registry()
@@ -234,4 +247,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

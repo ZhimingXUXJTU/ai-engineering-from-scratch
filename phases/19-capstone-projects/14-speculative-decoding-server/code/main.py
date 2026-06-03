@@ -8,6 +8,9 @@ synthetic token probabilities so the accept/reject logic and the throughput
 math are observable end to end.
 
 Run:  python main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -24,20 +27,22 @@ VOCAB = list("abcdefghij")
 
 
 def softmax_from(seed: int) -> list[float]:
+    """softmax_from"""
     rnd = random.Random(seed)
     weights = [rnd.random() for _ in VOCAB]
     total = sum(weights)
-    return [w / total for w in weights]
+    return [w / total for w in weights]  # 返回结果
 
 
 def sample(dist: list[float], rng: random.Random) -> int:
+    """sample"""
     r = rng.random()
     acc = 0.0
     for i, p in enumerate(dist):
         acc += p
         if r <= acc:
-            return i
-    return len(dist) - 1
+            return i  # 返回结果
+    return len(dist) - 1  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -46,11 +51,12 @@ def sample(dist: list[float], rng: random.Random) -> int:
 
 @dataclass
 class TargetModel:
+    """TargetModel"""
     calls: int = 0
     tokens_verified: int = 0
 
     def distribution(self, ctx_seed: int) -> list[float]:
-        return softmax_from(ctx_seed * 7 + 13)
+        return softmax_from(ctx_seed * 7 + 13)  # 返回结果
 
     def verify(self, draft_tokens: list[int], ctx_seed: int,
                rng: random.Random) -> tuple[list[int], int]:
@@ -71,7 +77,7 @@ class TargetModel:
         ctx = ctx_seed + len(accepted)
         dist = self.distribution(ctx)
         next_tok = sample(dist, rng)
-        return accepted, next_tok
+        return accepted, next_tok  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -80,6 +86,7 @@ class TargetModel:
 
 @dataclass
 class DraftModel:
+    """DraftModel"""
     calls: int = 0
     alignment: float = 0.80     # probability that draft picks what target would
 
@@ -94,7 +101,7 @@ class DraftModel:
                 draft_tokens.append(max(range(len(dist)), key=lambda i: dist[i]))
             else:
                 draft_tokens.append(sample(dist, rng))
-        return draft_tokens
+        return draft_tokens  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -103,6 +110,7 @@ class DraftModel:
 
 @dataclass
 class Metrics:
+    """Metrics"""
     generated: int = 0
     target_calls: int = 0
     draft_calls: int = 0
@@ -110,14 +118,15 @@ class Metrics:
 
     def acceptance_rate(self, k: int) -> float:
         if self.target_calls == 0:
-            return 0.0
-        return self.accepted_sum / (self.target_calls * k)
+            return 0.0  # 返回结果
+        return self.accepted_sum / (self.target_calls * k)  # 返回结果
 
     def tokens_per_target_call(self) -> float:
-        return self.generated / max(1, self.target_calls)
+        return self.generated / max(1, self.target_calls)  # 返回结果
 
 
 def speculative_decode(n_tokens: int, k: int, rng: random.Random,
+    """speculative_decode"""
                        target: TargetModel, draft: DraftModel) -> Metrics:
     m = Metrics()
     ctx_seed = 1
@@ -135,10 +144,11 @@ def speculative_decode(n_tokens: int, k: int, rng: random.Random,
         if m.generated < n_tokens:
             m.generated += 1     # resampled next_tok
             ctx_seed += 1
-    return m
+    return m  # 返回结果
 
 
 def baseline_decode(n_tokens: int, rng: random.Random,
+    """baseline_decode"""
                     target: TargetModel) -> Metrics:
     m = Metrics()
     ctx_seed = 1
@@ -149,7 +159,7 @@ def baseline_decode(n_tokens: int, rng: random.Random,
         _ = sample(dist, rng)
         m.generated += 1
         ctx_seed += 1
-    return m
+    return m  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -157,6 +167,7 @@ def baseline_decode(n_tokens: int, rng: random.Random,
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    """main"""
     n_tokens = 500
     print(f"=== decode {n_tokens} tokens, compare baseline vs speculative ===")
 
@@ -181,4 +192,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

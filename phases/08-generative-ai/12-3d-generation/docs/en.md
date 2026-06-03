@@ -1,6 +1,10 @@
-# 3D Generation
+# 3D Generation | 3D 生成
 
 > 3D is the modality where 2D-to-3D leverage is strongest. The 2023 breakthrough was 3D Gaussian Splatting. The 2024-2026 generative push layers multi-view diffusion + 3D reconstruction on top to produce objects and scenes from a single prompt or photo.
+
+> **【中文解读】** 3D 是 2D 到 3D 桥接最强的模态。2023 年突破是 3D Gaussian Splatting，2024-2026 年的生成趋势是将多视角扩散+3D 重建叠加，从单个提示词或照片生成 3D 物体和场景。
+
+> **【拓展：3D 生成的应用】** 3D 生成用于游戏资产创建、VR/AR 内容、建筑设计、电商产品展示。DreamGaussian、TripoSR 等模型能在秒级从文字/图片生成 3D 模型。
 
 **Type:** Learn
 **Languages:** Python

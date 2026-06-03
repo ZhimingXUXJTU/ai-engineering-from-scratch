@@ -1,4 +1,4 @@
-# Production Runtimes: Queue, Event, Cron
+# Production Runtimes: Queue, Event, Cron | 生产 运行时 欧盟
 
 > Production agents run on six runtime shapes: request-response, streaming, durable execution, queue-based background, event-driven, and scheduled. Pick the shape before you pick the framework. Observability is load-bearing at every shape.
 
@@ -7,18 +7,21 @@
 **Prerequisites:** Phase 14 · 13 (LangGraph), Phase 14 · 22 (Voice)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Name the six production runtime shapes and match each to a framework / product pattern.
 - Explain why durable execution (LangGraph) matters for long-horizon tasks.
 - Describe the event-driven runtime and when Claude Managed Agents fits.
 - Explain the observability-as-load-bearing claim for multi-step agents.
 
-## The Problem
+## The Problem | 问题
 
 Production agents fail in ways a Jupyter notebook doesn't surface: network timeouts at step 37, user hangs up mid-voice call, cron job dies on machine reboot, background worker runs out of memory. The runtime shape determines which failures are survivable.
 
-## The Concept
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
+## The Concept | 概念
 
 ### Request-response
 
@@ -80,7 +83,7 @@ Without OpenTelemetry GenAI spans (Lesson 23) plus a Langfuse/Phoenix/Opik backe
 - **Opaque background work.** Background agent runs without trace export. Failures are invisible until the user reports them.
 - **Skipping durable state.** Any run > 30 seconds where you can't afford to restart needs durable execution.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` is a stdlib multi-shape demo:
 
@@ -98,7 +101,7 @@ python3 code/main.py
 
 Output: five traces showing each shape's behavior on the same task. Same agent logic, different outer shells. Durable execution (the sixth shape) is intentionally covered in Lesson 13 with LangGraph checkpointing.
 
-## Use It
+## Use It | 使用方法
 
 - **Request-response** for chat-style UX.
 - **Streaming** for progressive responses.
@@ -107,31 +110,36 @@ Output: five traces showing each shape's behavior on the same task. Same agent l
 - **Event** for agent reactivity.
 - **Cron** for housekeeping (memory consolidation, evals, cost reports).
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-runtime-shape.md` picks a runtime shape for a task and wires the observability requirements.
 
-## Exercises
+## Exercises | 练习题
 
 1. Port your Lesson 01 ReAct loop to all six shapes in your stack. Which shape fits which product surface?
+   *思考并实践此练习*
 2. Add a DLQ to the queue-based demo. Simulate 10% job failure; surface DLQ size.
+   *思考并实践此练习*
 3. Write a cron-triggered eval agent that runs nightly against your top 20 traces from the day.
+   *思考并实践此练习*
 4. Implement streaming with backpressure: if the client is slow, pause the agent. How does this interact with a turn budget?
+   *思考并实践此练习*
 5. Read Claude Managed Agents docs. When would you move a self-hosted long-horizon agent to managed?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Request-response | "Synchronous" | User waits; short tasks only |
-| Streaming | "SSE / WS" | Progressive output; better UX; latency observable per chunk |
-| Durable execution | "Resume from failure" | Checkpointed state; restart at last step |
-| Queue-based | "Background jobs" | Producer / worker pool / DLQ |
-| Event-driven | "Trigger-based" | Agent reacts to external events |
-| DLQ | "Dead-letter queue" | Parking lot for failed jobs |
-| Claude Managed Agents | "Hosted harness" | Anthropic-hosted long-running async with caching + compaction |
+|------|----------------|------------------------|---|
+| Request-response | "Synchronous" | User waits; short tasks only |  |
+| Streaming | "SSE / WS" | Progressive output; better UX; latency observable per chunk |  |
+| Durable execution | "Resume from failure" | Checkpointed state; restart at last step |  |
+| Queue-based | "Background jobs" | Producer / worker pool / DLQ |  |
+| Event-driven | "Trigger-based" | Agent reacts to external events |  |
+| DLQ | "Dead-letter queue" | Parking lot for failed jobs |  |
+| Claude Managed Agents | "Hosted harness" | Anthropic-hosted long-running async with caching + compaction |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [LangGraph overview](https://docs.langchain.com/oss/python/langgraph/overview) — durable execution details
 - [Claude Managed Agents overview](https://platform.claude.com/docs/en/managed-agents/overview) — hosted long-running async

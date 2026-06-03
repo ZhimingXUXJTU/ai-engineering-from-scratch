@@ -1,6 +1,10 @@
-# Instance Segmentation — Mask R-CNN
+# Instance Segmentation — Mask R-CNN | 实例分割 — Mask R-CNN
 
 > Add a tiny mask branch to a Faster R-CNN detector and you have instance segmentation. The hard part is RoIAlign, and it is harder than it looks.
+
+> **【中文解读】** 在 Faster R-CNN 检测器上添加一个掩码分支就得到了实例分割。难点在于 RoIAlign——将不同大小的候选区域对齐到固定尺寸的特征图，且保持空间精度。实例分割与语义分割的区别在于：实例分割能区分同类的不同个体（如画面中的每一个人）。
+
+> **【拓展：实例分割的应用】** Mask R-CNN 广泛用于自动驾驶（区分不同车辆和行人）、机器人抓取（识别单个物体轮廓）、视频编辑（精确抠图）。RoIAlign 技术后来也被用到 Vision Transformer 的适配器中。
 
 **Type:** Build + Learn
 **Languages:** Python

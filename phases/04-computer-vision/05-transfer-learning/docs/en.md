@@ -1,13 +1,17 @@
-# Transfer Learning & Fine-Tuning
+# Transfer Learning & Fine-Tuning | 迁移学习与微调
 
 > Somebody else spent a million GPU hours teaching a network what edges, textures, and object parts look like. You should borrow those features before training your own.
+
+> **【中文解读】** 别人花了一百万 GPU 小时教会网络识别边缘、纹理和物体部件。你应该在训练自己的模型之前先借用这些特征。迁移学习是 AI 工程中最实用的技术——预训练骨干 + 自定义分类头 = 几行代码就能解决新任务。
+
+> **【拓展：迁移学习在工业界的应用】** 几乎所有生产级视觉系统都使用迁移学习：医疗影像（ImageNet 预训练 + 医学数据微调）、工业质检、自动驾驶。训练 ResNet-50 需 ~2000 GPU 小时，但微调只需几分钟。
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 4 Lesson 03 (CNNs), Phase 4 Lesson 04 (Image Classification)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Distinguish feature extraction from fine-tuning and pick the right one based on dataset size, domain distance, and compute budget
 - Load a pretrained backbone, replace its classifier head, and train only the head to a working baseline in under 20 lines
@@ -18,9 +22,13 @@
 
 Training a ResNet-50 on ImageNet costs around 2,000 GPU-hours. Very few teams have that budget for every task they ship. What almost every team actually ships is a pretrained backbone with a new head trained on a few hundred or few thousand task-specific images.
 
+> **【中文解读】** 从零训练 ResNet-50 需要 ~2000 GPU 小时，但迁移学习只需几分钟。关键洞察是：CNN 的前几层学习的是通用特征（边缘、纹理），这些特征几乎对所有视觉任务都有用；只有最后几层才是任务特定的。
+
 This is not a shortcut. The first conv block of any ImageNet-trained CNN learns edges and Gabor-like filters. The next few blocks learn textures and simple motifs. The middle blocks learn object parts. The final blocks learn combinations that start to look like the 1,000 ImageNet categories. The first 90% of that hierarchy transfers almost unchanged to medical imaging, industrial inspection, satellite data, and every other vision task — because nature has a limited vocabulary of edges and textures. The last 10% is what you actually train.
 
 Getting transfer right has three bugs waiting for you: destroying pretrained features with a too-high learning rate, starving the model of information by freezing too much, and letting BatchNorm's running statistics drift toward a tiny dataset that the rest of the network never learnt from. This lesson walks each of them on purpose.
+
+> **【中文解读】** 迁移学习最常见的三个坑：(1) 学习率太高破坏了预训练特征；(2) 冻结太多层导致模型欠拟合；(3) BatchNorm 的统计量在小数据集上漂移。本课逐一踩坑并给出解决方案。
 
 ## The Concept
 
@@ -53,6 +61,8 @@ Rules of thumb:
 | 100k+ | far | Fine-tune everything; consider training from scratch if domain is far enough |
 
 "Close to ImageNet" roughly means natural RGB photos with object-like content. Medical CT scans, overhead satellite imagery, and microscopy are far domains — the features still help, but you will need to let more layers adapt.
+
+> **【拓展：迁移学习策略选择】** 在工业实践中，数据集大小和领域距离决定了迁移策略：<1k 张且与 ImageNet 接近就冻结骨干只训头部；10k+ 张就全量微调。医疗影像、卫星图等远领域需要解冻更多层。Stable Diffusion 的 U-Net 和 CLIP 的视觉编码器都是经过大规模预训练后微调的典型案例。
 
 ### Why freezing works at all
 
@@ -303,24 +313,29 @@ This lesson produces:
 - `outputs/prompt-fine-tune-planner.md` — a prompt that picks feature-extraction vs progressive vs end-to-end fine-tuning based on dataset size, domain distance, and compute budget.
 - `outputs/skill-freeze-inspector.md` — a skill that, given a PyTorch model, reports which parameters are trainable, which BatchNorm layers are in eval mode, and whether the optimizer is actually being fed the trainable parameters.
 
-## Exercises
+## Exercises | 练习题
 
-1. **(Easy)** Train a `ResNet18` as a linear probe (backbone frozen) and as a full fine-tune on the same synthetic-CIFAR dataset. Report both accuracies side by side. Explain which gap tells you the features transfer well and which tells you they do not.
-2. **(Medium)** Introduce a bug on purpose: set `base_lr = 1e-1` on the backbone stage instead of the head. Show the training loss explode, then recover by applying the `discriminative_param_groups` helper. Record the LR at which each stage starts diverging.
-3. **(Hard)** Take a medical imaging dataset (e.g. CheXpert-small, PatchCamelyon, or HAM10000) and compare three regimes: (a) ImageNet-pretrained frozen backbone + linear head; (b) ImageNet-pretrained fine-tune end-to-end; (c) scratch training. Report accuracy and compute cost for each. At what dataset size does scratch training become competitive?
+1. **(Easy | 简单)** Train a `ResNet18` as a linear probe (backbone frozen) and as a full fine-tune on the same synthetic-CIFAR dataset. Report both accuracies side by side. Explain which gap tells you the features transfer well and which tells you they do not.
+   分别用线性探针（冻结骨干）和全量微调训练 ResNet18，对比准确率。解释哪个差距说明特征迁移得好、哪个说明不好。
 
-## Key Terms
+2. **(Medium | 中等)** Introduce a bug on purpose: set `base_lr = 1e-1` on the backbone stage instead of the head. Show the training loss explode, then recover by applying the `discriminative_param_groups` helper. Record the LR at which each stage starts diverging.
+   故意设置 `base_lr = 1e-1` 制造 bug，观察训练 loss 爆炸，然后用判别式学习率恢复。记录每个阶段开始发散的学习率。
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Feature extraction | "Freeze and train head" | Backbone parameters frozen, only the new classifier head receives gradient |
-| Fine-tuning | "Retrain end-to-end" | All parameters trainable, usually with much smaller LR than scratch training |
-| Discriminative LR | "Smaller LR for early layers" | Optimizer parameter groups where early-stage LR is a fraction of late-stage LR |
-| Layer-wise LR decay | "Smooth LR gradient" | Per-layer LR multiplied by decay^(L - k); common in transformer fine-tunes |
-| Catastrophic forgetting | "The model lost ImageNet" | A too-high LR overwrites pretrained features before the new task signal is learnt |
-| BN statistics drift | "Running mean is wrong" | BatchNorm running_mean/var computed on a different distribution than the current task, silently hurting accuracy |
-| Linear probe | "Frozen backbone + linear head" | Evaluation of pretrained features — accuracy of the best linear classifier on top of the frozen representation |
-| Catastrophic collapse | "Everything predicts one class" | Happens when fine-tuning with an LR high enough to destroy features before gradients from the head can stabilise |
+3. **(Hard | 困难)** Take a medical imaging dataset (e.g. CheXpert-small, PatchCamelyon, or HAM10000) and compare three regimes: (a) ImageNet-pretrained frozen backbone + linear head; (b) ImageNet-pretrained fine-tune end-to-end; (c) scratch training. Report accuracy and compute cost for each. At what dataset size does scratch training become competitive?
+   用医疗影像数据集对比三种方案：(a) 冻结骨干+线性头；(b) 全量微调；(c) 从零训练。报告准确率和计算成本，找出从零训练开始有竞争力的最小数据集规模。
+
+## Key Terms | 关键术语
+
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Feature extraction | "Freeze and train head" | Backbone parameters frozen, only the new classifier head receives gradient | 特征提取：冻结骨干参数，只训练新的分类头 |
+| Fine-tuning | "Retrain end-to-end" | All parameters trainable, usually with much smaller LR than scratch training | 微调：所有参数可训练，学习率远小于从零训练 |
+| Discriminative LR | "Smaller LR for early layers" | Optimizer parameter groups where early-stage LR is a fraction of late-stage LR | 判别式学习率：早期层用更小的学习率 |
+| Layer-wise LR decay | "Smooth LR gradient" | Per-layer LR multiplied by decay^(L - k); common in transformer fine-tunes | 逐层学习率衰减：每层 LR 乘以衰减系数 |
+| Catastrophic forgetting | "The model lost ImageNet" | A too-high LR overwrites pretrained features before the new task signal is learnt | 灾难性遗忘：学习率过高导致预训练特征被覆盖 |
+| BN statistics drift | "Running mean is wrong" | BatchNorm running_mean/var computed on a different distribution than the current task, silently hurting accuracy | BN 统计漂移：BatchNorm 的统计量与当前任务分布不匹配 |
+| Linear probe | "Frozen backbone + linear head" | Evaluation of pretrained features — accuracy of the best linear classifier on top of the frozen representation | 线性探针：冻结骨干上训练线性分类器，评估预训练特征质量 |
+| Catastrophic collapse | "Everything predicts one class" | Happens when fine-tuning with an LR high enough to destroy features before gradients from the head can stabilise | 灾难性崩塌：模型只预测一个类别 |
 
 ## Further Reading
 

@@ -1,3 +1,8 @@
+"""
+生成模型分类与历史 (Generative Models — Taxonomy & History)
+核心概念：五大生成模型类别——VAE、GAN、扩散模型、流模型、自回归
+AI 对应：理解这些类别的差异是选择正确生成架构的前提
+"""
 import math
 import random
 

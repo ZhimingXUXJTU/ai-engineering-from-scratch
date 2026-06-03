@@ -1,6 +1,10 @@
-# Async and Hogwild! Inference
+# Async and Hogwild! Inference | 异步与 Hogwild! 推理
 
 > Speculative decoding (Phase 10 · 15) parallelizes tokens within one sequence. Multi-agent frameworks parallelize across whole sequences but force explicit coordination (voting, sub-task splitting). Hogwild! Inference (Rodionov et al., arXiv:2504.06261) does something else: run N instances of the same LLM in parallel against a SHARED key-value cache. Each worker sees every other worker's generated tokens instantly. Modern reasoning models — QwQ, DeepSeek-R1 — can self-coordinate through that shared cache without any fine-tuning. The approach is experimental but it opens an entirely new axis of inference parallelism that sits orthogonal to spec decode. This lesson implements a two-worker Hogwild! simulator in stdlib Python and explains why the shared-cache collaboration emerges from the existing model's reasoning abilities.
+
+> **【中文解读】** 投机解码在单序列内并行化 token。多 Agent 框架跨序列并行但需要显式协调。Hogwild! 推理让 N 个 LLM 实例并行共享 KV-cache，每个 worker 即时看到其他 worker 生成的 token。QwQ、DeepSeek-R1 等推理模型无需微调就能通过共享 cache 自行协调。
+
+> **【拓展：多Agent推理→LLM Agent】** Hogwild! 推理是多 LLM Agent 协作的一种新模式。不同于传统的投票或子任务分配，它通过共享上下文实现自发协调，类似于人类团队在同一白板上协作。
 
 **Type:** Build
 **Languages:** Python (stdlib)

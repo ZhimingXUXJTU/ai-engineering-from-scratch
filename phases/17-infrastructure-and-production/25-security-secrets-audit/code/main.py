@@ -3,6 +3,9 @@
 Masks SSNs, emails, phone numbers; maps each distinct value to a stable
 placeholder so the LLM can still reason about relationships. Appends to an
 immutable audit log on every call.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -21,26 +24,28 @@ PHONE = re.compile(r"\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b")
 
 @dataclass
 class Scrubber:
+    """Scrubber"""
     tokens: dict = field(default_factory=dict)
     counter: dict = field(default_factory=lambda: {"SSN": 0, "EMAIL": 0, "PHONE": 0})
 
     def _token_for(self, kind: str, value: str) -> str:
         if value in self.tokens:
-            return self.tokens[value]
+            return self.tokens[value]  # 返回结果
         self.counter[kind] += 1
         placeholder = f"[{kind}_{self.counter[kind]:03}]"
         self.tokens[value] = placeholder
-        return placeholder
+        return placeholder  # 返回结果
 
     def scrub(self, text: str) -> str:
         text = SSN.sub(lambda m: self._token_for("SSN", m.group(0)), text)
         text = EMAIL.sub(lambda m: self._token_for("EMAIL", m.group(0)), text)
         text = PHONE.sub(lambda m: self._token_for("PHONE", m.group(0)), text)
-        return text
+        return text  # 返回结果
 
 
 @dataclass
 class AuditEntry:
+    """AuditEntry"""
     timestamp: str
     user: str
     tenant: str
@@ -54,11 +59,13 @@ class AuditEntry:
 
 
 def hash_short(s: str) -> str:
-    return hashlib.sha256(s.encode()).hexdigest()[:12]
+    """hash_short"""
+    return hashlib.sha256(s.encode()).hexdigest()[:12]  # 返回结果
 
 
 def audit_log_call(entry: AuditEntry) -> str:
-    return json.dumps({
+    """audit_log_call"""
+    return json.dumps({  # 返回结果
         "timestamp": entry.timestamp,
         "user": entry.user,
         "tenant": entry.tenant,
@@ -73,6 +80,7 @@ def audit_log_call(entry: AuditEntry) -> str:
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("PII SCRUBBER + AUDIT LOG — consistent tokenization across calls")
     print("=" * 80)
@@ -117,4 +125,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

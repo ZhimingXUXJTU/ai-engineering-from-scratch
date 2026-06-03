@@ -3,6 +3,9 @@
 Two agents, 4x4 grid, one pellet. All four styles share the same environment
 and reward. Scripted policies demonstrate how CTDE variants converge faster
 than the independent baseline even without gradient updates.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 from __future__ import annotations
 
@@ -30,12 +33,12 @@ class Env:
         while len(positions) < 4:
             positions.add((rng.randint(0, GRID - 1), rng.randint(0, GRID - 1)))
         a0, a1, p0, p1 = list(positions)
-        return Env(agent0=a0, agent1=a1, pellet0=p0, pellet1=p1,
+        return Env(agent0=a0, agent1=a1, pellet0=p0, pellet1=p1,  # 返回结果
                    pellets_remaining={p0, p1})
 
     @property
     def done(self) -> bool:
-        return not self.pellets_remaining
+        return not self.pellets_remaining  # 返回结果
 
     def collect_if_on_pellet(self) -> None:
         for pos in (self.agent0, self.agent1):
@@ -43,10 +46,12 @@ class Env:
 
 
 def manhattan(a: tuple[int, int], b: tuple[int, int]) -> int:
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+    """manhattan"""
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])  # 返回结果
 
 
 def step_toward(pos: tuple[int, int], target: tuple[int, int]) -> tuple[int, int]:
+    """step_toward"""
     dx = (target[0] - pos[0])
     dy = (target[1] - pos[1])
     if abs(dx) >= abs(dy):
@@ -57,13 +62,14 @@ def step_toward(pos: tuple[int, int], target: tuple[int, int]) -> tuple[int, int
         ny = pos[1] + (1 if dy > 0 else -1 if dy < 0 else 0)
     nx = max(0, min(GRID - 1, nx))
     ny = max(0, min(GRID - 1, ny))
-    return (nx, ny)
+    return (nx, ny)  # 返回结果
 
 
 def move_or_wait(pos: tuple[int, int], target: tuple[int, int], wait: bool) -> tuple[int, int]:
+    """move_or_wait"""
     if wait:
-        return pos
-    return step_toward(pos, target)
+        return pos  # 返回结果
+    return step_toward(pos, target)  # 返回结果
 
 
 def run_independent(env: Env, max_steps: int = 50) -> int:
@@ -77,18 +83,18 @@ def run_independent(env: Env, max_steps: int = 50) -> int:
         env.agent1 = step_toward(env.agent1, p1_target)
         env.collect_if_on_pellet()
         steps += 1
-    return steps
+    return steps  # 返回结果
 
 
 def _assigned_targets(env: Env) -> tuple[tuple[int, int], tuple[int, int]]:
     """Centralized optimal pellet assignment: minimize total Manhattan."""
     pellets = list(env.pellets_remaining)
     if len(pellets) == 1:
-        return pellets[0], pellets[0]
+        return pellets[0], pellets[0]  # 返回结果
     p, q = pellets[0], pellets[1]
     cost_pq = manhattan(env.agent0, p) + manhattan(env.agent1, q)
     cost_qp = manhattan(env.agent0, q) + manhattan(env.agent1, p)
-    return (p, q) if cost_pq <= cost_qp else (q, p)
+    return (p, q) if cost_pq <= cost_qp else (q, p)  # 返回结果
 
 
 def run_maddpg_style(env: Env, max_steps: int = 50) -> int:
@@ -101,7 +107,7 @@ def run_maddpg_style(env: Env, max_steps: int = 50) -> int:
         env.agent1 = step_toward(env.agent1, t1)
         env.collect_if_on_pellet()
         steps += 1
-    return steps
+    return steps  # 返回结果
 
 
 def run_qmix_style(env: Env, max_steps: int = 50) -> int:
@@ -118,17 +124,18 @@ def run_qmix_style(env: Env, max_steps: int = 50) -> int:
         env.agent1 = step_toward(env.agent1, t1)
         env.collect_if_on_pellet()
         steps += 1
-    return steps
+    return steps  # 返回结果
 
 
 def run_mappo_style(env: Env, max_steps: int = 50) -> int:
     """PPO with centralized value function. Behaves like CTDE at deploy; the
     scripted variant mirrors MADDPG here because they converge to similar
     policies on this size task."""
-    return run_maddpg_style(env, max_steps)
+    return run_maddpg_style(env, max_steps)  # 返回结果
 
 
 def bench(label: str, runner) -> None:
+    """bench"""
     total = 0
     trials = 500
     for i in range(trials):
@@ -139,6 +146,7 @@ def bench(label: str, runner) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 72)
     print("MARL PATTERNS on a 4x4 grid with 2 agents and 2 pellets (cooperative)")
     print("=" * 72)
@@ -156,4 +164,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

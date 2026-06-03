@@ -1,6 +1,10 @@
-# Neural Audio Codecs — EnCodec, SNAC, Mimi, DAC and the Semantic-Acoustic Split
+# Neural Audio Codecs — EnCodec, SNAC, Mimi, DAC and the Semantic-Acoustic Split | 神经音频编解码器
 
 > 2026 audio generation is almost all tokens. EnCodec, SNAC, Mimi, and DAC turn continuous waveforms into discrete sequences that a transformer can predict. The semantic-vs-acoustic token split — first-codebook as semantic, rest as acoustic — is the most important architectural shift since the Transformer for audio.
+
+> **【中文解读】** 2026 年的音频生成几乎都基于 token。EnCodec、SNAC、Mimi、DAC 将连续波形转换为离散序列，让 Transformer 可以预测。语义-声学 token 分离（第一个码本=语义，其余=声学）是自 Transformer 以来音频领域最重要的架构变革。
+
+> **【拓展：音频 token 化】** 就像文本有 BPE tokenizer 将文字变成 token，音频有 EnCodec 等编解码器将声波变成 token。这使得音频可以像文本一样被大语言模型处理。Moshi、AudioLM 等模型都依赖这种 token 化。
 
 **Type:** Learn
 **Languages:** Python

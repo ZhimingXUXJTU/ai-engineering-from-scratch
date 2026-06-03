@@ -1,5 +1,10 @@
 """MIO-style four-modality tokenizer allocation + streaming decode latency calc.
 
+MIO：任意到任意流式多模态模型 (Any-to-Any Streaming)
+核心概念：文本、图像、语音、音乐四种 tokenizer，一个因果 Transformer，任意模态到任意模态。
+流式解码延迟计算展示实时对话的 token 预算分配。
+AI 应用对应：MIO 是开源世界追赶 GPT-4o 实时多模态交互的代表性工作。
+
 Stdlib. Prints the vocab layout and a step-by-step latency trace for a
 spoken-dialogue request where MIO consumes speech, generates speech.
 """
@@ -11,9 +16,10 @@ from dataclasses import dataclass
 
 @dataclass
 class VocabSlot:
-    name: str
-    start: int
-    size: int
+    """词汇表槽位：记录每种模态 token 的 ID 范围。"""
+    name: str  # 槽位名称（如 "text BPE"、"image SEED"）
+    start: int  # 起始 ID
+    size: int   # 槽位大小
 
     @property
     def end(self) -> int:
@@ -21,9 +27,10 @@ class VocabSlot:
 
 
 def build_vocab() -> list[VocabSlot]:
+    """构建共享词汇表：为文本、图像、语音、音乐分配不重叠的 ID 区间。"""
     slots = []
     cursor = 0
-    plan = [
+    plan = [  # 各模态的 token 数量分配
         ("text BPE",      32000),
         ("image SEED",     4096),
         ("speech L0",      4096),
@@ -53,7 +60,7 @@ def print_vocab(slots: list[VocabSlot]) -> None:
 
 
 def route_inputs(inputs: list[dict]) -> list[dict]:
-    """Classify each input and assign a tokenizer path."""
+    """将多模态输入路由到对应的 tokenizer：文本→BPE，图像→SEED，语音→SpeechTokenizer，音乐→Encodec。"""
     routed = []
     for inp in inputs:
         kind = inp["kind"]
@@ -81,16 +88,17 @@ def streaming_decode_latency(
     prompt_audio_seconds: float = 2.0,
     model_size_b: int = 8,
 ) -> list[LatencyTrace]:
+    """计算流式解码的延迟预算：麦克风→语音token→预填充→首token→残差VQ→语音解码。"""
     trace = []
-    trace.append(LatencyTrace("mic audio -> speech tokens",
+    trace.append(LatencyTrace("mic audio -> speech tokens",       # 麦克风音频转语音 token
                               prompt_audio_seconds * 20))
-    trace.append(LatencyTrace("prefill prompt tokens",
+    trace.append(LatencyTrace("prefill prompt tokens",            # 预填充提示 token
                               80 * (model_size_b / 8.0)))
-    trace.append(LatencyTrace("first output token",
+    trace.append(LatencyTrace("first output token",               # 首个输出 token
                               40 * (model_size_b / 8.0)))
-    trace.append(LatencyTrace("residual-VQ layers 1..7",
+    trace.append(LatencyTrace("residual-VQ layers 1..7",          # 残差 VQ 8层并行解码
                               30))
-    trace.append(LatencyTrace("speech decoder (Encodec-like)",
+    trace.append(LatencyTrace("speech decoder (Encodec-like)",     # 语音波形解码
                               80))
     return trace
 

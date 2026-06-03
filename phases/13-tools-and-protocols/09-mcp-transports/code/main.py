@@ -1,5 +1,10 @@
 """Phase 13 Lesson 09 - Streamable HTTP MCP endpoint skeleton.
 
+MCP 传输层 (MCP Transports)
+核心概念：stdio 仅限本地，Streamable HTTP 是远程标准（2025-03-26规范），旧 HTTP+SSE 已弃用。
+选择正确的传输协议避免迁移成本，Streamable HTTP 提供会话连续性和 DNS 重绑定保护。
+AI 应用对应：远程 MCP 服务器部署必须使用 Streamable HTTP 传输。
+
 Uses stdlib http.server to serve a single /mcp endpoint supporting:
   - POST /mcp   (client request; JSON-RPC in, JSON or SSE out)
   - GET  /mcp   (open server-to-client SSE stream)

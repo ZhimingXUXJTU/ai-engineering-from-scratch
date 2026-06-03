@@ -1,4 +1,4 @@
-# Checkpoints and Rollback
+# Checkpoints and Rollback | 检查点 回滚
 
 > Every graph-state transition persists. When a worker crashes, its lease expires and another worker picks up at the latest checkpoint. Cloudflare Durable Objects hold state across hours or weeks. Propose-then-commit (Lesson 15) defines a rollback plan per action. Post-action verification closes the loop. EU AI Act Article 14 makes effective human oversight mandatory for high-risk systems — in practice this means checkpoints must be queryable, rollbacks must be rehearsed, and the audit trail must survive a deploy. The sharp failure mode: without idempotency keys and precondition checks, a retry after a transient failure can double-execute an already-approved action. Post-action verification is what catches it.
 
@@ -7,11 +7,14 @@
 **Prerequisites:** Phase 15 · 12 (Durable execution), Phase 15 · 15 (Propose-then-commit)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题
 
 Durable execution (Lesson 12) makes a crashed agent resumable. Propose-then-commit (Lesson 15) makes an approved action auditable. This lesson joins them: what happens when an approved action executes partially, crashes, and resumes? When does the rollback run, and against what state?
 
 Real systems wire this up differently:
+
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
 
 - **LangGraph** checkpoints every graph-state transition to PostgreSQL. On worker crash, the lease releases and another worker resumes at the latest checkpoint. Workflows pause on `interrupt()`, which itself persists.
 - **Cloudflare Durable Objects** hold per-key state across hours or weeks. Co-locate the computation with the storage for the approved action.
@@ -19,7 +22,7 @@ Real systems wire this up differently:
 
 In every case, the combination that actually works is: idempotency key (prevents double-execute) + precondition check (state is still what we approved against) + post-action verify (the side effect actually happened) + rollback on verify-fail.
 
-## The Concept
+## The Concept | 概念
 
 ### Every transition persists
 
@@ -82,40 +85,45 @@ The most common production incident in this space:
 
 Mitigation: persist an "in-flight" intent before execution, execute with an idempotency key, then mark "committed" only after post-action verification succeeds. If the action fires and the status write fails, you know to verify and (if necessary) re-fire. If the status write succeeds and the action fails, you verify and fire exactly once via the recovery path.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` implements a checkpointed workflow with idempotency, preconditions, verify, and rollback. The driver simulates four scenarios: clean run, retry after crash (idempotency catches), precondition fail (workflow aborts without firing), verify fail (rollback fires).
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-rollback-rehearsal.md` designs a rollback-rehearsal test for a proposed workflow and audits the checkpoint backend for audit-trail persistence.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Verify the four scenarios. For the crash-during-commit case, confirm the action fires exactly once across retries.
+   *思考并实践此练习*
 
 2. Modify the "mark as done first, then do it" pattern so the status write fires after the action. Rerun the crash scenario. Measure how many duplicate actions fire.
+   *思考并实践此练习*
 
 3. Design a rollback plan for a specific production action (e.g., "post to a Slack channel"). Classify as in-band, compensating, or out-of-band. Justify the choice.
+   *思考并实践此练习*
 
 4. Take one workflow you know. Identify every state transition. Mark each with a durability requirement (persist / do not persist). Count the ones you are currently not persisting.
+   *思考并实践此练习*
 
 5. Rehearsed-rollback test: design an end-to-end test that runs a real workflow, crashes it, and confirms the rollback path fires. What does the test assert?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| Checkpoint | "Save point" | Every graph-state transition persists to a durable store |
-| Lease | "Worker claim" | Short-lived claim that a worker is executing a run; expires on crash |
-| Precondition | "State gate" | Assertion that the state is still consistent with the approved action |
-| Post-action verify | "Re-read check" | Confirm the side effect actually happened in the target system |
-| In-band rollback | "Direct undo" | Reverse the side effect with the inverse operation |
-| Compensating transaction | "SAGA undo" | A new action that neutralizes the original |
-| Mark-as-done-first | "Status write order" | Persist the committed status before returning from commit |
-| Article 14 | "EU AI Act human oversight" | Operational: queryable checkpoints, rehearsed rollbacks, auditable trail |
+|---|---|---|---|
+| Checkpoint | "Save point" | Every graph-state transition persists to a durable store |  |
+| Lease | "Worker claim" | Short-lived claim that a worker is executing a run; expires on crash |  |
+| Precondition | "State gate" | Assertion that the state is still consistent with the approved action |  |
+| Post-action verify | "Re-read check" | Confirm the side effect actually happened in the target system |  |
+| In-band rollback | "Direct undo" | Reverse the side effect with the inverse operation |  |
+| Compensating transaction | "SAGA undo" | A new action that neutralizes the original |  |
+| Mark-as-done-first | "Status write order" | Persist the committed status before returning from commit |  |
+| Article 14 | "EU AI Act human oversight" | Operational: queryable checkpoints, rehearsed rollbacks, auditable trail |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Microsoft Agent Framework — Checkpointing and HITL](https://learn.microsoft.com/en-us/agent-framework/workflows/human-in-the-loop) — checkpoint primitives and lease recovery.
 - [Cloudflare Agents — Human in the loop](https://developers.cloudflare.com/agents/concepts/human-in-the-loop/) — Durable Objects as a state substrate.

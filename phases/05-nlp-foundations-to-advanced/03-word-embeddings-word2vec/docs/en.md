@@ -1,6 +1,8 @@
-# Word Embeddings — Word2Vec from Scratch
+# Word Embeddings — Word2Vec from Scratch | 词嵌入 — Word2Vec 从零实现
 
 > A word is the company it keeps. Train a shallow net on that idea and geometry falls out.
+
+> **【中文解读】** Word2Vec 把词映射到稠密向量空间，相似词在向量空间中接近。这是现代 NLP 的基石。
 
 **Type:** Build
 **Languages:** Python

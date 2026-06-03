@@ -1,6 +1,9 @@
-# Capstone 05 — Autonomous Research Agent (AI-Scientist Class)
+# Capstone 05 — Autonomous Research Agent (AI-Scientist Class) | 结业 研究 美国
 
 > Sakana's AI-Scientist-v2 published full papers. Agent Laboratory ran the experiments. Allen AI shared traces. The 2026 shape is plan-execute-verify tree search over experiments, budgeted cost, sandboxed code execution, a vision-feedback LaTeX writer, and an automated NeurIPS-style reviewer ensemble. The capstone is to build one, run it end to end within $30 per paper, and survive the sandbox-escape red team that Sakana documented.
+
+> **【中文解读】** 本节是综合项目——构建自主研究 Agent，从文献检索到报告生成的完整流程。
+
 
 **Type:** Capstone
 **Languages:** Python (agent + sandbox), LaTeX (output)
@@ -22,7 +25,7 @@ The writer is multimodal. It generates a LaTeX draft, compiles it, renders figur
 
 Safety is load-bearing. Every experiment runs in an E2B or Daytona sandbox with no network egress, bounded wall-clock, and pinned resource limits. The agent's code-generation step passes through a policy layer that blocks syscalls that escape the sandbox. The red-team report reproduces the Sakana-documented attack surface (fork bombs, filesystem escapes, LLM-written network calls).
 
-## Architecture
+## Architecture | 架构
 
 ```
 seed idea + domain
@@ -69,7 +72,7 @@ seed idea + domain
 - Experiment framework: PyTorch 2.5 for the physical experiments, W&B for logging
 - Observability: Langfuse for agent traces, $30 hard budget per paper
 
-## Build It
+## Build It | 动手构建
 
 1. **Seed and domain scoping.** Take a seed idea (e.g., "investigate sparsity patterns in attention maps of sub-1B transformers"). Define the search space: models, datasets, compute budget.
 
@@ -89,7 +92,7 @@ seed idea + domain
 
 9. **Reproducibility.** Every paper ships with its tree-search trace JSON, seeds, W&B run links, sandbox configs, and a README reproducing it end to end.
 
-## Use It
+## Use It | 使用方法
 
 ```
 $ ai-scientist run --seed "attention sparsity in sub-1B transformers" --budget 30
@@ -106,7 +109,7 @@ $ ai-scientist run --seed "attention sparsity in sub-1B transformers" --budget 3
 [done]   paper.pdf + review.md + trace.json     $28.40 spent
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-ai-scientist.md` is the deliverable. Given a seed idea + a domain + a $30 budget, it runs the full pipeline and emits a reviewable paper plus a reproducibility bundle.
 
@@ -119,7 +122,7 @@ $ ai-scientist run --seed "attention sparsity in sub-1B transformers" --budget 3
 | 15 | Reproducibility | One-command rerun with identical seeds reproduces the paper |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Run the pipeline against three different seed ideas in the same domain. Compare which parts of the tree-search overlap. Identify duplicated wasted compute.
 
@@ -131,7 +134,7 @@ $ ai-scientist run --seed "attention sparsity in sub-1B transformers" --budget 3
 
 5. Compare your tree-search with a flat random baseline (same budget, no expansion strategy). Report the novelty × quality gain.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -143,7 +146,7 @@ $ ai-scientist run --seed "attention sparsity in sub-1B transformers" --budget 3
 | Cost ceiling | "$ budget" | Hard cap on total spend per paper; Langfuse counters + pre-run estimates |
 | Red team | "Sandbox-escape audit" | Adversarial tasks that would escape the sandbox if the policy is wrong |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Sakana AI-Scientist-v2 repository](https://github.com/SakanaAI/AI-Scientist-v2) — the reference production research agent
 - [Sakana AI-Scientist-v1 paper (arXiv:2408.06292)](https://arxiv.org/abs/2408.06292) — the original methodology

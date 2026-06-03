@@ -1,6 +1,10 @@
-# From CLIP to BLIP-2 — Q-Former as Modality Bridge
+# From CLIP to BLIP-2 — Q-Former as Modality Bridge | 从 CLIP 到 BLIP-2：Q-Former 模态桥接
 
 > CLIP aligns image and text but cannot generate captions, answer questions, or hold a conversation. BLIP-2 (Salesforce, 2023) solved that with a small trainable bridge: 32 learnable query vectors attend over a frozen ViT's features via cross-attention, then slot directly into a frozen LLM's input stream. 188M parameters of bridge connected an 11B LLM to a ViT-g/14. Every adapter-based VLM through 2026 — MiniGPT-4, InstructBLIP, LLaVA's cousins — is a descendant. This lesson reads the Q-Former's architecture, explains its two-stage training, and builds a toy version that feeds visual tokens into a frozen text decoder.
+
+> **【中文解读】** CLIP 只能对齐图文但无法生成。BLIP-2 用32个可学习查询向量通过交叉注意力桥接冻结的 ViT 和 LLM，仅188M参数就能将视觉特征注入11B的语言模型。
+
+> **【拓展：Q-Former→多模态架构演进】** Q-Former 是"冻结视觉编码器+冻结LLM+轻量桥接"范式的开创者，MiniGPT-4、InstructBLIP、LLaVA 都是其思想的后代。
 
 **Type:** Build
 **Languages:** Python (stdlib, cross-attention + learnable-query demo)

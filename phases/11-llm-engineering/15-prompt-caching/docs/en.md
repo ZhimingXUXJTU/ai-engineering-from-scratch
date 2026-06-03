@@ -1,6 +1,10 @@
-# Prompt Caching and Context Caching
+# Prompt Caching and Context Caching | 提示缓存与上下文缓存
 
 > Your system prompt is 4,000 tokens. Your RAG context is 20,000 tokens. You send both with every request. You also pay for both — every time. Prompt caching lets the provider keep that prefix warm on their side and bill you 10% of the normal rate on reuse. Used correctly, it cuts inference cost by 50–90% and first-token latency by 40–85%.
+
+> **【中文解读】** 系统提示4000 token + RAG 上下文20000 token，每次请求都要付费。提示缓存让供应商保留前缀，重用时只收10%费用。正确使用可降低50-90%推理成本和40-85%首token延迟。
+
+> **【拓展：提示缓存→RAG生产优化】** Anthropic 的 Prompt Caching 和 OpenAI 的 Cached Response 是 RAG 生产系统降低成本的关键技术，尤其是有固定系统提示和大量检索上下文的场景。
 
 **Type:** Build
 **Languages:** Python

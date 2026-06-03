@@ -7,6 +7,9 @@ For a set of quantization formats and model sizes, compute:
   - relative decode throughput (memory-bandwidth-limited shape)
 
 Formats are represented by effective weight bits and KV bits. Pedagogical.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -16,6 +19,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Format:
+    """Format"""
     name: str
     weight_bits: float
     kv_bits: float
@@ -35,6 +39,7 @@ FORMATS = [
 
 
 def memory_breakdown(params_b: float, fmt: Format,
+    """memory_breakdown"""
                      concurrency: int = 128, ctx: int = 2048) -> dict:
     weight_gb = params_b * fmt.weight_bits / 8
     # KV cache approximation: num_layers * 2 * kv_heads * head_dim * ctx * bytes/element
@@ -44,7 +49,7 @@ def memory_breakdown(params_b: float, fmt: Format,
     per_seq_kv_gb = layers * 2 * kv_heads * head_dim * ctx * (fmt.kv_bits / 8) / 1e9
     kv_total = per_seq_kv_gb * concurrency
     activations_gb = 0.05 * params_b       # rough constant
-    return {
+    return {  # 返回结果
         "weight": weight_gb,
         "kv": kv_total,
         "act": activations_gb,
@@ -55,20 +60,22 @@ def memory_breakdown(params_b: float, fmt: Format,
 def relative_throughput(fmt: Format) -> float:
     """Decode is memory-bandwidth-limited. Fewer weight bytes per token = higher throughput.
     Normalize to BF16 = 1.0."""
-    return 16 / fmt.weight_bits
+    return 16 / fmt.weight_bits  # 返回结果
 
 
 def gpu_check(total_gb: float) -> str:
+    """gpu_check"""
     if total_gb <= 80:
-        return "H100 80GB"
+        return "H100 80GB"  # 返回结果
     if total_gb <= 141:
-        return "H200 141GB"
+        return "H200 141GB"  # 返回结果
     if total_gb <= 192:
-        return "B200 192GB"
-    return "MULTI-GPU"
+        return "B200 192GB"  # 返回结果
+    return "MULTI-GPU"  # 返回结果
 
 
 def print_scenario(params_b: float, concurrency: int, ctx: int) -> None:
+    """print_scenario"""
     print(f"Model: {params_b}B params  |  concurrency {concurrency}  |  ctx {ctx}")
     print("-" * 98)
     print(f"{'format':36} {'W GB':>7} {'KV GB':>7} {'Act GB':>7} "
@@ -82,6 +89,7 @@ def print_scenario(params_b: float, concurrency: int, ctx: int) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 98)
     print("TOY QUANTIZATION CALCULATOR — memory and relative throughput by format")
     print("=" * 98)
@@ -104,4 +112,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

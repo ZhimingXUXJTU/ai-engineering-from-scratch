@@ -1,6 +1,9 @@
-# Capstone 01 — Terminal-Native Coding Agent
+# Capstone 01 — Terminal-Native Coding Agent | 编码 Agent 结业 终端 原生
 
 > By 2026 the shape of a coding agent is settled. A TUI harness, a stateful plan, a sandboxed tool surface, a loop that plans, acts, observes, recovers. Claude Code, Cursor 3, and OpenCode all look the same from 50 feet. This capstone asks you to build one end to end — CLI in, pull request out — and measure it against mini-swe-agent and Live-SWE-agent on SWE-bench Pro. You will learn why the hard part is not the model call but the tool loop, the sandbox, and the cost ceiling on a 50-turn run.
+
+> **【中文解读】** 本节是综合项目——构建终端原生编码 Agent，整合 Agent 循环、工具使用和记忆系统。
+
 
 **Type:** Capstone
 **Languages:** TypeScript / Bun (harness), Python (eval scripts)
@@ -20,7 +23,7 @@ The harness has four surfaces. **Plan** maintains a TodoWrite-style state object
 
 The sandbox is E2B or Daytona. Each task runs in a fresh devcontainer with a git worktree mounted read-write. The harness never touches the host filesystem. The worktree gets torn down on success or failure. Cost control is enforced at three layers: a per-turn token ceiling, a per-session dollar budget, and a hard turn limit (typically 50). The observability layer is OpenTelemetry spans with GenAI semantic conventions, shipped to a self-hosted Langfuse.
 
-## Architecture
+## Architecture | 架构
 
 ```
   user CLI  ->  harness (Bun + Ink TUI)
@@ -62,7 +65,7 @@ The sandbox is E2B or Daytona. Each task runs in a fresh devcontainer with a git
 - Observability: OpenTelemetry SDK with `gen_ai.*` semconv → self-hosted Langfuse
 - PR posting: GitHub App with fine-grained token, scope limited to the target repo
 
-## Build It
+## Build It | 动手构建
 
 1. **TUI and command loop.** Scaffold a Bun project with Ink. Accept `agent run <repo> "<task>"`. Print a split view: plan pane (top), tool-call stream (middle), token budget (bottom). Add cancel on Ctrl-C that fires `SessionEnd` hook before exit.
 
@@ -80,7 +83,7 @@ The sandbox is E2B or Daytona. Each task runs in a fresh devcontainer with a git
 
 8. **PR posting.** On success, the final step is `git push` + a GitHub API call that opens a PR with the plan and the diff summary in the body.
 
-## Use It
+## Use It | 使用方法
 
 ```
 $ agent run ./my-repo "Fix the race condition in worker.rs"
@@ -95,7 +98,7 @@ $ agent run ./my-repo "Fix the race condition in worker.rs"
 [done]  PR opened: #482   turns=9   tokens=38k   cost=$0.41
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 The deliverable skill lives in `outputs/skill-terminal-coding-agent.md`. Given a repo path and a task description, it runs the full plan-act-observe loop in a sandbox and returns a PR URL plus a trace bundle. The rubric for this capstone:
 
@@ -108,7 +111,7 @@ The deliverable skill lives in `outputs/skill-terminal-coding-agent.md`. Given a
 | 15 | Developer UX | Cold-start < 2s, crash recovery resumes plan, Ctrl-C cancels mid-tool cleanly |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Swap the backing model from Claude Sonnet 4.7 to Qwen3-Coder-30B served on vLLM. Compare pass@1 and $-per-task. Report where the open model underperforms.
 
@@ -120,7 +123,7 @@ The deliverable skill lives in `outputs/skill-terminal-coding-agent.md`. Given a
 
 5. Swap MCP StreamableHTTP transport for stdio. Benchmark cold-start and per-call latency. Pick a winner for local-only use.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -132,7 +135,7 @@ The deliverable skill lives in `outputs/skill-terminal-coding-agent.md`. Given a
 | Token ceiling | "Context budget" | Per-turn or per-session cap on input+output tokens; triggers compaction or termination |
 | pass@1 | "Single-attempt pass rate" | Fraction of SWE-bench tasks solved on the first run without retry or test-set peeking |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code) — reference harness from Anthropic
 - [Cursor 3 changelog](https://cursor.com/changelog) — Agent Tabs and Composer 2 product notes

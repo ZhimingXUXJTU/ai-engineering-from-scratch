@@ -1,6 +1,10 @@
-# Fine-Tuning with LoRA & QLoRA
+# Fine-Tuning with LoRA & QLoRA | LoRA 微调：低秩适配与量化微调
 
 > Full fine-tuning a 7B model requires 56GB of VRAM. You don't have that. Neither do most companies. LoRA lets you fine-tune the same model in 6GB by training less than 1% of the parameters. This isn't a compromise -- it matches full fine-tuning quality on most tasks. The entire open-source fine-tuning ecosystem runs on this one trick.
+
+> **【中文解读】** 全量微调 7B 模型需要 56GB 显存。LoRA 只训练不到 1% 的参数，6GB 显存即可完成微调，且质量不输全量微调。整个开源微调生态都建立在这个技术之上。
+
+> **【拓展：LoRA微调→定制大模型】** LoRA 是企业定制大模型的核心技术：用少量领域数据微调基础模型，获得专业能力（如金融分析、法律推理、代码生成等）。
 
 **Type:** Build
 **Languages:** Python

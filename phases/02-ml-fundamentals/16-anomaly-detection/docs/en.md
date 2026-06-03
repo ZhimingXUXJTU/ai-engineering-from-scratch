@@ -1,4 +1,4 @@
-# Anomaly Detection
+# Anomaly Detection | 异常检测
 
 > Normal is easy to define. Abnormal is whatever doesn't fit.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 2, Lessons 01-09
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement Z-score, IQR, and Isolation Forest anomaly detection methods from scratch
 - Distinguish between point, contextual, and collective anomalies and select the appropriate detection method for each
 - Explain why anomaly detection is framed as modeling normal data rather than classifying anomalies
 - Compare unsupervised anomaly detection with supervised classification and evaluate the tradeoff between novel anomaly coverage and precision
+
+
+> **【中文解读】**
+> 异常检测找出不一样的数据点。信用卡欺诈检测、设备故障预警、网络入侵检测都依赖它。Isolation Forest 和 One-Class SVM 是常用方法。sklearn 中的 IsolationForest。
 
 ## The Problem
 

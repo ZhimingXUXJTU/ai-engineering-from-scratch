@@ -1,6 +1,8 @@
-# Multi-Head Attention
+# Multi-Head Attention | 多头注意力
 
 > One attention head learns one relation at a time. Eight heads learn eight. Heads are free. Take more of them.
+
+> **【中文解读】** 多头注意力让模型同时关注不同类型的关系：语法、语义、位置等。GPT-3 有 96 个注意力头。理解多头 = 理解 Transformer 的表达能力。
 
 **Type:** Build
 **Languages:** Python

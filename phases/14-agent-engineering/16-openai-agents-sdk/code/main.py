@@ -3,6 +3,9 @@
 Five primitives: Agent, FunctionTool, Handoff, Guardrail, Tracing.
 Handoffs are tools named transfer_to_<agent>. Guardrails trip on input/output.
 A span tree mirrors what the real SDK emits.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -12,6 +15,7 @@ from typing import Any, Callable
 
 
 class GuardrailTripped(Exception):
+    """GuardrailTripped"""
     def __init__(self, which: str, reason: str) -> None:
         super().__init__(f"{which}: {reason}")
         self.which = which
@@ -20,6 +24,7 @@ class GuardrailTripped(Exception):
 
 @dataclass
 class FunctionTool:
+    """FunctionTool"""
     name: str
     description: str
     fn: Callable[..., str]
@@ -27,15 +32,17 @@ class FunctionTool:
 
 @dataclass
 class Handoff:
+    """Handoff"""
     target: "Agent"
 
     @property
     def tool_name(self) -> str:
-        return f"transfer_to_{self.target.name}"
+        return f"transfer_to_{self.target.name}"  # 返回结果
 
 
 @dataclass
 class Agent:
+    """Agent"""
     name: str
     instructions: str
     policy: Callable[[str], dict[str, Any]]
@@ -45,18 +52,21 @@ class Agent:
 
 @dataclass
 class InputGuardrail:
+    """InputGuardrail"""
     name: str
     check: Callable[[str], tuple[bool, str]]
 
 
 @dataclass
 class OutputGuardrail:
+    """OutputGuardrail"""
     name: str
     check: Callable[[str], tuple[bool, str]]
 
 
 @dataclass
 class Span:
+    """Span"""
     name: str
     attributes: dict[str, Any] = field(default_factory=dict)
     children: list["Span"] = field(default_factory=list)
@@ -64,6 +74,7 @@ class Span:
 
 @dataclass
 class Runner:
+    """Runner"""
     input_guardrails: list[InputGuardrail] = field(default_factory=list)
     output_guardrails: list[OutputGuardrail] = field(default_factory=list)
     max_hops: int = 3
@@ -143,10 +154,11 @@ class Runner:
             if not ok:
                 raise GuardrailTripped("output", reason)
 
-        return final_output
+        return final_output  # 返回结果
 
 
 def _print_span(span: Span, indent: int = 0) -> None:
+    """_print_span"""
     prefix = "  " * indent
     attrs = " ".join(f"{k}={v!r}" for k, v in span.attributes.items())
     print(f"{prefix}{span.name}  {attrs}")
@@ -155,33 +167,39 @@ def _print_span(span: Span, indent: int = 0) -> None:
 
 
 def _triage_policy(user_input: str) -> dict[str, Any]:
+    """_triage_policy"""
     t = user_input.lower()
     if "refund" in t or "billing" in t or "invoice" in t:
-        return {"kind": "handoff", "to": "billing", "input": user_input}
+        return {"kind": "handoff", "to": "billing", "input": user_input}  # 返回结果
     if "error" in t or "crash" in t or "bug" in t:
-        return {"kind": "handoff", "to": "support", "input": user_input}
-    return {"kind": "final", "text": "i'm not sure how to help with that"}
+        return {"kind": "handoff", "to": "support", "input": user_input}  # 返回结果
+    return {"kind": "final", "text": "i'm not sure how to help with that"}  # 返回结果
 
 
 def _billing_policy(user_input: str) -> dict[str, Any]:
-    return {"kind": "final", "text": f"billing handled: {user_input[:40]}"}
+    """_billing_policy"""
+    return {"kind": "final", "text": f"billing handled: {user_input[:40]}"}  # 返回结果
 
 
 def _support_policy(user_input: str) -> dict[str, Any]:
-    return {"kind": "final", "text": f"support handled: {user_input[:40]}"}
+    """_support_policy"""
+    return {"kind": "final", "text": f"support handled: {user_input[:40]}"}  # 返回结果
 
 
 def _pii_check(text: str) -> tuple[bool, str]:
+    """_pii_check"""
     if "ssn" in text.lower():
-        return False, "refuses to process social security numbers"
-    return True, "ok"
+        return False, "refuses to process social security numbers"  # 返回结果
+    return True, "ok"  # 返回结果
 
 
 def _length_check(text: str) -> tuple[bool, str]:
-    return len(text) < 200, f"output {len(text)} chars"
+    """_length_check"""
+    return len(text) < 200, f"output {len(text)} chars"  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("OPENAI AGENTS SDK SHAPE — Phase 14, Lesson 16")
     print("=" * 70)
@@ -223,4 +241,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

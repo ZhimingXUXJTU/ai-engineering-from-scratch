@@ -4,6 +4,9 @@ Both pipelines are scripted (no LLM) so the measurement is reproducible.
 Writes before-after-report.md and comparison.json next to this file.
 
 Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -22,14 +25,16 @@ USERS: dict[str, str] = {}
 
 
 def signup(email: str, password: str) -> dict[str, object]:
+    """signup"""
     USERS[email] = password
-    return {"status": 200, "email": email}
+    return {"status": 200, "email": email}  # 返回结果
 '''
 
 SAMPLE_TEST_PY = '''from sample_app.app import signup
 
 
 def test_signup_happy_path():
+    """test_signup_happy_path"""
     out = signup("a@b.co", "longenough")
     assert out["status"] == 200
 '''
@@ -37,6 +42,7 @@ def test_signup_happy_path():
 
 @dataclass
 class TaskOutcome:
+    """TaskOutcome"""
     pipeline: str
     tests_actually_run: bool
     acceptance_met: bool
@@ -52,7 +58,7 @@ FORBIDDEN = {"sample_app/scripts/release.sh"}
 def run_prompt_only() -> TaskOutcome:
     """Edits a couple of files, never runs the test, claims done."""
     touched = ["sample_app/app.py", "README.md", "sample_app/scripts/release.sh"]
-    return TaskOutcome(
+    return TaskOutcome(  # 返回结果
         pipeline="prompt-only",
         tests_actually_run=False,
         acceptance_met=False,
@@ -65,7 +71,7 @@ def run_prompt_only() -> TaskOutcome:
 def run_workbench() -> TaskOutcome:
     """Reads scope, edits inside scope, runs acceptance through feedback, gates, reviews, hands off."""
     touched = ["sample_app/app.py", "sample_app/test_app.py"]
-    return TaskOutcome(
+    return TaskOutcome(  # 返回结果
         pipeline="workbench-guided",
         tests_actually_run=True,
         acceptance_met=True,
@@ -76,6 +82,7 @@ def run_workbench() -> TaskOutcome:
 
 
 def write_report(po: TaskOutcome, wb: TaskOutcome) -> None:
+    """write_report"""
     lines = [
         "# Before / After: Agent Workbench on a Real Repo",
         "",
@@ -100,6 +107,7 @@ def write_report(po: TaskOutcome, wb: TaskOutcome) -> None:
 
 
 def write_sample() -> None:
+    """write_sample"""
     SAMPLE.mkdir(exist_ok=True)
     (SAMPLE / "app.py").write_text(SAMPLE_APP_PY)
     (SAMPLE / "test_app.py").write_text(SAMPLE_TEST_PY)
@@ -109,6 +117,7 @@ def write_sample() -> None:
 
 
 def main() -> None:
+    """main"""
     write_sample()
     po = run_prompt_only()
     wb = run_workbench()
@@ -126,4 +135,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

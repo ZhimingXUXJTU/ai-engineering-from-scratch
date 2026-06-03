@@ -1,13 +1,16 @@
-# Capstone Lesson 39: Instruction Tuning by Supervised Fine-Tuning
+# Capstone Lesson 39: Instruction Tuning by Supervised Fine-Tuning | 微调 结业
 
 > A pretrained base model can extend a sequence but cannot follow an instruction. Supervised fine-tuning is the smallest change that fixes this: feed the model paired examples of an instruction and a desired response, and train the body to predict the response tokens. The trick is that you only want the loss to count the response, not the instruction. This lesson builds an Alpaca-style SFT loop with a custom collate function that masks instruction tokens with `ignore_index=-100`, trains on 200 instruction-response pairs, and evaluates on a held-out split using exact-match.
+
+> **【中文解读】** 本节是综合项目——实现指令微调 SFT。
+
 
 **Type:** Build
 **Languages:** Python (torch, numpy)
 **Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Format paired instruction-response data into a single causal sequence with explicit boundary tokens.
 - Build a collate function that masks instruction tokens so cross-entropy only counts response tokens.
@@ -15,7 +18,7 @@
 - Implement greedy and temperature-sampled generation that respects the response-start boundary.
 - Compute held-out exact-match on generated completions.
 
-## The Problem
+## The Problem | 问题
 
 A base model trained on next-token prediction has no idea what an instruction is. Show it the string `"What is the capital of France?"` and it will continue the question or invent a new sentence. The model has the language but not the format contract.
 
@@ -29,7 +32,7 @@ The boundary tokens are special tokens reserved at training time. The model lear
 
 But there is a catch. If you feed the entire sequence to a vanilla cross-entropy loss, you are training the model to also predict the instruction tokens. The instruction is given. You want zero gradient on those positions. The fix is the mask.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart LR

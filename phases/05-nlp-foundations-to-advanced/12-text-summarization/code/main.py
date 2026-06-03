@@ -1,3 +1,8 @@
+"""
+文本摘要
+
+抽取式选择关键句 vs 生成式生成新摘要。现代用 GPT 等大模型做生成式摘要。
+"""
 import math
 import re
 from collections import Counter

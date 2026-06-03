@@ -5,6 +5,9 @@ The demo trains a tiny model (attention + token/positional embeddings + LM head)
 on a copy task and prints the loss curve plus a per-head attention heatmap.
 
 Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -54,16 +57,16 @@ class MultiHeadSelfAttention(nn.Module):
 
     def _split_heads(self, x: torch.Tensor) -> torch.Tensor:
         b, t, _ = x.shape
-        return x.view(b, t, self.n_heads, self.d_head).transpose(1, 2)
+        return x.view(b, t, self.n_heads, self.d_head).transpose(1, 2)  # 返回结果
 
     def _merge_heads(self, x: torch.Tensor) -> torch.Tensor:
         b, h, t, dh = x.shape
-        return x.transpose(1, 2).contiguous().view(b, t, h * dh)
+        return x.transpose(1, 2).contiguous().view(b, t, h * dh)  # 返回结果
 
     def forward(
         self,
         x: torch.Tensor,
-        return_weights: bool = False,
+        return_weights: bool = False,  # 返回结果
     ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         if x.dim() != 3:
             raise ValueError(f"input must be (B, T, D), got shape {tuple(x.shape)}")
@@ -94,8 +97,8 @@ class MultiHeadSelfAttention(nn.Module):
         out = self.out_dropout(out)
 
         if return_weights:
-            return out, weights
-        return out
+            return out, weights  # 返回结果
+        return out  # 返回结果
 
 
 class TokenEmbedding(nn.Module):
@@ -108,7 +111,7 @@ class TokenEmbedding(nn.Module):
             self.embedding.weight.normal_(0.0, 0.02)
 
     def forward(self, ids: torch.Tensor) -> torch.Tensor:
-        return self.embedding(ids)
+        return self.embedding(ids)  # 返回结果
 
 
 class SinusoidalPositionalEmbedding(nn.Module):
@@ -139,7 +142,7 @@ class SinusoidalPositionalEmbedding(nn.Module):
             raise ValueError(
                 f"seq_len {seq_len} exceeds max_context_length {self.max_context_length}"
             )
-        return self.pe[:seq_len]
+        return self.pe[:seq_len]  # 返回结果
 
 
 class TinyAttentionLM(nn.Module):
@@ -165,7 +168,7 @@ class TinyAttentionLM(nn.Module):
     def forward(
         self,
         ids: torch.Tensor,
-        return_weights: bool = False,
+        return_weights: bool = False,  # 返回结果
     ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         b, t = ids.shape
         tok = self.token_emb(ids)
@@ -174,14 +177,15 @@ class TinyAttentionLM(nn.Module):
         if return_weights:
             attn_out, weights = self.attn(x, return_weights=True)
             logits = self.lm_head(attn_out)
-            return logits, weights
+            return logits, weights  # 返回结果
         attn_out = self.attn(x)
         logits = self.lm_head(attn_out)
-        return logits
+        return logits  # 返回结果
 
 
 @dataclass
 class DemoConfig:
+    """DemoConfig"""
     vocab_size: int = 64
     d_model: int = 32
     n_heads: int = 4
@@ -203,10 +207,11 @@ def _make_repeat_batch(cfg: DemoConfig, generator: torch.Generator) -> tuple[tor
         0, cfg.vocab_size, (cfg.batch_size, 1), generator=generator, dtype=torch.long
     )
     ids = base.expand(cfg.batch_size, cfg.seq_len + 1).contiguous()
-    return ids[:, :-1], ids[:, 1:]
+    return ids[:, :-1], ids[:, 1:]  # 返回结果
 
 
 def _train(model: TinyAttentionLM, cfg: DemoConfig) -> list[float]:
+    """_train"""
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.learning_rate)
     generator = torch.Generator()
     generator.manual_seed(cfg.seed)
@@ -224,24 +229,27 @@ def _train(model: TinyAttentionLM, cfg: DemoConfig) -> list[float]:
         avg = total / cfg.steps_per_epoch
         loss_curve.append(avg)
         print(f"epoch {epoch + 1}/{cfg.n_epochs}  avg loss: {avg:.4f}")
-    return loss_curve
+    return loss_curve  # 返回结果
 
 
 def _print_section(title: str) -> None:
+    """_print_section"""
     bar = "-" * len(title)
     print(f"\n{title}\n{bar}")
 
 
 def _heatmap_row(row: torch.Tensor, width: int = 28) -> str:
+    """_heatmap_row"""
     glyphs = " .:-=+*#%@"
     cells: list[str] = []
     for v in row.tolist():
         idx = int(min(len(glyphs) - 1, max(0, v * len(glyphs))))
         cells.append(glyphs[idx])
-    return "".join(cells[:width])
+    return "".join(cells[:width])  # 返回结果
 
 
 def main() -> int:
+    """main"""
     cfg = DemoConfig()
     torch.manual_seed(cfg.seed)
 
@@ -294,7 +302,7 @@ def main() -> int:
         print(f"  q={t:>2}: |{_heatmap_row(row, width=cfg.seq_len)}|")
 
     print("\nDemo OK.")
-    return 0
+    return 0  # 返回结果
 
 
 if __name__ == "__main__":

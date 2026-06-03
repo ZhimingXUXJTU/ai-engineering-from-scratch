@@ -1,6 +1,8 @@
-# Weight Initialization and Training Stability
+# Weight Initialization and Training Stability | 权重初始化与训练稳定性
 
 > Initialize wrong and training never starts. Initialize right and 50 layers train as smoothly as 3.
+
+> **【中文解读】** 初始化错了，训练永远不会开始——50 层网络的信号要么归零要么爆炸。初始化对了，50 层训练和 3 层一样平滑。Xavier 初始化（sigmoid/tanh）和 Kaiming 初始化（ReLU/GELU）是现代深度学习的基石。
 
 **Type:** Build
 **Languages:** Python

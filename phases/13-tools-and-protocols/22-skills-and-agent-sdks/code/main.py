@@ -1,5 +1,10 @@
 """Phase 13 Lesson 22 - SKILL.md loader and agent bundle demo.
 
+Skills 与 Agent SDK (Skills and Agent SDKs)
+核心概念：MCP 定义"有什么工具"，Skills 定义"如何完成任务"。
+Anthropic Skills（SKILL.md）、AGENTS.md（项目级Agent上下文）、OpenAI Apps SDK 是2026年三大标准。
+AI 应用对应：Skills 是 Claude Code 等 Agent 的工作单元，AGENTS.md 已在60000+仓库中使用。
+
 Parses SKILL.md files with a stdlib YAML-frontmatter parser (no pyyaml),
 builds an in-memory skill registry, and simulates an agent loop that loads
 a skill by name and uses it to prefix the system prompt.
@@ -20,7 +25,7 @@ SKILL_ROOT = Path("/tmp/lesson-21-skills")
 
 
 # ------------------------------------------------------------------
-# toy fixture skills
+# 测试用技能 fixture (toy fixture skills)
 # ------------------------------------------------------------------
 
 RELEASE_NOTES_SKILL = """\
@@ -68,6 +73,7 @@ Steps:
 
 
 def setup_fixtures() -> None:
+    """创建测试用 SKILL.md 文件到 /tmp 目录。"""
     SKILL_ROOT.mkdir(parents=True, exist_ok=True)
     rn = SKILL_ROOT / "release-notes-writer"
     rn.mkdir(exist_ok=True)
@@ -79,7 +85,7 @@ def setup_fixtures() -> None:
 
 
 # ------------------------------------------------------------------
-# loader
+# 加载器 (loader)
 # ------------------------------------------------------------------
 
 @dataclass
@@ -91,6 +97,7 @@ class Skill:
 
 
 def parse_frontmatter(text: str) -> tuple[dict, str]:
+    """解析 SKILL.md 的 YAML frontmatter：提取 `---` 之间的键值对和正文。"""
     if not text.startswith("---\n"):
         return {}, text
     end = text.find("\n---\n", 4)
@@ -109,6 +116,7 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
 
 
 def load_skill(folder: Path) -> Skill | None:
+    """从文件夹加载 SKILL.md：解析 frontmatter 获取名称和描述。"""
     skill_md = folder / "SKILL.md"
     if not skill_md.exists():
         return None
@@ -121,6 +129,7 @@ def load_skill(folder: Path) -> Skill | None:
 
 
 def discover_skills(root: Path) -> dict[str, Skill]:
+    """技能发现：扫描目录下的所有 SKILL.md，构建按名称索引的注册表。"""
     registry: dict[str, Skill] = {}
     if not root.exists():
         return registry
@@ -133,6 +142,7 @@ def discover_skills(root: Path) -> dict[str, Skill]:
 
 
 def read_subresource(skill: Skill, filename: str) -> str:
+    """渐进式披露：按需读取技能目录下的子资源文件。"""
     path = skill.root / filename
     if not path.exists():
         return f"(no such subresource: {filename})"
@@ -140,10 +150,11 @@ def read_subresource(skill: Skill, filename: str) -> str:
 
 
 # ------------------------------------------------------------------
-# demo agent loop
+# 演示 Agent 循环 (demo agent loop)
 # ------------------------------------------------------------------
 
 def agent_run(skill: Skill, user_task: str) -> str:
+    """模拟 Agent 运行：加载技能，按需拉取子资源，构建系统提示。"""
     print(f"  [loader] loading skill '{skill.name}'")
     print(f"  [loader] progressive disclosure: read style-guide only if needed")
     system_prompt = f"""You are an assistant with the {skill.name} skill loaded.

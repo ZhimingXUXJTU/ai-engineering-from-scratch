@@ -7,6 +7,9 @@ Three detectors:
 
 Trajectory exercises each detector. Classifier + budget layers from
 Lessons 10 and 13 are orthogonal; this lesson is about the tripwires.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -30,6 +33,7 @@ CANARY_FILES = {
 
 @dataclass
 class CircuitBreaker:
+    """CircuitBreaker"""
     threshold: int = 5
     state: str = "closed"   # closed | open | half_open
     recent: list[str] = field(default_factory=list)
@@ -37,38 +41,41 @@ class CircuitBreaker:
     def record(self, action_key: str) -> bool:
         """Return True if the action may proceed, False if breaker is open."""
         if self.state == "open":
-            return False
+            return False  # 返回结果
         self.recent.append(action_key)
         if len(self.recent) >= self.threshold:
             tail = self.recent[-self.threshold:]
             if all(a == tail[0] for a in tail):
                 self.state = "open"
-                return False
-        return True
+                return False  # 返回结果
+        return True  # 返回结果
 
 
 # ---------- Canary detector ----------
 
 @dataclass
 class Canary:
+    """Canary"""
     triggered: list[tuple[int, str]] = field(default_factory=list)
 
     def check_read(self, turn: int, path: str) -> bool:
         if path in CANARY_FILES:
             self.triggered.append((turn, path))
-            return True
-        return False
+            return True  # 返回结果
+        return False  # 返回结果
 
 
 # ---------- Run the trajectory ----------
 
 @dataclass
 class Action:
+    """Action"""
     kind: str    # "tool" | "read"
     payload: str
 
 
 def run_trajectory(traj: list[Action], kill_switch: dict) -> None:
+    """run_trajectory"""
     breaker = CircuitBreaker(threshold=5)
     canary = Canary()
     kill_fired = False
@@ -104,6 +111,7 @@ def run_trajectory(traj: list[Action], kill_switch: dict) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("TRIPWIRES: KILL SWITCH, CIRCUIT BREAKER, CANARY (Phase 15, Lesson 14)")
     print("=" * 80)
@@ -142,4 +150,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

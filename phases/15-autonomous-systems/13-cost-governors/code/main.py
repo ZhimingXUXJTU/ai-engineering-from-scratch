@@ -8,6 +8,9 @@ three configurations:
   3. layered stack: per-request + iteration + velocity limit + monthly cap
 
 Metrics: turns executed, total tokens, total dollars, trigger that fired.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -26,13 +29,15 @@ DOLLARS_PER_KTOK = 0.003
 
 
 def turn_cost(turn: int) -> int:
-    return LOOP_TURN_TOKENS if turn >= LOOP_STARTS_AT else NORMAL_TURN_TOKENS
+    """turn_cost"""
+    return LOOP_TURN_TOKENS if turn >= LOOP_STARTS_AT else NORMAL_TURN_TOKENS  # 返回结果
 
 
 # ---------- Governor ----------
 
 @dataclass
 class Governor:
+    """Governor"""
     max_tokens_per_request: int = 10_000
     max_turns: int = 200
     max_budget_usd: float = 50.0
@@ -52,6 +57,7 @@ class Governor:
 
 @dataclass
 class Run:
+    """Run"""
     turns: int = 0
     tokens: int = 0
     dollars: float = 0.0
@@ -63,12 +69,13 @@ EPSILON_MIN = 1e-9
 
 
 def velocity_exceeded(run: Run, gov: Governor, now_min: float) -> bool:
+    """velocity_exceeded"""
     if not run.history:
-        return False
+        return False  # 返回结果
     cutoff = now_min - gov.velocity_window_min
     window = [(t, d) for (t, d) in run.history if t >= cutoff]
     if not window:
-        return False
+        return False  # 返回结果
     start_min, start_dollars = window[0]
     window_dollars = run.dollars - start_dollars
     # Use the actual elapsed time inside the window, not the nominal
@@ -76,10 +83,11 @@ def velocity_exceeded(run: Run, gov: Governor, now_min: float) -> bool:
     # stops the rate being under-reported.
     elapsed = max(now_min - start_min, EPSILON_MIN)
     rate = window_dollars / elapsed
-    return rate > gov.velocity_usd_per_min
+    return rate > gov.velocity_usd_per_min  # 返回结果
 
 
 def simulate(gov: Governor, label: str) -> Run:
+    """simulate"""
     run = Run()
     now_min = 0.0
 
@@ -111,10 +119,11 @@ def simulate(gov: Governor, label: str) -> Run:
 
     print(f"  {label:<24}  turns={run.turns:>5}  tokens={run.tokens:>8,}  "
           f"dollars=${run.dollars:>7.2f}  stopped_by={run.stopped_by}")
-    return run
+    return run  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 85)
     print("LAYERED COST GOVERNORS (Phase 15, Lesson 13)")
     print("=" * 85)
@@ -162,4 +171,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

@@ -1,6 +1,10 @@
-# Speculative Decoding and EAGLE-3
+# Speculative Decoding and EAGLE-3 | 投机解码与 EAGLE-3
 
 > Phase 7 · Lesson 16 proved the math: the Leviathan rejection rule preserves the verifier's distribution exactly. This lesson is the training-stack view of 2026 production speculative decoding. EAGLE-3 turned the draft model from a cheap approximation into a purpose-built tiny network trained on the verifier's own hidden states, then added a training-time test loop that aligns its train and inference distributions. Result: 3× to 6.5× end-to-end speedup, accepted per-token rates above 0.9 on chat, no distributional tradeoff. Every production inference stack in 2026 ships it by default.
+
+> **【中文解读】** 投机解码：用小模型猜测接下来 3-5 个 token，大模型只需验证。猜对了就 5 个 token 算一个的价。EAGLE-3 用目标模型的隐藏状态训练草稿网络，接受率 90%+，3-6.5 倍加速，输出分布不变。
+
+> **【拓展：投机解码→生产推理】** 2026 年所有主流推理框架（vLLM、TensorRT-LLM）都内置了投机解码。DeepSeek-V3 的 MTP 头在推理时也被用作投机解码的草稿器，接受率 80%+，实现 1.8 倍吞吐提升。
 
 **Type:** Build
 **Languages:** Python (stdlib)

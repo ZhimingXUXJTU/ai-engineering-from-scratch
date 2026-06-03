@@ -1,5 +1,11 @@
 """Phase 13 Lesson 14 - MCP Apps (SEP-1724, 2026-01-26) ui:// resources.
 
+MCP 应用：交互式 UI 资源 (Interactive UI Resources via ui://)
+核心概念：MCP Apps 让工具返回沙盒化的交互式 HTML，在 Claude Desktop/ChatGPT/Cursor 等客户端内联渲染。
+本文件实现 visualize_timeline 工具，返回 ui://notes/timeline 资源，包含内联 HTML + SVG 时间线。
+resources/read 处理器返回完整 HTML 包，带 CSP 安全策略和 postMessage JSON-RPC 客户端。
+AI 应用对应：MCP Apps 是 MCP 从工具调用走向应用平台的关键扩展，支持仪表盘、表单、地图等交互场景。
+
 visualize_timeline tool returns a ui://notes/timeline resource with inlined
 HTML + SVG. The resources/read handler returns the full HTML bundle with a
 CSP-sensible profile and a placeholder postMessage JSON-RPC client that calls
@@ -17,6 +23,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 
+# 示例笔记数据，用于生成时间线
 NOTES = [
     {"id": "note-1", "title": "MCP primitives", "created": "2026-01-10"},
     {"id": "note-2", "title": "Transport",       "created": "2026-02-03"},
@@ -26,6 +33,7 @@ NOTES = [
 ]
 
 
+# CSP（内容安全策略）配置：限制脚本、网络、样式来源，防止 XSS 和数据外泄
 TIMELINE_CSP = {
     "default-src": "'self'",
     "script-src": "'self' 'unsafe-inline'",
@@ -36,7 +44,7 @@ TIMELINE_CSP = {
 
 
 def timeline_html(notes: list[dict]) -> str:
-    """Generate a self-contained HTML timeline. SVG + inline JS only."""
+    """生成自包含的 HTML 时间线页面。SVG + 内联 JS，无外部依赖。"""
     points = ""
     for i, n in enumerate(notes):
         x = 40 + i * 110
@@ -89,6 +97,7 @@ def timeline_html(notes: list[dict]) -> str:
 
 
 def tool_visualize_timeline(args: dict) -> dict:
+    """可视化时间线工具：返回文本说明 + ui:// 资源引用，附带 CSP 和权限元数据。"""
     return {
         "content": [
             {"type": "text", "text": "Notes timeline rendered below."},
@@ -106,6 +115,7 @@ def tool_visualize_timeline(args: dict) -> dict:
 
 
 def resources_read(params: dict) -> dict:
+    """资源读取处理器：返回 ui:// 资源的 HTML 内容，MIME 为 text/html;profile=mcp-app。"""
     uri = params["uri"]
     if uri != "ui://notes/timeline":
         raise ValueError(f"unknown ui resource: {uri}")
@@ -120,6 +130,7 @@ def resources_read(params: dict) -> dict:
 
 
 def demo() -> None:
+    """演示：调用 visualize_timeline 工具并展示返回的 ui:// 资源和 HTML 内容。"""
     print("=" * 72)
     print("PHASE 13 LESSON 14 - MCP APPS ui://")
     print("=" * 72)

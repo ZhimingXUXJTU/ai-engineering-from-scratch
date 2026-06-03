@@ -3,6 +3,9 @@
 Stdlib only. Scripted mapping from design attributes to one of three case
 studies (Anthropic Research, MetaGPT/ChatDev, OpenClaw/Moltbook) and the
 framework-of-choice recommendation.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 from __future__ import annotations
 
@@ -11,6 +14,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Design:
+    """Design"""
     name: str
     task_type: str          # "research" | "engineering" | "population" | "automation"
     n_agents_expected: int
@@ -56,18 +60,20 @@ FRAMEWORK_LANDSCAPE = [
 
 
 def map_to_case(d: Design) -> str:
+    """map_to_case"""
     if d.task_type == "population" or d.user_facing_network:
-        return "openclaw_moltbook"
+        return "openclaw_moltbook"  # 返回结果
     if d.task_type == "engineering" or d.roles_distinct:
-        return "metagpt_chatdev"
+        return "metagpt_chatdev"  # 返回结果
     if d.task_type == "research":
-        return "anthropic_research"
+        return "anthropic_research"  # 返回结果
     if d.verification_required and d.runtime_duration_hours >= 1:
-        return "anthropic_research"
-    return "anthropic_research"
+        return "anthropic_research"  # 返回结果
+    return "anthropic_research"  # 返回结果
 
 
 def print_case(key: str) -> None:
+    """print_case"""
     case = CASES[key]
     print(f"\n  closest case study: {case['name']}")
     print(f"  patterns to copy:")
@@ -78,6 +84,7 @@ def print_case(key: str) -> None:
 
 
 def print_landscape() -> None:
+    """print_landscape"""
     print("\n" + "=" * 78)
     print("FRAMEWORK LANDSCAPE — April 2026")
     print("=" * 78)
@@ -89,6 +96,7 @@ def print_landscape() -> None:
 
 
 def main() -> None:
+    """main"""
     designs = [
         Design("research-assistant", "research", 6, True, 2.0, False, False),
         Design("codegen-team", "engineering", 5, True, 1.0, True, False),
@@ -116,4 +124,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

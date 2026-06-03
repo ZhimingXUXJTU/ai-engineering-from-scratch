@@ -7,6 +7,9 @@ message flow with stubbed LLM calls so the handoff logic and token accounting
 are observable end to end.
 
 Run:  python main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -22,6 +25,7 @@ from enum import Enum
 # ---------------------------------------------------------------------------
 
 class MsgKind(Enum):
+    """MsgKind"""
     PLAN_REQUEST = "plan_request"
     SUBTASK = "subtask"
     DIFF_READY = "diff_ready"
@@ -35,6 +39,7 @@ class MsgKind(Enum):
 
 @dataclass
 class Msg:
+    """Msg"""
     kind: MsgKind
     by: str
     to: str
@@ -44,6 +49,7 @@ class Msg:
 
 @dataclass
 class Board:
+    """Board"""
     messages: list[Msg] = field(default_factory=list)
     tokens_by_role: dict[str, int] = field(default_factory=lambda: defaultdict(int))
 
@@ -52,7 +58,7 @@ class Board:
         self.tokens_by_role[m.by] += m.tokens
 
     def inbox(self, role: str) -> list[Msg]:
-        return [m for m in self.messages if m.to == role]
+        return [m for m in self.messages if m.to == role]  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -61,6 +67,7 @@ class Board:
 
 @dataclass
 class Subtask:
+    """Subtask"""
     name: str
     files: list[str]
     lines_changed: int = 0
@@ -77,12 +84,13 @@ def architect_plan(issue: str, rng: random.Random) -> list[Subtask]:
     ]
     # randomly inject one bug for reviewer probe
     subs[rng.randrange(len(subs))].has_bug = rng.random() < 0.3
-    return subs
+    return subs  # 返回结果
 
 
 def coder_implement(sub: Subtask, rng: random.Random) -> dict:
+    """coder_implement"""
     sub.lines_changed = rng.randint(15, 95)
-    return {"subtask": sub.name, "lines": sub.lines_changed,
+    return {"subtask": sub.name, "lines": sub.lines_changed,  # 返回结果
             "has_bug": sub.has_bug}
 
 
@@ -90,20 +98,20 @@ def reviewer_check(diffs: list[dict], rng: random.Random) -> tuple[bool, str]:
     """Reviewer stub. Catches bugs ~85% of the time; 15% false-approve rate."""
     buggy = [d for d in diffs if d["has_bug"]]
     if not buggy:
-        return True, "lgtm"
+        return True, "lgtm"  # 返回结果
     if rng.random() < 0.85:
-        return False, f"found bug in {buggy[0]['subtask']}: please revisit"
-    return True, "lgtm (FALSE-APPROVE)"
+        return False, f"found bug in {buggy[0]['subtask']}: please revisit"  # 返回结果
+    return True, "lgtm (FALSE-APPROVE)"  # 返回结果
 
 
 def tester_run(diffs: list[dict], rng: random.Random) -> tuple[bool, str]:
     """Tester stub. Catches any remaining bugs, with ~3% flake rate."""
     buggy = [d for d in diffs if d["has_bug"]]
     if buggy:
-        return False, f"test fails in {buggy[0]['subtask']} module"
+        return False, f"test fails in {buggy[0]['subtask']} module"  # 返回结果
     if rng.random() < 0.03:
-        return False, "flaky test"
-    return True, "412/412 passing"
+        return False, "flaky test"  # 返回结果
+    return True, "412/412 passing"  # 返回结果
 
 
 # ---------------------------------------------------------------------------
@@ -111,6 +119,7 @@ def tester_run(diffs: list[dict], rng: random.Random) -> tuple[bool, str]:
 # ---------------------------------------------------------------------------
 
 def run_team(issue: str, n_coders: int = 4, rng: random.Random | None = None) -> dict:
+    """run_team"""
     rng = rng or random.Random(0)
     board = Board()
 
@@ -169,7 +178,7 @@ def run_team(issue: str, n_coders: int = 4, rng: random.Random | None = None) ->
         board.post(Msg(MsgKind.TEST_FAILED, by="tester", to="coder-A",
                        payload={"msg": testmsg}, tokens=1400))
 
-    return {
+    return {  # 返回结果
         "approved": approved,
         "review_comment": comment,
         "tested_passed": passed,
@@ -187,13 +196,14 @@ def run_team(issue: str, n_coders: int = 4, rng: random.Random | None = None) ->
 def single_agent_baseline(issue: str, rng: random.Random) -> dict:
     """Stub: one Sonnet 4.7 in a single worktree does the whole thing."""
     # slower but fewer handoffs; tokens roughly the whole budget minus role overhead
-    return {
+    return {  # 返回结果
         "passed": rng.random() < 0.68,
         "total_tokens": 18_000 + rng.randint(0, 6_000),
     }
 
 
 def main() -> None:
+    """main"""
     rng = random.Random(11)
     print("=== multi-agent team run ===")
     result = run_team("fix widget parser race", n_coders=4, rng=rng)
@@ -227,4 +237,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

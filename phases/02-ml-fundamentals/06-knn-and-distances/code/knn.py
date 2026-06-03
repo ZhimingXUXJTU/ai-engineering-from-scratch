@@ -1,3 +1,7 @@
+"""
+K 近邻算法从零实现：距离度量、K 值选择、加权投票。
+AI 对应: KNN 思想在推荐系统中广泛使用（找相似用户/物品），sklearn 的 KNeighborsClassifier。
+"""
 import math
 import random
 

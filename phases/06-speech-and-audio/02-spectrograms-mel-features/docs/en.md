@@ -1,6 +1,10 @@
-# Spectrograms, Mel Scale & Audio Features
+# Spectrograms, Mel Scale & Audio Features | 频谱图、Mel 尺度与音频特征
 
 > Neural nets do not consume raw waveforms well. They consume spectrograms. They consume mel spectrograms even better. Every ASR, TTS, and audio classifier in 2026 lives or dies by this single preprocessing choice.
+
+> **【中文解读】** 神经网络处理原始波形效果不好，但处理频谱图效果好，处理 Mel 频谱图效果更好。2026 年所有 ASR、TTS 和音频分类器的成败取决于这一个预处理选择。Mel 尺度模拟人耳对频率的感知（低频精细、高频粗略）。
+
+> **【拓展：Mel 频谱图是音频 AI 的 "图像"】** Mel 频谱图将音频转换为 2D 图像（时间×频率），可以用 CNN/ViT 处理。Whisper、MusicGen、Stable Audio 都使用 Mel 频谱图作为中间表示。
 
 **Type:** Build
 **Languages:** Python

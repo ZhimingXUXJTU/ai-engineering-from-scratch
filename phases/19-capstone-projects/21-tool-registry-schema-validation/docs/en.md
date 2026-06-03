@@ -1,13 +1,16 @@
-# Tool Registry with Schema Validation
+# Tool Registry with Schema Validation | 注册中心 化学
 
 > A tool the agent cannot validate is a tool the agent cannot call. Build the registry and the schema checker before you build the tools.
+
+> **【中文解读】** 本节是综合项目——构建工具注册中心和 Schema 验证。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 13 lessons 01-07, Phase 14 lesson 01
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 - Hold a typed registry of tool name → schema → handler that the dispatcher can ask once and trust afterwards.
 - Implement a JSON Schema 2020-12 subset that covers the keywords ninety percent of tool calls actually use.
 - Return precise, json-pointer-shaped error paths so the model can self-correct in one round trip.

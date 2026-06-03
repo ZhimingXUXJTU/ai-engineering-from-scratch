@@ -9,6 +9,9 @@ Computes HBM footprint and decode throughput for a model under three stacks:
 The decode-throughput model is memory-bandwidth-limited: tokens/sec is
 proportional to HBM-bandwidth / bytes-per-token. Numbers are pedagogical
 illustrations of the shape of the 2026 Blackwell economics.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -18,6 +21,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Stack:
+    """Stack"""
     name: str
     hbm_gb: int               # per-GPU HBM
     hbm_bw_tbs: float         # HBM bandwidth in TB/s
@@ -38,6 +42,7 @@ STACKS = [
 
 
 def hbm_footprint_gb(params_b: float, active_b: float, seq_len: int, stack: Stack) -> tuple[float, float]:
+    """hbm_footprint_gb"""
     weight_gb = params_b * stack.weight_bits / 8
     # KV cache for a typical head config: num_layers * 2 * num_kv_heads * head_dim * seq_len * bytes/element
     # Use a representative 70B shape scaled by active param size
@@ -45,7 +50,7 @@ def hbm_footprint_gb(params_b: float, active_b: float, seq_len: int, stack: Stac
     kv_heads = 8
     head_dim = 128
     kv_gb = layers * 2 * kv_heads * head_dim * seq_len * (stack.kv_bits / 8) / 1e9
-    return weight_gb, kv_gb
+    return weight_gb, kv_gb  # 返回结果
 
 
 def decode_throughput(active_b: float, stack: Stack) -> float:
@@ -54,16 +59,18 @@ def decode_throughput(active_b: float, stack: Stack) -> float:
     """
     bytes_per_token = active_b * 1e9 * stack.weight_bits / 8
     raw_tokens_per_s = stack.hbm_bw_tbs * 1e12 / bytes_per_token
-    return raw_tokens_per_s * stack.mtp_factor * stack.disagg_factor
+    return raw_tokens_per_s * stack.mtp_factor * stack.disagg_factor  # 返回结果
 
 
 def cost_per_million_tokens(active_b: float, stack: Stack) -> float:
+    """cost_per_million_tokens"""
     tps = decode_throughput(active_b, stack)
     tokens_per_hour = tps * 3600
-    return stack.price_per_gpu_hour / tokens_per_hour * 1e6
+    return stack.price_per_gpu_hour / tokens_per_hour * 1e6  # 返回结果
 
 
 def print_stack(params_b: float, active_b: float, seq_len: int = 8192) -> None:
+    """print_stack"""
     print(f"Model: {params_b}B total, {active_b}B active, {seq_len:,} tokens context")
     print("-" * 90)
     print(f"{'stack':40} {'W GB':>7} {'KV GB':>7} {'tok/s':>9} {'$/M tok':>10}")
@@ -77,6 +84,7 @@ def print_stack(params_b: float, active_b: float, seq_len: int = 8192) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 90)
     print("TOY BLACKWELL + TRT-LLM ECONOMICS — memory-bandwidth-limited decode")
     print("=" * 90)
@@ -100,4 +108,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

@@ -1,13 +1,16 @@
-# Function Call Dispatcher
+# Function Call Dispatcher | Function Call Dispatcher (中文翻译待补)
 
 > The dispatcher is where the harness pays for every promise the schema made. Timeouts, retries, dedupe, error mapping. All on one seam.
+
+> **【中文解读】** 本节是综合项目——构建函数调用分派器。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 13 lessons 01-07, Phase 14 lesson 01
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 - Wrap a tool handler in a per-call timeout that returns a typed error instead of hanging the loop.
 - Apply exponential backoff retry with jitter and a maximum attempt count.
 - Deduplicate retries on an idempotency key so a retry that races with a slow original does not run twice.

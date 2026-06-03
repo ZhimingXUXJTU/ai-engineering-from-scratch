@@ -1,4 +1,4 @@
-# Statistics for Machine Learning
+# Statistics for Machine Learning | 机器学习统计学
 
 > Statistics is how you know if your model actually works or just got lucky.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1, Lessons 06 (Probability and Distributions), 07 (Bayes' Theorem)
 **Time:** ~120 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Compute descriptive statistics, Pearson/Spearman correlation, and covariance matrices from scratch
 - Perform hypothesis tests (t-test, chi-squared) and interpret p-values and confidence intervals correctly
 - Use bootstrap resampling to construct confidence intervals for any metric without distributional assumptions
 - Distinguish statistical significance from practical significance using effect size measures
+
+
+> **【中文解读】**
+> 统计学告诉你模型是真的有效还是运气好。A/B 测试评估新模型、Bootstrap 构建置信区间、假设检验判断差异显著性——这些是 ML 实验评估的基础。
 
 ## The Problem
 

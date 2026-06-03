@@ -1,5 +1,10 @@
 """Phase 13 Lesson 15 - tool-poisoning detector with hash pinning.
 
+MCP 安全：工具投毒防护 (Tool Poisoning Defense)
+核心概念：恶意 MCP 服务器可在工具描述中嵌入隐藏指令，攻击成功率超70%。
+本文件实现双层防御：静态正则检测 + SHA256 哈希锁定已审批描述。
+AI 应用对应：MCP 服务器安全是企业部署的必备检查项，应在 CI 管道中运行检测。
+
 Two-layer defense:
   1. static detector: regex scan for injection patterns in descriptions
   2. hash pinning: record SHA256 of approved descriptions; flag mutations

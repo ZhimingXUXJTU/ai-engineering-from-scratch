@@ -4,6 +4,9 @@
 every agent reads the others' answers and revises toward the weighted average.
 Convergence is logged per round. Agent policies are scripted, not LLM-backed --
 the point is the debate dynamics.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 from __future__ import annotations
 
@@ -17,6 +20,7 @@ TRUE_ANSWER = 42.0
 
 @dataclass
 class DebateAgent:
+    """DebateAgent"""
     name: str
     answer: float
     confidence: float
@@ -40,15 +44,17 @@ def agreement_score(agents: list[DebateAgent], tol: float = 0.1) -> float:
     """Fraction of agents within tol of the mean."""
     mean = sum(a.answer for a in agents) / len(agents)
     agree = sum(1 for a in agents if abs(a.answer - mean) <= tol)
-    return agree / len(agents)
+    return agree / len(agents)  # 返回结果
 
 
 def error_vs_truth(agents: list[DebateAgent]) -> float:
+    """error_vs_truth"""
     mean = sum(a.answer for a in agents) / len(agents)
-    return abs(mean - TRUE_ANSWER)
+    return abs(mean - TRUE_ANSWER)  # 返回结果
 
 
 def run_debate(agents: list[DebateAgent], rounds: int, label: str) -> None:
+    """run_debate"""
     print(f"\n=== {label} ({rounds} rounds) ===")
     for a in agents:
         a.initial()
@@ -68,8 +74,9 @@ def run_debate(agents: list[DebateAgent], rounds: int, label: str) -> None:
 
 
 def fresh_team(seed: int) -> list[DebateAgent]:
+    """fresh_team"""
     random.seed(seed)
-    return [
+    return [  # 返回结果
         DebateAgent(name="A", answer=38.0, confidence=0.6),
         DebateAgent(name="B", answer=42.5, confidence=0.8),
         DebateAgent(name="C", answer=51.0, confidence=0.4),
@@ -78,10 +85,11 @@ def fresh_team(seed: int) -> list[DebateAgent]:
 
 def single_shot_majority(agents: list[DebateAgent]) -> float:
     """Control: majority on round-0 answers (self-consistency baseline)."""
-    return sum(a.answer for a in agents) / len(agents)
+    return sum(a.answer for a in agents) / len(agents)  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("Multi-agent debate (Du et al. 2023 style)")
     print("-" * 46)
     print(f"True answer: {TRUE_ANSWER}")
@@ -107,4 +115,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

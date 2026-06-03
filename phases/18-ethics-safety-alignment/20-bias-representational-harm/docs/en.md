@@ -1,24 +1,27 @@
-# Bias and Representational Harm in LLMs
+# Bias and Representational Harm in LLMs | 代表性 偏见 伤害 LLM
 
 > Gallegos, Rossi, Barrow, Tanjim, Kim, Dernoncourt, Yu, Zhang, Ahmed (Computational Linguistics 2024, arXiv:2309.00770). Foundational 2024 survey distinguishing representational harms (stereotypes, erasure) from allocational harms (unequal resource distribution) and categorizing evaluation metrics as embedding-based, probability-based, or generated-text-based. 2024-2025 empirical: An et al. (PNAS Nexus, March 2025) measure intersectional gender x race bias across GPT-3.5 Turbo, GPT-4o, Gemini 1.5 Flash, Claude 3.5 Sonnet, Llama 3-70B on automated resume evaluation for 20 entry-level jobs. WinoIdentity (COLM 2025, arXiv:2508.07111) introduces uncertainty-based fairness evaluation for intersectional identities. Yu & Ananiadou 2025 identify gender neurons in MLP layers; Ahsan & Wallace 2025 use SAEs to reveal clinical racial bias; Zhou et al. 2024 (UniBias) manipulates attention heads for debiasing. Meta-critique (arXiv:2508.11067): 10-year literature disproportionately focuses on binary-gender bias.
+
+> **【中文解读】** 本节介绍了偏见和代表性伤害——AI 系统中的偏见来源、检测和缓解方法。
+
 
 **Type:** Build
 **Languages:** Python (stdlib, toy embedding-based bias probe)
 **Prerequisites:** Phase 05 (word embeddings), Phase 18 · 01 (instruction following)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Define representational vs allocational harm and give one example of each in an LLM deployment.
 - Name the three evaluation-metric categories from Gallegos et al. 2024 and describe one metric from each.
 - Describe intersectionality and why WinoIdentity's uncertainty-based fairness measurement addresses gaps in single-axis bias evaluation.
 - Describe two mechanistic-interpretability approaches to bias (gender neurons, SAE features, attention-head manipulation).
 
-## The Problem
+## The Problem | 问题
 
 The previous lessons cover deliberate harm (jailbreaks, scheming) and safety governance. Bias is harm that emerges without intent — from training data distributions, from prompt framing, from accumulated design choices. Measuring and reducing it is a distinct methodological challenge from adversarial robustness.
 
-## The Concept
+## The Concept | 概念
 
 ### Representational vs allocational
 
@@ -55,15 +58,15 @@ The 10-year literature review (arXiv:2508.11067, 2025) finds the field dispropor
 
 Lessons 20-21 cover bias and fairness formally. Lesson 22 covers privacy. Lesson 23 covers watermarking. These are the user-harm layer complementing the earlier deception/safety layer.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` builds a toy embedding-based bias probe: measure WEAT-style distance between identity terms and attribute terms in a simple co-occurrence embedding. You can inject a bias and observe the metric fire; apply a simple debiasing operation and observe partial recovery.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-bias-eval.md`. Given a model card or fairness claim, it audits the evaluation across the three metric categories (embedding, probability, generated-text), the intersectionality coverage, and the mechanism of any debiasing intervention.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Report WEAT-style bias scores before and after the debiasing step. Explain why the metric does not drop to zero.
 
@@ -75,7 +78,7 @@ This lesson produces `outputs/skill-bias-eval.md`. Given a model card or fairnes
 
 5. The meta-critique argues the field focuses too narrowly on binary gender. Pick one under-studied axis and describe a representational-harm measurement protocol for it.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -87,7 +90,7 @@ This lesson produces `outputs/skill-bias-eval.md`. Given a model card or fairnes
 | SAE feature | "interpretable dimension" | Sparse-autoencoder-identified feature; useful for mechanistic bias analysis |
 | UniBias | "attention-head debiasing" | Zero-shot debiasing by reweighting attention heads |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Gallegos et al. — Bias and Fairness in LLMs: A Survey (arXiv:2309.00770, Computational Linguistics 2024)](https://arxiv.org/abs/2309.00770) — canonical survey
 - [An et al. — Intersectional resume-evaluation bias (PNAS Nexus, March 2025)](https://academic.oup.com/pnasnexus/article/4/3/pgaf089/8111343) — five-model intersectional study

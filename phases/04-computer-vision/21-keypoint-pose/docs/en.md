@@ -1,6 +1,10 @@
-# Keypoint Detection & Pose Estimation
+# Keypoint Detection & Pose Estimation | 关键点检测与姿态估计
 
 > A pose is a set of ordered keypoints. A keypoint detector is a heatmap regressor. Everything else is bookkeeping.
+
+> **【中文解读】** 姿态是一组有序的关键点（如人体的 17 个关节点）。关键点检测器本质上是一个热力图回归器——为每个关键点预测一张概率热力图。姿态估计广泛应用于运动分析、人机交互和 AR 滤镜。
+
+> **【拓展：姿态估计的应用】** OpenPose、MediaPipe、YOLO-Pose 是常见的姿态估计工具。应用场景包括：健身动作纠正（Keep）、手势控制（HoloLens）、运动分析（体育训练）、虚拟试衣等。
 
 **Type:** Build
 **Languages:** Python

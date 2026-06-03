@@ -6,6 +6,9 @@ Code, UK AISI rebrand, US CAISI rebrand, and Korean AI Framework Act milestones.
 Reference-only; primary sources cited in docs/en.md.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -30,6 +33,7 @@ TIMELINE = [
 
 
 def main() -> None:
+    """main"""
     print("=" * 78)
     print("AI REGULATORY TIMELINE (Phase 18, Lesson 24)")
     print("=" * 78)
@@ -44,4 +48,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

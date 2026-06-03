@@ -1,3 +1,16 @@
+"""
+策略梯度 — REINFORCE 算法从零实现
+
+核心概念：直接参数化策略 π_θ(a|s)，用 REINFORCE 定理计算策略梯度：
+  ∇J(θ) = E[G · ∇log π_θ(a|s)]
+高回报的动作概率增大，低回报的动作概率减小。
+
+AI 对应：REINFORCE 是 PPO (ChatGPT RLHF) 和 GRPO (DeepSeek-R1) 的共同祖先。
+当你看到 `loss = -advantage * log_prob` 时，那就是 REINFORCE。
+
+本模块实现：线性 softmax 策略 + REINFORCE（有/无基线）
+"""
+
 import math
 import random
 
@@ -32,14 +45,17 @@ def features(state):
 
 
 def init_theta(rng):
+    """初始化策略参数：每个动作一个权重向量"""
     return [[rng.gauss(0, 0.1) for _ in range(N_FEAT)] for _ in range(N_ACTIONS)]
 
 
 def logits(theta, x):
+    """计算每个动作的 logit 分数"""
     return [sum(w * xi for w, xi in zip(theta[a], x)) for a in range(N_ACTIONS)]
 
 
 def softmax(z):
+    """数值稳定的 softmax"""
     m = max(z)
     exps = [math.exp(zi - m) for zi in z]
     Z = sum(exps)
@@ -47,6 +63,7 @@ def softmax(z):
 
 
 def sample(probs, rng):
+    """按概率分布采样动作"""
     x = rng.random()
     cum = 0.0
     for a, p in enumerate(probs):
@@ -57,12 +74,13 @@ def sample(probs, rng):
 
 
 def rollout(theta, rng, max_steps=100):
+    """执行一个完整回合，记录 (特征, 动作, 奖励, 概率分布)"""
     traj = []
     s = reset()
     for _ in range(max_steps):
         x = features(s)
-        probs = softmax(logits(theta, x))
-        a = sample(probs, rng)
+        probs = softmax(logits(theta, x))  # 策略输出动作概率
+        a = sample(probs, rng)  # 按策略采样动作
         s_next, r, done = step(s, a)
         traj.append((x, a, r, probs))
         if done:
@@ -72,31 +90,33 @@ def rollout(theta, rng, max_steps=100):
 
 
 def returns_to_go(traj, gamma):
+    """计算从每个时间步到回合结束的折扣回报（reward-to-go）"""
     G = 0.0
     out = []
-    for _, _, r, _ in reversed(traj):
-        G = r + gamma * G
+    for _, _, r, _ in reversed(traj):  # 反向遍历
+        G = r + gamma * G  # G_t = r_{t+1} + γ G_{t+1}
         out.append(G)
     out.reverse()
     return out
 
 
 def reinforce(episodes, lr=0.05, gamma=0.99, use_baseline=False, rng=None):
+    """REINFORCE 算法：策略梯度的蒙特卡洛实现，可选运行均值基线"""
     rng = rng or random.Random(0)
-    theta = init_theta(rng)
-    baseline = 0.0
+    theta = init_theta(rng)  # 策略参数
+    baseline = 0.0  # 运行均值基线
     returns_log = []
     for ep in range(episodes):
         traj = rollout(theta, rng)
         returns = returns_to_go(traj, gamma)
         if use_baseline:
-            baseline = 0.95 * baseline + 0.05 * returns[0]
+            baseline = 0.95 * baseline + 0.05 * returns[0]  # 指数移动平均基线
         for (x, a, _r, probs), G in zip(traj, returns):
-            adv = G - (baseline if use_baseline else 0.0)
+            adv = G - (baseline if use_baseline else 0.0)  # 优势 = 回报 - 基线
             for i in range(N_ACTIONS):
-                grad = (1.0 if i == a else 0.0) - probs[i]
+                grad = (1.0 if i == a else 0.0) - probs[i]  # ∇log π(a|s) = e_a - π(·|s)
                 for j in range(N_FEAT):
-                    theta[i][j] += lr * adv * grad * x[j]
+                    theta[i][j] += lr * adv * grad * x[j]  # 梯度上升
         returns_log.append(returns[0] if returns else 0.0)
     return theta, returns_log
 

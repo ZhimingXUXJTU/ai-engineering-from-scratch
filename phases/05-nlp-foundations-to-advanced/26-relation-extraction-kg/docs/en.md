@@ -1,6 +1,8 @@
-# Relation Extraction & Knowledge Graph Construction
+# Relation Extraction & Knowledge Graph Construction | 关系抽取与知识图谱构建
 
 > NER found the entities. Entity linking anchored them. Relation extraction finds the edges between them. A knowledge graph is the sum of nodes, edges, and their provenance.
+
+> **【中文解读】** 从文本中抽取关系，构建知识图谱。
 
 **Type:** Build
 **Languages:** Python

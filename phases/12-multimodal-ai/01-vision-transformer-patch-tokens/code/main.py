@@ -1,5 +1,10 @@
 """Vision transformer patch tokenizer and geometry calculator — stdlib Python.
 
+视觉 Transformer 与 Patch-Token 原语 (Vision Transformers and the Patch-Token Primitive)
+核心概念：图像切分为固定大小像素块(patch)，线性投影为 token，加位置编码后输入 Transformer。
+这是所有2026年前沿模型处理图像的第一步——无论编码器是 ViT、DINOv2 还是 SigLIP 2。
+AI 应用对应：理解 Patch-Token 是理解 CLIP、LLaVA、文档理解等所有多模态模型的基础。
+
 Given a ViT config (patch size, resolution, hidden dim, depth, heads), computes:
   - grid shape and sequence length after patch tokenization
   - per-component parameter count (patch embed, pos, blocks, LN)

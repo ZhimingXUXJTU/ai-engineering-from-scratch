@@ -1,6 +1,8 @@
-# Chatbots — Rule-Based to Neural to LLM Agents
+# Chatbots — Rule-Based to Neural to LLM Agents | 聊天机器人 — 规则到神经网络到 LLM
 
 > ELIZA replied with pattern matches. DialogFlow mapped intents. GPT answered from weights. Claude runs tools and verifies. Each era solved the previous one's worst failure.
+
+> **【中文解读】** 从 ELIZA 到 Seq2Seq 到 GPT Agent。
 
 **Type:** Learn
 **Languages:** Python

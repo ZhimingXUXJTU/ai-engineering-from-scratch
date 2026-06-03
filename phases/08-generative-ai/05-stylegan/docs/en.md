@@ -1,6 +1,10 @@
-# StyleGAN
+# StyleGAN | StyleGAN — 风格生成对抗网络
 
 > Most generators stir `z` into every layer at the same time. StyleGAN split it apart: first map `z` to an intermediate `w`, then *inject* `w` at every resolution level through AdaIN. That single change untangled the latent space and made photorealistic faces a solved problem for seven years running.
+
+> **【中文解读】** StyleGAN 将隐变量 z 先映射到中间空间 w，再通过 AdaIN 在每个分辨率层级注入 w，实现了对生成图像不同层面（粗粒度/细粒度特征）的独立控制。这一改变解开了隐空间，使逼真人脸生成成为已解决的问题长达七年。
+
+> **【拓展：StyleGAN 的应用】** StyleGAN 广泛用于人脸生成（thispersondoesnotexist.com）、虚拟人物创建、艺术创作。其 Style Mixing 技术可以混合不同人脸的粗细特征。
 
 **Type:** Build
 **Languages:** Python

@@ -2,6 +2,9 @@
 
 Stdlib only. Action space is code; skills are retrievable and composable;
 failures feed back into the next version.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -12,6 +15,7 @@ from typing import Any, Callable
 
 @dataclass
 class Skill:
+    """Skill"""
     name: str
     description: str
     code: str
@@ -23,6 +27,7 @@ class Skill:
 
 
 class SkillLibrary:
+    """SkillLibrary"""
     def __init__(self) -> None:
         self._skills: dict[str, Skill] = {}
 
@@ -36,9 +41,9 @@ class SkillLibrary:
             existing.tags = skill.tags
             existing.depends_on = skill.depends_on
             existing.version += 1
-            return f"refined {skill.name} -> v{existing.version}"
+            return f"refined {skill.name} -> v{existing.version}"  # 返回结果
         self._skills[skill.name] = skill
-        return f"registered {skill.name} v{skill.version}"
+        return f"registered {skill.name} v{skill.version}"  # 返回结果
 
     def search(self, query: str, top_k: int = 3,
                tag_filter: str | None = None) -> list[tuple[float, Skill]]:
@@ -56,10 +61,10 @@ class SkillLibrary:
             score = overlap / len(q_tokens | d_tokens)
             scored.append((score, skill))
         scored.sort(key=lambda x: -x[0])
-        return scored[:top_k]
+        return scored[:top_k]  # 返回结果
 
     def get(self, name: str) -> Skill | None:
-        return self._skills.get(name)
+        return self._skills.get(name)  # 返回结果
 
     def topo_order(self, name: str) -> list[str]:
         visited: set[str] = set()
@@ -80,7 +85,7 @@ class SkillLibrary:
             for dep in skill.depends_on:
                 if dep not in visited:
                     stack.append((dep, False))
-        return order
+        return order  # 返回结果
 
     def execute(self, name: str, context: dict[str, Any] | None = None) -> dict[str, Any]:
         if context is None:
@@ -91,7 +96,7 @@ class SkillLibrary:
             if skill is None:
                 context["log"].append(f"missing skill: {skill_name}")
                 context["failed"] = True
-                return context
+                return context  # 返回结果
             try:
                 result = skill.fn(context)
                 context["log"].append(
@@ -103,26 +108,29 @@ class SkillLibrary:
                     f"{type(e).__name__}: {e}"
                 )
                 context["failed"] = True
-                return context
+                return context  # 返回结果
         context["failed"] = False
-        return context
+        return context  # 返回结果
 
     def list_names(self) -> list[str]:
-        return sorted(self._skills)
+        return sorted(self._skills)  # 返回结果
 
 
 def _mine(context: dict[str, Any]) -> str:
+    """_mine"""
     context["resources"] = context.get("resources", {})
     context["resources"]["ore"] = context["resources"].get("ore", 0) + 3
-    return "+3 ore"
+    return "+3 ore"  # 返回结果
 
 
 def _place_table(context: dict[str, Any]) -> str:
+    """_place_table"""
     context["has_table"] = True
-    return "placed crafting table"
+    return "placed crafting table"  # 返回结果
 
 
 def _craft_iron_pick_v1(context: dict[str, Any]) -> str:
+    """_craft_iron_pick_v1"""
     if not context.get("has_table"):
         raise RuntimeError("no crafting table in context — cannot craft")
     ore = context.get("resources", {}).get("ore", 0)
@@ -135,30 +143,33 @@ def _craft_iron_pick_v1(context: dict[str, Any]) -> str:
     context["resources"]["stick"] -= 2
     context["inventory"] = context.get("inventory", [])
     context["inventory"].append("iron_pickaxe")
-    return "crafted iron_pickaxe"
+    return "crafted iron_pickaxe"  # 返回结果
 
 
 def _craft_iron_pick_v2(context: dict[str, Any]) -> str:
+    """_craft_iron_pick_v2"""
     if not context.get("has_table"):
-        return "skipped craft: no table yet"
+        return "skipped craft: no table yet"  # 返回结果
     ore = context.get("resources", {}).get("ore", 0)
     stick = context.get("resources", {}).get("stick", 0)
     if ore < 3 or stick < 2:
-        return f"skipped craft: ore={ore}, stick={stick}"
+        return f"skipped craft: ore={ore}, stick={stick}"  # 返回结果
     context["resources"]["ore"] -= 3
     context["resources"]["stick"] -= 2
     context["inventory"] = context.get("inventory", [])
     context["inventory"].append("iron_pickaxe")
-    return "crafted iron_pickaxe"
+    return "crafted iron_pickaxe"  # 返回结果
 
 
 def _gather_sticks(context: dict[str, Any]) -> str:
+    """_gather_sticks"""
     context["resources"] = context.get("resources", {})
     context["resources"]["stick"] = context["resources"].get("stick", 0) + 2
-    return "+2 stick"
+    return "+2 stick"  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("VOYAGER SKILL LIBRARY — Phase 14, Lesson 10")
     print("=" * 70)
@@ -238,4 +249,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

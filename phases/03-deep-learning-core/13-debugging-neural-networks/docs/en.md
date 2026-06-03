@@ -1,6 +1,8 @@
-# Debugging Neural Networks
+# Debugging Neural Networks | 调试神经网络
 
 > Your network compiled. It ran. It produced a number. The number is wrong and nothing crashed. Welcome to the hardest kind of debugging -- the kind where there is no error message.
+
+> **【中文解读】** 网络编译了、运行了、输出了数字——但数字是错的，没有报错信息。这是最难的调试：没有错误信息。本章系统介绍深度学习的调试方法论：过拟合单个 batch → 检查梯度 → 追踪数值稳定性 → 诊断学习率问题。
 
 **Type:** Practice
 **Languages:** Python, PyTorch

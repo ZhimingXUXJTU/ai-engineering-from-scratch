@@ -1,3 +1,8 @@
+"""
+机器翻译
+
+从统计方法到神经方法。Seq2Seq + Attention 是关键架构，现代用 Transformer。
+"""
 import math
 from collections import Counter
 

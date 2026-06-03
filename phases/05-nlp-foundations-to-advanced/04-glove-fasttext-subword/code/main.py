@@ -1,3 +1,8 @@
+"""
+GloVe、FastText 与子词嵌入
+
+GloVe 利用全局共现统计，FastText 用子词 n-gram 处理 OOV。这些方法为 Transformer 的嵌入层提供基础。
+"""
 from collections import Counter
 
 

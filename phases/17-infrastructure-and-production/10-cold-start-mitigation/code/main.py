@@ -8,6 +8,9 @@ Models a 70B model cold-start with different mitigation stacks:
   WARM_POOL        : min_workers=1 (no cold start at all on warm path)
 
 Reports per-layer seconds and totals. Also computes warm-pool break-even.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -17,6 +20,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Phase:
+    """Phase"""
     name: str
     raw_sec: float
     pre_seeded_sec: float    # 0 if eliminated
@@ -34,6 +38,7 @@ PHASES_70B = [
 
 
 def total_for_stack(stack: set[str]) -> float:
+    """total_for_stack"""
     seconds = 0.0
     for phase in PHASES_70B:
         if "gpu_snapshot" in stack:
@@ -49,16 +54,18 @@ def total_for_stack(stack: set[str]) -> float:
             seconds += phase.streamer_sec if phase.name == "weights to HBM" else phase.raw_sec
         else:
             seconds += phase.raw_sec
-    return seconds
+    return seconds  # 返回结果
 
 
 def report_stack(label: str, stack: set[str]) -> None:
+    """report_stack"""
     total = total_for_stack(stack)
     mins = total / 60
     print(f"{label:20}  {total:6.1f} s  ({mins:4.1f} min)  stack={sorted(stack) if stack else '{baseline}'}")
 
 
 def warm_pool_break_even(gpu_hourly: float, cold_seconds: float, sla_tolerated_drops_per_day: int) -> None:
+    """warm_pool_break_even"""
     print("\n" + "=" * 80)
     print("WARM POOL BREAK-EVEN")
     print("=" * 80)
@@ -76,6 +83,7 @@ def warm_pool_break_even(gpu_hourly: float, cold_seconds: float, sla_tolerated_d
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("COLD START MITIGATION — 70B model on fresh H100 node")
     print("=" * 80)
@@ -94,4 +102,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

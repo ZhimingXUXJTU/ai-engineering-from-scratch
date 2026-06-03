@@ -1,5 +1,10 @@
 """Phase 13 Lesson 16 - OAuth 2.1 + PKCE + step-up state machine (SEP-835).
 
+MCP 安全：OAuth 2.1 认证 (MCP Security: OAuth 2.1)
+核心概念：远程 MCP 服务器需要授权（不只是认证）。MCP 规范对齐 OAuth 2.1 + PKCE + 资源指示器(RFC 8707)。
+增量授权(SEP-835)允许按需请求更多权限，而非一次性获取全部。
+AI 应用对应：企业级 MCP 服务器部署必须实现 OAuth 2.1 认证流程。
+
 In-memory state machine that walks through:
   1. Authorization code flow with PKCE
   2. Token with resource indicator (RFC 8707)

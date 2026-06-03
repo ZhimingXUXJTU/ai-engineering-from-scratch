@@ -1,6 +1,9 @@
-# Capstone 03 — Real-Time Voice Assistant (ASR to LLM to TTS)
+# Capstone 03 — Real-Time Voice Assistant (ASR to LLM to TTS) | 助手 结业 语音 LLM
 
 > A voice agent that feels right has end-to-end latency under 800ms, knows when you have stopped talking, handles barge-in, and can call a tool without stalling. Retell, Vapi, LiveKit Agents, and Pipecat all hit this bar in 2026. They do it with the same shape: a streaming ASR, a turn-detector, a streaming LLM, and a streaming TTS, all wired through WebRTC with aggressive latency budgets at every hop. Build one, measure WER and MOS and false-cutoff rate, and run it under packet loss.
+
+> **【中文解读】** 本节是综合项目——构建实时语音助手，整合语音识别、LLM 推理和语音合成。
+
 
 **Type:** Capstone
 **Languages:** Python (agent + pipeline), TypeScript (web client)
@@ -22,7 +25,7 @@ Three cross-cutting concerns. **Barge-in**: when the user starts speaking while 
 
 The measurement bar is quantitative. WER under 8% on the Hamming VAD benchmark at 15 dB SNR. First-audio-out p50 under 800ms on 100 measured calls. False-cutoff rate under 3%. MOS above 4.2 on TTS. 50 concurrent calls on a single g5.xlarge. These numbers are the deliverable.
 
-## Architecture
+## Architecture | 架构
 
 ```
 browser / Twilio PSTN
@@ -69,7 +72,7 @@ browser / Twilio PSTN
 - Observability: OpenTelemetry voice spans, Langfuse voice traces with audio replay
 - Deployment: single g5.xlarge (24GB VRAM) for self-hosted Whisper + Orpheus; hosted APIs for lowest latency
 
-## Build It
+## Build It | 动手构建
 
 1. **WebRTC session.** Stand up a LiveKit room and a web client that streams microphone audio. On the server, attach an agent worker that joins the room.
 
@@ -89,7 +92,7 @@ browser / Twilio PSTN
 
 9. **Load test.** Drive 50 concurrent calls on a single g5.xlarge with a synthetic caller. Measure sustained first-audio-out p95.
 
-## Use It
+## Use It | 使用方法
 
 ```
 caller: "what is the weather in tokyo tomorrow"
@@ -102,7 +105,7 @@ caller: "what is the weather in tokyo tomorrow"
 turn latency: 1040ms user-stop -> audio-out
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-voice-agent.md` is the deliverable. Given a domain (customer support, scheduling, or kiosk), it stands up a LiveKit agent with the ASR/VAD/LLM/TTS pipeline tuned to the measurement bar. Rubric:
 
@@ -115,7 +118,7 @@ turn latency: 1040ms user-stop -> audio-out
 | 15 | Eval harness completeness | Reproducible measurements with public config |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Swap Deepgram Nova-3 for faster-whisper v3 turbo on a g5.xlarge. Measure the latency and WER gap. Identify where CPU-vs-GPU decisions matter.
 
@@ -127,7 +130,7 @@ turn latency: 1040ms user-stop -> audio-out
 
 5. Add voice activity detection for non-English languages (Japanese, Spanish). Measure the Silero VAD v5 false-trigger rate versus language-specific fine-tunes.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -139,7 +142,7 @@ turn latency: 1040ms user-stop -> audio-out
 | Filler | "Acknowledgment token" | Short phrase the agent emits to avoid silence when a tool is slow |
 | MOS | "Mean opinion score" | Perceptual speech quality rating; NISQA is the automated proxy |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [LiveKit Agents 1.0](https://github.com/livekit/agents) — reference WebRTC agent framework
 - [Pipecat](https://github.com/pipecat-ai/pipecat) — alternate Python-first streaming agent framework

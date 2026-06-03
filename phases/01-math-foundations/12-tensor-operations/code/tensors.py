@@ -1,3 +1,7 @@
+"""
+张量类的从零实现，包括形状、步长、reshape、转置和广播。
+AI 对应: Transformer 多头注意力中 Q/K/V 是四维张量，理解张量形状是调试的关键。
+"""
 import numpy as np
 from functools import reduce
 from itertools import product as iterproduct

@@ -1,6 +1,8 @@
-# KV Cache, Flash Attention & Inference Optimization
+# KV Cache, Flash Attention & Inference Optimization | KV Cache、Flash Attention 与推理优化
 
 > Training is parallel and FLOP-bound. Inference is serial and memory-bound. Different bottleneck, different tricks.
+
+> **【中文解读】** KV Cache 缓存已计算的 Key/Value 避免重复计算，是 LLM 推理加速的核心。Flash Attention 优化显存访问模式，减少显存使用。
 
 **Type:** Build
 **Languages:** Python

@@ -1,3 +1,18 @@
+"""
+实例分割 — Mask R-CNN (Instance Segmentation — Mask R-CNN)
+
+核心概念：
+- 实例分割 = 目标检测 + 像素级分割（区分同类不同个体）
+- RoIAlign：将不同大小的候选区域精确对齐到固定尺寸特征图
+- Mask R-CNN = Faster R-CNN + 掩码分支（并行预测类别、框、掩码）
+- 三阶段：RPN 生成候选区域 → RoIAlign 提取特征 → 多头预测
+
+AI 对应：
+- Mask R-CNN 广泛用于自动驾驶（区分不同车辆）、机器人抓取、视频抠图
+- RoIAlign 技术被 ViT 适配器等方法借鉴
+- 实例分割是 COCO 数据集上最全面的视觉任务
+"""
+
 import torch
 import torch.nn.functional as F
 from torchvision.ops import roi_align

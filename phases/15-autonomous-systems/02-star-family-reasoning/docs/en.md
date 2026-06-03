@@ -1,17 +1,24 @@
-# STaR, V-STaR, Quiet-STaR — Self-Taught Reasoning
+# STaR, V-STaR, Quiet-STaR — Self-Taught Reasoning | STaR 系列自我推理方法
 
 > The smallest possible self-improvement loop sits inside the rationale. A model generates a chain of thought, keeps the ones that land on correct answers, and fine-tunes on those. That is STaR. V-STaR adds a verifier so inference-time selection is better. Quiet-STaR pushes the rationale down to every token. All three work. None of them are magic — the loop preserves any shortcut that happened to reach the right answer.
+
+> **【中文解读】** 最小的自我改进循环隐藏在推理过程中：模型生成思维链，保留正确答案的推理过程，在这些数据上微调。这就是 STaR。V-STaR 添加验证器改善推理时选择。Quiet-STaR 将推理下沉到每个 token。三者都有效，但都不是魔法——循环保留了碰巧得到正确答案的任何捷径。
+
+> **【拓展：STaR → OpenAI o1/o3 的自我改进】** STaR 系列是"自我博弈"训练的核心思路——模型用自己的推理输出来训练自己。OpenAI o1/o3 系列模型背后的强化学习训练就采用了类似思路：生成多个推理路径，选择正确的，用它们来改进模型。这是实现 AI 自我改进闭环的关键技术。
 
 **Type:** Learn
 **Languages:** Python (stdlib, bootstrap-loop simulator)
 **Prerequisites:** Phase 13 · 01-03 (Reasoning and CoT), Phase 15 · 01 (long-horizon framing)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题
 
 The straightforward way to teach a model to reason is to collect human-written reasoning traces. That is expensive, slow, and bounded by how much high-quality chain-of-thought humans are willing to write.
 
 STaR (Self-Taught Reasoner, Zelikman et al., 2022) asks: what if the model writes its own rationales and grades them against known answers? The loop is:
+
+
+> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
 
 1. Sample a reasoning trace plus answer.
 2. If the final answer is correct, keep the trace.
@@ -20,7 +27,7 @@ STaR (Self-Taught Reasoner, Zelikman et al., 2022) asks: what if the model write
 
 It works. GSM8K and CommonsenseQA both improved without new human annotation. But the loop has a built-in bias: any rationale that produced the right answer is retained, regardless of whether the reasoning itself was sound. V-STaR (Hosseini et al., 2024) patches this with a learned verifier; Quiet-STaR (Zelikman et al., 2024) generalizes the idea to per-token internal rationales.
 
-## The Concept
+## The Concept | 概念
 
 ### STaR: bootstrap on what worked
 
@@ -63,7 +70,7 @@ STaR is old. But the pattern reappears everywhere in 2025-2026. RL on verifiable
 
 Understanding STaR makes all of these click. It is the minimum-viable self-improvement loop.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` runs a simulated STaR loop on a toy arithmetic task. You can watch:
 
@@ -71,35 +78,40 @@ Understanding STaR makes all of these click. It is the minimum-viable self-impro
 - How shortcuts sneak in: the simulator includes a "lazy" rationale class that gets the right answer 40% of the time but generalizes badly. Watch whether STaR keeps them.
 - How a verifier (V-STaR style) helps at inference but cannot fully prune shortcuts introduced during training.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-star-loop-reviewer.md` helps you audit a proposed self-taught-reasoning pipeline before you train on it.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run the simulator. Set the shortcut frequency to zero, then to 0.4. How much does final accuracy diverge between the two runs, even though both hit >90% on the training distribution?
+   *思考并实践此练习*
 
 2. Add a held-out OOD test to the simulator. Draw problems from a different distribution and evaluate the bootstrapped model on both in-distribution and OOD sets. Quantify the gap.
+   *思考并实践此练习*
 
 3. Read the Quiet-STaR paper (arXiv:2403.09629) Section 3. Explain the "end-of-thought" token and the mixing-weight head in three sentences each.
+   *思考并实践此练习*
 
 4. Compare STaR's keep-if-correct filter to a process-supervised alternative that rewards each rationale step independently. Identify the labelling cost difference and the plausible quality difference.
+   *思考并实践此练习*
 
 5. Design one evaluation that would catch shortcut rationales in a deployed model. It does not have to be perfect — it has to break the simplest shortcuts a STaR loop would reinforce.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| STaR | "Self-Taught Reasoner" | Fine-tune on model-generated rationales that land correct answers; repeat |
-| Rationalization | "Hinted retry" | Inject the correct answer and re-prompt for a rationale on problems the base model fails |
-| V-STaR | "Verifier STaR" | DPO-train a verifier on both correct and incorrect rationales, use it for inference-time selection |
-| Quiet-STaR | "Per-token rationales" | Generate hidden thoughts at every token position; mix with baseline prediction |
-| Answer-conditioned gradient | "Outcome-based signal" | The training loop rewards final answers, not reasoning steps |
-| Process reward model | "Step-level verifier" | Reward model trained on per-step correctness, not outcome — contrasts with STaR |
-| Shortcut rationale | "Right answer, wrong reasoning" | A rationale that reaches the label via a non-generalizing pattern; STaR keeps these |
+|---|---|---|---|
+| STaR | "Self-Taught Reasoner" | Fine-tune on model-generated rationales that land correct answers; repeat |  |
+| Rationalization | "Hinted retry" | Inject the correct answer and re-prompt for a rationale on problems the base model fails |  |
+| V-STaR | "Verifier STaR" | DPO-train a verifier on both correct and incorrect rationales, use it for inference-time selection |  |
+| Quiet-STaR | "Per-token rationales" | Generate hidden thoughts at every token position; mix with baseline prediction |  |
+| Answer-conditioned gradient | "Outcome-based signal" | The training loop rewards final answers, not reasoning steps |  |
+| Process reward model | "Step-level verifier" | Reward model trained on per-step correctness, not outcome — contrasts with STaR |  |
+| Shortcut rationale | "Right answer, wrong reasoning" | A rationale that reaches the label via a non-generalizing pattern; STaR keeps these |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Zelikman et al. (2022). STaR: Bootstrapping Reasoning With Reasoning](https://arxiv.org/abs/2203.14465) — the original paper.
 - [Hosseini et al. (2024). V-STaR: Training Verifiers for Self-Taught Reasoners](https://arxiv.org/abs/2402.06457) — adds a DPO verifier for inference-time selection.

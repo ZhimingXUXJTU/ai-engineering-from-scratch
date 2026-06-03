@@ -1,4 +1,4 @@
-# Matrix Transformations
+# Matrix Transformations | 矩阵变换
 
 > A matrix is a machine that reshapes space. Learn what it does to every point, and you understand the whole transformation.
 
@@ -7,12 +7,20 @@
 **Prerequisites:** Phase 1, Lessons 01-02 (Linear Algebra Intuition, Vectors & Matrices Operations)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Construct rotation, scaling, shearing, and reflection matrices and apply them to 2D and 3D points
 - Compose multiple transformations by matrix multiplication and verify that order matters
 - Compute eigenvalues and eigenvectors of 2x2 matrices from the characteristic equation
 - Explain why eigenvalues determine PCA directions, RNN stability, and spectral clustering behavior
+
+> **【中文解读】**
+> 矩阵是对空间的变换——旋转、缩放、剪切、翻转。理解矩阵的几何意义后，PCA、RNN 稳定性、谱聚类这些概念就变得直观了。
+
+> **【拓展：特征值/特征向量在 AI 中的位置】**
+> - **PCA（主成分分析）**: 找到数据协方差矩阵的特征向量，就是数据方差最大的方向。
+> - **RNN 稳定性**: 如果权重矩阵的特征值绝对值大于 1，梯度会指数增长（梯度爆炸）；小于 1 则会衰减到零（梯度消失）。
+> - **谱聚类**: 用图拉普拉斯矩阵的特征向量进行聚类，比 K-Means 更适合非球形数据。
 
 ## The Problem
 

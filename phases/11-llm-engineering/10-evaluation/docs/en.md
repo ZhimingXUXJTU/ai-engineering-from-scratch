@@ -1,6 +1,10 @@
-# Evaluation & Testing LLM Applications
+# Evaluation & Testing LLM Applications | LLM 应用评估与测试
 
 > You would never deploy a web app without tests. You would never ship a database migration without a rollback plan. But right now, most teams ship LLM applications by reading 10 outputs and saying "yeah, looks good." That is not evaluation. That is hope. Hope is not an engineering practice. Every prompt change, every model swap, every temperature tweak changes your output distribution in ways you cannot predict by reading a handful of examples. Evaluation is the only thing standing between your application and silent degradation.
+
+> **【中文解读】** 不会不经测试就上线 Web 应用，但多数团队靠"看 10 个输出觉得不错"就上线 LLM 应用。那不是评估，是希望。评估是防止系统默默劣化的唯一保障。
+
+> **【拓展：LLM评估→AI工程质量】** LLM 应用的不确定性远超传统软件。自动化评估（准确率、相关性、安全性的回归测试）是 AI 工程化从"实验"走向"生产"的关键。
 
 **Type:** Build
 **Languages:** Python

@@ -1,4 +1,4 @@
-# Reviewer Agent: Separate Builder from Marker
+# Reviewer Agent: Separate Builder from Marker | 审查者
 
 > The agent that wrote the code cannot grade it. A reviewer is a second loop with a different system prompt, a different goal, and read-only access to everything the builder produced. The gap between builder and reviewer is where most reliability lives.
 
@@ -7,20 +7,23 @@
 **Prerequisites:** Phase 14 · 38 (Verification Gate)
 **Time:** ~55 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - State why the same agent cannot reliably review its own work.
 - Build a reviewer agent loop that consumes builder artifacts and emits a structured review report.
 - Author a reviewer rubric that grades specific dimensions, not vibes.
 - Wire the reviewer into the workbench so the human review step starts from a real artifact.
 
-## The Problem
+## The Problem | 问题
 
 You ask the agent to fix a bug. It edits four files, runs the tests, and reports done. The verification gate (Phase 14 · 38) confirms acceptance ran and scope held. The gate says `passed: true`. You merge. Two days later you find that the fix solved the wrong half of the bug.
 
 Acceptance is necessary, not sufficient. The reviewer asks the questions acceptance cannot ask: did this solve the right problem? Did it expand scope without flagging it? Did it document assumptions that should have been questioned? Did it leave the workbench in a state the next session can pick up?
 
-## The Concept
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
+## The Concept | 概念
 
 ```mermaid
 flowchart LR
@@ -30,6 +33,9 @@ flowchart LR
   Reviewer --> Report[review_report.json]
   Report --> Human[Human Sign-Off]
 ```
+
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
 
 ### Reviewer rubric
 
@@ -57,7 +63,7 @@ The reviewer reads the diff, the state, the feedback, the verdict. It writes a r
 
 The gate (Phase 14 · 38) checks deterministic facts: did acceptance run, did rules pass, did scope hold. The reviewer makes qualitative judgments: was this the right work, is it documented, is the handoff usable. Both are required.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements:
 
@@ -88,7 +94,7 @@ Four patterns make this work at scale.
 
 **Hybrid norm with the gate.** Verification gate (Phase 14 · 38) handles the deterministic checks (did acceptance run, did tests pass, did scope hold). Reviewer handles the semantic checks (was this the right work, are assumptions documented, is the handoff usable). Anthropic's 2026 guidance is explicit on this split: don't ask the reviewer to redo what the gate already proves.
 
-## Use It
+## Use It | 使用方法
 
 Production patterns:
 
@@ -98,29 +104,34 @@ Production patterns:
 
 The reviewer is the second pair of eyes the workbench grows when humans cannot do every review themselves.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-reviewer-agent.md` generates a project-specific reviewer rubric, a reviewer agent stub wired to the builder's artifacts, and an integration with the verification gate so human review starts from a written report instead of a blank page.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a sixth dimension specific to your product domain. Defend why it is not absorbed by the existing five.
+   *思考并实践此练习*
 2. Run the reviewer with two different system prompts (terse, verbose). Which produces a report a human is more likely to read?
+   *思考并实践此练习*
 3. Add a `confidence` field per dimension. Refuse to ship the report when confidence in the lowest dimension is below 0.6.
+   *思考并实践此练习*
 4. Build a calibration set: 10 historical task close-outs with known correct verdicts. Run the reviewer over them. Where does it disagree with the historical record?
+   *思考并实践此练习*
 5. Add a "request more evidence" affordance: the reviewer can ask the builder for a specific test run before scoring. What is the right back-off so this does not loop?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Reviewer rubric | "Checklist" | Five-dimension 0-2 scoring with a written question per dimension |
-| Soft fail | "Needs revisions" | Total below 7; builder gets findings to address |
-| Hard fail | "Reject" | Total below 5 or any dimension at 0; halt and surface to human |
-| Role separation | "Different prompt" | Same model can be both roles; the discipline is inputs and posture |
-| Confidence floor | "Don't ship low-signal reports" | Refuse to emit a verdict when the rubric is uncertain |
+|------|----------------|------------------------|---|
+| Reviewer rubric | "Checklist" | Five-dimension 0-2 scoring with a written question per dimension |  |
+| Soft fail | "Needs revisions" | Total below 7; builder gets findings to address |  |
+| Hard fail | "Reject" | Total below 5 or any dimension at 0; halt and surface to human |  |
+| Role separation | "Different prompt" | Same model can be both roles; the discipline is inputs and posture |  |
+| Confidence floor | "Don't ship low-signal reports" | Refuse to emit a verdict when the rubric is uncertain |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [OpenAI Agents SDK handoffs](https://platform.openai.com/docs/guides/agents-sdk/handoffs)
 - [Anthropic Claude Code subagents](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sub-agents)

@@ -1,4 +1,4 @@
-# Numerical Stability
+# Numerical Stability | 数值稳定性
 
 > Floating point is a leaky abstraction. It will bite you during training, and you will not see it coming.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1, Lessons 01-04
 **Time:** ~120 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement numerically stable softmax and log-sum-exp using the max-subtraction trick
 - Identify overflow, underflow, and catastrophic cancellation in floating-point computations
 - Verify analytical gradients against numerical gradients using centered finite differences
 - Explain why bfloat16 is preferred over float16 for training and how loss scaling prevents gradient underflow
+
+
+> **【中文解读】**
+> 浮点数是漏水的抽象。训练 3 小时后 loss 变 NaN 是最常见的崩溃。本章实现数值稳定的 Softmax（减最大值技巧），解释为什么 bfloat16 比 float16 更适合训练。混合精度训练中用 loss scaling 防止小梯度下溢。
 
 ## The Problem
 

@@ -6,6 +6,9 @@ optimizer after the last micro-batch. Tracks throughput against effective
 batch size so the curve is visible, not folklore.
 
 Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -29,6 +32,7 @@ LOG_PATH = OUT_DIR / "accum-curve.json"
 
 @dataclass
 class StepResult:
+    """StepResult"""
     step: int
     effective_batch: int
     micro_batch: int
@@ -42,6 +46,7 @@ class StepResult:
 
 @dataclass
 class CurvePoint:
+    """CurvePoint"""
     effective_batch: int
     accum_steps: int
     micro_batch: int
@@ -53,17 +58,20 @@ class CurvePoint:
 
 
 def seed_everything(seed: int) -> None:
+    """seed_everything"""
     torch.manual_seed(seed)
 
 
 def synthetic_batch(batch_size: int, in_dim: int, out_dim: int, gen: torch.Generator) -> tuple[torch.Tensor, torch.Tensor]:
+    """synthetic_batch"""
     x = torch.randn(batch_size, in_dim, generator=gen)
     target = torch.randint(low=0, high=out_dim, size=(batch_size,), generator=gen)
-    return x, target
+    return x, target  # 返回结果
 
 
 def make_model(in_dim: int, hidden: int, out_dim: int) -> nn.Module:
-    return nn.Sequential(
+    """make_model"""
+    return nn.Sequential(  # 返回结果
         nn.Linear(in_dim, hidden),
         nn.GELU(),
         nn.Linear(hidden, hidden),
@@ -73,15 +81,17 @@ def make_model(in_dim: int, hidden: int, out_dim: int) -> nn.Module:
 
 
 def global_grad_norm(model: nn.Module) -> float:
+    """global_grad_norm"""
     total = 0.0
     for p in model.parameters():
         if p.grad is None:
             continue
         total += float(p.grad.detach().pow(2).sum().item())
-    return math.sqrt(total)
+    return math.sqrt(total)  # 返回结果
 
 
 def zero_grads(model: nn.Module) -> None:
+    """zero_grads"""
     for p in model.parameters():
         if p.grad is not None:
             p.grad.detach_()
@@ -89,8 +99,9 @@ def zero_grads(model: nn.Module) -> None:
 
 
 def loss_scaled_for_accum(logits: torch.Tensor, target: torch.Tensor, accum_steps: int, loss_fn: Callable[[torch.Tensor, torch.Tensor], torch.Tensor]) -> torch.Tensor:
+    """loss_scaled_for_accum"""
     raw = loss_fn(logits, target)
-    return raw / accum_steps
+    return raw / accum_steps  # 返回结果
 
 
 def train_one_optimizer_step(
@@ -124,18 +135,19 @@ def train_one_optimizer_step(
         total += float(loss.detach().item()) * accum_steps
     grad_norm = global_grad_norm(model)
     optimizer.step()
-    return total / accum_steps, grad_norm
+    return total / accum_steps, grad_norm  # 返回结果
 
 
 class _NoSyncCtx:
+    """_NoSyncCtx"""
     def __init__(self, model: nn.Module):
         self.model = model
 
     def __enter__(self):
-        return self
+        return self  # 返回结果
 
     def __exit__(self, exc_type, exc, tb):
-        return False
+        return False  # 返回结果
 
 
 def no_sync_context(model: nn.Module):
@@ -145,7 +157,7 @@ def no_sync_context(model: nn.Module):
     single-process demo there is no collective to skip, but we still
     surface the call site so the pattern reads the same on a real cluster.
     """
-    return _NoSyncCtx(model)
+    return _NoSyncCtx(model)  # 返回结果
 
 
 def run_config(
@@ -193,7 +205,7 @@ def run_config(
     step_times_ms.sort()
     median_ms = step_times_ms[len(step_times_ms) // 2]
     avg_loss = sum(losses) / len(losses)
-    return CurvePoint(
+    return CurvePoint(  # 返回结果
         effective_batch=effective_batch,
         accum_steps=accum_steps,
         micro_batch=micro_batch,
@@ -230,7 +242,7 @@ def sweep_effective_batches(
             seed=seed,
         )
         points.append(pt)
-    return points
+    return points  # 返回结果
 
 
 def equivalence_check(
@@ -290,7 +302,7 @@ def equivalence_check(
         float((a - b).abs().max().item())
         for a, b in zip(full_params_after, accum_params_after)
     ]
-    return {
+    return {  # 返回结果
         "max_grad_diff": max(grad_diffs),
         "max_param_diff": max(param_diffs),
         "params_init_match": all(
@@ -300,6 +312,7 @@ def equivalence_check(
 
 
 def write_curve(points: List[CurvePoint], path: Path) -> None:
+    """write_curve"""
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "schema": "accum-curve.v1",
@@ -309,6 +322,7 @@ def write_curve(points: List[CurvePoint], path: Path) -> None:
 
 
 def parse_args() -> argparse.Namespace:
+    """parse_args"""
     p = argparse.ArgumentParser()
     p.add_argument("--micro-batch", type=int, default=4)
     p.add_argument("--accum-grid", type=str, default="1,2,4,8,16")
@@ -316,10 +330,11 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--lr", type=float, default=0.05)
     p.add_argument("--no-write", action="store_true")
-    return p.parse_args()
+    return p.parse_args()  # 返回结果
 
 
 def main() -> int:
+    """main"""
     args = parse_args()
     accum_grid = [int(s) for s in args.accum_grid.split(",") if s.strip()]
     print("equivalence check (full batch vs accumulated)")
@@ -346,7 +361,7 @@ def main() -> int:
     if not args.no_write:
         write_curve(points, LOG_PATH)
         print(f"wrote {LOG_PATH}")
-    return 0
+    return 0  # 返回结果
 
 
 if __name__ == "__main__":

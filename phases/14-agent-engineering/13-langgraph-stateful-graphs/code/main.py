@@ -2,6 +2,9 @@
 
 State is a typed dict. Nodes return update dicts. Runtime serializes state
 after every node so resume picks up exactly where it left off.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -24,12 +27,14 @@ END = "__end__"
 
 @dataclass
 class Edge:
+    """Edge"""
     src: str
     dst: str
     router: Router | None = None
 
 
 class StateGraph:
+    """StateGraph"""
     def __init__(self) -> None:
         self.nodes: dict[str, NodeFn] = {}
         self.edges: dict[str, list[Edge]] = {}
@@ -54,17 +59,19 @@ class StateGraph:
     def _next(self, current: str, state: State) -> str | None:
         for edge in self.edges.get(current, []):
             if edge.router is None or edge.router(state):
-                return edge.dst
-        return None
+                return edge.dst  # 返回结果
+        return None  # 返回结果
 
 
 def _make_router(router: Router, expected: str) -> Router:
+    """_make_router"""
     def fn(state: State) -> bool:
-        return router(state) == expected
-    return fn
+        return router(state) == expected  # 返回结果
+    return fn  # 返回结果
 
 
 class InMemoryCheckpointer:
+    """InMemoryCheckpointer"""
     def __init__(self) -> None:
         self._store: dict[str, list[tuple[str, State]]] = {}
 
@@ -74,14 +81,15 @@ class InMemoryCheckpointer:
     def load_latest(self, session_id: str) -> tuple[str, State] | None:
         history = self._store.get(session_id, [])
         if not history:
-            return None
-        return history[-1]
+            return None  # 返回结果
+        return history[-1]  # 返回结果
 
     def history(self, session_id: str) -> list[tuple[str, State]]:
-        return list(self._store.get(session_id, []))
+        return list(self._store.get(session_id, []))  # 返回结果
 
 
 class PausedAtNode(Exception):
+    """PausedAtNode"""
     def __init__(self, node: str, state: State) -> None:
         super().__init__(node)
         self.node = node
@@ -89,6 +97,7 @@ class PausedAtNode(Exception):
 
 
 class Runner:
+    """Runner"""
     def __init__(self, graph: StateGraph,
                  checkpointer: InMemoryCheckpointer) -> None:
         self.graph = graph
@@ -117,10 +126,11 @@ class Runner:
                 reason = state.pop("_pause_reason")
                 raise PausedAtNode(current, state)
             current = self.graph._next(current, state)
-        return state
+        return state  # 返回结果
 
 
 def _classify(state: State) -> Update:
+    """_classify"""
     text = state["input"].lower()
     if "refund" in text or "money back" in text:
         route = "refund"
@@ -130,37 +140,43 @@ def _classify(state: State) -> Update:
         route = "sales"
     else:
         route = "sales"
-    return {"route": route, "step": state.get("step", 0) + 1}
+    return {"route": route, "step": state.get("step", 0) + 1}  # 返回结果
 
 
 def _refund(state: State) -> Update:
-    return {"ticket": f"REF-{state.get('input', '')[:12]}",
+    """_refund"""
+    return {"ticket": f"REF-{state.get('input', '')[:12]}",  # 返回结果
             "step": state.get("step", 0) + 1}
 
 
 def _bug(state: State) -> Update:
-    return {"ticket": f"BUG-{state.get('input', '')[:12]}",
+    """_bug"""
+    return {"ticket": f"BUG-{state.get('input', '')[:12]}",  # 返回结果
             "step": state.get("step", 0) + 1}
 
 
 def _sales(state: State) -> Update:
-    return {"ticket": f"SAL-{state.get('input', '')[:12]}",
+    """_sales"""
+    return {"ticket": f"SAL-{state.get('input', '')[:12]}",  # 返回结果
             "step": state.get("step", 0) + 1}
 
 
 def _human_gate(state: State) -> Update:
+    """_human_gate"""
     if not state.get("human_approval"):
-        return {"_pause_reason": "awaiting human approval",
+        return {"_pause_reason": "awaiting human approval",  # 返回结果
                 "step": state.get("step", 0) + 1}
-    return {"step": state.get("step", 0) + 1}
+    return {"step": state.get("step", 0) + 1}  # 返回结果
 
 
 def _send(state: State) -> Update:
-    return {"output": f"sent {state.get('ticket')}",
+    """_send"""
+    return {"output": f"sent {state.get('ticket')}",  # 返回结果
             "step": state.get("step", 0) + 1}
 
 
 def build_graph() -> StateGraph:
+    """build_graph"""
     graph = StateGraph()
     graph.add_node("classify", _classify)
     graph.add_node("refund", _refund)
@@ -180,10 +196,11 @@ def build_graph() -> StateGraph:
     graph.add_edge("sales", "human_gate")
     graph.add_edge("human_gate", "send")
     graph.add_edge("send", END)
-    return graph
+    return graph  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("LANGGRAPH STATE MACHINE — Phase 14, Lesson 13")
     print("=" * 70)
@@ -231,4 +248,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

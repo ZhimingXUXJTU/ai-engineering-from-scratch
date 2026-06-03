@@ -1,6 +1,10 @@
-# SAM 3 & Open-Vocabulary Segmentation
+# SAM 3 & Open-Vocabulary Segmentation | SAM 3 与开放词汇分割
 
 > Give a model a text prompt and an image and get masks for every matching object. SAM 3 made that a single forward pass.
+
+> **【中文解读】** 给模型一个文本提示和一张图像，就能得到所有匹配对象的分割掩码。SAM 3（Segment Anything Model 3）将这个过程变成了单次前向传播。开放词汇分割突破了传统分割模型只能识别训练类别的限制。
+
+> **【拓展：SAM 的革命性影响】** SAM 系列模型（Meta 发布）是分割领域的 "基础模型"，可以零样本分割任意物体。应用于图像编辑（Photoshop 的生成式填充）、视频编辑、医学影像、自动驾驶场景理解。SAM 2 还支持视频分割。
 
 **Type:** Use + Build
 **Languages:** Python

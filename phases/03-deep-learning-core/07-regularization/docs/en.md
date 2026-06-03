@@ -1,6 +1,8 @@
-# Regularization
+# Regularization | 正则化
 
 > Your model gets 99% on training data and 60% on test data. It memorized instead of learning. Regularization is the tax you impose on complexity to force generalization.
+
+> **【中文解读】** 模型训练集 99% 但测试集只有 60%——它是在"背诵"而不是"学习"。正则化是对复杂度征收的税，强迫模型泛化。本章覆盖 Dropout、L2 正则化、BatchNorm、LayerNorm、RMSNorm——这些是 Transformer 和现代深度学习的标配。
 
 **Type:** Build
 **Languages:** Python

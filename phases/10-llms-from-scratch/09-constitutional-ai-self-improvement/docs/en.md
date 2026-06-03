@@ -1,6 +1,10 @@
-# Constitutional AI and Self-Improvement
+# Constitutional AI and Self-Improvement | 宪法 AI 与自我改进
 
 > RLHF needs humans in the loop. Constitutional AI replaces most of them with the model itself. Write a list of principles, have the model critique its own outputs against those principles, and train on the critiques. DeepSeek-R1 pushed this further in 2025: let the model generate millions of reasoning traces, grade them with a rule, and run GRPO on the outcome. Most of the "alignment work" in a 2026 frontier model is the model alignment itself. This lesson builds both loops.
+
+> **【中文解读】** RLHF 需要人类参与。Constitutional AI (CAI) 用模型自身替代大部分人类：写一列原则，让模型对照原则批判自己的输出，然后在批判结果上训练。DeepSeek-R1 进一步推广了这一思想。
+
+> **【拓展：CAI→Claude的安全对齐】** Anthropic 的 Constitutional AI 正是 Claude 安全对齐的核心方法——Claude 基于一组"宪法原则"自我审视和改进。这与 DeepSeek-R1 的自我推理改进一脉相承。
 
 **Type:** Build
 **Languages:** Python (stdlib + numpy)

@@ -1,6 +1,8 @@
-# Build a Complete Vision Pipeline — Capstone
+# Build a Complete Vision Pipeline — Capstone | 构建完整视觉流水线 — 毕业项目
 
 > A production vision system is a chain of models and rules stitched with data contracts. The pieces are already in this phase; the capstone wires them together end-to-end.
+
+> **【中文解读】** 生产级视觉系统是多个模型和规则通过数据契约串联而成的链条。本阶段前面的课程已经涵盖了各个组件，这个毕业项目将它们端到端地组装起来，包括数据加载、预处理、模型推理、后处理和结果输出。
 
 **Type:** Build
 **Languages:** Python

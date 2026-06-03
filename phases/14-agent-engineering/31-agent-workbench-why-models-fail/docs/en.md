@@ -1,4 +1,4 @@
-# Agent Workbench Engineering: Why Capable Models Still Fail
+# Agent Workbench Engineering: Why Capable Models Still Fail | 工程 工作台 为什么
 
 > A capable model is not enough. Reliable agents need a workbench: instructions, state, scope, feedback, verification, review, and handoff. Strip those away and even a frontier model produces work that is unsafe to ship.
 
@@ -7,22 +7,25 @@
 **Prerequisites:** Phase 14 · 01 (Agent Loop), Phase 14 · 26 (Failure Modes)
 **Time:** ~45 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Separate model capability from execution reliability.
 - Name the seven workbench surfaces that decide whether an agent ships.
 - Compare a prompt-only run against a workbench-guided run on a small repo task.
 - Produce a failure-mode report that maps each missed surface to the symptom it caused.
 
-## The Problem
+## The Problem | 问题
 
 You drop a frontier model into a real repo and ask it to add input validation. It opens four files, writes plausible code, declares success, and stops. You run the tests. Two fail. A third file is touched that had nothing to do with validation. There is no record of what the agent assumed, what it tried first, or what is left to do.
 
 The model was not wrong about Python. It was wrong about the work. It had no idea what counted as done, where it was allowed to write, what tests were authoritative, or how the next session was supposed to pick up.
 
+
+> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
+
 This is not a model bug. It is a workbench bug. The surface around the agent is missing the parts that turn a one-shot generation into reliable, resumable engineering.
 
-## The Concept
+## The Concept | 概念
 
 A workbench is the operating environment that wraps the model during a task. It has seven surfaces:
 
@@ -35,6 +38,9 @@ A workbench is the operating environment that wraps the model during a task. It 
 | Verification | Tests, lint, smoke run, scope check | "Looks good" reaches main |
 | Review | A second pass with a different role | Builder marks own homework |
 | Handoff | What changed, why, what is left | Next session re-discovers everything |
+
+
+> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
 
 The workbench is independent of the model. You can swap the model and keep the surfaces. You cannot swap the surfaces and keep reliability.
 
@@ -134,7 +140,7 @@ You do not need to disagree with any of these pieces to notice the gap. They are
 
 So when you hear "harness engineering" elsewhere, translate to primitives. Prompts and rules are policy and functions. Scaffolding is the runtime. Guardrails are authorization + verification. Hooks are triggers. Memory is session persistence. The Ralph Loop is requeue. Subagents are workers. Sandboxes are compute planes. The vocabulary changes; the engineering does not. The workbench is the agent-facing UX; the harness, in the sense that survives the next vendor reframe, is functions, workers, triggers, runtimes, queues, persistence, and policy wired together correctly.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` runs a tiny repo task twice. First as prompt only, then with the seven surfaces wired in. Same model, same task. The script counts which surfaces were missing on the failed run and prints a failure-mode report.
 
@@ -150,7 +156,7 @@ Output: a side-by-side log of the two runs, a `failure_modes.json` summarizing t
 
 The agent is a tiny rule-based stub; the point is the surfaces, not the model. Across the rest of this mini-track you will rebuild each surface as a real, reusable artifact.
 
-## Use It
+## Use It | 使用方法
 
 Three places workbench surfaces already exist in the wild, even if no one calls them that:
 
@@ -160,29 +166,34 @@ Three places workbench surfaces already exist in the wild, even if no one calls 
 
 Workbench engineering is the discipline of making those surfaces explicit and reusable, instead of leaving each team to rediscover them.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-workbench-audit.md` is a portable skill that audits an existing repo for the seven workbench surfaces and reports which are missing, which are partial, and which are healthy. Drop it next to any agent setup; it tells you what to fix first.
 
-## Exercises
+## Exercises | 练习题
 
 1. Pick a repo where you already run an agent. Score the seven surfaces from 0 (missing) to 2 (healthy). What is your weakest surface?
+   *思考并实践此练习*
 2. Extend `main.py` so the prompt-only run also produces a fake "success" claim. Verify the verification gate would have caught it.
+   *思考并实践此练习*
 3. Add an eighth surface for your own product. Justify why it does not collapse into one of the existing seven.
+   *思考并实践此练习*
 4. Re-run the script with a different stub agent that hallucinates an extra file write. Which surface catches it first?
+   *思考并实践此练习*
 5. Map the five industry-recurring failure modes from Phase 14 · 26 onto the seven surfaces. Which mode is each surface designed to absorb?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Workbench | "The setup" | Engineered surfaces around the model that make work reliable |
-| Surface | "A doc" or "a script" | A named, machine-readable input the agent reads or writes every turn |
-| System of record | "The notes" | The file the agent treats as truth when chat history is gone |
-| Definition of done | "Acceptance" | An objective, file-backed checklist the agent cannot fake |
-| Workbench audit | "Repo readiness check" | A pass over the seven surfaces that flags missing pieces before work begins |
+|------|----------------|------------------------|---|
+| Workbench | "The setup" | Engineered surfaces around the model that make work reliable |  |
+| Surface | "A doc" or "a script" | A named, machine-readable input the agent reads or writes every turn |  |
+| System of record | "The notes" | The file the agent treats as truth when chat history is gone |  |
+| Definition of done | "Acceptance" | An objective, file-backed checklist the agent cannot fake |  |
+| Workbench audit | "Repo readiness check" | A pass over the seven surfaces that flags missing pieces before work begins |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 Read these as data points, not as authorities. Each one is a partial taxonomy. Translate every concept back to a primitive (function, worker, trigger, runtime, HTTP/RPC, queue, persistence, policy) before deciding whether to adopt it.
 

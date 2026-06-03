@@ -1,3 +1,7 @@
+"""
+机器学习基础概念演示：监督学习、无监督学习、强化学习三大范式。
+AI 对应: sklearn 是 Python ML 的标准库，本课对应 sklearn 的基本使用模式。
+"""
 import numpy as np
 
 

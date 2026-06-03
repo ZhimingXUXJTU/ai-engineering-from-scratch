@@ -5,6 +5,9 @@ and a `check:` field that names a function on `RuleChecker`. Adding a new
 rule means adding a check; the checker grows with the workbench.
 
 Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -51,6 +54,7 @@ Adding a runtime dependency requires explicit human approval.
 
 @dataclass
 class Rule:
+    """Rule"""
     slug: str
     category: str
     check: str
@@ -59,6 +63,7 @@ class Rule:
 
 @dataclass
 class TurnTrace:
+    """TurnTrace"""
     read_state_file: bool
     edited_files: list[str]
     confidence: float
@@ -69,11 +74,13 @@ class TurnTrace:
 
 
 def write_seed_rules() -> None:
+    """write_seed_rules"""
     if not RULES_PATH.exists():
         RULES_PATH.write_text(SEED_RULES)
 
 
 def parse_rules() -> list[Rule]:
+    """parse_rules"""
     text = RULES_PATH.read_text()
     rules: list[Rule] = []
     for block in re.split(r"\n## ", text)[1:]:
@@ -94,38 +101,41 @@ def parse_rules() -> list[Rule]:
                 description=desc,
             )
         )
-    return rules
+    return rules  # 返回结果
 
 
 class RuleChecker:
+    """RuleChecker"""
     def state_file_fresh(self, trace: TurnTrace) -> bool:
-        return trace.read_state_file
+        return trace.read_state_file  # 返回结果
 
     def no_release_script_edits(self, trace: TurnTrace) -> bool:
-        return "scripts/release.sh" not in trace.edited_files
+        return "scripts/release.sh" not in trace.edited_files  # 返回结果
 
     def tests_pass(self, trace: TurnTrace) -> bool:
-        return trace.tests_exit_code == 0
+        return trace.tests_exit_code == 0  # 返回结果
 
     def opened_question_when_unsure(self, trace: TurnTrace) -> bool:
-        return trace.confidence >= 0.7 or trace.asked_for_help
+        return trace.confidence >= 0.7 or trace.asked_for_help  # 返回结果
 
     def new_dependency_approved(self, trace: TurnTrace) -> bool:
         if not trace.added_dependencies:
-            return True
-        return all(dep in trace.approvals for dep in trace.added_dependencies)
+            return True  # 返回结果
+        return all(dep in trace.approvals for dep in trace.added_dependencies)  # 返回结果
 
 
 def score(rules: list[Rule], checker: RuleChecker, trace: TurnTrace) -> list[dict[str, object]]:
+    """score"""
     results: list[dict[str, object]] = []
     for rule in rules:
         check_fn = getattr(checker, rule.check, None)
         passed = bool(check_fn(trace)) if check_fn else False
         results.append({"slug": rule.slug, "category": rule.category, "passed": passed})
-    return results
+    return results  # 返回结果
 
 
 def main() -> None:
+    """main"""
     write_seed_rules()
     rules = parse_rules()
 
@@ -171,4 +181,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

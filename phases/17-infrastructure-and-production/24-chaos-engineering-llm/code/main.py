@@ -1,6 +1,9 @@
 """Chaos engineering runner with safety plane gates — stdlib Python.
 
 Runs three LLM-specific experiments and applies burn-rate + blast-radius safety gates.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -14,6 +17,7 @@ EXPECTED_ERROR_RATE = 0.0005
 
 @dataclass
 class Experiment:
+    """Experiment"""
     name: str
     duration_min: int
     induced_error_rate: float
@@ -28,9 +32,10 @@ EXPERIMENTS = [
 
 
 def run_experiment(e: Experiment) -> dict:
+    """run_experiment"""
     burn_rate = e.induced_error_rate / max(EXPECTED_ERROR_RATE, 0.0001)
     paused = burn_rate > 2.0 and e.blast_radius_pct > 0.2
-    return {
+    return {  # 返回结果
         "experiment": e.name,
         "duration": e.duration_min,
         "error_rate": e.induced_error_rate,
@@ -42,6 +47,7 @@ def run_experiment(e: Experiment) -> dict:
 
 
 def main() -> None:
+    """main"""
     print("=" * 90)
     print("CHAOS EXPERIMENT RUNNER — safety plane gates burn-rate × blast-radius")
     print("=" * 90)
@@ -66,4 +72,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

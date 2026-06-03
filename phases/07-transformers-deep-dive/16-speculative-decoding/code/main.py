@@ -7,6 +7,8 @@ Implements:
 - Empirical check that the marginal distribution matches direct sampling
 - Acceptance rate vs KL divergence sweep
 """
+# 【中文解读】推测解码。小模型生成候选 token，大模型批量验证。加速推理 2-3 倍。
+
 
 import math
 import random

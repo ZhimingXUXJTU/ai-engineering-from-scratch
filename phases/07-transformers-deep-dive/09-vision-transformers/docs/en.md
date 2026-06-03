@@ -1,6 +1,8 @@
-# Vision Transformers (ViT)
+# Vision Transformers (ViT) | 视觉 Transformer (ViT)
 
 > An image is a grid of patches. A sentence is a grid of tokens. The same transformer eats both.
+
+> **【中文解读】** ViT 把图像切成 patch 当作 token 序列处理。理解 ViT = 理解 Transformer 不限于 NLP。CLIP、DALL-E、Sora 都基于 Transformer。
 
 **Type:** Build
 **Languages:** Python

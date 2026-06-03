@@ -1,4 +1,4 @@
-# Linux for AI
+# Linux for AI | Linux 基础（AI 工程师必备）
 
 > Most AI runs on Linux. You need to know enough to not be stuck.
 
@@ -7,18 +7,24 @@
 **Prerequisites:** Phase 0, Lesson 01
 **Time:** ~30 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Navigate the Linux file system and perform essential file operations from the command line
 - Manage file permissions with `chmod` and `chown` to resolve "Permission denied" errors
 - Install system packages with `apt` and set up a fresh GPU box for AI work
 - Identify macOS-to-Linux differences that commonly trip up developers working on remote machines
 
-## The Problem
+> **【中文解读】**
+> 大多数 AI 训练在 Linux 服务器上运行。当你 SSH 到云 GPU 实例时，你只有终端界面。本章是 Linux 生存指南——只教 AI 工作中真正需要的文件操作、权限管理和包安装。
+
+## The Problem | 问题描述
 
 You develop on macOS or Windows. But the moment you SSH into a cloud GPU box, rent a Lambda instance, or spin up an EC2 machine, you land in Ubuntu. The terminal is your only interface. There is no Finder, no Explorer, no GUI. If you can't navigate the file system, install packages, and manage processes from the command line, you're stuck paying for idle GPU hours while googling "how to unzip a file in Linux."
 
 This is a survival guide. It covers exactly what you need to operate on a remote Linux machine for AI work. Nothing more.
+
+> **【中文解读】**
+> 你平时用 macOS 或 Windows 开发，但一 SSH 到云 GPU 服务器就进入了 Linux 世界。没有文件管理器，只有终端。这是 Linux 生存指南——只教够用的知识。
 
 ## File System Layout
 
@@ -294,10 +300,15 @@ Network:        curl, wget, scp, rsync
 Sessions:       tmux new/attach/detach
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. SSH into any Linux machine (or open WSL2) and navigate to your home directory. Create a project folder, create three empty files inside it with `touch`, then list them with `ls -la`.
+   SSH 到 Linux 机器，创建项目文件夹和空文件，用 `ls -la` 列出
 2. Install `htop` with apt, run it, and identify which process is using the most memory.
+   用 apt 安装 htop，找出占用内存最多的进程
 3. Start a tmux session, run `sleep 300` inside it, detach, list sessions, and reattach.
+   创建 tmux 会话，运行 sleep 命令，分离后重新连接
 4. Use `df -h` to check available disk space, then use `du -sh ~/.cache/*` to find what's taking up space in your cache.
+   检查磁盘空间，找出缓存中占用空间最大的内容
 5. Transfer a file from your local machine to a remote one using `scp`, then do the same transfer with `rsync` and compare the experience.
+   用 scp 和 rsync 分别传输文件，对比两种方式

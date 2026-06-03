@@ -1,6 +1,10 @@
-# DualPipe Parallelism
+# DualPipe Parallelism | 双向流水线并行
 
 > DeepSeek-V3 was trained on 2,048 H800 GPUs with MoE experts scattered across nodes. Cross-node expert all-to-all communication cost 1 GPU-hour of comm for every 1 GPU-hour of compute. GPUs were idle half the time. DualPipe (DeepSeek, Dec 2024) is a bidirectional pipeline that overlaps forward and backward computation with the all-to-all comms they trigger. Bubbles drop, throughput climbs, and the keeping of two model-parameter copies (the "dual" that gives the name) is cheap once Expert Parallelism is already spreading experts across ranks anyway. This lesson is a Learn-type walkthrough of what DualPipe actually does and why Sea AI Lab's DualPipeV refinement drops the 2x parameter cost at the expense of a marginally tighter bubble.
+
+> **【中文解读】** DeepSeek-V3 在 2048 张 H800 上训练，MoE 专家分布在节点间。跨节点 all-to-all 通信让 GPU 一半时间在等待。DualPipe 是双向流水线，将前向/反向计算与 all-to-all 通信重叠，减少气泡、提升吞吐。
+
+> **【拓展：DualPipe→大规模训练】** DualPipe 是 DeepSeek-V3 高效训练的关键：它将 MoE 的通信开销与前向/反向计算重叠，使得在 2048 卡上的训练效率接近线性扩展。这是大规模 MoE 训练的工程突破。
 
 **Type:** Learn
 **Languages:** Python (stdlib, schedule simulator)

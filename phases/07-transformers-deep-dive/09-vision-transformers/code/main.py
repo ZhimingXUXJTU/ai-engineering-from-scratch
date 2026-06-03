@@ -4,6 +4,8 @@ Pure stdlib. Takes a toy 24x24x3 image, cuts it into 6x6 patches,
 projects each to a d_model vector, prepends [CLS], adds 2D position.
 Verifies shapes and counts parameters for real ViT configs.
 """
+# 【中文解读】视觉 Transformer (ViT)。图像切成 patch 作为 token。CLIP、DALL-E 都基于此。
+
 
 import math
 import random

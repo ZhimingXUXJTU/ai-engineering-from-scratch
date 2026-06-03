@@ -1,5 +1,12 @@
 """Minimal MCP server + in-process client round-trip.
 
+模型上下文协议 (MCP - Model Context Protocol)
+核心概念：MCP 是 Anthropic 推出的标准协议，用于连接 LLM 与工具/数据源。
+本文件实现了最小化的 MCP 服务器+客户端，展示工具调用、资源和提示的端到端流程。
+
+AI 应用对应：MCP 是 Claude 生态的核心协议，Phase 13 将深入讲解。
+详见 phases/13-tools-and-protocols/06-mcp-fundamentals/ 到 18-mcp-auth-production/
+
 The reference SDK is `mcp` on PyPI (install with `pip install mcp`). This file
 does not import it so the demo runs on any Python 3.10+ without extra deps.
 Instead it speaks raw JSON-RPC 2.0 over an in-memory pipe — the same wire

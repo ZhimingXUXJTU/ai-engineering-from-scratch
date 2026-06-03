@@ -1,6 +1,10 @@
-# Speech Recognition (ASR) — CTC, RNN-T, Attention
+# Speech Recognition (ASR) — CTC, RNN-T, Attention | 语音识别 — CTC、RNN-T 与注意力机制
 
 > Speech recognition is audio classification at every timestep, glued together by a sequence model that knows English and silence. CTC, RNN-T, and attention are the three ways to do it. Pick one and understand why.
+
+> **【中文解读】** 语音识别是在每个时间步做音频分类，再用序列模型（知道语言和静音规律）把它们粘合起来。三种方法：CTC（连接时序分类）、RNN-T（递归神经网络转换器）、注意力机制。Whisper 使用注意力机制。
+
+> **【拓展：ASR 的应用】** 语音识别是语音助手（Siri、小爱同学）、会议记录（飞书/钉钉实时字幕）、视频字幕自动生成的核心。Whisper 是 2026 年的开源 ASR 标杆。
 
 **Type:** Build
 **Languages:** Python

@@ -1,6 +1,10 @@
-# Embeddings & Vector Representations
+# Embeddings & Vector Representations | 嵌入与向量表示
 
 > Text is discrete. Math is continuous. Every time you ask an LLM to find "similar" documents, compare meanings, or search beyond keywords, you're relying on a bridge between these two worlds. That bridge is an embedding. If you don't understand embeddings, you don't understand modern AI. You just use it.
+
+> **【中文解读】** 文本是离散的，数学是连续的。嵌入（Embedding）是连接这两个世界的桥梁。不理解嵌入，就不理解现代 AI——从搜索到 RAG 到语义相似度，嵌入无处不在。
+
+> **【拓展：嵌入→RAG与搜索】** 嵌入是 RAG（检索增强生成）系统的核心基础设施。文本转向量后存入向量数据库，通过余弦相似度实现语义搜索，这是所有现代 AI 搜索和推荐系统的底层技术。
 
 **Type:** Build
 **Languages:** Python

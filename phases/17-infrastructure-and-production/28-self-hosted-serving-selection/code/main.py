@@ -1,12 +1,16 @@
 """Self-hosted LLM engine decision-tree walker — stdlib Python.
 
 Given hardware, scale, and workload, pick an engine with explanation.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
 
 
 def pick_engine(hardware: str, scale: str, workload: str) -> dict:
+    """pick_engine"""
     reasons = []
     engine = None
 
@@ -47,7 +51,7 @@ def pick_engine(hardware: str, scale: str, workload: str) -> dict:
 
     reasons.append("TGI is in maintenance mode since Dec 11, 2025 — default AWAY from TGI for new projects")
 
-    return {
+    return {  # 返回结果
         "hardware": hardware,
         "scale": scale,
         "workload": workload,
@@ -68,6 +72,7 @@ SCENARIOS = [
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("SELF-HOSTED ENGINE DECISION TREE — hardware / scale / workload")
     print("=" * 80)
@@ -80,4 +85,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

@@ -4,6 +4,9 @@ Prints a compact map of the 2026 non-lab alignment research layer with
 canonical outputs and cross-references.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -49,6 +52,7 @@ ECOSYSTEM = [
 
 
 def main() -> None:
+    """main"""
     print("=" * 78)
     print("ALIGNMENT RESEARCH ECOSYSTEM (Phase 18, Lesson 28)")
     print("=" * 78)
@@ -68,4 +72,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

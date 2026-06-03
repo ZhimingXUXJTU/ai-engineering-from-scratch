@@ -1,6 +1,10 @@
-# LLM Routing Layer — LiteLLM, OpenRouter, Portkey
+# LLM Routing Layer — LiteLLM, OpenRouter, Portkey | LLM 路由层：LiteLLM、OpenRouter 与 Portkey
 
 > Provider lock-in is expensive. Different tool-calling workloads suit different models. Routing gateways give one API surface, retries, failover, cost tracking, and guardrails. Three archetypes dominate 2026: LiteLLM (open-source self-hosted), OpenRouter (managed SaaS), Portkey (production-grade, open-sourced in March 2026). This lesson names the decision criteria and walks a stdlib routing gateway.
+
+> **【中文解读】** 供应商锁定成本高昂。不同的工具调用工作负载适合不同的模型。路由网关提供统一的 API 接口、重试、故障转移、成本追踪和护栏。2026 年三大方案：LiteLLM（开源自托管）、OpenRouter（托管 SaaS）、Portkey（生产级，2026年3月开源）。本课命名决策标准并演示标准库路由网关。
+
+> **【拓展】** LLM 路由层解决的核心问题：按任务复杂度自动路由到最优模型（成本优化）、供应商故障自动切换（高可用）、延迟敏感路由（用户体验）、合规区域路由（数据主权）、A/B 测试路由（实验）。这是 AI 工程从单模型走向多模型架构的关键基础设施。
 
 **Type:** Learn
 **Languages:** Python (stdlib, routing + failover + cost tracker)
@@ -14,7 +18,11 @@
 - Track per-request cost and token usage across providers.
 - Decide between LiteLLM, OpenRouter, and Portkey for a given production constraint.
 
+> **【中文解读】** 学习目标：区分自托管、托管和生产级路由选项；实现供应商故障时的回退链；跨供应商追踪每请求成本和 token 使用量；根据生产约束选择 LiteLLM/OpenRouter/Portkey。
+
 ## The Problem
+
+> **【中文解读】** 路由重要的场景：(1) 成本——Claude Sonnet 费用是 Haiku 的3倍，分流任务用 Haiku 足够；(2) 故障转移——OpenAI 宕机时自动切换到 Anthropic；(3) 延迟——实时聊天需要快速首 token；(4) 合规——EU 用户留在 EU 区域；(5) 实验——A/B 两个模型。路由网关提供统一的 OpenAI 兼容 API 处理一切。
 
 Scenarios where provider routing matters:
 
@@ -100,6 +108,8 @@ A gateway can route both LLM calls AND MCP sampling requests. When a sampling re
 
 ## Use It
 
+> **【中文解读】** `code/main.py` 实现约150行的路由网关：接受 OpenAI 格式请求，翻译到每供应商存根，运行优先级回退链，追踪每请求成本，应用 PII 脱敏。三个场景：正常请求、主供应商宕机触发故障转移、PII 泄露被脱敏拦截。
+
 `code/main.py` implements a routing gateway in ~150 lines: accepts OpenAI-shaped requests, translates to per-provider stubs, runs a priority fallback chain, tracks per-request cost, and applies a PII redaction pass on inputs. Run it with three scenarios: normal request, primary-provider outage triggering fallback, PII leakage caught by redaction.
 
 What to look at:
@@ -110,6 +120,8 @@ What to look at:
 - PII redactor scrubs SSN-shaped patterns before forwarding.
 
 ## Ship It
+
+> **【中文解读】** 本课产出 `outputs/skill-routing-config-designer.md`——给定工作负载配置（延迟、成本、合规），选择 LiteLLM/OpenRouter/Portkey 并生成路由配置。
 
 This lesson produces `outputs/skill-routing-config-designer.md`. Given a workload profile (latency, cost, compliance), the skill picks LiteLLM / OpenRouter / Portkey and produces a routing config.
 
@@ -127,19 +139,19 @@ This lesson produces `outputs/skill-routing-config-designer.md`. Given a workloa
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Routing gateway | "LLM proxy" | One-API-surface layer in front of many providers |
-| OpenAI-compatible | "Speaks the OpenAI schema" | Accepts `/v1/chat/completions` shape, translates to any backend |
-| Model alias | "our_smart_model" | Name in your code that the gateway maps to a concrete model |
-| Fallback chain | "Retry list" | Ordered list of providers attempted on failure |
-| Semantic caching | "Prompt-embedding cache" | Key is embedding of the prompt; near-duplicates share a cache hit |
-| Guardrails | "Input/output filters" | Redact PII, reject policy violations |
-| Per-key rate limit | "Team budget" | Quota scoped to an API key |
-| Cost tracking | "Per-request spend" | Aggregate token usage x price per model |
-| LiteLLM | "The open proxy" | Self-hostable OSS routing gateway |
-| OpenRouter | "The managed SaaS" | Hosted gateway with credit-based billing |
-| Portkey | "The production option" | Open-source + managed with guardrails built in |
+| Term | What people say | What it actually means | 中文 |
+|------|----------------|------------------------|------|
+| Routing gateway | "LLM proxy" | One-API-surface layer in front of many providers | 路由网关：多供应商统一 API |
+| OpenAI-compatible | "Speaks the OpenAI schema" | Accepts `/v1/chat/completions` shape, translates to any backend | OpenAI 兼容接口 |
+| Model alias | "our_smart_model" | Name in your code that the gateway maps to a concrete model | 模型别名：代码中的抽象名 |
+| Fallback chain | "Retry list" | Ordered list of providers attempted on failure | 回退链：失败时的有序重试列表 |
+| Semantic caching | "Prompt-embedding cache" | Key is embedding of the prompt; near-duplicates share a cache hit | 语义缓存：嵌入向量近似匹配 |
+| Guardrails | "Input/output filters" | Redact PII, reject policy violations | 护栏：输入输出过滤器 |
+| Per-key rate limit | "Team budget" | Quota scoped to an API key | 按密钥限流：团队预算 |
+| Cost tracking | "Per-request spend" | Aggregate token usage x price per model | 成本追踪：每请求费用 |
+| LiteLLM | "The open proxy" | Self-hostable OSS routing gateway | LiteLLM：开源自托管路由网关 |
+| OpenRouter | "The managed SaaS" | Hosted gateway with credit-based billing | OpenRouter：托管 SaaS 路由 |
+| Portkey | "The production option" | Open-source + managed with guardrails built in | Portkey：生产级路由+护栏 |
 
 ## Further Reading
 

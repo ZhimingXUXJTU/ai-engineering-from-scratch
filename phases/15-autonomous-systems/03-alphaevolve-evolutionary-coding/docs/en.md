@@ -1,4 +1,4 @@
-# AlphaEvolve — Evolutionary Coding Agents
+# AlphaEvolve — Evolutionary Coding Agents | 进化 编码 Agent AlphaEvolve
 
 > Pair a frontier coding model with an evolutionary loop and a machine-checkable evaluator. Let the loop run long enough. It discovers a 4x4 complex-matrix multiplication procedure that uses 48 scalar multiplications — the first improvement over Strassen in 56 years. It also finds a Google-wide Borg scheduling heuristic that recovers ~0.7% of cluster compute in production. The architecture is boring on purpose. The wins come from the evaluator's rigor.
 
@@ -7,17 +7,20 @@
 **Prerequisites:** Phase 15 · 01 (long-horizon framing), Phase 15 · 02 (self-taught reasoning)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题
 
 Large language models can write code. Evolutionary algorithms can search over code. Both have been tried separately for decades; both hit ceilings. The LLM ceiling is confabulation: the model writes plausible code that does not do what it claims. The evolutionary ceiling is search cost: random mutations over syntax rarely produce compilable programs, let alone better ones.
 
 AlphaEvolve (Novikov et al., DeepMind, arXiv:2506.13131, June 2025) combines them. The LLM proposes targeted edits to a program database; an automatic evaluator scores each variant; high-scoring variants become parents for future generations. The LLM handles the expensive step of writing plausible code; the evaluator catches the confabulations. The loop runs for hours to weeks.
 
+
+> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
+
 Results reported: 48-scalar-multiplication 4x4 complex matrix multiplication (Strassen's 1969 bound was 49), a Borg scheduling heuristic in Google production, a 32.5% FlashAttention kernel speedup, Gemini training throughput improvements.
 
 The architecture works because the evaluator is machine-checkable. It does not work where the evaluator isn't. That asymmetry is the lesson.
 
-## The Concept
+## The Concept | 概念
 
 ### The loop
 
@@ -71,7 +74,7 @@ The evaluator, in turn, catches the LLM's confabulations. LLMs will confidently 
 
 All four are variations on the same recipe: generator plus evaluator, loop. The differences are what the evaluator grades and how rigorous it is.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` implements a minimal AlphaEvolve-like loop over a toy symbolic-regression problem. The "LLM" is a stdlib proxy that proposes small syntactic mutations to a program that computes a target function. The "evaluator" measures mean squared error on held-out test points.
 
@@ -81,35 +84,40 @@ Watch:
 - How a MAP-elites grid keeps diverse solutions alive so the loop doesn't converge on a local minimum.
 - How removing the held-out test (training-only evaluator) lets the loop overfit spectacularly.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-evaluator-rigor-audit.md` is the precondition for considering an AlphaEvolve-style loop in a new domain: does your evaluator actually catch the failures you care about?
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Note the best score trajectory. Disable the held-out evaluator (flag `--no-holdout`) and re-run. Quantify the overfitting.
+   *思考并实践此练习*
 
 2. Read Section 3 of the AlphaEvolve paper on the MAP-elites grid. Design a feature-vector descriptor for a new problem (e.g. compiler optimization passes) that would keep the search diverse.
+   *思考并实践此练习*
 
 3. The 48-multiplication 4x4 result improved on Strassen's 49-mul bound after 56 years. Read Appendix F of the paper and explain in three sentences why the evaluator for this problem is particularly easy to get right, and why most domains are not like it.
+   *思考并实践此练习*
 
 4. Propose one domain where AlphaEvolve would fail. Identify exactly where the evaluator breaks and why.
+   *思考并实践此练习*
 
 5. For a domain you know, write the evaluator signature you would use. Include (a) correctness conditions, (b) performance metric, (c) held-out input generation rule, (d) at least one anti-reward-hacking check.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| AlphaEvolve | "DeepMind's evolutionary coding agent" | Gemini + program database + machine-checkable evaluator |
-| MAP-elites | "Diversity-preserving archive" | Grid keyed by feature vectors; each cell holds the best variant with that descriptor |
-| Island model | "Parallel evolution subpopulations" | Independent populations that migrate periodically; prevents premature convergence |
-| Machine-checkable evaluator | "Deterministic oracle" | A unit test, simulator, or benchmark the LLM cannot fake — a prerequisite for this loop |
-| Reward hacking | "Optimizing the measure, not the goal" | Loop finds a way to maximize score without doing the intended task |
-| Seed program | "The starting point" | An initial correct-but-suboptimal program the loop evolves from |
-| Held-out evaluator | "Evaluation data the LLM never saw" | Inputs generated at evaluation time to prevent memorization |
+|---|---|---|---|
+| AlphaEvolve | "DeepMind's evolutionary coding agent" | Gemini + program database + machine-checkable evaluator |  |
+| MAP-elites | "Diversity-preserving archive" | Grid keyed by feature vectors; each cell holds the best variant with that descriptor |  |
+| Island model | "Parallel evolution subpopulations" | Independent populations that migrate periodically; prevents premature convergence |  |
+| Machine-checkable evaluator | "Deterministic oracle" | A unit test, simulator, or benchmark the LLM cannot fake — a prerequisite for this loop |  |
+| Reward hacking | "Optimizing the measure, not the goal" | Loop finds a way to maximize score without doing the intended task |  |
+| Seed program | "The starting point" | An initial correct-but-suboptimal program the loop evolves from |  |
+| Held-out evaluator | "Evaluation data the LLM never saw" | Inputs generated at evaluation time to prevent memorization |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Novikov et al. (2025). AlphaEvolve: A coding agent for scientific and algorithmic discovery](https://arxiv.org/abs/2506.13131) — the full paper.
 - [DeepMind blog on AlphaEvolve](https://deepmind.google/blog/alphaevolve-a-gemini-powered-coding-agent-for-designing-advanced-algorithms/) — vendor writeup with results.

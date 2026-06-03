@@ -1,3 +1,8 @@
+"""
+自编码器与变分自编码器 VAE (Autoencoders & VAE)
+核心概念：重参数化技巧 z=mu+sigma*epsilon，KL 散度正则化
+AI 对应：VAE 是 Stable Diffusion 的编码器/解码器基础
+"""
 import math
 import random
 

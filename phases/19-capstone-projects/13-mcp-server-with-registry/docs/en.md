@@ -1,6 +1,9 @@
-# Capstone 13 — MCP Server with Registry and Governance
+# Capstone 13 — MCP Server with Registry and Governance | MCP 服务器 结业 注册中心
 
 > The Model Context Protocol stopped being the future and became the default tool-use spec in 2026. Anthropic, OpenAI, Google, and every major IDE ship MCP clients. Pinterest published its internal ecosystem of MCP servers. The AAIF Registry formalized capability metadata at `.well-known`. AWS ECS published the reference stateless deployment. Block's goose-agent put the same protocol inside a hosted assistant. The 2026 production shape is: StreamableHTTP transport, OAuth 2.1 scopes, OPA policy gating, and a registry that lets platform teams discover, validate, and enable servers. Build that end to end.
+
+> **【中文解读】** 本节是综合项目——构建带注册中心的 MCP 服务器。
+
 
 **Type:** Capstone
 **Languages:** Python (server, via FastMCP) or TypeScript (@modelcontextprotocol/sdk), Go (registry service)
@@ -22,7 +25,7 @@ Authorization is OAuth 2.1 with per-tool scopes. A token carries scopes like `ji
 
 The registry is a separate service. Every MCP server exposes a `.well-known/mcp-capabilities` document with its tool manifest, transport URL, auth requirements. The registry polls, validates, and indexes. Platform teams use the registry UI to see what tools are available, what scopes they need, and which teams own them.
 
-## Architecture
+## Architecture | 架构
 
 ```
 MCP client (Claude Code, Cursor 3, ...)
@@ -66,7 +69,7 @@ Postgres    S3 listing  Jira       Linear     Datadog
 - Deployment: AWS ECS Fargate or Fly.io, one server per tenant or shared with tenant scoping
 - Audit: structured JSONL per-tenant bucket with per-call lineage
 
-## Build It
+## Build It | 动手构建
 
 1. **Tool surface.** Expose 10 internal tools: Postgres read-only query, S3 list objects, Jira search/fetch, Linear search/fetch, Datadog metric query, PagerDuty on-call lookup, GitHub read-only, Notion search, Slack search, Salesforce read. Each tool has a typed schema and a scope label.
 
@@ -86,7 +89,7 @@ Postgres    S3 listing  Jira       Linear     Datadog
 
 9. **Conformance tests.** Run the official MCP conformance suite against both servers. Pass all mandatory sections.
 
-## Use It
+## Use It | 使用方法
 
 ```
 $ curl -H "Authorization: Bearer eyJhbGc..." \
@@ -99,7 +102,7 @@ $ curl -H "Authorization: Bearer eyJhbGc..." \
 response:    { "result": { "rows": [[1]] } }
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-mcp-server.md` describes the deliverable. A production-grade MCP server + registry + audit layer for internal tools with OAuth 2.1 scopes and OPA gating.
 
@@ -112,7 +115,7 @@ response:    { "result": { "rows": [[1]] } }
 | 15 | Registry UX | Discover / validate / enable-disable workflow |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a new tool (Confluence search). Ship it through the registry validation flow without touching the core server.
 
@@ -124,7 +127,7 @@ response:    { "result": { "rows": [[1]] } }
 
 5. Run the MCP conformance suite from [mcp-conformance-tests](https://github.com/modelcontextprotocol/conformance) and fix every failure.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -136,7 +139,7 @@ response:    { "result": { "rows": [[1]] } }
 | Workload identity | "SPIFFE / SPIRE" | Cryptographic service identity for OAuth token issuance |
 | Conformance suite | "Spec tests" | Official MCP test battery for StreamableHTTP + tool manifest correctness |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Model Context Protocol 2026 Roadmap](https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/) — StreamableHTTP, capability metadata, registry
 - [AAIF MCP Registry spec](https://github.com/modelcontextprotocol/registry) — the 2026 registry spec

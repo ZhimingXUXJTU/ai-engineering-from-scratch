@@ -7,6 +7,9 @@ configuration end to end and exercises generation with temperature, top-k, and
 multinomial sampling under a sliding window context.
 
 Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -35,6 +38,7 @@ class GPTConfig:
 
 
 class LayerNorm(nn.Module):
+    """LayerNorm"""
     def __init__(self, d_model: int, eps: float = 1e-5) -> None:
         super().__init__()
         self.eps = eps
@@ -44,10 +48,11 @@ class LayerNorm(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         mean = x.mean(dim=-1, keepdim=True)
         var = x.var(dim=-1, keepdim=True, unbiased=False)
-        return self.scale * (x - mean) / torch.sqrt(var + self.eps) + self.shift
+        return self.scale * (x - mean) / torch.sqrt(var + self.eps) + self.shift  # 返回结果
 
 
 class MultiHeadAttention(nn.Module):
+    """MultiHeadAttention"""
     def __init__(self, cfg: GPTConfig) -> None:
         super().__init__()
         if cfg.d_model % cfg.num_heads != 0:
@@ -88,10 +93,11 @@ class MultiHeadAttention(nn.Module):
         out = out.transpose(1, 2).contiguous().view(batch, seq, dim)
         out = self.out_proj(out)
         out = self.resid_dropout(out)
-        return out
+        return out  # 返回结果
 
 
 class FeedForward(nn.Module):
+    """FeedForward"""
     def __init__(self, cfg: GPTConfig) -> None:
         super().__init__()
         hidden = cfg.mlp_expansion * cfg.d_model
@@ -101,7 +107,7 @@ class FeedForward(nn.Module):
         self.dropout = nn.Dropout(cfg.dropout)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.dropout(self.fc2(self.act(self.fc1(x))))
+        return self.dropout(self.fc2(self.act(self.fc1(x))))  # 返回结果
 
 
 class TransformerBlock(nn.Module):
@@ -117,7 +123,7 @@ class TransformerBlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x + self.attn(self.ln1(x))
         x = x + self.mlp(self.ln2(x))
-        return x
+        return x  # 返回结果
 
 
 class GPTModel(nn.Module):
@@ -169,7 +175,7 @@ class GPTModel(nn.Module):
             x = block(x)
         x = self.final_ln(x)
         logits = self.lm_head(x)
-        return logits
+        return logits  # 返回结果
 
 
 def count_parameters(model: nn.Module) -> int:
@@ -177,16 +183,17 @@ def count_parameters(model: nn.Module) -> int:
     seen: dict[int, int] = {}
     for param in model.parameters():
         seen[id(param)] = param.numel()
-    return sum(seen.values())
+    return sum(seen.values())  # 返回结果
 
 
 def top_k_filter(logits: torch.Tensor, top_k: int) -> torch.Tensor:
+    """top_k_filter"""
     if top_k is None or top_k <= 0:
-        return logits
+        return logits  # 返回结果
     top_k = min(top_k, logits.size(-1))
     values, _ = torch.topk(logits, top_k, dim=-1)
     threshold = values[..., -1:]
-    return torch.where(logits < threshold, torch.full_like(logits, float("-inf")), logits)
+    return torch.where(logits < threshold, torch.full_like(logits, float("-inf")), logits)  # 返回结果
 
 
 def generate(
@@ -220,12 +227,13 @@ def generate(
                 probs = F.softmax(next_logits, dim=-1)
                 next_token = torch.multinomial(probs, num_samples=1)
                 tokens = torch.cat([tokens, next_token], dim=1)
-        return tokens
+        return tokens  # 返回结果
     finally:
         model.train(was_training)
 
 
 def demo() -> None:
+    """demo"""
     torch.manual_seed(0)
 
     print("Building 124M reference GPT...")

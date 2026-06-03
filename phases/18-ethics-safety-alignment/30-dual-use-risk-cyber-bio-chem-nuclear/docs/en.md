@@ -1,24 +1,27 @@
-# Dual-Use Risk — Cyber, Bio, Chem, Nuclear Uplift
+# Dual-Use Risk — Cyber, Bio, Chem, Nuclear Uplift | 双重用途 核 网络 风险 化学 生物
 
 > The 2026 dual-use picture, domain by domain. Bio/chem: Lesson 17 covers WMDP; Anthropic's bioweapon-acquisition trial (2.53x uplift) and OpenAI's April 2025 Preparedness Framework v2 warning ("on the cusp of meaningfully helping novices create known biological threats") mark the inflection point. Cyber (November 2025 Anthropic report): Chinese-linked state actors used Claude's agentic coding tool to automate up to 90% of a cyberattack campaign, with human intervention only in 4-6 steps; OpenAI "trusted access" pilot gives vetted security organisations capability access for defensive dual-use work. Chem/bio execution gap erosion: the classic defense was "information access alone is insufficient." Vision-enabled frontier models (GPT-5.2, Gemini 3 Pro, Claude Opus 4.5, Grok 4.1) can observe wet-lab video and provide real-time correction. December 2025: OpenAI demonstrated GPT-5 iterating on wet-lab experiments, achieving 79x efficiency improvement via AI-driven protocol optimization. Novice-vs-expert pattern: AI provides greater relative uplift to novices but greater absolute capability to experts.
+
+> **【中文解读】** 本节介绍了双重用途风险——AI 在网络、生物、化学、核领域的滥用风险和防护。
+
 
 **Type:** Learn
 **Languages:** none
 **Prerequisites:** Phase 18 · 17 (WMDP), Phase 18 · 18 (safety frameworks), Phase 18 · 28 (ecosystem)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Describe the 2024-2025 bio-uplift narrative: "mild uplift" -> "on the cusp" -> "2.53x uplift insufficient to rule out ASL-3."
 - Describe the November 2025 Anthropic cyber report: Chinese-linked automation at up to 90% of a cyberattack campaign.
 - Describe the chem/bio execution-gap erosion: vision-enabled real-time correction of wet-lab experiments.
 - State the novice-relative vs expert-absolute asymmetry and its implication for safety-case construction.
 
-## The Problem
+## The Problem | 问题
 
 Lesson 17 is the measurement methodology. Lesson 30 is the 2026 state of the measurement. The picture shifted materially between 2024 and late 2025: each domain crossed a threshold that the 2024 frameworks did not anticipate.
 
-## The Concept
+## The Concept | 概念
 
 ### Bio/chem uplift narrative
 
@@ -76,15 +79,15 @@ Three domains crossed thresholds. One remains bounded by non-informational barri
 
 Lesson 30 is the capstone: the current dual-use picture that every prior lesson contributes to measuring, limiting, or governing. Lessons 17-18 give the measurement and frameworks; Lessons 12-16 give the evaluation tooling; Lessons 24-25 give the regulatory and disclosure layer; Lesson 28 gives the research ecosystem. Lesson 30 is where the evidence lands.
 
-## Use It
+## Use It | 使用方法
 
 No code. Read the Anthropic November 2025 cyber report, OpenAI's Preparedness Framework v2 April 2025 update, and the Council on Strategic Risks 2025 AI x Bio wrapup.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-dual-use-triage.md`. Given a 2026 capability claim or incident report, it triages across the four domains and identifies whether the claim affects novice-relative uplift, expert-absolute capability, or both.
 
-## Exercises
+## Exercises | 练习题
 
 1. Read Anthropic's November 2025 cyber report. Enumerate the 4-6 human-intervention steps and argue which would be first to automate in a next-generation model.
 
@@ -96,7 +99,7 @@ This lesson produces `outputs/skill-dual-use-triage.md`. Given a 2026 capability
 
 5. Pick one of the four domains and write a one-paragraph 2027 forecast based on the 2024-2025 trajectory. Identify the evidence that would falsify your forecast.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -108,7 +111,7 @@ This lesson produces `outputs/skill-dual-use-triage.md`. Given a 2026 capability
 | Acquisition phase | "pre-synthesis steps" | Procurement, equipment, permit stages of a bio threat |
 | Trusted access | "defender-only pilot" | OpenAI 2025 program giving vetted defenders capability access |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic — November 2025 cyber threat report](https://www.anthropic.com/news/disrupting-AI-espionage) — Chinese-linked campaign automation
 - [OpenAI — Preparedness Framework v2 (April 15, 2025)](https://openai.com/index/updating-our-preparedness-framework/) — bio "on the cusp"

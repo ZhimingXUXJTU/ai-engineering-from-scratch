@@ -6,6 +6,9 @@ Demonstrates the RMU-style unlearning trade-off: suppress domain-specific
 capability, measure the general-capability cost.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -34,10 +37,11 @@ def evaluate(model_accuracy: dict) -> dict:
             if random.random() < acc:
                 correct += 1
         results[domain] = correct / cfg["n_questions"]
-    return results
+    return results  # 返回结果
 
 
 def apply_rmu_style_unlearning(model_accuracy: dict,
+    """apply_rmu_style_unlearning"""
                                targets: list[str],
                                strength: float = 0.9,
                                collateral: float = 0.03) -> dict:
@@ -49,20 +53,23 @@ def apply_rmu_style_unlearning(model_accuracy: dict,
     for d in new:
         if d not in targets:
             new[d] = max(0.0, new[d] - collateral)
-    return new
+    return new  # 返回结果
 
 
 def baseline_model() -> dict:
-    return {d: cfg["accuracy"] for d, cfg in DOMAINS.items()}
+    """baseline_model"""
+    return {d: cfg["accuracy"] for d, cfg in DOMAINS.items()}  # 返回结果
 
 
 def report(title: str, r: dict) -> None:
+    """report"""
     print(f"\n{title}")
     for d, score in r.items():
         print(f"  {d:18s} : {score:.3f}")
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("WMDP-SHAPED EVALUATION HARNESS (Phase 18, Lesson 17)")
     print("=" * 70)
@@ -97,4 +104,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

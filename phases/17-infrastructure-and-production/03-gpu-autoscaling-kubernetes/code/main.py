@@ -7,6 +7,9 @@ Compares three autoscaling strategies on the same bursty workload:
 
 Reports dropped requests, idle GPU-minutes, and composite score.
 Pedagogical: latencies and provisioning times are illustrative.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -29,6 +32,7 @@ TARGET_GPU_UTIL = 70          # duty-cycle target
 
 @dataclass
 class Request:
+    """Request"""
     arrived_at: float
     started_at: float | None = None
     completed_at: float | None = None
@@ -36,6 +40,7 @@ class Request:
 
 
 def make_workload(duration_sec: int = 3600, seed: int = 7) -> list[Request]:
+    """make_workload"""
     rng = random.Random(seed)
     reqs = []
     # simulate a morning burst: quiet 0-600, spike 600-1800, tail 1800-3600
@@ -49,10 +54,11 @@ def make_workload(duration_sec: int = 3600, seed: int = 7) -> list[Request]:
             rate = 1.2
         if rng.random() < rate / 10:
             reqs.append(Request(arrived_at=float(t)))
-    return reqs
+    return reqs  # 返回结果
 
 
 def simulate(strategy: str, reqs: list[Request]) -> dict:
+    """simulate"""
     replicas_ready = MIN_WARM_REPLICAS
     replicas_target = MIN_WARM_REPLICAS
     replica_available_at = {i: 0.0 for i in range(MIN_WARM_REPLICAS)}
@@ -138,7 +144,7 @@ def simulate(strategy: str, reqs: list[Request]) -> dict:
         sum(r.started_at - r.arrived_at for r in started) / len(started)
         if started else 0.0
     )
-    return {
+    return {  # 返回结果
         "strategy": strategy,
         "total": len(reqs),
         "completed": completed,
@@ -150,6 +156,7 @@ def simulate(strategy: str, reqs: list[Request]) -> dict:
 
 
 def report(row: dict) -> None:
+    """report"""
     print(f"{row['strategy']:14}  reqs={row['total']:4}  "
           f"done={row['completed']:4}  dropped={row['dropped']:3}  "
           f"mean_wait={row['mean_wait_s']:5.1f}s  "
@@ -157,6 +164,7 @@ def report(row: dict) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("GPU AUTOSCALING — three strategies on a bursty workload (1-hour sim)")
     print("=" * 80)
@@ -175,4 +183,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

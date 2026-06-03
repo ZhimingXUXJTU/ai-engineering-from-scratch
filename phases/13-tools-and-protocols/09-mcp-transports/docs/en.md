@@ -1,6 +1,10 @@
-# MCP Transports — stdio vs Streamable HTTP vs SSE Migration
+# MCP Transports — stdio vs Streamable HTTP vs SSE Migration | MCP 传输层：stdio 与 Streamable HTTP
 
 > stdio works locally and nowhere else. Streamable HTTP (2025-03-26) is the remote standard. The old HTTP+SSE transport is deprecated and being removed in mid-2026. Picking the wrong transport costs a migration; picking the right one buys a remote-hostable MCP server with session continuity and DNS-rebinding protection.
+
+> **【中文解读】** stdio 只能在本地工作。Streamable HTTP (2025-03-26) 是远程标准。旧的 HTTP+SSE 传输已被弃用，将在 2026 年中期移除。选错传输层意味着一次迁移；选对则获得一个可远程部署的 MCP 服务器，具备会话连续性和 DNS 重绑定防护。
+
+> **【拓展：传输层→Claude 远程 MCP】** Claude Desktop 使用 stdio 传输与本地 MCP 服务器通信。对于远程 MCP 服务器（如部署在 Cloudflare Workers 上），使用 Streamable HTTP 传输。Streamable HTTP 的单端点模式（`/mcp`）简化了部署，`Mcp-Session-Id` 头确保会话连续性，`Origin` 验证防止 DNS 重绑定攻击。
 
 **Type:** Learn
 **Languages:** Python (stdlib, Streamable HTTP endpoint skeleton)
@@ -41,6 +45,8 @@ Single endpoint `/mcp` (or any path). Supports three HTTP methods:
 - **DELETE /mcp.** Client explicitly terminates the session.
 
 Sessions are identified by the `Mcp-Session-Id` header the server sets on the first response and the client echoes on every subsequent request. Session ids MUST be cryptographically random (128+ bits); client-chosen ids are rejected for safety.
+
+> **【中文解读】** 会话由服务器在首次响应时设置的 `Mcp-Session-Id` 头标识。Session id 必须是密码学随机的（128+ 位）；客户端自行选择的 id 会被拒绝。`Origin` 验证防止 DNS 重绑定攻击——攻击者可构造网页让浏览器 POST 到 `localhost:1234/mcp`。
 
 ### Single endpoint vs two
 
@@ -122,18 +128,18 @@ This lesson produces `outputs/skill-mcp-transport-migrator.md`. Given an HTTP+SS
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| stdio transport | "Local child process" | JSON-RPC over stdin/stdout, newline-delimited |
-| Streamable HTTP | "The remote transport" | Single-endpoint POST + GET + optional SSE, 2025-03-26 spec |
-| HTTP+SSE | "Legacy" | Two-endpoint model being removed in mid-2026 |
-| `Mcp-Session-Id` | "Session header" | Server-assigned random id echoed on every subsequent request |
-| `Origin` allowlist | "DNS-rebinding defense" | Reject requests whose Origin is not approved |
-| Single endpoint | "One URL" | `/mcp` handles POST / GET / DELETE for all session operations |
-| `last-event-id` | "SSE replay" | Header used to resume a dropped stream without missing events |
-| Backwards-compat probe | "Old vs new detection" | Client response-shape check that auto-selects transport |
-| Long-lived HTTP | "SSE streaming" | Server pushes events for minutes or hours on one TCP connection |
-| Session revocation | "Force re-init" | Server invalidates a session id; client must handshake again |
+| Term | What people say | What it actually means | 中文术语 |
+|------|----------------|------------------------|----------|
+| stdio transport | "Local child process" | JSON-RPC over stdin/stdout, newline-delimited | stdio 传输 |
+| Streamable HTTP | "The remote transport" | Single-endpoint POST + GET + optional SSE, 2025-03-26 spec | Streamable HTTP 传输 |
+| HTTP+SSE | "Legacy" | Two-endpoint model being removed in mid-2026 | HTTP+SSE（已弃用） |
+| `Mcp-Session-Id` | "Session header" | Server-assigned random id echoed on every subsequent request | 会话标识头 |
+| `Origin` allowlist | "DNS-rebinding defense" | Reject requests whose Origin is not approved | Origin 白名单 |
+| Single endpoint | "One URL" | `/mcp` handles POST / GET / DELETE for all session operations | 单端点模式 |
+| `last-event-id` | "SSE replay" | Header used to resume a dropped stream without missing events | SSE 重放标识 |
+| Backwards-compat probe | "Old vs new detection" | Client response-shape check that auto-selects transport | 向后兼容探测 |
+| Long-lived HTTP | "SSE streaming" | Server pushes events for minutes or hours on one TCP connection | 长连接 HTTP |
+| Session revocation | "Force re-init" | Server invalidates a session id; client must handshake again | 会话撤销 |
 
 ## Further Reading
 

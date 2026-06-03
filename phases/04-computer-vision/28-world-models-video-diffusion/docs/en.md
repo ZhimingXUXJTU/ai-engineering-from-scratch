@@ -1,6 +1,10 @@
-# World Models & Video Diffusion
+# World Models & Video Diffusion | 世界模型与视频扩散
 
 > A video model that predicts the next seconds of a scene is a world simulator. Condition that prediction on actions and you have a learned game engine.
+
+> **【中文解读】** 能够预测场景接下来几秒的视频模型就是一个世界模拟器。将预测条件化为动作，就得到了一个学习到的游戏引擎。世界模型是 AI 的前沿方向——让 AI 理解物理世界的动态规律。
+
+> **【拓展：世界模型的前沿】** Sora（OpenAI）和 Genie（DeepMind）是世界模型的代表。世界模型可以用于自动驾驶仿真（生成训练场景）、游戏 AI（学习游戏物理）、机器人规划（预测动作后果）。它是实现 AGI 的可能路径之一。
 
 **Type:** Learn + Build
 **Languages:** Python

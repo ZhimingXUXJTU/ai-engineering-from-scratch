@@ -1,6 +1,10 @@
-# Inference Optimization
+# Inference Optimization | 推理优化
 
 > Two phases define LLM inference. Prefill processes your prompt in parallel -- compute-bound. Decode generates tokens one at a time -- memory-bound. Every optimization targets one or both.
+
+> **【中文解读】** LLM 推理分两个阶段：预填充（并行处理 prompt，计算密集）和解码（逐 token 生成，显存带宽密集）。KV-cache、连续批处理、投机解码都是针对这两个阶段的优化。
+
+> **【拓展：推理优化→生产部署】** vLLM、TensorRT-LLM、TGI 等推理框架都实现了 KV-cache 管理、连续批处理 (continuous batching)、PagedAttention 等优化。理解这些技术是将大模型部署到生产环境的关键。
 
 **Type:** Build
 **Languages:** Python

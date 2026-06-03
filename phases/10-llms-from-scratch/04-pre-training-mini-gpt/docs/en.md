@@ -1,6 +1,10 @@
-# Pre-Training a Mini GPT (124M Parameters)
+# Pre-Training a Mini GPT (124M Parameters) | 预训练迷你 GPT（1.24 亿参数）
 
 > GPT-2 Small has 124 million parameters. That's 12 transformer layers, 12 attention heads, and 768-dimensional embeddings. You can train it from scratch on a single GPU in a few hours. Most people never do this. They use pre-trained checkpoints. But if you don't train one yourself, you don't actually understand what's happening inside the model you're building products on.
+
+> **【中文解读】** GPT-2 Small 有 1.24 亿参数：12 层 Transformer、12 个注意力头、768 维嵌入。单 GPU 几小时即可从头训练。理解预训练是理解大模型的第一步。
+
+> **【拓展：大模型三阶段】** 大模型训练三阶段：(1) 预训练（海量无标注数据，学习语言表示）→ (2) SFT（指令微调，学会跟随指令）→ (3) RLHF/DPO（对齐人类偏好）。本课是第一阶段，GPT-2 是所有 GPT 系列的原型。
 
 **Type:** Build
 **Languages:** Python (with numpy)

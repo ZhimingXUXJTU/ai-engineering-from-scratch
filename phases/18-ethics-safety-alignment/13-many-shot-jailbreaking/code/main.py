@@ -5,6 +5,9 @@ number of compliance pairs present in the context. Reproduces the shape of
 Anil et al. 2024 Figure 2 without training a model.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -24,22 +27,23 @@ def target_asr(n_shots: int, alpha: float = 0.5, a0: float = 0.02) -> float:
     at 5 shots, begins to succeed around 32, saturates around 256.
     """
     if n_shots <= 0:
-        return 0.0
+        return 0.0  # 返回结果
     c = 0.03
-    return min(1.0, a0 + c * (n_shots ** alpha))
+    return min(1.0, a0 + c * (n_shots ** alpha))  # 返回结果
 
 
 def defense_adjusted(n_shots: int, alpha: float = 0.5) -> float:
     """A simple defense: classifier detects the many-shot pattern and caps
     effective shot count at 16. ASR curve saturates at the 16-shot value."""
     eff = min(n_shots, 16)
-    return target_asr(eff, alpha)
+    return target_asr(eff, alpha)  # 返回结果
 
 
 def simulate(n_shots: int, asr_fn, trials: int = 500) -> float:
+    """simulate"""
     p = asr_fn(n_shots)
     hits = sum(1 for _ in range(trials) if random.random() < p)
-    return hits / trials
+    return hits / trials  # 返回结果
 
 
 def fit_power_law(shots: list[int], asrs: list[float]) -> tuple[float, float]:
@@ -53,10 +57,11 @@ def fit_power_law(shots: list[int], asrs: list[float]) -> tuple[float, float]:
     den = sum((xi - mx) ** 2 for xi in xs)
     alpha = num / den
     logc = my - alpha * mx
-    return alpha, math.exp(logc)
+    return alpha, math.exp(logc)  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("MANY-SHOT JAILBREAKING TOY (Phase 18, Lesson 13)")
     print("=" * 70)
@@ -87,4 +92,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

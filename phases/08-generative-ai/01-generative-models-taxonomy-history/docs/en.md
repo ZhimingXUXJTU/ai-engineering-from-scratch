@@ -1,6 +1,10 @@
-# Generative Models — Taxonomy & History
+# Generative Models — Taxonomy & History | 生成模型 — 分类与历史
 
 > Every image model, text model, video model, and 3D model fits in one of five buckets. Pick the wrong bucket and you will fight the math for weeks. Pick the right one and the field's last twelve years of progress stacks cleanly in your head.
+
+> **【中文解读】** 所有图像、文本、视频和 3D 生成模型都可以归入五个类别：VAE、GAN、扩散模型、流模型和自回归模型。选错类别会让你和数学搏斗数周；选对了，过去十二年的进展就会在你脑中清晰堆叠。
+
+> **【拓展：生成式 AI 的五大路线】** (1) VAE——变分自编码器，Stable Diffusion 的编码器；(2) GAN——生成对抗网络，StyleGAN 的核心；(3) 扩散模型——DDPM/DDIM，当前图像生成主流；(4) 流模型——Flow Matching，SD3/FLUX 的新方向；(5) 自回归——GPT 模式，VAR 应用于图像。
 
 **Type:** Learn
 **Languages:** Python

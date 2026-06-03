@@ -1,6 +1,8 @@
-# CNNs and RNNs for Text
+# CNNs and RNNs for Text | CNN 和 RNN 文本处理
 
 > Convolutions learn n-grams. Recurrences remember. Both are superseded by attention. Both still matter on constrained hardware.
+
+> **【中文解读】** CNN 捕捉局部 n-gram 特征，RNN 处理长程依赖。Transformer 之前的主流架构。
 
 **Type:** Build
 **Languages:** Python

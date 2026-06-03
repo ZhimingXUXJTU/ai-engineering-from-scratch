@@ -1,6 +1,9 @@
-# Group Chat and Speaker Selection
+# Group Chat and Speaker Selection | 群聊 选择 发言者
 
 > AutoGen GroupChat and AG2 GroupChat share one conversation across N agents; a selector function (LLM, round-robin, or custom) picks who speaks next. This is the archetype of emergent multi-agent conversation — agents do not know their role in a static graph, they just react to the shared pool. AutoGen v0.2's GroupChat semantics were preserved in the AG2 fork; AutoGen v0.4 rewrote it as an event-driven actor model. Microsoft put AutoGen into maintenance mode in February 2026 and merged it with Semantic Kernel into Microsoft Agent Framework (RC February 2026). The GroupChat primitive survives in both AG2 and Microsoft Agent Framework — learn it once, use it everywhere.
+
+> **【中文解读】** 本节介绍了群聊发言者选择——多 Agent 讨论中决定谁发言、何时发言的机制。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)
@@ -90,7 +93,7 @@ Same primitives, different defaults:
 
 Both use the four primitives from Lesson 04. Group chat defaults to LLM-selected orchestration and full-pool shared state.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements a GroupChat from scratch in stdlib. Three agents (coder, reviewer, manager), round-robin and LLM-selected variants, and a termination on a `TERMINATE` token.
 
@@ -102,11 +105,11 @@ Run:
 python3 code/main.py
 ```
 
-## Use It
+## Use It | 使用方法
 
 `outputs/skill-groupchat-selector.md` configures a GroupChat selector for a given task — round-robin vs LLM-selected vs custom, and what selector inputs (recent messages, agent specialties, turn counts) to use.
 
-## Ship It
+## Ship It | 部署上线
 
 Checklist:
 
@@ -116,7 +119,7 @@ Checklist:
 - **Projection or scoped memory.** After ~10 messages, consider giving each agent only a scoped view to prevent context bloat.
 - **Selector logging.** For LLM-selected variants, log both the selector's input and its choice. Otherwise debugging is impossible.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Compare the conversation under round-robin vs LLM-selected. Which agent dominates under each?
 2. Add a "max-speaks-per-agent" rule in the selector. How does it affect the transcript?
@@ -124,7 +127,7 @@ Checklist:
 4. Read the AutoGen stable docs on GroupChat (https://microsoft.github.io/autogen/stable/user-guide/core-user-guide/design-patterns/group-chat.html). Identify the default selector used by `GroupChatManager`.
 5. Read the AG2 repo (https://github.com/ag2ai/ag2) and compare its v0.2 GroupChat to the v0.4 event-driven version. What concrete property (throughput, fault-tolerance, composability) does v0.4 add?
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
@@ -137,7 +140,7 @@ Checklist:
 | Context bloat | "Pool grows unbounded" | Each agent reads every prior message; context grows with turns. |
 | Projection | "Scoped view" | Role-specific view into the shared pool to prevent context bloat. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [AutoGen group chat docs](https://microsoft.github.io/autogen/stable/user-guide/core-user-guide/design-patterns/group-chat.html) — the reference implementation
 - [AG2 repo](https://github.com/ag2ai/ag2) — community AutoGen v0.2 continuation

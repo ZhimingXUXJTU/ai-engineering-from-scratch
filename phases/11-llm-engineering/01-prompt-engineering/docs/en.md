@@ -1,6 +1,10 @@
-# Prompt Engineering: Techniques & Patterns
+# Prompt Engineering: Techniques & Patterns | 提示工程：技术与模式
 
 > Most people write prompts like they are texting a friend. Then they wonder why a 200-billion parameter model gives mediocre answers. Prompt engineering is not about tricks. It is about understanding that every token you send is an instruction, and the model follows instructions literally. Write better instructions, get better outputs. It is that simple and that hard.
+
+> **【中文解读】** 提示工程不是花招，而是理解"每个 token 都是指令"。写更好的指令，获得更好的输出。它是与大模型沟通的基础技能。
+
+> **【拓展：提示工程→AI应用开发】** 提示工程是 AI 应用开发的第一步。掌握系统提示、角色设定、Few-shot 示例、约束条件等技术，能让同一个模型的表现从"平庸"提升到"优秀"。
 
 **Type:** Build
 **Languages:** Python

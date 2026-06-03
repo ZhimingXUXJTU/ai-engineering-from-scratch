@@ -1,4 +1,4 @@
-# Kill Switches, Circuit Breakers, and Canary Tokens
+# Kill Switches, Circuit Breakers, and Canary Tokens | 紧急开关 金丝雀
 
 > A kill switch is a boolean held outside the agent's edit surface — a Redis key, a feature flag, a signed config — that disables the agent entirely. A circuit breaker is finer-grained: it trips on a specific pattern (five identical tool calls in a row), pauses the offending path, and escalates to a human. A canary token inherits from classical deception: a fake credential or honeypot record an agent has no legitimate reason to touch, whose access triggers an alert. eBPF-based datapaths (e.g. Cilium) can rewrite a quarantined pod's egress to a forensic honeypot at the kernel layer; published Cilium benchmarks report sub-millisecond P99 datapath latency under load (your propagation budget depends on how a policy update reaches the node, not the datapath itself). Statistical detectors (EWMA, CUSUM) that adapt to a moving baseline will quietly accept drift — layer them with hard constitutional limits that do not bend.
 
@@ -7,11 +7,14 @@
 **Prerequisites:** Phase 15 · 13 (Cost governors), Phase 15 · 10 (Permission modes)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题
 
 Cost governors (Lesson 13) bound what the agent can spend. They do not bound what the agent can do inside the budget. An agent with a $50 velocity limit can still exfiltrate a secret, publish the wrong post, or delete a resource — the expensive action is often the cheap one in tokens.
 
 This lesson covers the three detectors that sit next to the cost layer:
+
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
 
 1. **Kill switch**: boolean off-button held outside the agent's reach.
 2. **Circuit breaker**: action-pattern detector that pauses a specific path.
@@ -19,7 +22,7 @@ This lesson covers the three detectors that sit next to the cost layer:
 
 All three are pre-LLM engineering. Classical deception, rate-limit breakers, and feature-flag kills predate autonomous agents. What's new is the attack surface: agents read untrusted content (Lesson 11), edit their own memory, and can compose many safe-looking actions into an unsafe one. The detectors named here work because they do not trust the agent's self-report.
 
-## The Concept
+## The Concept | 概念
 
 ### Kill switches
 
@@ -80,40 +83,45 @@ Cilium's eBPF-based network policy can rewrite a quarantined pod's egress to a f
 - **Semantic attacks that compose from allowed primitives.** Every individual action passes every detector; the composition is the problem. This is the Auto Mode composite failure from Lesson 10.
 - **Attacks that include the detector as part of the payload.** If an agent reads a page that says "before you act, disable the canary" and the agent has the capability, the detector is compromised. Canary tokens should be in systems the agent cannot modify.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` simulates a short agent trajectory through three detectors. A kill switch held in an external dict; a circuit breaker that trips on five identical tool calls; a canary file whose read triggers an alert. Feeds in a synthetic trajectory: legitimate actions, repetitive loop, canary probe, and a kill-switch-triggered scenario where the agent's actions are halted.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-tripwire-design.md` reviews a proposed detector stack for an agent deployment and flags gaps (missing kill switch, missing canary, circuit breaker threshold too loose).
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Confirm the circuit breaker fires on turn 5 (fifth identical call) and the canary fires on turn 9 (fake-key read).
+   *思考并实践此练习*
 
 2. Add a statistical detector: EWMA z-score on tool-call rate. Feed in a trajectory that drifts slowly and show the detector never fires. Now add a hard limit (no more than 50 tool calls in 10 minutes) and show the hard limit fires on the same trajectory.
+   *思考并实践此练习*
 
 3. Design a canary token set for a browser agent (Lesson 11). List at least three canaries and what each would detect.
+   *思考并实践此练习*
 
 4. Read the Cilium network-policy docs. Describe an egress-redirect quarantine flow concretely: which policy selector, which pod, which egress rewrite, which alert. What governs the wall-clock latency from "decide to quarantine" to "first redirected packet"?
+   *思考并实践此练习*
 
 5. Define a re-enable procedure for a kill-switched agent. Who can re-enable? What must be documented? What must change about the agent before re-enable?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| Kill switch | "Off button" | Boolean outside the agent's edit surface; checked on every consequential action |
-| Circuit breaker | "Pattern pause" | Action-specific trip on repetition, failure rate, or rate-limit |
-| Canary token | "Honeytoken" | Bait the agent has no legitimate reason to touch; access fires an alert |
-| Honeypot | "Forensic sandbox" | Redirected traffic / workspace where a quarantined agent is observed |
-| EWMA | "Moving average" | Exponentially weighted; adapts to drift (feature + bug) |
-| CUSUM | "Cumulative sum" | Detects sustained shift from baseline |
-| Hard limit | "Constitutional rule" | Does not adapt; constant regardless of history |
-| Constitutional limit | "Always-true rule" | Tied to Lesson 17's constitution; cannot be edited by the agent |
+|---|---|---|---|
+| Kill switch | "Off button" | Boolean outside the agent's edit surface; checked on every consequential action |  |
+| Circuit breaker | "Pattern pause" | Action-specific trip on repetition, failure rate, or rate-limit |  |
+| Canary token | "Honeytoken" | Bait the agent has no legitimate reason to touch; access fires an alert |  |
+| Honeypot | "Forensic sandbox" | Redirected traffic / workspace where a quarantined agent is observed |  |
+| EWMA | "Moving average" | Exponentially weighted; adapts to drift (feature + bug) |  |
+| CUSUM | "Cumulative sum" | Detects sustained shift from baseline |  |
+| Hard limit | "Constitutional rule" | Does not adapt; constant regardless of history |  |
+| Constitutional limit | "Always-true rule" | Tied to Lesson 17's constitution; cannot be edited by the agent |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic — Measuring agent autonomy in practice](https://www.anthropic.com/research/measuring-agent-autonomy) — kill-switch and circuit-breaker framing for autonomous agents.
 - [Microsoft Agent Framework — HITL and oversight](https://learn.microsoft.com/en-us/agent-framework/workflows/human-in-the-loop) — production governance patterns.

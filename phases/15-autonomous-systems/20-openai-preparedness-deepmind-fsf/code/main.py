@@ -4,6 +4,9 @@ Reads three small tables encoding how OpenAI PF v2, Anthropic RSP v3.0,
 and DeepMind FSF v3 classify a short list of capabilities. Outputs a
 side-by-side comparison. The tables are pedagogical distillations of
 the three source documents; real policy reads require the documents.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -13,6 +16,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Policy:
+    """Policy"""
     name: str
     # capability -> (classification, trigger-action)
     table: dict[str, tuple[str, str]]
@@ -76,6 +80,7 @@ POLICIES = [OPENAI_PF_V2, ANTHROPIC_RSP_V3, DEEPMIND_FSF_V3]
 
 
 def diff(capability: str) -> None:
+    """diff"""
     print(f"\nCapability: {capability}")
     print("-" * 80)
     for p in POLICIES:
@@ -86,6 +91,7 @@ def diff(capability: str) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("CROSS-POLICY DIFF (Phase 15, Lesson 20)")
     print("=" * 80)
@@ -112,4 +118,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

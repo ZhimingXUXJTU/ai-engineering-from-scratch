@@ -1,6 +1,8 @@
-# Voice Activity Detection & Turn-Taking — Silero, Cobra, and the Flush Trick
+# Voice Activity Detection & Turn-Taking — Silero, Cobra, and the Flush Trick | 语音活动检测与轮次切换
 
 > Every voice agent lives or dies on two decisions: is the user speaking now, and are they done? VAD answers the first. Turn-detection (VAD + silence-hangover + semantic endpoint model) answers the second. Get either wrong and your assistant either cuts users off or never shuts up.
+
+> **【中文解读】** 每个语音助手的成败取决于两个判断：用户现在在说话吗？用户说完了吗？VAD（语音活动检测）回答第一个，轮次检测（VAD+静音持续+语义终点模型）回答第二个。任何一个搞错，助手要么打断用户，要么永远不开口。
 
 **Type:** Build
 **Languages:** Python

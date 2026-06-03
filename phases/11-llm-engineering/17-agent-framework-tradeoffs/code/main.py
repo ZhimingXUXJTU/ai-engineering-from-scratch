@@ -1,5 +1,12 @@
 """Decision-tree recommender for agent frameworks.
 
+Agent 框架对比 (Agent Framework Tradeoffs)
+核心概念：不同 Agent 框架适用于不同问题。LangGraph 适合有状态工作流，
+CrewAI 适合多角色协作，AutoGen 适合对话式多 Agent，Agno 适合轻量快速。
+本文件用决策树帮你选择最适合的框架。
+
+AI 应用对应：选错框架是 Agent 项目失败的首要原因，需要根据问题形状匹配框架抽象。
+
 Takes a problem descriptor and recommends LangGraph, CrewAI, AutoGen, Agno, or
 "no framework" with a one-sentence justification. The tree encodes the tradeoffs
 described in docs/en.md.

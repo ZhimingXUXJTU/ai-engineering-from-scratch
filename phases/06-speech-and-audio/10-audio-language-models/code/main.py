@@ -1,3 +1,8 @@
+"""
+音频语言模型 (Audio-Language Models)
+核心概念：音频编码器 + 投影层 + LLM，能理解语音+环境声+音乐
+AI 对应：Qwen2.5-Omni、GPT-4o Audio 是音频大模型的代表
+"""
 """Audio-Language Model skeleton.
 
 Walks through the 3-component template every 2026 LALM uses:

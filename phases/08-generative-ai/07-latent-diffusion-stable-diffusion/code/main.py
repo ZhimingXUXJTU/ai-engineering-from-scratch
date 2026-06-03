@@ -1,3 +1,8 @@
+"""
+潜在扩散与 Stable Diffusion (Latent Diffusion & Stable Diffusion)
+核心概念：在 VAE 潜在空间中运行扩散，大幅降低计算成本
+AI 对应：Stable Diffusion 是 AIGC 领域最重要的开源模型
+"""
 import math
 import random
 

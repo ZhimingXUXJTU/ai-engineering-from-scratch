@@ -1,6 +1,10 @@
-# Evaluation: Benchmarks, Evals, LM Harness
+# Evaluation: Benchmarks, Evals, LM Harness | 评估：基准、评测、LM Harness
 
 > Goodhart's Law: when a measure becomes a target, it ceases to be a good measure. Every frontier lab games benchmarks. MMLU scores go up while models still can't reliably count the number of R's in "strawberry." The only eval that matters is YOUR eval -- on YOUR task, with YOUR data.
+
+> **【中文解读】** 古德哈特定律：当一个指标成为目标时，它就不再是一个好指标。前沿实验室刷榜，MMLU 分数上升但模型仍数不清"strawberry"里有几个 r。唯一重要的评测是你自己的任务评测。
+
+> **【拓展：LLM评测→实际应用】** LLM 评测体系包括：MMLU（知识）、HumanEval（代码）、MATH（数学）、Arena（人类偏好）。但真实应用中最重要的是你自己的评测——在你自己的任务和数据上测试。
 
 **Type:** Build
 **Languages:** Python

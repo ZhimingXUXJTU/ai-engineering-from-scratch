@@ -1,6 +1,8 @@
-# Subword Tokenization — BPE, WordPiece, Unigram, SentencePiece
+# Subword Tokenization — BPE, WordPiece, Unigram, SentencePiece | 子词分词 — BPE、WordPiece、SentencePiece
 
 > Word tokenizers choke on unseen words. Character tokenizers blow up sequence length. Subword tokenizers split the difference. Every modern LLM ships on one.
+
+> **【中文解读】** BPE 是 GPT 用的分词算法，WordPiece 是 BERT 用的。
 
 **Type:** Learn
 **Languages:** Python

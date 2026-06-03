@@ -3,6 +3,9 @@
 Primary agent writes raw facts during turns. Sleep-time agent runs between
 turns, off the critical path, and consolidates blocks. Scripted so it runs
 offline.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -13,6 +16,7 @@ from typing import Any
 
 @dataclass
 class Block:
+    """Block"""
     label: str
     value: str = ""
     limit: int = 300
@@ -25,42 +29,43 @@ class Block:
         self.value = (self.value + " " + text).strip() if self.value else text
         self.version += 1
         self.history.append(old)
-        return f"{self.label} v{self.version} ({len(self.value)}/{self.limit})"
+        return f"{self.label} v{self.version} ({len(self.value)}/{self.limit})"  # 返回结果
 
     def replace(self, old: str, new: str) -> str:
         if old not in self.value:
-            return f"error: {old!r} not in {self.label}"
+            return f"error: {old!r} not in {self.label}"  # 返回结果
         prev = self.value
         self.value = self.value.replace(old, new)
         self.version += 1
         self.history.append(prev)
-        return f"{self.label} v{self.version} replaced"
+        return f"{self.label} v{self.version} replaced"  # 返回结果
 
     def rewrite(self, new: str) -> str:
         prev = self.value
         self.value = new
         self.version += 1
         self.history.append(prev)
-        return f"{self.label} v{self.version} rewritten ({len(self.value)}/{self.limit})"
+        return f"{self.label} v{self.version} rewritten ({len(self.value)}/{self.limit})"  # 返回结果
 
     def near_limit(self, threshold: float = 0.8) -> bool:
-        return len(self.value) >= int(self.limit * threshold)
+        return len(self.value) >= int(self.limit * threshold)  # 返回结果
 
 
 class BlockStore:
+    """BlockStore"""
     def __init__(self) -> None:
         self._blocks: dict[str, Block] = {}
 
     def create(self, label: str, description: str, limit: int = 300) -> Block:
         block = Block(label=label, description=description, limit=limit)
         self._blocks[label] = block
-        return block
+        return block  # 返回结果
 
     def get(self, label: str) -> Block | None:
-        return self._blocks.get(label)
+        return self._blocks.get(label)  # 返回结果
 
     def labels(self) -> list[str]:
-        return sorted(self._blocks)
+        return sorted(self._blocks)  # 返回结果
 
     def render(self) -> str:
         lines: list[str] = []
@@ -69,17 +74,19 @@ class BlockStore:
             lines.append(f"[{block.label} v{block.version} "
                          f"{len(block.value)}/{block.limit}]")
             lines.append(f"  {block.value}")
-        return "\n".join(lines)
+        return "\n".join(lines)  # 返回结果
 
 
 @dataclass
 class ArchivalRecord:
+    """ArchivalRecord"""
     rid: str
     text: str
     valid: bool = True
 
 
 class Archival:
+    """Archival"""
     def __init__(self) -> None:
         self._records: list[ArchivalRecord] = []
         self._counter = 0
@@ -88,20 +95,20 @@ class Archival:
         self._counter += 1
         rid = f"a{self._counter:03d}"
         self._records.append(ArchivalRecord(rid=rid, text=text))
-        return rid
+        return rid  # 返回结果
 
     def invalidate(self, rid: str) -> bool:
         for record in self._records:
             if record.rid == rid:
                 record.valid = False
-                return True
-        return False
+                return True  # 返回结果
+        return False  # 返回结果
 
     def valid_records(self) -> list[ArchivalRecord]:
-        return [r for r in self._records if r.valid]
+        return [r for r in self._records if r.valid]  # 返回结果
 
     def all_records(self) -> list[ArchivalRecord]:
-        return list(self._records)
+        return list(self._records)  # 返回结果
 
 
 class PrimaryAgent:
@@ -124,7 +131,7 @@ class PrimaryAgent:
                 self.trace.append(f"  archival_insert -> {rid}")
         response = f"response to: {user_text}"
         self.trace.append(f"assistant: {response}")
-        return response
+        return response  # 返回结果
 
 
 class SleepTimeAgent:
@@ -158,9 +165,10 @@ class SleepTimeAgent:
 
 
 def _summarize(text: str, target_len: int) -> str:
+    """_summarize"""
     sentences = [s.strip() for s in text.split(".") if s.strip()]
     if not sentences:
-        return text[:target_len]
+        return text[:target_len]  # 返回结果
     picked: list[str] = []
     total = 0
     for sentence in sentences:
@@ -168,10 +176,11 @@ def _summarize(text: str, target_len: int) -> str:
             break
         picked.append(sentence)
         total += len(sentence) + 2
-    return ". ".join(picked) + "."
+    return ". ".join(picked) + "."  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("LETTA MEMORY BLOCKS + SLEEP-TIME COMPUTE — Phase 14, Lesson 08")
     print("=" * 70)
@@ -241,4 +250,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

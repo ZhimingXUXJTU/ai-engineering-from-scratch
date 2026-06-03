@@ -1,4 +1,4 @@
-# Bias-Variance Tradeoff
+# Bias-Variance Tradeoff | 偏差-方差权衡
 
 > Every model error comes from one of three sources: bias, variance, or noise. You can only control the first two.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 2, Lessons 01-09 (ML basics, regression, classification, evaluation)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Derive the bias-variance decomposition of expected prediction error and explain the role of irreducible noise
 - Diagnose whether a model suffers from high bias or high variance using training and test error patterns
 - Explain how regularization techniques (L1, L2, dropout, early stopping) trade bias for variance
 - Implement experiments that visualize the bias-variance tradeoff across models of increasing complexity
+
+
+> **【中文解读】**
+> 偏差（模型太简单欠拟合）vs 方差（模型太复杂过拟合）的平衡。正则化（L1/L2）、增加数据、降低模型复杂度是常用手段。理解偏差-方差权衡是调参的理论基础。
 
 ## The Problem
 

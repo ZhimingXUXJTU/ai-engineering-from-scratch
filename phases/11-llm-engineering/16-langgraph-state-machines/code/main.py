@@ -1,5 +1,11 @@
 """Minimal LangGraph ReAct agent with a checkpointer, an interrupt, and time-travel.
 
+LangGraph：Agent 的状态机 (State Machines for Agents)
+核心概念：将 Agent 执行建模为状态图(StateGraph)，支持检查点、中断、分支和时间旅行。
+LangGraph 是目前最成熟的 Agent 编排框架，将 while True 循环升级为可管理的有向图。
+
+AI 应用对应：LangGraph 适合需要精细控制的有状态工作流，是人机协作 Agent 的首选框架。
+
 Runs with an Anthropic API key (`ANTHROPIC_API_KEY`). The agent has two toy
 tools (calculator, web_lookup). It:
 

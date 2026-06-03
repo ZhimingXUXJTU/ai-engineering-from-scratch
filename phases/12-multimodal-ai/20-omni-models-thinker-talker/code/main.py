@@ -1,5 +1,10 @@
 """Thinker-Talker streaming pipeline — TTFAB calculator + VAD turn-taking.
 
+全能模型：Thinker-Talker 分离架构 (Omni Models: Thinker-Talker Split)
+核心概念：Qwen2.5-Omni 用 Thinker（大文本生成Transformer）+ Talker（并行语音生成Transformer）
+实现实时对话。流式语音 token 连接两者，延迟预算控制在250ms以内。
+AI 应用对应：Thinker-Talker 是开源世界追赶 GPT-4o 实时语音交互的参考架构。
+
 Stdlib. No audio processing; focus on the latency budget and concurrency of
 parallel streaming between Thinker (text) and Talker (speech).
 """
@@ -11,10 +16,11 @@ from dataclasses import dataclass
 
 @dataclass
 class StreamConfig:
-    thinker_b: int
-    talker_m: int
-    mic_sr: int = 16000
-    include_vision: bool = False
+    """流式管道配置：Thinker 大小、Talker 大小、麦克风采样率、是否含视觉输入。"""
+    thinker_b: int    # Thinker 参数量（十亿）
+    talker_m: int     # Talker 参数量（百万）
+    mic_sr: int = 16000  # 麦克风采样率
+    include_vision: bool = False  # 是否包含摄像头输入
 
 
 @dataclass
@@ -24,6 +30,7 @@ class LatencyComponent:
 
 
 def ttfab(cfg: StreamConfig) -> list[LatencyComponent]:
+    """计算首音频字节延迟（TTFAB）的各组件耗时：麦克风→预填充→首token→Talker→VQ→波形解码。"""
     components = []
     mic_ms = 40 + (cfg.mic_sr // 8000) * 5
     components.append(LatencyComponent("mic -> speech tokens", mic_ms))
@@ -74,7 +81,7 @@ class VADEvent:
 
 
 def simulate_turn_taking(silence_threshold_ms: int = 200) -> list[VADEvent]:
-    """Simulate a user turn ending detected by silence."""
+    """模拟半双工轮流对话：用户说话→VAD 检测静音→触发端点→Thinker 预填充→Talker 输出首音频。"""
     events = []
     events.append(VADEvent(0, "user starts speaking"))
     events.append(VADEvent(450, "user audio tokens streaming"))

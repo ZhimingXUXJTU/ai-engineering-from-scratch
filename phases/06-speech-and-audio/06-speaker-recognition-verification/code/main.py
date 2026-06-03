@@ -1,3 +1,8 @@
+"""
+说话人识别与验证 (Speaker Recognition & Verification)
+核心概念：声纹嵌入 + 余弦相似度 + EER（等错误率）
+AI 对应：声纹识别用于银行电话认证、智能音箱用户识别
+"""
 """Speaker verification: toy MFCC-stat embeddings, cosine scoring, EER.
 
 Synthetic "speakers" are sinusoid mixtures with different harmonic profiles.

@@ -1,24 +1,27 @@
-# Model, System, and Dataset Cards
+# Model, System, and Dataset Cards | 卡片
 
 > Three documentation formats structure AI transparency. Model Cards (Mitchell et al. 2019) — nutrition labels for models: training data, quantitative disaggregated analyses, ethical considerations, caveats; only 0.3% of Hugging Face model cards document ethical considerations (Oreamuno et al. 2023). Datasheets for Datasets (Gebru et al. 2018, CACM) — motivation, composition, collection process, labeling, distribution, maintenance; electronics-datasheet analogy. Data Cards (Pushkarna et al., Google 2022) — modular layered detail (telescopic, periscopic, microscopic) as boundary objects for diverse readers. 2024-2025 developments: automated generation via LLMs (CardGen, Liu et al. 2024); model-card detail correlates with up to 29% download increase on HF (Liang et al. 2024); verifiable attestations (Laminator, Duddu et al. 2024); sustainability reporting additions for carbon/water (Jouneaux et al. July 2025); EU/ISO regulatory cards emerging. System Cards (Sidhpurwala 2024; Meta system-level transparency; "Blueprints of Trust" arXiv:2509.20394) — end-to-end AI system documentation covering security capabilities, prompt-injection protection, data-exfiltration detection, alignment with human values.
+
+> **【中文解读】** 本节介绍了模型/系统/数据集卡片——AI 系统透明度的标准化文档。
+
 
 **Type:** Build
 **Languages:** Python (stdlib, model-card + datasheet + system-card generator)
 **Prerequisites:** Phase 18 · 18 (safety frameworks), Phase 18 · 24 (regulatory)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Describe the original Mitchell et al. 2019 model card and the Gebru et al. 2018 datasheet.
 - Describe Data Cards' telescopic/periscopic/microscopic layering.
 - Describe System Cards and their end-to-end coverage.
 - State three 2024-2025 developments (automated generation, verifiable attestations, sustainability reporting).
 
-## The Problem
+## The Problem | 问题
 
 Regulatory frameworks (Lesson 24) and lab safety policies (Lesson 18) both require documentation. Documentation formats evolved from model-specific (model cards) to dataset-specific (datasheets) to system-specific (system cards). Each addresses a different scope of transparency. The 2024-2025 automation and verifiable-attestation work addresses the long-standing adoption problem.
 
-## The Concept
+## The Concept | 概念
 
 ### Model Cards (Mitchell et al. 2019)
 
@@ -80,15 +83,15 @@ Sidhpurwala 2024 and Meta system-level transparency work. "Blueprints of Trust" 
 
 Lessons 24-25 are regulatory and CVE layers. Lesson 26 is the documentation layer. Lesson 27 is training-data governance, which is the datasheet's upstream. Lesson 28 is the research ecosystem that produces evaluations referenced in cards.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` generates a minimal model card, datasheet, and system card for a toy deployment. Each follows the canonical section structure. You can inspect the format and compare the three scopes.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-card-audit.md`. Given a model card, datasheet, or system card, it audits section coverage, numerical disaggregation, and whether verifiable attestations are present.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Inspect the generated cards. Identify sections that are weak (placeholder-only) and specify what evidence would strengthen them.
 
@@ -100,7 +103,7 @@ This lesson produces `outputs/skill-card-audit.md`. Given a model card, datashee
 
 5. Write a System Card (System Card, not Model Card) for one of your past projects or a hypothetical deployment. Identify the highest-value section for third-party auditors.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -112,7 +115,7 @@ This lesson produces `outputs/skill-card-audit.md`. Given a model card, datashee
 | Verifiable attestation | "the Laminator attestation" | Cryptographic or TEE proof attached to a documentation claim |
 | Sustainability field | "carbon / water footprint" | Emerging 2025 addition for environmental accounting |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Mitchell et al. — Model Cards for Model Reporting (arXiv:1810.03993, FAT* 2019)](https://arxiv.org/abs/1810.03993) — the canonical model card
 - [Gebru et al. — Datasheets for Datasets (CACM 2021, arXiv:1803.09010)](https://arxiv.org/abs/1803.09010) — datasheet paper

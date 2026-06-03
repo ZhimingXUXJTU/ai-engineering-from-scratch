@@ -1,6 +1,10 @@
-# Advanced RAG (Chunking, Reranking, Hybrid Search)
+# Advanced RAG (Chunking, Reranking, Hybrid Search) | 高级 RAG：分块、重排序与混合搜索
 
 > Basic RAG retrieves the top-k most similar chunks. That works for simple questions. It falls apart for multi-hop reasoning, ambiguous queries, and large corpora. Advanced RAG is the difference between a demo that works on 10 documents and a system that works on 10 million.
+
+> **【中文解读】** 基础 RAG 检索 top-k 相似块，适用于简单问题。但在多跳推理、歧义查询和大规模语料上会失效。高级 RAG 是"10篇文档的 demo"和"千万文档的生产系统"之间的分水岭。
+
+> **【拓展：高级RAG→金融场景】** 金融研报分析需要多跳推理（跨文档关联数据），混合搜索（关键词+语义）能显著提升财报数据检索准确率。
 
 **Type:** Build
 **Languages:** Python

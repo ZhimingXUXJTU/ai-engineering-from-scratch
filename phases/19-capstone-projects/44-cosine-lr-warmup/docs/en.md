@@ -1,20 +1,23 @@
-# Cosine LR with Linear Warmup
+# Cosine LR with Linear Warmup | 余弦 预热
 
 > The learning-rate schedule is the second most important decision after the loss function. AdamW with a cosine decay and a linear warmup is the modern default for language-model training because it lets the model see a small effective step size during the brittle first thousand updates, ramps up to a configured peak, and decays smoothly back toward zero. This lesson builds that schedule, plots the curve over training steps, logs gradient norms next to the schedule, and proves the schedule honors warmup, peak, and decay boundaries.
+
+> **【中文解读】** 本节是综合项目——实现余弦学习率调度和预热。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 30-37
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement an AdamW optimizer wired to a cosine learning-rate schedule with linear warmup.
 - Compute the schedule's exact value at any step without floating-point drift across runs.
 - Log gradient L2 norm side by side with the learning rate so training health is observable.
 - Render the schedule to a text plot the eye can read and a CSV any tool can consume.
 
-## The Problem
+## The Problem | 问题
 
 The first thousand training updates are the loudest. The model's weights are still close to initialization. The optimizer's running second-moment estimate has not stabilised. The gradient norm is large and noisy. If the learning rate is at its peak during these updates the model either diverges outright or settles into a loss plateau it never escapes. The two well-known fixes are gradient clipping, which is the subject of Phase 19 lesson 45, and a learning-rate schedule that starts small and ramps up.
 
@@ -22,7 +25,7 @@ The cosine-with-warmup schedule has three regions. From step zero to step `warmu
 
 The build problem is that schedules are easy to get wrong off by one. The off-by-one shows up six hours into a training run as a learning rate that is 1 percent too high or too low at the moment the model starts overfitting, which is invisible unless the schedule is exhaustively tested at boundaries.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart TD
@@ -56,7 +59,7 @@ For `step > total_steps` the learning rate stays at `lr_min`. The contract is ex
 
 The schedule is half of training health. The gradient norm is the other half. The training loop logs both per step. A divergent training run shows the gradient norm spike before the loss does; a well-tuned warmup keeps the norm rising linearly with the rate; a too-aggressive peak shows up as a norm that stays high after warmup. The dataset on disk is `step, lr, grad_l2_norm, loss`. The CSV is the only durable record.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements:
 
@@ -88,7 +91,7 @@ Four patterns elevate the schedule to a production artifact.
 
 **Log row schema is fixed.** `step, lr, grad_l2_norm, loss` in that order. A downstream notebook or dashboard reads the schema; renaming a column without bumping a version invalidates every existing dashboard.
 
-## Use It
+## Use It | 使用方法
 
 Production patterns:
 
@@ -96,11 +99,11 @@ Production patterns:
 - **Warmup is a fraction of total steps, not an absolute count.** A 200-million-step run with 2,000 warmup steps starts at peak almost immediately; a 20,000-step run with the same number warms up for 10 percent. Configure warmup as a fraction (typical: 1-3 percent) so the schedule scales with training duration.
 - **`lr_min` is non-zero on purpose.** A floor that is 10 percent of `lr_max` keeps the optimizer learning during the long tail. A `lr_min = 0` schedule produces a training curve that looks great on a plot and a model that has not actually finished training.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-cosine-warmup.md` would, on a real project, describe which config carries the schedule, which trainer step the global counter is read from, and what `lr_max` sweep produced the deployed value. This lesson ships the engine.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add an inverse-square-root variant of the schedule and compare it on a 200-step toy training run. Which curve produces the lower final loss?
 2. Add a `--restart` flag that adds a second warmup at `total_steps / 2`. Defend whether warm restarts improve or hurt on the toy run.
@@ -108,7 +111,7 @@ Production patterns:
 4. Wire the schedule into a `torch.optim.lr_scheduler.LambdaLR` so it composes with framework code. The lesson uses a plain step function; what does the wrapper change?
 5. Add a `--plot-png` flag that writes a real plot via `matplotlib`. Defend whether the lesson's text plot or the PNG is the better default for CI runs.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -118,7 +121,7 @@ Production patterns:
 | Gradient norm | "L2 of grads" | The Euclidean norm of the concatenated gradient vector, logged each step |
 | Global step | "Schedule axis" | A monotonic step counter that survives restarts and drives the schedule |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Loshchilov and Hutter, SGDR: Stochastic Gradient Descent with Warm Restarts (arXiv 1608.03983)](https://arxiv.org/abs/1608.03983) - the cosine schedule's reference paper
 - [Loshchilov and Hutter, Decoupled Weight Decay Regularization (arXiv 1711.05101)](https://arxiv.org/abs/1711.05101) - AdamW's reference paper

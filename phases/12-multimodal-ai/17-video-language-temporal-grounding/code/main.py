@@ -16,6 +16,7 @@ random.seed(4)
 
 
 def uniform_sample(duration: float, n: int) -> list[float]:
+    """均匀采样：在视频时长内等间隔取 n 帧。简单但会丢失运动峰值。"""
     if n <= 1:
         return [duration / 2]
     step = duration / n
@@ -24,7 +25,7 @@ def uniform_sample(duration: float, n: int) -> list[float]:
 
 def dynamic_sample(motion: list[float], fps_cap: int = 4,
                    total_budget: int = 32) -> list[float]:
-    """Allocate samples by per-second motion; cap per second at fps_cap."""
+    """动态 FPS 采样：根据每秒运动强度分配采样数，高运动段更密集。fps_cap 为每秒最大采样数。"""
     total_motion = sum(motion)
     if total_motion == 0:
         return uniform_sample(len(motion), total_budget)
@@ -41,8 +42,9 @@ def dynamic_sample(motion: list[float], fps_cap: int = 4,
 
 
 def iou(a_start: float, a_end: float, b_start: float, b_end: float) -> float:
-    inter = max(0.0, min(a_end, b_end) - max(a_start, b_start))
-    union = max(a_end, b_end) - min(a_start, b_start)
+    """计算两个时间区间的 IoU（交并比），用于评估时序定位精度。"""
+    inter = max(0.0, min(a_end, b_end) - max(a_start, b_start))  # 交集长度
+    union = max(a_end, b_end) - min(a_start, b_start)  # 并集长度
     return inter / union if union > 0 else 0.0
 
 
@@ -55,6 +57,7 @@ class Event:
 
 def evaluate_grounding(predictions: list[Event], ground_truth: list[Event],
                        tol_iou: float = 0.3) -> dict:
+    """评估时序定位：对每个真实事件，找最佳匹配预测，IoU >= tol_iou 算命中。"""
     hits = 0
     details = []
     for gt in ground_truth:

@@ -1,24 +1,27 @@
-# Moderation Systems — OpenAI, Perspective, Llama Guard
+# Moderation Systems — OpenAI, Perspective, Llama Guard | Llama Guard Perspective 审核 OpenAI
 
 > Production moderation systems operationalize the safety policies defined in Lessons 12-16. OpenAI Moderation API: `omni-moderation-latest` (2024) built on GPT-4o classifies text + images in one call; 42% better on multilingual test set than prior version; the response schema returns 13 category booleans — harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/intent, self-harm/instructions, sexual, sexual/minors, violence, violence/graphic; free for most developers. Layered patterns: Input moderation (pre-generation), Output moderation (post-generation), Custom moderation (domain rules). Async parallel calls hide latency; placeholder responses on flag. Llama Guard 3/4 (Lesson 16): 14 MLCommons hazards, Code Interpreter Abuse, 8 languages (v3), multi-image (v4). Perspective API (Google Jigsaw): toxicity scoring predating the LLM-as-moderator wave; primarily single-dimension toxicity with severe-toxicity/insult/profanity variants; baseline for content-moderation research. Deprecations: Azure Content Moderator deprecated February 2024, retired February 2027, replaced by Azure AI Content Safety.
+
+> **【中文解读】** 本节介绍了内容审核系统——OpenAI Perspective、Llama Guard 等内容安全工具。
+
 
 **Type:** Build
 **Languages:** Python (stdlib, three-layer moderation harness)
 **Prerequisites:** Phase 18 · 16 (Llama Guard / Garak / PyRIT)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Describe the OpenAI Moderation API's category taxonomy and how it differs from Llama Guard 3's MLCommons set.
 - Describe the three moderation-layer pattern (input, output, custom) and name one failure mode of each.
 - Describe Perspective API's position as a pre-LLM-era baseline and why it remains used in research.
 - State the Azure deprecation timeline.
 
-## The Problem
+## The Problem | 问题
 
 Lessons 12-16 describe attacks and defense tooling. Lesson 29 covers the deployed moderation systems that operationalize the defenses at the surface where users touch the product. The three-layer pattern is the 2026 default configuration.
 
-## The Concept
+## The Concept | 概念
 
 ### OpenAI Moderation API
 
@@ -74,15 +77,15 @@ Azure Content Moderator: deprecated February 2024, retired February 2027. Replac
 
 Lesson 16 covers the moderation tooling in the red-team context. Lesson 29 covers deployed moderation. Lesson 30 closes with the current dual-use capability evidence.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` builds a three-layer moderation harness: input moderator (keyword + category score), output moderator (same classifier on output), custom moderator (domain rules). You can run inputs through and observe which layer catches what.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-moderation-stack.md`. Given a deployment, it recommends a moderation stack configuration: which classifier at input, which at output, which custom rules, and what judge for edge cases.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Run a benign, borderline, and harmful input through all three layers. Report which layer fires for each.
 
@@ -94,7 +97,7 @@ This lesson produces `outputs/skill-moderation-stack.md`. Given a deployment, it
 
 5. Azure Content Moderator retires February 2027. Plan a migration to Azure AI Content Safety. Identify the highest-risk element of the migration.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -106,7 +109,7 @@ This lesson produces `outputs/skill-moderation-stack.md`. Given a deployment, it
 | Custom moderation | "domain rules" | Deployment-specific rules (regex, allowlist, policy) |
 | Layered moderation | "all three layers" | Standard production deployment pattern |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [OpenAI Moderation API docs](https://platform.openai.com/docs/api-reference/moderations) — omni-moderation endpoint
 - [Meta PurpleLlama + Llama Guard](https://github.com/meta-llama/PurpleLlama) — Llama Guard repo

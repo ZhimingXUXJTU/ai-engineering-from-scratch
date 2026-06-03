@@ -1,13 +1,17 @@
-# Object Detection — YOLO from Scratch
+# Object Detection — YOLO from Scratch | 目标检测 — 从零实现 YOLO
 
 > Detection is classification plus regression, run at every position in a feature map, then cleaned up with non-maximum suppression.
+
+> **【中文解读】** 目标检测 = 分类 + 回归，在特征图的每个位置运行，然后用非极大值抑制（NMS）清理重复检测框。YOLO（You Only Look Once）的核心思想是：将检测问题转化为密集预测问题，一次前向传播同时预测所有目标的类别和位置。
+
+> **【拓展：YOLO 在自动驾驶中的应用】** YOLO 是自动驾驶中最常用的实时目标检测算法，能同时检测行人、车辆、交通标志等。从 YOLOv1 到 YOLOv8，速度和精度不断提升，是工业界最受欢迎的检测框架之一。
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 4 Lesson 03 (CNNs), Phase 4 Lesson 04 (Image Classification), Phase 4 Lesson 05 (Transfer Learning)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Explain the grid-and-anchor design that turns detection into a dense prediction problem and state what every number in the output tensor means
 - Compute Intersection-over-Union between boxes and implement non-maximum suppression from scratch
@@ -18,9 +22,13 @@
 
 Classification says "this image is a dog." Detection says "there is a dog at pixels (112, 40, 280, 210), there is a cat at (400, 180, 560, 310), and nothing else in the frame." That one structural change — predicting a variable number of labelled boxes instead of one label per image — is what every autonomous system, every surveillance product, every document layout parser, and every factory vision line depends on.
 
+> **【中文解读】** 分类说"这张图是一只狗"，检测说"狗在 (112,40,280,210)，猫在 (400,180,560,310)"。这一个结构性变化——从预测一个标签变为预测不定数量的带标签框——是自动驾驶、安防监控、文档版面分析和工厂质检的核心能力。
+
 Detection is also where every engineering trade-off in vision shows up at once. You want boxes that are accurate (regression head), you want the right class for each box (classification head), you want the model to know when there is nothing to detect (objectness score), and you want exactly one prediction per real object (non-maximum suppression). Miss any of these and the pipeline either misses objects, reports hallucinated boxes, or predicts the same object fifteen times in slightly different positions.
 
 YOLO (You Only Look Once, Redmon et al. 2016) was the design that made all of this run in real time by doing it with a single forward pass of a conv net, and the same structural decisions are still the backbone of modern detectors (YOLOv8, YOLOv9, YOLO-NAS, RT-DETR). Learn the core and every variant becomes a rearrangement of the same parts.
+
+> **【中文解读】** 检测是视觉中所有工程权衡的交汇点：框要准确（回归头）、类别要正确（分类头）、要知道哪里没有物体（置信度）、每个物体只检测一次（NMS）。YOLO 用单次前向传播实现所有这些，同样的设计思想延续到 YOLOv8、RT-DETR 等现代检测器。
 
 ## The Concept
 
@@ -378,24 +386,29 @@ This lesson produces:
 - `outputs/prompt-detection-metric-reader.md` — a prompt that turns a `precision, recall, AP, mAP@0.5:0.95` row into a one-line diagnosis and the single most useful next experiment.
 - `outputs/skill-anchor-designer.md` — a skill that, given a dataset of ground-truth boxes, runs k-means on `(w, h)` and returns anchor sets per FPN level plus the coverage statistics you need to pick the right number of anchors.
 
-## Exercises
+## Exercises | 练习题
 
-1. **(Easy)** Implement `box_iou` and run it against `torchvision.ops.box_iou` on 1,000 random box pairs. Verify max absolute difference is below `1e-6`.
-2. **(Medium)** Port `yolo_loss` to a version that uses `CIoU` box loss instead of MSE. Show on a 100-image synthetic dataset that CIoU converges to a better final mAP@0.5:0.95 than MSE in the same number of epochs.
-3. **(Hard)** Implement multi-scale inference: feed the same image at three resolutions through the model, union the box predictions, and run a single NMS at the end. Measure the mAP lift vs single-scale inference on a held-out set.
+1. **(Easy | 简单)** Implement `box_iou` and run it against `torchvision.ops.box_iou` on 1,000 random box pairs. Verify max absolute difference is below `1e-6`.
+   实现 `box_iou` 并与 torchvision 的实现在 1000 对随机框上对比，验证最大误差 < 1e-6。
 
-## Key Terms
+2. **(Medium | 中等)** Port `yolo_loss` to a version that uses `CIoU` box loss instead of MSE. Show on a 100-image synthetic dataset that CIoU converges to a better final mAP@0.5:0.95 than MSE in the same number of epochs.
+   将 `yolo_loss` 改为使用 CIoU 框损失（替代 MSE），在合成数据集上证明 CIoU 收敛到更高的 mAP。
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Anchor | "Box prior" | A pre-defined box shape at each grid cell from which the network predicts deltas instead of absolute coordinates |
-| IoU | "Overlap" | Intersection-over-union of two boxes; the universal similarity measure in detection |
-| NMS | "Deduplicate" | Greedy algorithm that keeps highest-score predictions and removes overlapping ones above a threshold |
-| Objectness | "Is there something here" | Per-anchor, per-cell scalar predicting whether an object is centred in that cell |
-| Grid stride | "Downsample factor" | Pixels per grid cell; a 416-px input with a 13-grid head has stride 32 |
-| mAP | "Mean average precision" | Average of the area under the precision-recall curve, averaged over classes and (for COCO) IoU thresholds |
-| AP@0.5 | "PASCAL VOC AP" | Average precision with IoU threshold 0.5; the lenient version of the metric |
-| mAP@0.5:0.95 | "COCO AP" | Average over IoU thresholds 0.5..0.95 step 0.05; the strict version and current community standard |
+3. **(Hard | 困难)** Implement multi-scale inference: feed the same image at three resolutions through the model, union the box predictions, and run a single NMS at the end. Measure the mAP lift vs single-scale inference on a held-out set.
+   实现多尺度推理：用三个分辨率分别检测，合并预测框后统一做 NMS，测量相比单尺度的 mAP 提升。
+
+## Key Terms | 关键术语
+
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Anchor | "Box prior" | A pre-defined box shape at each grid cell from which the network predicts deltas instead of absolute coordinates | 锚框：预定义的框形状，网络只预测相对于锚框的偏移量 |
+| IoU | "Overlap" | Intersection-over-union of two boxes; the universal similarity measure in detection | IoU：交并比，检测中通用的相似度度量 |
+| NMS | "Deduplicate" | Greedy algorithm that keeps highest-score predictions and removes overlapping ones above a threshold | NMS：非极大值抑制，去除重复检测框 |
+| Objectness | "Is there something here" | Per-anchor, per-cell scalar predicting whether an object is centred in that cell | 置信度/目标性：预测该位置是否有物体 |
+| Grid stride | "Downsample factor" | Pixels per grid cell; a 416-px input with a 13-grid head has stride 32 | 网格步长：每个网格单元对应的像素数 |
+| mAP | "Mean average precision" | Average of the area under the precision-recall curve, averaged over classes and (for COCO) IoU thresholds | mAP：平均精度均值，检测的核心评估指标 |
+| AP@0.5 | "PASCAL VOC AP" | Average precision with IoU threshold 0.5; the lenient version of the metric | AP@0.5：IoU 阈值 0.5 的平均精度（宽松版） |
+| mAP@0.5:0.95 | "COCO AP" | Average over IoU thresholds 0.5..0.95 step 0.05; the strict version and current community standard | mAP@0.5:0.95：多个 IoU 阈值的平均（严格版，COCO 标准） |
 
 ## Further Reading
 

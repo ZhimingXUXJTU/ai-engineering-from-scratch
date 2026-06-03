@@ -1,4 +1,4 @@
-# Sampling Methods
+# Sampling Methods | 采样方法
 
 > Sampling is how AI explores the space of possibilities.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1, Lessons 06-07 (Probability, Bayes' Theorem)
 **Time:** ~120 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement inverse CDF, rejection, and importance sampling from scratch using only uniform random numbers
 - Build temperature, top-k, and top-p (nucleus) sampling for language model token generation
 - Explain the reparameterization trick and why it enables backpropagation through sampling in VAEs
 - Run Metropolis-Hastings MCMC to sample from an unnormalized target distribution
+
+
+> **【中文解读】**
+> 采样是 AI 探索可能性的方式。LLM 用 temperature/top-k/top-p 控制文本生成多样性。VAE 用重参数化技巧让采样可微。扩散模型的前向过程是采样（加噪），反向过程是去噪（生成）。
 
 ## The Problem
 

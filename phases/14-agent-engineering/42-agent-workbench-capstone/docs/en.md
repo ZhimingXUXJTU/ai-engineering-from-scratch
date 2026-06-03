@@ -1,4 +1,4 @@
-# Capstone: Ship a Reusable Agent Workbench Pack
+# Capstone: Ship a Reusable Agent Workbench Pack | 工作台 结业 欧盟
 
 > The mini-track ends with a pack you drop into any repo. Eleven lessons of surfaces compressed into a directory you can `cp -r` and have an agent working reliably the next morning. The capstone is the artifact this curriculum trades on.
 
@@ -7,20 +7,23 @@
 **Prerequisites:** Phases 14 · 31 to 14 · 41
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Package the seven workbench surfaces into one drop-in directory.
 - Pin the schemas, scripts, and templates so a new repo gets a known-good baseline.
 - Add a single installer script that lays down the pack idempotently.
 - Decide what stays in the pack and what stays out, defending the cut for each.
 
-## The Problem
+## The Problem | 问题
 
 A workbench that lives in a Google Doc, a chat history, and three half-remembered scripts is a workbench that gets rebuilt every quarter. The cure is a versioned pack: a repo or directory with the surfaces, the schemas, the scripts, and a one-command installer.
 
 You will end this lesson with `outputs/agent-workbench-pack/` shipped on disk and a `bin/install.sh` that drops it into any target repo.
 
-## The Concept
+
+> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
+
+## The Concept | 概念
 
 ```mermaid
 flowchart TD
@@ -31,6 +34,9 @@ flowchart TD
   Bin --> Repo[target repo]
   Repo --> Surfaces[all seven workbench surfaces wired]
 ```
+
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
 
 ### The pack layout
 
@@ -83,7 +89,7 @@ A short `bin/install.sh` (or `bin/install.py`):
 
 The pack carries a `VERSION` file. Schema bumps and script changes that require migrations bump the major. Doc-only changes bump the patch. The target repo's `agent_state.json` records which pack version it was initialized against.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` assembles the pack into `outputs/agent-workbench-pack/` next to the lesson, seeded with the schemas and scripts from the previous lessons in this mini-track and the docs you already wrote.
 
@@ -107,7 +113,7 @@ A pack is only valuable if it survives forks, updates, and an unfriendly upstrea
 
 **Skill-as-publishable. SkillKit-style distribution.** The pack ships as a SkillKit skill: `skillkit install agent-workbench-pack` lays it down across 32 AI agents from a single source. The pack repo is the source of truth; SkillKit is the distribution channel. Vendor lock-in collapses; the seven surfaces stay the same.
 
-## Use It
+## Use It | 使用方法
 
 Three places the pack ships:
 
@@ -117,29 +123,34 @@ Three places the pack ships:
 
 The pack is the recipe. Each install is a serving.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-workbench-pack.md` generates a project-tuned pack: rules sharpened to the team's history, scope globs matched to the repo, rubric dimensions extended with one domain-specific entry.
 
-## Exercises
+## Exercises | 练习题
 
 1. Decide which optional fifth doc deserves promotion into the canonical pack. Defend the cut.
+   *思考并实践此练习*
 2. Rewrite the installer as Python with a `--dry-run` flag. Compare ergonomics against bash.
+   *思考并实践此练习*
 3. Add a `bin/uninstall.sh` that safely removes the pack and refuses if state files have non-trivial history. What counts as non-trivial?
+   *思考并实践此练习*
 4. Add a `lint_pack.py` that fails when the pack drifts from `VERSION`. Wire it into CI for the pack's own repo.
+   *思考并实践此练习*
 5. Author the migration runbook from a hand-rolled workbench to this pack. What is the order of operations that minimizes downtime?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Workbench pack | "The starter kit" | A versioned directory carrying all seven surfaces |
-| Installer | "Setup script" | `bin/install.sh` that lays the pack down idempotently |
-| Pack version | "VERSION" | Major bumps for schema/script changes, patch for doc-only |
-| Drop-in pack | "cp -r and go" | Pack works without per-repo customization on day one |
-| Forkable template | "GitHub template" | Public repo that GitHub's "Use this template" can clone from |
+|------|----------------|------------------------|---|
+| Workbench pack | "The starter kit" | A versioned directory carrying all seven surfaces |  |
+| Installer | "Setup script" | `bin/install.sh` that lays the pack down idempotently |  |
+| Pack version | "VERSION" | Major bumps for schema/script changes, patch for doc-only |  |
+| Drop-in pack | "cp -r and go" | Pack works without per-repo customization on day one |  |
+| Forkable template | "GitHub template" | Public repo that GitHub's "Use this template" can clone from |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - Phases 14 · 31 to 14 · 41 — every surface this pack bundles
 - [SkillKit](https://github.com/rohitg00/skillkit) — install this skill across 32 AI agents

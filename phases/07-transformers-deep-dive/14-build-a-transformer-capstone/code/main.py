@@ -6,6 +6,8 @@ degrades to a parameter-count estimator so the script still runs cleanly.
 Default: 4 layers, 4 heads, d_model=128, seq_len=128, 500 steps on a
 tiny built-in Shakespeare excerpt. Finishes in ~2 minutes on a laptop.
 """
+# 【中文解读】从零构建 Transformer。整合所有知识实现 GPT 架构。
+
 
 import math
 import os

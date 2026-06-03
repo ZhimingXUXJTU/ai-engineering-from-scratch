@@ -1,6 +1,10 @@
-# RLHF: Reward Model + PPO
+# RLHF: Reward Model + PPO | 基于人类反馈的强化学习
 
 > SFT teaches the model to follow instructions. But it doesn't teach the model which response is BETTER. Two grammatically correct, factually accurate answers can differ enormously in helpfulness. RLHF is how you encode human judgment into the model's behavior. It's what makes Claude helpful and GPT polite.
+
+> **【中文解读】** SFT 教会模型遵循指令，但不教它哪个回答"更好"。RLHF 用人类偏好数据训练奖励模型，再用 PPO 优化策略让模型生成更符合人类判断的回答。这是让 Claude 有用、GPT 礼貌的核心技术。
+
+> **【拓展：PPO→ChatGPT对齐】** ChatGPT 的 RLHF 训练使用 PPO 算法：奖励模型给回答打分，PPO 用这个分数作为奖励信号来优化策略。KL 惩罚防止策略偏离 SFT 模型太远。这是 Anthropic/OpenAI 对齐训练的核心流程。
 
 **Type:** Build
 **Languages:** Python (with numpy)

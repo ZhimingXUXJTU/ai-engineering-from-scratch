@@ -1,6 +1,8 @@
-# Entity Linking & Disambiguation
+# Entity Linking & Disambiguation | 实体链接与消歧
 
 > NER found "Paris." Entity linking decides: Paris, France? Paris Hilton? Paris, Texas? Paris (the Trojan prince)? Without linking, your knowledge graph stays ambiguous.
+
+> **【中文解读】** 把实体链接到知识库中的对应条目。
 
 **Type:** Build
 **Languages:** Python

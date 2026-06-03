@@ -1,6 +1,10 @@
-# ControlNet, LoRA & Conditioning
+# ControlNet, LoRA & Conditioning | ControlNet、LoRA 与条件控制
 
 > Text alone is a clumsy control signal. ControlNet lets you clone a pretrained diffusion model and steer it with a depth map, pose skeleton, scribble, or edge image. LoRA lets you fine-tune a 2B-parameter model by training 10 million parameters. Together they turned Stable Diffusion from a toy into the 2026 image pipeline that ships at every agency.
+
+> **【中文解读】** 纯文本控制太粗糙。ControlNet 用深度图、姿态骨架、涂鸦或边缘图精确控制生成；LoRA 只训练 1000 万参数就能微调 20 亿参数的模型。两者结合让 Stable Diffusion 从玩具变成了 2026 年每个设计公司都在用的图像流水线。
+
+> **【拓展：LoRA 是大模型时代的微调标准】** LoRA（低秩适配）不仅在图像生成中使用，也被广泛用于 LLM 微调（如 LLaMA-LoRA）。只需训练 0.1% 的参数就能适配新任务/新风格，使 AI 定制化成本大幅降低。
 
 **Type:** Build
 **Languages:** Python

@@ -1,6 +1,10 @@
-# Vision Transformers (ViT)
+# Vision Transformers (ViT) | 视觉 Transformer
 
 > Cut the image into patches, treat each patch as a word, run a standard transformer. Don't look back.
+
+> **【中文解读】** 将图像切成小块（patch），把每个 patch 当作一个"词"，然后用标准 Transformer 处理。就是这么简单。ViT 证明了 Transformer 架构不仅在 NLP 中有效，在视觉领域同样可以超越 CNN。
+
+> **【拓展：ViT 与 GPT-4V】** ViT 是 GPT-4V、Claude 的视觉能力、LLaVA 等多模态大模型的视觉编码器。从 2021 年至今，ViT 已成为计算机视觉的基础架构，被用于 CLIP、SAM、DINO 等核心模型。ViT 的 patch 嵌入思想也启发了视频 Transformer 和多模态模型的设计。
 
 **Type:** Build
 **Languages:** Python

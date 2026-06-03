@@ -1,3 +1,17 @@
+"""
+关键点检测与姿态估计 (Keypoint Detection & Pose Estimation)
+
+核心概念：
+- 姿态=有序关键点集合（如人体 17 个关节点）
+- 关键点检测器=热力图回归器（为每个关键点预测概率热力图）
+- 后处理：从热力图中提取关键点坐标
+
+AI 对应：
+- 姿态估计用于健身动作纠正、手势控制、AR 滤镜
+- OpenPose、MediaPipe、YOLO-Pose 是代表性工具
+- 动作识别、步态分析等高级任务依赖关键点检测
+"""
+
 import numpy as np
 import torch
 import torch.nn as nn

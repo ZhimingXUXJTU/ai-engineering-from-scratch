@@ -1,4 +1,4 @@
-# Memory Blocks and Sleep-Time Compute (Letta)
+# Memory Blocks and Sleep-Time Compute (Letta) | 睡眠时 计算 记忆 块
 
 > MemGPT became Letta in 2024. The 2026 evolution adds two ideas: discrete functional memory blocks the model can edit directly, and a sleep-time agent that consolidates memory asynchronously while the primary agent is idle. This is how you scale memory beyond one conversation.
 
@@ -7,14 +7,14 @@
 **Prerequisites:** Phase 14 · 07 (MemGPT)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Name the three memory tiers Letta uses (core, recall, archival) and the role of each.
 - Explain the memory-block pattern: Human block, Persona block, and user-defined blocks as first-class typed objects.
 - Describe what sleep-time compute is, why it sits off the critical path, and why it can run a stronger model than the primary agent.
 - Implement a scripted two-agent loop where a primary agent serves responses and a sleep-time agent consolidates blocks between turns.
 
-## The Problem
+## The Problem | 问题
 
 MemGPT (Lesson 07) solved the virtual-memory control flow. Three production problems emerged:
 
@@ -22,9 +22,12 @@ MemGPT (Lesson 07) solved the virtual-memory control flow. Three production prob
 2. **Memory rot.** Writes accumulate. Contradicted facts stay. Retrieval drowns in stale content.
 3. **Structure loss.** A flat archival store cannot express "the Human block is always in the prompt; the Persona block is always in the prompt; the Task block swaps per session."
 
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
 Letta (letta.com) is the 2026 rewrite. Memory blocks make structure explicit; sleep-time compute moves consolidation off the critical path.
 
-## The Concept
+## The Concept | 概念
 
 ### Three tiers
 
@@ -74,7 +77,7 @@ Letta V1 (`letta_v1_agent`, 2026) deprecates `send_message`/heartbeat and inline
 - **Silent drift.** Sleep-time agent rewrites a block and the primary agent never notices. Version blocks and surface diffs in the trace.
 - **Poisoned consolidation.** Sleep-time agent processes attacker-reachable content into core. Lesson 27 applies to the sleep-time surface too.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements:
 
@@ -91,38 +94,43 @@ python3 code/main.py
 
 The transcript shows the split: primary turns are fast and produce raw writes; the sleep pass compacts and cleans up.
 
-## Use It
+## Use It | 使用方法
 
 - **Letta** (letta.com) for the reference implementation. Self-host or managed cloud.
 - **Claude Agent SDK skills** as block-shaped knowledge — a skill is a named, versioned, retrievable block of instructions the agent loads on demand.
 - **Custom builds** for teams that want control over the storage backend. Use the Letta API contract so you can migrate later.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-memory-blocks.md` generates a Letta-shaped block system with sleep-time hooks for any runtime, including safety rules and citation wiring.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a `block_summarize` tool that replaces the block value with a model-generated summary when `near_limit` returns true. Which trigger threshold minimizes both summarization calls and block overflow?
+   *思考并实践此练习*
 2. Implement sleep-time dedup over archival: two records whose text has >90% token overlap collapse to one. Do it only in the sleep pass, never on the critical path.
+   *思考并实践此练习*
 3. Version blocks. On every write record the old value and a diff. Expose `block_history(label)` so operators can debug "why did the agent forget X."
+   *思考并实践此练习*
 4. Treat sleep-time agents as untrusted writers. When they touch the Persona or Safety block, require a second-agent review before committing.
+   *思考并实践此练习*
 5. Port the example to use the Letta API (`letta_v1_agent`). What changes in the block schema, and how does native reasoning alter the trace shape?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Memory block | "Editable prompt section" | Typed, persistent, LLM-editable segment of core memory |
-| Human block | "User memory" | Facts about the user, pinned in core |
-| Persona block | "Agent identity" | Self-concept, tone, constraints, pinned in core |
-| Sleep-time compute | "Async memory work" | Second agent doing consolidation off the critical path |
-| Core / Recall / Archival | "Tiers" | Three-layer memory split: always-visible / conversation / external |
-| Block limit | "Cap" | Character limit per block; forces summarization |
-| Native reasoning | "Thinking channel" | Provider-level reasoning output, not prompt-level `Thought:` |
-| Learned context | "Sleep output" | Facts the sleep-time agent writes into shared blocks |
+|------|----------------|------------------------|---|
+| Memory block | "Editable prompt section" | Typed, persistent, LLM-editable segment of core memory |  |
+| Human block | "User memory" | Facts about the user, pinned in core |  |
+| Persona block | "Agent identity" | Self-concept, tone, constraints, pinned in core |  |
+| Sleep-time compute | "Async memory work" | Second agent doing consolidation off the critical path |  |
+| Core / Recall / Archival | "Tiers" | Three-layer memory split: always-visible / conversation / external |  |
+| Block limit | "Cap" | Character limit per block; forces summarization |  |
+| Native reasoning | "Thinking channel" | Provider-level reasoning output, not prompt-level `Thought:` |  |
+| Learned context | "Sleep output" | Facts the sleep-time agent writes into shared blocks |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Letta, Memory Blocks blog](https://www.letta.com/blog/memory-blocks) — the block pattern
 - [Letta, Sleep-time Compute blog](https://www.letta.com/blog/sleep-time-compute) — async consolidation

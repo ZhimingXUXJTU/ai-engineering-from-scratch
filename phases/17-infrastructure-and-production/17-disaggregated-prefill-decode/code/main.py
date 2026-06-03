@@ -2,6 +2,9 @@
 
 Models one request through colocated (same GPU) vs disaggregated (prefill pool + decode pool + KV transfer).
 Sweeps prompt length to find the crossover.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -17,21 +20,24 @@ NIXL_TCP_GB_S = 10
 
 
 def ms_colocated(prompt: int, output: int) -> float:
+    """ms_colocated"""
     prefill_ms = prompt / PREFILL_TOK_PER_MS
     decode_ms = output / DECODE_TOK_PER_MS_COLOCATED
-    return prefill_ms + decode_ms
+    return prefill_ms + decode_ms  # 返回结果
 
 
 def ms_disaggregated(prompt: int, output: int, use_rdma: bool = True) -> float:
+    """ms_disaggregated"""
     prefill_ms = prompt / PREFILL_TOK_PER_MS
     kv_bytes = prompt * KV_BYTES_PER_TOKEN_70B_FP8
     transport = NIXL_RDMA_GB_S if use_rdma else NIXL_TCP_GB_S
     transfer_ms = (kv_bytes / 1e9) / transport * 1000
     decode_ms = output / DECODE_TOK_PER_MS_DECODE_GPU
-    return prefill_ms + transfer_ms + decode_ms
+    return prefill_ms + transfer_ms + decode_ms  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 95)
     print("DISAGGREGATED vs COLOCATED — same request, different GPU placement")
     print("=" * 95)
@@ -56,4 +62,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

@@ -4,6 +4,8 @@ Full log-mel spectrogram requires FFT. For pedagogy we show the framing
 shape (which is all the transformer ever sees) plus the task-token prefix
 that controls Whisper's behavior.
 """
+# 【中文解读】音频 Transformer。Whisper 用 Transformer 做语音识别和翻译。
+
 
 import math
 

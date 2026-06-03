@@ -1,6 +1,8 @@
-# Embedding Models — The 2026 Deep Dive
+# Embedding Models — The 2026 Deep Dive | 嵌入模型 — 深度解析
 
 > Word2Vec gave you a vector per word. Modern embedding models give you a vector per passage, cross-lingual, with sparse, dense, and multi-vector views, sized to fit your index. Pick wrong and your RAG retrieves the wrong thing.
+
+> **【中文解读】** 理解 text-embedding-ada-002、BGE、E5 等嵌入模型。RAG 检索质量取决于嵌入质量。
 
 **Type:** Learn
 **Languages:** Python

@@ -1,5 +1,10 @@
 """Phase 13 Lesson 11 - MCP sampling harness (server -> client LLM calls).
 
+MCP 采样 (MCP Sampling: Server-Requested LLM Completions)
+核心概念：采样让服务器翻转方向——请求客户端的 LLM 做决策。实现服务器托管的 Agent 循环，
+无需服务器拥有模型凭证。SEP-1577 在采样请求中加入了工具支持。
+AI 应用对应：MCP 采样是构建服务器端 Agent 循环的关键能力。
+
 Simulated server-to-client sampling:
   - Server's summarize_repo tool runs two sampling rounds (pick files, then
     synthesize) by calling a 'fake_client_sample' stand-in for the client.

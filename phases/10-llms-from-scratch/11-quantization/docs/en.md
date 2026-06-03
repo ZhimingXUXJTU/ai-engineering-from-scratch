@@ -1,6 +1,10 @@
-# Quantization: Making Models Fit
+# Quantization: Making Models Fit | 量化：让模型跑起来
 
 > A 70B model in FP16 needs 140GB. Two A100s just for weights. Quantize to FP8: one 80GB GPU. INT4: a MacBook.
+
+> **【中文解读】** 70 亿参数模型在 FP16 下需要 140GB 显存（两张 A100）。量化到 FP8 只需一张 80GB GPU，量化到 INT4 可以在 MacBook 上运行。量化是用精度换显存和速度的核心技术。
+
+> **【拓展：量化→llama.cpp/GGUF】** llama.cpp 和 GGUF 格式让大模型能在消费级硬件上运行。GPTQ、AWQ、GGUF 等量化方法是将 70B+ 模型部署到本地设备的关键。理解量化是理解大模型部署的基础。
 
 **Type:** Build
 **Languages:** Python (with numpy)

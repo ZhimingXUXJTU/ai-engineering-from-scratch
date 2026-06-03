@@ -1,6 +1,10 @@
-# DeepSeek-V3 Architecture Walkthrough
+# DeepSeek-V3 Architecture Walkthrough | DeepSeek-V3 架构详解
 
 > Phase 10 · Lesson 14 named the six architectural knobs every open model turns. DeepSeek-V3 (December 2024, 671B parameters total, 37B active) turns all six and adds four more: Multi-Head Latent Attention, auxiliary-loss-free load balancing, Multi-Token Prediction, and DualPipe training. This lesson reads DeepSeek-V3's architecture top to bottom and derives every parameter count from the published config. By the end you can explain why the 671B/37B ratio is the right bet and why MLA + MoE together beat either alone at the frontier.
+
+> **【中文解读】** DeepSeek-V3（2024年12月，671B 总参数，37B 激活）转动了所有六个架构旋钮并新增四个：MLA（多头潜在注意力）、无辅助损失的负载均衡、MTP（多 token 预测）、DualPipe 训练。671B/37B 的比例意味着每次推理只激活 5.5% 的参数。
+
+> **【拓展：DeepSeek架构→开源大模型】** DeepSeek-V3 是 2024-2025 年最重要的开源大模型架构之一。MLA 将 KV-cache 压缩到原来的 1/10，MoE 让 671B 模型只消耗 37B 的推理成本。理解这个架构是理解中国 AI 实验室在大模型领域突破的关键。
 
 **Type:** Learn
 **Languages:** Python (stdlib, parameter calculator)

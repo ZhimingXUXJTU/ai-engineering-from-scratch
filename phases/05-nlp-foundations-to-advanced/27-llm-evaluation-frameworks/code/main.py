@@ -1,3 +1,8 @@
+"""
+LLM 评估框架
+
+评估 LLM 生成质量和 RAG 效果。对应 RAGAS、DeepEval、G-Eval 等框架。
+"""
 import re
 from collections import Counter
 

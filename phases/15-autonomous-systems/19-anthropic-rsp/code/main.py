@@ -7,6 +7,9 @@ cover.
 
 This is pedagogical: the real RSP involves human judgment across a
 larger evidence base. The code is a reading aid, not a policy tool.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -16,6 +19,7 @@ from dataclasses import dataclass
 
 @dataclass
 class CapabilityMeasurement:
+    """CapabilityMeasurement"""
     model_name: str
     # Fraction of internal AI R&D tasks the model can complete at
     # expert-human cost-equivalent (0.0-1.0).
@@ -38,6 +42,7 @@ AI_RD_4_THRESHOLDS = {
 
 
 def threshold_crossed(m: CapabilityMeasurement) -> tuple[bool, list[str]]:
+    """threshold_crossed"""
     reasons = []
     if m.rd_automation_share >= AI_RD_4_THRESHOLDS["rd_automation_share"]:
         reasons.append(
@@ -55,10 +60,11 @@ def threshold_crossed(m: CapabilityMeasurement) -> tuple[bool, list[str]]:
             f">= {AI_RD_4_THRESHOLDS['aar_outperform_share']}"
         )
     crossed = len(reasons) >= 2  # any two triggers; illustrative
-    return crossed, reasons
+    return crossed, reasons  # 返回结果
 
 
 def affirmative_case_template(m: CapabilityMeasurement) -> list[str]:
+    """affirmative_case_template"""
     sections = [
         "1. Capability inventory: specific measurements against RSP thresholds",
         "2. Misalignment risk analysis: modes the model could exhibit",
@@ -72,10 +78,11 @@ def affirmative_case_template(m: CapabilityMeasurement) -> list[str]:
             f"7. Gaming-adjusted capability estimate "
             f"(observed gaming rate {m.eval_context_gaming_rate:.0%})"
         )
-    return sections
+    return sections  # 返回结果
 
 
 def evaluate(m: CapabilityMeasurement) -> None:
+    """evaluate"""
     crossed, reasons = threshold_crossed(m)
     print(f"\nModel: {m.model_name}")
     print("-" * 70)
@@ -99,6 +106,7 @@ def evaluate(m: CapabilityMeasurement) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("RSP v3.0 AI R&D-4 THRESHOLD EVALUATOR (Phase 15, Lesson 19)")
     print("=" * 70)
@@ -136,4 +144,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

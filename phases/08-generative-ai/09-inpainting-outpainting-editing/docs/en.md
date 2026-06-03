@@ -1,6 +1,10 @@
-# Inpainting, Outpainting & Image Editing
+# Inpainting, Outpainting & Image Editing | 图像修复、扩展与编辑
 
 > Text-to-image makes new things. Inpainting fixes old ones. In production, 70% of billable image work is editing — swap a background, remove a logo, extend the canvas, regenerate a hand. Inpainting is where diffusion earns its keep.
+
+> **【中文解读】** 文本生成图像创造新东西，图像修复（inpainting）修改已有的。生产中 70% 的付费图像工作是编辑——换背景、去 logo、扩展画布、重画手。Inpainting 是扩散模型真正赚钱的地方。
+
+> **【拓展：Photoshop 生成式填充】** Adobe Photoshop 的生成式填充（Generative Fill）就是基于 inpainting 技术。它让非专业用户也能一键移除/替换图像中的任何内容。
 
 **Type:** Build
 **Languages:** Python

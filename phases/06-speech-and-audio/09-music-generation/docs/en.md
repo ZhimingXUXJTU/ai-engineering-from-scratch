@@ -1,6 +1,10 @@
-# Music Generation — MusicGen, Stable Audio, Suno, and the Licensing Earthquake
+# Music Generation — MusicGen, Stable Audio, Suno, and the Licensing Earthquake | 音乐生成 — MusicGen、Stable Audio、Suno 与版权地震
 
 > 2026 music generation: Suno v5 and Udio v4 dominate commercial; MusicGen, Stable Audio Open, and ACE-Step lead open-source. The technical problem is mostly solved. The legal problem (Warner Music $500M settlement, UMG settlement) reshaped the field in 2025-2026.
+
+> **【中文解读】** 2026 年的音乐生成：Suno v5 和 Udio v4 主导商业产品；MusicGen、Stable Audio Open 和 ACE-Step 领先开源。技术问题基本解决，但法律问题（Warner Music 5 亿美元和解案）在 2025-2026 年重塑了这个领域。
+
+> **【拓展：AI 音乐的法律风暴】** AI 生成音乐的版权问题引发了音乐行业的地震。训练数据中的版权音乐是否构成侵权？AI 生成的音乐版权归谁？这些问题正在全球法庭上激烈辩论。
 
 **Type:** Build
 **Languages:** Python

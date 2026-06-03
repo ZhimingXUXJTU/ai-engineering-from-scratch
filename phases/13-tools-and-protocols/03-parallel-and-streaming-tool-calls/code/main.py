@@ -1,5 +1,10 @@
 """Phase 13 Lesson 03 - parallel and streaming tool calls.
 
+并行工具调用与流式输出 (Parallel Tool Calls and Streaming)
+核心概念：多个独立工具调用可并行执行，总时间等于最慢的单个调用。
+流式参数重组需要处理乱序 chunk 和 id 关联。
+AI 应用对应：并行调用是 Agent 效率的关键优化，流式输出改善用户体验。
+
 Two demos, stdlib only:
   1. Three-city weather run, sequential vs parallel (thread pool).
      Measures wall-clock and shows the max vs sum pattern.

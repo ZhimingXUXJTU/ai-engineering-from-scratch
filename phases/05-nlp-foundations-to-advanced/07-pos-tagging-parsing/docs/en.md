@@ -1,6 +1,8 @@
-# POS Tagging and Syntactic Parsing
+# POS Tagging and Syntactic Parsing | 词性标注与句法分析
 
 > Grammar was unfashionable for a while. Then every LLM pipeline needed to validate structured extraction, and it came back.
+
+> **【中文解读】** 给每个词标注词性，分析句子的语法结构。
 
 **Type:** Build
 **Languages:** Python

@@ -1,3 +1,8 @@
+"""
+ControlNet、LoRA 与条件控制 (ControlNet, LoRA & Conditioning)
+核心概念：ControlNet（精确控制生成）、LoRA（低秩微调，训练 0.1% 参数）
+AI 对应：LoRA 是大模型时代的微调标准，ControlNet 使 AI 绘画精确可控
+"""
 import math
 import random
 

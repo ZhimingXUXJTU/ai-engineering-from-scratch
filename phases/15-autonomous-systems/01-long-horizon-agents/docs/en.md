@@ -1,21 +1,25 @@
-# The Shift from Chatbots to Long-Horizon Agents
+# The Shift from Chatbots to Long-Horizon Agents | 从聊天机器人到长程 Agent 的转变
 
 > In 2023 a chatbot answered a question in one turn. In 2026 a frontier model routinely runs minutes to hours on a single task. METR's Time Horizon 1.1 benchmark (January 2026) puts Claude Opus 4.6 at 14+ hours of expert work at 50% reliability. The horizon has been doubling roughly every seven months since GPT-2. Every assumption we built around single-turn chat — context, trust, failure modes, cost, observability — breaks when runs last longer than lunch.
+
+> **【中文解读】** 2023 年聊天机器人一轮回答一个问题。2026 年前沿模型可以花数分钟到数小时完成单个任务。METR 基准显示 Claude Opus 4.6 能以 50% 可靠性完成 14+ 小时的专家工作。时间线每 7 个月翻倍——所有围绕单轮对话构建的假设（上下文、信任、失败模式、成本、可观测性）都在运行时间超过午休时间后崩溃。
 
 **Type:** Learn
 **Languages:** Python (stdlib, horizon-curve simulator)
 **Prerequisites:** Phase 14 · 01 (The Agent Loop)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题
 
 A chatbot is a stateless function. It takes a prompt, returns a reply, and forgets. Even RAG-equipped systems built through 2024 behave this way: they plan inside a single context window, take one action, and surface the result.
 
 An autonomous agent is different in kind. It runs a loop. It decides when to stop. It spends money — real tokens, real GPU hours, real downstream side effects — during the run. Long-horizon agents amplify every aspect of this: cost grows, error probability grows per step, and the gap between what we can evaluate and what gets shipped widens.
 
+> **【中文解读】** 聊天机器人是无状态函数——接收提示、返回回复、然后忘记。自主 Agent 则不同：它运行循环、自行决定何时停止、在运行中花费真实资源（Token、GPU 时间、副作用）。长程 Agent 放大了所有这些问题：成本增长、每步错误概率增加、可评估与实际交付之间的差距扩大。
+
 The numbers from METR make this concrete. Between GPT-2 and Claude Opus 4.6, the time horizon (the human task length a model completes at 50% reliability) grew from seconds to half a workday. The doubling time sits near seven months. If the trend holds another year, the 50% horizon hits multi-day tasks. That is qualitatively different from anything the chatbot era designed for.
 
-## The Concept
+## The Concept | 概念
 
 ### The METR Time Horizon, in one paragraph
 
@@ -59,7 +63,7 @@ Practical consequence: a horizon number is a capability ceiling, not a reliabili
 
 Every row becomes a lesson in this phase.
 
-## Use It
+## Use It | 使用方法
 
 Run `code/main.py`. It simulates the METR horizon curve and shows:
 
@@ -69,36 +73,41 @@ Run `code/main.py`. It simulates the METR horizon curve and shows:
 
 The simulator uses stdlib only. The intent is pedagogical: hold the numbers in your head before trusting a deployed agent to run unattended.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-horizon-reality-check.md` helps you answer a practical question: given a task you want to hand to an agent, does the current frontier's horizon cover it with enough margin, or are you about to ship a runaway?
 
-## Exercises
+## Exercises | 练习题
 
 1. Run the simulator. With the default 7-month doubling, how many months until the horizon crosses 30 hours? 168 hours? Plot the two crossings.
+   *思考并实践此练习*
 
 2. Set per-step reliability to 0.995. What trajectory length still clears 50% end-to-end reliability? Compare to 0.99 and 0.999. Per-step reliability has exponential consequences at scale.
+   *思考并实践此练习*
 
 3. Read METR's Time Horizon 1.1 blog post. Identify one methodological choice (task weighting, expert baseline, success criterion) that you would change. Write one paragraph explaining why.
+   *思考并实践此练习*
 
 4. Pick one production agent workflow you know. Estimate the median trajectory length in tool calls. Multiply by your best guess of per-step reliability. Is the resulting end-to-end number honest with your users?
+   *思考并实践此练习*
 
 5. Read the 2026 International AI Safety Report section on eval-context gaming. Design one evaluation protocol that would be robust to a model behaving differently in tests than in deployment.
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| Time horizon | "How long can it run" | METR's 50%-reliability human task length, fit via logistic regression |
-| HCAST | "METR's task suite" | 180+ ML, cyber, SWE, reasoning tasks spanning 1 min to 8+ hours |
-| RE-Bench | "Research engineering benchmark" | 71 ML research-engineering tasks with human expert baseline |
-| Doubling time | "How fast horizons grow" | Time for the 50% horizon to double; fit at ~7 months since GPT-2 |
-| Trajectory | "Agent's action sequence" | The full ordered list of tool calls, observations, and reasoning steps in a run |
-| Eval-context gaming | "Model behaves differently in tests" | Model infers it is being evaluated and behaves safer, inflating benchmark scores |
-| Alignment faking | "Performance under retraining attempts" | Claude exhibited this in 12-78% of Anthropic's 2024 tests |
-| Horizon as upper bound | "METR numbers are ceilings" | Benchmark horizons assume ideal tooling and no consequences; deployment is harder |
+|---|---|---|---|
+| Time horizon | "How long can it run" | METR's 50%-reliability human task length, fit via logistic regression |  |
+| HCAST | "METR's task suite" | 180+ ML, cyber, SWE, reasoning tasks spanning 1 min to 8+ hours |  |
+| RE-Bench | "Research engineering benchmark" | 71 ML research-engineering tasks with human expert baseline |  |
+| Doubling time | "How fast horizons grow" | Time for the 50% horizon to double; fit at ~7 months since GPT-2 |  |
+| Trajectory | "Agent's action sequence" | The full ordered list of tool calls, observations, and reasoning steps in a run |  |
+| Eval-context gaming | "Model behaves differently in tests" | Model infers it is being evaluated and behaves safer, inflating benchmark scores |  |
+| Alignment faking | "Performance under retraining attempts" | Claude exhibited this in 12-78% of Anthropic's 2024 tests |  |
+| Horizon as upper bound | "METR numbers are ceilings" | Benchmark horizons assume ideal tooling and no consequences; deployment is harder |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [METR — Measuring AI Ability to Complete Long Tasks](https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/) — the original horizon paper and methodology.
 - [METR Time Horizons benchmark (Epoch AI)](https://epoch.ai/benchmarks/metr-time-horizons) — current numbers, updated through 2026.

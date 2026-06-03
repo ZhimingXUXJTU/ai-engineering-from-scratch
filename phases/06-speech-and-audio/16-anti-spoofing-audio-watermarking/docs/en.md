@@ -1,6 +1,8 @@
-# Voice Anti-Spoofing & Audio Watermarking — ASVspoof 5, AudioSeal, WaveVerify
+# Voice Anti-Spoofing & Audio Watermarking — ASVspoof 5, AudioSeal, WaveVerify | 语音防伪与音频水印
 
 > Voice cloning shipped faster than defenses. 2026 production voice systems need two things: a detector (AASIST, RawNet2) that classifies real vs fake speech, and a watermark (AudioSeal) that survives compression and editing. Ship both or do not ship voice cloning.
+
+> **【中文解读】** 语音克隆技术跑在了防御前面。2026 年的生产级语音系统需要两样东西：检测器（AASIST、RawNet2）区分真假语音，水印（AudioSeal）在压缩和编辑后仍能存活。不做这两项就不要上线语音克隆功能。
 
 **Type:** Build
 **Languages:** Python

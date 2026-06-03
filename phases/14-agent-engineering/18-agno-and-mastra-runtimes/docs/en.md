@@ -1,4 +1,4 @@
-# Agno and Mastra: Production Runtimes
+# Agno and Mastra: Production Runtimes | 生产 运行时 Mastra Agno
 
 > Agno (Python) and Mastra (TypeScript) are the 2026 production-runtime pairing. Agno aims at microsecond agent instantiation and stateless FastAPI backends. Mastra ships agents, tools, workflows, unified model routing, and composite storage on the Vercel AI SDK substrate.
 
@@ -7,18 +7,21 @@
 **Prerequisites:** Phase 14 · 01 (Agent Loop), Phase 14 · 13 (LangGraph)
 **Time:** ~45 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Identify Agno's performance targets and when they matter.
 - Name Mastra's three primitives — Agents, Tools, Workflows — and the supported server adapters.
 - Explain why a stateless session-scoped FastAPI backend is the recommended Agno production path.
 - Pick Agno vs Mastra for a given stack (Python-first vs TypeScript-first).
 
-## The Problem
+## The Problem | 问题
 
 LangGraph, AutoGen, CrewAI are framework-heavy. Teams that want "just the agent loop, fast, in my runtime" reach for Agno (Python) or Mastra (TypeScript). Both trade some of the framework-owned primitives for raw speed and a tighter fit to the surrounding stack.
 
-## The Concept
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
+## The Concept | 概念
 
 ### Agno
 
@@ -62,7 +65,7 @@ Neither is trying to be LangGraph. They compete on:
 - **Ecosystem lock-in.** Mastra's Vercel-flavored integration is a plus on Vercel, a minus elsewhere.
 - **Enterprise license confusion.** Mastra's `ee/` directories are source-available, not Apache 2.0. Read the licenses if you're planning to fork.
 
-## Build It
+## Build It | 动手构建
 
 This lesson is primarily comparative — no single code artifact would do both frameworks justice. See `code/main.py` for a side-by-side toy: a minimal "run an agent, stream the output, persist session" flow implemented twice (once Agno-shaped, once Mastra-shaped).
 
@@ -74,36 +77,41 @@ python3 code/main.py
 
 Two structurally different but functionally equivalent traces.
 
-## Use It
+## Use It | 使用方法
 
 - **Agno** — Python backend that needs speed and FastAPI shape.
 - **Mastra** — TypeScript backend with many providers and workflow primitives.
 - Both ship first-party observability hooks. Both integrate with Langfuse.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-runtime-picker.md` picks Agno, Mastra, LangGraph, or a provider SDK based on stack, latency budget, and operational shape.
 
-## Exercises
+## Exercises | 练习题
 
 1. Read Agno's docs. Port the stdlib ReAct loop (Lesson 01) to Agno. What disappeared? What stayed?
+   *思考并实践此练习*
 2. Read Mastra's docs. Port the same loop to Mastra. What changed in tool typing (Zod vs nothing)?
+   *思考并实践此练习*
 3. Benchmark: measure agent instantiation latency on your stack. Does Agno's 2μs matter to your workload?
+   *思考并实践此练习*
 4. Design a migration: if you've been running CrewAI in Python, what breaks if you move to Agno?
+   *思考并实践此练习*
 5. Read Mastra's `ee/` license terms. What restrictions would affect an open-source fork?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Agno | "Fast Python agents" | Stateless session-scoped agent runtime |
-| Mastra | "TypeScript agents on Vercel AI SDK" | Agents + Tools + Workflows + Model Router |
-| Unified Model Router | "Multi-provider access" | Single client for 3,300+ models across 94 providers |
-| Composite storage | "Multiple backends" | Memory/workflows/observability each to a different store |
-| Mastra Studio | "Local debugger" | localhost:4111 UI for introspecting agents |
-| Source-available | "Not OSS" | License permits source reading but restricts commercial use |
+|------|----------------|------------------------|---|
+| Agno | "Fast Python agents" | Stateless session-scoped agent runtime |  |
+| Mastra | "TypeScript agents on Vercel AI SDK" | Agents + Tools + Workflows + Model Router |  |
+| Unified Model Router | "Multi-provider access" | Single client for 3,300+ models across 94 providers |  |
+| Composite storage | "Multiple backends" | Memory/workflows/observability each to a different store |  |
+| Mastra Studio | "Local debugger" | localhost:4111 UI for introspecting agents |  |
+| Source-available | "Not OSS" | License permits source reading but restricts commercial use |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Agno Agent Framework docs](https://www.agno.com/agent-framework) — performance targets, FastAPI integration
 - [Mastra docs](https://mastra.ai/docs) — primitives, server adapters, Model Router

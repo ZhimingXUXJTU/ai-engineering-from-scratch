@@ -2,6 +2,9 @@
 
 Given a control, print the frameworks it satisfies. Given a customer profile
 (geography + segment), print the required frameworks.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -33,6 +36,7 @@ PROFILE_MAP = {
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("COMPLIANCE CONTROL MAP — one control, many frameworks")
     print("=" * 80)
@@ -54,4 +58,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

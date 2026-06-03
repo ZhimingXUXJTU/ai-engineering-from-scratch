@@ -1,6 +1,10 @@
-# Audio-Language Models — Qwen2.5-Omni, Audio Flamingo, GPT-4o Audio
+# Audio-Language Models — Qwen2.5-Omni, Audio Flamingo, GPT-4o Audio | 音频语言模型
 
 > 2026 audio-language models reason over speech + environmental sound + music. Qwen2.5-Omni-7B matches GPT-4o Audio on MMAU-Pro. Audio Flamingo Next beats Gemini 2.5 Pro on LongAudioBench. The gap between open and closed is essentially closed — except on multi-audio tasks, where everyone is near random.
+
+> **【中文解读】** 2026 年的音频语言模型能理解语音+环境声+音乐。Qwen2.5-Omni-7B 在 MMAU-Pro 上匹配 GPT-4o Audio，Audio Flamingo Next 在 LongAudioBench 上超越 Gemini 2.5 Pro。开源与闭源的差距基本消失。
+
+> **【拓展：音频大模型的新时代】** 音频语言模型将 LLM 的推理能力扩展到音频领域，能同时理解语音内容、识别环境声音、分析音乐结构。这是多模态 AI 的重要方向。
 
 **Type:** Learn
 **Languages:** Python

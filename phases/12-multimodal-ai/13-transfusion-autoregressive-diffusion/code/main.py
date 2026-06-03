@@ -1,5 +1,10 @@
 """Transfusion toy: two-loss trainer on a 4x4 grayscale + short caption.
 
+Transfusion：自回归文本+扩散图像 (Autoregressive Text + Diffusion Image)
+核心概念：一个 Transformer 两个损失——文本 token 用下一 token 预测，图像 patch 用扩散/流匹配损失。
+两者优化同一组权重，块三角注意力掩码让一个 Transformer 同时做两件事。
+AI 应用对应：Transfusion 是 Stable Diffusion 3 (MMDiT) 的近亲，是连续空间多模态统一的方向。
+
 Stdlib. The transformer is a shared linear map; the point is the two-loss
 plumbing and the block-triangular attention mask.
 """

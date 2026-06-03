@@ -2,6 +2,9 @@
 
 Three specialized agents produce hypotheses; supervisor ranks by agreement.
 Adversarial evaluation: disagreement escalates to human.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -11,6 +14,7 @@ from dataclasses import dataclass
 
 @dataclass
 class AgentHypothesis:
+    """AgentHypothesis"""
     agent: str
     root_cause: str
     confidence: float
@@ -18,20 +22,22 @@ class AgentHypothesis:
 
 
 def log_agent(incident: str) -> AgentHypothesis:
+    """log_agent"""
     # simulated: scans logs, picks most common error token
     if "checkout" in incident.lower():
-        return AgentHypothesis(
+        return AgentHypothesis(  # 返回结果
             "LogAgent",
             "vLLM OOM from KV cache spike on /api/llm",
             0.78,
             ["frequency: 142 errors/min", "pattern: 'kv_cache_allocation_failed'", "node: pod-gpu-3"],
         )
-    return AgentHypothesis("LogAgent", "unclear", 0.35, ["logs show no obvious pattern"])
+    return AgentHypothesis("LogAgent", "unclear", 0.35, ["logs show no obvious pattern"])  # 返回结果
 
 
 def metric_agent(incident: str) -> AgentHypothesis:
+    """metric_agent"""
     # simulated: PromQL query matches to known patterns
-    return AgentHypothesis(
+    return AgentHypothesis(  # 返回结果
         "MetricAgent",
         "GPU memory utilization hit 98% 4 minutes before error spike",
         0.82,
@@ -40,8 +46,9 @@ def metric_agent(incident: str) -> AgentHypothesis:
 
 
 def runbook_agent(incident: str) -> AgentHypothesis:
+    """runbook_agent"""
     # simulated: vector search on runbook repo
-    return AgentHypothesis(
+    return AgentHypothesis(  # 返回结果
         "RunbookAgent",
         "Matches runbook RB-017: KV cache OOM under burst concurrency",
         0.88,
@@ -50,6 +57,7 @@ def runbook_agent(incident: str) -> AgentHypothesis:
 
 
 def supervisor(hypotheses: list[AgentHypothesis]) -> dict:
+    """supervisor"""
     # group similar root causes; agreement = confidence boost
     root_causes = {}
     for h in hypotheses:
@@ -61,7 +69,7 @@ def supervisor(hypotheses: list[AgentHypothesis]) -> dict:
     adversarial_agreement = len(top_agents) >= 2
     action = "restart pod + lower --gpu-memory-utilization"  # safe action
 
-    return {
+    return {  # 返回结果
         "top_root_cause": top_key,
         "supporting_agents": [h.agent for h in top_agents],
         "aggregated_confidence": sum(h.confidence for h in top_agents) / len(top_agents),
@@ -72,6 +80,7 @@ def supervisor(hypotheses: list[AgentHypothesis]) -> dict:
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("AI SRE TRIAGE — multi-agent investigation of a production incident")
     print("=" * 80)
@@ -98,4 +107,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

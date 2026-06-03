@@ -1,6 +1,8 @@
-# Chunking Strategies for RAG
+# Chunking Strategies for RAG | RAG 分块策略
 
 > Chunking configuration influences retrieval quality as much as the choice of embedding model (Vectara NAACL 2025). Get chunking wrong and no amount of reranking saves you.
+
+> **【中文解读】** 如何把长文档切成适合检索的块。分块策略直接影响 RAG 效果。
 
 **Type:** Build
 **Languages:** Python

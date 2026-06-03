@@ -1,6 +1,8 @@
-# Speculative Decoding — Draft, Verify, Repeat
+# Speculative Decoding — Draft, Verify, Repeat | 推测解码 — 草案、验证、重复
 
 > Autoregressive decoding is serial. Each token waits for the previous one. Speculative decoding breaks the chain: a cheap model drafts N tokens, the expensive model verifies all N in one forward pass. When the draft is right you paid one big forward for N generations.
+
+> **【中文解读】** 用小模型快速生成候选 token，大模型批量验证。可以加速推理 2-3 倍而不降低质量。
 
 **Type:** Build
 **Languages:** Python

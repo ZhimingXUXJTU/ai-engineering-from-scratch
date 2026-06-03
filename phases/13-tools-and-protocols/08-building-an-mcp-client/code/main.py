@@ -1,5 +1,10 @@
 """Phase 13 Lesson 08 - toy MCP client, multi-server namespace merge.
 
+构建 MCP 客户端 (Building an MCP Client)
+核心概念：MCP 客户端负责进程管理、能力协商、多服务器工具合并、采样回调和重连。
+多服务器客户端将不同 MCP 服务器的工具合并为统一命名空间供模型调用。
+AI 应用对应：Claude Desktop、Cursor 等都是 MCP 客户端，需要管理多个 MCP 服务器的连接和工具发现。
+
 No real subprocess - simulates three MCP servers in-process as callables so
 we can focus on discovery, merging, and routing. The Session and dispatch
 shape match the real stdio client; swap the in-process stub for a real

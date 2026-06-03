@@ -1,6 +1,10 @@
-# Multi-Object Tracking & Video Memory
+# Multi-Object Tracking & Video Memory | 多目标跟踪与视频记忆
 
 > Tracking is detection plus association. Detect every frame. Match this frame's detections to last frame's tracks by ID.
+
+> **【中文解读】** 跟踪 = 检测 + 关联。每帧检测目标，然后将当前帧的检测结果与上一帧的跟踪轨迹通过 ID 匹配。多目标跟踪（MOT）是视频理解的核心技术，需要处理遮挡、消失、重出现等复杂情况。
+
+> **【拓展：MOT 的应用】** 多目标跟踪在安防监控（人员轨迹追踪）、交通管理（车辆计数）、体育分析（球员跑动轨迹）、无人机跟踪等场景中不可或缺。ByteTrack、SORT/DeepSORT 是经典方法。
 
 **Type:** Build
 **Languages:** Python

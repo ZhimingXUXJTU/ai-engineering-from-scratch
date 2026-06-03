@@ -1,5 +1,10 @@
 """Q-Former cross-attention toy — stdlib Python.
 
+从 CLIP 到 BLIP-2：Q-Former 模态桥接 (Q-Former as Modality Bridge)
+核心概念：32个可学习查询向量通过交叉注意力从冻结 ViT 提取视觉特征，然后注入冻结 LLM。
+仅188M参数的桥接器就能连接11B语言模型和 ViT-g/14 视觉编码器。
+AI 应用对应：Q-Former 是"冻结视觉编码器+冻结LLM+轻量桥接"范式的开创者。
+
 Builds a minimal BLIP-2-style modality bridge:
   - 256 "patch tokens" from a fake ViT
   - 32 learnable query vectors

@@ -3,6 +3,8 @@
 Pure stdlib. Shows the 80/10/10 rule, whole-word masking, and
 distribution sanity checks over a large batch of tokens.
 """
+# 【中文解读】BERT 掩码语言模型。Encoder-only Transformer，用掩码预测训练。
+
 
 import random
 from collections import Counter

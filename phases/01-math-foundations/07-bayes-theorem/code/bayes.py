@@ -1,3 +1,7 @@
+"""
+贝叶斯定理和朴素贝叶斯分类器的从零实现，含拉普拉斯平滑。
+AI 对应: 朴素贝叶斯是垃圾邮件过滤的经典算法，sklearn 中有 GaussianNB/MultinomialNB。
+"""
 import math
 from collections import defaultdict
 

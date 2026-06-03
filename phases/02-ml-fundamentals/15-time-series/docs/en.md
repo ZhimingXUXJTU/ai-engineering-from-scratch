@@ -1,4 +1,4 @@
-# Time Series Fundamentals
+# Time Series Fundamentals | 时间序列基础
 
 > Past performance does predict future results -- if you check for stationarity first.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 2, Lessons 01-09
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Decompose a time series into trend, seasonality, and residual components and test for stationarity
 - Implement lag features and rolling statistics to convert a time series into a supervised learning problem
 - Build a walk-forward validation framework that prevents future data from leaking into training
 - Explain why random train/test splits are invalid for time series and demonstrate the performance gap versus proper temporal splits
+
+
+> **【中文解读】**
+> 时间序列是按时间顺序排列的数据。ARIMA、指数平滑是经典方法，LSTM/Transformer 是深度学习方法。股票预测、销量预测、天气预报是典型应用。
 
 ## The Problem
 

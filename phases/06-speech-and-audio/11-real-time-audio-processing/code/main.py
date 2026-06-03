@@ -1,3 +1,8 @@
+"""
+实时音频处理 (Real-Time Audio Processing)
+核心概念：20ms 延迟预算内完成处理，流式 VAD→STT→LLM→TTS
+AI 对应：对话式 AI 的核心工程挑战，每个环节都有延迟约束
+"""
 """Real-time voice agent pipeline simulator.
 
 Simulates an audio chunk stream through VAD → STT → LLM → TTS with a

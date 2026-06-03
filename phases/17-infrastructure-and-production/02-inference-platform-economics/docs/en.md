@@ -1,20 +1,23 @@
-# Inference Platform Economics — Fireworks, Together, Baseten, Modal, Replicate, Anyscale
+# Inference Platform Economics — Fireworks, Together, Baseten, Modal, Replicate, Anyscale | 推理 经济学
 
 > The 2026 inference market is no longer GPU time rental. It bifurcates into custom silicon (Groq, Cerebras, SambaNova), GPU platforms (Baseten, Together, Fireworks, Modal), and API-first marketplaces (Replicate, DeepInfra). Fireworks raised price $1/hr per GPU on May 1, 2026, and $4B valuation on 10T+ tokens/day tells you the volume-driven model works. Baseten closed $300M Series E at $5B in January 2026. The competitive positioning rule is simple: Fireworks optimizes latency, Together optimizes catalog breadth, Baseten optimizes enterprise polish, Modal optimizes Python-native DX, Replicate optimizes multimodal reach, Anyscale optimizes distributed Python. This lesson gives you a matrix you can hand a founder.
+
+> **【中文解读】** 本节介绍了推理平台经济学——LLM 推理服务的成本结构、定价模型和经济学分析。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, toy per-call economics comparator)
 **Prerequisites:** Phase 17 · 01 (Managed LLM Platforms), Phase 17 · 04 (vLLM Serving Internals)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Name the three market segments (custom silicon, GPU platforms, API-first) and map each vendor to a segment.
 - Explain why the "per-token" API pricing model compresses toward the serving engine's cost curve, not the hardware's.
 - Compute effective cost per request across at least three vendors and explain when per-minute (Baseten, Modal) beats per-token.
 - Identify which platform is the right default for a given workload (serverless bursty, steady high-throughput, fine-tuned variants, multimodal).
 
-## The Problem
+## The Problem | 问题
 
 You evaluated managed hyperscaler platforms. You decided you need a narrower, faster provider — Fireworks for latency, Together for breadth, Baseten for a fine-tuned custom model. Now you have six real choices and the pricing pages do not line up. Fireworks shows $/M tokens; Baseten shows $/minute; Modal shows $/second; Replicate shows $/prediction. You cannot compare them head-to-head without modeling the workload.
 
@@ -22,7 +25,7 @@ Worse, the business model behind each pricing page is different. Fireworks runs 
 
 This lesson models the six and tells you when each wins.
 
-## The Concept
+## The Concept | 概念
 
 ### The three segments
 
@@ -90,15 +93,15 @@ Every platform above vLLM and SGLang claims a custom engine. FireAttention, RayT
 - Modal valuation: $1.1B (Series B, 2025).
 - Per-minute beats per-token above ~30% sustained utilization.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` compares the six vendors on a synthetic workload across pricing models. Reports $/day and effective $/M tokens. Run it to find the break-even between per-token and per-minute.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-inference-platform-picker.md`. Given workload profile, SLA, and budget, picks the primary inference platform and names the runner-up.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. At what sustained utilization does Baseten (per-minute) beat Fireworks (per-token) for a 70B model on one H100? Derive the crossover yourself and compare to the rule of thumb.
 2. Your product serves image generation plus chat plus speech-to-text. Pick platforms for each modality and name the gateway pattern that unifies them.
@@ -106,7 +109,7 @@ This lesson produces `outputs/skill-inference-platform-picker.md`. Given workloa
 4. A regulated customer requires SOC 2 Type II + HIPAA + dedicated GPUs. Which three platforms are viable and which one wins on FinOps?
 5. Compare cost per 1,000 predictions for Llama 3.1 70B on Fireworks serverless, Together on-demand, Baseten dedicated, and Replicate API. Which is cheapest at 10 predictions/day? At 10,000?
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
@@ -120,7 +123,7 @@ This lesson produces `outputs/skill-inference-platform-picker.md`. Given workloa
 | Batch tier | "50% off" | Non-interactive queue at reduced rate; common on Fireworks, OpenAI |
 | Fine-tuned at base rate | "Fireworks LoRA" | Charge LoRA-served requests at base model's rate (differentiator) |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Fireworks Pricing](https://fireworks.ai/pricing) — per-token rates, batch tier, GPU rental.
 - [Baseten Pricing](https://www.baseten.co/pricing/) — per-minute rates, committed capacity, enterprise tiers.

@@ -1,6 +1,10 @@
-# Self-Supervised Vision — SimCLR, DINO, MAE
+# Self-Supervised Vision — SimCLR, DINO, MAE | 自监督视觉 — SimCLR、DINO、MAE
 
 > Labels are the bottleneck of supervised vision. Self-supervised pretraining removes them: learn visual features from 100M unlabelled images, fine-tune on 10k labelled ones.
+
+> **【中文解读】** 标签是监督学习的瓶颈。自监督预训练消除了这个限制：从 1 亿张无标签图像中学习视觉特征，然后在 1 万张标注图像上微调。三种主流方法：SimCLR（对比学习）、DINO（自蒸馏）、MAE（掩码自编码器）。
+
+> **【拓展：自监督学习是 GPT 的秘密】** GPT 就是一种自监督模型——通过预测下一个词来学习。在视觉领域，MAE 通过预测被遮盖的 patch 来学习，DINO 通过自蒸馏学习语义特征。DINOv2 已成为许多视觉任务的基础模型。
 
 **Type:** Learn + Build
 **Languages:** Python

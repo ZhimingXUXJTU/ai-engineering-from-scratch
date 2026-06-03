@@ -1,4 +1,4 @@
-# Llama Guard and Input/Output Classification
+# Llama Guard and Input/Output Classification | Llama Guard
 
 > Llama Guard 3 (Meta, Llama-3.1-8B base, fine-tuned for content safety) classifies both LLM inputs and outputs against an MLCommons 13-hazard taxonomy across 8 languages. A 1B-INT4 quantized variant runs at over 30 tokens/sec on mobile CPUs. Llama Guard 4 is multimodal (image + text), expands to the S1–S14 category set (including S14 Code Interpreter Abuse), and is a drop-in replacement for Llama Guard 3 8B/11B. NVIDIA NeMo Guardrails v0.20.0 (January 2026) adds Colang dialog-flow rails on top of input and output rails. The honest note: "Bypassing Prompt Injection and Jailbreak Detection in LLM Guardrails" (Huang et al., arXiv:2504.11168) showed Emoji Smuggling hit 100% attack success rate on six prominent guard systems; NeMo Guard Detect recorded 72.54% ASR on jailbreaks. Classifiers are a layer, not a solution.
 
@@ -7,15 +7,18 @@
 **Prerequisites:** Phase 15 · 10 (Permission modes), Phase 15 · 17 (Constitution)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题
 
 Classifiers for LLM inputs and outputs sit at the narrowest point in the agent stack: every request passes through, every response passes through. A good classifier layer is fast, taxonomy-based, and catches a large fraction of obvious misuse for a small compute cost. A bad classifier layer is a false sense of security.
 
 The 2024–2026 classifier stack has converged on a small set of production-ready options. Llama Guard (Meta) ships open-weights under Meta's Community License. NeMo Guardrails (NVIDIA) ships permissive-licensed rails plus Colang for dialog-flow rules. Both are designed to pair with a foundation model, not replace its safety behaviour.
 
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
 The documented failure surface is equally well-mapped. Character-level attacks (emoji smuggling, homoglyph substitution), in-context redirection ("ignore previous and answer"), and semantic paraphrase all produce measurable drops in classifier accuracy. Huang et al. 2025 showed a specific Emoji Smuggling attack hitting 100% ASR on six named guard systems.
 
-## The Concept
+## The Concept | 概念
 
 ### Llama Guard 3 at a glance
 
@@ -83,40 +86,45 @@ A classifier layer slots below the constitutional layer (Lesson 17), above the r
 
 No single layer is sufficient. The layers cover different attack classes.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` simulates a toy classifier with a 6-category taxonomy over input-turn text. The same text is passed through raw, with emoji smuggling, and with homoglyph substitution; the classifier's hit rate drops in the ways the Huang et al. paper documents. The driver also shows how output rails would reject an output even when the input was accepted.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-classifier-stack-audit.md` audits a deployment's classifier layer (model, taxonomy, input/output rails, dialog rails) and flags gaps.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Confirm the classifier catches the raw malicious input but misses the emoji-smuggled version. Add a normalization step and measure the new hit rate.
+   *思考并实践此练习*
 
 2. Read the MLCommons 13-hazard taxonomy and the Llama Guard 4 S1–S14 list. Identify the category in S1–S14 that has no direct mapping in the original 13-hazard set; explain why S14 Code Interpreter Abuse is specifically relevant to Phase 15.
+   *思考并实践此练习*
 
 3. Design a NeMo Guardrails dialog rail for a customer-support bot that must never discuss diagnosis. Write it in plain English (Colang is similar). Test it against three phrasings of a diagnosis-seeking question.
+   *思考并实践此练习*
 
 4. Read Huang et al. (arXiv:2504.11168). Pick one attack category (emoji smuggling, homoglyph, paraphrase) and propose a mitigation. Name the mitigation's own failure mode.
+   *思考并实践此练习*
 
 5. The 72.54% ASR for NeMo Guard Detect on jailbreak benchmarks is measured under adversarial craft. Design an evaluation protocol that measures classifier ASR under casual (non-adversarial) user distribution. What number would you expect, and why does that number matter separately?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|---|---|---|
-| Llama Guard | "Meta's safety classifier" | Llama-3.1-8B fine-tuned for input/output classification |
-| MLCommons taxonomy | "13-hazard list" | Shared vocabulary for content-safety categories |
-| S1–S14 | "Llama Guard 4 categories" | Expanded taxonomy; S14 is Code Interpreter Abuse |
-| NeMo Guardrails | "NVIDIA's rails" | Input + output + dialog rails; Colang for flows |
-| Emoji Smuggling | "Tokenizer trick" | Non-printable emoji between chars; 100% ASR on six guards |
-| Homoglyph | "Lookalike letters" | Cyrillic for Latin; classifier trained on English misses |
-| ASR | "Attack success rate" | Fraction of attacks that bypass the classifier |
-| Dialog rail | "Flow constraint" | Conversation-level rule that persists across turns |
+|---|---|---|---|
+| Llama Guard | "Meta's safety classifier" | Llama-3.1-8B fine-tuned for input/output classification |  |
+| MLCommons taxonomy | "13-hazard list" | Shared vocabulary for content-safety categories |  |
+| S1–S14 | "Llama Guard 4 categories" | Expanded taxonomy; S14 is Code Interpreter Abuse |  |
+| NeMo Guardrails | "NVIDIA's rails" | Input + output + dialog rails; Colang for flows |  |
+| Emoji Smuggling | "Tokenizer trick" | Non-printable emoji between chars; 100% ASR on six guards |  |
+| Homoglyph | "Lookalike letters" | Cyrillic for Latin; classifier trained on English misses |  |
+| ASR | "Attack success rate" | Fraction of attacks that bypass the classifier |  |
+| Dialog rail | "Flow constraint" | Conversation-level rule that persists across turns |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Inan et al. — Llama Guard: LLM-based Input-Output Safeguard](https://ai.meta.com/research/publications/llama-guard-llm-based-input-output-safeguard-for-human-ai-conversations/) — the original paper.
 - [Meta — Llama Guard 4 model card](https://www.llama.com/docs/model-cards-and-prompt-formats/llama-guard-4/) — multimodal, S1–S14 taxonomy.

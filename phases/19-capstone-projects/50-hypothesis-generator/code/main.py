@@ -5,6 +5,9 @@ Conceptual references:
 - Phase 19 Track A lessons 20-29 (agent harness primitives)
 
 Stdlib only. Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -31,6 +34,7 @@ TAG_RE = re.compile(
 
 @dataclass
 class Hypothesis:
+    """Hypothesis"""
     id: int
     text: str
     variables: list[str]
@@ -42,7 +46,7 @@ class Hypothesis:
     rank_score: float = 0.0
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "id": self.id,
             "text": self.text,
             "variables": list(self.variables),
@@ -60,7 +64,8 @@ class ParserError(ValueError):
 
 
 def _tokenise(text: str) -> list[str]:
-    return re.findall(r"[a-z0-9]+", text.lower())
+    """_tokenise"""
+    return re.findall(r"[a-z0-9]+", text.lower())  # 返回结果
 
 
 def hashed_embed(text: str, dim: int = HASH_DIM) -> list[float]:
@@ -73,17 +78,19 @@ def hashed_embed(text: str, dim: int = HASH_DIM) -> list[float]:
         vec[idx] += sign
     norm = math.sqrt(sum(v * v for v in vec))
     if norm == 0.0:
-        return vec
-    return [v / norm for v in vec]
+        return vec  # 返回结果
+    return [v / norm for v in vec]  # 返回结果
 
 
 def cosine_distance(a: list[float], b: list[float]) -> float:
+    """cosine_distance"""
     dot = sum(x * y for x, y in zip(a, b))
     dot = max(-1.0, min(1.0, dot))
-    return 1.0 - dot
+    return 1.0 - dot  # 返回结果
 
 
 def parse_response(raw: str) -> dict:
+    """parse_response"""
     match = TAG_RE.search(raw)
     if match is None:
         raise ParserError("no hypothesis block found")
@@ -99,7 +106,7 @@ def parse_response(raw: str) -> dict:
         raise ParserError("empty variables")
     baseline = match.group("baseline")
     baseline_ref = baseline.strip() if baseline and baseline.strip() else None
-    return {
+    return {  # 返回结果
         "text": text,
         "variables": variables,
         "metric": metric,
@@ -110,12 +117,12 @@ def parse_response(raw: str) -> dict:
 def temperature_bucket(temperature: float) -> int:
     """Map a continuous temperature to a discrete bucket index."""
     if temperature < 0.35:
-        return 0
+        return 0  # 返回结果
     if temperature < 0.65:
-        return 1
+        return 1  # 返回结果
     if temperature < 0.95:
-        return 2
-    return 3
+        return 2  # 返回结果
+    return 3  # 返回结果
 
 
 class MockLLM:
@@ -131,18 +138,19 @@ class MockLLM:
 
     @staticmethod
     def prompt_signature(prompt: str) -> str:
-        return hashlib.sha1(prompt.encode("utf-8")).hexdigest()[:10]
+        return hashlib.sha1(prompt.encode("utf-8")).hexdigest()[:10]  # 返回结果
 
     def sample(self, prompt: str, temperature: float, seed: int) -> str:
         key = (self.prompt_signature(prompt), temperature_bucket(temperature))
         bank = self._scripts.get(key)
         if not bank:
-            return "<noise>untagged drift</noise>"
-        return bank[seed % len(bank)]
+            return "<noise>untagged drift</noise>"  # 返回结果
+        return bank[seed % len(bank)]  # 返回结果
 
 
 @dataclass
 class GeneratorConfig:
+    """GeneratorConfig"""
     n_passes: int = 6
     t_min: float = 0.2
     t_max: float = 1.2
@@ -155,15 +163,16 @@ class GeneratorConfig:
 
     def schedule(self) -> list[float]:
         if self.n_passes <= 0:
-            return []
+            return []  # 返回结果
         if self.n_passes == 1:
-            return [self.t_min]
+            return [self.t_min]  # 返回结果
         step = (self.t_max - self.t_min) / (self.n_passes - 1)
-        return [self.t_min + i * step for i in range(self.n_passes)]
+        return [self.t_min + i * step for i in range(self.n_passes)]  # 返回结果
 
 
 @dataclass
 class GenerationLog:
+    """GenerationLog"""
     pass_index: int
     temperature: float
     seed: int
@@ -172,7 +181,7 @@ class GenerationLog:
     raw_excerpt: str
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "pass": self.pass_index,
             "temperature": round(self.temperature, 3),
             "seed": self.seed,
@@ -197,17 +206,17 @@ class HypothesisGenerator:
 
     def _specificity_score(self, h: Hypothesis) -> float:
         target = max(1, self._cfg.target_variable_count)
-        return min(1.0, len(h.variables) / target)
+        return min(1.0, len(h.variables) / target)  # 返回结果
 
     def _testability_score(self, h: Hypothesis) -> float:
         if h.metric and h.baseline_ref:
-            return 1.0
+            return 1.0  # 返回结果
         if h.metric:
-            return 0.5
-        return 0.0
+            return 0.5  # 返回结果
+        return 0.0  # 返回结果
 
     def _score(self, h: Hypothesis) -> float:
-        return (
+        return (  # 返回结果
             self._cfg.w_novelty * h.novelty_score
             + self._cfg.w_specificity * self._specificity_score(h)
             + self._cfg.w_testability * self._testability_score(h)
@@ -215,8 +224,8 @@ class HypothesisGenerator:
 
     def _novelty(self, candidate: list[float], survivors: list[list[float]]) -> float:
         if not survivors:
-            return 1.0
-        return min(cosine_distance(candidate, s) for s in survivors)
+            return 1.0  # 返回结果
+        return min(cosine_distance(candidate, s) for s in survivors)  # 返回结果
 
     def run(self, seed_prompt: str) -> tuple[list[Hypothesis], list[GenerationLog]]:
         survivors: list[Hypothesis] = []
@@ -252,14 +261,14 @@ class HypothesisGenerator:
             logs.append(GenerationLog(pass_index, temperature, seed, next_id, None, raw))
             next_id += 1
         survivors.sort(key=lambda h: (-h.rank_score, h.id))
-        return survivors, logs
+        return survivors, logs  # 返回结果
 
 
 def build_demo_scripts() -> dict[tuple[str, int], list[str]]:
     """Scripted responses for the demo seed prompt across temperature buckets."""
     seed_prompt = "Investigate attention sparsity in small transformers"
     sig = MockLLM.prompt_signature(seed_prompt)
-    return {
+    return {  # 返回结果
         (sig, 0): [
             "<hypothesis>"
             "<text>Lowering attention head count from 8 to 4 raises validation loss by less than 2 percent on a 12M parameter model.</text>"
@@ -296,6 +305,7 @@ def build_demo_scripts() -> dict[tuple[str, int], list[str]]:
 
 
 def _demo() -> None:
+    """_demo"""
     llm = MockLLM(build_demo_scripts())
     config = GeneratorConfig(n_passes=4, t_min=0.2, t_max=1.1)
     generator = HypothesisGenerator(llm, config)

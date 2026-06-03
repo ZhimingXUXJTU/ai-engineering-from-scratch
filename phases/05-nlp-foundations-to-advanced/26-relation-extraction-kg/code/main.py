@@ -1,3 +1,8 @@
+"""
+关系抽取与知识图谱构建
+
+从文本抽取实体间关系，构建知识图谱。是 RAG + KG 的基础。
+"""
 import re
 from collections import defaultdict
 

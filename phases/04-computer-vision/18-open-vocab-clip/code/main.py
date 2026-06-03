@@ -1,3 +1,17 @@
+"""
+开放词汇视觉 — CLIP (Open-Vocabulary Vision — CLIP)
+
+核心概念：
+- CLIP：对比语言-图像预训练——图像和文本编码器在共享空间中对齐
+- 零样本分类：不需要训练数据，用文本描述即可分类任意图像
+- 对比损失：匹配的图文对拉近，不匹配的拉远
+
+AI 对应：
+- CLIP 是 DALL-E、Stable Diffusion 的文本编码器基础
+- CLIP 开创了"开放词汇"视觉的新时代
+- 多模态大模型（GPT-4V、LLaVA）都依赖 CLIP 的图文对齐能力
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

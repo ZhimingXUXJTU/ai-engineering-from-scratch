@@ -1,6 +1,10 @@
-# Supervisor / Orchestrator-Worker Pattern
+# Supervisor / Orchestrator-Worker Pattern | 主管/编排器-工作器模式
 
 > One lead agent plans and delegates; specialized workers execute in parallel contexts and report back. This is the pattern behind Anthropic's Research system (Claude Opus 4 as lead, Sonnet 4 as subagents), measured at +90.2% over single-agent Opus 4 on internal research evals. Anthropic's engineering post reports that 80% of the variance on BrowseComp is explained by token usage alone — multi-agent wins largely because each subagent gets a fresh context window. This lesson builds the supervisor pattern from the primitives and covers the 2026 engineering lessons from production deployments.
+
+> **【中文解读】** 一个主管 Agent 规划并委派任务；专业化工作器在并行上下文中执行并汇报。这是 Anthropic Research 系统背后的模式（Claude Opus 4.6 主管，Sonnet 4.5 子 Agent），在内部研究评估上比单 Agent Opus 4.6 提升 90.2%。核心洞察：多 Agent 胜出主要因为每个子 Agent 获得独立的上下文窗口——80% 的 BrowseComp 方差仅由 Token 使用量解释。
+
+> **【拓展：Supervisor 模式 → Claude DevFleet】** Claude Code 的多 Agent 编排工具 Claude DevFleet 就是 Supervisor 模式的实现——一个主 Agent 分解任务，派发到多个隔离的 worktree 中的子 Agent 并行工作，最后汇总结果。Anthropic 的生产 Research 系统也使用此模式。
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib, `threading`)
@@ -70,7 +74,7 @@ LangGraph originally shipped a `langgraph-supervisor` library with a high-level 
 - **Simple queries.** Single-agent handles them faster and cheaper. Use the lead's "scale effort" check before spawning workers.
 - **Strict determinism.** Supervisor uses LLM-selected delegation. Static graphs are better when audit/replay matter more than adaptability.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements a supervisor of three parallel workers using `threading`. The lead decomposes a query into sub-questions, workers run concurrently on each sub-question, and the lead synthesizes. No real LLMs — the workers are scripted to simulate fetch-and-summarize.
 
@@ -88,11 +92,11 @@ python3 code/main.py
 
 Output shows the plan, the parallel worker traces with start/end timestamps, and the final synthesis. You can see the wall-clock wins: three 0.3-second workers run in ~0.35 seconds, not 0.9.
 
-## Use It
+## Use It | 使用方法
 
 `outputs/skill-supervisor-designer.md` takes a user query and produces a supervisor-pattern design: lead system prompt, worker roles, sub-question decomposition rules, and the synthesis template. Use this before building a new research-style agent system.
 
-## Ship It
+## Ship It | 部署上线
 
 Checklist before deploying a supervisor pattern:
 
@@ -102,7 +106,7 @@ Checklist before deploying a supervisor pattern:
 - **Observability.** Trace the lead's plan, each worker's tool calls, and the synthesis. This is the basis for any post-hoc debugging.
 - **Rainbow rollout.** Stateful long-running agents need gradual version transition, not hot swap.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`, then modify the lead to spawn 5 workers instead of 3. Observe the wall-clock effect. At what worker count does spawn overhead exceed parallel savings in this demo?
 2. Implement a worker timeout: kill any worker that runs longer than 0.5 seconds and have the lead synthesize the remaining results. What observability do you need to know a worker was cut?
@@ -110,7 +114,7 @@ Checklist before deploying a supervisor pattern:
 4. Read Anthropic's Research-system engineering post. List three practices that this toy demo would need to adopt to run in production.
 5. Compare LangGraph's `create_supervisor` (legacy) vs the new tool-calling recommendation. Which gives you better control over what the supervisor sees? Why does Anthropic explicitly pass only sub-answers and not raw worker context into synthesis?
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
@@ -123,7 +127,7 @@ Checklist before deploying a supervisor pattern:
 | Scale effort | "Match agent count to complexity" | Lead estimates query difficulty, spawns 1 vs 10+ workers accordingly. |
 | Synthesis conflict | "Workers disagree" | Two workers return contradictory facts; the lead must surface disagreement, not silently pick one. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic engineering — How we built our multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system) — the production reference for supervisor pattern
 - [LangGraph workflows and agents](https://docs.langchain.com/oss/python/langgraph/workflows-agents) — tool-calling supervisor is now the recommended form

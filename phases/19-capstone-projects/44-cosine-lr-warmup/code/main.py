@@ -11,6 +11,9 @@ Implements:
 The demo at the bottom builds a tiny torch.nn.Linear model, trains for 20
 steps on a fixed batch, prints a per-step log, and renders the schedule.
 Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -69,19 +72,19 @@ class CosineWithWarmup:
         if step < 0:
             raise ValueError(f"step must be non-negative, got {step}")
         if self.warmup_steps > 0 and step <= self.warmup_steps:
-            return self.lr_max * (step / self.warmup_steps)
+            return self.lr_max * (step / self.warmup_steps)  # 返回结果
         if step >= self.total_steps:
-            return self.lr_min
+            return self.lr_min  # 返回结果
         decay_span = max(1, self.total_steps - self.warmup_steps)
         progress = (step - self.warmup_steps) / decay_span
         cosine = 0.5 * (1.0 + math.cos(math.pi * progress))
-        return self.lr_min + (self.lr_max - self.lr_min) * cosine
+        return self.lr_min + (self.lr_max - self.lr_min) * cosine  # 返回结果
 
     def points(self, num_steps: int | None = None) -> list[tuple[int, float]]:
         upper = self.total_steps if num_steps is None else num_steps
         if upper <= 0:
-            return []
-        return [(step, self.lr(step)) for step in range(upper + 1)]
+            return []  # 返回结果
+        return [(step, self.lr(step)) for step in range(upper + 1)]  # 返回结果
 
 
 @dataclass
@@ -94,7 +97,7 @@ class StepLog:
     loss: float
 
     def to_csv_row(self) -> list[str]:
-        return [
+        return [  # 返回结果
             str(self.step),
             f"{self.lr:.10f}",
             f"{self.grad_l2_norm:.10f}",
@@ -116,7 +119,7 @@ def gradient_l2_norm(parameters: Iterable[torch.nn.Parameter]) -> float:
             continue
         grad = param.grad.detach()
         squared_sum += float(grad.pow(2).sum().item())
-    return math.sqrt(squared_sum)
+    return math.sqrt(squared_sum)  # 返回结果
 
 
 class TrainState:
@@ -153,7 +156,7 @@ class TrainState:
 
     @property
     def log(self) -> list[StepLog]:
-        return list(self._log)
+        return list(self._log)  # 返回结果
 
     def step(self, batch_inputs: torch.Tensor, batch_targets: torch.Tensor) -> StepLog:
         self.model.train()
@@ -173,7 +176,7 @@ class TrainState:
         )
         self._log.append(record)
         self.global_step += 1
-        return record
+        return record  # 返回结果
 
 
 def plot_schedule_ascii(
@@ -211,7 +214,7 @@ def plot_schedule_ascii(
         + " " * (width - len("step 0") - len(f"step {total}"))
         + f"step {total}"
     )
-    return "\n".join(rows + [axis, last_label])
+    return "\n".join(rows + [axis, last_label])  # 返回结果
 
 
 def write_schedule_csv(schedule: CosineWithWarmup, path: Path) -> None:
@@ -260,10 +263,10 @@ class LinearWarmupConstant:
         if step < 0:
             raise ValueError(f"step must be non-negative, got {step}")
         if self.warmup_steps == 0:
-            return self.lr_max
+            return self.lr_max  # 返回结果
         if step >= self.warmup_steps:
-            return self.lr_max
-        return self.lr_max * (step / self.warmup_steps)
+            return self.lr_max  # 返回结果
+        return self.lr_max * (step / self.warmup_steps)  # 返回结果
 
 
 @dataclass
@@ -287,8 +290,8 @@ class InverseSqrtWarmup:
         if step < 0:
             raise ValueError(f"step must be non-negative, got {step}")
         if step <= self.warmup_steps:
-            return self.lr_max * (step / self.warmup_steps)
-        return self.lr_max * math.sqrt(self.warmup_steps / step)
+            return self.lr_max * (step / self.warmup_steps)  # 返回结果
+        return self.lr_max * math.sqrt(self.warmup_steps / step)  # 返回结果
 
 
 @dataclass
@@ -307,9 +310,9 @@ class EWMA:
         if not self.initialized:
             self.value = float(sample)
             self.initialized = True
-            return self.value
+            return self.value  # 返回结果
         self.value = self.beta * self.value + (1.0 - self.beta) * float(sample)
-        return self.value
+        return self.value  # 返回结果
 
 
 @dataclass
@@ -326,10 +329,11 @@ class StepLogSummary:
 
 
 def summarize_step_log(log: Iterable[StepLog]) -> StepLogSummary:
+    """summarize_step_log"""
     rows = list(log)
     if not rows:
         raise ValueError("step log is empty")
-    return StepLogSummary(
+    return StepLogSummary(  # 返回结果
         steps=len(rows),
         lr_peak=max(row.lr for row in rows),
         lr_final=rows[-1].lr,
@@ -349,7 +353,7 @@ def split_decay_groups(
 
     The convention for transformer training is to apply weight decay to dense
     weight matrices but not to biases or LayerNorm gain parameters. This helper
-    returns the two parameter-group dicts AdamW accepts.
+    returns the two parameter-group dicts AdamW accepts.  # 返回结果
     """
 
     decay_params: list[nn.Parameter] = []
@@ -366,7 +370,7 @@ def split_decay_groups(
         groups.append({"params": decay_params, "weight_decay": weight_decay})
     if no_decay_params:
         groups.append({"params": no_decay_params, "weight_decay": 0.0})
-    return groups
+    return groups  # 返回结果
 
 
 def build_toy_model(
@@ -380,7 +384,7 @@ def build_toy_model(
     model = nn.Sequential(nn.Linear(in_dim, 32), nn.GELU(), nn.Linear(32, out_dim))
     inputs = torch.randn(8, in_dim)
     targets = torch.randn(8, out_dim)
-    return model, inputs, targets
+    return model, inputs, targets  # 返回结果
 
 
 def run_demo() -> int:
@@ -413,7 +417,7 @@ def run_demo() -> int:
         f"summary: steps={summary.steps} lr_peak={summary.lr_peak:.6f} "
         f"grad_l2_peak={summary.grad_l2_peak:.6f} loss_delta={summary.loss_delta:.6f}"
     )
-    return 0
+    return 0  # 返回结果
 
 
 if __name__ == "__main__":

@@ -1,6 +1,9 @@
-# Capstone 12 — Video Understanding Pipeline (Scene, QA, Search)
+# Capstone 12 — Video Understanding Pipeline (Scene, QA, Search) | 理解 结业 流水线 搜索 视频
 
 > Twelve Labs productized Marengo + Pegasus. VideoDB shipped the CRUD-for-video API. AI2's Molmo 2 published open VLM checkpoints. Gemini long-context handles hours of video natively. TimeLens-100K defined temporal grounding at scale. The 2026 pipeline is settled: scene segmentation, per-scene caption + embedding, transcript alignment, multi-vector index, and a query that answers with (start, end) timestamps plus frame previews. The capstone is ingesting 100 hours, hitting public benchmarks, and measuring hallucination on counting and action questions.
+
+> **【中文解读】** 本节是综合项目——构建视频理解流水线，处理视频内容的 AI 分析。
+
 
 **Type:** Capstone
 **Languages:** Python (pipeline), TypeScript (UI)
@@ -22,7 +25,7 @@ At query time, the natural-language question fires against all three vectors; re
 
 The hallucination measurement matters. Counting ("how many people enter the room?") and action-type ("does the chef pour before stirring?") questions are notoriously unreliable. Report accuracy separately from descriptive questions.
 
-## Architecture
+## Architecture | 架构
 
 ```
 video file / URL
@@ -62,7 +65,7 @@ answer + (start, end) timestamps + frame thumbs + citations
 - Eval: ActivityNet-QA, NeXT-GQA, custom 100-question hand-labeled set
 - Hallucination benchmark: counting and action-type subsets with hand labels
 
-## Build It
+## Build It | 动手构建
 
 1. **Ingest walker.** Accept YouTube URLs or local MP4s. Downscale to 720p if needed. Persist `{video_id, file_path}`.
 
@@ -82,7 +85,7 @@ answer + (start, end) timestamps + frame thumbs + citations
 
 9. **Eval.** Run ActivityNet-QA and NeXT-GQA. Build a 100-query custom set. Report overall accuracy + per-class breakdown (counting, action, descriptive).
 
-## Use It
+## Use It | 使用方法
 
 ```
 $ video-qa ask --url=https://youtube.com/watch?v=X "how many cars pass the intersection in the first minute?"
@@ -97,7 +100,7 @@ citations: [scene 3: 00:12-00:58]
           [frame preview at 00:14, 00:27, 00:44, 00:51, 00:57]
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-video-qa.md` is the deliverable. Given a YouTube URL or uploaded video, the pipeline indexes scenes and answers questions with timestamped citations.
 
@@ -110,7 +113,7 @@ citations: [scene 3: 00:12-00:58]
 | 15 | Hallucination rate | Counting and action-type accuracy separately |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Swap Gemini 2.5 Pro for Qwen3-VL-Max on the captioning pass. Report caption quality delta on a human-rated 50-scene sample.
 
@@ -122,7 +125,7 @@ citations: [scene 3: 00:12-00:58]
 
 5. Add speaker-diarized transcript: run pyannote speaker diarization on the audio and embed per-speaker transcripts. Demonstrate "what did Alice say about X?" queries.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -134,7 +137,7 @@ citations: [scene 3: 00:12-00:58]
 | Counting hallucination | "Miscount" | Known failure mode of VLMs on "how many X" questions |
 | ActivityNet-QA | "Video-QA benchmark" | Long-form video QA accuracy benchmark |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [AI2 Molmo 2](https://allenai.org/blog/molmo2) — open VLM checkpoints
 - [TimeLens (CVPR 2026)](https://github.com/TencentARC/TimeLens) — temporal grounding at scale

@@ -2,6 +2,9 @@
 
 Simulates a 1M-trace day across retention strategies. Reports storage cost
 and what's lost under each. Pedagogical: costs are 2026 approximations.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -18,6 +21,7 @@ ARIZE_AX_PER_GB = 0.005            # zero-copy claim
 
 @dataclass
 class Strategy:
+    """Strategy"""
     name: str
     sample_rate: float
     keep_errors: bool
@@ -34,6 +38,7 @@ STRATEGIES = [
 
 
 def simulate_day(strategy: Strategy, traces_per_day: int = 1_000_000) -> dict:
+    """simulate_day"""
     rng = random.Random(7)
     retained = 0
     lost = 0
@@ -51,7 +56,7 @@ def simulate_day(strategy: Strategy, traces_per_day: int = 1_000_000) -> dict:
             lost += 1
     bytes_retained = retained * BYTES_PER_TRACE
     gb = bytes_retained / 1e9
-    return {
+    return {  # 返回结果
         "name": strategy.name,
         "retained": retained,
         "lost": lost,
@@ -63,6 +68,7 @@ def simulate_day(strategy: Strategy, traces_per_day: int = 1_000_000) -> dict:
 
 
 def report(row: dict) -> None:
+    """report"""
     print(f"{row['name']:30}  retained={row['retained']:7}  "
           f"lost={row['lost']:7}  {row['gb_per_day']:6.2f} GB/day  "
           f"mono=${row['monolithic_month']:8.2f}  "
@@ -71,6 +77,7 @@ def report(row: dict) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 120)
     print("OBSERVABILITY SAMPLING — 1M traces/day, 2026 price approximations")
     print("=" * 120)
@@ -84,4 +91,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

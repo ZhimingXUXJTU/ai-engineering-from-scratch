@@ -1,5 +1,9 @@
 """CLIP / SigLIP contrastive loss toy — stdlib Python.
 
+CLIP 图文对比预训练 (Contrastive Vision-Language Pretraining)
+核心概念：用对比损失(InfoNCE/sigmoid)将图像和文本编码到同一向量空间，实现零样本分类和图文检索。
+AI 应用对应：CLIP 是所有视觉语言模型的基础，是 LLaVA、BLIP-2 等多模态模型的视觉塔起点。
+
 Implements InfoNCE (softmax) and sigmoid pairwise loss on a hand-constructed
 similarity matrix. Also runs a tiny zero-shot-classification walkthrough using
 synthetic image and text embeddings.

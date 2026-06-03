@@ -1,6 +1,9 @@
-# Capstone 11 — LLM Observability & Eval Dashboard
+# Capstone 11 — LLM Observability & Eval Dashboard | 可观测性 仪表板 结业 评估 LLM
 
 > Langfuse went open-core. Arize Phoenix published the 2026 GenAI semconv mappings. Helicone and Braintrust both doubled down on per-user cost attribution. Traceloop's OpenLLMetry became the de-facto SDK instrumentation. The production shape is ClickHouse for traces, Postgres for metadata, Next.js for UI, and a small army of eval jobs (DeepEval, RAGAS, LLM-judge) running over sampled traces. Build one self-hosted, ingest from at least four SDK families, and demonstrate catching an injected regression in under five minutes.
+
+> **【中文解读】** 本节是综合项目——构建 LLM 可观测性仪表板，实时监控 Agent 性能和成本。
+
 
 **Type:** Capstone
 **Languages:** TypeScript (UI), Python / TypeScript (ingest + evals), SQL (ClickHouse)
@@ -22,7 +25,7 @@ Evals run as batch jobs over sampled traces. DeepEval scores faithfulness, toxic
 
 Drift detection watches embedding-space distributions over time (PSI or KL divergence on prompt embeddings) plus eval-score trends. Alerts feed Prometheus Alertmanager and then Slack / PagerDuty. The UI is Next.js 15 with Recharts.
 
-## Architecture
+## Architecture | 架构
 
 ```
 production apps:
@@ -63,7 +66,7 @@ production apps:
 - UI: Next.js 15 App Router + Recharts + server actions
 - SDKs supported out of the box: OpenAI, Anthropic, Google GenAI, LangChain, LlamaIndex, vLLM
 
-## Build It
+## Build It | 动手构建
 
 1. **Collector config.** OpenTelemetry Collector with the OTLP HTTP receiver, a tail-sampler keeping 100% of errored traces and 10% of successes, and exporters to ClickHouse and S3.
 
@@ -83,7 +86,7 @@ production apps:
 
 9. **Regression probe.** Inject a bug: the evaluated chatbot starts leaking fake SSNs 1% of the time. Measure MTTR: from bug deployed to Slack alert.
 
-## Use It
+## Use It | 使用方法
 
 ```
 $ curl -X POST https://my-otel-collector/v1/traces -d @trace.json
@@ -94,7 +97,7 @@ $ curl -X POST https://my-otel-collector/v1/traces -d @trace.json
 [ui]         live at https://obs.example.com
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-llm-observability.md` is the deliverable. Given an LLM application, the dashboard ingests its traces, runs evals, alerts on drift, and surfaces cost/user breakdown in Next.js.
 
@@ -107,7 +110,7 @@ $ curl -X POST https://my-otel-collector/v1/traces -d @trace.json
 | 15 | Alerting + drift detection | Prometheus/Alertmanager chain exercised end to end |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Add custom instrumentation for the Haystack framework. Verify canonical spans land in ClickHouse with faithful `gen_ai.*` attributes.
 
@@ -119,7 +122,7 @@ $ curl -X POST https://my-otel-collector/v1/traces -d @trace.json
 
 5. Build a tail-sampling policy that keeps 100% of traces with toxicity > 0.5 plus a 10% stratified sample of the rest. Measure sampling bias introduced.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -131,7 +134,7 @@ $ curl -X POST https://my-otel-collector/v1/traces -d @trace.json
 | Eval span | "Linked eval trace" | Child span carrying an eval score linked to the original LLM call span |
 | Cost per user | "Unit economics" | Dollar cost attributed to a user_id over a window; key product metric |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Langfuse](https://github.com/langfuse/langfuse) — the reference open-core observability platform
 - [Arize Phoenix](https://github.com/Arize-ai/phoenix) — alternate reference with strong drift support

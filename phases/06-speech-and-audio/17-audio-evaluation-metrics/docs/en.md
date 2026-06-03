@@ -1,6 +1,10 @@
-# Audio Evaluation — WER, MOS, UTMOS, MMAU, FAD, and the Open Leaderboards
+# Audio Evaluation — WER, MOS, UTMOS, MMAU, FAD, and the Open Leaderboards | 音频评估指标
 
 > You cannot ship what you cannot measure. This lesson names the 2026 metrics for every audio task: ASR (WER, CER, RTFx), TTS (MOS, UTMOS, SECS, WER-on-ASR-round-trip), audio-language (MMAU, LongAudioBench), music (FAD, CLAP), and speaker (EER). Plus the leaderboards where you compare.
+
+> **【中文解读】** 无法度量就无法交付。本课列出 2026 年所有音频任务的评估指标：ASR 用 WER（词错率）、TTS 用 MOS（平均意见分）、音频语言模型用 MMAU、音乐用 FAD、说话人识别用 EER。还有对比排行榜。
+
+> **【拓展：WER 是语音识别的黄金指标】** WER（Word Error Rate，词错率）= (替换+删除+插入) / 总词数。Whisper Large v3 在英文上达到 ~5% WER，接近人类水平。中文用 CER（字错率）。
 
 **Type:** Learn
 **Languages:** Python

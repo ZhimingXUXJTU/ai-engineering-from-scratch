@@ -1,6 +1,10 @@
-# Scaling: Distributed Training, FSDP, DeepSpeed
+# Scaling: Distributed Training, FSDP, DeepSpeed | 扩展：分布式训练、FSDP、DeepSpeed
 
 > Your 124M model trained on one GPU. Now try 7 billion parameters. The model doesn't fit in memory. The data takes weeks on a single machine. Distributed training isn't optional at scale. It's the only path forward.
+
+> **【中文解读】** 1.24 亿模型在单 GPU 上训练。但 70 亿参数的模型放不进显存，单机训练数据需要数周。分布式训练是规模化的唯一路径：数据并行、张量并行、流水线并行。
+
+> **【拓展：DeepSeek-V3的2048卡训练】** DeepSeek-V3 使用 2048 张 H800 GPU 训练，采用 DualPipe 流水线并行 + MoE 专家并行。理解分布式训练是理解前沿大模型如何被训练出来的基础。
 
 **Type:** Build
 **Languages:** Python

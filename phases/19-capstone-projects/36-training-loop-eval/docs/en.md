@@ -1,13 +1,16 @@
-# Training Loop and Evaluation
+# Training Loop and Evaluation | 训练循环 评估
 
 > A loop that does not measure is a loop that lies. This lesson builds the training loop that drives the GPT model: AdamW with weight decay split, a warmup plus cosine learning rate schedule, a `calc_loss_batch` helper, an `evaluate_model` pass on held out data, a `generate_and_print_sample` qualitative probe every K steps, and a JSONL log of losses you can plot after. The same skeleton trains every decoder LLM you will ever build.
+
+> **【中文解读】** 本节是综合项目——构建 Agent 线束循环和契约验证系统。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 30 to 35
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build a training loop that computes cross entropy loss with the correct input and target alignment for next token prediction.
 - Configure AdamW with weight decay applied to weight tensors and not to LayerNorm or bias tensors.
@@ -16,13 +19,13 @@
 - Generate a qualitative sample every K steps with `generate_and_print_sample` to catch divergence before the loss curve does.
 - Persist per step loss to JSONL so you can reload, plot, and ship the training log as a deliverable.
 
-## The Problem
+## The Problem | 问题
 
 A training script that prints the loss but does nothing else fails three ways. It cannot tell you if the loss is decreasing for the right reason (the model could overfit the training set and never learn). It cannot tell you if a divergence is starting (the loss can spike for one step and recover, or one step and crash). It cannot tell you what the model has learned (loss is a scalar; a generated sample is a paragraph). All three failures hide unless the loop measures.
 
 The loop in this lesson measures three ways. Loss on the training batch every step. Loss on a held out batch every K steps. A generated continuation from a fixed prompt every K steps. The training log lands in JSONL so the artifact is the loop's testimony.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart TB
@@ -64,7 +67,7 @@ Warmup ramps the learning rate from zero to the target over a few hundred steps 
 
 A model whose training loss drops nicely but whose generated samples are all the same token is broken. A model whose loss curve looks flat but whose generated samples sharpen into coherent words is learning. The qualitative probe runs faster than reading the full curve and catches modes the scalar misses.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements:
 
@@ -100,13 +103,13 @@ Three patterns turn the textbook loop into something you can leave running overn
 
 **Eval batches drawn from a fixed slice.** The validation tokens get sliced into batches at script start, not on the fly. Reproducibility depends on the eval batches being identical from run to run; otherwise comparing eval loss between two runs measures the batch shuffle as much as the model.
 
-## Use It
+## Use It | 使用方法
 
 - The loop in this lesson is the same skeleton that trains a 124M model on real data. Swap the synthetic token tensor for a `datasets`-style loader and the loop runs unchanged.
 - The JSONL log is the deliverable that turns a training run into evidence. The next lesson uses one to compare a freshly trained checkpoint with a pretrained one.
 - The qualitative sample probe is the catch-all that scalar loss cannot replace.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add `weight_decay_groups()` unit tests that confirm scale and bias parameters land in the no decay group and linear and embedding weights land in the decay group.
 2. Replace synthetic random tokens with bytes from a small text file so the demo trains on something legible. Verify the generated sample uses characters present in the file.
@@ -114,7 +117,7 @@ Three patterns turn the textbook loop into something you can leave running overn
 4. Save a checkpoint every `eval_every` steps in addition to the JSONL log. Add a `resume_from` flag that reloads model state and optimizer state.
 5. Log per step throughput (tokens per second) next to the loss and confirm it stays in a steady band.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -124,7 +127,7 @@ Three patterns turn the textbook loop into something you can leave running overn
 | Eval batches | "Held out batches" | A fixed slice of the validation token tensor, sliced once at script start, used identically every probe |
 | Qualitative probe | "Sample print" | A short generation from a fixed prompt printed every K steps to catch failure modes loss alone hides |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - Phase 19 lesson 35 for the model the loop drives.
 - Phase 19 lesson 37 for loading pretrained weights into the same model.

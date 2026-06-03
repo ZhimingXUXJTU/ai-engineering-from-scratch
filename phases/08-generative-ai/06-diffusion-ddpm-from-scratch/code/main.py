@@ -1,3 +1,8 @@
+"""
+扩散模型 DDPM 从零实现 (Diffusion Models — DDPM from Scratch)
+核心概念：逐步加噪（前向）→ 训练去噪网络 → 反向采样生成
+AI 对应：Stable Diffusion、DALL-E、Sora 的核心技术
+"""
 import math
 import random
 

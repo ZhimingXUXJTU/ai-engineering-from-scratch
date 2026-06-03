@@ -1,6 +1,10 @@
-# DPO: Direct Preference Optimization
+# DPO: Direct Preference Optimization | 直接偏好优化
 
 > RLHF works. It also requires training three models (SFT, reward model, policy), managing PPO's instability, and tuning a KL penalty. DPO asks: what if you could skip all of that? DPO directly optimizes the language model on preference pairs. No reward model. No PPO. One training loop. Same results.
+
+> **【中文解读】** RLHF 需要训练三个模型（SFT、奖励模型、策略），还要处理 PPO 的不稳定性。DPO 直接在偏好对上优化语言模型——不需要奖励模型，不需要 PPO，一个训练循环，效果相当。
+
+> **【拓展：DPO→简化对齐】** DPO 是 2023 年 Stanford 提出的 RLHF 替代方案，已成为许多开源模型（如 Zephyr、Tulu）的首选对齐方法。它将 RLHF 的复杂训练流程简化为一个简单的分类损失。
 
 **Type:** Build
 **Languages:** Python (with numpy)

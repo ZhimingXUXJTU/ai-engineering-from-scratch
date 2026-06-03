@@ -1,4 +1,4 @@
-# Calculus for Machine Learning
+# Calculus for Machine Learning | 机器学习中的微积分
 
 > Derivatives tell you which way is downhill. That is all a neural network needs to learn.
 
@@ -7,12 +7,20 @@
 **Prerequisites:** Phase 1, Lessons 01-03
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Compute numerical and analytical derivatives for common ML functions (x^2, sigmoid, cross-entropy)
 - Implement gradient descent from scratch to minimize a loss function in 1D and 2D
 - Derive the gradient of a linear regression model and train it via manual weight updates
 - Explain the Hessian matrix, Taylor series approximations, and their connection to optimization methods
+
+> **【中文解读】**
+> 导数告诉你"往哪个方向走能让误差变小"。神经网络有数百万个参数，每个参数都是一个"旋钮"，微积分告诉你每个旋钮该往哪个方向调。梯度下降就是沿着导数的反方向一步步走到最小值。
+
+> **【拓展：微积分与神经网络】**
+> - **梯度下降**: 神经网络训练的核心算法——沿着梯度的反方向更新参数。
+> - **SGD/Adam**: 都是梯度下降的变体，Adam 加入了动量和自适应学习率。
+> - **学习率**: 梯度下降的步长。太大则跳过最小值，太小则收敛太慢。
 
 ## The Problem
 

@@ -1,3 +1,8 @@
+"""
+主题建模 — LDA 与 BERTopic
+
+LDA 用概率模型发现文档主题，BERTopic 用 BERT 嵌入做更好的主题发现。
+"""
 import random
 import re
 

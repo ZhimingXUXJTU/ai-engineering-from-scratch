@@ -1,3 +1,17 @@
+"""
+缓存、限流与成本优化 (Caching, Rate Limiting & Cost Optimization)
+
+核心概念：
+- 语义缓存(Semantic Cache)：相似查询命中缓存，避免重复调用 LLM
+- 提示缓存(Prompt Caching)：供应商端缓存固定前缀，降低重复成本
+- 限流与配额：防止 API 滥用，控制每用户/每分钟调用量
+- 成本追踪：按 token、按请求追踪 LLM 调用成本
+
+AI 应用对应：
+- 成本优化是 AI 产品可持续运营的关键
+- Anthropic/OpenAI 的 Prompt Caching 可降低50-90%推理成本
+"""
+
 import hashlib
 import time
 import json

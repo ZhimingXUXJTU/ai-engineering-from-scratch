@@ -1,3 +1,18 @@
+"""
+权重初始化策略 (Weight Initialization Strategies)
+
+核心概念：
+  - 零初始化：所有神经元做同样的事（对称性问题）
+  - 随机初始化：打破对称性，但层数多了信号会消失/爆炸
+  - Xavier/Glorot 初始化：Var(w) = 2/(fan_in + fan_out)，适合 sigmoid/tanh
+  - Kaiming/He 初始化：Var(w) = 2/fan_in，适合 ReLU/GELU
+
+在 AI 中的位置：
+  - Transformer 权重初始化：Xavier 或 Kaiming
+  - PyTorch 默认用 Kaiming uniform 初始化 nn.Linear
+  - 正确初始化 = 深层网络训练的基础
+"""
+
 import math
 import random
 

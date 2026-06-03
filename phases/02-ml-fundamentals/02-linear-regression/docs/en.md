@@ -1,4 +1,4 @@
-# Linear Regression
+# Linear Regression | 线性回归
 
 > Linear regression draws the best straight line through your data. It is the "hello world" of machine learning.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1 (Linear Algebra, Calculus, Optimization), Phase 2 Lesson 1
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Derive the gradient descent update rules for mean squared error and implement linear regression from scratch
 - Compare gradient descent and the normal equation in terms of computational complexity and when to use each
 - Build a multiple linear regression model with feature standardization and interpret the learned weights
 - Explain how Ridge regression (L2 regularization) prevents overfitting by penalizing large weights
+
+
+> **【中文解读】**
+> 线性回归是最简单的预测模型——用一条直线（或超平面）拟合数据。它也是最简单的神经网络：一个没有隐藏层、没有激活函数的网络。sklearn 中的 LinearRegression/Ridge/Lasso。金融中的因子模型就是线性回归。
 
 ## The Problem
 

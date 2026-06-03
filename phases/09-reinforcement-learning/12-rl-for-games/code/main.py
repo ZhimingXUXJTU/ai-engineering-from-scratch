@@ -1,3 +1,17 @@
+"""
+GRPO (Group Relative Policy Optimization) 微型演示
+
+核心概念：DeepSeek-R1 的关键创新——不需要 critic 网络的策略优化。
+  1. 对每个问题采样 G 个回答
+  2. 用验证器给每个回答打分（0 或 1）
+  3. 用组均值和标准差归一化：A_i = (r_i - mean) / std
+  4. 用 REINFORCE 式更新：θ += α * A * ∇log π(a|s)
+  5. 加 KL 惩罚防止偏离参考策略
+
+这就是 DeepSeek-R1 的"GRPO 算法在一页纸上的实现"。
+本模块在一个简化的多臂赌博机上演示 GRPO vs REINFORCE 的对比。
+"""
+
 import math
 import random
 
@@ -33,27 +47,31 @@ def sample(probs, rng):
 
 
 def verify(p_idx, answer):
+    """验证器：答案正确返回 1.0，否则 0.0（模拟 DeepSeek-R1 的单元测试/数学验证）"""
     return 1.0 if answer == QUESTIONS[p_idx]["correct"] else 0.0
 
 
 def grpo_step(theta, reference, rng, G=8, beta=0.01, lr=0.1):
-    p_idx = rng.randrange(N_PROMPTS)
+    """GRPO 单步更新：组采样 → 组相对优势 → REINFORCE 更新 + KL 惩罚"""
+    p_idx = rng.randrange(N_PROMPTS)  # 随机选择一个问题
     probs = policy_probs(theta, p_idx)
-    samples = [sample(probs, rng) for _ in range(G)]
-    rewards = [verify(p_idx, s) for s in samples]
-    mean_r = sum(rewards) / G
+    samples = [sample(probs, rng) for _ in range(G)]  # 采样 G 个回答
+    rewards = [verify(p_idx, s) for s in samples]  # 验证器打分
+    mean_r = sum(rewards) / G  # 组均值（作为基线）
     var_r = sum((r - mean_r) ** 2 for r in rewards) / G
-    std_r = math.sqrt(var_r) + 1e-8
-    advs = [(r - mean_r) / std_r for r in rewards]
+    std_r = math.sqrt(var_r) + 1e-8  # 组标准差
+    advs = [(r - mean_r) / std_r for r in rewards]  # 组相对优势 A_i
 
-    probs_ref = policy_probs(reference, p_idx)
+    probs_ref = policy_probs(reference, p_idx)  # 参考策略
     kl = sum(p * (math.log(max(p, 1e-12)) - math.log(max(q, 1e-12))) for p, q in zip(probs, probs_ref))
 
+    # REINFORCE 式策略梯度更新
     for a, A in zip(samples, advs):
         for i in range(N_ANSWERS):
-            grad_logpi = (1.0 if i == a else 0.0) - probs[i]
-            theta[p_idx][i] += (lr / G) * A * grad_logpi
+            grad_logpi = (1.0 if i == a else 0.0) - probs[i]  # ∇log π
+            theta[p_idx][i] += (lr / G) * A * grad_logpi  # 梯度上升
 
+    # KL 惩罚：拉向参考策略，防止漂移
     for i in range(N_ANSWERS):
         theta[p_idx][i] -= beta * (probs[i] - probs_ref[i])
 
@@ -61,6 +79,7 @@ def grpo_step(theta, reference, rng, G=8, beta=0.01, lr=0.1):
 
 
 def reinforce_step(theta, rng, lr=0.1):
+    """朴素 REINFORCE 基线：单样本，无基线，无 KL"""
     p_idx = rng.randrange(N_PROMPTS)
     probs = policy_probs(theta, p_idx)
     a = sample(probs, rng)

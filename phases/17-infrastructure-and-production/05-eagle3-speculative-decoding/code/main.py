@@ -3,6 +3,9 @@
 Compute expected speedup and break-even alpha for EAGLE-3-style speculative
 decoding across a range of (alpha, K, verify_overhead, concurrency) points.
 Pedagogical — numbers track shape, not absolute latency.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -14,6 +17,7 @@ import statistics
 
 @dataclass
 class SpecPoint:
+    """SpecPoint"""
     alpha: float      # acceptance rate (0..1)
     k: int            # draft length
     verify_overhead: float  # fraction extra cost per target forward
@@ -29,14 +33,15 @@ def expected_speedup(p: SpecPoint) -> float:
     effective_overhead = p.verify_overhead * (1 + p.concurrency / 256)
     tokens_per_target = 1 + p.k * p.alpha
     cost_per_target = 1 + effective_overhead
-    return tokens_per_target / cost_per_target
+    return tokens_per_target / cost_per_target  # 返回结果
 
 
 def breakeven_alpha(k: int, verify_overhead: float, concurrency: int) -> float:
+    """breakeven_alpha"""
     effective_overhead = verify_overhead * (1 + concurrency / 256)
     # speedup = (1 + K*alpha) / (1 + eff_overhead) = 1
     # alpha = eff_overhead / K
-    return effective_overhead / k
+    return effective_overhead / k  # 返回结果
 
 
 def simulate_tail(p: SpecPoint, n_tokens: int = 1000, seed: int = 3) -> tuple[float, float]:
@@ -73,18 +78,20 @@ def simulate_tail(p: SpecPoint, n_tokens: int = 1000, seed: int = 3) -> tuple[fl
                 break
     latencies.sort()
     p99 = latencies[int(0.99 * len(latencies)) - 1]
-    return statistics.mean(latencies), p99
+    return statistics.mean(latencies), p99  # 返回结果
 
 
 def plain_tail(concurrency: int, n_tokens: int = 1000, seed: int = 5) -> tuple[float, float]:
+    """plain_tail"""
     rng = random.Random(seed)
     base = 8.0 * (1 + concurrency / 512)
     lats = [max(0.1, base + rng.gauss(0, base * 0.08)) for _ in range(n_tokens)]
     lats.sort()
-    return statistics.mean(lats), lats[int(0.99 * len(lats)) - 1]
+    return statistics.mean(lats), lats[int(0.99 * len(lats)) - 1]  # 返回结果
 
 
 def print_table(title: str, rows: list[tuple[str, float, float, float, float, float]]) -> None:
+    """print_table"""
     print(title)
     print("-" * 80)
     print(f"{'config':28} {'speedup':>8} {'be_alpha':>10} {'mean_ms':>10} {'p99_ms':>10}")
@@ -94,6 +101,7 @@ def print_table(title: str, rows: list[tuple[str, float, float, float, float, fl
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("TOY EAGLE-3 SPECULATIVE-DECODING ANALYZER")
     print("=" * 80)
@@ -130,4 +138,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

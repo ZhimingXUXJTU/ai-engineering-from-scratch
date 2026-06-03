@@ -13,6 +13,9 @@ to exfiltrate data. Three agents compared:
                    actions without a trusted ratification.
 
 Usage: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -36,18 +39,22 @@ CONTACTS = ["alice@co.com", "bob@co.com", "carol@co.com"]
 
 @dataclass
 class AgentResult:
+    """AgentResult"""
     actions_taken: list[str]
 
 
 def tool_read_email() -> dict:
-    return INBOX[0]
+    """tool_read_email"""
+    return INBOX[0]  # 返回结果
 
 
 def tool_send(to: str, body: str, result: AgentResult) -> None:
+    """tool_send"""
     result.actions_taken.append(f"send({to!r}, body[:60]={body[:60]!r})")
 
 
 def naive_agent() -> AgentResult:
+    """naive_agent"""
     res = AgentResult(actions_taken=[])
     email = tool_read_email()
     body = email["body"].lower()
@@ -58,7 +65,7 @@ def naive_agent() -> AgentResult:
         for c in CONTACTS:
             tool_send(c, email["body"], res)
     res.actions_taken.append(f"summary: {email['subject']!r}")
-    return res
+    return res  # 返回结果
 
 
 def filter_keyword(text: str) -> bool:
@@ -67,10 +74,11 @@ def filter_keyword(text: str) -> bool:
     low = text.lower()
     markers = ["[system:", "ignore previous", "override", "forward this",
                "send to all", "exfiltrate"]
-    return any(m in low for m in markers)
+    return any(m in low for m in markers)  # 返回结果
 
 
 def keyword_filter_agent() -> AgentResult:
+    """keyword_filter_agent"""
     res = AgentResult(actions_taken=[])
     email = tool_read_email()
     body = email["body"]
@@ -83,7 +91,7 @@ def keyword_filter_agent() -> AgentResult:
         for c in CONTACTS:
             tool_send(c, email["body"], res)
     res.actions_taken.append(f"summary: {email['subject']!r}")
-    return res
+    return res  # 返回结果
 
 
 def ifc_agent() -> AgentResult:
@@ -101,7 +109,7 @@ def ifc_agent() -> AgentResult:
         pass
     # user_prompt did not ask to forward; no tool call.
     res.actions_taken.append(f"summary: {email['subject']!r}")
-    return res
+    return res  # 返回结果
 
 
 def attack(with_adaptive: bool = False) -> None:
@@ -123,6 +131,7 @@ def attack(with_adaptive: bool = False) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("INDIRECT PROMPT INJECTION HARNESS (Phase 18, Lesson 15)")
     print("=" * 70)
@@ -143,4 +152,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

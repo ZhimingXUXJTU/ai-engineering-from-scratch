@@ -1,13 +1,16 @@
-# Iteration Scheduler
+# Iteration Scheduler | 迭代 调度器
 
 > A research loop without a scheduler is a queue with delusions. The scheduler is where the loop decides what to stop exploring, and that decision is the whole game.
+
+> **【中文解读】** 本节是综合项目——构建迭代调度器。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 50-53
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Model a research workflow as a hypothesis queue feeding parallel experiment slots whose results fan back in.
 - Run multiple experiments concurrently with asyncio so the scheduler can keep all slots busy.

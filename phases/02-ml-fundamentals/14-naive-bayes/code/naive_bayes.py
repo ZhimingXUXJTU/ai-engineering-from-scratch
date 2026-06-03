@@ -1,3 +1,7 @@
+"""
+朴素贝叶斯分类器从零实现：拉普拉斯平滑、对数空间计算。
+AI 对应: 垃圾邮件过滤的经典算法，sklearn 的 MultinomialNB/GaussianNB。
+"""
 import numpy as np
 
 

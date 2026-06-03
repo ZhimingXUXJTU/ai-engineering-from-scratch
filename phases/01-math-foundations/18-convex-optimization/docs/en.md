@@ -1,4 +1,4 @@
-# Convex Optimization
+# Convex Optimization | 凸优化
 
 > Convex problems have one valley. Neural networks have millions. Knowing the difference matters.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1, Lessons 04 (Calculus for ML), 08 (Optimization)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Test whether a function is convex using the definition, second derivative, and Hessian criteria
 - Implement Newton's method and compare its quadratic convergence against gradient descent
 - Solve constrained optimization problems using Lagrange multipliers and interpret KKT conditions
 - Explain why neural network loss landscapes are non-convex yet SGD still finds good solutions
+
+
+> **【中文解读】**
+> 凸函数只有一个山谷（全局最优），线性回归是凸的所以一定有全局最优。神经网络是非凸的但有无数个山谷，SGD 在实践中仍能找到好的解。牛顿法利用二阶信息实现二次收敛。
 
 ## The Problem
 

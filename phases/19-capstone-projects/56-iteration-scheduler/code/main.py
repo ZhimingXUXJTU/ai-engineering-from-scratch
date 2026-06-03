@@ -7,6 +7,9 @@ Conceptual references:
 - Phase 19 lessons 50-53 (earlier auto-research stages)
 
 Stdlib + numpy only. Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -23,23 +26,25 @@ import numpy as np
 
 @dataclass
 class Hypothesis:
+    """Hypothesis"""
     id: str
     branch: str
     payload: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "branch": self.branch, "payload": dict(self.payload)}
+        return {"id": self.id, "branch": self.branch, "payload": dict(self.payload)}  # 返回结果
 
 
 @dataclass
 class Result:
+    """Result"""
     hypothesis_id: str
     branch: str
     reward: float
     payload: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "hypothesis_id": self.hypothesis_id,
             "branch": self.branch,
             "reward": self.reward,
@@ -49,6 +54,7 @@ class Result:
 
 @dataclass
 class BranchStats:
+    """BranchStats"""
     branch: str
     runs: int = 0
     reward_sum: float = 0.0
@@ -57,10 +63,10 @@ class BranchStats:
 
     @property
     def mean(self) -> float:
-        return (self.reward_sum / self.runs) if self.runs else 0.0
+        return (self.reward_sum / self.runs) if self.runs else 0.0  # 返回结果
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "branch": self.branch,
             "runs": self.runs,
             "reward_sum": self.reward_sum,
@@ -72,15 +78,17 @@ class BranchStats:
 
 @dataclass
 class TraceEvent:
+    """TraceEvent"""
     kind: str
     payload: dict
 
     def to_dict(self) -> dict:
-        return {"kind": self.kind, "payload": dict(self.payload)}
+        return {"kind": self.kind, "payload": dict(self.payload)}  # 返回结果
 
 
 @dataclass
 class SchedulerReport:
+    """SchedulerReport"""
     stop_reason: str
     experiments_run: int
     wall_seconds: float
@@ -89,7 +97,7 @@ class SchedulerReport:
     trace: list[TraceEvent]
 
     def to_dict(self) -> dict:
-        return {
+        return {  # 返回结果
             "stop_reason": self.stop_reason,
             "experiments_run": self.experiments_run,
             "wall_seconds": round(self.wall_seconds, 4),
@@ -104,11 +112,12 @@ Expander = Callable[[Result], list[Hypothesis]]
 
 
 def ucb_score(branch_stats: BranchStats, total_runs: int, c: float) -> float:
+    """ucb_score"""
     if branch_stats.runs == 0:
-        return float("inf")
+        return float("inf")  # 返回结果
     if total_runs == 0:
-        return branch_stats.mean
-    return branch_stats.mean + c * math.sqrt(math.log(max(total_runs, 1)) / branch_stats.runs)
+        return branch_stats.mean  # 返回结果
+    return branch_stats.mean + c * math.sqrt(math.log(max(total_runs, 1)) / branch_stats.runs)  # 返回结果
 
 
 class IterationScheduler:
@@ -153,7 +162,7 @@ class IterationScheduler:
             if score > best_score:
                 best_score = score
                 best_idx = idx
-        return best_idx
+        return best_idx  # 返回结果
 
     async def run(self, seed: list[Hypothesis]) -> SchedulerReport:
         queue: list[Hypothesis] = list(seed)
@@ -166,17 +175,17 @@ class IterationScheduler:
         t0 = time.monotonic()
 
         def deadline_hit() -> bool:
-            return (time.monotonic() - t0) >= self.max_seconds
+            return (time.monotonic() - t0) >= self.max_seconds  # 返回结果
 
         def budget_hit() -> bool:
-            return experiments_run >= self.max_experiments
+            return experiments_run >= self.max_experiments  # 返回结果
 
         def dispatch_until_full() -> None:
             nonlocal experiments_run
             while queue and len(in_flight) < self.slots and not budget_hit() and not deadline_hit():
                 idx = self._pick_next(queue, stats)
                 if idx is None:
-                    return
+                    return  # 返回结果
                 hyp = queue.pop(idx)
                 if hyp.branch not in stats:
                     stats[hyp.branch] = BranchStats(branch=hyp.branch)
@@ -284,7 +293,7 @@ class IterationScheduler:
             stop_reason = "queue_empty"
 
         wall = time.monotonic() - t0
-        return SchedulerReport(
+        return SchedulerReport(  # 返回结果
             stop_reason=stop_reason,
             experiments_run=experiments_run,
             wall_seconds=wall,
@@ -308,17 +317,17 @@ def make_deterministic_runner(
         bump = float(rng.normal(0.0, noise))
         reward = max(0.0, min(1.0, base + bump))
         await asyncio.sleep(delay_ms / 1000.0)
-        return Result(
+        return Result(  # 返回结果
             hypothesis_id=hyp.id, branch=hyp.branch, reward=reward,
             payload={"base": base, "noise": noise},
         )
 
-    return run
+    return run  # 返回结果
 
 
 def deterministic_expander(result: Result) -> list[Hypothesis]:
     """Spawn two follow-up hypotheses on the same branch with a monotonic id."""
-    return [
+    return [  # 返回结果
         Hypothesis(id=f"{result.hypothesis_id}-f{i}", branch=result.branch,
                    payload={"parent": result.hypothesis_id})
         for i in (1, 2)
@@ -342,16 +351,17 @@ async def demo_async() -> dict:
         expander=deterministic_expander,
     )
     report = await sched.run(seed)
-    return report.to_dict()
+    return report.to_dict()  # 返回结果
 
 
 def demo() -> dict:
-    return asyncio.run(demo_async())
+    """demo"""
+    return asyncio.run(demo_async())  # 返回结果
 
 
 if __name__ == "__main__":
     r = demo()
-    print(json.dumps({
+    print(json.dumps({  # 主入口输出
         "stop_reason": r["stop_reason"],
         "experiments_run": r["experiments_run"],
         "wall_seconds": r["wall_seconds"],

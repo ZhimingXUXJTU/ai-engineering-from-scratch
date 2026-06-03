@@ -1,20 +1,23 @@
-# Managed LLM Platforms — Bedrock, Vertex AI, Azure OpenAI
+# Managed LLM Platforms — Bedrock, Vertex AI, Azure OpenAI | 平台 托管 OpenAI LLM
 
 > Three hyperscalers, three distinct strategies. AWS Bedrock is a model marketplace — Claude, Llama, Titan, Stability, Cohere behind one API. Azure OpenAI is an exclusive OpenAI partnership plus Provisioned Throughput Units (PTUs) for dedicated capacity. Vertex AI is Gemini-first with the best long-context and multimodal story. In 2026 Artificial Analysis measures Azure OpenAI at ~50 ms median and Bedrock at ~75 ms on Llama 3.1 405B equivalents — PTUs explain the gap because dedicated capacity beats shared on-demand. The decision rule is not "which is fastest" but "which model catalog and FinOps surface match my product." This lesson teaches you to pick with the tradeoffs written down, not vibes.
+
+> **【中文解读】** 本节介绍了托管 LLM 平台——OpenAI、Anthropic、Google 等提供的模型服务平台的选型和对比。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, toy cost-and-latency comparator)
 **Prerequisites:** Phase 11 (LLM Engineering), Phase 13 (Tools & Protocols)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Name the three platform strategies (marketplace vs exclusive vs Gemini-first) and match each to a product use case.
 - Explain what Provisioned Throughput Units (PTUs) buy you in Azure OpenAI and why on-demand Bedrock typically reads ~25 ms slower at the 405B scale.
 - Diagram the FinOps attribution surface for each platform (Bedrock Application Inference Profiles vs Vertex project-per-team vs Azure scopes + PTU reservations).
 - Write down a "two-provider minimum" policy and explain why single-vendor lock-in is the expensive mistake in 2026.
 
-## The Problem
+## The Problem | 问题
 
 You picked Claude 3.7 Sonnet for your product. Now you need to serve it. You can call the Anthropic API directly, or you can call it through AWS Bedrock, or you can go through a gateway. The direct API is the simplest; Bedrock adds BAAs, VPC endpoints, IAM, and CloudWatch attribution. The gateway adds failover, unified billing, and rate limits across providers.
 
@@ -22,7 +25,7 @@ The deeper question is catalog. If you need Claude and Llama and Gemini in the s
 
 This lesson maps the three bets, the latency gap, the FinOps gap, and the lock-in risk.
 
-## The Concept
+## The Concept | 概念
 
 ### Three strategies
 
@@ -78,15 +81,15 @@ All three meet the basic checkbox. The differences are in data retention policie
 - Azure PTU break-even: ~40-60% sustained utilization.
 - PTU savings vs on-demand at high utilization: up to 70%.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` compares the three platforms on a synthetic workload — it models on-demand vs PTU economics, TTFT variance, and cost attribution fidelity. Run it to see where PTUs pay off and where the marketplace's model breadth outweighs a TTFT gap.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-managed-platform-picker.md`. Given a workload profile (models needed, TTFT SLA, daily volume, compliance requirements), it recommends a primary platform, a fallback, and a FinOps instrumentation plan.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. At what sustained utilization does Azure PTU beat on-demand for a 70B class model? Compute the break-even and compare to the advertised 40-60% band.
 2. Your product needs Claude 3.7 Sonnet and GPT-4o. Design a two-provider deployment — which goes to which hyperscaler, what gateway sits in front, what is the failover policy?
@@ -94,7 +97,7 @@ This lesson produces `outputs/skill-managed-platform-picker.md`. Given a workloa
 4. You discover your Bedrock bill is up 4x this month with no traffic change. Without Application Inference Profiles, how would you find the culprit? With profiles, how long does it take?
 5. Read the Azure OpenAI and Bedrock pricing pages. For a 100M-token/month Claude workload, which is cheaper — direct Anthropic API, Bedrock on-demand, or Bedrock Provisioned Throughput?
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
@@ -108,7 +111,7 @@ This lesson produces `outputs/skill-managed-platform-picker.md`. Given a workloa
 | BAA | "HIPAA paperwork" | Business Associate Agreement; required for PHI; provided by all three |
 | Abuse monitoring | "the log watcher" | Provider-side safety scan on prompts/outputs; opt-out in enterprise |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [AWS Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/) — authoritative rate card and Provisioned Throughput pricing.
 - [Azure OpenAI Service Pricing](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/) — PTU economics and rate cards.

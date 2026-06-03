@@ -1,4 +1,4 @@
-# Skill Libraries and Lifelong Learning (Voyager)
+# Skill Libraries and Lifelong Learning (Voyager) | 库 Voyager 技能
 
 > Voyager (Wang et al., TMLR 2024) treats executable code as a skill. Skills are named, retrievable, composable, and refined by environment feedback. This is the reference architecture for Claude Agent SDK skills, skillkit, and the 2026 skill-library pattern.
 
@@ -7,14 +7,14 @@
 **Prerequisites:** Phase 14 · 07 (MemGPT), Phase 14 · 08 (Letta Blocks)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Name Voyager's three components — automatic curriculum, skill library, iterative prompting — and the role of each.
 - Explain why Voyager makes the action space code, not primitive commands.
 - Implement a stdlib skill library with registration, retrieval, composition, and failure-driven refinement.
 - Map Voyager's pattern onto the 2026 Claude Agent SDK skills and the skillkit ecosystem.
 
-## The Problem
+## The Problem | 问题
 
 Agents that rebuild every capability from scratch in every session do three things wrong:
 
@@ -22,9 +22,12 @@ Agents that rebuild every capability from scratch in every session do three thin
 2. **Lose progress.** A correction learned in session A doesn't transfer to session B.
 3. **Fail on long-horizon composition.** Complex tasks need capability hierarchies; one-shot prompts cannot express them.
 
+
+> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+
 Voyager's answer: treat each reusable capability as a named chunk of code stored in a library, retrievable by similarity, composable with other skills, and refined by execution feedback.
 
-## The Concept
+## The Concept | 概念
 
 ### Three components
 
@@ -88,7 +91,7 @@ For production agents this translates to a "what's missing" operator: given the 
 - **Composed-skill drift.** Parent skill depends on a child that was refined. Version skills; a parent pinned to v1 doesn't magically pick up v3.
 - **Retrieval quality.** Vector retrieval over skill descriptions degrades as the library grows past a few hundred. Supplement with tag filters and hard constraints ("only skills with `category=tooling`").
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements a stdlib skill library:
 
@@ -104,38 +107,43 @@ python3 code/main.py
 
 The trace shows library writes, retrieval, composition, a failed execution, and a v2 refinement — Voyager's loop end to end.
 
-## Use It
+## Use It | 使用方法
 
 - **Claude Agent SDK skills** (Anthropic) — the 2026 reference: each skill has a description, code, and instructions; loaded on demand during an agent session.
 - **skillkit** (npm: skillkit) — cross-agent skill management for 32+ AI coding agents.
 - **Custom skill libraries** — domain-specific (SQL skills for data agents, Terraform skills for infra agents). The Voyager pattern scales down.
 - **OpenAI Agents SDK `tools`** — at the low end; each tool is a lightweight skill.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-skill-library.md` generates a Voyager-shaped skill library with registration, retrieval, versioning, and refinement wired in for any target runtime.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a dependency-cycle detector to `compose()`. What happens when skill A depends on B which depends on A? Error vs warning?
+   *思考并实践此练习*
 2. Implement per-skill version pinning. When a parent skill composes child `crafting@1`, a refinement to `crafting@2` must not silently upgrade the parent.
+   *思考并实践此练习*
 3. Replace token-overlap retrieval with sentence-transformers embeddings (or a BM25 stdlib impl). Measure retrieval@5 on a 50-skill toy library.
+   *思考并实践此练习*
 4. Add a "curriculum" agent: given the current library and a domain description, propose 5 missing skills. Call it weekly.
+   *思考并实践此练习*
 5. Read Anthropic's Claude Agent SDK skill docs. Port the toy library to the SDK's skill schema. What changes about discoverability?
+   *思考并实践此练习*
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Skill | "Reusable capability" | Named chunk of code + description, retrievable by similarity |
-| Skill library | "Agent memory of how-to" | Persistent store of skills, searchable and composable |
-| Curriculum | "Task proposer" | Bottom-up goal generator driven by current capability gap |
-| Composition | "Skill DAG" | Skills invoking skills; topologically sorted on execution |
-| Iterative refinement | "Self-correcting loop" | Env feedback + errors + self-verification fold back into the next version |
-| Action-space-as-code | "Programmatic actions" | Emit functions, not primitive commands, for temporally extended behavior |
-| Dedup on write | "Skill collapse" | Near-duplicate descriptions collapse to one canonical skill |
+|------|----------------|------------------------|---|
+| Skill | "Reusable capability" | Named chunk of code + description, retrievable by similarity |  |
+| Skill library | "Agent memory of how-to" | Persistent store of skills, searchable and composable |  |
+| Curriculum | "Task proposer" | Bottom-up goal generator driven by current capability gap |  |
+| Composition | "Skill DAG" | Skills invoking skills; topologically sorted on execution |  |
+| Iterative refinement | "Self-correcting loop" | Env feedback + errors + self-verification fold back into the next version |  |
+| Action-space-as-code | "Programmatic actions" | Emit functions, not primitive commands, for temporally extended behavior |  |
+| Dedup on write | "Skill collapse" | Near-duplicate descriptions collapse to one canonical skill |  |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Wang et al., Voyager (arXiv:2305.16291)](https://arxiv.org/abs/2305.16291) — the original skill-library paper
 - [Claude Agent SDK overview](https://platform.claude.com/docs/en/agent-sdk/overview) — skills as the 2026 productization

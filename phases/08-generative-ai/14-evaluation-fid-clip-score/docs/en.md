@@ -1,6 +1,10 @@
-# Evaluation — FID, CLIP Score, Human Preference
+# Evaluation — FID, CLIP Score, Human Preference | 评估指标 — FID、CLIP Score 与人类偏好
 
 > Every generative model leaderboard cites FID, CLIP score, and a win rate from a human-preference arena. Each number has a failure mode a determined researcher can game. If you do not know the failure modes, you cannot tell a real improvement from a gaming run.
+
+> **【中文解读】** 每个生成模型排行榜都引用 FID（Fréchet Inception Distance）、CLIP Score 和人类偏好胜率。每个指标都有可以被刷的漏洞。不了解这些漏洞，就无法区分真正的改进和刷榜。
+
+> **【拓展：FID 的局限性】** FID 衡量生成图像与真实图像的分布距离，但它可以被优化（如选择性地生成高分样本）。人类偏好评估（如 Chatbot Arena 模式）是更可靠但更昂贵的替代方案。
 
 **Type:** Build
 **Languages:** Python

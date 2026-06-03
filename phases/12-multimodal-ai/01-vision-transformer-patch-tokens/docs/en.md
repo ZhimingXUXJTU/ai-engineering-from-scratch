@@ -1,6 +1,10 @@
-# Vision Transformers and the Patch-Token Primitive
+# Vision Transformers and the Patch-Token Primitive | 视觉 Transformer 与 Patch-Token 原语
 
 > Before anything multimodal, an image has to become a sequence of tokens a transformer can eat. The 2020 ViT paper answered this with 16x16 pixel patches, a linear projection, and a position embedding. Five years later every 2026 frontier model (Claude Opus 4.7 at 2576px native, Gemini 3.1 Pro, Qwen3.5-Omni) still begins this way — the encoder changed from ViT to DINOv2 to SigLIP 2, register tokens were added, the positional scheme became 2D-RoPE, but the primitive held. This lesson reads the patch-token pipeline end to end and builds it in stdlib Python so the rest of Phase 12 has a concrete mental model for "visual tokens."
+
+> **【中文解读】** 在进入多模态之前，图像必须先变成 Transformer 能处理的 token 序列。ViT 用16x16像素块+线性投影+位置编码实现了这一转换，至今仍是所有前沿模型的基础。
+
+> **【拓展：ViT Patch→多模态基础】** Patch-Token 是所有视觉语言模型的基础——无论是 CLIP 的视觉编码器、LLaVA 的图像输入还是文档理解模型，都从 Patch 切分开始。
 
 **Type:** Learn
 **Languages:** Python (stdlib, patch tokenizer + geometry calculator)

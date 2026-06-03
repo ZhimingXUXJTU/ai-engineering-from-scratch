@@ -1,20 +1,23 @@
-# The Direct Preference Optimization Family
+# The Direct Preference Optimization Family | 优化家族 直接偏好
 
 > Rafailov et al. (2023) showed RLHF's optimum has a closed form in terms of the preference data, so you can skip the explicit reward model and optimize the policy directly. That insight spawned a family — IPO, KTO, SimPO, ORPO, BPO — each fixing a failure mode of DPO. In 2026, direct alignment algorithms ship more frontier post-training runs than PPO. But the over-optimization curve from Lesson 2 still applies: DAAs do not escape Goodhart, they just move where it bites.
+
+> **【中文解读】** 本节介绍了直接偏好优化（DPO）家族——绕过奖励模型直接从偏好数据训练的 RLHF 替代方案。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, six-variant preference-loss comparator)
 **Prerequisites:** Phase 18 · 01 (InstructGPT), Phase 18 · 02 (Reward hacking), Phase 10 · 08 (DPO basics)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Derive the DPO closed form from the RLHF-with-KL optimum.
 - State the failure mode each of IPO, KTO, SimPO, ORPO, BPO fixes in DPO.
 - Distinguish "implicit reward gap" from "preference strength" and explain why IPO's identity mapping matters.
 - Explain why Rafailov et al. (NeurIPS 2024) prove DAAs over-optimize despite having no explicit RM.
 
-## The Problem
+## The Problem | 问题
 
 The RLHF objective (Lesson 1):
 
@@ -38,7 +41,7 @@ Substitute this into the Bradley-Terry preference likelihood and the partition f
 
 The wrinkle: the derivation assumes the optimum is reachable, the preference data is in-distribution, and the reference policy is the true mode anchor. None of these hold exactly. Every family member fixes a different violated assumption.
 
-## The Concept
+## The Concept | 概念
 
 ### DPO (Rafailov et al., 2023)
 
@@ -120,15 +123,15 @@ DAAs do not escape Goodhart. They change the surface where it bites from "reward
 
 Every lab runs all five on a battery and picks the winner per task. There is no reason the optimum is the same for math reasoning and safety.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` compares six losses (DPO, IPO, KTO, SimPO, ORPO, BPO) on a toy preference dataset where the true preference strength varies by pair. Each loss is optimized against the same 500-pair sample with a small softmax policy. Plots final win rate, chosen-log-prob drift, and implicit-reward spread per method.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-preference-loss-selector.md`. Given dataset statistics (paired vs unpaired, variable vs uniform preference strength, length distribution) and a target (single-stage or SFT-then-preference), recommend a preference loss and report the failure mode it protects against.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Report the final chosen-log-prob drop for DPO and BPO. BPO should retain higher chosen absolute probability — verify this.
 
@@ -140,7 +143,7 @@ This lesson produces `outputs/skill-preference-loss-selector.md`. Given dataset 
 
 5. Read the BPO paper abstract (OpenReview b97EwMUWu7). Write down the one-line correction BPO adds to DPO. Confirm against the implementation in `code/main.py`.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -154,7 +157,7 @@ This lesson produces `outputs/skill-preference-loss-selector.md`. Given dataset 
 | Degraded Chosen | "chosen goes down" | DPO decreases chosen log-prob so long as rejected falls faster |
 | DAA | "direct alignment algorithm" | Any preference-loss method that skips an explicit RM |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Rafailov et al. — Direct Preference Optimization (NeurIPS 2023, arXiv:2305.18290)](https://arxiv.org/abs/2305.18290)
 - [Azar et al. — A General Theoretical Paradigm to Understand Learning from Human Preferences (AISTATS 2024, arXiv:2310.12036)](https://arxiv.org/abs/2310.12036) — IPO

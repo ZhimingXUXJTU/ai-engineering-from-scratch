@@ -1,3 +1,8 @@
+"""
+语音助手流水线 (Voice Assistant Pipeline — Capstone)
+核心概念：7 组件端到端流水线：麦克风→VAD→STT→LLM→TTS→扬声器
+AI 对应：Siri、小爱同学、Alexa 的核心架构就是这条流水线
+"""
 """End-to-end voice assistant simulator — 7 components, stub implementations.
 
 Simulates a full user turn: mic → VAD → STT → LLM (with tool-call) → TTS.

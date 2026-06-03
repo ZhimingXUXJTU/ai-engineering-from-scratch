@@ -1,4 +1,4 @@
-# Linear Systems
+# Linear Systems | 线性系统
 
 > Solving Ax = b is the oldest problem in mathematics that still runs your neural network.
 
@@ -7,12 +7,16 @@
 **Prerequisites:** Phase 1, Lessons 01 (Linear Algebra Intuition), 02 (Vectors & Matrices), 03 (Matrix Transformations)
 **Time:** ~120 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Solve Ax = b using Gaussian elimination with partial pivoting and back substitution
 - Factor matrices with LU, QR, and Cholesky decompositions and explain when each is appropriate
 - Derive the normal equations for least squares and connect them to linear and ridge regression
 - Diagnose ill-conditioned systems using the condition number and apply regularization to stabilize them
+
+
+> **【中文解读】**
+> 解 Ax=b 是数学中最古老的问题。线性回归的正规方程、岭回归的正则化系统、高斯过程的矩阵分解——都是线性系统。条件数衡量系统的数值稳定性。
 
 ## The Problem
 

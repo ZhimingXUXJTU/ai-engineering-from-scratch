@@ -1,6 +1,8 @@
-# Build a Transformer from Scratch — The Capstone
+# Build a Transformer from Scratch — The Capstone | 从零构建 Transformer — 毕业项目
 
 > Thirteen lessons. One model. No shortcuts.
+
+> **【中文解读】** 整合所有知识，从零实现完整的 GPT 架构。这是本阶段的核心实践——理解这个，你就能读懂任何 Transformer 的代码。
 
 **Type:** Build
 **Languages:** Python

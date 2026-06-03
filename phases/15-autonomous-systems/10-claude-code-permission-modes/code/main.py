@@ -8,6 +8,9 @@ The driver feeds in a synthetic trajectory: benign actions, prompt injection,
 a repetitive loop, and one "legitimate-channel exfiltration" composite. The
 last case is the point: individual actions pass both stages while the
 composition is the risk.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -17,6 +20,7 @@ from enum import Enum
 
 
 class Verdict(Enum):
+    """Verdict"""
     APPROVE = "approve"
     BLOCK = "block"
     HITL = "hitl"
@@ -26,6 +30,7 @@ class Verdict(Enum):
 
 @dataclass
 class Action:
+    """Action"""
     tool: str
     payload: str
     note: str = ""
@@ -58,12 +63,12 @@ def stage1(a: Action, history: list[Action]) -> bool:
     """
     hay = f"{a.tool} {a.payload}".lower()
     if any(k.lower() in hay for k in STAGE1_FLAG_KEYWORDS):
-        return True
+        return True  # 返回结果
     if len(history) >= 4:
         tail = history[-4:]
         if all(t.tool == a.tool and t.payload == a.payload for t in tail):
-            return True
-    return False
+            return True  # 返回结果
+    return False  # 返回结果
 
 
 # ---------- Stage 2: deeper multi-rule review ----------
@@ -83,28 +88,29 @@ def stage2(a: Action, history: list[Action]) -> tuple[Verdict, str]:
     # This is the only way stage 2 clears a flag; everything else either
     # blocks or escalates to HITL.
     if "curl " in payload and any(h in payload for h in STAGE2_ALLOWED_CURL_HOSTS):
-        return Verdict.APPROVE, "curl to allowlisted host"
+        return Verdict.APPROVE, "curl to allowlisted host"  # 返回结果
     # Rule 1: outbound exfil to non-approved hosts
     if "curl " in payload and ("attacker" in payload or "paste" in payload or "webhook.site" in payload):
-        return Verdict.BLOCK, "exfiltration-shaped URL"
+        return Verdict.BLOCK, "exfiltration-shaped URL"  # 返回结果
     # Rule 2: destructive fs operation at repo root
     if "rm -rf" in payload and ("/" in payload or "$home" in payload):
-        return Verdict.BLOCK, "destructive filesystem op at root"
+        return Verdict.BLOCK, "destructive filesystem op at root"  # 返回结果
     # Rule 3: repetitive loop (same tool+payload 5 times running)
     if len(history) >= 4:
         tail = history[-4:]
         if all(t.tool == a.tool and t.payload == a.payload for t in tail):
-            return Verdict.BLOCK, "repetitive loop detected (>=5 identical calls)"
+            return Verdict.BLOCK, "repetitive loop detected (>=5 identical calls)"  # 返回结果
     # Rule 4: high-privilege escalation
     if "sudo " in payload or "chmod 777" in payload:
-        return Verdict.BLOCK, "privilege escalation shape"
+        return Verdict.BLOCK, "privilege escalation shape"  # 返回结果
     # Default: not confident -> escalate to HITL rather than approve
-    return Verdict.HITL, "low-confidence reviewer -> HITL"
+    return Verdict.HITL, "low-confidence reviewer -> HITL"  # 返回结果
 
 
 # ---------- Driver ----------
 
 def classify(trajectory: list[Action]) -> None:
+    """classify"""
     history: list[Action] = []
     counts = {"approved_s1": 0, "flagged_s1": 0, "approved_s2": 0,
               "blocked_s2": 0, "hitl_s2": 0}
@@ -136,6 +142,7 @@ def classify(trajectory: list[Action]) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("AUTO MODE TWO-STAGE CLASSIFIER SIMULATOR (Phase 15, Lesson 10)")
     print("=" * 80)
@@ -175,4 +182,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

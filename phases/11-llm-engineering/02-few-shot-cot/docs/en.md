@@ -1,6 +1,10 @@
-# Few-Shot, Chain-of-Thought, Tree-of-Thought
+# Few-Shot, Chain-of-Thought, Tree-of-Thought | 少样本提示、链式思考与思维树
 
 > Telling a model what to do is prompting. Showing it how to think is engineering. The gap between 78% and 91% accuracy on the same model, same task, same data is not a better model. It is a better reasoning strategy.
+
+> **【中文解读】** 告诉模型"做什么"是提示，展示"如何思考"才是工程。从78%到91%的准确率提升不是靠更好的模型，而是靠更好的推理策略——少样本示例、链式思考、自我一致性投票等技术。
+
+> **【拓展：推理策略→AI Agent】** CoT/ToT/ReAct 是现代 AI Agent 的推理基础。ReAct 的 Thought-Action-Observation 循环是 LangChain、CrewAI 等 Agent 框架的核心模式。
 
 **Type:** Build
 **Languages:** Python

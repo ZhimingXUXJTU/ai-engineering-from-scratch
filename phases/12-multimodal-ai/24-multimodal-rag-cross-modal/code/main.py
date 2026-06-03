@@ -1,5 +1,10 @@
 """Multimodal RAG toy — three retrievers + score fusion + grounded generator.
 
+多模态 RAG 与跨模态检索 (Multimodal RAG and Cross-Modal Retrieval)
+核心概念：跨文本、图像、音频、视频的多模态检索，融合多检索器分数，生成带引用的回答。
+适用于旅行规划、医疗分诊、电商推荐、现场服务等跨模态场景。
+AI 应用对应：生产级多模态 RAG 的关键挑战——跨模态检索、检索融合、生成接地、多模态评估。
+
 Stdlib. A synthetic restaurant corpus with text reviews, image-feature tags,
 and audio-ambiance scores. Runs three retrievers, fuses scores, emits a stub
 answer with citations. Demonstrates agentic reformulation on low-confidence.
@@ -34,7 +39,7 @@ CORPUS = [
 
 
 def text_retrieve(query: str) -> dict[str, float]:
-    """Crude keyword matching for the query against review text."""
+    """文本检索器：基于关键词匹配的简单文本检索。"""
     keywords = [w.lower() for w in query.split() if len(w) > 2]
     scores = {}
     for r in CORPUS:
@@ -45,6 +50,7 @@ def text_retrieve(query: str) -> dict[str, float]:
 
 
 def image_retrieve(query: str) -> dict[str, float]:
+    """图像检索器：根据查询中的视觉关键词匹配图片标签。"""
     q = query.lower()
     tag_hints = []
     if "light" in q or "sun" in q:
@@ -61,6 +67,7 @@ def image_retrieve(query: str) -> dict[str, float]:
 
 
 def audio_retrieve(query: str) -> dict[str, float]:
+    """音频检索器：根据查询中的音频相关关键词（如"安静"）匹配环境音分贝。"""
     q = query.lower()
     scores = {}
     if "quiet" in q or "calm" in q:

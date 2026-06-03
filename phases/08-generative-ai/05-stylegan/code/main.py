@@ -1,3 +1,8 @@
+"""
+StyleGAN — 风格生成对抗网络
+核心概念：z→w 映射 + AdaIN 风格注入，解缠隐空间控制
+AI 对应：逼真人脸生成（thispersondoesnotexist.com）
+"""
 import math
 import random
 

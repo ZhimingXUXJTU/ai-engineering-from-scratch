@@ -1,13 +1,16 @@
-# Capstone Lesson 38: Classifier Fine-Tuning by Head Swap
+# Capstone Lesson 38: Classifier Fine-Tuning by Head Swap | 微调 分类器 结业
 
 > Track B's first capstone. A pretrained language model is a stack of self-attention blocks ending in a token-prediction head. When you want spam vs ham, the head is wrong but the body is mostly right. This lesson rips the head off, glues a two-class linear layer onto the pooled representation, and trains the classifier two different ways: final-layer only, and full fine-tuning. The eval is precision, recall, and F1 on a held-out split. You learn what each strategy buys you and what it costs.
+
+> **【中文解读】** 本节是综合项目——实现分类器微调。
+
 
 **Type:** Build
 **Languages:** Python (torch, numpy)
 **Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Replace a language-model head with a classification head without re-initialising the body.
 - Implement two training regimes: frozen body (head-only) and full fine-tuning, sharing one training loop.
@@ -15,7 +18,7 @@
 - Compute precision, recall, F1, and a confusion matrix from raw logits.
 - Reason about the trade-off between parameter count, training time, and head-room.
 
-## The Problem
+## The Problem | 问题
 
 You pre-trained a small transformer on a generic corpus. The output head projects the last hidden state to a 1000-token vocabulary. You now have 800 SMS messages labelled spam or ham and you want a binary classifier. Three options exist.
 
@@ -25,7 +28,7 @@ The two right options are head swap with the body frozen, and head swap with the
 
 This lesson builds both, so you can compare them on the same fixture.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart LR
@@ -89,7 +92,7 @@ The three headline metrics:
 
 A confusion matrix prints the four counts as a 2x2 grid. The demo writes this to stdout for both training regimes.
 
-## Architecture
+## Architecture | 架构
 
 ```mermaid
 flowchart TD

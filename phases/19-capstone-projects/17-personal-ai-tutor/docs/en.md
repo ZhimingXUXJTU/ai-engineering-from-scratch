@@ -1,6 +1,9 @@
-# Capstone 17 — Personal AI Tutor (Adaptive, Multimodal, with Memory)
+# Capstone 17 — Personal AI Tutor (Adaptive, Multimodal, with Memory) | 多模态 结业 个人 记忆 导师
 
 > Khanmigo (Khan Academy), Duolingo Max, Google LearnLM / Gemini for Education, Quizlet Q-Chat, and Synthesis Tutor all shipped adaptive multimodal tutoring at scale in 2026. The common shape is a Socratic policy (never just dump the answer), a learner model that updates after every interaction (Bayesian knowledge tracing style), voice + text + photo-math input, curriculum graph retrieval, spaced-repetition scheduling, and hard safety filters for age-appropriate content. The capstone is to ship a subject-specific tutor (K-12 algebra or intro Python), run a two-week efficacy study with 10 learners, and pass a content-safety audit.
+
+> **【中文解读】** 本节是综合项目——构建个人 AI 导师系统。
+
 
 **Type:** Capstone
 **Languages:** Python (backend, learner model), TypeScript (web app), SQL (curriculum graph via Postgres + Neo4j)
@@ -22,7 +25,7 @@ The UX is multimodal. Text input for typed answers. Voice input via LiveKit + Wh
 
 The efficacy study is the deliverable. 10 learners, pre-test and post-test, two weeks. Report learning gain delta and confidence interval. Compare against a non-adaptive baseline (the same content delivered linearly without the tutor policy).
 
-## Architecture
+## Architecture | 架构
 
 ```
 learner device
@@ -72,7 +75,7 @@ learner device
 - Safety: Llama Guard 4 + custom age-appropriate filter
 - Eval: Bloom-level question generation, pre/post test harness, efficacy study tooling
 
-## Build It
+## Build It | 动手构建
 
 1. **Curriculum graph.** Build a Neo4j of 50-150 concept nodes (e.g., K-12 algebra from "number line" to "quadratic formula") with prerequisite edges. Attach OER content per node (Open Textbook, OpenStax).
 
@@ -92,7 +95,7 @@ learner device
 
 9. **Weekly progress reports.** Per learner, auto-generate a PDF summary of topics explored, mastery trajectories, and recommended next steps.
 
-## Use It
+## Use It | 使用方法
 
 ```
 learner: "I don't understand why 3x + 6 = 12 means x = 2"
@@ -106,7 +109,7 @@ learner: "6"
 [scaffold] "great. now what is 3x / 3 equal to?"
 ```
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-ai-tutor.md` is the deliverable. A subject-specific adaptive tutor with multimodal input, a learner model, memory, safety, and measured efficacy.
 
@@ -119,7 +122,7 @@ learner: "6"
 | 15 | Curriculum breadth and graph quality | Concept coverage + prerequisite graph consistency |
 | **100** | | |
 
-## Exercises
+## Exercises | 练习题
 
 1. Run the efficacy study with and without the adaptive learner model (random concept order). Report the delta. Expect adaptive to win, but the size is the interesting number.
 
@@ -131,7 +134,7 @@ learner: "6"
 
 5. Stress the memory privacy: verify that learner A cannot see learner B's data even through a voice-clip re-ingest attack. Log the attempted access and alert.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -143,7 +146,7 @@ learner: "6"
 | Semantic memory | "Learned pattern store" | Compacted mistakes and preferences promoted from episodic |
 | COPPA | "Kids privacy law" | US law restricting data collection from children under 13 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Khanmigo (Khan Academy)](https://www.khanmigo.ai) — reference consumer K-12 tutor
 - [Duolingo Max](https://blog.duolingo.com/duolingo-max/) — reference language-learning tutor

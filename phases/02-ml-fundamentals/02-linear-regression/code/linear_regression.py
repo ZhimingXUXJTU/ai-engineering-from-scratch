@@ -1,3 +1,7 @@
+"""
+线性回归从零实现：梯度下降优化、正则化(Ridge/Lasso)。
+AI 对应: 线性回归是最简单的神经网络（无隐藏层），sklearn 的 LinearRegression/Ridge/Lasso。
+"""
 import random
 import math
 

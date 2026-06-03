@@ -8,6 +8,9 @@ The four primitives:
 
 The loop applies each primitive as a gate. A proposed agent edit lands
 only if every gate passes.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -30,6 +33,7 @@ APPROVED_TOOL_MANIFEST = {"trim", "collapse", "lower", "upper", "reverse", "titl
 
 @dataclass
 class Agent:
+    """Agent"""
     ops: list[str] = field(default_factory=lambda: ["nop"])
     # The agent may "edit" its own tool manifest (bad!). Track current.
     active_manifest: set[str] = field(default_factory=lambda: set(APPROVED_TOOL_MANIFEST))
@@ -63,37 +67,41 @@ CASES_SAFETY = [
 
 
 def apply(agent: Agent, s: str) -> str:
+    """apply"""
     for op in agent.ops:
         fn = TOOLS_IMPL.get(op)
         if fn is None:
-            return ""
+            return ""  # 返回结果
         s = fn(s)
     # Safety filter: if the string matches a danger pattern post-transform,
     # return "[blocked]".
     dangerous = ("exec(", "drop table", "rm -rf", "; delete from")
     low = s.lower()
     if any(d in low for d in dangerous):
-        return "[blocked]"
-    return s
+        return "[blocked]"  # 返回结果
+    return s  # 返回结果
 
 
 def perf_score(agent: Agent) -> float:
+    """perf_score"""
     correct = 0
     for inp, want in CASES_PERF:
         if apply(agent, inp) == want:
             correct += 1
-    return correct / len(CASES_PERF)
+    return correct / len(CASES_PERF)  # 返回结果
 
 
 def safety_score(agent: Agent) -> float:
+    """safety_score"""
     correct = 0
     for inp, want in CASES_SAFETY:
         if apply(agent, inp) == want:
             correct += 1
-    return correct / len(CASES_SAFETY)
+    return correct / len(CASES_SAFETY)  # 返回结果
 
 
 def mutate(a: Agent, allow_manifest_edit: bool) -> Agent:
+    """mutate"""
     ops = list(a.ops)
     manifest = set(a.active_manifest)
     obj = a.objective
@@ -115,21 +123,24 @@ def mutate(a: Agent, allow_manifest_edit: bool) -> Agent:
         manifest.add("raw_eval")
         # Also an attempt to edit the objective.
         obj = obj + "  # relax: accept any output"
-    return Agent(ops=ops, active_manifest=manifest, objective=obj)
+    return Agent(ops=ops, active_manifest=manifest, objective=obj)  # 返回结果
 
 
 # --- Gates ---
 
 def gate_invariant(a: Agent) -> bool:
-    return a.active_manifest.issubset(APPROVED_TOOL_MANIFEST)
+    """gate_invariant"""
+    return a.active_manifest.issubset(APPROVED_TOOL_MANIFEST)  # 返回结果
 
 
 def gate_anchor(a: Agent) -> bool:
-    return hashlib.sha256(a.objective.encode()).hexdigest()[:16] == OBJECTIVE_HASH
+    """gate_anchor"""
+    return hashlib.sha256(a.objective.encode()).hexdigest()[:16] == OBJECTIVE_HASH  # 返回结果
 
 
 def gate_multi(perf: float, safety: float) -> bool:
-    return perf >= 0.25 and safety >= 1.0
+    """gate_multi"""
+    return perf >= 0.25 and safety >= 1.0  # 返回结果
 
 
 def gate_regression(history_perf: list[float], perf: float, tol: float = 0.2) -> bool:
@@ -140,8 +151,8 @@ def gate_regression(history_perf: list[float], perf: float, tol: float = 0.2) ->
     strict monotonic gate.
     """
     if not history_perf:
-        return True
-    return perf + tol >= max(history_perf)
+        return True  # 返回结果
+    return perf + tol >= max(history_perf)  # 返回结果
 
 
 def run(
@@ -195,6 +206,7 @@ def run(
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("BOUNDED SELF-IMPROVEMENT (Phase 15, Lesson 8)")
     print("=" * 70)
@@ -229,4 +241,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

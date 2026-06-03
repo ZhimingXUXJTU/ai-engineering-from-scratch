@@ -1,20 +1,23 @@
-# Cold Start Mitigation for Serverless LLMs
+# Cold Start Mitigation for Serverless LLMs | 冷启动 缓解 服务器 LLM
 
 > A 20 GB model image takes 5-10 minutes (7B) to 20+ minutes (70B) to go from cold to serving. In a true serverless world, that is not a warm-up — it is an outage. Mitigations operate at five layers: pre-seeded node images (Bottlerocket on AWS, dual-volume arch), model streaming (NVIDIA Run:ai Model Streamer, native in vLLM), GPU memory snapshots (Modal checkpoints, up to 10x faster restart), warm pools (`min_workers=1`), tiered loading (ServerlessLLM's NVMe→DRAM→HBM pipeline, 10-200x latency reduction), and live migration that moves input tokens (KB) rather than KV cache (GB). Modal publishes 2-4s cold starts as a floor; Baseten 5-10s default, sub-second with pre-warming. This lesson teaches you to measure, budget, and stack the five layers.
+
+> **【中文解读】** 本节介绍了冷启动缓解——减少 LLM 推理服务首次响应延迟的策略。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, toy cold-start path simulator)
 **Prerequisites:** Phase 17 · 02 (Inference Platform Economics), Phase 17 · 03 (GPU Autoscaling)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Enumerate the five layers of cold-start mitigation and name one tool or pattern at each layer.
 - Compute total cold-start time as a sum of (node provision) + (weights download) + (weights load into HBM) + (engine init) for a 70B model.
 - Explain why live migration transfers input tokens (KB) not KV cache (GB) and what the penalty is (recomputation).
 - Name the warm-pool trade-off (pay for idle GPU or accept cold-start tail) and the SLA threshold at which `min_workers > 0` becomes mandatory.
 
-## The Problem
+## The Problem | 问题
 
 Your serverless LLM endpoint scales to zero overnight. At 8 a.m. traffic spikes. The first request waits while:
 
@@ -27,7 +30,7 @@ Total: 220-510s (roughly 3-8 minutes) before one token comes back. Your SLA is 2
 
 Cold-start mitigation is how to keep the serverless economics while approximating the latency of always-on.
 
-## The Concept
+## The Concept | 概念
 
 ### Layer 1 — pre-seeded node images (Bottlerocket)
 
@@ -85,15 +88,15 @@ Cold-start anatomy for a 70B model on a fresh node (illustrative):
 - Run:ai Model Streamer: ~2x weight-load speedup.
 - ServerlessLLM tiered loading: 10-200x latency reduction (paper numbers).
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` models a cold-start path with and without each mitigation. Reports total cold-start time, warm-pool cost, and the break-even request rate above which warm pool pays for itself.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-cold-start-planner.md`. Given SLA, model size, and traffic shape, picks which mitigations to stack.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Compute the break-even request rate above which a warm replica is cheaper than paying the cold-start tax via extra request drops at SLO.
 2. You deploy a 13B model with P99 TTFT SLA of 3s. Pick the minimum mitigation stack (fewest layers) that achieves it.
@@ -101,7 +104,7 @@ This lesson produces `outputs/skill-cold-start-planner.md`. Given SLA, model siz
 4. Your serverless provider offers GPU snapshots (Modal) and your team refuses because "snapshots leak PII." Argue both sides — what is the realistic risk, and what is the mitigation (ephemeral snapshots, encryption, namespace isolation)?
 5. Design a tiered warm-pool policy: how many warm replicas for paid users, trial users, and batch workloads? Show the math.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
@@ -116,7 +119,7 @@ This lesson produces `outputs/skill-cold-start-planner.md`. Given SLA, model siz
 | `min_workers` | "warm replicas" | Serverless minimum keep-alive count |
 | Scale-to-zero | "full serverless" | No cost when idle; accept full cold-start tax |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Modal — Cold start performance](https://modal.com/docs/guide/cold-start) — Modal's published benchmarks and checkpoint architecture.
 - [AWS Bottlerocket](https://github.com/bottlerocket-os/bottlerocket) — pre-seeded data volume snapshot pattern.

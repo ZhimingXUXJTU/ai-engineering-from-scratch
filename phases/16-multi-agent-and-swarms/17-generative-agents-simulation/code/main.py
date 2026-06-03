@@ -4,6 +4,9 @@ Five agents share a small world. Agent 0 is seeded with a party goal. Over
 ticks, invitations spread through bilateral memory observations, reflection
 synthesizes beliefs, and plans update. By the final tick, 3+ agents converge
 at the party location without any central orchestrator.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 from __future__ import annotations
 
@@ -17,6 +20,7 @@ TICK_DURATION_S = 0.01  # simulated; output is instantaneous
 
 @dataclass
 class Memory:
+    """Memory"""
     ts: int
     kind: str
     content: str
@@ -25,6 +29,7 @@ class Memory:
 
 @dataclass
 class Plan:
+    """Plan"""
     tick: int
     where: str
     note: str
@@ -32,6 +37,7 @@ class Plan:
 
 @dataclass
 class Agent:
+    """Agent"""
     name: str
     location: str
     stream: list[Memory] = field(default_factory=list)
@@ -59,20 +65,22 @@ class Agent:
         for p in self.plans:
             if p.tick == tick:
                 self.location = p.where
-                return f"{self.name} moves to {p.where} ({p.note})"
-        return f"{self.name} remains at {self.location}"
+                return f"{self.name} moves to {p.where} ({p.note})"  # 返回结果
+        return f"{self.name} remains at {self.location}"  # 返回结果
 
 
 def retrieve_top_k(stream: list[Memory], query: str, tick: int, k: int = 3) -> list[Memory]:
+    """retrieve_top_k"""
     def score(m: Memory) -> float:
         recency = math.exp(-0.3 * (tick - m.ts))
         importance = m.importance / 10.0
         relevance = 0.6 if any(w in m.content.lower() for w in query.lower().split()) else 0.1
-        return recency + importance + relevance
-    return sorted(stream, key=score, reverse=True)[:k]
+        return recency + importance + relevance  # 返回结果
+    return sorted(stream, key=score, reverse=True)[:k]  # 返回结果
 
 
 def run_simulation(n_agents: int = 5, ticks: int = 6) -> None:
+    """run_simulation"""
     agents = [Agent(f"agent-{i}", location="home") for i in range(n_agents)]
 
     # Seed agent 0 with the party goal.
@@ -118,6 +126,7 @@ def run_simulation(n_agents: int = 5, ticks: int = 6) -> None:
 
 
 def demo_retrieval() -> None:
+    """demo_retrieval"""
     print("\n" + "=" * 72)
     print("RETRIEVAL DEMO — top-k by recency + importance + relevance")
     print("=" * 72)
@@ -134,6 +143,7 @@ def demo_retrieval() -> None:
 
 
 def main() -> None:
+    """main"""
     run_simulation()
     demo_retrieval()
     print("\nTakeaways:")
@@ -143,4 +153,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

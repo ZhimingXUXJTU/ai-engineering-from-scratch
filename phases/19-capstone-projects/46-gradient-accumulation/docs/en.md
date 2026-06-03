@@ -1,26 +1,29 @@
-# Gradient Accumulation
+# Gradient Accumulation | 累积 梯度
 
 > Train at an effective batch you cannot afford, one micro-batch at a time. Scale the loss, hold the optimizer step, and let the gradients pile up.
+
+> **【中文解读】** 本节是综合项目——实现梯度裁剪和混合精度训练。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 42 to 45
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Derive the effective batch identity: `effective_batch = micro_batch * accum_steps`.
 - Implement loss-per-micro-batch scaling so the accumulated gradient matches a single full-batch backward.
 - Skip optimizer synchronization until the last micro-batch (sync-on-last-step).
 - Read a throughput against effective batch curve and explain the diminishing return.
 
-## The Problem
+## The Problem | 问题
 
 You want to train at an effective batch of 512 because the loss curve is smoother and the optimizer step makes more sense at that scale. The accelerator on the desk holds 32 examples before it runs out of memory. Doubling the batch is not an option. Halving the model is not an option. The trick the field reached for in 2017 and never stopped using is to run 16 backward passes, let the gradients accumulate inside the parameter buffers, and only step the optimizer when the count reaches the target.
 
 The risk is that the loss is no longer the same number it was at the bigger batch. The cross entropy of 16 mini-batches summed naively is 16 times the loss of one full batch. Without scaling, the gradient direction is correct but the magnitude is wrong, and the optimizer step is 16 times too big. The fix is one division. The fix is also easy to forget.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart LR
@@ -75,7 +78,7 @@ flowchart TD
 
 There is no free lunch. Doubling `accum_steps` doubles the wall time per optimizer step. What changes is the variance of the gradient estimate: at the same wall budget you have made fewer optimizer steps but each one was averaged over more samples. The literature treats large batch and small batch as different optimization problems; the lesson here is mechanical, not statistical.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` is the runnable artifact. It does three things.
 
@@ -106,7 +109,7 @@ python3 code/main.py
 
 The script prints the equivalence diff, then the sweep table, then the JSON path. Exit code zero.
 
-## Use It
+## Use It | 使用方法
 
 In production training, gradient accumulation lives behind one knob. PyTorch's pattern is `accumulation_steps = effective_batch // (micro_batch * world_size)`. Frameworks that you are not allowed to use here wrap the same loop, but the steps are the same: scale the loss, skip sync on non-final micros, accumulate, step once.
 
@@ -116,11 +119,11 @@ Three patterns in the wild:
 - The effective batch is chosen from a learning rate schedule. Large effective batches need scaled learning rates and warmup; this is the linear scaling rule talked about since 2017.
 - The accumulation count is the bridge between the two and the only knob you are free to tune at runtime without rewriting the data loader.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-gradient-accumulation.md` captures the recipe so a peer can drop it into a new repo: scale loss by `accum_steps`, skip optimizer sync on non-final micros, step the optimizer once per effective batch, log throughput against effective batch as JSON so the trade is visible.
 
-## Exercises
+## Exercises | 练习题
 
 1. Re-run the sweep with `--num-steps 100` and plot samples per second against effective batch. Where does the curve flatten?
 2. Add a wrong scaling variant (no division) and show the parameter diff at step 1 against the reference.
@@ -128,7 +131,7 @@ Three patterns in the wild:
 4. Introduce a real `DistributedDataParallel` wrapper and route the `no_sync_context` to its method. Confirm sync_calls drops by N-1 per effective batch.
 5. Modify the equivalence check to compare two different micro splits (2 by 8 vs 4 by 4) and explain any tolerance you need to relax.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -138,7 +141,7 @@ Three patterns in the wild:
 | Loss scaling | Divide by N | Per-micro-batch division so summed gradients match full batch |
 | Sync on last | Skip the rest | Only run the gradient collective on the last backward in the window |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - PyTorch docs on `DistributedDataParallel.no_sync` for the production version of the sync-on-last-step trick.
 - Goyal et al., 2017, on linear scaling for large batch training, the canonical reason to care about effective batch.

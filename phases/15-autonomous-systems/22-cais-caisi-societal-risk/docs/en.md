@@ -1,13 +1,16 @@
-# CAIS, CAISI, and Societal-Scale Risk
+# CAIS, CAISI, and Societal-Scale Risk | 社会 CAIS 风险
 
 > The Center for AI Safety (CAIS, San Francisco, founded 2022 by Hendrycks and Zhang) publishes the four-risk framework — malicious use, AI races, organizational risks, rogue AIs — and the May 2023 statement on extinction risk signed by hundreds of professors and company leaders. 2026 releases from CAIS: AI Dashboard for frontier-model evaluation, Remote Labor Index (with Scale AI), Superintelligence Strategy Paper, AI Frontiers newsletter. A distinct entity: NIST Center for AI Standards and Innovation (CAISI) — US-government-facing voluntary agreements and unclassified capability evaluations focused on cyber, bio, and chemical-weapons risks. CAIS flags organizational risk as one of four top-level risks: safety culture, rigorous audits, multi-layered defenses, and information security are foundational but routinely traded off against deployment speed. California SB-53, if signed, would be the first US state-level catastrophic-risk regulation.
+
+> **【中文解读】** 本节介绍了 CAIS/CAISI 的社会风险评估——AI 系统对社会的潜在影响和风险分析。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, four-risk inventory and mitigation matcher)
 **Prerequisites:** Phase 15 · 19 (RSP), Phase 15 · 20 (PF + FSF)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题
 
 Lessons 19 and 20 covered lab-internal scaling policies. Lesson 21 covered independent capability evaluation. This lesson covers the third perspective: civil society and government organizations who shape public discussion and regulatory baseline for catastrophic AI risk.
 
@@ -15,7 +18,7 @@ Two distinct entities matter. CAIS is a non-profit research org that publishes f
 
 The practical content: CAIS's four-risk framework is the most widely cited societal-scale-risk taxonomy in the literature. Safety culture and organizational risk are one of those four, and this is the one most directly under a practitioner's control. SB-53 (California) would be the first US state-level catastrophic-risk regulation if signed; the bill's framing matters because state-level regulation has historically led federal action in US tech policy.
 
-## The Concept
+## The Concept | 概念
 
 ### CAIS — Center for AI Safety
 
@@ -77,15 +80,15 @@ The running theme of Phase 15 — defense in depth — applies at the societal l
 
 This is the final synthesis for the phase: every previous lesson is one layer in a stack whose completeness matters more than any single layer's strength.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` implements a small risk-inventory tool. Given a proposed deployment, it tags the deployment against the four-risk categories and returns a mitigation checklist. It's a reading aid for the framework, not a substitute for human judgment.
 
-## Ship It
+## Ship It | 部署上线
 
 `outputs/skill-societal-risk-review.md` reviews a deployment for societal-scale-risk posture: which of the four categories it touches, what mitigations are in place, what the organizational-risk exposure is.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Feed in three synthetic deployments at different scales. Confirm the four-risk tags match what you would expect; identify one case where the tool under- or over-tags.
 
@@ -97,7 +100,7 @@ This is the final synthesis for the phase: every previous lesson is one layer in
 
 5. Sketch a 2028 version of the four-risk framework that reflects one year of additional capability and one year of additional deployment experience. What would you add, remove, or regroup?
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |---|---|---|
@@ -110,7 +113,7 @@ This is the final synthesis for the phase: every previous lesson is one layer in
 | Rogue AI | "Misaligned agent" | Capable AI pursuing goals conflicting with human welfare |
 | California SB-53 | "State-level regulation" | 2025–2026 bill; first US state catastrophic-risk regulation if signed |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Center for AI Safety](https://safe.ai/) — institutional home of the four-risk framework.
 - [CAIS — AI Risks that Could Lead to Catastrophe](https://safe.ai/ai-risk) — the four-risk paper.

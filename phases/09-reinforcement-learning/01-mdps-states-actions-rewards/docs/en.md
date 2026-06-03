@@ -1,6 +1,10 @@
-# MDPs, States, Actions & Rewards
+# MDPs, States, Actions & Rewards | MDP — 状态、动作与奖励
 
 > A Markov Decision Process is five things: states, actions, transitions, rewards, a discount. Everything in RL — Q-learning, PPO, DPO, GRPO — optimizes over this shape. Learn it once, read the rest of reinforcement learning for free.
+
+> **【中文解读】** 马尔可夫决策过程（MDP）包含五个要素：状态、动作、转移概率、奖励函数、折扣因子。RL 中的一切——Q-learning、PPO、DPO、GRPO——都在这个框架上优化。学一次，免费读懂整个强化学习。
+
+> **【拓展：MDP 是 AI 对齐的基础】** ChatGPT 的 RLHF 训练本质上也是一个 MDP：状态=对话上下文，动作=生成的 token，奖励=人类偏好评分。理解 MDP 是理解大模型对齐技术的起点。
 
 **Type:** Learn
 **Languages:** Python

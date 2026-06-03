@@ -7,6 +7,9 @@ Three strategies on the same workload:
 
 Reports cache hit rate, TTFT P50/P99, and cross-region bill.
 Pedagogical: timings are illustrative.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -29,14 +32,16 @@ CROSSREGION_COST_PER_REQ = 0.0004
 
 
 def rtt(a: str, b: str) -> int:
+    """rtt"""
     if a == b:
-        return 0
+        return 0  # 返回结果
     key = (a, b) if (a, b) in CROSSREGION_RTT else (b, a)
-    return CROSSREGION_RTT.get(key, 200)
+    return CROSSREGION_RTT.get(key, 200)  # 返回结果
 
 
 @dataclass
 class Replica:
+    """Replica"""
     region: str
     idx: int
     prefix_cache: set = field(default_factory=set)
@@ -45,6 +50,7 @@ class Replica:
 
 @dataclass
 class Request:
+    """Request"""
     origin_region: str
     prefix_hash: str
     served_by: Replica | None = None
@@ -53,10 +59,12 @@ class Request:
 
 
 def make_replicas() -> list[Replica]:
-    return [Replica(r, i) for r in REGIONS for i in range(REPLICAS_PER_REGION)]
+    """make_replicas"""
+    return [Replica(r, i) for r in REGIONS for i in range(REPLICAS_PER_REGION)]  # 返回结果
 
 
 def make_workload(n: int = 1000, seed: int = 7) -> list[Request]:
+    """make_workload"""
     rng = random.Random(seed)
     reqs = []
     hot_prefixes = [f"prefix_{i}" for i in range(40)]
@@ -64,10 +72,11 @@ def make_workload(n: int = 1000, seed: int = 7) -> list[Request]:
         origin = rng.choice(REGIONS)
         prefix = rng.choice(hot_prefixes)
         reqs.append(Request(origin_region=origin, prefix_hash=prefix))
-    return reqs
+    return reqs  # 返回结果
 
 
 def simulate(strategy: str, reqs: list[Request]) -> dict:
+    """simulate"""
     replicas = make_replicas()
     rng = random.Random(11)
     hits = 0
@@ -119,7 +128,7 @@ def simulate(strategy: str, reqs: list[Request]) -> dict:
     ttfts.sort()
     p50 = ttfts[len(ttfts) // 2]
     p99 = ttfts[int(len(ttfts) * 0.99) - 1]
-    return {
+    return {  # 返回结果
         "strategy": strategy,
         "hit_rate": hits / len(reqs),
         "mean_ttft": statistics.mean(ttfts),
@@ -131,6 +140,7 @@ def simulate(strategy: str, reqs: list[Request]) -> dict:
 
 
 def report(row: dict) -> None:
+    """report"""
     print(f"{row['strategy']:13}  hit={row['hit_rate']*100:5.1f}%  "
           f"mean={row['mean_ttft']:5.0f}ms  P50={row['p50_ttft']:5.0f}ms  "
           f"P99={row['p99_ttft']:5.0f}ms  cross={row['crossregion']:4}  "
@@ -138,6 +148,7 @@ def report(row: dict) -> None:
 
 
 def main() -> None:
+    """main"""
     print("=" * 80)
     print("MULTI-REGION LLM ROUTING — three strategies, 1000 requests")
     print("=" * 80)
@@ -154,4 +165,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

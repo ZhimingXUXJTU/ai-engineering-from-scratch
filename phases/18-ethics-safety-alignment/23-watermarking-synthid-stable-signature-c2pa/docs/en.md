@@ -1,24 +1,27 @@
-# Watermarking — SynthID, Stable Signature, C2PA
+# Watermarking — SynthID, Stable Signature, C2PA | 稳定签名 水印 SynthID C2PA
 
 > Three technologies structure 2026 AI-generated-content provenance. SynthID (Google DeepMind) — image watermarking launched August 2023, text+video May 2024 (Gemini + Veo), text open-sourced October 2024 via Responsible GenAI Toolkit, unified multi-media detector November 2025 alongside Gemini 3 Pro. Text watermarking adjusts next-token sampling probabilities imperceptibly; image/video watermarks survive compression, cropping, filters, frame-rate changes. Stable Signature (Fernandez et al., ICCV 2023, arXiv:2303.15435) — fine-tunes the latent diffusion decoder so every output contains a fixed message; cropped (10% of content) generated images detected >90% at FPR<1e-6. Follow-up "Stable Signature is Unstable" (arXiv:2405.07145, May 2024) — fine-tuning removes the watermark while preserving quality. C2PA — cryptographically signed, tamper-evident metadata standard (C2PA 2.2 Explainer 2025). Watermarking and C2PA are complementary: metadata can be stripped but carries richer provenance; watermarks persist through transcoding but carry less information.
+
+> **【中文解读】** 本节介绍了 AI 水印技术——SynthID、C2PA 等标识 AI 生成内容的方法。
+
 
 **Type:** Build
 **Languages:** Python (stdlib, token-watermark embed + detect)
 **Prerequisites:** Phase 10 · 04 (sampling), Phase 01 · 09 (information theory)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Describe token-level watermarking (SynthID-text style) and the mechanism by which it is detectable.
 - Describe Stable Signature and the 2024 removal attack that broke it.
 - State C2PA's role and why it is complementary to watermarking.
 - Describe the key limitations: model-specific signal, robustness under paraphrase, and meaning-preserving attacks (arXiv:2508.20228).
 
-## The Problem
+## The Problem | 问题
 
 2023-2024 saw deepfakes and AI-generated content enter political and consumer contexts at scale. Watermarking is the proposed technical provenance signal: mark generations at creation time, detect them later. 2025 evidence: no watermark is unconditionally robust, but layered with C2PA metadata the combination provides a usable provenance story.
 
-## The Concept
+## The Concept | 概念
 
 ### Text watermarking (SynthID-text style)
 
@@ -73,15 +76,15 @@ Transparency Code for AI-generated content labeling (first draft December 2025, 
 
 Lessons 22-23 are about what the model emits (private data, provenance signal). Lesson 27 covers training-data governance. Lesson 24 is the regulatory framework that requires these technical measures.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` builds a toy text watermark. Tokens are integers 0..N-1; watermarked sampling biases toward the hash-defined green set. A detector computes the green-token z-score. You can observe detection at 1000-token generations, watch paraphrase destroy the signal, and measure the false-positive rate on human text.
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-provenance-audit.md`. Given a content deployment with a provenance claim, it audits: the watermark mechanism (if any), the C2PA signing chain (if any), the adversarial robustness of each, and the per-modality coverage.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Report z-scores for watermarked 1000-token generation vs human-authored text. Identify the false-positive rate at the 95% confidence threshold.
 
@@ -93,7 +96,7 @@ This lesson produces `outputs/skill-provenance-audit.md`. Given a content deploy
 
 5. The 2024 "Stable Signature is Unstable" result shows fine-tuning removes the image watermark. Design a deployment control that limits this attack — for example, require signed releases of fine-tuned checkpoints.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -105,7 +108,7 @@ This lesson produces `outputs/skill-provenance-audit.md`. Given a content deploy
 | Fine-tune removal | "adversarial unwatermark" | Attack that removes image watermark via decoder fine-tuning |
 | Cross-modal detector | "unified SynthID" | November 2025 unified API across modalities |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Kirchenbauer et al. — A Watermark for Large Language Models (ICML 2023, arXiv:2301.10226)](https://arxiv.org/abs/2301.10226) — the token-watermark mechanism
 - [Fernandez et al. — Stable Signature (ICCV 2023, arXiv:2303.15435)](https://arxiv.org/abs/2303.15435) — image watermark paper

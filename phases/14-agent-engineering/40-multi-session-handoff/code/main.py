@@ -4,6 +4,9 @@ Reads state, verdict, review, and feedback (here stubbed in-memory),
 writes handoff.md for humans and handoff.json for the next agent.
 
 Run: python3 code/main.py
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -18,6 +21,7 @@ TAIL_K = 5
 
 @dataclass
 class WorkbenchSnapshot:
+    """WorkbenchSnapshot"""
     task_id: str
     state: dict[str, object]
     verdict: dict[str, object]
@@ -28,6 +32,7 @@ class WorkbenchSnapshot:
 
 @dataclass
 class HandoffPayload:
+    """HandoffPayload"""
     task_id: str
     summary: str
     changed_files: list[str]
@@ -40,6 +45,7 @@ class HandoffPayload:
 
 
 def trim_feedback(records: list[dict[str, object]]) -> list[dict[str, object]]:
+    """trim_feedback"""
     tail = records[-TAIL_K:]
     nonzero = [r for r in records if r.get("exit_code") not in (0, None)]
     out: list[dict[str, object]] = []
@@ -50,10 +56,11 @@ def trim_feedback(records: list[dict[str, object]]) -> list[dict[str, object]]:
             continue
         seen.add(key)
         out.append(r)
-    return out
+    return out  # 返回结果
 
 
 def derive_risks(snapshot: WorkbenchSnapshot) -> list[dict[str, str]]:
+    """derive_risks"""
     risks: list[dict[str, str]] = []
     for f in snapshot.verdict.get("findings", []) or []:
         if isinstance(f, dict) and f.get("severity") in ("warn", "block"):
@@ -67,10 +74,11 @@ def derive_risks(snapshot: WorkbenchSnapshot) -> list[dict[str, str]]:
         safe_total = 10
     if safe_total < 7:
         risks.append({"severity": "warn", "detail": f"review total {raw_total} below 7"})
-    return risks
+    return risks  # 返回结果
 
 
 def generate_handoff(snapshot: WorkbenchSnapshot) -> tuple[str, HandoffPayload]:
+    """generate_handoff"""
     next_action = str(snapshot.state.get("next_action") or "no next_action recorded; needs human")
     payload = HandoffPayload(
         task_id=snapshot.task_id,
@@ -92,7 +100,7 @@ def generate_handoff(snapshot: WorkbenchSnapshot) -> tuple[str, HandoffPayload]:
     )
 
     def _bullets(items: list[str]) -> list[str]:
-        return items or ["- none"]
+        return items or ["- none"]  # 返回结果
 
     md_lines = [
         f"# Handoff: {payload.task_id}",
@@ -118,10 +126,11 @@ def generate_handoff(snapshot: WorkbenchSnapshot) -> tuple[str, HandoffPayload]:
         f"- verdict: `{payload.verdict_pointer['verdict']}`",
         f"- review:  `{payload.verdict_pointer['review']}`",
     ]
-    return "\n".join(md_lines) + "\n", payload
+    return "\n".join(md_lines) + "\n", payload  # 返回结果
 
 
 def main() -> None:
+    """main"""
     snapshot = WorkbenchSnapshot(
         task_id="T-001",
         state={
@@ -147,4 +156,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

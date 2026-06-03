@@ -1,13 +1,16 @@
-# Loading Pretrained Weights
+# Loading Pretrained Weights | 预训练 加载 权重
 
 > Training a 124 million parameter model from scratch is a budget decision; loading a published checkpoint is a Tuesday. This lesson loads pretrained GPT-2 style weights from a safetensors file into the exact architecture from lesson 35, walks the parameter name mapping piece by piece, and sanity generates a continuation to prove the load worked. No network, no third party loaders, no opaque magic.
+
+> **【中文解读】** 本节是综合项目——加载预训练权重。
+
 
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 19 lessons 30 to 36
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Read a safetensors file with the `safetensors` Python library and inspect the tensor names and shapes.
 - Map each pretrained parameter name onto a parameter inside the lesson 35 GPT model.
@@ -15,13 +18,13 @@
 - Detect and refuse a shape mismatch with a clear error before any weight assignment happens.
 - Generate a short continuation with the loaded weights and confirm the tokens come from the loaded distribution, not the randomly initialized one.
 
-## The Problem
+## The Problem | 问题
 
 Published weights are not packaged for your architecture. They carry the names the original implementation used. The pretrained file has `transformer.h.0.attn.c_attn.weight` of shape `(2304, 768)`; your model expects `blocks.0.attn.qkv.weight` of shape `(2304, 768)` (which is the same matrix in a different layout convention) or your model uses `nn.Linear` which stores the matrix transposed. The same parameter shows up with three subtly different identities (name, shape, byte layout) and the loader has to reconcile all three.
 
 A loader that copies blindly puts the right tensor in the wrong place and you get a model that generates nonsense. A loader that refuses to copy when the shape differs but logs nothing leaves you guessing which tensor failed to land. The loader in this lesson is explicit: every assignment is logged, every shape is checked, and a `LoadReport` summarizes hits, misses, and shape mismatches so you can read what happened.
 
-## The Concept
+## The Concept | 概念
 
 ```mermaid
 flowchart LR
@@ -92,7 +95,7 @@ The mapping is a fixed function. The lesson ships it as a dict that the loader i
 
 Real GPT-2 weights are 0.5 GB. The demo does not download them; it generates a small safetensors fixture at first run, with the exact GPT-2 naming convention and shapes appropriate to a 12-block model at d_model 192 instead of 768. The fixture has the right structure to exercise every code path in the loader. Swap the fixture for the real file and the loader works without modification.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements:
 
@@ -126,13 +129,13 @@ Three patterns make the loader survive contact with weights you did not create.
 
 **The LM head is a weight tying alias, not a separate copy.** Setting `model.lm_head.weight = model.tok_embed.weight` after loading `tok_embed` is the canonical pattern. Copying the embedding matrix into a fresh `lm_head.weight` parameter breaks tying and quietly doubles your parameter count.
 
-## Use It
+## Use It | 使用方法
 
 - The loader works for any safetensors file that uses the pretrained naming convention. Real GPT-2 files (small / medium / large / xl) work without code changes; only the model config differs.
 - The same pattern extends to LLaMA, Mistral, Qwen weights once you update the name map. The shape checks and the report stay identical.
 - Sanity generation after a load is a quick gate: if the post-load samples look like the pre-load samples, the load did not change the model, which means the mapping silently missed every tensor.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a `dtype` argument to the loader that casts each tensor to a target dtype (`bfloat16`, `float16`, `float32`) during assignment. Confirm a `float32` model can be downcast to `bfloat16` and still generate.
 2. Add an `expected_layers` argument that refuses to load a checkpoint whose `h.N` indices do not match the model's `num_layers`.
@@ -140,7 +143,7 @@ Three patterns make the loader survive contact with weights you did not create.
 4. Add an export path: write the current model state into a fresh safetensors file using the pretrained naming convention. Round trip the loader and confirm the report has zero shape mismatches.
 5. Extend `NAME_MAP` to handle the LLaMA naming convention (no biases, RMSNorm, fused qkv layout) and re-run the loader on a stub LLaMA fixture you generate.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -150,7 +153,7 @@ Three patterns make the loader survive contact with weights you did not create.
 | Weight tying alias | "Shared LM head" | Setting model.lm_head.weight = model.tok_embed.weight so the head and embedding share storage; the head is not in the file because of this |
 | Load report | "Coverage summary" | A small dataclass that tracks loaded, missing, unexpected, and shape_mismatch lists; printing it is how you tell whether the load succeeded |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - Phase 19 lesson 35 for the architecture that receives the weights.
 - Phase 19 lesson 36 for the training loop that produces a checkpoint of the same shape.

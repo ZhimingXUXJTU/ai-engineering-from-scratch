@@ -1,3 +1,10 @@
+"""
+结构化输出与约束解码
+
+让 LLM 输出 JSON、SQL 等结构化数据。对应 instructor、outlines、guidance 库。
+"""
+# 【中文解读】结构化输出与约束解码。让 LLM 输出 JSON/SQL 等结构化数据。对应 instructor、outlines 库。
+
 import math
 import random
 import re

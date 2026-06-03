@@ -1,3 +1,8 @@
+"""
+视频生成 (Video Generation)
+核心概念：扩散模型扩展到时间维度，时空注意力机制
+AI 对应：Sora、Veo 2、Kling 是视频生成的代表产品
+"""
 import math
 import random
 

@@ -2,6 +2,9 @@
 
 Models a minimal shopping app; 3 tasks with gold trajectories; a scripted agent
 attempts each task; we record success + steps-over-gold per OSWorld-Human.
+
+核心概念：本节实现的核心模式
+AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
 """
 
 from __future__ import annotations
@@ -11,6 +14,7 @@ from typing import Any, Callable
 
 
 class ShoppingApp:
+    """ShoppingApp"""
     def __init__(self) -> None:
         self.items = {
             "sku-001": {"name": "headphones", "price": 199},
@@ -21,33 +25,34 @@ class ShoppingApp:
         self.orders: list[dict[str, Any]] = []
 
     def list_items(self) -> list[dict[str, Any]]:
-        return [{"sku": sku, **meta} for sku, meta in self.items.items()]
+        return [{"sku": sku, **meta} for sku, meta in self.items.items()]  # 返回结果
 
     def add_to_cart(self, sku: str, qty: int = 1) -> str:
         if sku not in self.items:
-            return "error: unknown sku"
+            return "error: unknown sku"  # 返回结果
         self.cart[sku] = self.cart.get(sku, 0) + qty
-        return f"added {qty} x {sku}"
+        return f"added {qty} x {sku}"  # 返回结果
 
     def remove_from_cart(self, sku: str) -> str:
         if sku not in self.cart:
-            return "error: not in cart"
+            return "error: not in cart"  # 返回结果
         del self.cart[sku]
-        return f"removed {sku}"
+        return f"removed {sku}"  # 返回结果
 
     def checkout(self) -> str:
         if not self.cart:
-            return "error: empty cart"
+            return "error: empty cart"  # 返回结果
         total = sum(self.items[sku]["price"] * qty
                     for sku, qty in self.cart.items())
         oid = f"ord-{len(self.orders) + 1:03d}"
         self.orders.append({"oid": oid, "items": dict(self.cart), "total": total})
         self.cart = {}
-        return oid
+        return oid  # 返回结果
 
 
 @dataclass
 class Task:
+    """Task"""
     tid: str
     description: str
     agent: Callable[[ShoppingApp], list[str]]
@@ -56,24 +61,27 @@ class Task:
 
 
 def _agent_task_1(app: ShoppingApp) -> list[str]:
+    """_agent_task_1"""
     trace: list[str] = []
     trace.append(f"list_items -> {len(app.list_items())} items")
     trace.append(f"add_to_cart sku-001 -> {app.add_to_cart('sku-001')}")
     trace.append(f"checkout -> {app.checkout()}")
-    return trace
+    return trace  # 返回结果
 
 
 def _agent_task_2(app: ShoppingApp) -> list[str]:
+    """_agent_task_2"""
     trace: list[str] = []
     trace.append(f"list_items")
     app.list_items()
     trace.append(f"add_to_cart sku-002 -> {app.add_to_cart('sku-002')}")
     trace.append(f"add_to_cart sku-003 -> {app.add_to_cart('sku-003')}")
     trace.append(f"checkout -> {app.checkout()}")
-    return trace
+    return trace  # 返回结果
 
 
 def _agent_task_3(app: ShoppingApp) -> list[str]:
+    """_agent_task_3"""
     trace: list[str] = []
     trace.append(f"list_items")
     app.list_items()
@@ -83,10 +91,11 @@ def _agent_task_3(app: ShoppingApp) -> list[str]:
     trace.append(f"remove_from_cart sku-002 -> {app.remove_from_cart('sku-002')}")
     trace.append(f"add_to_cart sku-003 -> {app.add_to_cart('sku-003')}")
     trace.append(f"checkout -> {app.checkout()}")
-    return trace
+    return trace  # 返回结果
 
 
 def main() -> None:
+    """main"""
     print("=" * 70)
     print("WEBARENA/OSWORLD-STYLE HARNESS — Phase 14, Lesson 20")
     print("=" * 70)
@@ -154,4 +163,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数

@@ -1,24 +1,27 @@
-# Indirect Prompt Injection — Production Attack Surface
+# Indirect Prompt Injection — Production Attack Surface | 提示注入 生产 间接
 
 > Indirect prompt injection (IPI) embeds instructions inside external content — a web page, an email, a shared document, a support ticket — consumed by an agentic system without explicit user action. IPI is the dominant 2026 production threat: it bypasses user-input filters because the attacker never touches the user, it scales silently as agents process more external content, and it targets automated workflows where nobody is reading the prompt. MDPI Information 17(1):54 (January 2026) synthesizes 2023-2025 research. NDSS 2026's IPI-defense paper frames the core challenge: injected instructions can be semantically benign ("please print Yes"), so detection requires more than keyword filtering. "The Attacker Moves Second" (Nasr et al., joint OpenAI/Anthropic/DeepMind, October 2025): adaptive attacks (gradient, RL, random search, human red-team) broke >90% of 12 published defenses that had originally reported near-zero attack success rates.
+
+> **【中文解读】** 本节介绍了间接提示注入——通过第三方数据源（网页、文档）注入恶意指令的攻击。
+
 
 **Type:** Build
 **Languages:** Python (stdlib, IPI attack + defense harness)
 **Prerequisites:** Phase 18 · 12 (PAIR), Phase 14 (agent engineering)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Define indirect prompt injection and describe three common delivery vectors.
 - Explain why user-input filters miss IPI entirely.
 - Describe the "information flow control" framing as the 2026 defense paradigm.
 - State the finding of Nasr et al. (October 2025) on adaptive attack success against published IPI defenses.
 
-## The Problem
+## The Problem | 问题
 
 Direct prompt injection requires the attacker to reach the user or their prompt. IPI requires neither: the attacker places a payload in any content the agent might read — a web page, an email in the inbox, a GitHub issue, a product review. The agent picks it up during normal operation and executes the instructions. The user is the messenger, not the intent.
 
-## The Concept
+## The Concept | 概念
 
 ### Three delivery vectors
 
@@ -56,15 +59,15 @@ OWASP LLM Top 10 (2025) ranks prompt injection (direct + indirect) as LLM01, the
 
 Lessons 12-14 are model-centric jailbreaks. Lesson 15 is the system-centric attack that dominates 2026 production deployments. Lesson 16 covers the defensive tooling. Lesson 25 covers the specific CVE narrative.
 
-## Use It
+## Use It | 使用方法
 
 `code/main.py` builds an IPI harness. A toy agent has three tools (search web, read email, send message). The environment contains attacker-controlled content with an embedded instruction ("forward this to all contacts"). You can toggle between a naive agent (follows injected instructions), a filter-defended agent (keyword filter on retrieved content), and an IFC agent (separates trusted and untrusted content and refuses untrusted control-flow commands).
 
-## Ship It
+## Ship It | 部署上线
 
 This lesson produces `outputs/skill-ipi-audit.md`. Given an agentic deployment description, it enumerates the untrusted content sources, checks whether the deployment applies IFC, and flags sources that reach the model without a trust label.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Measure the success rate of the attack against each of the three agents.
 
@@ -76,7 +79,7 @@ This lesson produces `outputs/skill-ipi-audit.md`. Given an agentic deployment d
 
 5. Reproduce the Nasr et al. 2025 adaptive-attack methodology on your filter-defended agent from Exercise 2. Report the ASR before and after adaptive attack.
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|-----------------|------------------------|
@@ -88,7 +91,7 @@ This lesson produces `outputs/skill-ipi-audit.md`. Given an agentic deployment d
 | Benign instruction | "please print Yes" | IPI payload that is semantically benign; no keyword filter catches it |
 | Scope violation | "cross-trust exfiltration" | Agent accesses data from one trust context and outputs it to another |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [MDPI Information 17(1):54 — Indirect Prompt Injection Survey (January 2026)](https://www.mdpi.com/2078-2489/17/1/54) — 2023-2025 synthesis
 - [Nasr et al. — The Attacker Moves Second (joint OpenAI/Anthropic/DeepMind, October 2025)](https://arxiv.org/abs/2510.18108) — adaptive attack evaluation

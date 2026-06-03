@@ -1,6 +1,8 @@
-# T5, BART — Encoder-Decoder Models
+# T5, BART — Encoder-Decoder Models | T5、BART — 编码器-解码器模型
 
 > Encoders understand. Decoders generate. Put them back together and you get a model built for input → output tasks: translate, summarize, rewrite, transcribe.
+
+> **【中文解读】** T5 把所有 NLP 任务统一为 text-to-text 格式。BART 用去噪自编码训练。适用于翻译、摘要等序列转换任务。
 
 **Type:** Learn
 **Languages:** Python

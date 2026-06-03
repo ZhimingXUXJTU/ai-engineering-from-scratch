@@ -1,6 +1,9 @@
-# Theory of Mind and Emergent Coordination
+# Theory of Mind and Emergent Coordination | 心智理论 协调
 
 > Li et al. (arXiv:2310.10701) showed that LLM agents in a cooperative text game exhibit **emergent high-order Theory of Mind** (ToM) — reasoning about what another agent believes about a third agent's beliefs — but fail on long-horizon planning due to context management and hallucination. Riedl (arXiv:2510.05174) measured higher-order synergy across a population and found that **only** the ToM-prompt condition produces identity-linked differentiation and goal-directed complementarity; lower-capacity LLMs show only spurious emergence. That is, coordination emergence is prompt-conditional and model-dependent, not free. This lesson implements a minimal ToM-aware agent, runs a cooperative task with and without ToM prompting, and measures the coordination delta against the Riedl 2025 protocol.
+
+> **【中文解读】** 本节介绍了心智理论协调——Agent 理解和预测其他 Agent 意图的协调机制。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)
@@ -103,7 +106,7 @@ Three practical signals a team's coordination is real rather than prompt-dressed
 
 These are measurable in a logged multi-agent system. They are the substantive version of the "coordination" narrative.
 
-## Build It
+## Build It | 动手构建
 
 `code/main.py` implements:
 
@@ -120,11 +123,11 @@ python3 code/main.py
 
 Expected output: zeroth-order agents duplicate effort at ~35% rate and complete ~60% of trials in 10 turns. First-order ToM agents duplicate at ~5% and complete ~95%. The delta is the measurable coordination effect.
 
-## Use It
+## Use It | 使用方法
 
 `outputs/skill-tom-auditor.md` is a skill that audits a multi-agent system's claim of "emergent coordination." Checks for prompt dressing, statistical significance against a control, and measured complementarity.
 
-## Ship It
+## Ship It | 部署上线
 
 Coordination claims checklist:
 
@@ -134,7 +137,7 @@ Coordination claims checklist:
 - **Failure-case log.** When agents miscoordinate, what does the ToM state look like?
 - **Model-capacity disclosure.** If the effect vanishes on smaller models, say so.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Confirm first-order ToM reduces duplication rate by ~7x. Does the gap persist when you scale to 5 agents and 5 boxes?
 2. Implement second-order ToM (agent A models what B thinks about C). Does it improve over first-order? On what tasks?
@@ -142,7 +145,7 @@ Coordination claims checklist:
 4. Read Li et al. (arXiv:2310.10701). Reproduce the "long-horizon degradation" finding: as turns grow from 10 to 30, how does your first-order ToM performance change?
 5. Read Riedl 2025 (arXiv:2510.05174). Implement the higher-order synergy statistic on your simulation logs. Is the effect present without the ToM prompt condition?
 
-## Key Terms
+## Key Terms | 关键术语
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
@@ -155,7 +158,7 @@ Coordination claims checklist:
 | Higher-order synergy | "Group exceeds any subset" | Riedl's statistical measure for real coordination. |
 | Coordination illusion | "It looks coordinated" | Prompt-dressed appearance of coordination without measurable signal. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Li et al. — Theory of Mind for Multi-Agent Collaboration via Large Language Models](https://arxiv.org/abs/2310.10701) — emergent ToM in cooperative games; long-horizon failure modes
 - [Riedl — Emergent Coordination in Multi-Agent Language Models](https://arxiv.org/abs/2510.05174) — population-scale measurement; ToM prompting is the load-bearing condition
