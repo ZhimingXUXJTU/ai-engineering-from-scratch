@@ -16,7 +16,7 @@
 - Compare raw-context video VLMs vs agentic-retrieval video VLMs (VideoAgent) on accuracy and latency.
 - Design a needle-in-a-haystack test for a 30-minute video and measure recall at a specific minute.
 
-## The Problem
+## The Problem | 问题引入
 
 A single frame of Qwen2.5-VL-sized patches at 384 native resolution is ~729 tokens. At 3x3 pooling that's 81 tokens per frame. A 30-minute clip at 1 FPS = 1800 frames = 145,800 tokens. Doable by 2025 open VLMs, tight. At 2 FPS, 291,600 tokens — only the biggest contexts fit.
 
@@ -24,7 +24,12 @@ A 2-hour movie at 1 FPS is 583k tokens. Beyond most 2026 open models; requires G
 
 Three scaling paths emerged.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 长视频理解（百万 token 级别）是多模态 AI 的前沿挑战。一小时视频约 108,000 帧，即使每帧压缩为 1 个 token 也需要处理 10 万+ token。核心技术：层次化压缩、稀疏采样、状态空间模型（SSM）处理超长序列。
+
+> **【拓展：Gemini 1.5 Pro 的百万 token 上下文** Gemini 1.5 Pro 支持 1M token 输入，可以处理约 1 小时的视频或 1000+ 页文档。通过稀疏注意力（仅关注相关帧）和分块处理实现。在长视频 QA 任务上，Gemini 1.5 Pro 的准确率随视频长度下降较缓慢，但仍与人类有显著差距。
+
 
 ### Path 1: Brute context (Gemini 1.5, Claude Opus)
 
@@ -98,7 +103,7 @@ In practice, production long-video pipelines are hybrid:
 
 This combines brute-context for global understanding and retrieval for local detail.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py`:
 
@@ -108,11 +113,11 @@ This combines brute-context for global understanding and retrieval for local det
 
 Run the budget table and feel the scale gap.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-long-video-strategy-planner.md`. Given a video duration and query complexity, it picks between brute-context, compression, and agentic retrieval, and computes the latency + quality expectations.
 
-## Exercises
+## Exercises | 练习题
 
 1. A 45-minute lecture at 1 FPS, 81 tokens per frame. Total tokens? Fits in which models' contexts? 45 分钟讲座，1 FPS，每帧 81 token。总 token 数？能放入哪些模型的上下文？
 
@@ -124,18 +129,18 @@ This lesson produces `outputs/skill-long-video-strategy-planner.md`. Given a vid
 
 5. Read Gemini 1.5 Section 5 on needle-in-a-haystack. What did the paper find about recall at the 1M vs 10M token boundary? 阅读 Gemini 1.5 第 5 节关于大海捞针的实验。论文发现 1M 和 10M token 边界的召回率有什么差异？
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|-----------------|------------------------|
-| Brute context | "Just more tokens" 暴力上下文 | Scale LLM context to millions of tokens; process everything in one pass 将 LLM 上下文扩展到百万 token，一次前向传播处理全部内容 |
-| Ring attention | "LWM-style parallel" 环形注意力 | Distributed attention pattern where each device holds a chunk and rotates 分布式注意力模式，每个设备持有一块并在环中轮转 |
-| Token compression | "Summary tokens" 摘要 token | Reduce per-clip tokens via a learned compressor before the LLM LLM 前通过学习型压缩器减少每片段 token 数 |
-| Needle-in-haystack | "NIH test" 大海捞针测试 | Insert a unique marker at a random point, ask model to recall it at test time 在随机位置插入唯一标记，测试时要求模型回忆 |
-| Agentic retrieval | "LLM as query planner" Agent 检索 | LLM asks a retrieval tool for relevant clips, reads them via a VLM, composes answer LLM 调用检索工具获取相关片段，通过 VLM 阅读并生成回答 |
-| VideoAgent | "Retrieval pattern for video" 视频检索模式 | Canonical agentic-retrieval design: question -> tool -> clip -> answer 经典 Agent 检索设计：问题→工具→片段→回答 |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|------------------------|---------|
+| Brute context | "Just more tokens" 暴力上下文 | Scale LLM context to millions of tokens; process everything in one pass 将 LLM 上下文扩展到百万 token，一次前向传播处理全部内容 | |
+| Ring attention | "LWM-style parallel" 环形注意力 | Distributed attention pattern where each device holds a chunk and rotates 分布式注意力模式，每个设备持有一块并在环中轮转 | |
+| Token compression | "Summary tokens" 摘要 token | Reduce per-clip tokens via a learned compressor before the LLM LLM 前通过学习型压缩器减少每片段 token 数 | |
+| Needle-in-haystack | "NIH test" 大海捞针测试 | Insert a unique marker at a random point, ask model to recall it at test time 在随机位置插入唯一标记，测试时要求模型回忆 | |
+| Agentic retrieval | "LLM as query planner" Agent 检索 | LLM asks a retrieval tool for relevant clips, reads them via a VLM, composes answer LLM 调用检索工具获取相关片段，通过 VLM 阅读并生成回答 | |
+| VideoAgent | "Retrieval pattern for video" 视频检索模式 | Canonical agentic-retrieval design: question -> tool -> clip -> answer 经典 Agent 检索设计：问题→工具→片段→回答 | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Gemini Team — Gemini 1.5 (arXiv:2403.05530)](https://arxiv.org/abs/2403.05530)
 - [Liu et al. — LWM / RingAttention (arXiv:2402.08268)](https://arxiv.org/abs/2402.08268)

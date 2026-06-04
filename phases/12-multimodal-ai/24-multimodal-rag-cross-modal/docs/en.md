@@ -16,7 +16,7 @@
 - Explain generation grounding: what "cite your sources" looks like when sources are a mix of modalities.
 - Name the three canonical multimodal RAG surveys of 2025 and their sub-problem taxonomy.
 
-## The Problem
+## The Problem | 问题引入
 
 Single-modality RAG is a solved pattern: embed query, embed chunks, retrieve, stuff into LLM. Multimodal RAG requires:
 
@@ -27,7 +27,12 @@ Single-modality RAG is a solved pattern: embed query, embed chunks, retrieve, st
 
 The 2025 surveys all arrive at the same taxonomy.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 跨模态 RAG 扩展了传统文本 RAG，支持多模态检索和生成：可以用文本检索图像，用图像检索文本，或混合检索多模态文档。关键技术：统一多模态嵌入空间、跨模态重排序、多模态上下文融合。
+
+> **【拓展：多模态 RAG 的应用** 多模态 RAG 在医疗（检索影像+病历）、电商（以图搜商品+商品描述）、法律（检索合同条款+附件图表）等领域有巨大价值。主要挑战是评估——如何衡量多模态检索的质量，目前缺乏标准化基准。
+
 
 ### Cross-modal retrieval
 
@@ -117,7 +122,7 @@ Cross-modal evaluation is still immature. Common proxies:
 
 No standard benchmark spans all modalities. Most papers evaluate on domain-specific tasks.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py`:
 
@@ -126,11 +131,11 @@ No standard benchmark spans all modalities. Most papers evaluate on domain-speci
 - A generator stub that emits a final answer with citations.
 - A simple agentic loop that reformulates the query if confidence is low.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-multimodal-rag-designer.md`. Given a product spec with a multimodal query flow, designs retrievers, fusion, generator, and evaluation.
 
-## Exercises
+## Exercises | 练习题
 
 1. Propose a medical-triage multimodal RAG: query = photo of injury + text symptoms. What modalities retrieve from what KB? 设计医疗分诊多模态 RAG：查询 = 伤处照片 + 文字症状。哪些模态从哪些知识库检索？
 
@@ -142,18 +147,18 @@ This lesson produces `outputs/skill-multimodal-rag-designer.md`. Given a product
 
 5. Agentic multi-hop RAG has a latency tax per round-trip. At what query difficulty does the accuracy gain justify the latency? Agent 多跳 RAG 每轮有延迟开销。在什么查询复杂度下，准确率提升值得延迟代价？
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|-----------------|------------------------|
-| Cross-modal retrieval | "Query one modality, retrieve another" 跨模态检索 | Text query retrieves images; image query retrieves text; requires a shared space or translator 文本查询检索图像；图像查询检索文本；需要共享空间或翻译器 |
-| Score fusion | "Combine scores" 分数融合 | Weighted sum of per-modality retrieval scores; simplest fusion 各模态检索分数的加权和；最简单的融合方式 |
-| MoE fusion | "Modality-routed experts" 混合专家融合 | Gating network picks which modality's scores to trust per query 门控网络按查询选择信任哪个模态的分数 |
-| Grounded generation | "Cite your sources" 接地生成 | Each claim in the answer tagged with the source index 回答中的每个声明都标注来源索引 |
-| MuRAG | "First multimodal RAG" 首个多模态 RAG | 2022 paper that established the multimodal RAG pattern 2022 年建立多模态 RAG 模式的论文 |
-| Agentic multi-hop | "Reformulate and retry" Agent 多跳 | LLM re-queries retrievers when first-pass confidence is low 首次检索置信度低时 LLM 重新查询检索器 |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|------------------------|---------|
+| Cross-modal retrieval | "Query one modality, retrieve another" 跨模态检索 | Text query retrieves images; image query retrieves text; requires a shared space or translator 文本查询检索图像；图像查询检索文本；需要共享空间或翻译器 | |
+| Score fusion | "Combine scores" 分数融合 | Weighted sum of per-modality retrieval scores; simplest fusion 各模态检索分数的加权和；最简单的融合方式 | |
+| MoE fusion | "Modality-routed experts" 混合专家融合 | Gating network picks which modality's scores to trust per query 门控网络按查询选择信任哪个模态的分数 | |
+| Grounded generation | "Cite your sources" 接地生成 | Each claim in the answer tagged with the source index 回答中的每个声明都标注来源索引 | |
+| MuRAG | "First multimodal RAG" 首个多模态 RAG | 2022 paper that established the multimodal RAG pattern 2022 年建立多模态 RAG 模式的论文 | |
+| Agentic multi-hop | "Reformulate and retry" Agent 多跳 | LLM re-queries retrievers when first-pass confidence is low 首次检索置信度低时 LLM 重新查询检索器 | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Abootorabi et al. — Ask in Any Modality (arXiv:2502.08826)](https://arxiv.org/abs/2502.08826)
 - [Mei et al. — A Survey of Multimodal RAG (arXiv:2504.08748)](https://arxiv.org/abs/2504.08748)

@@ -18,7 +18,7 @@
 - Walk through BLIP-2's two-stage pretraining: representation (ITC + ITM + ITG) then generative (LM loss with frozen decoder).
 - Compare Q-Former to the simpler MLP projector used in LLaVA and argue when each choice wins.
 
-## The Problem
+## The Problem | 问题引入
 
 You have a frozen ViT that produces 256 patch tokens of dim 1408 per image. You have a frozen 7B LLM that expects token embeddings of dim 4096. The obvious bridge — a linear layer from 1408 to 4096 — works, but feeding all 256 patch tokens into the LLM's context costs 256 extra tokens per image. Over a batch of 32 images that is 8192 tokens consumed by the visual modality alone.
 
@@ -26,7 +26,15 @@ The BLIP-2 question: can you compress the 256-token image representation into fa
 
 The answer: a Q-Former. 32 learnable "query" vectors that cross-attend to the ViT's patch tokens, producing a 32-token visual summary that the LLM consumes. 188M parameters total. Trained with contrastive, matching, and generative objectives before ever touching the LLM.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** BLIP-2 引入 Q-Former 作为冻结视觉编码器和冻结 LLM 之间的轻量桥接层。Q-Former 使用一组可学习的 query token 从视觉编码器提取与文本最相关的视觉特征，大幅减少了训练参数量（仅训练 Q-Former），实现了高效的视觉-语言对齐。
+
+> **【拓展：BLIP-2 的高效训练】** BLIP-2 可在单张 A100 上 12 小时内完成训练（仅 Q-Former 参数），比之前的方法快 10-100 倍。Q-Former 的设计影响了后续的 LLaVA、InternVL 等模型。Salesforce 的 BLIP-2 在 VQAv2 上达到 82.2% 准确率，接近当时的最优水平。
+
+
+> **【拓展：Q-Former 的影响】** Q-Former 的设计思想（用可学习 query 从冻结编码器提取任务相关特征）被广泛借鉴。InstructBLIP 用类似方法做指令感知的视觉特征提取。Q-Former 的轻量性（仅约 188M 参数）使得在消费级 GPU 上训练多模态模型成为可能。
+
 
 ### Learnable queries
 
@@ -91,7 +99,7 @@ Flamingo (Lesson 12.04) predated BLIP-2 and used the same cross-attention idea b
 
 All four are valid. The deciding question is whether you are constrained on token budget or on quality-per-token.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py` builds a stdlib Q-Former-style cross-attention:
 
@@ -103,11 +111,11 @@ All four are valid. The deciding question is whether you are constrained on toke
 
 All math in pure Python (nested loops over vectors). Toy but correct shape. The attention-weight matrix is printed so you can see which patches each query pulled from.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-modality-bridge-picker.md`. Given a target VLM configuration (vision encoder token count, LLM context budget, deployment constraints, quality target), it recommends Q-Former vs MLP vs Perceiver resampler with a short justification and a parameter-count estimate for each bridge.
 
-## Exercises
+## Exercises | 练习题
 
 1. Implement the cross-attention block in PyTorch. Verify that with 32 queries and 256 keys/values, the attention-weight matrix is 32 x 256 and each row sums to 1 after softmax.
 
@@ -119,22 +127,22 @@ This lesson produces `outputs/skill-modality-bridge-picker.md`. Given a target V
 
 5. For a 10-minute video at 1 FPS sampled to 60 frames, compute the per-frame token cost at (Q-Former → 32 tokens/frame) vs (MLP projector → 576 tokens/frame). Which fits into a 128k-token LLM context window?
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Q-Former | "Querying transformer" | Small transformer with 32 learnable query vectors that cross-attend to frozen ViT features |
-| Learnable queries | "Soft prompt for vision" | A fixed set of parameters that serve as the query side of cross-attention; learned per model, shared across all inputs |
-| Cross-attention | "Q from here, K/V from there" | Attention where query, key, and value come from different sources; how the queries pull from ViT patches |
-| ITC | "Image-text contrastive" | CLIP-style loss applied to Q-Former pooled queries vs text CLS |
-| ITM | "Image-text matching" | Binary classifier on hard-negative-mined pairs; forces the queries to discriminate fine-grained mismatches |
-| ITG | "Image-grounded text generation" | Causal LM loss where text is generated conditioned on queries; forces queries to encode text-decodable content |
-| Two-stage pretraining | "Representation then generative" | Stage 1 trains Q-Former alone (ITC/ITM/ITG); Stage 2 attaches frozen LLM and trains only the projection + Q-Former |
-| Frozen backbone | "Do not finetune" | The vision encoder and LLM weights are fixed; only the bridge trains |
-| Projection head | "Linear to LLM dim" | Final linear layer mapping Q-Former output to the LLM's embedding dimension |
-| Perceiver resampler | "Flamingo's version" | Similar learnable-query cross-attention, used by Flamingo at every layer rather than as a single bridge |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|---------|
+| Q-Former | "Querying transformer" | Small transformer with 32 learnable query vectors that cross-attend to frozen ViT features | |
+| Learnable queries | "Soft prompt for vision" | A fixed set of parameters that serve as the query side of cross-attention; learned per model, shared across all inputs | |
+| Cross-attention | "Q from here, K/V from there" | Attention where query, key, and value come from different sources; how the queries pull from ViT patches | |
+| ITC | "Image-text contrastive" | CLIP-style loss applied to Q-Former pooled queries vs text CLS | |
+| ITM | "Image-text matching" | Binary classifier on hard-negative-mined pairs; forces the queries to discriminate fine-grained mismatches | |
+| ITG | "Image-grounded text generation" | Causal LM loss where text is generated conditioned on queries; forces queries to encode text-decodable content | |
+| Two-stage pretraining | "Representation then generative" | Stage 1 trains Q-Former alone (ITC/ITM/ITG); Stage 2 attaches frozen LLM and trains only the projection + Q-Former | |
+| Frozen backbone | "Do not finetune" | The vision encoder and LLM weights are fixed; only the bridge trains | |
+| Projection head | "Linear to LLM dim" | Final linear layer mapping Q-Former output to the LLM's embedding dimension | |
+| Perceiver resampler | "Flamingo's version" | Similar learnable-query cross-attention, used by Flamingo at every layer rather than as a single bridge | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Li et al. — BLIP-2 (arXiv:2301.12597)](https://arxiv.org/abs/2301.12597) — the core paper.
 - [Li et al. — BLIP (arXiv:2201.12086)](https://arxiv.org/abs/2201.12086) — the predecessor with the ITC/ITM/ITG trio.

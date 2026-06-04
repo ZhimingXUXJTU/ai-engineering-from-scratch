@@ -26,6 +26,11 @@ Show-o's answer: keep both modalities discrete (like Chameleon), but generate im
 
 ## The Concept  | 核心概念
 
+> **【中文解读】** Show-o 统一多模态理解和生成，使用离散扩散替代传统连续扩散。离散扩散直接在 token 级别操作，将遮罩预测（理解任务）和去噪（生成任务）统一在同一框架下。
+
+> **【拓展：离散扩散的统一优势】** 离散扩散将文本生成和图像生成统一到同一个数学框架（掩码 token 预测），使多模态联合训练更简单。这是 2025 年多模态 AI 的趋势方向。
+
+
 ### Masked discrete diffusion (MaskGIT)
 
 The original Chang et al. (2022) MaskGIT trick is elegant. Start from a fully-masked image (every token is the special `<MASK>` id). At each step, predict all masked tokens in parallel, then keep the top-K most confident predictions and re-mask the rest. After ~8-16 iterations, all tokens are filled in. The schedule of how many tokens to unmask per step is tuned — cosine schedules work well.
@@ -94,6 +99,10 @@ In the 2026 taxonomy:
 
 Pick by task: Show-o when you want T2I + inpainting + VQA in one open model with reasonable speed; Transfusion when quality is paramount and you can afford the two-loss plumbing.
 
+
+> **【拓展：Show-o 的离散扩散方法】** Show-o 的离散扩散使用掩码预测：随机遮盖部分 token，模型预测被遮盖的 token。理解任务遮盖答案部分，生成任务从全遮盖开始逐步去噪。数学上等价于多项式扩散。
+
+
 ## Use It  | 动手实践
 
 `code/main.py` simulates Show-o sampling:
@@ -123,14 +132,14 @@ This lesson produces `outputs/skill-unified-gen-model-picker.md`. Given a produc
 
 ## Key Terms  | 关键术语
 
-| Term | What people say | What it actually means | 中文含义 |
-|------|-----------------|------------------------|
-| Masked discrete diffusion | "MaskGIT-style" | Training to predict masked tokens; at inference, iteratively unmask the most-confident predictions |
-| Cosine schedule | "Unmask schedule" | Decay of mask ratio over inference steps; concentrates confidence growth at mid-range |
-| Parallel decoding | "All tokens at once" | Every step predicts the full sequence of masked tokens in one forward pass, then commits top-K |
-| Hybrid attention | "Causal + bidirectional" | Mask that is causal over text tokens and bidirectional within image blocks |
-| Inpainting | "Fill-in generation" | Condition on an image with some tokens masked, predict the missing ones; free from the training objective |
-| Commitment rate | "Top-K per step" | How many tokens are declared "done" per iteration; controls inference vs quality trade-off |
+| Term | What people say | What it actually means | 中文含义 | 中文释义 |
+|------|-----------------|------------------------|---------|
+| Masked discrete diffusion | "MaskGIT-style" | Training to predict masked tokens; at inference, iteratively unmask the most-confident predictions | |
+| Cosine schedule | "Unmask schedule" | Decay of mask ratio over inference steps; concentrates confidence growth at mid-range | |
+| Parallel decoding | "All tokens at once" | Every step predicts the full sequence of masked tokens in one forward pass, then commits top-K | |
+| Hybrid attention | "Causal + bidirectional" | Mask that is causal over text tokens and bidirectional within image blocks | |
+| Inpainting | "Fill-in generation" | Condition on an image with some tokens masked, predict the missing ones; free from the training objective | |
+| Commitment rate | "Top-K per step" | How many tokens are declared "done" per iteration; controls inference vs quality trade-off | |
 
 ## Further Reading  | 延伸阅读
 

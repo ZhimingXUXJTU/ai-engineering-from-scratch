@@ -16,7 +16,7 @@
 - Describe TMRoPE's time-aligned position encoding across vision, audio, and text within the Thinker.
 - Name the three real-time conversational patterns: half-duplex, turn-taking, full-duplex.
 
-## The Problem
+## The Problem | 问题引入
 
 A real-time voice assistant has to do a lot, fast:
 
@@ -29,7 +29,12 @@ Each step adds latency. Conversational-feel requires total round-trip < 500ms �
 
 Every component needs to stream. Nothing can be "batch everything then decode."
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 全能模型（Omni Models）同时处理文本、语音、图像、视频等所有模态。Thinker-Talker 架构将"思考"（内部推理）和"说话"（语音输出）解耦：Thinker 是大语言模型负责推理，Talker 是语音合成模块负责自然语音输出。
+
+> **【拓展：实时多模态交互** GPT-4o 是第一个真正实现实时多模态交互的模型：用户可以语音提问，模型同时看到摄像头画面，以自然语音实时回答。关键技术挑战：端到端延迟（目标 < 500ms）、全双工通信（同时听和说）、情感感知（从语音和表情理解情绪）。这代表了人机交互的未来方向。
+
 
 ### Thinker and Talker
 
@@ -99,7 +104,7 @@ At 16kHz speech with 50 Hz base speech tokens, you need 50 speech tokens per sec
 
 This is why small dedicated Talker models exist rather than "just use the main model."
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py`:
 
@@ -107,11 +112,11 @@ This is why small dedicated Talker models exist rather than "just use the main m
 - Computes TTFAB for configurable model sizes and mic sample rates.
 - Demonstrates half-duplex turn-taking with VAD silence threshold.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-omni-streaming-budget.md`. Given a real-time voice product's target TTFAB and feature set (vision-in, bilingual, full-duplex), picks Qwen2.5-Omni, Qwen3-Omni, Moshi, or Mini-Omni and sizes the Thinker/Talker.
 
-## Exercises
+## Exercises | 练习题
 
 1. Your target TTFAB is 300ms. On a 7B Thinker and 300M Talker, write out every component's latency. 你的 TTFAB 目标是 300ms。在 7B Thinker 和 300M Talker 上，列出每个组件的延迟。
 
@@ -123,19 +128,19 @@ This lesson produces `outputs/skill-omni-streaming-budget.md`. Given a real-time
 
 5. Compute the throughput budget: how fast must a Talker emit tokens to keep up with 16kHz speech at 50 base-layer tokens/sec? 计算吞吐量预算：Talker 需要多快的速度输出 token 才能跟上 16kHz 语音（50 基础层 token/秒）？
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|-----------------|------------------------|
-| Thinker | "Reasoning brain" 思考者 | Large text-generating transformer producing what to say 生成"说什么"的大型文本生成 Transformer |
-| Talker | "Speech-generating mouth" 说话者 | Small transformer producing discrete speech tokens from Thinker's text 将 Thinker 文本转为语音 token 的小型 Transformer |
-| TTFAB | "Latency budget" 首音频字节延迟 | Time-to-first-audio-byte: from user speech end to first audio sample out 从用户说话结束到首个音频样本输出的延迟 |
-| TMRoPE | "Time-aligned RoPE" 时间对齐旋转位置编码 | Position encoding using absolute timestamps across vision, audio, text 跨视觉、音频、文本使用绝对时间戳的位置编码 |
-| Half-duplex | "Turn-taking" 半双工 | User and model alternate; VAD silence detects user-done 用户和模型交替说话；VAD 静音检测用户说完 |
-| Full-duplex | "Simultaneous" 全双工 | Model can speak and listen at the same time; backchannel capable 模型可同时说话和监听；支持回话 |
-| Inner monologue | "Moshi separation" 内心独白 | Single-model design where thinking-stream and speaking-stream interleave 单模型设计，思考流和说话流交替出现 |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|------------------------|---------|
+| Thinker | "Reasoning brain" 思考者 | Large text-generating transformer producing what to say 生成"说什么"的大型文本生成 Transformer | |
+| Talker | "Speech-generating mouth" 说话者 | Small transformer producing discrete speech tokens from Thinker's text 将 Thinker 文本转为语音 token 的小型 Transformer | |
+| TTFAB | "Latency budget" 首音频字节延迟 | Time-to-first-audio-byte: from user speech end to first audio sample out 从用户说话结束到首个音频样本输出的延迟 | |
+| TMRoPE | "Time-aligned RoPE" 时间对齐旋转位置编码 | Position encoding using absolute timestamps across vision, audio, text 跨视觉、音频、文本使用绝对时间戳的位置编码 | |
+| Half-duplex | "Turn-taking" 半双工 | User and model alternate; VAD silence detects user-done 用户和模型交替说话；VAD 静音检测用户说完 | |
+| Full-duplex | "Simultaneous" 全双工 | Model can speak and listen at the same time; backchannel capable 模型可同时说话和监听；支持回话 | |
+| Inner monologue | "Moshi separation" 内心独白 | Single-model design where thinking-stream and speaking-stream interleave 单模型设计，思考流和说话流交替出现 | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Xu et al. — Qwen2.5-Omni (arXiv:2503.20215)](https://arxiv.org/abs/2503.20215)
 - [Qwen Team — Qwen3-Omni (arXiv:2509.17765)](https://arxiv.org/html/2509.17765v1)

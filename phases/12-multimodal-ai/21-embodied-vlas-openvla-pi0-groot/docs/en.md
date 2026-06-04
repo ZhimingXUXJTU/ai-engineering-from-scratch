@@ -18,7 +18,7 @@
 - Compare OpenVLA (open 7B Llama+VLM), π0 (flow-matching), and GR00T N1 (dual-system) on the same robot task.
 - Name the Open X-Embodiment dataset and its role as the RT-X training corpus.
 
-## The Problem
+## The Problem | 问题引入
 
 A robot that does chores from natural language instructions has been a research target since the 1970s. The 2020s answer: a vision-language-action (VLA) model. Same VLM architecture used for VQA, but output is actions (joint torques, end-effector poses, discrete commands) instead of text.
 
@@ -29,7 +29,12 @@ Challenges specific to VLAs:
 3. Control frequency matters. 30 Hz control loop means 33ms budget per action.
 4. Safety. A wrong action damages hardware, humans, or property.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 具身视觉-语言-动作模型（VLA）让机器人理解语言指令和视觉场景后执行物理动作。OpenVLA 是开源 VLA，pi0（Physical Intelligence）和 NVIDIA Groot 是具身智能的代表性模型。VLA = 视觉编码器 + LLM + 动作解码器。
+
+> **【拓展：具身智能的进展** OpenVLA-7B 在 Google Robot 上实现约 80% 的任务成功率。pi0 使用流匹配（flow matching）生成连续动作轨迹，比传统离散动作更平滑。NVIDIA Groot 专注于人形机器人。具身智能的核心挑战是数据稀缺——不像文本和图像，机器人操作数据难以大规模收集。
+
 
 ### Action tokenization (RT-2)
 
@@ -112,7 +117,7 @@ Every production VLA ships with:
 
 These sit outside the VLA as control-layer checks. The VLA's output is a suggestion, not a command.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py`:
 
@@ -121,11 +126,11 @@ These sit outside the VLA as control-layer checks. The VLA's output is a suggest
 - Compares token-count per action step across (discrete-bin, FAST, continuous-flow).
 - Prints a lineage summary of RT-2 → OpenVLA → π0 → GR00T.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-vla-action-format-picker.md`. Given a robot task (manipulation, navigation, humanoid whole-body), picks between discrete-bin + RT-2, FAST + OpenVLA, flow-matching + π0, or dual-system + GR00T.
 
-## Exercises
+## Exercises | 练习题
 
 1. A 10-DOF arm at 30 Hz control rate. Discrete-bin tokenization at 256 bins emits how many tokens per second? Can a 7B VLM keep up? 10 自由度机械臂，30Hz 控制频率，256 离散 bin。每秒产生多少 token？7B VLM 能跟上吗？
 
@@ -137,19 +142,19 @@ This lesson produces `outputs/skill-vla-action-format-picker.md`. Given a robot 
 
 5. Read Open X-Embodiment Section 4 on dataset curation. Name the three curation rules that prevent domain leakage. 阅读 Open X-Embodiment 第 4 节关于数据集管理的部分。列举防止领域泄漏的三条规则。
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|-----------------|------------------------|
-| VLA | "Vision-language-action" 视觉-语言-动作模型 | Model that takes image + instruction and outputs action commands 接受图像+指令并输出动作命令的模型 |
-| Action tokenization | "Discrete bins" 离散 bin 编码 | Quantize continuous joint targets into 256 bins per dim, each a vocab ID 将连续关节目标量化为每维 256 个 bin，每个 bin 对应一个词表 ID |
-| FAST tokenizer | "Frequency action tokens" 频域动作 token | DCT + quantize to compress 30-step trajectories to ~10 tokens 用 DCT + 量化将 30 步轨迹压缩为约 10 个 token |
-| Co-fine-tune | "Mix web + robot" 混合微调 | Train on web VQA data alongside robot demos to preserve general knowledge 在网络 VQA 数据和机器人演示上联合训练以保留通用知识 |
-| Flow-matching action head | "pi0 continuous output" 流匹配动作头 | Small transformer that outputs a 50-step action sequence via rectified flow 通过矫正流输出 50 步连续动作序列的小型 Transformer |
-| System 1 / System 2 | "Dual-system control" 双系统控制 | Large VLM plans slowly, small action head acts quickly; GR00T pattern 大 VLM 慢规划，小动作头快执行；GR00T 模式 |
-| Open X-Embodiment | "RT-X dataset" 开放具身数据集 | 1M-trajectory cross-robot dataset; the training corpus 100 万轨迹跨机器人数据集；标准训练语料 |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|------------------------|---------|
+| VLA | "Vision-language-action" 视觉-语言-动作模型 | Model that takes image + instruction and outputs action commands 接受图像+指令并输出动作命令的模型 | |
+| Action tokenization | "Discrete bins" 离散 bin 编码 | Quantize continuous joint targets into 256 bins per dim, each a vocab ID 将连续关节目标量化为每维 256 个 bin，每个 bin 对应一个词表 ID | |
+| FAST tokenizer | "Frequency action tokens" 频域动作 token | DCT + quantize to compress 30-step trajectories to ~10 tokens 用 DCT + 量化将 30 步轨迹压缩为约 10 个 token | |
+| Co-fine-tune | "Mix web + robot" 混合微调 | Train on web VQA data alongside robot demos to preserve general knowledge 在网络 VQA 数据和机器人演示上联合训练以保留通用知识 | |
+| Flow-matching action head | "pi0 continuous output" 流匹配动作头 | Small transformer that outputs a 50-step action sequence via rectified flow 通过矫正流输出 50 步连续动作序列的小型 Transformer | |
+| System 1 / System 2 | "Dual-system control" 双系统控制 | Large VLM plans slowly, small action head acts quickly; GR00T pattern 大 VLM 慢规划，小动作头快执行；GR00T 模式 | |
+| Open X-Embodiment | "RT-X dataset" 开放具身数据集 | 1M-trajectory cross-robot dataset; the training corpus 100 万轨迹跨机器人数据集；标准训练语料 | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Brohan et al. — RT-2 (arXiv:2307.15818)](https://arxiv.org/abs/2307.15818)
 - [Kim et al. — OpenVLA (arXiv:2406.09246)](https://arxiv.org/abs/2406.09246)

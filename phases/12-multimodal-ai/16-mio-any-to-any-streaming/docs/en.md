@@ -16,7 +16,7 @@
 - Explain the four-stage curriculum that builds up any-to-any generation.
 - Name the three open any-to-any recipes and their main trade-offs: MIO, AnyGPT, Unified-IO 2.
 
-## The Problem
+## The Problem | 问题引入
 
 A unified multimodal model is easy to claim and hard to build at scale. Most "any-to-any" systems until 2024 were pipelined: vision model → text representation → speech model → audio. Each hop loses information, adds latency, and complicates training. GPT-4o's demo video showed a single-model alternative with subsecond response; open systems trailed by months.
 
@@ -29,7 +29,12 @@ The engineering challenges:
 - Training data must cover every input-output pair (text→image, image→speech, speech→image, etc.) or the model must compose.
 - Inference must stream output tokens fast enough for conversational latency (<500ms time-to-first-audio-byte).
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** MIO 实现任意到任意的多模态流式处理：文本、图像、音频、视频之间可以任意组合输入和输出。核心是统一的离散 token 化——所有模态都被编码为 token 序列，用一个 Transformer 统一处理。
+
+> **【拓展：全模态模型的趋势】** 2025 年的趋势是从"视觉+语言"走向"全模态"：GPT-4o 原生支持语音输入输出，Gemini 支持视频实时流，Meta 的 Spirit LM 统一语音和文本。全模态模型需要解决的核心问题是不同模态的信息密度差异——1 秒视频约 30 帧，1 秒语音约 16K 样本，需要高效压缩。
+
 
 ### Four tokenizers for four modalities
 
@@ -125,7 +130,7 @@ Even in 2026, open any-to-any models trail closed ones on two axes:
 
 These are open research problems. Qwen3-Omni (Lesson 12.20) is the most advanced open attempt in 2025.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py`:
 
@@ -134,11 +139,11 @@ These are open research problems. Qwen3-Omni (Lesson 12.20) is the most advanced
 - Simulates streaming decode for a text-to-speech response with latency counting.
 - Computes the expected time-to-first-audio-byte given encoder, prefill, and decoder latencies.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-any-to-any-pipeline-auditor.md`. Given a conversational product spec (modalities in, modalities out, latency target), it audits the MIO-family design choices and computes the latency budget.
 
-## Exercises
+## Exercises | 练习题
 
 1. Your product accepts speech input and returns speech output. What's the end-to-end latency budget target? List the components that spend time. 你的产品接受语音输入并返回语音输出。端到端延迟预算目标是多少？列出各组件耗时。
 
@@ -150,18 +155,18 @@ This lesson produces `outputs/skill-any-to-any-pipeline-auditor.md`. Given a con
 
 5. Read Moshi (arXiv:2410.00037). Describe its "inner monologue" technique and compare to MIO's chain-of-visual-thought. 阅读 Moshi 论文，描述其"内心独白"技术并与 MIO 的视觉思维链对比。
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|-----------------|------------------------|
-| Any-to-any | "Multimodal in/out" 任意模态进出 | A single model that accepts and emits text, image, speech, and music in any direction 单一模型接受并以任意方向输出文本、图像、语音、音乐 |
-| Residual-VQ | "Speech tokenizer stack" 语音分词器栈 | Multi-codebook tokenization where each layer adds information; base layer is content, later layers are prosody 多码本分词，每层添加信息；基础层是内容，后续层是韵律 |
-| SEED-Tokenizer | "Image codes" 图像编码 | Discrete image tokenizer with 4096-entry codebook used by MIO 离散图像分词器，4096 码本 |
-| Chain-of-visual-thought | "Visual scratchpad" 视觉草稿板 | The model generates an intermediate image as a reasoning step before its final answer 模型在最终回答前生成中间图像作为推理步骤 |
-| Time-to-first-audio-byte | "TTFAB" 首音频字节延迟 | Latency from user voice to first audio output; <500ms for conversational feel 用户语音到首个音频输出的延迟；<500ms 才有对话感 |
-| Four-stage curriculum | "Training recipe" 训练配方 | Alignment -> interleaved -> speech-enhanced -> SFT, in that order 对齐→交错→语音增强→指令微调的四阶段训练流程 |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|------------------------|---------|
+| Any-to-any | "Multimodal in/out" 任意模态进出 | A single model that accepts and emits text, image, speech, and music in any direction 单一模型接受并以任意方向输出文本、图像、语音、音乐 | |
+| Residual-VQ | "Speech tokenizer stack" 语音分词器栈 | Multi-codebook tokenization where each layer adds information; base layer is content, later layers are prosody 多码本分词，每层添加信息；基础层是内容，后续层是韵律 | |
+| SEED-Tokenizer | "Image codes" 图像编码 | Discrete image tokenizer with 4096-entry codebook used by MIO 离散图像分词器，4096 码本 | |
+| Chain-of-visual-thought | "Visual scratchpad" 视觉草稿板 | The model generates an intermediate image as a reasoning step before its final answer 模型在最终回答前生成中间图像作为推理步骤 | |
+| Time-to-first-audio-byte | "TTFAB" 首音频字节延迟 | Latency from user voice to first audio output; <500ms for conversational feel 用户语音到首个音频输出的延迟；<500ms 才有对话感 | |
+| Four-stage curriculum | "Training recipe" 训练配方 | Alignment -> interleaved -> speech-enhanced -> SFT, in that order 对齐→交错→语音增强→指令微调的四阶段训练流程 | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Wang et al. — MIO (arXiv:2409.17692)](https://arxiv.org/abs/2409.17692)
 - [Zhan et al. — AnyGPT (arXiv:2402.12226)](https://arxiv.org/abs/2402.12226)

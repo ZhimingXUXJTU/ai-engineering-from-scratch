@@ -16,7 +16,7 @@
 - Build an audio Q-former: N learnable queries cross-attending to spectrogram patches.
 - Explain cascaded (Whisper-then-LLM) vs end-to-end audio-LLM training: why end-to-end scales better for reasoning.
 
-## The Problem
+## The Problem | 问题引入
 
 Speech recognition was solved by Whisper. OCR-of-audio is a commodity. But "commodity" stops at transcription. If the model cannot reason over what it heard — timing, speakers, emotion, music structure, environmental sounds — transcription alone cannot drive product features.
 
@@ -28,7 +28,12 @@ Three obvious routes:
 
 3. Hybrid: audio encoder + text decoder that can both transcribe and reason. Qwen-Audio and Audio Flamingo pick this route.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 语音语言模型从 Whisper（OpenAI 的语音识别模型）到 AudioFlamingo 的演进。Whisper 在 68 万小时多语言音频上训练，是语音识别的基础模型。AudioFlamingo 等新一代模型不仅能转录，还能理解音频内容（音乐描述、环境声识别等）。
+
+> **【拓展：语音 AI 的前沿** Whisper-large-v3 支持约 100 种语言的语音识别。2024-2025 年的趋势是语音大模型：GPT-4o 原生语音输入输出（延迟约 320ms），Gemini 的实时语音对话，ElevenLabs 的语音克隆。AudioFlamingo 在音频理解任务上达到 SOTA，能回答关于音乐和声音的复杂问题。
+
 
 ### Log-Mel spectrogram: the input feature
 
@@ -114,7 +119,7 @@ MMAU (Massive Multimodal Audio Understanding) is the 2024-2025 audio reasoning b
 
 Open SOTA (AF3) at 0.72; proprietary frontier ~0.78 (Gemini 2.5 Pro, Claude Opus 4.7). The gap is smaller than VideoMME's open-vs-closed delta, indicating audio-LLMs are maturing.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py`:
 
@@ -122,11 +127,11 @@ Open SOTA (AF3) at 0.72; proprietary frontier ~0.78 (Gemini 2.5 Pro, Claude Opus
 - Audio Q-former skeleton: given encoder output frames, compute Q, K, V, attention, and emit N tokens.
 - Cascaded-vs-end-to-end comparison on a toy task.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-audio-llm-pipeline-picker.md`. Given an audio task (transcription, music tagging, emotion inference, multi-speaker diarization, environment classification), it picks cascaded, end-to-end AF3, or a hybrid.
 
-## Exercises
+## Exercises | 练习题
 
 1. Compute the log-Mel spectrogram dimension for a 30-second clip at 16kHz, 25ms window, 10ms hop, 80 Mel bins. How does this change at 48kHz? 计算 30 秒音频在 16kHz、25ms 窗口、10ms 步长、80 Mel 频段下的 log-Mel 频谱图维度。48kHz 时如何变化？
 
@@ -138,19 +143,19 @@ This lesson produces `outputs/skill-audio-llm-pipeline-picker.md`. Given an audi
 
 5. Implement a minimal diarization pipeline using AF3's output. How do you signal speaker changes? 用 AF3 输出实现一个最小的说话人分离管道。如何标记说话人切换？
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|-----------------|------------------------|
-| Log-Mel spectrogram | "Mel features" Mel 频谱 | 2D (time, frequency) array of log-magnitude values after Mel filter banks 经 Mel 滤波器组后的对数幅度二维数组 |
-| Audio Q-former | "Audio Perceiver" 音频感知器 | Cross-attention bottleneck from audio encoder output to fixed-length queries feeding the LLM 音频编码器输出到固定长度查询的交叉注意力瓶颈 |
-| Cascaded | "ASR-then-LLM" 级联管道 | Pipeline where Whisper transcribes and a text LLM reasons; loses acoustic information Whisper 转录后文本 LLM 推理的管道；丢失声学信息 |
-| End-to-end | "Audio-LLM" 端到端音频 LLM | Audio features enter the LLM directly via Q-former; preserves acoustic signal 音频特征通过 Q-former 直接进入 LLM；保留声学信号 |
-| BEATs | "Audio AudioSet encoder" 音频自监督编码器 | SSL transformer trained on AudioSet; strong on music + environmental sounds 在 AudioSet 上训练的自监督 Transformer；擅长音乐和环境声 |
-| MMAU | "Audio reasoning bench" 音频推理基准 | 10k QA pairs across speech, music, environment; 2024 eval standard 跨语音、音乐、环境的 1 万条 QA；2024 年评估标准 |
-| On-demand thinking | "Audio CoT" 按需音频思考 | Model can optionally emit reasoning tokens before final answer, lifts accuracy 3-5 pts 模型可在最终回答前输出推理 token，提升准确率 3-5 个百分点 |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|------------------------|---------|
+| Log-Mel spectrogram | "Mel features" Mel 频谱 | 2D (time, frequency) array of log-magnitude values after Mel filter banks 经 Mel 滤波器组后的对数幅度二维数组 | |
+| Audio Q-former | "Audio Perceiver" 音频感知器 | Cross-attention bottleneck from audio encoder output to fixed-length queries feeding the LLM 音频编码器输出到固定长度查询的交叉注意力瓶颈 | |
+| Cascaded | "ASR-then-LLM" 级联管道 | Pipeline where Whisper transcribes and a text LLM reasons; loses acoustic information Whisper 转录后文本 LLM 推理的管道；丢失声学信息 | |
+| End-to-end | "Audio-LLM" 端到端音频 LLM | Audio features enter the LLM directly via Q-former; preserves acoustic signal 音频特征通过 Q-former 直接进入 LLM；保留声学信号 | |
+| BEATs | "Audio AudioSet encoder" 音频自监督编码器 | SSL transformer trained on AudioSet; strong on music + environmental sounds 在 AudioSet 上训练的自监督 Transformer；擅长音乐和环境声 | |
+| MMAU | "Audio reasoning bench" 音频推理基准 | 10k QA pairs across speech, music, environment; 2024 eval standard 跨语音、音乐、环境的 1 万条 QA；2024 年评估标准 | |
+| On-demand thinking | "Audio CoT" 按需音频思考 | Model can optionally emit reasoning tokens before final answer, lifts accuracy 3-5 pts 模型可在最终回答前输出推理 token，提升准确率 3-5 个百分点 | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Radford et al. — Whisper (arXiv:2212.04356)](https://arxiv.org/abs/2212.04356)
 - [Chu et al. — Qwen-Audio (arXiv:2311.07919)](https://arxiv.org/abs/2311.07919)
