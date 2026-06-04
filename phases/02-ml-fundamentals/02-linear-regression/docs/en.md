@@ -18,7 +18,10 @@
 > **【中文解读】**
 > 线性回归是最简单的预测模型——用一条直线（或超平面）拟合数据。它也是最简单的神经网络：一个没有隐藏层、没有激活函数的网络。sklearn 中的 LinearRegression/Ridge/Lasso。金融中的因子模型就是线性回归。
 
-## The Problem
+> **【拓展：线性回归在真实 AI 系统中的角色】**
+> 虽然"深度学习"更受关注，但线性回归仍然是工业界最常用的模型之一。Google 在 A/B 测试分析中大量使用线性回归估计因果效应；Uber 用线性回归做需求预测基线；金融领域的 Fama-French 三因子模型本质就是多元线性回归。在 Kaggle 竞赛中，线性回归常作为 baseline，快速验证特征工程的效果。
+
+## The Problem | 问题引入
 
 You have data: house sizes and their sale prices. You want to predict the price of a new house given its size. You could eyeball it on a scatter plot, but you need a formula. You need a line that best fits the data so you can plug in any size and get a price prediction.
 
@@ -26,7 +29,10 @@ Linear regression gives you that line. More importantly, it introduces the entir
 
 This is not just for simple problems. Linear regression is used in production systems for demand forecasting, A/B test analysis, financial modeling, and as a baseline for every regression task.
 
-## The Concept
+> **【中文解读】**
+> 线性回归不仅是入门知识，更是整个机器学习训练循环的缩影：定义模型 → 定义损失函数 → 优化参数。掌握这个最简单的案例，你就能理解从逻辑回归到神经网络的全部算法——它们只是模型更复杂、损失函数不同，但训练流程完全一样。
+
+## The Concept | 核心概念
 
 ### The Model
 
@@ -48,6 +54,9 @@ y = w1*x1 + w2*x2 + ... + wn*xn + b
 Or in vector form: `y = w^T * x + b`
 
 The goal: find the values of w and b that make the predicted y as close as possible to the actual y across all training examples.
+
+> **【中文解读】**
+> 线性回归的模型非常直观：`y = wx + b`，w 是斜率（权重），b 是截距（偏置）。多元情况下变成 `y = w1*x1 + w2*x2 + ... + wn*xn + b`，即用超平面拟合数据。训练的目标就是找到最优的 w 和 b，使预测值与真实值的差距最小。
 
 ### The Cost Function (Mean Squared Error)
 
@@ -94,6 +103,12 @@ b = b - learning_rate * dMSE/db
 
 The learning rate controls step size. Too large: you overshoot the minimum and diverge. Too small: training takes forever. Typical starting values: 0.01, 0.001, or 0.0001.
 
+> **【中文解读】**
+> 梯度下降是机器学习最核心的优化算法。它的直觉很简单：站在山坡上，朝最陡的下坡方向走一步，重复直到到达谷底。梯度（导数）告诉你方向和陡峭程度，学习率控制步子大小。学习率太大→跳过最低点发散；太小→收敛太慢。这个原理在神经网络训练中完全相同。
+
+> **【拓展：梯度下降在现代 AI 中的演进】**
+> GPT-4 的训练使用 AdamW 优化器（Adam + 权重衰减），它是梯度下降的高级变体。学习率从 0 开始预热到峰值，然后余弦退火下降。训练 Batch Size 约 6000 万 token，使用约 25000 块 A100 GPU 并行。虽然优化器更复杂，但核心思想仍是"沿梯度方向走一步"。
+
 ### The Normal Equation (Closed-Form Solution)
 
 For linear regression specifically, there is a direct formula that gives the optimal weights without any iteration:
@@ -103,6 +118,9 @@ w = (X^T * X)^(-1) * X^T * y
 ```
 
 This inverts a matrix to solve for w in one step. It works perfectly for small datasets. For large datasets (millions of rows or thousands of features), gradient descent is preferred because matrix inversion is O(n^3) in the number of features.
+
+> **【拓展：正规方程 vs 梯度下降的选择】**
+> 正规方程的时间复杂度是 O(n^3)（n 是特征数），当特征超过数万时计算极慢。深度学习模型有数十亿参数，只能用梯度下降。sklearn 的 LinearRegression 默认使用正规方程（对于小数据集更快），而 SGDRegressor 使用随机梯度下降。在实践中，数据量 < 10万条、特征 < 1000 时用正规方程；否则用梯度下降。
 
 ### Multiple Linear Regression
 
@@ -115,6 +133,9 @@ y = w1*x1 + w2*x2 + ... + wn*xn + b
 Everything works the same: MSE is the cost function, gradient descent updates all weights simultaneously. The only difference is that you are fitting a hyperplane instead of a line.
 
 Feature scaling matters here. If one feature ranges from 0 to 1 and another ranges from 0 to 1,000,000, gradient descent will struggle because the cost surface becomes elongated. Standardize features (subtract mean, divide by standard deviation) before training.
+
+> **【中文解读】**
+> 多元线性回归中，特征缩放至关重要。如果特征量级差异很大（如面积 500-3000 vs 卧室数 1-5），梯度下降的损失函数曲面会被严重拉长，导致收敛缓慢甚至无法收敛。解决方法：标准化（减均值除标准差）或归一化（缩放到 0-1），这在几乎所有 ML 算法中都是必要的预处理步骤。
 
 ### Polynomial Regression
 
@@ -151,7 +172,10 @@ Cost = MSE + lambda * sum(w_i^2)
 
 The penalty term discourages large weights. The hyperparameter lambda controls the tradeoff: higher lambda means smaller weights and more regularization. This is covered in depth in a later lesson. For now, know that it exists and why it helps.
 
-## Build It
+> **【中文解读】**
+> Ridge 回归（L2 正则化）通过在损失函数中添加权重平方和的惩罚项来防止过拟合。直觉：限制权重的大小，迫使模型"保守"地使用特征，而不是靠某个特征的极端权重来拟合噪声。正则化强度由 lambda 控制——lambda 越大，权重越小，模型越简单。这是深度学习中最常用的技术之一（权重衰减 weight decay）。
+
+## Build It | 动手实现
 
 ### Step 1: Generate sample data
 
@@ -159,14 +183,14 @@ The penalty term discourages large weights. The hyperparameter lambda controls t
 import random
 import math
 
-random.seed(42)
+random.seed(42)  # 设置随机种子以确保结果可复现
 
-TRUE_W = 3.0
-TRUE_B = 7.0
-N_SAMPLES = 100
+TRUE_W = 3.0  # 真实斜率（权重）
+TRUE_B = 7.0  # 真实截距（偏置）
+N_SAMPLES = 100  # 样本数量
 
-X = [random.uniform(0, 10) for _ in range(N_SAMPLES)]
-y = [TRUE_W * x + TRUE_B + random.gauss(0, 2.0) for x in X]
+X = [random.uniform(0, 10) for _ in range(N_SAMPLES)]  # 生成 0-10 之间的随机特征值
+y = [TRUE_W * x + TRUE_B + random.gauss(0, 2.0) for x in X]  # 真实关系 + 高斯噪声
 
 print(f"Generated {N_SAMPLES} samples")
 print(f"True relationship: y = {TRUE_W}x + {TRUE_B} (+ noise)")
@@ -178,32 +202,35 @@ print(f"First 5 points: {[(round(X[i], 2), round(y[i], 2)) for i in range(5)]}")
 ```python
 class LinearRegression:
     def __init__(self, learning_rate=0.01):
-        self.w = 0.0
-        self.b = 0.0
-        self.lr = learning_rate
-        self.cost_history = []
+        self.w = 0.0  # 权重初始化为 0
+        self.b = 0.0  # 偏置初始化为 0
+        self.lr = learning_rate  # 学习率控制梯度下降步长
+        self.cost_history = []  # 记录每轮的损失值
 
     def predict(self, X):
-        return [self.w * x + self.b for x in X]
+        return [self.w * x + self.b for x in X]  # y_hat = wx + b
 
     def compute_cost(self, X, y):
         predictions = self.predict(X)
         n = len(y)
+        # 计算 MSE：均方误差
         cost = sum((pred - actual) ** 2 for pred, actual in zip(predictions, y)) / n
         return cost
 
     def compute_gradients(self, X, y):
         predictions = self.predict(X)
         n = len(y)
+        # 对 w 的偏导数
         dw = (2 / n) * sum((pred - actual) * x for pred, actual, x in zip(predictions, y, X))
+        # 对 b 的偏导数
         db = (2 / n) * sum(pred - actual for pred, actual in zip(predictions, y))
         return dw, db
 
     def fit(self, X, y, epochs=1000, print_every=200):
         for epoch in range(epochs):
-            dw, db = self.compute_gradients(X, y)
-            self.w -= self.lr * dw
-            self.b -= self.lr * db
+            dw, db = self.compute_gradients(X, y)  # 计算梯度
+            self.w -= self.lr * dw  # 沿梯度反方向更新权重
+            self.b -= self.lr * db  # 沿梯度反方向更新偏置
             cost = self.compute_cost(X, y)
             self.cost_history.append(cost)
             if epoch % print_every == 0:
@@ -213,9 +240,9 @@ class LinearRegression:
     def r_squared(self, X, y):
         predictions = self.predict(X)
         y_mean = sum(y) / len(y)
-        ss_res = sum((actual - pred) ** 2 for actual, pred in zip(y, predictions))
-        ss_tot = sum((actual - y_mean) ** 2 for actual in y)
-        return 1 - (ss_res / ss_tot)
+        ss_res = sum((actual - pred) ** 2 for actual, pred in zip(y, predictions))  # 残差平方和
+        ss_tot = sum((actual - y_mean) ** 2 for actual in y)  # 总变差
+        return 1 - (ss_res / ss_tot)  # R² = 1 - SS_res/SS_tot
 
 
 print("=== Training Linear Regression (Gradient Descent) ===")
@@ -231,16 +258,18 @@ print(f"R-squared: {model.r_squared(X, y):.4f}")
 ```python
 class LinearRegressionNormal:
     def __init__(self):
-        self.w = 0.0
-        self.b = 0.0
+        self.w = 0.0  # 斜率
+        self.b = 0.0  # 截距
 
     def fit(self, X, y):
         n = len(X)
-        x_mean = sum(X) / n
-        y_mean = sum(y) / n
+        x_mean = sum(X) / n  # 计算 x 的均值
+        y_mean = sum(y) / n  # 计算 y 的均值
+        # 协方差 / 方差 = 最优斜率
         numerator = sum((X[i] - x_mean) * (y[i] - y_mean) for i in range(n))
         denominator = sum((X[i] - x_mean) ** 2 for i in range(n))
         self.w = numerator / denominator
+        # 截距 = y 均值 - 斜率 * x 均值
         self.b = y_mean - self.w * x_mean
         return self
 
@@ -464,7 +493,7 @@ print(f"Plain weights: {[round(w, 4) for w in multi_model.weights]}")
 print("Ridge weights are smaller (shrunk toward zero) due to the L2 penalty.")
 ```
 
-## Use It
+## Use It | 用框架实现
 
 Now the same thing with scikit-learn, which is what you will actually use in production.
 
@@ -476,12 +505,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 import numpy as np
 
+# 生成与从零实现相同的数据
 np.random.seed(42)
 X_sk = np.random.uniform(0, 10, (100, 1))
 y_sk = 3.0 * X_sk.squeeze() + 7.0 + np.random.normal(0, 2.0, 100)
 
+# 划分训练集和测试集（80/20）
 X_train, X_test, y_train, y_test = train_test_split(X_sk, y_sk, test_size=0.2, random_state=42)
 
+# 线性回归
 lr = SklearnLR()
 lr.fit(X_train, y_train)
 y_pred = lr.predict(X_test)
@@ -492,19 +524,21 @@ print(f"Intercept (b): {lr.intercept_:.4f}")
 print(f"R-squared (test): {r2_score(y_test, y_pred):.4f}")
 print(f"MSE (test): {mean_squared_error(y_test, y_pred):.4f}")
 
+# 多项式回归（degree=2）
 poly = PolynomialFeatures(degree=2, include_bias=False)
-X_poly_sk = poly.fit_transform(X_train)
+X_poly_sk = poly.fit_transform(X_train)  # 生成 x, x² 特征
 X_poly_test = poly.transform(X_test)
 
 lr_poly = SklearnLR()
 lr_poly.fit(X_poly_sk, y_train)
 print(f"\nPolynomial degree 2 R-squared: {r2_score(y_test, lr_poly.predict(X_poly_test)):.4f}")
 
+# 标准化后使用 Ridge 回归
 scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+X_train_scaled = scaler.fit_transform(X_train)  # 在训练集上拟合并转换
+X_test_scaled = scaler.transform(X_test)  # 在测试集上只转换
 
-ridge = Ridge(alpha=1.0)
+ridge = Ridge(alpha=1.0)  # alpha 即正则化强度 lambda
 ridge.fit(X_train_scaled, y_train)
 print(f"Ridge R-squared: {r2_score(y_test, ridge.predict(X_test_scaled)):.4f}")
 print(f"Ridge coefficient: {ridge.coef_[0]:.4f}")
@@ -512,18 +546,18 @@ print(f"Ridge coefficient: {ridge.coef_[0]:.4f}")
 
 Your from-scratch implementation and scikit-learn produce the same results. The difference: scikit-learn handles edge cases, numerical stability, and performance optimizations. Use the library for production. Use the from-scratch version to understand what is happening.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/skill-regression.md` - a skill for choosing the right regression approach based on the problem
 
-## Exercises
+## Exercises | 练习题
 
 1. Implement batch gradient descent, stochastic gradient descent (SGD), and mini-batch gradient descent. Compare convergence speed on the same dataset. Which converges fastest? Which has the smoothest cost curve?
 2. Generate data from a cubic function (y = ax^3 + bx^2 + cx + d + noise). Fit polynomials of degree 1, 3, and 10. Compare training R^2 and test R^2. At what degree does overfitting become obvious?
 3. Implement Lasso regression (L1 regularization: penalty = alpha * sum(|w_i|)). Train on the multi-feature housing data. Compare which weights go to zero vs Ridge. Why does L1 produce sparse solutions while L2 does not?
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -540,7 +574,7 @@ This lesson produces:
 | Polynomial regression | "Fitting curves with linear math" | Linear regression on polynomial features (x, x^2, x^3, ...), still linear in the weights |
 | Overfitting | "Memorizing training data" | Using a model so complex that it fits noise in training data and fails on new data |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [An Introduction to Statistical Learning (ISLR)](https://www.statlearning.com/) -- free PDF, chapters 3 and 6 cover linear regression and regularization with practical R examples
 - [The Elements of Statistical Learning (ESL)](https://hastie.su.domains/ElemStatLearn/) -- free PDF, the more mathematical companion to ISLR with deeper treatment of ridge and lasso

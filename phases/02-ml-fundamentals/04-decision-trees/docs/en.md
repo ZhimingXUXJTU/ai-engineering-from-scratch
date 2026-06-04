@@ -18,7 +18,10 @@
 > **【中文解读】**
 > 决策树通过 if-else 规则分割数据，随机森林是多个决策树的投票组合。sklearn 中最常用的模型之一。金融风控、医疗诊断中随机森林是基线模型。
 
-## The Problem
+> **【拓展：树模型在 Kaggle 和工业界的主导地位】**
+> 在 Kaggle 结构化数据竞赛中，约 70% 的获胜方案使用梯度提升树（XGBoost/LightGBM/CatBoost）。在金融领域，信用评分（FICO 分数）广泛使用决策树变体；银行反欺诈系统常用随机森林作为基线；医疗诊断中，随机森林用于预测再入院风险。树模型能自动处理混合类型特征且可解释，这是神经网络难以做到的。
+
+## The Problem | 问题引入
 
 You have tabular data. Rows are samples, columns are features, and there is a target column you want to predict. You could throw a neural network at it. But for tabular data, tree-based models (decision trees, random forests, gradient boosted trees) consistently outperform deep learning. Kaggle competitions on structured data are dominated by XGBoost and LightGBM, not transformers.
 
@@ -26,7 +29,10 @@ Why? Trees handle mixed feature types (numeric and categorical) without preproce
 
 This lesson builds decision trees from scratch using recursive splitting, then builds a random forest on top. You will implement the math behind split criteria (Gini impurity, entropy, information gain) and understand why an ensemble of weak learners becomes a strong one.
 
-## The Concept
+> **【中文解读】**
+> 对于表格型数据（行是样本，列是特征），树模型通常优于深度学习。原因：树模型原生支持混合类型特征、自动发现非线性关系、训练速度快、结果可解释。随机森林通过集成多个"弱学习器"（单棵决策树）成为"强学习器"，是 ML 最实用的算法之一。
+
+## The Concept | 核心概念
 
 ### What a decision tree does
 
@@ -92,6 +98,9 @@ where the weights are the proportions of samples in each child.
 ```
 
 The greedy algorithm at each node: try every feature and every possible threshold. Pick the (feature, threshold) pair that maximizes information gain.
+
+> **【中文解读】**
+> 分裂标准衡量节点的"不纯度"。Gini 不纯度 = 随机分类的错误概率；熵 = 信息论中的不确定性度量。信息增益 = 分裂前不纯度 - 分裂后加权不纯度。贪心算法在每个节点选择信息增益最大的（特征, 阈值）对进行分裂。虽然贪心不保证全局最优（找最优树是 NP-hard），但实践中效果很好。
 
 ### How splitting works
 
@@ -163,6 +172,12 @@ Two sources of randomness make the trees diverse:
 
 The key insight: averaging many decorrelated trees reduces variance without increasing bias. Each individual tree may be mediocre. The ensemble is strong.
 
+> **【中文解读】**
+> 随机森林的两个核心随机化机制：(1) Bagging——每棵树用有放回抽样（约 63% 的原始样本）训练；(2) 特征随机化——每次分裂只考虑随机子集的特征（分类任务默认 √n 个）。这两个机制使树之间足够"不同"，取平均后大幅降低方差，同时不增加偏差。这就是"三个臭皮匠顶个诸葛亮"的数学证明。
+
+> **【拓展：随机森林 vs 梯度提升树】**
+> 随机森林是并行训练（各树独立），适合快速原型开发，几乎不需调参。梯度提升树（XGBoost/LightGBM/CatBoost）是串行训练（每棵树纠正前一棵的错误），精度通常更高但更容易过拟合。在 Kaggle 竞赛中，XGBoost 出现在约 60% 的获奖方案中。实际项目中常用策略：先用随机森林做基线，再用 XGBoost 追求极致性能。
+
 ### Feature importance
 
 Random forests naturally provide feature importance scores. The most common method:
@@ -177,6 +192,9 @@ importance(feature_j) = sum over all nodes where feature_j is used:
 This is fast (computed during training) but biased toward high-cardinality features and features with many possible split points.
 
 **Permutation importance** is the alternative: shuffle one feature's values and measure how much the model's accuracy drops. More reliable but slower.
+
+> **【拓展：特征重要性的陷阱】**
+> MDI 特征重要性有两个已知偏差：(1) 高基数特征（如用户 ID）会被高估重要性，因为有更多分裂点可选；(2) 相关特征之间会分摊重要性，使每个看起来都不那么重要。Permutation importance 更可靠，但计算成本更高。在金融风控中，这种偏差可能导致错误的特征选择，进而影响模型公平性。
 
 ### When trees beat neural networks
 
@@ -193,7 +211,7 @@ Trees and forests dominate neural networks on tabular data. Several reasons:
 
 Neural networks win when the data has spatial or sequential structure (images, text, audio). For flat tables of features, trees are the default.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Gini impurity and entropy
 
@@ -208,7 +226,8 @@ def gini_impurity(labels):
         return 0.0
     counts = {}
     for label in labels:
-        counts[label] = counts.get(label, 0) + 1
+        counts[label] = counts.get(label, 0) + 1  # 统计每个类别的出现次数
+    # Gini = 1 - sum(p_k^2)，衡量节点的不纯度
     return 1.0 - sum((c / n) ** 2 for c in counts.values())
 
 def entropy(labels):
@@ -218,6 +237,7 @@ def entropy(labels):
     counts = {}
     for label in labels:
         counts[label] = counts.get(label, 0) + 1
+    # Entropy = -sum(p_k * log2(p_k))，信息论中的不确定性度量
     return -sum(
         (c / n) * math.log2(c / n) for c in counts.values() if c > 0
     )
@@ -229,17 +249,19 @@ Try every feature and every threshold. Return the one with the highest informati
 
 ```python
 def information_gain(parent_labels, left_labels, right_labels, criterion="gini"):
-    measure = gini_impurity if criterion == "gini" else entropy
+    measure = gini_impurity if criterion == "gini" else entropy  # 选择不纯度度量
     n = len(parent_labels)
     n_left = len(left_labels)
     n_right = len(right_labels)
     if n_left == 0 or n_right == 0:
-        return 0.0
-    parent_impurity = measure(parent_labels)
+        return 0.0  # 空节点无法产生信息增益
+    parent_impurity = measure(parent_labels)  # 父节点不纯度
+    # 子节点加权不纯度
     child_impurity = (
         (n_left / n) * measure(left_labels) +
         (n_right / n) * measure(right_labels)
     )
+    # 信息增益 = 父节点不纯度 - 子节点加权不纯度
     return parent_impurity - child_impurity
 ```
 
@@ -320,7 +342,10 @@ class RandomForest:
 
 See `code/trees.py` for the complete implementation with all helper methods.
 
-## Use It
+## Use It | 用框架实现
+
+> **【中文解读】**
+> sklearn 的随机森林只需三行代码：创建分类器 → fit → score。但在实践中需要注意：n_estimators（树的数量）通常 100-500 就足够，随机森林几乎不会因为树太多而过拟合；max_features 控制每次分裂考虑的特征数，默认 √n 是经验最优值。对于更高性能，使用 XGBoost 或 LightGBM。
 
 With scikit-learn, training a random forest is three lines:
 
@@ -329,22 +354,25 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 
-X, y = load_iris(return_X_y=True)
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+X, y = load_iris(return_X_y=True)  # 加载鸢尾花数据集
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)  # 划分训练/测试集
 
-rf = RandomForestClassifier(n_estimators=100, random_state=42)
-rf.fit(X_train, y_train)
-print(f"Accuracy: {rf.score(X_test, y_test):.4f}")
+rf = RandomForestClassifier(n_estimators=100, random_state=42)  # 100 棵树的随机森林
+rf.fit(X_train, y_train)  # 训练
+print(f"Accuracy: {rf.score(X_test, y_test):.4f}")  # 评估准确率
 print(f"Feature importances: {rf.feature_importances_}")
 ```
 
 In practice, gradient boosted trees (XGBoost, LightGBM, CatBoost) are often stronger than random forests because they build trees sequentially, with each tree correcting the errors of the previous ones. But random forests are harder to misconfigure and require almost no hyperparameter tuning.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-tree-interpreter.md` -- a prompt that interprets decision tree splits for business stakeholders. Feed it a trained tree's structure (depth, features, split thresholds, accuracy) and it translates the model into plain-language rules, ranks feature importance, flags overfitting or leakage, and recommends next steps. Use it any time you need to explain a tree-based model to someone who does not read code.
 
-## Exercises
+> **【中文解读】**
+> 树模型最大的优势之一是可解释性——可以清楚看到每个决策路径。这个产出物是一个 prompt 模板，将训练好的决策树结构翻译成业务人员能理解的自然语言规则。在金融风控中，这种可解释性是监管合规的必要条件——银行必须能解释为什么拒绝了一笔贷款申请。
+
+## Exercises | 练习题
 
 1. Train a single decision tree on a 2D dataset with 3 classes. Manually trace the splits and draw the rectangular decision boundaries. Compare the boundaries at max_depth=2 vs max_depth=10.
 
@@ -356,7 +384,7 @@ This lesson produces `outputs/prompt-tree-interpreter.md` -- a prompt that inter
 
 5. Implement permutation importance. Compare it with MDI importance on a dataset where one feature is random noise but has high cardinality. MDI will rank the noise feature highly. Permutation importance will not.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -373,7 +401,7 @@ This lesson produces `outputs/prompt-tree-interpreter.md` -- a prompt that inter
 | Variance reduction | "The regression version of info gain" | The regression tree analogue of information gain. Picks the split that reduces target variance the most |
 | Bootstrap sample | "Random sample with repeats" | A random sample drawn with replacement from the original dataset. Same size, but with duplicates |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Breiman: Random Forests (2001)](https://link.springer.com/article/10.1023/A:1010933404324) - the original random forest paper
 - [Grinsztajn et al.: Why do tree-based models still outperform deep learning on tabular data? (2022)](https://arxiv.org/abs/2207.08815) - rigorous comparison of trees vs neural networks on tabular tasks

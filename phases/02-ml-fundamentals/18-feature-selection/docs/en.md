@@ -18,7 +18,10 @@
 > **【中文解读】**
 > 特征选择从众多特征中挑出最有用的子集。过滤法（相关性）、包装法（递归特征消除）、嵌入法（L1 正则化）是三大类方法。sklearn 中的 SelectKBest/RFE。减少特征数能提升模型速度和泛化能力。
 
-## The Problem
+> **【拓展：特征选择在工业界的重要性】**
+> 在金融风控模型中，监管要求模型可解释——必须能解释每个特征为什么被选用。L1 正则化（Lasso）自动将不重要特征的权重压缩为零，同时实现特征选择和模型训练。在基因表达分析中，从 2 万个基因中选出 50 个关键基因不仅提升模型性能，还为疾病机制研究提供线索。Netflix Prize 获胜方案中，特征选择将数万候选特征缩减到数百个。
+
+## The Problem | 问题引入
 
 You have 500 features. Your model trains slowly, overfits constantly, and nobody can explain what it learned. You add more features hoping to improve performance. It gets worse.
 
@@ -28,7 +31,10 @@ Feature selection is the antidote. Strip away the noise. Remove the redundancy. 
 
 The goal is not to use all available information. It is to use the right information.
 
-## The Concept
+> **【中文解读】**
+> 特征选择三大类方法各有优劣：过滤法（方差阈值、互信息、卡方检验）最快但忽略特征间的交互；包装法（递归特征消除 RFE、前向选择）考虑了特征组合但计算成本高；嵌入法（L1 正则化、树模型特征重要性）在训练过程中自动选择特征，是效率与效果的最佳平衡。互信息能捕获非线性关系，比相关系数更全面。
+
+## The Concept | 核心概念
 
 ### Three Categories of Feature Selection
 
@@ -206,7 +212,13 @@ flowchart TD
     K -->|No| M["Try different method or keep all features"]
 ```
 
-## Build It
+## Build It | 动手实现
+
+> **【中文解读】**
+> 从零实现三类特征选择方法：过滤法（方差阈值、互信息、卡方检验——独立评估每个特征）、包装法（递归特征消除 RFE——反复训练模型去掉最不重要的特征）、嵌入法（L1 正则化 Lasso——训练时自动将不重要特征权重压缩为零）。通过合成数据（已知哪些特征有用）验证各方法的效果。
+
+> **【拓展：特征选择在 LLM 时代的新意义】**
+> 虽然深度学习号称"自动学习特征"，但特征选择在以下场景仍然关键：(1) 表格数据——特征选择可提升 XGBoost/LightGBM 的性能和训练速度；(2) 可解释性要求——医疗和金融领域需要解释哪些特征被使用；(3) 嵌入空间——即使是 Transformer，也需要在 embedding 维度上做"特征选择"（注意力机制本质上是一种动态特征选择）。OpenAI 的 GPT-4 技术报告提到，训练时使用了基于重要性的数据选择策略。
 
 ### Step 1: Generate synthetic data with known feature structure
 
@@ -463,7 +475,7 @@ def _build_tree_importance(X, y, feature_subset, max_depth, depth=0):
 
 The code file runs all five methods on the same synthetic dataset and prints a comparison table showing which features each method selects.
 
-## Use It
+## Use It | 用框架实现
 
 With scikit-learn, feature selection is built into the pipeline:
 
@@ -500,12 +512,12 @@ The from-scratch implementations show exactly what happens inside each method. V
 
 The sklearn versions add robustness (e.g., mutual_info_classif uses k-NN density estimation instead of binning), speed (C implementations), and pipeline integration.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/skill-feature-selector.md` -- a quick reference decision tree for choosing the right feature selection method
 
-## Exercises
+## Exercises | 练习题
 
 1. **Forward selection**: implement the opposite of RFE. Start with zero features. At each step, add the feature that improves model performance the most. Stop when adding features no longer helps. Compare the selected features against RFE results. Which is faster? Which gives better results?
 
@@ -517,7 +529,13 @@ This lesson produces:
 
 5. **Permutation importance from scratch**: implement permutation importance. For each feature, shuffle its values 10 times, measure the average drop in F1 score. Compare the ranking against tree-based importance. Find cases where they disagree and explain why (hint: correlated features).
 
-## Key Terms
+> **【中文解读】**
+> 特征选择的实战策略：(1) 先用方差阈值去掉常数特征（方差接近零意味着没有信息）；(2) 用互信息筛选出与目标相关的特征（互信息能捕获非线性关系，比相关系数更全面）；(3) 用 RFE 或 L1 正则化精细选择（考虑特征间的交互）。多方法组合比单一方法更稳健。关键原则：特征选择必须在交叉验证循环内进行，否则会过拟合特征选择本身。
+
+> **【拓展：递归特征消除（RFE）的工业应用】**
+> RFE 在基因组学中被广泛使用——从 2 万个基因表达中选出最具预测力的 50-100 个基因，不仅提升模型性能，还为疾病标志物发现提供候选。在金融风控中，RFE 帮助从数百个候选特征中筛选出最终的入模特征。sklearn 的 RFE + RFECV（带交叉验证的 RFE）能自动确定最优特征数量，是实践中最常用的特征选择工具之一。
+
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -532,7 +550,7 @@ This lesson produces:
 | Permutation importance | "Shuffle and measure the damage" | Evaluating feature importance by randomly shuffling each feature's values and measuring the resulting drop in model performance |
 | Curse of dimensionality | "Too many features, not enough data" | The phenomenon where adding features increases the volume of the feature space exponentially, making data sparse and distances meaningless |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [An Introduction to Variable and Feature Selection (Guyon & Elisseeff, 2003)](https://jmlr.org/papers/v3/guyon03a.html) -- the foundational survey on feature selection methods, still widely referenced
 - [scikit-learn Feature Selection Guide](https://scikit-learn.org/stable/modules/feature_selection.html) -- practical reference for filter, wrapper, and embedded methods with code examples

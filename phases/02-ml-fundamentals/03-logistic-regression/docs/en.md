@@ -18,7 +18,10 @@
 > **【中文解读】**
 > 逻辑回归是二分类的基石——用 Sigmoid 函数将线性输出映射到 [0,1] 的概率。虽然叫回归，但它是分类器。sklearn 中的 LogisticRegression。信用卡欺诈检测、疾病诊断都可用逻辑回归。
 
-## The Problem
+> **【拓展：逻辑回归在工业界的广泛应用】**
+> Facebook 早期的广告点击率预测系统就基于逻辑回归（配合 GBMT 特征工程）；Google 搜索广告的 CTR 预估也长期使用逻辑回归（后来升级为深度学习）。在医疗领域，逻辑回归用于预测疾病风险（如心脏病、糖尿病），优势在于输出概率可直接解释。在 NLP 中，逻辑回归是文本分类的经典 baseline。
+
+## The Problem | 问题引入
 
 You want to predict whether a tumor is malignant or benign given its size. You try linear regression. It outputs numbers like 0.3 or 1.7 or -0.5. What do those mean? Is 1.7 "very malignant"? Is -0.5 "very benign"? Linear regression outputs unbounded numbers. Classification needs bounded probabilities between 0 and 1, and a clear decision: yes or no.
 
@@ -26,7 +29,10 @@ Logistic regression solves this. It takes the same linear combination (wx + b) a
 
 This is one of the most widely used algorithms in practice. Despite its name, logistic regression is a classification algorithm, not a regression algorithm. The name comes from the logistic (sigmoid) function it uses.
 
-## The Concept
+> **【中文解读】**
+> 线性回归无法直接用于分类：它的输出是无界的实数（-∞ 到 +∞），而分类需要 0-1 之间的概率。逻辑回归通过 Sigmoid 函数将线性输出"挤压"到 (0,1) 区间，从而输出概率。设阈值（通常 0.5）即可做出二分类决策。Sigmoid 的导数形式简洁：σ'(z) = σ(z)(1-σ(z))，使梯度计算高效。
+
+## The Concept | 核心概念
 
 ### Why Linear Regression Fails for Classification
 
@@ -92,6 +98,12 @@ Why this works:
 
 This loss function is convex for logistic regression, guaranteeing a single global minimum.
 
+> **【中文解读】**
+> 为什么分类不能用 MSE？因为 MSE + Sigmoid 会产生非凸的损失函数曲面，存在很多局部最小值，梯度下降可能卡住。二元交叉熵（log loss）对逻辑回归是凸函数，保证找到全局最优解。核心原理：正确预测时损失趋近 0，错误预测且高置信度时损失趋向无穷——"错得越自信，惩罚越重"。
+
+> **【拓展：交叉熵损失在深度学习中的核心地位】**
+> 交叉熵损失不仅用于逻辑回归，它是所有分类神经网络的标配损失函数。GPT 的语言模型训练本质上就是对词表做 softmax + 交叉熵损失——每一步预测下一个 token，就是一次数万类的分类问题。ResNet 做 ImageNet 分类（1000 类）也使用交叉熵损失。理解交叉熵是理解深度学习训练机制的基础。
+
 ### Gradient Descent for Logistic Regression
 
 The gradients for binary cross-entropy with sigmoid have a clean form:
@@ -102,6 +114,9 @@ dL/db = (1/n) * sum(p - y)
 ```
 
 These look identical to the linear regression gradients. The difference is that p = sigmoid(wx + b) instead of p = wx + b. The sigmoid introduces the nonlinearity, but the gradient update rule stays the same.
+
+> **【中文解读】**
+> 逻辑回归的梯度公式与线性回归惊人地相似：`dL/dw = (1/n) * sum((p-y)*x)`。唯一的区别是 p = sigmoid(wx+b) 而非 p = wx+b。这是因为 Sigmoid 和交叉熵的组合在数学上"刚好"抵消了复杂项，使得梯度形式非常简洁。这个优美的数学性质也适用于 softmax + 交叉熵。
 
 ```mermaid
 flowchart TD
@@ -173,7 +188,11 @@ When to prioritize:
 - **Recall**: when false negatives are costly (cancer screening, you do not want to miss a tumor)
 - **F1**: when you need a single balanced metric
 
-## Build It
+> **【中文解读】**
+> 分类评估不能只看准确率。在类别不平衡的场景下（如欺诈检测只有 0.1% 正例），全预测为负例就有 99.9% 准确率但毫无价值。精确率关注"预测为正的中有多少真正为正"，召回率关注"真正为正的有多少被找出来"。F1 是两者的调和平均。选择哪个指标取决于业务场景：垃圾邮件过滤优先精确率，癌症筛查优先召回率。
+
+> **【拓展：评估指标在真实系统中的选择】**
+> Google 搜索的垃圾页面检测优先精确率（宁可放过一些垃圾页面，也不能把正常页面误判为垃圾）；医学影像 AI（如 Google Health 的乳腺癌检测）优先召回率（宁可多一些假阳性让医生复核，也不能漏掉真正的肿瘤）；自动驾驶的行人检测则要求精确率和召回率都很高，F1 是更合适的综合指标。
 
 ### Step 1: Sigmoid function and data generation
 
@@ -182,8 +201,8 @@ import random
 import math
 
 def sigmoid(z):
-    z = max(-500, min(500, z))
-    return 1.0 / (1.0 + math.exp(-z))
+    z = max(-500, min(500, z))  # 裁剪防止数值溢出
+    return 1.0 / (1.0 + math.exp(-z))  # Sigmoid 函数：将任意实数映射到 (0,1)
 
 
 random.seed(42)
@@ -191,10 +210,12 @@ N = 200
 X = []
 y = []
 
+# 生成类别 0 的数据：中心在 (2,2)
 for _ in range(N // 2):
     X.append([random.gauss(2, 1), random.gauss(2, 1)])
     y.append(0)
 
+# 生成类别 1 的数据：中心在 (5,5)
 for _ in range(N // 2):
     X.append([random.gauss(5, 1), random.gauss(5, 1)])
     y.append(1)
@@ -217,26 +238,27 @@ for i in range(5):
 ```python
 class LogisticRegression:
     def __init__(self, n_features, learning_rate=0.01):
-        self.weights = [0.0] * n_features
-        self.bias = 0.0
-        self.lr = learning_rate
-        self.loss_history = []
+        self.weights = [0.0] * n_features  # 权重初始化为 0
+        self.bias = 0.0  # 偏置初始化为 0
+        self.lr = learning_rate  # 学习率
+        self.loss_history = []  # 记录训练损失
 
     def predict_proba(self, x):
-        z = sum(w * xi for w, xi in zip(self.weights, x)) + self.bias
-        return sigmoid(z)
+        z = sum(w * xi for w, xi in zip(self.weights, x)) + self.bias  # 线性组合 z = wx + b
+        return sigmoid(z)  # 通过 Sigmoid 得到概率
 
     def predict(self, x, threshold=0.5):
-        return 1 if self.predict_proba(x) >= threshold else 0
+        return 1 if self.predict_proba(x) >= threshold else 0  # 概率 >= 阈值则预测为 1
 
     def compute_loss(self, X, y):
         n = len(y)
         total = 0.0
         for i in range(n):
             p = self.predict_proba(X[i])
-            p = max(1e-15, min(1 - 1e-15, p))
+            p = max(1e-15, min(1 - 1e-15, p))  # 裁剪防止 log(0)
+            # 二元交叉熵损失
             total += y[i] * math.log(p) + (1 - y[i]) * math.log(1 - p)
-        return -total / n
+        return -total / n  # 取负号得到正值损失
 
     def fit(self, X, y, epochs=1000, print_every=200):
         n = len(y)
@@ -246,10 +268,11 @@ class LogisticRegression:
             db = 0.0
             for i in range(n):
                 p = self.predict_proba(X[i])
-                error = p - y[i]
+                error = p - y[i]  # 预测概率 - 真实标签
                 for j in range(n_features):
-                    dw[j] += error * X[i][j]
-                db += error
+                    dw[j] += error * X[i][j]  # 累积权重梯度
+                db += error  # 累积偏置梯度
+            # 梯度下降更新参数
             for j in range(n_features):
                 self.weights[j] -= self.lr * (dw[j] / n)
             self.bias -= self.lr * (db / n)
@@ -283,10 +306,11 @@ print(f"Bias: {model.bias:.4f}")
 ```python
 class ClassificationMetrics:
     def __init__(self, y_true, y_pred):
-        self.tp = sum(1 for t, p in zip(y_true, y_pred) if t == 1 and p == 1)
-        self.tn = sum(1 for t, p in zip(y_true, y_pred) if t == 0 and p == 0)
-        self.fp = sum(1 for t, p in zip(y_true, y_pred) if t == 0 and p == 1)
-        self.fn = sum(1 for t, p in zip(y_true, y_pred) if t == 1 and p == 0)
+        # 统计混淆矩阵四个值
+        self.tp = sum(1 for t, p in zip(y_true, y_pred) if t == 1 and p == 1)  # 真正例
+        self.tn = sum(1 for t, p in zip(y_true, y_pred) if t == 0 and p == 0)  # 真负例
+        self.fp = sum(1 for t, p in zip(y_true, y_pred) if t == 0 and p == 1)  # 假正例
+        self.fn = sum(1 for t, p in zip(y_true, y_pred) if t == 1 and p == 0)  # 假负例
 
     def accuracy(self):
         total = self.tp + self.tn + self.fp + self.fn
@@ -458,7 +482,7 @@ for t in thresholds:
     print(f"{t:>10.1f} {m.accuracy():>10.4f} {m.precision():>10.4f} {m.recall():>10.4f} {m.f1():>10.4f}")
 ```
 
-## Use It
+## Use It | 用框架实现
 
 Now the same thing with scikit-learn.
 
@@ -497,18 +521,18 @@ print(f"\nClassification Report:\n{classification_report(y_te, y_pred)}")
 
 Your from-scratch implementation produces the same decision boundary and metrics. Scikit-learn adds solver options (liblinear, lbfgs, saga), automatic regularization, multi-class strategies (one-vs-rest, multinomial), and numerical stability optimizations.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `code/logistic_regression.py` - logistic regression from scratch with metrics
 
-## Exercises
+## Exercises | 练习题
 
 1. Generate a dataset that is NOT linearly separable (e.g., two concentric circles). Train logistic regression and observe its failure. Then add polynomial features (x1^2, x2^2, x1*x2) and train again. Show that the accuracy improves.
 2. Implement a multi-class confusion matrix for the 3-class softmax model. Compute per-class precision and recall. Which class is hardest to classify?
 3. Build an ROC curve from scratch. For 100 threshold values from 0 to 1, compute the true positive rate and false positive rate. Calculate the AUC (area under the curve) using the trapezoidal rule.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|

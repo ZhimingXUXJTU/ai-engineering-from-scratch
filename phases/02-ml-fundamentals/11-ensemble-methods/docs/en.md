@@ -18,13 +18,19 @@
 > **【中文解读】**
 > 集成方法组合多个弱模型成一个强模型。Bagging（随机森林）降低方差，Boosting（XGBoost）降低偏差。XGBoost/LightGBM 在 Kaggle 比赛中占据统治地位。金融风控、推荐系统广泛使用。
 
-## The Problem
+> **【拓展：集成方法在 Kaggle 和工业界的主导地位】**
+> Kaggle 结构化数据竞赛中，排名前 10 的方案几乎 100% 使用集成方法。Netflix Prize 的获胜方案是 107 个模型的加权集成。在工业界，支付宝的风控系统使用 XGBoost + LightGBM 的集成；Amazon 的商品推荐使用多模型 Stacking。集成方法之所以强大，是因为它将"模型选择"问题转化为"模型组合"问题。
+
+## The Problem | 问题引入
 
 A single decision tree is fast to train and easy to interpret, but it overfits. A single linear model underfits on complex boundaries. You could spend days engineering the perfect model architecture. Or you could combine a bunch of imperfect models and get something better than any of them individually.
 
 Ensemble methods do exactly this. They are the most reliable technique for winning Kaggle competitions on tabular data, they power most production ML systems, and they illustrate the bias-variance tradeoff in action. Bagging reduces variance. Boosting reduces bias. Stacking learns which models to trust on which inputs.
 
-## The Concept
+> **【中文解读】**
+> 集成方法的核心原理：如果多个不完美的模型犯不同的错误，它们的平均预测会更准确。Bagging（如随机森林）通过训练独立的模型取平均来降低方差；Boosting（如 AdaBoost、GBDT）通过串行训练让每个新模型纠正前一个的错误来降低偏差；Stacking 用元学习器组合不同类型的基模型。
+
+## The Concept | 核心概念
 
 ### Why Ensembles Work
 
@@ -185,7 +191,10 @@ The simplest ensemble. Just combine predictions directly.
 - **Hard voting:** Majority vote on class labels.
 - **Soft voting:** Average predicted probabilities, pick the class with highest average probability. Usually better because it uses confidence information.
 
-## Build It
+## Build It | 动手实现
+
+> **【中文解读】**
+> 从零实现三种集成方法：Bagging（并行训练独立模型取平均）、AdaBoost（串行训练加权投票）、Gradient Boosting（串行训练纠正残差）。AdaBoost 的核心是给被前一个模型误分类的样本增加权重，Gradient Boosting 每棵新树拟合前一棵树的残差。
 
 ### Step 1: Decision Stump (Base Learner)
 
@@ -292,7 +301,7 @@ class GradientBoostingScratch:
 
 The code verifies that our from-scratch implementations produce similar accuracy to sklearn's `AdaBoostClassifier` and `GradientBoostingClassifier`, and compares all methods side by side.
 
-## Use It
+## Use It | 用框架实现
 
 ### When to Use Each Method
 
@@ -316,11 +325,11 @@ For most tabular prediction problems, this is the order to try:
 
 Neural networks on tabular data are almost always worse than gradient boosting, despite continued research attempts. TabNet, NODE, and similar architectures occasionally match but rarely beat a well-tuned XGBoost.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-ensemble-selector.md` -- a prompt that helps you pick the right ensemble method for a given dataset. Describe your data (size, feature types, noise level, class balance) and the problem you are solving. The prompt walks through a decision checklist, recommends a method, suggests starting hyperparameters, and warns about common mistakes for that method. Also produces `outputs/skill-ensemble-builder.md` with the full selection guide.
 
-## Exercises
+## Exercises | 练习题
 
 1. Modify the AdaBoost implementation to track training accuracy after each round. Plot accuracy vs. number of estimators. When does it converge?
 
@@ -332,7 +341,13 @@ This lesson produces `outputs/prompt-ensemble-selector.md` -- a prompt that help
 
 5. Run XGBoost on the same dataset with default parameters. Compare its accuracy to your from-scratch gradient boosting. Time both. How large is the speed difference?
 
-## Key Terms
+> **【中文解读】**
+> AdaBoost（自适应提升）的核心流程：训练一个弱分类器→计算错误率→增加被误分类样本的权重→训练下一个弱分类器。最终预测是所有弱分类器的加权投票，权重与错误率成反比。Gradient Boosting 的核心流程：训练第一棵树→计算残差→训练第二棵树拟合残差→重复。每棵新树都在纠正之前所有树的集体错误。
+
+> **【拓展：XGBoost、LightGBM、CatBoost——梯度提升树三巨头】**
+> XGBoost（eXtreme Gradient Boosting）由陈天奇于 2014 年开发，引入了正则化、稀疏数据处理和并行计算，成为 Kaggle 竞赛的标配工具。LightGBM（微软，2017）使用基于直方图的分裂和叶子生长策略（leaf-wise），训练速度比 XGBoost 快 5-10 倍。CatBoost（Yandex，2018）自动处理类别特征，无需手动编码。三者在不同场景下各有优势：小数据用 XGBoost，大数据用 LightGBM，类别特征多用 CatBoost。
+
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -346,7 +361,7 @@ This lesson produces `outputs/prompt-ensemble-selector.md` -- a prompt that help
 | Ensemble diversity | "Make different mistakes" | Models must be uncorrelated in their errors for the ensemble to improve over individuals |
 | Out-of-bag error | "Free validation" | Samples not in a bootstrap draw (~36.8%) serve as a validation set without needing a holdout |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Schapire & Freund: Boosting: Foundations and Algorithms](https://mitpress.mit.edu/9780262526036/) -- the book by AdaBoost's creators
 - [Friedman: Greedy Function Approximation: A Gradient Boosting Machine (2001)](https://statweb.stanford.edu/~jhf/ftp/trebst.pdf) -- the original gradient boosting paper

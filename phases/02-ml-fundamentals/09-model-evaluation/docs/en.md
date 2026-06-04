@@ -18,7 +18,10 @@
 > **【中文解读】**
 > 模型评估回答模型到底好不好。准确率、精确率、召回率、F1、AUC-ROC 是分类指标；MSE、MAE、R^2 是回归指标。交叉验证防止过拟合评估。sklearn 中的 cross_val_score/classification_report。
 
-## The Problem
+> **【拓展：模型评估失误导致的生产事故】**
+> Amazon 的招聘 AI 工具因为评估不充分（在训练数据上评估而非独立测试集）导致对女性候选人系统性歧视，最终被迫下架。Zillow 的房屋估价模型（Zestimate）在疫情期间因为数据漂移（distribution shift）导致数十亿美元的损失。这些案例说明：错误的评估方法比糟糕的模型更危险——它会给你错误的信心。
+
+## The Problem | 问题引入
 
 You trained a model. It gets 95% accuracy on your data. Is it good?
 
@@ -26,7 +29,10 @@ Maybe. Maybe not. If 95% of your data belongs to one class, a model that always 
 
 Model evaluation is where most ML projects go wrong. The wrong metric makes a bad model look good. The wrong split lets a model cheat. The wrong comparison makes you pick the worse model. Getting evaluation right is not optional. It is the difference between a model that works in production and one that fails the moment it sees real data.
 
-## The Concept
+> **【中文解读】**
+> 模型评估最容易犯三个错误：(1) 在训练数据上评估（模型只是记住了答案）；(2) 用错误的指标（如不平衡数据用准确率）；(3) 数据泄漏（测试集信息泄露到训练过程）。正确的评估需要独立的数据划分、匹配业务目标的指标、交叉验证来获得可靠估计。
+
+## The Concept | 核心概念
 
 ### Train, Validation, Test
 
@@ -146,7 +152,13 @@ The optimal hyperparameter value is where the validation score peaks.
 
 **Testing too often**: every time you look at test performance and adjust, you overfit to the test set. The test set is single-use.
 
-## Build It
+## Build It | 动手实现
+
+> **【中文解读】**
+> 从零实现交叉验证（K-fold 和分层 K-fold）、分类指标（精确率、召回率、F1、AUC-ROC）和回归指标（MSE、RMSE、MAE、R²）。交叉验证是评估模型性能的标准方法，分层 K-fold 确保每折中类别比例一致，对不平衡数据至关重要。
+
+> **【拓展：学习曲线——诊断模型问题的利器】**
+> 学习曲线（Learning Curve）绘制训练误差和验证误差随训练数据量变化的趋势，是诊断高偏差/高方差问题的直观工具。训练误差和验证误差都很高→高偏差（需要更复杂的模型）；训练误差低但验证误差高→高方差（需要更多数据或正则化）。scikit-learn 的 learning_curve 函数可以自动生成这些曲线。
 
 ### Step 1: Train/validation/test split
 
@@ -629,7 +641,7 @@ if __name__ == "__main__":
     print(f"  (|t| > 2.78 for significance at p<0.05 with df=4)")
 ```
 
-## Use It
+## Use It | 用框架实现
 
 With scikit-learn, evaluation is built into the workflow:
 
@@ -647,18 +659,24 @@ scores = cross_val_score(model, X, y, cv=StratifiedKFold(5), scoring="f1")
 
 The from-scratch versions show exactly what cross-validation does (no magic, just for-loops and index tracking), how each metric is computed (just counting TP/FP/TN/FN), and why stratification matters (preserving class ratios in each fold). The library versions add parallelism, more scoring options, and integration with pipelines.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/skill-evaluation.md` - a skill covering evaluation strategy for classification and regression models
 
-## Exercises
+> **【拓展：A/B 测试——模型评估的终极标准】**
+> 在工业界，离线评估指标（准确率、AUC 等）只是参考，真正的评估是在线 A/B 测试。Google 每年运行超过 10,000 次 A/B 测试来评估搜索算法改进；Netflix 用 A/B 测试决定推荐算法是否上线；Uber 用 A/B 测试评估动态定价策略。A/B 测试的核心是随机分流和统计显著性检验——确保观测到的差异不是随机波动。
+
+> **【中文解读】**
+> ROC 曲线绘制不同阈值下的 TPR（真正率）vs FPR（假正率），AUC 是曲线下面积（0.5=随机，1.0=完美）。AUPRC（精确率-召回率曲线下面积）在不平衡数据上比 AUC-ROC 更有信息量。MCC（马修斯相关系数）是不平衡数据上的综合指标，考虑了混淆矩阵的全部四个值。
+
+## Exercises | 练习题
 
 1. Implement precision-recall curves: plot precision vs recall at different thresholds. Compute the average precision (area under the PR curve). Compare the PR curve to the ROC curve on an imbalanced dataset and explain when each is more informative.
 2. Build a nested cross-validation loop: the outer loop evaluates model performance, the inner loop tunes hyperparameters. Use it to compare two models fairly without leaking validation data into the evaluation.
 3. Implement a permutation test for model comparison: shuffle the labels, retrain, and measure performance. Repeat 100 times to build a null distribution. Compute the p-value for the observed model performance against this distribution.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -672,7 +690,7 @@ This lesson produces:
 | Learning curve | "How performance changes with more data" | A plot of training and validation scores vs training set size, revealing underfitting or overfitting |
 | Stratified split | "Keeping class ratios balanced" | Splitting data so each subset has the same proportion of each class as the full dataset |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [scikit-learn Model Selection Guide](https://scikit-learn.org/stable/model_selection.html) - comprehensive reference on cross-validation, metrics, and hyperparameter tuning
 - [Beyond Accuracy: Precision and Recall (Google ML Crash Course)](https://developers.google.com/machine-learning/crash-course/classification/precision-and-recall) - clear explanation with interactive examples

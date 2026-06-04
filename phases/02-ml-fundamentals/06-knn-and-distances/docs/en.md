@@ -18,7 +18,10 @@
 > **【中文解读】**
 > KNN 的核心思想是近朱者赤——看离你最近的 K 个邻居是什么类别，你就预测什么类别。推荐系统中的找相似用户就是 KNN 思想。sklearn 中的 KNeighborsClassifier。
 
-## The Problem
+> **【拓展：KNN 思想在现代 AI 中的广泛应用】**
+> RAG（检索增强生成）本质就是 KNN：将用户问题编码为向量，在向量数据库（Pinecone、Milvus、FAISS）中搜索 K 个最相似的文档片段，再将它们提供给 LLM 生成回答。Spotify 的音乐推荐用近似最近邻（ANN）在数亿首歌中找相似的；Pinterest 的图片搜索用视觉 embedding + KNN。KNN 的思想无处不在，只是数据结构和规模不同。
+
+## The Problem | 问题引入
 
 You have a dataset. A new data point arrives. You need to classify it or predict its value. Instead of learning parameters from the data (like linear regression or SVMs), you just find the K training points closest to the new point and let them vote.
 
@@ -28,7 +31,10 @@ It sounds too simple to work. But KNN is surprisingly competitive for many probl
 
 KNN also shows up everywhere in modern AI, just under different names. Vector databases do KNN search over embeddings. Retrieval-augmented generation (RAG) finds the K nearest document chunks. Recommendation systems find similar users or items. The algorithm is the same. The scale and the data structures are different.
 
-## The Concept
+> **【中文解读】**
+> KNN 是"懒惰学习"——没有训练过程，预测时才计算距离。核心三要素：K 值选择（太小→过拟合噪声，太大→欠拟合）、距离度量（欧氏、曼哈顿、余弦等）、投票规则（等权或距离加权）。KNN 的缺点：高维空间中距离失去意义（维度灾难），大数据集预测慢（需要与所有训练点比较）。
+
+## The Concept | 核心概念
 
 ### How KNN works
 
@@ -227,7 +233,13 @@ where w_i = 1 / distance_i
 
 KNN regression produces piecewise-constant (or piecewise-smooth with weighting) predictions. It cannot extrapolate beyond the range of the training data. If the training targets are all between 0 and 100, KNN will never predict 200.
 
-## Build It
+> **【中文解读】**
+> KNN 回归用 K 个最近邻的目标值取平均（或距离加权平均）作为预测值。与分类不同，回归产生分段常数或分段光滑的预测面。KNN 回归不能外推——如果训练目标值都在 0-100 之间，它永远不会预测 200。这是所有"基于实例"方法的共同限制。
+
+> **【拓展：大规模最近邻搜索——从 KNN 到 FAISS】**
+> 当数据规模从数千增长到数十亿时，精确 KNN 搜索太慢。Meta 开源的 FAISS 库使用乘积量化（PQ）和倒排文件索引（IVF），在 10 亿级向量中实现毫秒级搜索。HNSW（分层可导航小世界图）是另一种流行算法，被 Elasticsearch 和 Milvus 采用。这些近似最近邻（ANN）方法牺牲少量精度换取 100-1000 倍的搜索加速。
+
+## Build It | 动手实现
 
 ### Step 1: Distance functions
 
@@ -237,23 +249,23 @@ Implement L1, L2, cosine, and Minkowski distances. These connect directly to Pha
 import math
 
 def l2_distance(a, b):
-    return math.sqrt(sum((ai - bi) ** 2 for ai, bi in zip(a, b)))
+    return math.sqrt(sum((ai - bi) ** 2 for ai, bi in zip(a, b)))  # 欧氏距离（L2 范数）
 
 def l1_distance(a, b):
-    return sum(abs(ai - bi) for ai, bi in zip(a, b))
+    return sum(abs(ai - bi) for ai, bi in zip(a, b))  # 曼哈顿距离（L1 范数）
 
 def cosine_distance(a, b):
-    dot_val = sum(ai * bi for ai, bi in zip(a, b))
-    norm_a = math.sqrt(sum(ai ** 2 for ai in a))
-    norm_b = math.sqrt(sum(bi ** 2 for bi in b))
+    dot_val = sum(ai * bi for ai, bi in zip(a, b))  # 点积
+    norm_a = math.sqrt(sum(ai ** 2 for ai in a))  # 向量 a 的模
+    norm_b = math.sqrt(sum(bi ** 2 for bi in b))  # 向量 b 的模
     if norm_a == 0 or norm_b == 0:
         return 1.0
-    return 1.0 - dot_val / (norm_a * norm_b)
+    return 1.0 - dot_val / (norm_a * norm_b)  # 余弦距离 = 1 - 余弦相似度
 
 def minkowski_distance(a, b, p=2):
     if p == float('inf'):
-        return max(abs(ai - bi) for ai, bi in zip(a, b))
-    return sum(abs(ai - bi) ** p for ai, bi in zip(a, b)) ** (1 / p)
+        return max(abs(ai - bi) for ai, bi in zip(a, b))  # p=∞ 时为切比雪夫距离
+    return sum(abs(ai - bi) ** p for ai, bi in zip(a, b)) ** (1 / p)  # 闵可夫斯基距离
 ```
 
 ### Step 2: KNN classifier and regressor
@@ -314,7 +326,7 @@ def standardize(X):
     return [[((X[i][j] - means[j]) / stds[j]) for j in range(d)] for i in range(n)], means, stds
 ```
 
-## Use It
+## Use It | 用框架实现
 
 With scikit-learn:
 
@@ -343,7 +355,10 @@ index.add(embeddings)
 distances, indices = index.search(query_vectors, k=5)
 ```
 
-## Exercises
+> **【拓展：从 KNN 到向量数据库——AI 基础设施的演进】**
+> KNN 的思想是现代 AI 基础设施的核心。RAG（检索增强生成）用 KNN 在向量数据库中搜索相关文档；推荐系统用近似最近邻（ANN）在数亿向量中找到相似商品；图像搜索用 CLIP embedding + FAISS 实现跨模态检索。向量数据库市场（Pinecone、Milvus、Weaviate、Qdrant）预计在 2025 年达到 40 亿美元规模，其核心算法仍然是 KNN 的高效变体。
+
+## Exercises | 练习题
 
 1. Implement KNN classification on a 2D dataset with 3 classes. Plot the decision boundary for K=1, K=5, K=15, and K=N. Observe the transition from overfitting to underfitting.
 
@@ -355,7 +370,7 @@ distances, indices = index.search(query_vectors, k=5)
 
 5. Build a weighted KNN regressor for y = sin(x) + noise. Compare it with unweighted KNN for K=3, 10, 30. Show that weighting produces smoother predictions, especially for large K.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What it actually means |
 |------|----------------------|
@@ -372,7 +387,7 @@ distances, indices = index.search(query_vectors, k=5)
 | Approximate nearest neighbor | Algorithms (HNSW, LSH, IVF) that find approximately nearest points much faster than exact search |
 | Voronoi diagram | The partition of space where each region contains all points closer to one training point than any other. K=1 KNN produces Voronoi boundaries |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Cover & Hart: Nearest Neighbor Pattern Classification (1967)](https://ieeexplore.ieee.org/document/1053964) - the foundational KNN paper proving it has error rate at most twice the Bayes optimal
 - [Friedman, Bentley, Finkel: An Algorithm for Finding Best Matches in Logarithmic Expected Time (1977)](https://dl.acm.org/doi/10.1145/355744.355745) - the original KD-tree paper

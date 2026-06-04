@@ -18,7 +18,10 @@
 > **【中文解读】**
 > 时间序列是按时间顺序排列的数据。ARIMA、指数平滑是经典方法，LSTM/Transformer 是深度学习方法。股票预测、销量预测、天气预报是典型应用。
 
-## The Problem
+> **【拓展：时间序列预测在金融和供应链中的关键角色】**
+> Amazon 使用时间序列预测来管理全球数亿 SKU 的库存，每天的预测量超过 4 亿次；Uber 使用时间序列模型预测需求来动态调价（Surge Pricing）；金融机构用 ARIMA/GARCH 模型预测波动率进行风险管理。时间序列最关键的教训：绝不能用随机划分做交叉验证——必须用时间顺序划分（walk-forward validation），否则就是"用未来预测过去"。
+
+## The Problem | 问题引入
 
 You have data ordered by time. Daily sales, hourly temperature, per-minute CPU usage, weekly stock prices. You want to predict the next value, the next week, the next quarter.
 
@@ -30,7 +33,10 @@ A model that gets 95% accuracy with random cross-validation might get 55% with p
 
 This lesson covers the fundamentals: what makes time data different, how to evaluate models honestly, and how to turn a time series into features that standard ML models can consume.
 
-## The Concept
+> **【中文解读】**
+> 时间序列分析的独特之处在于数据点之间有时间依赖性——今天的值依赖昨天的值。这打破了标准 ML 的独立同分布假设。核心概念：平稳性（stationarity）——统计特性不随时间变化；趋势+季节性+残差分解；滞后特征和滚动统计将序列转为监督学习问题。正确的评估方法是 walk-forward validation，而非随机交叉验证。
+
+## The Concept | 核心概念
 
 ### What Makes Time Series Different
 
@@ -238,7 +244,13 @@ For most practical problems, start with recursive for short horizons (1-5 steps)
 | Too many lag features | "More history is better" | Use ACF to determine relevant lags |
 | Not differencing | "The model will figure it out" | Tree models handle trends; linear models need stationarity |
 
-## Build It
+## Build It | 动手实现
+
+> **【中文解读】**
+> 从零实现时间序列的核心工具：滞后特征生成器（将序列转为监督学习格式）、滚动统计（移动平均、移动标准差）、平稳性检验（ADF 检验）、时间序列分解（趋势+季节性+残差）、walk-forward 验证框架。关键教训：绝不能随机划分时间序列数据。
+
+> **【拓展：从 ARIMA 到 Transformer——时间序列预测的进化】**
+> 经典时间序列方法（ARIMA、Holt-Winters）在单变量、短序列上仍然有效。但现代方法已大幅超越：Facebook 的 Prophet 自动处理节假日和季节性；Amazon 的 DeepAR 使用自回归 RNN 做概率预测；Google 的 TimesFM 和 Amazon 的 Chronos 使用 Transformer 架构，在零样本（zero-shot）时间序列预测上取得突破。这些模型可以处理数千个相关时间序列的联合预测。
 
 The code in `code/time_series.py` implements the core building blocks from scratch.
 
@@ -330,7 +342,7 @@ def autocorrelation(series, max_lag=20):
     return acf
 ```
 
-## Use It
+## Use It | 用框架实现
 
 With sklearn, you use lag features directly with any regressor:
 
@@ -397,7 +409,7 @@ The code demonstrates adding rolling statistics (mean, std, min, max over window
 
 For example, if the rolling mean is rising, it suggests an upward trend. If the rolling std is increasing, it suggests growing volatility. These are the kinds of patterns that tree-based models can learn from but linear models cannot.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-time-series-advisor.md` -- a prompt for framing time series problems
@@ -427,7 +439,7 @@ If your fancy ML model loses to the seasonal naive baseline, you have a bug. Mos
 
 6. **Log-transform skewed series.** Revenue, prices, and counts are often right-skewed. Taking the log stabilizes variance and makes multiplicative patterns additive, which linear models can handle. Forecast in log space, then exponentiate to get back to original units.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Stationarity experiment.** Generate a series with a linear trend. Check stationarity with rolling statistics. Apply first differencing. Check again. How many rounds of differencing does it take for a quadratic trend?
 
@@ -439,7 +451,10 @@ If your fancy ML model loses to the seasonal naive baseline, you have a bug. Mos
 
 5. **Multi-step forecasting.** Modify the AR model to predict 5 steps ahead instead of 1. Compare two strategies: (a) predict one step, use the prediction as input for the next step (recursive), and (b) train separate models for each horizon (direct). Which is more accurate?
 
-## Key Terms
+> **【中文解读】**
+> 时间序列的核心工具箱：ADF 检验判断平稳性（p-value < 0.05 拒绝非平稳假设）；差分消除趋势（一阶差分 = 今天 - 昨天）；滞后特征将序列转为监督学习格式（用 t-1, t-2,... 的值预测 t）；滚动统计捕获局部趋势（7 天移动平均）。Walk-forward 验证是唯一正确的评估方法：每次用过去的数据预测未来，然后滑动窗口。
+
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -455,7 +470,7 @@ If your fancy ML model loses to the seasonal naive baseline, you have a bug. Mos
 | Expanding window | "Use all history" | Walk-forward validation where the training set grows with each fold |
 | Sliding window | "Fixed-size history" | Walk-forward validation where the training set is a fixed-length window that slides forward |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Hyndman and Athanasopoulos, Forecasting: Principles and Practice (3rd ed.)](https://otexts.com/fpp3/) -- the best free textbook on time series forecasting
 - [scikit-learn Time Series Split](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html) -- sklearn's walk-forward splitter

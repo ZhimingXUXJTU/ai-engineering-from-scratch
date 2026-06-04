@@ -18,7 +18,10 @@
 > **【中文解读】**
 > 朴素贝叶斯基于贝叶斯定理 + 特征独立性假设。虽然假设很强，但在文本分类（垃圾邮件过滤）中出奇地好。sklearn 中的 MultinomialNB/GaussianNB。
 
-## The Problem
+> **【拓展：朴素贝叶斯在垃圾邮件过滤和情感分析中的应用】**
+> 早期的垃圾邮件过滤器（如 SpamAssassin）大量使用朴素贝叶斯，因为它在特征维度高（词表可达数十万）但训练样本少的场景下表现出色。Apple Mail 的垃圾邮件检测至今仍在使用朴素贝叶斯变体。在情感分析中，朴素贝叶斯+TF-IDF 是经典基线，准确率可达 85%+。它的优势是训练速度极快（只需一次遍历数据），适合实时系统。
+
+## The Problem | 问题引入
 
 You need to classify text. Emails into spam or not-spam. Customer reviews into positive or negative. Support tickets into categories. You have thousands of features (one per word) and limited training data.
 
@@ -28,7 +31,10 @@ Naive Bayes handles this. It makes a mathematically wrong assumption (that every
 
 Understanding why a wrong assumption leads to good predictions teaches you something fundamental about machine learning: the best model is not the most correct one, it is the one with the best bias-variance tradeoff for your data.
 
-## The Concept
+> **【中文解读】**
+> 朴素贝叶斯的"朴素"在于假设所有特征在给定类别下相互独立——这在现实中几乎不成立（如"免费"和"优惠"在垃圾邮件中高度相关）。但为什么还能用？因为分类只需要各类别概率的排名正确，不需要概率值精确。独立性假设使参数估计的方差极低（每个特征只需统计频率），在高维稀疏数据上这个优势弥补了假设错误带来的偏差。
+
+## The Concept | 核心概念
 
 ### Bayes' Theorem (Quick Review)
 
@@ -229,7 +235,13 @@ In practice, we work in log space to avoid floating-point underflow. Instead of 
 log P(class | features) = log P(class) + sum_i log P(feature_i | class)
 ```
 
-## Build It
+## Build It | 动手实现
+
+> **【中文解读】**
+> 从零实现多项式朴素贝叶斯（MultinomialNB，用于文本分类）和高斯朴素贝叶斯（GaussianNB，用于连续特征）。多项式版本统计每个词在每个类别中的出现频率（加 Laplace 平滑防止零概率），高斯版本假设每个特征在每个类别中服从正态分布。
+
+> **【拓展：朴素贝叶斯在现代 NLP 中的角色演变】**
+> 虽然 Transformer 模型（BERT、GPT）在 NLP 任务上大幅超越了朴素贝叶斯，但朴素贝叶斯仍有其用武之地：实时垃圾邮件过滤（毫秒级延迟）、大规模文本预分类（成本极低）、作为 baseline 快速验证特征工程效果。在医疗诊断中，高斯朴素贝叶斯因输出概率可解释而被广泛使用——医生需要知道"有多大把握"，而不是黑箱输出。
 
 The code in `code/naive_bayes.py` implements both MultinomialNB and GaussianNB from scratch.
 
@@ -318,7 +330,7 @@ Naive Bayes prediction is a matrix multiplication. For n samples with d features
 
 Both are linear in every dimension. Compare this to KNN (which requires distance computation to all training points) or SVM with RBF kernel (which requires kernel evaluation against all support vectors). NB is faster by orders of magnitude at prediction time.
 
-## Use It
+## Use It | 用框架实现
 
 With sklearn, both variants are one-liners:
 
@@ -409,7 +421,7 @@ This fits a logistic regression on top of NB's raw scores using cross-validation
 
 4. **Feature scaling.** MultinomialNB does not need scaling (it works on counts). GaussianNB does not need scaling either (it estimates per-feature statistics). This is an advantage over logistic regression and SVM, which are sensitive to feature scales.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/skill-naive-bayes-chooser.md` -- a decision skill for picking the right NB variant
@@ -427,7 +439,7 @@ NB fails when the independence assumption causes incorrect rankings (not just in
 
 In practice, these failure modes are rare for text classification. Text features are numerous, individually weak, and the independence assumption's errors tend to cancel out. For tabular data with few strongly correlated features, consider logistic regression or tree-based models first.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Smoothing experiment.** Train MultinomialNB on text data with alpha values of 0.01, 0.1, 1.0, 10.0, and 100.0. Plot accuracy vs alpha. Where does performance peak? Why does very high alpha hurt?
 
@@ -439,7 +451,10 @@ In practice, these failure modes are rare for text classification. Text features
 
 5. **Spam filter.** Build a complete spam classifier: tokenize raw email text, build vocabulary, create bag-of-words features, train MultinomialNB, evaluate with precision and recall (not just accuracy -- why?).
 
-## Key Terms
+> **【中文解读】**
+> 朴素贝叶斯的三种变体：(1) 多项式朴素贝叶斯（MultinomialNB）——适用于词频/TF-IDF 特征的文本分类；(2) 伯努利朴素贝叶斯（BernoulliNB）——适用于二值特征（词是否出现）；(3) 高斯朴素贝叶斯（GaussianNB）——适用于连续特征，假设每类内特征服从正态分布。Laplace 平滑（加 alpha）防止零概率问题——遇到训练集中没见过的词时，概率不会为零。
+
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -453,7 +468,7 @@ In practice, these failure modes are rare for text classification. Text features
 | Discriminative model | "Models the decision boundary" | A model that directly learns P(Y \| X) without modeling how X is generated |
 | Log probability | "Avoid underflow" | Working with log P instead of P to prevent the product of many small numbers from becoming zero in floating point |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [scikit-learn Naive Bayes docs](https://scikit-learn.org/stable/modules/naive_bayes.html) -- all three variants with mathematical details
 - [McCallum and Nigam, A Comparison of Event Models for Naive Bayes Text Classification (1998)](https://www.cs.cmu.edu/~knigam/papers/multinomial-aaaiws98.pdf) -- the classic comparison of Multinomial vs Bernoulli for text

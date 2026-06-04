@@ -18,7 +18,10 @@
 > **【中文解读】**
 > 特征工程是把原始数据转化为模型能理解的特征——这是 ML 中最耗时的步骤。标准化、编码、交叉特征、多项式特征都是常用技巧。sklearn 中的 StandardScaler/OneHotEncoder。
 
-## The Problem
+> **【拓展：特征工程 vs 深度学习的自动特征学习】**
+> 深度学习的核心优势是自动学习特征（CNN 自动提取图像特征、Transformer 自动提取文本特征），但在表格数据上手工特征工程仍然至关重要。Kaggle 竞赛冠军经常花 80% 的时间在特征工程上。Netflix Prize 的获胜方案包含数百个手工设计的特征。特征工程也是理解业务逻辑的过程——好的特征编码了领域专家的知识。
+
+## The Problem | 问题引入
 
 You have a dataset. You pick an algorithm. You train it. The results are mediocre. You try a fancier algorithm. Still mediocre. You spend a week tuning hyperparameters. Marginal improvement.
 
@@ -28,7 +31,10 @@ This happens constantly. In classical ML, the representation of the data matters
 
 Feature engineering is the process of transforming raw data into representations that make patterns easier for models to find. Feature selection is the process of throwing away features that add noise without adding signal. Together, they are the highest-leverage activity in classical ML.
 
-## The Concept
+> **【中文解读】**
+> "数据和特征决定了 ML 的上限，模型和算法只是逼近这个上限。"好的特征可以让简单模型打败复杂模型。特征工程包括数值变换（标准化、对数变换）、类别编码（独热编码、目标编码）、文本特征（TF-IDF）、时间特征（周期编码）等。特征选择则是去除噪声特征，提高模型性能和训练速度。
+
+## The Concept | 核心概念
 
 ### The Feature Pipeline
 
@@ -108,7 +114,10 @@ More features is not always better. Irrelevant features add noise, increase trai
 
 **Why selection matters:** A model with 10 good features will usually outperform a model with 10 good features and 90 noisy ones. The noisy features give the model opportunities to overfit on training data patterns that do not generalize.
 
-## Build It
+## Build It | 动手实现
+
+> **【中文解读】**
+> 从零实现常见特征变换：标准化（零均值单位方差）、Min-Max 归一化（缩放到 0-1）、对数变换（处理长尾分布）、分箱（连续值离散化）。每种变换适用于不同场景——对数变换适合收入等右偏分布，标准化适合 KNN/SVM 等距离敏感算法。
 
 ### Step 1: Numerical transforms from scratch
 
@@ -523,17 +532,20 @@ if __name__ == "__main__":
         print(f"    {feature_names[j]}: r={corr:.4f}")
 ```
 
-## Use It
+## Use It | 用框架实现
+
+> **【拓展：sklearn Pipeline 的工业级实践】**
+> sklearn 的 ColumnTransformer + Pipeline 是特征工程的最佳实践：将数值特征和类别特征分别处理，组合成一个端到端的流水线。这确保了训练集和测试集使用完全相同的变换，避免了数据泄漏。在 Kaggle 竞赛和工业项目中，Pipeline 是标准做法——它让代码可复现、可部署、可维护。
 
 With scikit-learn, these transforms are composable pipelines:
 
 ```python
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, PolynomialFeatures
-from sklearn.impute import SimpleImputer
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_selection import mutual_info_classif, VarianceThreshold
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, PolynomialFeatures  # 预处理变换器
+from sklearn.impute import SimpleImputer  # 缺失值填充
+from sklearn.feature_extraction.text import TfidfVectorizer  # 文本 TF-IDF 向量化
+from sklearn.feature_selection import mutual_info_classif, VarianceThreshold  # 特征选择
+from sklearn.compose import ColumnTransformer  # 按列分组处理
+from sklearn.pipeline import Pipeline  # 构建端到端流水线
 
 numeric_pipe = Pipeline([
     ("imputer", SimpleImputer(strategy="median")),
@@ -552,18 +564,24 @@ preprocessor = ColumnTransformer([
 
 The from-scratch versions show exactly what happens inside each transform. The library versions add edge-case handling, sparse matrix support, and pipeline composition, but the math is the same.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-feature-engineer.md` - a prompt for systematically engineering features from raw data
 
-## Exercises
+> **【拓展：自动化特征工程——Featuretools 和 AutoML】**
+> Featuretools 是一个开源的自动化特征工程库，能自动从关系型数据中生成数千个特征（聚合、时间差、交叉特征等）。Featuretools 的 Deep Feature Synthesis 算法可以递归地组合基础变换来生成深层特征。虽然深度学习减少了对手工特征工程的需求，但在表格数据上，自动特征工程 + 树模型仍然是最强的组合之一。Kaggle 竞赛中，AutoML 工具（如 AutoGluon）的竞争力很大程度上来自自动化特征工程。
+
+> **【中文解读】**
+> TF-IDF（词频-逆文档频率）是文本特征工程的经典方法：TF 衡量词在文档中的频率，IDF 衡量词在所有文档中的稀有程度。常见词（如"的"、"是"）IDF 低，特征词（如"量子"、"区块链"）IDF 高。TF-IDF 虽然简单，但在文本分类中至今仍是有效的基线特征。目标编码（Target Encoding）用目标变量的均值编码类别特征，效果好但有数据泄漏风险——必须用交叉验证计算。
+
+## Exercises | 练习题
 
 1. Add robust scaling (using median and interquartile range instead of mean and standard deviation) to the numerical transforms. Compare it to standard scaling on data with extreme outliers.
 2. Implement leave-one-out target encoding: for each row, compute the target mean excluding that row's own target value. Show how this reduces overfitting compared to naive target encoding.
 3. Build an automated feature selection pipeline that combines variance threshold, correlation filtering, and mutual information ranking. Apply it to the housing dataset and compare model performance (use a simple linear regression) with all features vs selected features.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -577,7 +595,7 @@ This lesson produces:
 | Mutual information | "How much one thing tells you about another" | A measure of the reduction in uncertainty about variable Y gained by observing variable X |
 | Data leakage | "Accidentally cheating" | Using information during training that would not be available at prediction time, giving falsely optimistic results |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Feature Engineering and Selection (Max Kuhn & Kjell Johnson)](http://www.feat.engineering/) - free online book covering the full landscape of feature engineering
 - [scikit-learn Preprocessing Guide](https://scikit-learn.org/stable/modules/preprocessing.html) - practical reference for all standard transforms

@@ -18,13 +18,19 @@
 > **【中文解读】**
 > 超参数是模型训练前设定的参数（如学习率、树深度），不能从数据中学到。网格搜索、随机搜索、贝叶斯优化是三种调参方法。sklearn 中的 GridSearchCV/Optuna。
 
-## The Problem
+> **【拓展：超参数调优在大模型训练中的重要性】**
+> GPT-4 的训练涉及数十个超参数（学习率调度、batch size、权重衰减、dropout 率等），每次完整训练成本约 1 亿美元，不可能用网格搜索。OpenAI 使用贝叶斯优化和基于先前小规模实验的经验法则来设定超参数。对于 GPT 类模型，学习率调度（warmup + cosine decay）被认为是最关键的超参数选择。
+
+## The Problem | 问题引入
 
 Your gradient boosting model has a learning rate, number of trees, max depth, min samples per leaf, subsample ratio, and column sample ratio. That is six hyperparameters. If each has 5 reasonable values, the grid has 5^6 = 15,625 combinations. Training each takes 10 seconds. That is 43 hours of compute to try them all.
 
 Grid search is the obvious approach and the worst one at scale. Random search does better with less compute. Bayesian optimization does even better by learning from past evaluations. Knowing which strategy to use, and which hyperparameters actually matter, saves days of wasted GPU time.
 
-## The Concept
+> **【中文解读】**
+> 超参数调优的核心矛盾：搜索空间大但每次评估成本高。网格搜索穷举所有组合，成本指数增长；随机搜索随机采样，在同样预算下探索更多区域；贝叶斯优化用概率模型（高斯过程）预测哪些区域可能更好，智能地选择下一个评估点。实践中，先用随机搜索快速缩小范围，再用贝叶斯优化精细搜索。
+
+## The Concept | 核心概念
 
 ### Parameters vs Hyperparameters
 
@@ -110,6 +116,12 @@ The two key components:
 - **Probability of Improvement (PI):** What is the probability this point beats the current best?
 
 Bayesian optimization typically finds better hyperparameters than random search with 2-5x fewer evaluations. The overhead of fitting the surrogate model is negligible compared to training the actual model.
+
+> **【中文解读】**
+> 贝叶斯优化是最智能的调参方法。核心组件：代理模型（通常用高斯过程拟合目标函数）和采集函数（平衡"探索未知区域"和"利用已知好区域"）。每次评估后更新代理模型，采集函数决定下一个评估点。相比随机搜索，贝叶斯优化用 2-5 倍少的评估次数就能找到更好的超参数，对于训练成本高的模型特别有价值。
+
+> **【拓展：Optuna——自动化超参数调优的工业标准】**
+> Optuna 是日本 Preferred Networks 开发的超参数调优框架，被广泛用于 Kaggle 竞赛和工业项目。它支持贝叶斯优化（TPE 采样器）、剪枝（自动停止不promising 的试验）、分布式搜索。DeepMind 的 AlphaGo 和 Google 的 Vizier 也使用类似的贝叶斯优化技术来调优自身系统的超参数。在 LLM 微调中，Optuna 常被用来搜索学习率、batch size、LoRA rank 等关键超参数。
 
 ### Early Stopping
 
@@ -249,7 +261,13 @@ This is expensive (5 outer folds x 5 inner folds x 27 grid points = 675 model fi
 
 **When in doubt:** random search with 2x the number of hyperparameters as trials (e.g., 6 hyperparameters = 12+ trials minimum). You will be surprised how often random search with 50 trials beats carefully designed grid search.
 
-## Build It
+## Build It | 动手实现
+
+> **【中文解读】**
+> 从零实现网格搜索、随机搜索和贝叶斯优化，并用同一数据集对比三者的效率和效果。网格搜索穷举所有组合、随机搜索均匀采样、贝叶斯优化智能选择。关键发现：对于大多数问题，只有 1-2 个超参数真正重要，随机搜索因此在同样预算下探索了更多有效值。
+
+> **【拓展：Hyperband 和 ASHA——大规模超参数搜索的加速器】**
+> Hyperband 算法的核心思想：先给大量配置少量资源（如 1 个 epoch），淘汰表现差的，给幸存者更多资源。ASHA（Asynchronous Successive Halving Algorithm）是 Hyperband 的异步版本，被 Microsoft 的 NNI 和 Ray Tune 采用。在 LLM 训练中，一次完整训练可能需要 100 万美元，Hyperband 可以将搜索成本降低 10-50 倍。
 
 ### Step 1: Grid Search from Scratch
 
@@ -418,7 +436,7 @@ print(f"{'Bayesian Opt':<20} {bayes_score:>12.4f} {len(bayes_history):>12}")
 
 With the same budget, Bayesian optimization usually finds the best score fastest because it does not waste evaluations in clearly bad regions. Random search covers more ground than grid search. Grid search only wins when you have very few hyperparameters and can afford to be exhaustive.
 
-## Use It
+## Use It | 用框架实现
 
 ### Optuna in Practice
 
@@ -530,7 +548,7 @@ Use `loguniform` from scipy for learning rate and regularization. Use `randint` 
 
 **Not using early stopping for iterative models.** For gradient boosting and neural networks, set n_estimators or epochs to a high value and use early stopping. This is strictly better than tuning the number of iterations as a hyperparameter.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run grid search and random search with the same total budget (e.g., 50 evaluations). Compare the best scores found. Run the experiment 10 times with different seeds. How often does random search win?
 
@@ -542,7 +560,10 @@ Use `loguniform` from scipy for learning rate and regularization. Use `randint` 
 
 5. Implement a simple acquisition function (Expected Improvement) and demonstrate exploration vs exploitation. Plot the surrogate model's mean and uncertainty, and show where EI chooses to evaluate next.
 
-## Key Terms
+> **【中文解读】**
+> 学习率几乎总是最重要的超参数。调度策略比固定学习率更有效：Warmup（从 0 线性增加到目标值）+ Cosine Decay（余弦退火下降）是 Transformer 训练的标准配置。早停（Early Stopping）是最简单但最有效的正则化手段——当验证损失不再下降时就停止训练。Hyperband 算法通过先给大量配置少量资源再逐步淘汰来加速搜索。
+
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -556,7 +577,7 @@ Use `loguniform` from scipy for learning rate and regularization. Use `randint` 
 | Hyperband | "Tournament bracket for configs" | Adaptive resource allocation: start many configs with small budgets, keep the best and increase their budgets |
 | Learning rate scheduler | "Change lr during training" | A function that adjusts the learning rate over the course of training for better convergence |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Bergstra & Bengio: Random Search for Hyper-Parameter Optimization (2012)](https://jmlr.org/papers/v13/bergstra12a.html) -- the paper that showed random beats grid
 - [Snoek et al., Practical Bayesian Optimization of Machine Learning Algorithms (2012)](https://arxiv.org/abs/1206.2944) -- Bayesian optimization for ML

@@ -18,7 +18,10 @@
 > **【中文解读】**
 > 无监督学习没有标签，目标是发现数据中的结构。K-Means 是最经典的聚类算法，DBSCAN 能发现任意形状的簇。sklearn 中的 KMeans/DBSCAN。客户分群、异常检测是典型应用。
 
-## The Problem
+> **【拓展：无监督学习在真实 AI 系统中的价值】**
+> Google Photos 的自动相册分组使用聚类算法将相似照片归类（人脸、地点、场景）；Spotify 的"发现"功能用聚类将用户分群后推荐；网络安全领域的异常检测用 DBSCAN/Isolation Forest 发现异常流量。在没有标签或标签获取成本极高的场景下，无监督学习是唯一的选项。
+
+## The Problem | 问题引入
 
 Every ML lesson so far has assumed labeled data: "here is an input, here is the correct output." In the real world, labels are expensive. A hospital has millions of patient records but no one has manually tagged each one with a disease category. An e-commerce site has millions of user sessions but no one has hand-labeled customer segments. A security team has network logs but nobody has flagged every anomaly.
 
@@ -26,7 +29,10 @@ Unsupervised learning finds patterns without being told what to look for. It gro
 
 The catch: without labels, you cannot directly measure "right" or "wrong." You need different tools to evaluate whether the structure your algorithm found is meaningful.
 
-## The Concept
+> **【中文解读】**
+> 无监督学习的核心挑战是评估：没有标签就无法直接衡量"对错"。需要用轮廓系数、肘部法则等指标间接评估聚类质量。K-Means 假设簇是球形的且大小相近，对异常值敏感；DBSCAN 能发现任意形状的簇并自动识别噪声点，但需要设置密度参数。
+
+## The Concept | 核心概念
 
 ### Clustering: Grouping Similar Things Together
 
@@ -126,7 +132,10 @@ Clustering naturally supports anomaly detection:
 - **DBSCAN**: noise points are anomalies by definition
 - **GMM**: points with low probability under all Gaussians are anomalies
 
-## Build It
+## Build It | 动手实现
+
+> **【中文解读】**
+> 从零实现 K-Means、DBSCAN 和高斯混合模型。K-Means 的三步迭代：随机初始化中心 → 分配每个点到最近中心 → 重新计算中心。重复直到收敛。DBSCAN 从高密度区域开始扩展簇，自动处理噪声点。
 
 ### Step 1: K-Means from scratch
 
@@ -454,7 +463,7 @@ if __name__ == "__main__":
         print(f"    Point {[round(v, 2) for v in a]}")
 ```
 
-## Use It
+## Use It | 用框架实现
 
 With scikit-learn, the same algorithms are one-liners:
 
@@ -463,25 +472,31 @@ from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering
 from sklearn.mixture import GaussianMixture
 from sklearn.metrics import silhouette_score as sklearn_silhouette
 
-km = KMeans(n_clusters=3, random_state=42).fit(data)
-db = DBSCAN(eps=1.5, min_samples=5).fit(data)
-agg = AgglomerativeClustering(n_clusters=3).fit(data)
-gmm_model = GaussianMixture(n_components=3, random_state=42).fit(data)
+km = KMeans(n_clusters=3, random_state=42).fit(data)  # K-Means 聚类（默认 K-Means++ 初始化）
+db = DBSCAN(eps=1.5, min_samples=5).fit(data)  # DBSCAN 密度聚类（eps 为邻域半径）
+agg = AgglomerativeClustering(n_clusters=3).fit(data)  # 层次聚类
+gmm_model = GaussianMixture(n_components=3, random_state=42).fit(data)  # 高斯混合模型（EM 算法）
 ```
 
 The from-scratch versions show you exactly what these libraries compute. K-Means iterates between assigning and recomputing. DBSCAN grows clusters from dense seeds. GMM alternates between expectation and maximization. The library versions add numerical stability, smarter initialization (K-Means++), and GPU acceleration, but the core logic is the same.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces working implementations of K-Means, DBSCAN, and GMM from scratch. The clustering code can be reused as a foundation for more advanced unsupervised methods.
 
-## Exercises
+> **【拓展：聚类在用户分群和推荐系统中的应用】**
+> Spotify 将用户聚类为"品味群体"来推荐音乐——每个群体内的用户有相似的听歌习惯。Airbnb 用聚类将房源分组来优化搜索排序。Amazon 用聚类发现购买模式来推荐商品。在市场营销中，RFM 模型（Recency, Frequency, Monetary）+ K-Means 将客户分为高价值、潜力、流失风险等群体，指导差异化营销策略。
+
+> **【中文解读】**
+> 无监督学习的评估比监督学习更困难。轮廓系数衡量簇内紧密度 vs 簇间分离度，范围 [-1, 1]，越高越好。肘部法则寻找 WCSS（簇内平方和）随 K 增加的"拐点"。GMM 使用 EM 算法（期望最大化）交替更新簇分配和簇参数，比 K-Means 更灵活（椭圆簇而非球形簇）但更慢。
+
+## Exercises | 练习题
 
 1. Implement K-Means++ initialization: instead of picking random centroids, pick the first randomly and each subsequent centroid with probability proportional to its squared distance from the nearest existing centroid. Compare convergence speed to random initialization.
 2. Add hierarchical agglomerative clustering to the code. Implement Ward's linkage and produce a dendrogram (as a nested list of merges). Cut it at different levels and compare to K-Means results.
 3. Build a simple anomaly detection pipeline: run DBSCAN and GMM on the same data, flag points that both methods agree are outliers (noise in DBSCAN, low probability in GMM). Measure the overlap and discuss when the methods disagree.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -494,7 +509,7 @@ This lesson produces working implementations of K-Means, DBSCAN, and GMM from sc
 | Dendrogram | "A tree of clusters" | A tree diagram showing the order and distance at which clusters were merged in hierarchical clustering |
 | Anomaly | "An outlier" | A data point that does not conform to the expected pattern, identified as noise by DBSCAN or low-probability by GMM |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Stanford CS229 - Unsupervised Learning](https://cs229.stanford.edu/notes2022fall/main_notes.pdf) - Andrew Ng's lecture notes on clustering and EM
 - [scikit-learn Clustering Guide](https://scikit-learn.org/stable/modules/clustering.html) - practical comparison of all clustering algorithms with visual examples
