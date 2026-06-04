@@ -18,7 +18,7 @@
 > **【中文解读】**
 > 社交网络、分子结构、知识图谱都是图。GNN 的消息传递本质上是邻接矩阵乘法。谱聚类用图拉普拉斯矩阵的特征向量聚类，比 K-Means 更适合非球形数据。
 
-## The Problem
+## The Problem | 问题引入
 
 Social networks, molecules, knowledge bases, citation networks, road maps -- all are graphs. Traditional ML treats data as flat tables. Each row is independent. Each feature is a column. But when the structure of connections matters, tables fail.
 
@@ -34,7 +34,13 @@ You need four things:
 3. The Laplacian -- the single most important matrix in spectral graph theory
 4. Message passing -- the operation that makes GNNs work
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】**
+> 图是关系的数据结构。社交网络中人是节点、关注是边；分子中原子是节点、化学键是边；知识图谱中实体是节点、关系是边。图神经网络（GNN）的核心操作——消息传递——本质上是邻接矩阵乘法。谱聚类用图拉普拉斯矩阵的特征向量做聚类。
+
+> **【拓展：图神经网络在药物发现中的突破】**
+> DeepMind 的 AlphaFold2 (2020) 用图神经网络预测蛋白质 3D 结构，解决了困扰生物学界 50 年的蛋白质折叠问题。它把氨基酸残基建模为图节点，残基间的空间关系建模为边。在 CASP14 竞赛中，AlphaFold2 的中位 GDT 分数达到 92.4（满分 100），远超第二名 25 分。Insilico Medicine 用 GNN 设计新药分子，将药物发现周期从数年缩短到数月。
 
 ### Graphs: Nodes and Edges
 
@@ -74,6 +80,9 @@ A = [[0, 1, 1],
 ```
 
 The adjacency matrix is the input to every GNN. Matrix operations on A correspond to operations on the graph.
+
+> **【中文解读】**
+> 邻接矩阵是图的"数字化表示"。A[i][j]=1 表示节点 i 和 j 之间有边。矩阵乘法的神奇之处：A^2 的元素 A^2[i][j] 恰好等于从 i 到 j 长度为 2 的路径数。GNN 的消息传递本质上就是 A 乘以特征矩阵——每个节点聚合邻居的信息。
 
 ### Degree
 
@@ -156,6 +165,9 @@ The Laplacian has remarkable properties:
 
 4. **The eigenvector of the Fiedler value (Fiedler vector) reveals the best split.** Nodes with positive values go in one group, nodes with negative values go in the other. This is spectral clustering.
 
+> **【中文解读】**
+> 图拉普拉斯 L = D - A 是谱图理论中最重要的矩阵。它的四个关键性质：(1) 半正定；(2) 零特征值个数 = 连通分量个数；(3) 最小非零特征值（Fiedler 值）衡量连通性——越大越紧密；(4) Fiedler 向量的正负号自动将图分成两簇。这就是谱聚类的数学基础。
+
 ```mermaid
 graph TD
     subgraph "Graph to Matrices"
@@ -211,6 +223,9 @@ where A_norm is the normalized adjacency matrix (each row sums to 1).
 
 One round of message passing lets each node "see" its immediate neighbors. Two rounds let it see neighbors of neighbors. K rounds give each node information from its K-hop neighborhood.
 
+> **【拓展：消息传递与 GNN 架构演进】**
+> GCN (Kipf & Welling, 2017) 是最简单的消息传递 GNN：每层做一次归一化邻接矩阵乘法 + 线性变换。GAT (Veličković et al., 2018) 引入注意力机制让节点学习邻居的重要性权重。GraphSAGE (Hamilton et al., 2017) 支持采样邻居以处理大规模图。Pinterest 的 PinSage 模型在 30 亿节点的图上运行，每天生成超过 10 亿次推荐。GNN 是增长最快的 AI 子领域之一。
+
 ```mermaid
 graph LR
     subgraph "Round 0"
@@ -245,7 +260,7 @@ graph LR
 | Spectral clustering | Unsupervised node grouping |
 | PageRank | Node importance, web search |
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Graph class from scratch
 
@@ -297,16 +312,16 @@ def bfs(graph, start):
     visited = set()
     order = []
     distances = {}
-    queue = deque([(start, 0)])
+    queue = deque([(start, 0)])                     # BFS 用队列：先进先出
     visited.add(start)
     while queue:
-        node, dist = queue.popleft()
+        node, dist = queue.popleft()                # 取出队列头部的节点
         order.append(node)
-        distances[node] = dist
+        distances[node] = dist                      # 距离 = BFS 层级（最短路径）
         for neighbor in graph.neighbors(node):
             if neighbor not in visited:
                 visited.add(neighbor)
-                queue.append((neighbor, dist + 1))
+                queue.append((neighbor, dist + 1))  # 邻居距离 +1
     return order, distances
 
 
@@ -356,15 +371,15 @@ def laplacian_eigenvalues(graph):
 ```python
 def spectral_clustering(graph, k=2):
     import numpy as np
-    L = graph.laplacian()
-    eigenvalues, eigenvectors = np.linalg.eigh(L)
-    features = eigenvectors[:, 1:k+1]
+    L = graph.laplacian()                           # 计算图拉普拉斯矩阵 L = D - A
+    eigenvalues, eigenvectors = np.linalg.eigh(L)   # 特征分解（对称矩阵用 eigh）
+    features = eigenvectors[:, 1:k+1]               # 取第 2 到 k+1 个特征向量（跳过第一个全 1 向量）
 
     labels = np.zeros(graph.n, dtype=int)
     for i in range(graph.n):
-        if features[i, 0] >= 0:
+        if features[i, 0] >= 0:                     # Fiedler 向量 >= 0 → 簇 A
             labels[i] = 0
-        else:
+        else:                                       # Fiedler 向量 < 0 → 簇 B
             labels[i] = 1
     return labels
 ```
@@ -387,7 +402,7 @@ def message_passing(graph, features, weight_matrix):
 
 This is one round of GNN message passing. Each node's new features are the weighted average of its neighbors' features, transformed by the weight matrix. Stack multiple rounds to propagate information further.
 
-## Use It
+## Use It | 用框架实现
 
 With networkx and numpy, the same operations are one-liners:
 
@@ -444,12 +459,12 @@ print(f"Cluster B: {group_b}")
 
 The Fiedler vector does the heavy lifting. Positive entries in one cluster, negative in the other. No iterative optimization needed -- just one eigendecomposition.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/skill-graph-analysis.md` -- a skill reference for analyzing graph-structured data
 
-## Connections
+## Connections | 概念关联地图
 
 | Concept | Where it shows up |
 |---------|------------------|
@@ -470,7 +485,7 @@ H^(l+1) = sigma(D_hat^(-1/2) * A_hat * D_hat^(-1/2) * H^(l) * W^(l))
 
 where A_hat = A + I (adjacency plus self-loops) and D_hat is the degree matrix of A_hat. The self-loops ensure each node includes its own features during aggregation. This is exactly message passing with symmetric normalization. D_hat^(-1/2) * A_hat * D_hat^(-1/2) is the normalized adjacency matrix. The Laplacian shows up because this normalization is related to L_sym = I - D^(-1/2) * A * D^(-1/2). Understanding the Laplacian means understanding why GCNs work.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Implement PageRank from scratch.** Start with uniform scores. At each step: score(v) = (1-d)/n + d * sum(score(u)/out_degree(u)) for all u pointing to v. Use d=0.85. Run until convergence (change < 1e-6). Test on a small web graph.
 
@@ -482,7 +497,7 @@ where A_hat = A + I (adjacency plus self-loops) and D_hat is the degree matrix o
 
 5. **Analyze a real-world graph.** Use the Karate Club graph (34 nodes, 78 edges). Compute degree distribution, Laplacian eigenvalues, and spectral clustering. Compare the spectral clustering result to the known ground truth split.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -497,7 +512,7 @@ where A_hat = A + I (adjacency plus self-loops) and D_hat is the degree matrix o
 | Spectral clustering | "Cluster by eigenvectors" | Partition a graph using eigenvectors of its Laplacian |
 | Connected component | "A separate piece" | A maximal subgraph where every node can reach every other node |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - **Kipf & Welling (2017)** -- "Semi-Supervised Classification with Graph Convolutional Networks." The paper that launched modern GNNs. Shows that spectral graph convolutions simplify to message passing.
 - **Spielman (2012)** -- "Spectral Graph Theory" lecture notes. The definitive introduction to Laplacians, spectral gaps, and graph partitioning.

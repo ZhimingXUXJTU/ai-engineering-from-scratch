@@ -18,7 +18,7 @@
 > **【中文解读】**
 > 虚数 i 是旋转和频率的钥匙。Transformer 中的 RoPE 位置编码（LLaMA 等模型使用）本质上就是复数旋转。正弦位置编码是复指数的实部和虚部。
 
-## The Problem
+## The Problem | 问题引入
 
 You open a paper on Fourier transforms and there is `i` everywhere. You look at transformer positional encodings and see `sin` and `cos` at different frequencies -- the real and imaginary parts of complex exponentials. You read about quantum computing and find everything expressed in complex vector spaces.
 
@@ -28,7 +28,13 @@ Without understanding complex numbers, you cannot understand the Discrete Fourie
 
 This lesson builds complex arithmetic from scratch, connects it to geometry, and shows you exactly where complex numbers appear in machine learning.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】**
+> 复数的核心洞察：i 不是"虚"的，它是一个 90 度旋转操作。乘一次 i 转 90 度，乘两次（i^2 = -1）转 180 度。复数 = 2D 平面上的点 + 自然支持旋转。这意味着任何涉及旋转、振荡、频率的领域都天然适合用复数描述。
+
+> **【拓展：复数在 AI 中的实际应用规模】**
+> OpenAI 的 GPT-4、Meta 的 LLaMA 系列都使用 RoPE（Rotary Position Embedding），本质上是复数旋转。每个注意力头对位置编码执行复数乘法。对于 LLaMA-2-70B（80 个注意力头，序列长度 4096），每步推理执行数百万次复数旋转。音频 AI 领域（如 OpenAI Whisper）依赖 FFT（快速傅里叶变换），所有计算都在复数域完成。
 
 ### What is a complex number?
 
@@ -148,6 +154,9 @@ Euler's formula says that `e^(i*theta)` traces the unit circle as theta varies. 
 
 This means complex exponentials ARE rotations. And rotations are everywhere in signal processing and ML.
 
+> **【中文解读】**
+> 欧拉公式 e^(i*theta) = cos(theta) + i*sin(theta) 是本课最重要的公式。它把指数函数和三角函数统一起来，也把复数和旋转统一起来。当 theta 从 0 变到 2*pi，e^(i*theta) 在复平面上画出一个单位圆。这个圆是理解 DFT、RoPE、信号处理的基础。
+
 ### Connection to 2D rotations
 
 Multiplying the complex number (x + yi) by e^(i*theta) rotates the point (x, y) by angle theta around the origin.
@@ -203,6 +212,9 @@ For N = 8, you get the four compass points plus the four diagonals.
 
 Roots of unity are the foundation of the Discrete Fourier Transform. The DFT decomposes a signal into components at these N equally-spaced frequencies.
 
+> **【中文解读】**
+> 单位根是 N 个等间距分布在单位圆上的点。它们的两个神奇性质：(1) 每个的模都恰好为 1；(2) 全部加起来恰好为零。这两个性质是 DFT 可逆的数学基础。DFT 本质上就是计算信号与这 N 个旋转相量的"相关性"。
+
 ### Connection to the DFT
 
 The Discrete Fourier Transform of a signal x[0], x[1], ..., x[N-1] is:
@@ -229,6 +241,9 @@ With complex exponentials, the same signal is A*e^(i*(omega*t + phi)). Adding tw
 
 The entire field of signal processing switched to complex exponential notation because the math is cleaner. The "real signal" is always just the real part of the complex representation. The imaginary part is carried along as bookkeeping, making all the algebra work out naturally.
 
+> **【拓展：复数在量子计算中的角色】**
+> 量子计算的基础——量子态——是复数向量。一个量子比特的状态是 alpha|0> + beta|1>，其中 |alpha|^2 + |beta|^2 = 1，alpha 和 beta 都是复数。量子门是复数酉矩阵。Google 的 Sycamore 量子芯片有 53 个量子比特，其状态向量有 2^53 个复数分量。量子机器学习（QML）直接在复数空间中操作。
+
 ### Connection to transformers
 
 **Sinusoidal positional encodings** (original Transformer paper):
@@ -241,6 +256,9 @@ PE(pos, 2i+1) = cos(pos / 10000^(2i/d))
 The sin and cos pairs are the real and imaginary parts of complex exponentials at different frequencies. Each frequency provides a different "resolution" for encoding position. Low frequencies change slowly (coarse position). High frequencies change quickly (fine position). Together they give each position a unique frequency fingerprint.
 
 **RoPE (Rotary Position Embedding)** takes this further. It explicitly multiplies query and key vectors by complex rotation matrices. The relative position between two tokens becomes a rotation angle. Attention is computed using these rotated vectors, making the model sensitive to relative position through complex multiplication.
+
+> **【拓展：RoPE 在 LLaMA 和 GPT-NeoX 中的实现】**
+> RoPE 将 query 和 key 向量按维度对视为复数，然后乘以角度随位置变化的旋转因子。对于维度 d=4096、序列长度 L=4096 的模型，RoPE 对每对 (q, k) 执行 L^2/2 次复数乘法。与绝对位置编码相比，RoPE 的优势是相对位置的旋转角只取决于位置差，这天然支持了"外推"——训练时见过 2048 长度，推理时可扩展到更长序列。
 
 | Operation | Algebraic Form | Geometric Meaning |
 |-----------|---------------|-------------------|
@@ -271,7 +289,7 @@ graph LR
     U1 --> A3
 ```
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Complex class
 
@@ -289,14 +307,14 @@ class Complex:
         return Complex(self.real + other.real, self.imag + other.imag)
 
     def __mul__(self, other):
-        r = self.real * other.real - self.imag * other.imag
-        i = self.real * other.imag + self.imag * other.real
+        r = self.real * other.real - self.imag * other.imag  # 实部：(ac - bd)
+        i = self.real * other.imag + self.imag * other.real  # 虚部：(ad + bc)
         return Complex(r, i)
 
     def __truediv__(self, other):
-        denom = other.real ** 2 + other.imag ** 2
-        r = (self.real * other.real + self.imag * other.imag) / denom
-        i = (self.imag * other.real - self.real * other.imag) / denom
+        denom = other.real ** 2 + other.imag ** 2            # 分母：c^2 + d^2
+        r = (self.real * other.real + self.imag * other.imag) / denom  # 乘以共轭后的实部
+        i = (self.imag * other.real - self.real * other.imag) / denom  # 乘以共轭后的虚部
         return Complex(r, i)
 
     def magnitude(self):
@@ -339,13 +357,13 @@ The magnitude stays the same. Only the angle changes.
 
 ```python
 def dft(signal):
-    N = len(signal)
+    N = len(signal)                               # 信号长度
     result = []
     for k in range(N):
         total = Complex(0, 0)
         for n in range(N):
-            angle = -2 * math.pi * k * n / N
-            total = total + Complex(signal[n], 0) * euler(angle)
+            angle = -2 * math.pi * k * n / N      # 第 k 个单位根的角度
+            total = total + Complex(signal[n], 0) * euler(angle)  # 累加：信号与旋转相量的相关
         result.append(total)
     return result
 ```
@@ -384,7 +402,7 @@ Verify two properties:
 
 These properties are what make the DFT invertible. The roots of unity form an orthogonal basis for the frequency domain.
 
-## Use It
+## Use It | 用框架实现
 
 Python has built-in complex number support. The literal `j` represents the imaginary unit.
 
@@ -418,11 +436,11 @@ spectrum = np.fft.fft(signal)
 freqs = np.fft.fftfreq(128, d=1/128)
 ```
 
-## Ship It
+## Ship It | 产出物
 
 Run `code/complex_numbers.py` to generate `outputs/skill-complex-arithmetic.md`.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Complex arithmetic by hand.** Compute (2 + 3i) * (4 - i) and verify with the code. Then compute (5 + 2i) / (1 - 3i). Draw both results on the complex plane and check that multiplication rotated and scaled the first number.
 
@@ -434,7 +452,7 @@ Run `code/complex_numbers.py` to generate `outputs/skill-complex-arithmetic.md`.
 
 5. **Rotation matrix equivalence.** For 10 random angles and 10 random points, verify that complex multiplication gives the same result as matrix-vector multiplication with the 2x2 rotation matrix. Print the maximum numerical difference.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What it means |
 |------|---------------|
@@ -451,7 +469,7 @@ Run `code/complex_numbers.py` to generate `outputs/skill-complex-arithmetic.md`.
 | DFT | Discrete Fourier Transform. Decomposes a signal into complex sinusoidal components using roots of unity |
 | RoPE | Rotary Position Embedding. Uses complex multiplication to encode relative position in transformer attention |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Visual Introduction to Euler's Formula](https://betterexplained.com/articles/intuitive-understanding-of-eulers-formula/) - builds geometric intuition without heavy notation
 - [Su et al.: RoFormer (2021)](https://arxiv.org/abs/2104.09864) - the paper introducing Rotary Position Embedding using complex rotations

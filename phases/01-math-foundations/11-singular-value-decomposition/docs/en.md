@@ -22,13 +22,13 @@
 > - **图像压缩**: 截断 SVD 只保留最大的几个奇异值，就能用很少的数据近似还原图像。
 > - **LSA (潜在语义分析)**: NLP 中最早的主题模型方法，对文档-词矩阵做 SVD 发现隐含主题。
 
-## The Problem
+## The Problem | 问题引入
 
 You have a 1000x2000 matrix. Maybe it is user-movie ratings. Maybe it is a document-term frequency table. Maybe it is the pixel values of an image. You need to compress it, denoise it, find hidden structure in it, or solve a least-squares system with it. Eigendecomposition only works on square matrices. Even then, it requires the matrix to have a full set of linearly independent eigenvectors.
 
 SVD works on any matrix. Any shape. Any rank. No conditions. It decomposes the matrix into three factors that reveal the geometry of what the matrix does to space. It is the most general and most useful factorization in all of linear algebra.
 
-## The Concept
+## The Concept | 核心概念
 
 ### What SVD does geometrically
 
@@ -368,7 +368,7 @@ It is faster and more numerically stable.
 
 This means everything you learned about dimensionality reduction in Lesson 10 is SVD under the hood. PCA is the most common application of SVD in machine learning.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: SVD from scratch using power iteration
 
@@ -496,7 +496,7 @@ print(f"np.linalg.lstsq solution:   {x_lstsq}")
 print(f"np.linalg.pinv solution:    {x_pinv}")
 ```
 
-## Use It
+## Use It | 用框架实现
 
 Full working demos are in `code/svd.py`. Run it to see SVD applied to image compression, recommendation systems, latent semantic analysis, and noise reduction.
 
@@ -510,12 +510,12 @@ The Julia version in `code/svd.jl` demonstrates the same concepts using Julia's 
 julia svd.jl
 ```
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/skill-svd.md` - a skill for knowing when and how to apply SVD in real projects
 
-## Exercises
+## Exercises | 练习题
 
 1. Implement the full SVD from scratch without using power iteration. Instead, compute the eigendecomposition of A^T A to get V and the singular values, then compute U = A V Sigma^{-1}. Compare numerical accuracy with your power iteration version and with NumPy.
 
@@ -527,7 +527,7 @@ This lesson produces:
 
 5. Generate a clean low-rank matrix (rank 3, size 50x40) and add Gaussian noise at different levels (sigma = 0.1, 0.5, 1.0, 2.0). For each noise level, find the optimal truncation rank by sweeping k from 1 to 40 and measuring reconstruction error against the clean matrix. Plot how the optimal k changes with noise level.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -544,7 +544,7 @@ This lesson produces:
 | Eckart-Young theorem | "SVD gives the best compression" | For any target rank k, the truncated SVD minimizes the approximation error over all possible rank-k matrices. |
 | Power iteration | "Find the biggest eigenvector" | Repeatedly multiply a random vector by the matrix and normalize. Converges to the eigenvector with the largest eigenvalue. The building block of many SVD algorithms. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Gilbert Strang: Linear Algebra and Its Applications, Chapter 7](https://math.mit.edu/~gs/linearalgebra/) - thorough treatment of SVD with applications
 - [3Blue1Brown: But what is the SVD?](https://www.youtube.com/watch?v=vSczTbgc8Rc) - geometric intuition for SVD

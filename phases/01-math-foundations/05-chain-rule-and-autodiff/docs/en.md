@@ -20,7 +20,7 @@
 > **【拓展：链式法则 → 反向传播 → PyTorch autograd】**
 > 链式法则是反向传播（Backpropagation）的数学基础。PyTorch 的 `autograd`、TensorFlow 的 `GradientTape` 都是用反向模式自动微分实现的——它们自动追踪计算图，然后用链式法则计算所有梯度。你将在本章从零构建一个迷你的 autograd 引擎。
 
-## The Problem
+## The Problem | 问题引入
 
 You can compute derivatives of simple functions. But a neural network is not a simple function. It is hundreds of functions composed together: matrix multiply, add bias, apply activation, matrix multiply again, softmax, cross-entropy loss. The output is a function of a function of a function.
 
@@ -30,7 +30,7 @@ The chain rule gives you the math. Automatic differentiation gives you the algor
 
 This is how PyTorch, TensorFlow, and JAX work. You will build a miniature version from scratch.
 
-## The Concept
+## The Concept | 核心概念
 
 ### The Chain Rule
 
@@ -169,7 +169,7 @@ PyTorch internally:
 
 The graph is dynamic (define-by-run). A new graph is built on every forward pass. This is why PyTorch supports control flow (if/else, loops) inside models.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: The Value class
 
@@ -447,7 +447,7 @@ print(f"dy/dx2 = {x2.grad}")   # 2.0 (= x1)
 Manual check: `y = relu(x1*x2 + 1)`. Since `x1*x2 + 1 = 7 > 0`, relu is identity.
 `dy/dx1 = x2 = 3`. `dy/dx2 = x1 = 2`. The engine matches.
 
-## Use It
+## Use It | 用框架实现
 
 ### Verify against PyTorch
 
@@ -481,7 +481,7 @@ print(f"df/db = {b.grad}")  #  2.0 (= a)
 print(f"df/dc = {c.grad}")  #  1.0
 ```
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/skill-autodiff.md` -- a skill for building and debugging autograd systems
@@ -489,7 +489,7 @@ This lesson produces:
 
 The Value class built here is the foundation for the neural network training loop in Phase 3.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add `__pow__` to the Value class so you can compute `x ** n`. Verify that `d/dx(x^3)` at `x=2` equals `12.0`.
 
@@ -499,7 +499,7 @@ The Value class built here is the foundation for the neural network training loo
 
 4. Implement forward-mode autodiff using dual numbers. Create a `Dual` class and verify it gives the same derivatives as your reverse-mode engine.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -516,7 +516,7 @@ The Value class built here is the foundation for the neural network training loo
 | MLP | "Multi-layer perceptron" | A neural network with one or more hidden layers of neurons. Each neuron computes a weighted sum plus bias, then applies an activation function. |
 | Neuron | "Weighted sum + activation" | The basic unit: output = activation(w1*x1 + w2*x2 + ... + b). The weights and bias are learnable parameters. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [3Blue1Brown: Backpropagation calculus](https://www.youtube.com/watch?v=tIeHLnjs5U8) -- visual explanation of the chain rule in neural networks
 - [PyTorch Autograd mechanics](https://pytorch.org/docs/stable/notes/autograd.html) -- how the real system works

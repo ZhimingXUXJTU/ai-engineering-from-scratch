@@ -18,7 +18,7 @@
 > **【中文解读】**
 > 解 Ax=b 是数学中最古老的问题。线性回归的正规方程、岭回归的正则化系统、高斯过程的矩阵分解——都是线性系统。条件数衡量系统的数值稳定性。
 
-## The Problem
+## The Problem | 问题引入
 
 Every time you train a linear regression, you solve a linear system. Every time you compute a least-squares fit, you solve a linear system. Every time a neural network layer computes `y = Wx + b`, it is evaluating one side of a linear system. When you add regularization, you modify the system. When you use Gaussian processes, you factor a matrix. When you invert a covariance matrix for Mahalanobis distance, you solve a linear system.
 
@@ -26,7 +26,13 @@ The equation Ax = b appears everywhere. A is a matrix of known coefficients. b i
 
 This lesson builds every major method for solving that equation from scratch. You will understand why some methods are fast and others are stable, why some work only for square systems and others handle overdetermined ones, and why the condition number of your matrix determines whether your answer means anything at all.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】**
+> Ax=b 的几何含义：每行方程定义一个超平面，解是所有超平面的交点。对于超定系统（方程数 > 未知数），不存在精确解，最小二乘法找到让残差最小的"最佳近似"。这就是线性回归的数学本质。
+
+> **【拓展：线性系统在推荐系统中的规模】**
+> Netflix Prize 竞赛中，矩阵分解问题涉及 480,000 个用户和 17,770 部电影。这个约 500,000 x 17,770 的矩阵需要高效的矩阵分解算法。Netflix 大奖赛推动了大规模矩阵分解（SVD、ALS）算法的发展，如今这些方法仍是推荐系统的核心。
 
 ### What Ax = b means geometrically
 
@@ -117,6 +123,9 @@ Back substitute:
 
 Gaussian elimination costs O(n^3) operations. For a 1000x1000 system, that is about a billion floating-point operations. Fast, but you can do better if you need to solve multiple systems with the same A.
 
+> **【中文解读】**
+> 高斯消元法的思想很简单：通过行变换把矩阵变成上三角形式（对角线以下全是零），然后从最后一行开始"回代"求解。部分主元选取（partial pivoting）是关键——每步选绝对值最大的元素做主元，避免除以很小的数导致数值误差爆炸。
+
 ### Partial pivoting: why it matters
 
 Without pivoting, Gaussian elimination can fail or produce garbage. If a pivot element is zero, you divide by zero. If it is small, you amplify rounding errors.
@@ -163,6 +172,9 @@ Let y = Ux:
 The O(n^3) cost is paid once during factorization. Every subsequent solve is O(n^2). If you need to solve 1000 systems with the same A but different b vectors, LU saves a factor of 1000/3 in total work.
 
 With partial pivoting, you get PA = LU where P is a permutation matrix recording the row swaps.
+
+> **【拓展：LU 分解在大规模科学计算中的角色】**
+> 有限元分析（FEA）中，结构力学的刚度矩阵通常是稀疏的百万阶矩阵。SuperLU 和 MUMPS 等库通过稀疏 LU 分解求解这些系统。一次分解后的多次求解时间可降低 100-1000 倍。天气预报模型每 6 小时更新一次，需要多次求解同一稀疏矩阵不同右侧向量的线性系统。
 
 ### QR decomposition
 
@@ -223,6 +235,9 @@ Cholesky is twice as fast as LU and requires half the storage. It only works for
 
 In Gaussian processes, you factor the kernel matrix K with Cholesky, then solve K alpha = y to get the predictive mean. The Cholesky factor also gives you the log-determinant for the marginal likelihood: log det(K) = 2 * sum(log(diag(L))).
 
+> **【中文解读】**
+> Cholesky 分解是 LU 分解的"特殊优惠版"——只适用于对称正定矩阵，但速度是 LU 的两倍。好消息是 ML 中到处都是对称正定矩阵：协方差矩阵、核矩阵、X^T X、Hessian 矩阵。GPTQ 等模型量化方法中也用到 Cholesky 分解来处理 Hessian。
+
 ### Least squares: when Ax = b has no exact solution
 
 If A is m x n with m > n (more equations than unknowns), the system is overdetermined. There is no exact solution. Instead, you minimize the squared error:
@@ -277,6 +292,9 @@ w = (X^T X + lambda * I)^(-1) X^T y
 ```
 
 The regularization makes the matrix better conditioned (easier to invert accurately) and prevents overfitting by shrinking the weights toward zero. The matrix X^T X + lambda * I is always symmetric positive definite when lambda > 0, so you can use Cholesky to solve it.
+
+> **【拓展：条件数与深度学习训练稳定性】**
+> Transformer 训练中的梯度爆炸/消失问题与条件数密切相关。残差连接（ResNet）和层归一化（LayerNorm）本质上是在改善各层的条件数。研究表明，当 X^T X 的条件数超过 10^10 时，float32 精度下线性回归的结果可能完全不可靠。混合精度训练（FP16/BF16）对条件数更加敏感，这是为什么需要 loss scaling 的原因。
 
 ### Pseudoinverse (Moore-Penrose)
 
@@ -362,6 +380,9 @@ CG is used in:
 
 The convergence rate depends on the condition number. Better conditioned systems converge faster, which is another reason regularization helps.
 
+> **【中文解读】**
+> 共轭梯度法是大规模稀疏系统的救星。它不需要存储整个矩阵（O(n^2) 内存），只需矩阵-向量乘法（O(nnz) 时间）。在图神经网络的消息传递中，邻接矩阵-特征矩阵乘法本质上就是稀疏矩阵运算。条件数越小的系统收敛越快，这也是正则化的另一个好处。
+
 ### The full picture: which method when
 
 | Method | Requirements | Cost | Use case |
@@ -390,7 +411,7 @@ Every method in this lesson appears in production ML:
 
 **Feature engineering.** The condition number of X^T X tells you if your features are collinear. If kappa is large, drop features or add regularization.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Gaussian elimination with partial pivoting
 
@@ -402,19 +423,19 @@ def gaussian_elimination(A, b):
     Ab = np.hstack([A.astype(float), b.reshape(-1, 1).astype(float)])
 
     for k in range(n):
-        max_row = k + np.argmax(np.abs(Ab[k:, k]))
-        Ab[[k, max_row]] = Ab[[max_row, k]]
+        max_row = k + np.argmax(np.abs(Ab[k:, k]))  # 部分主元选取：找列中绝对值最大的行
+        Ab[[k, max_row]] = Ab[[max_row, k]]           # 交换行使最大元素到主元位置
 
-        if abs(Ab[k, k]) < 1e-12:
+        if abs(Ab[k, k]) < 1e-12:                     # 检查主元是否接近零（矩阵奇异）
             raise ValueError(f"Matrix is singular or nearly singular at pivot {k}")
 
         for i in range(k + 1, n):
-            m = Ab[i, k] / Ab[k, k]
-            Ab[i, k:] -= m * Ab[k, k:]
+            m = Ab[i, k] / Ab[k, k]                   # 计算消元乘数
+            Ab[i, k:] -= m * Ab[k, k:]                # 消元：将第 k 列第 i 行以下变为零
 
     x = np.zeros(n)
     for i in range(n - 1, -1, -1):
-        x[i] = (Ab[i, -1] - Ab[i, i+1:n] @ x[i+1:n]) / Ab[i, i]
+        x[i] = (Ab[i, -1] - Ab[i, i+1:n] @ x[i+1:n]) / Ab[i, i]  # 回代求解
 
     return x
 ```
@@ -466,13 +487,13 @@ def cholesky(A):
 
     for i in range(n):
         for j in range(i + 1):
-            s = A[i, j] - L[i, :j] @ L[j, :j]
+            s = A[i, j] - L[i, :j] @ L[j, :j]       # 减去已计算部分的贡献
             if i == j:
-                if s <= 0:
+                if s <= 0:                             # 对角线元素必须为正（正定条件）
                     raise ValueError("Matrix is not positive definite")
-                L[i, j] = np.sqrt(s)
+                L[i, j] = np.sqrt(s)                  # 对角线元素 = sqrt(剩余值)
             else:
-                L[i, j] = s / L[j, j]
+                L[i, j] = s / L[j, j]                 # 非对角线元素除以对应对角线值
 
     return L
 ```
@@ -507,7 +528,7 @@ def condition_number(A):
     return S[0] / S[-1]
 ```
 
-## Use It
+## Use It | 用框架实现
 
 Putting the pieces together for linear regression and ridge regression on real data:
 
@@ -535,13 +556,13 @@ ridge_sk.fit(X, y)
 print(f"Ridge weights (sklearn): {ridge_sk.coef_}")
 ```
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `code/linear_systems.py` containing from-scratch implementations of Gaussian elimination, LU decomposition, Cholesky decomposition, least squares, and ridge regression
 - A working demonstration that normal equations and sklearn's LinearRegression produce the same weights
 
-## Exercises
+## Exercises | 练习题
 
 1. Solve the system `[[1,2,3],[4,5,6],[7,8,10]] x = [6, 15, 27]` using your Gaussian elimination, your LU solver, and `np.linalg.solve`. Verify all three give the same answer within floating-point tolerance.
 
@@ -553,7 +574,7 @@ This lesson produces:
 
 5. Time your Cholesky solver vs your LU solver vs `np.linalg.solve` on symmetric positive definite matrices of size 10, 50, 200, 500. Plot the results. Verify Cholesky is roughly 2x faster than LU.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -573,7 +594,7 @@ This lesson produces:
 | Back substitution | "Solve from the bottom up" | Given an upper triangular system, solve the last equation first, then substitute backward. O(n^2). |
 | Forward substitution | "Solve from the top down" | Given a lower triangular system, solve the first equation first, then substitute forward. O(n^2). Used in the L step of LU solves. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [MIT 18.06: Linear Algebra](https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/) (Gilbert Strang) -- the definitive course on linear systems and matrix factorizations
 - [Numerical Linear Algebra](https://people.maths.ox.ac.uk/trefethen/text.html) (Trefethen & Bau) -- the standard reference for understanding numerical stability, conditioning, and why algorithms fail

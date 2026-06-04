@@ -137,7 +137,7 @@ Broadcasting stretches the vector across rows:
 
 Every modern framework does this automatically. Understanding it prevents confusion when shapes seem wrong but the code runs.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Vector class
 
@@ -295,7 +295,7 @@ This is a single dense layer: `output = relu(W @ x + b)`. Every dense layer in e
 > **【中文解读】**
 > 这就是神经网络全连接层的完整实现：线性变换（W @ x + b）+ 非线性激活（ReLU）。无论是 1 层还是 100 层的网络，每一层都在做同样的事情。
 
-## Use It
+## Use It | 用框架实现
 
 NumPy does everything above in fewer lines and orders of magnitude faster.
 
@@ -334,7 +334,7 @@ print(matrix + bias)
 
 NumPy automatically broadcasts the 1D bias across both rows. This is how bias addition works in every neural network framework.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces a prompt for teaching matrix operations through geometric intuition. See `outputs/prompt-matrix-operations.md`.
 
@@ -377,7 +377,7 @@ The Matrix class built here is the foundation for the mini neural network framew
 | Broadcasting（广播） | "魔法形状修复" | 沿缺失维度复制小数组以匹配大数组 |
 | Element-wise（逐元素） | "普通乘法" | 逐位相乘，两个数组形状必须相同 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [3Blue1Brown: Essence of Linear Algebra](https://www.3blue1brown.com/topics/linear-algebra) - visual intuition for every operation covered here
 - [NumPy documentation on broadcasting](https://numpy.org/doc/stable/user/basics.broadcasting.html) - the exact rules NumPy follows

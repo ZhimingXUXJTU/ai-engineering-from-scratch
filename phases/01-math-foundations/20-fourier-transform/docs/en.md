@@ -18,7 +18,7 @@
 > **【中文解读】**
 > 任何信号都可以分解为正弦波。音频处理、图像压缩都依赖 FFT。卷积定理说时域卷积等于频域乘法，可用 FFT 加速 CNN 卷积。Transformer 正弦位置编码就是傅里叶基函数。
 
-## The Problem
+## The Problem | 问题引入
 
 An audio recording is a sequence of pressure measurements over time. A stock price is a sequence of values over days. An image is a grid of pixel intensities over space. All of these are data in the time domain (or space domain). You see values changing over some index.
 
@@ -28,7 +28,13 @@ The Fourier transform converts data from the time domain to the frequency domain
 
 This matters for ML because frequency-domain thinking appears everywhere. Convolutional neural networks perform convolution, which is multiplication in the frequency domain. Transformer positional encodings use frequency decomposition to represent position. Audio models (speech recognition, music generation) operate on spectrograms -- frequency representations of sound. Time series models look for periodic patterns. Understanding the Fourier transform gives you the vocabulary to work with all of these.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】**
+> 傅里叶变换的核心思想：任何信号都可以分解为不同频率的正弦波之和。DFT 把时域信号变成频域系数——每个系数告诉你"这个频率有多少能量"。这就像棱镜把白光分解成彩虹：时域看到的是混合信号，频域看到的是各个成分。
+
+> **【拓展：FFT 的计算影响力】**
+> FFT 被誉为 20 世纪最重要的数值算法之一。Gauss 在 1805 年就发现了分治策略，但 Cooley-Tukey 在 1965 年的论文才让 FFT 广泛应用。如今，每次 4G/LTE 通话、每张 JPEG 照片、每首 MP3 歌曲都经过 FFT 处理。在 AI 领域，Whisper 语音模型对每秒音频计算约 100 次 FFT，Stable Diffusion 的图像处理管道也大量使用频域操作。
 
 ### The DFT definition
 
@@ -77,6 +83,9 @@ The inverse DFT is perfect reconstruction. No information is lost. You can go fr
 The DFT as defined above is O(N^2): for each of N output coefficients, you sum over N input samples. For N = 1 million, that is 10^12 operations.
 
 The Fast Fourier Transform (FFT) computes the same result in O(N log N). For N = 1 million, that is about 20 million operations instead of a trillion. This is what makes frequency analysis practical.
+
+> **【中文解读】**
+> DFT 的计算量是 O(N^2)，但 FFT 通过分治策略把它降到 O(N log N)。对于 N=100 万的信号，DFT 需要万亿次运算，FFT 只需约 2000 万次——加速 5 万倍！秘诀是把信号按奇偶下标分成两半，递归计算后再用"旋转因子"合并。这要求信号长度是 2 的幂。
 
 The Cooley-Tukey algorithm (the most common FFT) works by divide and conquer:
 
@@ -153,6 +162,9 @@ Why this matters:
 - FFT-based convolution takes O(N log N): transform both, multiply, transform back.
 - For large kernels, FFT convolution is dramatically faster.
 - This is exactly what happens in convolutional layers with large receptive fields.
+
+> **【拓展：卷积定理在 CNN 中的实际应用】**
+> 标准的 3x3 卷积直接计算比 FFT 快，但当感受野变大时 FFT 优势显现。ConvNeXt 和 Global Convolution 网络在 7x7 或更大的卷积中使用 FFT 加速。FNet (Lee-Thorp et al., 2021) 更是大胆地用 FFT 替代 Transformer 的自注意力，在 GLUE 基准上达到 92% 的 BERT 精度，但训练速度快 7 倍。频域乘法的复杂度是 O(N) 而时域卷积是 O(N^2)。
 
 Note: the DFT computes circular convolution (the signal wraps around). For linear convolution (no wraparound), zero-pad both signals to length N + M - 1 before computing.
 
@@ -256,6 +268,9 @@ STFT procedure:
 
 Spectrograms are the standard input representation for audio ML models. Speech recognition models (Whisper, DeepSpeech) operate on mel-spectrograms -- spectrograms with frequencies mapped to the mel scale, which better matches human pitch perception.
 
+> **【中文解读】**
+> 单次 FFT 只能看到整个信号的频率成分，但不知道每个频率在"什么时候"出现。短时傅里叶变换（STFT）通过滑动窗口解决了这个问题：对每段窗口分别做 FFT，得到时间-频率-能量的三维表示（频谱图）。这就是音频 AI 的标准输入格式。
+
 ### Aliasing
 
 If a signal contains frequencies above fs/2 (the Nyquist frequency), sampling at rate fs will create aliased copies. A 90 Hz signal sampled at 100 Hz looks identical to a 10 Hz signal. There is no way to distinguish them from the samples alone.
@@ -279,7 +294,10 @@ A common misconception: zero-padding a signal before FFT improves frequency reso
 
 True frequency resolution depends only on the observation time T = N / fs. To resolve two frequencies separated by delta_f, you need at least T = 1 / delta_f seconds of data. No amount of zero-padding changes this fundamental limit.
 
-## Build It
+> **【拓展：频谱图在语音 AI 中的标准地位】**
+> OpenAI Whisper 模型将音频转为 log-Mel 频谱图后输入编码器。Mel 刻度模拟人耳对频率的感知（低频区分得更细）。Whisper 使用 80 个 Mel 滤波器组、25ms 窗口、10ms 步长。一段 30 秒的音频产生约 3000 x 80 的频谱图矩阵。Google 的 WaveNet、Meta 的 EnCodec 也都以频谱图或频域表示为中间特征。
+
+## Build It | 动手实现
 
 ### Step 1: DFT from scratch
 
@@ -330,21 +348,21 @@ The recursive FFT requires power-of-2 length. Split into even and odd, recurse, 
 ```python
 def fft(x):
     N = len(x)
-    if N <= 1:
+    if N <= 1:                                      # 基础情况：长度 1 的 DFT 就是自身
         return [x[0] if isinstance(x[0], Complex) else Complex(x[0])]
-    if N % 2 != 0:
+    if N % 2 != 0:                                  # 非偶数长度，回退到普通 DFT
         return dft(x)
 
-    even = fft([x[i] for i in range(0, N, 2)])
-    odd = fft([x[i] for i in range(1, N, 2)])
+    even = fft([x[i] for i in range(0, N, 2)])     # 递归：偶数下标子序列
+    odd = fft([x[i] for i in range(1, N, 2)])      # 递归：奇数下标子序列
 
     result = [Complex(0)] * N
     for k in range(N // 2):
-        angle = -2 * math.pi * k / N
-        twiddle = Complex(math.cos(angle), math.sin(angle))
-        t = twiddle * odd[k]
-        result[k] = even[k] + t
-        result[k + N // 2] = even[k] - t
+        angle = -2 * math.pi * k / N                # 旋转因子角度
+        twiddle = Complex(math.cos(angle), math.sin(angle))  # 旋转因子 e^(-2piik/N)
+        t = twiddle * odd[k]                        # 蝶形运算：旋转后的奇数部分
+        result[k] = even[k] + t                    # 前半：E[k] + twiddle * O[k]
+        result[k + N // 2] = even[k] - t           # 后半：E[k] - twiddle * O[k]
     return result
 ```
 
@@ -355,24 +373,24 @@ def power_spectrum(X):
     return [xk.real ** 2 + xk.imag ** 2 for xk in X]
 
 def convolve_fft(x, h):
-    N = len(x) + len(h) - 1
+    N = len(x) + len(h) - 1                         # 线性卷积的输出长度
     padded_N = 1
     while padded_N < N:
-        padded_N *= 2
+        padded_N *= 2                                # 补零到 2 的幂次
 
-    x_padded = x + [0.0] * (padded_N - len(x))
+    x_padded = x + [0.0] * (padded_N - len(x))      # 补零避免循环卷积混叠
     h_padded = h + [0.0] * (padded_N - len(h))
 
-    X = fft(x_padded)
-    H = fft(h_padded)
+    X = fft(x_padded)                               # 信号 FFT
+    H = fft(h_padded)                               # 滤波器 FFT
 
-    Y = [xk * hk for xk, hk in zip(X, H)]
+    Y = [xk * hk for xk, hk in zip(X, H)]          # 频域逐点相乘（卷积定理）
 
-    y = idft(Y)
+    y = idft(Y)                                     # 逆 FFT 回到时域
     return [y[n].real for n in range(N)]
 ```
 
-## Use It
+## Use It | 用框架实现
 
 For real work, use numpy's FFT which is backed by highly optimized C libraries.
 
@@ -418,11 +436,11 @@ spectrogram = np.abs(Zxx) ** 2
 
 The spectrogram matrix has shape (n_frequencies, n_time_frames). Each column is the power spectrum at one time window. This is what audio ML models consume as input.
 
-## Ship It
+## Ship It | 产出物
 
 Run `code/fourier.py` to generate `outputs/prompt-spectral-analyzer.md`.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Pure tone identification.** Create a signal with a single sine wave at an unknown frequency (between 1 and 50 Hz), sampled at 128 Hz for 1 second. Use your DFT to identify the frequency. Verify the answer matches. Now add Gaussian noise with standard deviation 0.5 and repeat. How does noise affect the spectrum?
 
@@ -434,7 +452,7 @@ Run `code/fourier.py` to generate `outputs/prompt-spectral-analyzer.md`.
 
 5. **Positional encoding analysis.** Generate the sinusoidal positional encodings for d_model = 128 and max_pos = 512. For each pair of positions (p1, p2), compute the dot product of their encodings. Show that the dot product depends only on |p1 - p2|, not on the absolute positions. What happens to the dot product as the distance increases?
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What it means |
 |------|---------------|
@@ -455,7 +473,7 @@ Run `code/fourier.py` to generate `outputs/prompt-spectral-analyzer.md`.
 | Parseval's theorem | Total energy is preserved through the Fourier transform. sum \|x[n]\|^2 = (1/N) sum \|X[k]\|^2 |
 | Aliasing | When frequencies above Nyquist appear as lower frequencies due to insufficient sampling rate |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Cooley & Tukey: An Algorithm for the Machine Calculation of Complex Fourier Series (1965)](https://www.ams.org/journals/mcom/1965-19-090/S0025-5718-1965-0178586-1/) - the original FFT paper that changed computing
 - [3Blue1Brown: But what is the Fourier Transform?](https://www.youtube.com/watch?v=spUNpyF58BY) - the best visual introduction to Fourier transforms
