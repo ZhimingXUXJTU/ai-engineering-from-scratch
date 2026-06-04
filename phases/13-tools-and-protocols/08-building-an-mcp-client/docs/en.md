@@ -18,7 +18,7 @@
 - Merge tool lists across multiple servers into one namespace with collision handling.
 - Route a tool call to the server that owns it and reassemble the response.
 
-## The Problem
+## The Problem | 问题引入
 
 A real agent host (Claude Desktop, Cursor, Goose, Gemini CLI) loads multiple MCP servers at once. A user might have a filesystem server, a Postgres server, and a GitHub server running simultaneously. The client's job:
 
@@ -33,9 +33,11 @@ Hand-rolling all of that is what separates "toy" from "serviceable". The officia
 
 > **【中文解读】** 真正的 Agent 宿主同时加载多个 MCP 服务器。客户端的工作：(1) 生成每个服务器；(2) 独立握手；(3) 在每个服务器上调用 `tools/list` 并扁平化结果；(4) 当模型发出 `notes_search` 时，在合并命名空间中查找并路由到正确服务器；(5) 处理任意服务器的通知而不阻塞；(6) 传输失败时重连。
 
-## The Concept
+## The Concept | 核心概念
 
 ### Child-process spawning
+
+> **【中文解读】** 客户端用 `subprocess.Popen` 生成每个 MCP 服务器子进程，设置 `stdin=PIPE, stdout=PIPE, stderr=PIPE`，`bufsize=1` 并使用文本模式逐行读取。每个服务器是一个进程，客户端持有对应的 Popen 句柄。
 
 `subprocess.Popen` with `stdin=PIPE, stdout=PIPE, stderr=PIPE`. Set `bufsize=1` and use text mode for line-by-line reads. Each server is one process; the client holds one `Popen` handle per server.
 
@@ -52,6 +54,8 @@ Requests are async by nature; a `tools/call` sent to server A while server B is 
 
 ### Merged namespace
 
+> **【拓展：多 MCP 服务器命名空间冲突处理】** 当多个服务器有同名工具时，客户端有三种处理策略：(1) 按服务器名前缀（`notes/search`、`files/search`），清晰但冗长——Claude Desktop 和 VS Code 用这种方式；(2) 先到先得，后加载的覆盖先加载的——风险高，隐藏冲突；(3) 碰撞拒绝，拒绝加载第二个服务器——Cursor 用这种方式，对安全敏感的宿主最安全。
+
 When the client sees the aggregate tool list, names can collide. Two servers might both expose `search`. The client has three options:
 
 1. **Prefix by server name.** `notes/search`, `files/search`. Clear but ugly.
@@ -61,6 +65,8 @@ When the client sees the aggregate tool list, names can collide. Two servers mig
 Claude Desktop uses prefix-by-server. Cursor uses collision rejection with a clear error. VS Code MCP adopts prefix-by-server as well.
 
 ### Routing
+
+> **【中文解读】** 合并后，调度表将 `tool_name -> session` 映射起来。模型按名称发出调用，客户端找到对应 session 并向该服务器的 stdin 写入 `tools/call` 消息，然后等待响应。
 
 After merging, a dispatch table maps `tool_name -> session`. The model emits a call by name; the client finds the session and writes a `tools/call` message to that server's stdin, then awaits the response.
 
@@ -76,11 +82,15 @@ Lesson 11 covers sampling end-to-end. This lesson stubs it for completeness.
 
 ### Notification handling
 
+> **【中文解读】** `notifications/tools/list_changed` 意味着重新调用 `tools/list`。`notifications/resources/updated` 意味着重新读取正在使用的资源。通知不得产生响应。常见客户端 bug：在 `tools/call` 上阻塞读取循环，而通知排在流中。解决方案：使用后台读取线程将每条消息推入队列，主线程出队并分发。
+
 `notifications/tools/list_changed` means re-call `tools/list`. `notifications/resources/updated` means re-read the resource if it is in use. Notifications must not produce responses — do not try to ack them.
 
 A common client bug: blocking the read loop on `tools/call` while a notification sits in the stream. Use a background reader thread that pushes every message onto a queue; the main thread dequeues and dispatches.
 
 ### Reconnection
+
+> **【拓展：MCP 传输失败与重连策略】** 传输可能因服务器崩溃、OS 杀进程或 stdio 管道断裂而失败。客户端检测 stdout 上的 EOF 并将会话标记为死亡。两种重连策略：(1) 静默重启服务器并重新握手——适合纯只读服务器；(2) 向用户报告失败——适合有状态和用户可见会话的服务器。Phase 13.09 覆盖 Streamable HTTP 重连语义。
 
 Transport can fail: server crashed, OS killed the process, stdio pipe broke. The client detects EOF on stdout and treats the session as dead. Options:
 
@@ -93,7 +103,7 @@ Phase 13 · 09 covers the Streamable HTTP reconnection semantics; stdio is simpl
 
 Streamable HTTP uses a `Mcp-Session-Id` header. Stdio has no session id — the process identity IS the session. Keepalive pings are optional; stdio pipes do not break under inactivity.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py` spawns three simulated MCP servers as subprocesses, handshakes each, merges their tool lists, and routes tool calls to the right one. The "servers" are actually other Python processes running toy responders (no real LLM). Run it to see:
 
@@ -109,11 +119,11 @@ What to look at:
 - The dispatch table is a simple `dict[str, Session]`.
 - Collision handling is explicit: when two servers declare the same name, the later one is renamed with a prefix.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-mcp-client-harness.md`. Given a declarative list of MCP servers (name, command, args), the skill produces a harness that spawns them, merges tool lists, and ships a routing function with collision resolution.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py` and watch the server spawn log. Kill one of the simulated server processes with a SIGTERM and observe how the client detects the EOF and marks that session as dead.
 
@@ -125,7 +135,7 @@ This lesson produces `outputs/skill-mcp-client-harness.md`. Given a declarative 
 
 5. Port the client to the official MCP Python SDK. The SDK wraps `stdio_client` and `ClientSession`. The code should shrink from ~200 lines to ~40 lines while preserving multi-server routing.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文术语 |
 |------|----------------|------------------------|----------|
@@ -140,7 +150,7 @@ This lesson produces `outputs/skill-mcp-client-harness.md`. Given a declarative 
 | Reconnection policy | "When server dies" | Restart semantics when transport fails | 重连策略 |
 | Stdio session | "Process = session" | No session id; child process lifetime is the session | stdio 会话 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Model Context Protocol — Client spec](https://modelcontextprotocol.io/specification/2025-11-25/client) — canonical client behavior
 - [MCP — Quickstart client guide](https://modelcontextprotocol.io/quickstart/client) — hello-world client tutorial with the Python SDK

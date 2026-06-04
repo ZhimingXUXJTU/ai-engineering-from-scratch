@@ -18,7 +18,9 @@
 - Persist task state so crashes do not lose in-flight work.
 - Poll `tasks/status` and fetch `tasks/result` correctly.
 
-## The Problem
+## The Problem | 问题引入
+
+> **【中文解读】** 异步任务解决长时间运行工具的问题。一个 `generate_report` 工具运行多分钟提取管道，同步模式下要么保持连接三分钟（传输会断、客户端超时），要么立即返回占位符让客户端轮询（破坏 MCP 统一性）。SEP-1686 添加了任务增强：请求可标记为任务，服务器立即返回 task id，客户端用 `tasks/status` 轮询。
 
 A `generate_report` tool runs a multi-minute extraction pipeline. Options under the synchronous model:
 
@@ -28,7 +30,7 @@ A `generate_report` tool runs a multi-minute extraction pipeline. Options under 
 
 None are good. SEP-1686 adds a fourth: task augmentation. Any request (typically `tools/call`) can be tagged as a task. The server returns a task id immediately. The client polls `tasks/status` and fetches `tasks/result` when done. Server-side state survives restarts.
 
-## The Concept
+## The Concept | 核心概念
 
 ### Task augmentation
 
@@ -91,6 +93,8 @@ Clients that stream rather than poll get better UX. Polling is always supported 
 
 ### Durable state
 
+> **【拓展：异步任务的持久化存储】** 规范要求声明任务支持的服务器必须持久化状态。崩溃不应丢失 TTL 内的已完成结果。存储方式包括 SQLite、Redis 和文件系统。这对长时间运行的代码生成、数据分析和报告生成工具至关重要——即使服务器崩溃也不需要从头开始。
+
 The spec requires servers that declare task support to persist state. A crash should not lose completed results within ttl. Stores range from SQLite to Redis to the filesystem. The Lesson 13 harness uses the filesystem.
 
 ### Cancellation semantics
@@ -113,7 +117,7 @@ A task can itself call `sampling/createMessage`. This is how long-running resear
 
 SEP-1686 shipped in 2025-11-25 but the broader roadmap calls out three open issues: durable subscription primitives, subtasks (parent-child task relationships), and result-TTL standardization. Expect the spec to evolve through 2026. Production code should treat Tasks as stable only for the common case and guard against future SDK changes for subtasks.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py` implements a durable task store (filesystem-backed) and a `generate_report` tool that runs in a background thread. Clients call the tool, get a task id immediately, poll `tasks/status` while the worker updates progress, and fetch `tasks/result` when done. Cancellation works; crash recovery is simulated by killing the worker thread and reloading state.
 
@@ -124,11 +128,11 @@ What to look at:
 - Cancellation from client side sets an event; worker checks and exits early.
 - State reload on "crash" marks the in-flight task as `failed` with `CRASH_RECOVERY`.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-task-store-designer.md`. Given a long-running tool (research, build, export), the skill designs the task store (state shape, ttl, durability), picks the right taskSupport flag, and sketches progress notifications.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Kick off a `generate_report` task, poll status, then fetch the result.
 
@@ -140,7 +144,7 @@ This lesson produces `outputs/skill-task-store-designer.md`. Given a long-runnin
 
 5. Read the MCP roadmap post for 2026. Identify the one Tasks-related open issue most likely to affect SDK API design in the next year.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文术语 |
 |------|----------------|------------------------|----------|
@@ -155,7 +159,7 @@ This lesson produces `outputs/skill-task-store-designer.md`. Given a long-runnin
 | `notifications/tasks/updated` | "State push" | Server-initiated state-change event | 任务状态通知 |
 | Durable store | "Crash-safe state" | Filesystem / SQLite / Redis persistence layer | 持久化存储 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [MCP — GitHub SEP-1686 issue](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686) — the originating proposal and full discussion
 - [WorkOS — MCP async tasks for AI agent workflows](https://workos.com/blog/mcp-async-tasks-ai-agent-workflows) — design walkthrough with rationale

@@ -20,7 +20,7 @@
 
 > **【中文解读】** 学习目标：区分三层（AGENTS.md 项目上下文、SKILL.md 可复用知识、MCP 工具）；编写带 YAML frontmatter 和渐进式披露的 SKILL.md；以文件系统方式加载技能到 Agent 运行时；组合 SKILL.md + MCP 服务器 + AGENTS.md 使一个包在多个 Agent 中通用。
 
-## The Problem
+## The Problem | 问题引入
 
 > **【中文解读】** 工程师将发版说明写作工作流提炼为多步骤提示词，放在 Notion 文档中。现在想在 Claude Code、Cursor 和 Codex CLI 中使用，但每个 Agent 加载指令的方式不同。AGENTS.md 和 SKILL.md 一起解决这一问题：AGENTS.md 位于仓库根目录，每个兼容 Agent 在会话启动时读取；SKILL.md 是可移植的技能包。三层、一个可移植工件。
 
@@ -36,7 +36,9 @@ AGENTS.md and SKILL.md together fix this:
 
 Three layers, one portable artifact.
 
-## The Concept
+> **【拓展：AGENTS.md 的生态采用】** AGENTS.md 于 2025 年末推出，到 2026 年 4 月已有 60,000+ 仓库采用。它类似于 `.editorconfig` 或 `.gitignore`——一个放置在仓库根目录的文件，所有兼容的编码 Agent（Claude Code、Cursor、Codex CLI 等）在会话启动时自动读取。核心价值是"写一次，所有 Agent 都遵守"——项目约定、测试命令、编码风格等。
+
+## The Concept | 核心概念
 
 ### AGENTS.md (agents.md)
 
@@ -140,7 +142,7 @@ Tools like SkillKit and similar cross-agent distribution layers translate a sing
 
 All three compose: the agent reads AGENTS.md on session start, the user invokes a skill, the skill's instructions include MCP tool calls, the agent dispatches via an MCP client.
 
-## Use It
+## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 实现标准库 SKILL.md 解析器和加载器：在 `./skills/` 下发现技能文件，解析 YAML frontmatter 和 markdown 正文，生成按技能名索引的字典。然后模拟 Agent 循环按名称调用 `release-notes-writer`。关注点：YAML 用最小标准库解析器（无 pyyaml 依赖）；技能正文原样存储，调用时拼接到系统提示前；渐进式披露通过 `read_subresource` 按需拉取引用文件。
 
@@ -152,13 +154,13 @@ What to look at:
 - Skill body stored verbatim; agent prepends it to the system prompt on invocation.
 - Progressive disclosure demoed via a `read_subresource` function that pulls referenced files on demand.
 
-## Ship It
+## Ship It | 产出物
 
 > **【中文解读】** 本课产出 `outputs/skill-agent-bundle.md`——给定一个工作流，生成 SKILL.md + AGENTS.md + MCP 服务器蓝图组合包，可跨 Agent 移植。
 
 This lesson produces `outputs/skill-agent-bundle.md`. Given a workflow, the skill produces the combined SKILL.md + AGENTS.md + MCP-server-blueprint bundle, portable across agents.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Add a second skill under `skills/` and confirm the loader picks it up.
 
@@ -170,7 +172,7 @@ This lesson produces `outputs/skill-agent-bundle.md`. Given a workflow, the skil
 
 5. Read the Anthropic Agent Skills blog post. Identify one feature in the Claude Agent SDK that this lesson's loader does not cover. (Hint: agent sub-invocation.)
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文 |
 |------|----------------|------------------------|------|
@@ -185,7 +187,7 @@ This lesson produces `outputs/skill-agent-bundle.md`. Given a workflow, the skil
 | Agent Skill | "Portable know-how" | Reusable task template outside MCP's tool concept | Agent 技能：可移植的任务模板 |
 | Apps SDK | "MCP plus ChatGPT UI" | Connectors and Custom GPTs unified on MCP | Apps SDK：MCP+ChatGPT UI 统一平台 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic — Agent Skills announcement](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills) — December 2025 launch
 - [Anthropic — Agent Skills docs](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview) — SKILL.md format reference

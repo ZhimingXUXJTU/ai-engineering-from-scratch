@@ -20,7 +20,7 @@
 
 > **【中文解读】** 学习目标：从工具调用返回 `ui://` 资源；通过 `_meta.ui` 声明 UI 关联；实现 iframe 沙盒的 postMessage JSON-RPC 通信；应用 CSP 和权限策略防御 UI 来源的攻击。
 
-## The Problem
+## The Problem | 问题引入
 
 > **【中文解读】** 问题是：MCP 工具只能返回纯文本段落，用户实际需要的是交互式界面（如时间线、仪表盘）。MCP Apps 标准化了这一契约——工具返回 `ui://` 资源，客户端在沙盒 iframe 中渲染。一个服务器、一个 HTML 包，在所有兼容客户端中通用渲染。
 
@@ -30,7 +30,7 @@ MCP Apps (SEP-1724, shipped January 26, 2026) standardize the contract. A tool r
 
 Every compatible client (Claude Desktop, ChatGPT, Goose, VS Code) renders the same `ui://` resource the same way. One server, one HTML bundle, universal UI.
 
-## The Concept
+## The Concept | 核心概念
 
 > **【中文解读】** 本节核心概念：`ui://` 资源方案、iframe 沙盒、postMessage 协议、权限系统、安全风险，以及 `ui/initialize` 握手和 AppRenderer/AppFrame SDK 原语。
 
@@ -192,7 +192,7 @@ MCP Apps shipped January 26, 2026. Client support as of April 2026:
 
 Servers in production: dashboards, map visualizations, data tables, chart builders, sandbox IDE previews.
 
-## Use It
+## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 扩展了笔记服务器，添加 `visualize_timeline` 工具返回 `ui://notes/timeline` 资源，以及 `resources/read` 处理器返回完整 HTML+SVG 时间线。HTML 使用标准库模板生成，postMessage 以 JS 注释形式记录。关注点：`_meta.ui` 携带 resourceUri/CSP/permissions；HTML 无需网络访问，数据全部内联；JS 通过 `window.parent.postMessage` 调用 `host.callTool`。
 
@@ -204,13 +204,13 @@ What to look at:
 - The HTML renders without network access; all data is inlined.
 - JS calls `host.callTool` via `window.parent.postMessage` (documented but inert in this stdlib demo).
 
-## Ship It
+## Ship It | 产出物
 
 > **【中文解读】** 本课产出 `outputs/skill-mcp-apps-spec.md`——给定一个需要交互式 UI 的工具，生成完整的 MCP Apps 契约：`ui://` URI、CSP、权限、postMessage 入口和安全检查清单。
 
 This lesson produces `outputs/skill-mcp-apps-spec.md`. Given a tool that would benefit from an interactive UI, the skill produces the full MCP Apps contract: `ui://` URI, CSP, permissions, postMessage entrypoints, and a security checklist.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py` and inspect the HTML emitted. Open the HTML directly in a browser; verify the SVG renders. Then sketch the postMessage contract the UI would use to call `host.callTool("notes_update", ...)`.
 
@@ -222,7 +222,7 @@ This lesson produces `outputs/skill-mcp-apps-spec.md`. Given a tool that would b
 
 5. Read the SEP-1724 spec and identify one capability in the MCP Apps SDK that this toy implementation does not use. (Hint: component-level state sync.)
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文 |
 |------|----------------|------------------------|------|
@@ -237,7 +237,7 @@ This lesson produces `outputs/skill-mcp-apps-spec.md`. Given a tool that would b
 | AppFrame | "Client SDK primitive" | Iframe mount helper that mediates postMessage | 客户端 SDK 原语，iframe 挂载与消息中介 |
 | `ui/initialize` | "Handshake" | First postMessage from UI to host | UI 到宿主的初始化握手 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [MCP ext-apps — GitHub](https://github.com/modelcontextprotocol/ext-apps) — reference implementation and SDK
 - [MCP Apps specification 2026-01-26](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx) — formal spec document

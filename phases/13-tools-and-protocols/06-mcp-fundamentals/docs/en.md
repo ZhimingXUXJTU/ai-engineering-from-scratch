@@ -18,7 +18,7 @@
 - Parse and emit JSON-RPC 2.0 request, response, and notification envelopes.
 - Explain what capability negotiation at `initialize` is and what breaks without it.
 
-## The Problem
+## The Problem | 问题引入
 
 Before MCP, every tool-using agent had its own protocol. Cursor had an MCP-shaped but incompatible tool system. Claude Desktop shipped with a different one. VS Code's Copilot extension had a third. A team that built a "Postgres query" tool wrote the same tool three times, each to a different host's API. Reusing it required copying code.
 
@@ -30,15 +30,19 @@ MCP fixes this by standardizing the wire format. A single MCP server works in ev
 
 The spec revision used in this phase is **2025-11-25**. It adds async Tasks (SEP-1686), URL-mode elicitation (SEP-1036), sampling with tools (SEP-1577), incremental scope consent (SEP-835), and OAuth 2.1 resource-indicator semantics. Phase 13 · 09 through 16 cover those extensions. This lesson stops at the base.
 
-## The Concept
+## The Concept | 核心概念
 
 ### Three server primitives
+
+> **【中文解读】** MCP 定义了三个服务器原语：(1) Tools——可调用动作，与 Phase 13.01 的四步循环相同；(2) Resources——暴露的数据，只读内容通过 URI 寻址（`file:///`、`db://`等）；(3) Prompts——可复用模板，宿主 UI 中的斜杠命令。
 
 1. **Tools.** Callable actions. Same four-step loop from Phase 13 · 01.
 2. **Resources.** Exposed data. Read-only content addressable by URI: `file:///path`, `db://query/...`, custom schemes.
 3. **Prompts.** Reusable templates. Slash-commands in the host UI; server supplies the template, client fills arguments.
 
 ### Three client primitives
+
+> **【拓展：MCP 的双向通信模型】** MCP 的独特之处在于它是双向协议。不仅客户端可以调用服务器的工具，服务器也能反过来请求客户端的模型执行补全（sampling），或请求用户输入（elicitation）。这种对称性使得服务器可以托管 Agent 循环而不需要自己的 API key——它借用客户端的模型能力。
 
 4. **Roots.** The set of URIs the server is allowed to touch. Client declares them; server respects them.
 5. **Sampling.** Server requests the client's model to perform a completion. Enables server-hosted agent loops without server-side API keys.
@@ -47,6 +51,8 @@ The spec revision used in this phase is **2025-11-25**. It adds async Tasks (SEP
 Every capability in MCP belongs to exactly one of these six. Phase 13 · 10 through 14 cover each in depth.
 
 ### Wire format: JSON-RPC 2.0
+
+> **【中文解读】** MCP 使用 JSON-RPC 2.0 作为线格式。三种消息类型：请求（有 id，需要响应）、响应（包含 result 或 error）、通知（无 id，不需要响应）。基础规范约 15 个方法，按原语分组：`initialize`/`initialized`、`tools/list`/`tools/call`、`resources/list`/`resources/read`、`prompts/list`/`prompts/get` 等。
 
 Every message is a JSON object with these fields:
 
@@ -64,6 +70,8 @@ The base spec has ~15 methods, grouped by primitive. The important ones:
 - `notifications/tools/list_changed`, `notifications/resources/updated`, `notifications/progress`
 
 ### Three-phase lifecycle
+
+> **【中文解读】** MCP 三阶段生命周期：(1) 初始化——客户端发送 `initialize` 携带 `capabilities` 和 `clientInfo`，服务器响应自己的 `capabilities`、`serverInfo` 和协议版本；(2) 操作——双向通信，客户端调用工具、读取资源，服务器可发采样请求和变更通知；(3) 关闭——任一方关闭传输层。
 
 **Phase 1: initialize.**
 
@@ -117,9 +125,11 @@ A common confusion: `capabilities.tools` is whether the client supports tool-lis
 
 ### Why JSON-RPC and not REST?
 
+> **【拓展：MCP 为什么选择 JSON-RPC 而非 REST】** JSON-RPC 2.0 是轻量级双向协议（2010年标准）。REST 是客户端发起的单向协议。MCP 需要服务器主动发起消息（sampling、notifications），JSON-RPC 的对称请求/响应形状天然适合。JSON-RPC 还可以在 stdio 和 WebSocket/Streamable HTTP 上干净地组合，无需重新发明 HTTP 请求格式。
+
 JSON-RPC 2.0 (2010) is a lightweight bidirectional protocol. REST is client-initiated. MCP needed server-initiated messages (sampling, notifications), so JSON-RPC with its symmetric request/response shape was a natural fit. JSON-RPC also composes cleanly over stdio and WebSocket/Streamable HTTP without re-inventing HTTP's request shape.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py` ships a minimal JSON-RPC 2.0 parser and emitter, then walks the `initialize` → `tools/list` → `tools/call` → `shutdown` sequence by hand, printing every message. No real transport; just the message shapes. Compare to the spec linked in Further Reading to verify each envelope.
 
@@ -130,11 +140,11 @@ What to look at:
 - `tools/call` uses `params.name` and `params.arguments`.
 - The response `content` is an array of `{type, text}` blocks.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-mcp-handshake-tracer.md`. Given a pcap-style transcript of an MCP client-server interaction, the skill annotates each message with which primitive, which lifecycle phase, and which capability it depends on.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Identify the line where capability negotiation happens and describe what would change if the server did not declare `tools.listChanged`.
 
@@ -146,7 +156,7 @@ This lesson produces `outputs/skill-mcp-handshake-tracer.md`. Given a pcap-style
 
 5. Parse one session log from an open MCP server on GitHub. Count request vs response vs notification messages. Compute what fraction of traffic is lifecycle vs operation.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文术语 |
 |------|----------------|------------------------|----------|
@@ -161,7 +171,7 @@ This lesson produces `outputs/skill-mcp-handshake-tracer.md`. Given a pcap-style
 | Content block | "Typed result" | `{type: "text" \| "image" \| "resource" \| "ui_resource"}` in tool result | 内容块 |
 | SEP | "Spec Evolution Proposal" | Named draft proposal (e.g. SEP-1686 for async Tasks) | 规范演进提案 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Model Context Protocol — Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) — the canonical spec document
 - [Model Context Protocol — Architecture concepts](https://modelcontextprotocol.io/docs/concepts/architecture) — the six-primitive mental model

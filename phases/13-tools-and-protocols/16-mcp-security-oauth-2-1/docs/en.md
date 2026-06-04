@@ -20,7 +20,7 @@
 
 > **【中文解读】** 学习目标：区分资源服务器和授权服务器的职责；走通 PKCE 保护的 OAuth 2.1 授权码流程；使用资源指示器和受保护资源元数据防止混淆代理攻击；实现逐步授权（403 insufficient_scope 触发重新同意）。
 
-## The Problem
+## The Problem | 问题引入
 
 > **【中文解读】** 早期 MCP 的远程服务器使用临时 API Key 甚至无认证。2025-11-25 规范通过完整 OAuth 2.1 配置关闭了这一差距。三个实际需求：(1) 普通远程服务器访问 Notion/GitHub/Gmail；(2) 范围升级——已有 notes:read 权限后需要 notes:write；(3) 混淆代理防御——防止服务器 A 的 token 被重放到服务器 B。
 
@@ -34,7 +34,7 @@ Three real-world needs:
 
 OAuth 2.1 is not new. What is new is MCP's profile: specific required flows (authorization code + PKCE only; no implicit, no client credentials by default), resource indicators mandatory on every token request, and protected-resource metadata published so clients know where to go.
 
-## The Concept
+## The Concept | 核心概念
 
 > **【中文解读】** 本节详解 OAuth 2.1 在 MCP 中的配置：角色划分、授权码+PKCE 流程、受保护资源元数据、资源指示器、范围模型、逐步授权、token 受众验证、短期 token 与轮换、无 token 透传、混淆代理防御等。
 
@@ -47,6 +47,8 @@ OAuth 2.1 is not new. What is new is MCP's profile: specific required flows (aut
 > **【中文解读】** 三个角色：Client（MCP 客户端，如 Claude Desktop）、Resource Server（MCP 服务器）、Authorization Server（签发 token 的授权服务器，可以是独立的 IdP）。
 
 In MCP's profile, resource and authorization servers CAN be the same host but SHOULD be distinguished by URLs.
+
+> **【拓展：MCP OAuth 2.1 配置的独特之处】** MCP 的 OAuth 2.1 配置不是标准 OAuth——它强制要求：(1) 只允许授权码+PKCE 流程，禁止隐式和客户端凭证模式；(2) 每次 token 请求必须包含资源指示器 (RFC 8707)；(3) 发布受保护资源元数据让客户端知道去哪里认证。这使得 MCP 的 OAuth 实现比一般 OAuth 更安全。
 
 ### Authorization code + PKCE
 
@@ -133,7 +135,7 @@ Each MCP client publishes its metadata at a fixed URL. Authorization servers can
 
 Phase 13 · 17 shows how an enterprise gateway handles OAuth: gateway holds credentials for upstream servers, tokens to the client are gateway-issued, and upstream tokens never leave the gateway. This flips the trust model — users authenticate with the gateway once; gateway handles N server authorizations.
 
-## Use It
+## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 将完整的 OAuth 2.1 逐步授权流程模拟为内存中的状态机：PKCE 生成、带资源指示器的授权码流程、受保护资源元数据端点、带受众检查的 token 验证、insufficient_scope 逐步升级。无 HTTP 服务器，状态机在内存中运行，便于追踪每一步。
 
@@ -147,13 +149,13 @@ Phase 13 · 17 shows how an enterprise gateway handles OAuth: gateway holds cred
 
 No HTTP server in this lesson; the state machine runs in memory so you can trace every hop. Phase 13 · 17's gateway lesson wires it to an actual transport.
 
-## Ship It
+## Ship It | 产出物
 
 > **【中文解读】** 本课产出 `outputs/skill-oauth-scope-planner.md`——给定远程 MCP 服务器及其工具，设计范围集合、锁定规则和逐步授权策略。
 
 This lesson produces `outputs/skill-oauth-scope-planner.md`. Given a remote MCP server with tools, the skill designs the scope set, pinning rules, and step-up policy.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Trace the two-scope step-up flow. Note which hops repeat on step-up.
 
@@ -165,7 +167,7 @@ This lesson produces `outputs/skill-oauth-scope-planner.md`. Given a remote MCP 
 
 5. Read RFC 8707 and RFC 9728. Identify the one field in 9728 that MCP uses differently from the RFC's example. (Hint: it concerns `scopes_supported`.)
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文 |
 |------|----------------|------------------------|------|
@@ -180,7 +182,7 @@ This lesson produces `outputs/skill-oauth-scope-planner.md`. Given a remote MCP 
 | Scope hierarchy | "Least privilege stack" | Graduated scope set with step-up between levels | 范围层级：最小权限堆栈 |
 | Client ID metadata | "Client discovery doc" | URL at which the client publishes its own OAuth metadata | 客户端 ID 元数据发现文档 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [MCP — Authorization spec](https://modelcontextprotocol.io/specification/draft/basic/authorization) — canonical MCP OAuth profile
 - [den.dev — MCP November authorization spec](https://den.dev/blog/mcp-november-authorization-spec/) — walkthrough of the 2025-11-25 changes

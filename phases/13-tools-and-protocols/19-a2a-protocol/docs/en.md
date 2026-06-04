@@ -20,7 +20,7 @@
 
 > **【中文解读】** 学习目标：区分 Agent-工具（MCP）与 Agent-Agent（A2A）用例；发布 Agent Card；走通 Task 生命周期；使用带 Parts 的 Messages 和 Artifacts 输出。
 
-## The Problem
+## The Problem | 问题引入
 
 > **【中文解读】** 客服 Agent 需要将报告撰写委托给专门的写作 Agent。A2A 之前的选择（定制 REST API、共享代码库、MCP）都不适合。A2A 将交互建模为一个 Agent 向另一个 Agent 发送 Task，具有生命周期、消息和工件。被调用 Agent 的内部状态保持不透明——调用者只看到任务状态转换和最终输出。
 
@@ -34,7 +34,9 @@ A2A fills the gap. It models the interaction as one agent sending a Task to anot
 
 A2A is the "let agents across frameworks talk to each other" protocol. It does not replace MCP; the two are complementary.
 
-## The Concept
+> **【拓展：A2A vs MCP 的互补关系】** A2A 和 MCP 是互补协议，不是替代关系。MCP 用于 Agent 调用工具（客户端-服务器模式），A2A 用于 Agent 之间协作（对等模式）。MCP 的核心原语是 `tools/call`，A2A 的核心原语是 `tasks/send`。一个 Agent 可以同时是 MCP 客户端（调用工具）和 A2A 参与者（与其他 Agent 协作）。
+
+## The Concept | 核心概念
 
 ### Agent Card
 
@@ -150,7 +152,7 @@ Rationale: A2A enables competitors to collaborate without revealing internals. A
 
 Use MCP when you want to invoke a specific tool. Use A2A when you want to delegate a whole task to another agent. Many production systems use both: an agent uses MCP for its tool layer and A2A for its collaboration layer.
 
-## Use It
+## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 实现最小 A2A 线束：研究 Agent 发布卡片，写作 Agent 接收 `tasks/send`（含 PDF 和文本指令的 Parts），经历 working -> input_required -> working -> completed 生命周期，返回文本 Artifact。全部标准库，使用内存传输关注消息形状。
 
@@ -164,13 +166,13 @@ What to look at:
 - Input-required branch mid-task.
 - Artifact return on completion.
 
-## Ship It
+## Ship It | 产出物
 
 > **【中文解读】** 本课产出 `outputs/skill-a2a-agent-spec.md`——给定一个新的可被其他 Agent 调用的 Agent，生成 Agent Card JSON、技能模式和端点蓝图。
 
 This lesson produces `outputs/skill-a2a-agent-spec.md`. Given a new agent that should be callable by other agents, the skill produces the Agent Card JSON, skills schema, and endpoint blueprint.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Trace the full Task lifecycle, including the input-required pause where the called agent asks for a clarification.
 
@@ -182,7 +184,7 @@ This lesson produces `outputs/skill-a2a-agent-spec.md`. Given a new agent that s
 
 5. Read the A2A v1.0 announcement and identify the one feature that is not yet implemented by any framework as of April 2026. (Hint: it relates to multi-hop task delegation.)
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文 |
 |------|----------------|------------------------|------|
@@ -197,7 +199,7 @@ This lesson produces `outputs/skill-a2a-agent-spec.md`. Given a new agent that s
 | Opacity | "Black-box collaboration" | Called agent's internals are hidden from caller | 不透明性：被调用方内部隐藏 |
 | Input-required | "Task pause" | Lifecycle state when the agent needs more info | 输入要求：任务暂停等待更多信息 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [a2a-protocol.org](https://a2a-protocol.org/latest/) — canonical A2A specification
 - [a2aproject/A2A — GitHub](https://github.com/a2aproject/A2A) — reference implementations and SDKs

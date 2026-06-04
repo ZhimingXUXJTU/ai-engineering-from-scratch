@@ -18,7 +18,7 @@
 - Choose between atomic tools and a single monolithic tool for a given task surface.
 - Run a tool-schema linter against a registry and fix the findings.
 
-## The Problem
+## The Problem | 问题引入
 
 Imagine an agent with 30 tools. Every user query triggers tool selection: the model reads every description and picks one. Two shapes of failure show up.
 
@@ -32,9 +32,11 @@ Description and name quality is the cheapest lever you have.
 
 > **【中文解读】** 想象一个有 30 个工具的 Agent。两种失败：(1) 选错工具——`search_contacts` 和 `get_customer_details` 描述都写"查找人"导致混淆；(2) 该用工具时没用——用户问股价，模型幻觉了一个数字。Composio 2025 年的实地指南表明，仅通过重命名和重写描述就能带来 10-20 个百分点的准确率提升。描述和命名质量是你最廉价的优化杠杆。
 
-## The Concept
+## The Concept | 核心概念
 
 ### Naming rules
+
+> **【中文解读】** 工具命名六条规则：(1) `snake_case` 格式，tokenization 更干净；(2) 动词-名词顺序，`get_weather` 而非 `weather_get`；(3) 不用时态标记；(4) 名称稳定，改名是破坏性变更；(5) 大注册表用命名空间前缀 `notes_list`；(6) 不在名称中编码参数。
 
 1. **`snake_case`.** Every provider's tokenizer handles it cleanly. `camelCase` fragments across token boundaries on some tokenizers.
 2. **Verb-noun order.** `get_weather`, not `weather_get`. Mirrors natural English.
@@ -66,6 +68,8 @@ Include format hints: "Accepts city names in English. Returns temperature in Cel
 
 ### Atomic vs monolithic
 
+> **【拓展：原子工具 vs 单体工具的性能差异】** 基准测试显示，单体工具（如 `do_everything(action, target)`）的选择准确率比原子工具低 15-30%。原因是模型需要从字符串和未类型化的 dict 中选择 action，这是选择准确率最差的两种表面。原子工具（`notes_list`、`notes_create`、`notes_delete`）每个都有紧凑的描述和类型化 Schema，模型直接按名称选择。
+
 A monolithic tool:
 
 ```python
@@ -89,6 +93,8 @@ Rule of thumb: if the `action` argument has more than three values, split the to
 
 ### Parameter design
 
+> **【中文解读】** 参数设计五个要点：(1) 封闭集合用 enum（`units: "celsius" | "fahrenheit"`）；(2) 区分必填和可选，只标最小必填集；(3) ID 类参数加 `pattern` 约束防止幻觉；(4) 避免 `type: any`；(5) 每个字段加 description，因为字段描述是模型 prompt 的一部分。
+
 - **Enum every closed set.** `units: "celsius" | "fahrenheit"` not `units: string`. Enums tell the model the universe of acceptable values.
 - **Required vs optional.** Mark the minimum needed. Everything else optional. OpenAI strict mode requires every field in `required`; add an `is_default: true` convention in your code and let the model omit it.
 - **Typed IDs.** `note_id: string` is fine but add a `pattern` (`^note-[0-9]{8}$`) to catch hallucinated ids.
@@ -96,6 +102,8 @@ Rule of thumb: if the `action` argument has more than three values, split the to
 - **Describe the field.** `{"type": "string", "description": "ISO 8601 date in UTC, e.g. 2026-04-22"}`. The description is part of the model's prompt.
 
 ### Error messages as teaching signals
+
+> **【拓展：错误信息作为 Teaching Signal】** 工具调用失败时，错误信息会到达模型。好的错误信息教会模型下一步该怎么做。基准测试显示，类型化错误信息能将弱模型的平均重试次数减半。例如 "Invalid input: 'city' is required. Example: {\"city\": \"Bengaluru\"}" 远好于 "TypeError: object of type 'NoneType' has no attribute 'lower'"。
 
 When a tool call fails, the error message reaches the model. Write errors for the model.
 
@@ -107,6 +115,8 @@ GOOD : Invalid input: 'city' is required. Example: {"city": "Bengaluru"}.
 The good error teaches the model what to do next. Benchmarks show typed error messages cut retry counts in half on weak models.
 
 ### Versioning
+
+> **【中文解读】** 工具版本化四条规则：(1) 不重命名稳定工具，而是添加 `get_weather_v2` 并废弃旧版；(2) 不改变参数类型，放宽类型需要新版本；(3) 可自由添加可选参数；(4) 删除工具需有废弃窗口，发布 `deprecated: true` 标志，一个发布周期后再移除。
 
 Tools evolve. Rules:
 
@@ -129,7 +139,7 @@ Descriptions land in the model's context verbatim. A malicious server can embed 
 
 All three are open; a full evaluation loop runs in under an hour on a modest GPU setup. Include one in your CI (eval-driven development is covered in a future phase).
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py` ships a tool-schema linter that audits a registry against the rules above. It flags:
 
@@ -140,11 +150,11 @@ All three are open; a full evaluation loop runs in under an hour on a modest GPU
 
 Run it on the included `GOOD_REGISTRY` (passes) and `BAD_REGISTRY` (fails on every rule) to see the exact findings.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-tool-schema-linter.md`. Given any tool registry, the skill audits it against the design rules above and produces a fix-list with severities and suggested rewrites. Can run in CI.
 
-## Exercises
+## Exercises | 练习题
 
 1. Take the `BAD_REGISTRY` in `code/main.py` and rewrite each tool to pass the linter. Measure description length and count rule violations before and after.
 
@@ -156,7 +166,7 @@ This lesson produces `outputs/skill-tool-schema-linter.md`. Given any tool regis
 
 5. Read Composio's tool-design field guide top to bottom. Identify one rule not covered in this lesson and add it to the linter.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文术语 |
 |------|----------------|------------------------|----------|
@@ -171,7 +181,7 @@ This lesson produces `outputs/skill-tool-schema-linter.md`. Given any tool regis
 | Namespace prefix | "notes_*" | Shared name prefix that groups related tools in large registries | 命名空间前缀 |
 | StableToolBench | "Selection benchmark" | Public benchmark for measuring tool-selection accuracy | 工具选择基准 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Composio — How to build tools for AI agents: field guide](https://composio.dev/blog/how-to-build-tools-for-ai-agents-a-field-guide) — naming, descriptions, and measured accuracy lifts
 - [OneUptime — Tool schemas for agents](https://oneuptime.com/blog/post/2026-01-30-tool-schemas/view) — parameter design patterns from production

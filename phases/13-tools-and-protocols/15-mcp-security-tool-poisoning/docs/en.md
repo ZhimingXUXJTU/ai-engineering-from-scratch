@@ -20,7 +20,7 @@
 
 > **【中文解读】** 学习目标：掌握七种攻击类型（工具投毒、地毯拉扯、跨服务器影射、MPMA 偏好操纵、寄生工具链、采样攻击、供应链伪装）；理解为何接口看起来正确但攻击仍然有效；运行哈希锁定检测器；编写静态注入模式检测器。
 
-## The Problem
+## The Problem | 问题引入
 
 > **【中文解读】** 问题本质：工具描述是提示词的一部分，服务器放在描述中的任何文本都被模型当作用户指令执行。2026年共识是纵深防御——没有单一检查能取胜，需要叠加：安装时扫描、哈希锁定、Rule of Two 行为门控、运行时检测。
 
@@ -38,7 +38,7 @@ Research studies (arXiv 2603.22489, Invariant Labs notifications, Unit 42 attack
 
 The 2026 consensus is defense-in-depth. No single check wins. You stack: scan at install time, pin hashes, gate behavior with the Rule of Two, and detect at runtime.
 
-## The Concept
+## The Concept | 核心概念
 
 > **【中文解读】** 本节详细解析七种攻击类型和对应的防御策略。
 
@@ -125,7 +125,7 @@ If a tool invocation would combine all three, the host must reject or escalate s
 - **Sanitizing description text.** Too many creative phrasings to catch all.
 - **Capping description length.** Injections fit in 200 characters.
 
-## Use It
+## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 实现双层防御：(1) 静态检测器——正则扫描每个工具描述中的注入模式；(2) 哈希锁定存储——记录已审批描述的哈希，下次加载时哈希变更则阻止。在模拟注册中心（一个干净服务器、一个投毒服务器、一个地毯拉扯服务器）上运行，观察两层防御如何分别触发。
 
@@ -136,13 +136,13 @@ If a tool invocation would combine all three, the host must reject or escalate s
 
 Run it on a fake registry that contains one clean server and one rug-pulled server. Watch both defenses fire.
 
-## Ship It
+## Ship It | 产出物
 
 > **【中文解读】** 本课产出 `outputs/skill-mcp-threat-model.md`——给定 MCP 部署，生成威胁模型：哪些攻击适用、已有哪些防御、哪里违反了 Rule of Two。
 
 This lesson produces `outputs/skill-mcp-threat-model.md`. Given an MCP deployment, the skill produces a threat model naming which of the seven attacks apply, what defenses are in place, and where the Rule of Two is violated.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Observe how the static detector flags the poisoned description and the hash-pin detector flags the rug-pulled server.
 
@@ -154,7 +154,7 @@ This lesson produces `outputs/skill-mcp-threat-model.md`. Given an MCP deploymen
 
 5. Read the March 2026 arXiv paper on adaptive attacks. Identify the one defense the paper recommends that is NOT in this lesson. Explain why it does not collapse the adaptive-attack surface further.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文 |
 |------|----------------|------------------------|------|
@@ -169,7 +169,7 @@ This lesson produces `outputs/skill-mcp-threat-model.md`. Given an MCP deploymen
 | Rule of Two | "Defense-in-depth axiom" | One turn may combine at most two of untrusted / sensitive / consequential | Rule of Two：纵深防御准则 |
 | MELON | "Masked re-execution" | Compare outputs with and without the suspect tool | MELON：掩码重执行对比 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Invariant Labs — MCP security: tool poisoning attacks](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks) — canonical tool-poisoning writeup
 - [arXiv 2603.22489](https://arxiv.org/abs/2603.22489) — academic study measuring attack success and defense gaps
