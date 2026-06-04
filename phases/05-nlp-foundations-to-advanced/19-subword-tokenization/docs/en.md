@@ -9,15 +9,21 @@
 **Prerequisites:** Phase 5 · 01 (Text Processing), Phase 5 · 04 (GloVe / FastText / Subword)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Your vocabulary has 50,000 words. A user types "untokenizable". Your tokenizer returns `[UNK]`. The model now has no signal about the word. Worse: the 90th-percentile document in your corpus has 40 rare words, which means 40 bits of dropped information per document.
+
+> **【中文解读】** 本节提出的问题是：如何在实际工程中正确理解和应用这一技术。理解问题背景有助于把握技术选型的关键决策点。在实际 AI 系统中，错误的技术选型往往比实现细节的 bug 代价更高。
+
 
 Subword tokenization solves this. Common words stay single tokens. Rare words decompose into meaningful pieces: `untokenizable` → `un`, `token`, `izable`. Training data covers everything because any string is ultimately a sequence of bytes.
 
 Every frontier LLM in 2026 ships on one of three algorithms (BPE, Unigram, WordPiece), wrapped in one of three libraries (tiktoken, SentencePiece, HF Tokenizers). You cannot ship a language model without picking one.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 本节介绍核心概念和理论基础。掌握这些概念是后续动手实现的前提，同时也是面试和工程实践中高频考察的知识点。
+
 
 ![BPE vs Unigram vs WordPiece, character-by-character](../assets/subword-tokenization.svg)
 
@@ -37,7 +43,19 @@ Rule of thumb:
 - **Fast inference against GPT vocab:** tiktoken (cl100k_base, o200k_base).
 - **Both:** HF Tokenizers — one library, training + serving.
 
-## Build It
+> **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
+
+> **【拓展：大语言模型的工程实践】** 从 GPT 到 ChatGPT，NLP 领域经历了从 "每个任务训练一个模型" 到 "一个模型解决所有任务" 的范式转变。在实际工程中，LLM 的部署需要考虑 Token 限制、延迟、成本、安全审查等问题。LangChain、LlamaIndex 等框架简化了 LLM 应用的开发。
+
+> **【拓展：RAG 与企业知识库】** 检索增强生成（RAG）是当前企业 AI 应用最流行的架构：将用户查询先检索相关文档片段，再将检索结果作为上下文喂给 LLM 生成答案。这种方式解决了 LLM 知识过时和幻觉问题。向量数据库（如 Milvus、Pinecone、Weaviate）是 RAG 系统的核心组件。
+
+> **【拓展：NLP 的多语言挑战】** 全球有 7000+ 种语言，但 NLP 研究主要集中在英语等少数语言。跨语言迁移学习、多语言预训练模型（如 mBERT、XLM-R）是解决低资源语言 NLP 的主要方法。字节级模型（如 ByT5）甚至可以在无分词器的情况下处理任何语言。
+
+
+
+
+
+## Build It | 动手实现
 
 ### Step 1: BPE from scratch
 
@@ -111,6 +129,11 @@ print(len(enc.encode("Hello, world!")))   # 4
 
 Encoding-only. Fast (Rust backend). Exact match with GPT-4/5 tokenization for byte-counting, cost estimation, context-window budgeting.
 
+
+
+
+> **【拓展：Prompt Engineering 与 LLM 应用】** Prompt Engineering 已成为 NLP 工程师的核心技能。从 Zero-shot 到 Few-shot，从 Chain-of-Thought 到 ReAct，不同的提示策略适用于不同场景。在实际项目中，系统提示（System Prompt）的设计直接影响 LLM 应用的稳定性和输出质量。
+
 ## Pitfalls that still ship in 2026
 
 - **Tokenizer drift.** Training on vocab A, deploying against vocab B. Token IDs differ; model outputs garbage. Check `tokenizer.json` hash in CI.
@@ -118,7 +141,10 @@ Encoding-only. Fast (Rust backend). Exact match with GPT-4/5 tokenization for by
 - **Multilingual undertraining.** English-heavy corpora produce vocabularies that split non-Latin scripts into 5-10x more tokens. Same prompt costs 5-10x more in Japanese/Arabic on GPT-3.5. o200k_base partially fixed this.
 - **Emoji splits.** A single emoji can take 5 tokens. Checkpoint emoji handling when budgeting context.
 
-## Use It
+> **【中文解读】** 本节展示如何用成熟框架（如 PyTorch、HuggingFace 等）快速应用该技术。在实际项目中，优先使用经过验证的框架实现，可以减少 bug 并提高开发效率。
+
+
+## Use It | 用框架实现
 
 The 2026 stack:
 
@@ -130,9 +156,14 @@ The 2026 stack:
 | Domain-specific vocab (code, math, protein) | Train custom BPE on domain corpus, merge with base vocab |
 | Edge inference, small model | Unigram (smaller vocabularies work better) |
 
+> **【中文解读】** 本节关注如何将模型部署为可用的产品。从原型到生产级系统需要考虑性能优化、错误处理、监控等多个维度。
+
+
 Vocabulary size is a scaling decision, not a constant. Rough heuristic: 32k for <1B params, 50-100k for 1-10B, 200k+ for multilingual/frontier.
 
-## Ship It
+
+
+## Ship It | 产出物
 
 Save as `outputs/skill-bpe-vs-wordpiece.md`:
 
@@ -154,16 +185,22 @@ Given a corpus (size, languages, domain) and deployment target (training from sc
 4. Coverage settings. `character_coverage`, `byte_fallback`, special-token list.
 5. Validation plan. Average tokens-per-word on held-out set, OOV rate, compression ratio, round-trip decode equality.
 
+> **【中文解读】** 练习题按照 Easy/Medium/Hard 三个难度递进。建议至少完成 Medium 级别的题目，Hard 级别适合深入研究或面试准备。
+
+
 Refuse to train a character-coverage <0.995 tokenizer on corpora with rare-script content. Refuse to ship a vocab without a frozen `tokenizer.json` hash check in CI. Flag any monolingual tokenizer under 16k vocab as likely under-spec.
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Train a 500-merge BPE on `code/main.py`'s tiny corpus. Encode three held-out words. How many produced exactly 1 token vs >1 token?
 2. **Medium.** Compare token counts on 100 English Wikipedia sentences between `cl100k_base`, `o200k_base`, and a SentencePiece BPE you train with vocab=32k. Report the compression ratio of each.
 3. **Hard.** Train the same corpus with BPE, Unigram, and WordPiece. Measure downstream accuracy when using each on a small sentiment classifier. Does the choice move the needle by more than 1 point F1?
 
-## Key Terms
+> **【中文解读】** 术语表中的 "What people say" vs "What it actually means" 区分了日常口语和精确技术含义。在团队协作中，统一术语定义可以避免大量沟通误解。
+
+
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -175,7 +212,10 @@ Refuse to train a character-coverage <0.995 tokenizer on corpora with rare-scrip
 | Merge list | The magic numbers | Ordered list of `(a, b) → ab` merges; inference applies in order. |
 | Character coverage | How rare is too rare? | Fraction of characters in training corpus the tokenizer must cover; ~0.9995 typical. |
 
-## Further Reading
+> **【中文解读】** 延伸阅读提供了深入学习的高质量资源。这些论文和教程是该领域的经典参考文献，适合需要深入理解的读者。
+
+
+## Further Reading | 延伸阅读
 
 - [Sennrich, Haddow, Birch (2015). Neural Machine Translation of Rare Words with Subword Units](https://arxiv.org/abs/1508.07909) — the BPE paper.
 - [Kudo (2018). Subword Regularization with Unigram Language Model](https://arxiv.org/abs/1804.10959) — the Unigram paper.

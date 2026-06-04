@@ -9,15 +9,21 @@
 **Prerequisites:** Phase 5 · 02 (BoW + TF-IDF), Phase 2 · 14 (Naive Bayes)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 "The food was not great." Positive or negative?
+
+> **【中文解读】** 本节提出的问题是：如何在实际工程中正确理解和应用这一技术。理解问题背景有助于把握技术选型的关键决策点。在实际 AI 系统中，错误的技术选型往往比实现细节的 bug 代价更高。
+
 
 Sentiment sounds simple. A reviewer said they liked or did not like something. Label the sentence. The reason it became the canonical NLP task is that every easy-looking case hides a hard one. Negation flips meaning. Sarcasm inverts it. "Not bad at all" is positive despite two negative-coded words. Emojis carry more signal than surrounding text. Domain vocabulary matters (`tight` in music review versus `tight` in fashion review).
 
 Sentiment is a working lab for classical NLP. If you understand why every naive baseline has a specific failure mode, you understand why every richer model was invented. This lesson builds a Naive Bayes baseline from scratch, adds logistic regression, and names the traps that make production sentiment a compliance-grade problem.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 本节介绍核心概念和理论基础。掌握这些概念是后续动手实现的前提，同时也是面试和工程实践中高频考察的知识点。
+
 
 Classical sentiment is a two-step recipe.
 
@@ -28,7 +34,19 @@ Naive Bayes is the dumbest model that works. Assume every feature is independent
 
 Logistic regression fixes the independence assumption. It learns a weight per feature, including negative weights. `not good` as a bigram feature gets a negative weight. Naive Bayes cannot do that for bigrams it has never labeled.
 
-## Build It
+> **【拓展：大语言模型的工程实践】** 从 GPT 到 ChatGPT，NLP 领域经历了从 "每个任务训练一个模型" 到 "一个模型解决所有任务" 的范式转变。在实际工程中，LLM 的部署需要考虑 Token 限制、延迟、成本、安全审查等问题。LangChain、LlamaIndex 等框架简化了 LLM 应用的开发。
+
+> **【拓展：RAG 与企业知识库】** 检索增强生成（RAG）是当前企业 AI 应用最流行的架构：将用户查询先检索相关文档片段，再将检索结果作为上下文喂给 LLM 生成答案。这种方式解决了 LLM 知识过时和幻觉问题。向量数据库（如 Milvus、Pinecone、Weaviate）是 RAG 系统的核心组件。
+
+> **【拓展：NLP 的多语言挑战】** 全球有 7000+ 种语言，但 NLP 研究主要集中在英语等少数语言。跨语言迁移学习、多语言预训练模型（如 mBERT、XLM-R）是解决低资源语言 NLP 的主要方法。字节级模型（如 ByT5）甚至可以在无分词器的情况下处理任何语言。
+
+
+
+
+## Build It | 动手实现
+
+> **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
+
 
 ### Step 1: a real mini-dataset
 
@@ -181,7 +199,15 @@ def evaluate(y_true, y_pred):
     return {"tp": tp, "fp": fp, "tn": tn, "fn": fn, "precision": precision, "recall": recall, "f1": f1}
 ```
 
-## Use It
+> **【中文解读】** 本节展示如何用成熟框架（如 PyTorch、HuggingFace 等）快速应用该技术。在实际项目中，优先使用经过验证的框架实现，可以减少 bug 并提高开发效率。
+
+
+
+
+
+> **【拓展：Prompt Engineering 与 LLM 应用】** Prompt Engineering 已成为 NLP 工程师的核心技能。从 Zero-shot 到 Few-shot，从 Chain-of-Thought 到 ReAct，不同的提示策略适用于不同场景。在实际项目中，系统提示（System Prompt）的设计直接影响 LLM 应用的稳定性和输出质量。
+
+## Use It | 用框架实现
 
 scikit-learn does it in six lines, correctly.
 
@@ -213,7 +239,12 @@ If you need any of the above, skip ahead to phase 7 (transformers deep dive). Ot
 
 Retraining sentiment models is routine. Re-evaluating them is not. Accuracy numbers reported in papers use specific splits, specific preprocessing, specific tokenizers. If you compare your new model to a baseline without using the identical pipeline, you will get misleading deltas. Always regenerate the baseline on your pipeline, not the paper's number.
 
-## Ship It
+
+
+## Ship It | 产出物
+
+> **【中文解读】** 本节关注如何将模型部署为可用的产品。从原型到生产级系统需要考虑性能优化、错误处理、监控等多个维度。
+
 
 Save as `outputs/prompt-sentiment-baseline.md`:
 
@@ -232,16 +263,22 @@ Given a dataset description (domain, language, size, label granularity, latency 
 3. Evaluation plan. Report precision, recall, F1, confusion matrix, and per-class error samples (not just scalars).
 4. One failure mode to monitor post-deployment. Domain drift and sarcasm are the top two.
 
+> **【中文解读】** 练习题按照 Easy/Medium/Hard 三个难度递进。建议至少完成 Medium 级别的题目，Hard 级别适合深入研究或面试准备。
+
+
 Refuse to recommend dropping stopwords for sentiment tasks. Refuse to report accuracy as the sole metric when classes are imbalanced (e.g., 90% positive). Flag subword-rich languages as needing FastText or transformer embeddings over word-level TF-IDF.
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Add `apply_negation` as a preprocessing step in the scikit-learn pipeline and measure the F1 delta on a small sentiment dataset.
 2. **Medium.** Implement class-weighted logistic regression (pass `class_weight="balanced"` to scikit-learn, or derive the gradient yourself). Measure the effect on a synthetic 90-10 class imbalance.
 3. **Hard.** Build a sarcasm detector by training a second classifier on the residuals of the sentiment model. Document your experimental setup. Warn the reader when your accuracy is below chance (chance-level on 2-class sarcasm is ~50%, and most first attempts land there).
 
-## Key Terms
+> **【中文解读】** 术语表中的 "What people say" vs "What it actually means" 区分了日常口语和精确技术含义。在团队协作中，统一术语定义可以避免大量沟通误解。
+
+
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -251,7 +288,10 @@ Refuse to recommend dropping stopwords for sentiment tasks. Refuse to report acc
 | Laplace smoothing | Adding 1 to counts | Prevents zero-probability features in Naive Bayes. |
 | L2 regularization | Shrinking weights | Adds `lambda * sum(w^2)` to loss. Essential for sparse text features. |
 
-## Further Reading
+> **【中文解读】** 延伸阅读提供了深入学习的高质量资源。这些论文和教程是该领域的经典参考文献，适合需要深入理解的读者。
+
+
+## Further Reading | 延伸阅读
 
 - [Pang and Lee (2008). Opinion Mining and Sentiment Analysis](https://www.cs.cornell.edu/home/llee/opinion-mining-sentiment-analysis-survey.html) — the foundational survey. Long, but the first four sections cover everything classical.
 - [Wang and Manning (2012). Baselines and Bigrams: Simple, Good Sentiment and Topic Classification](https://aclanthology.org/P12-2018/) — the paper that showed bigrams + Naive Bayes is hard to beat on short text.
