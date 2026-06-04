@@ -18,7 +18,10 @@
 - Build a tree-of-thought prompt that explores multiple reasoning paths and selects the best one
 - Measure the accuracy improvement from zero-shot vs few-shot vs CoT on a standard benchmark
 
-## The Problem
+> **【中文解读】** 本课目标：掌握 Few-shot（在 prompt 中提供示例引导输出格式）和 Chain-of-Thought（要求模型一步步思考以提升推理能力）两大技术。CoT 是提升 LLM 推理性能最简单有效的方法之一。
+
+
+## The Problem | 问题引入
 
 You build a math tutoring app. Your prompt says: "Solve this word problem." GPT-5 gets it right 94% of the time on GSM8K, the standard grade-school math benchmark. You think you already peaked. You do not — chain-of-thought still adds 3-4 points.
 
@@ -28,7 +31,12 @@ This is not a hack. It is how reasoning works. Humans do not solve multi-step pr
 
 But "think step by step" is the beginning, not the end. What if you sampled five reasoning paths and took a majority vote? What if you let the model explore a tree of possibilities, evaluating and pruning branches? What if you interleaved reasoning with tool use? These are not hypotheticals. They are published techniques with measured improvements, and you will build all of them in this lesson.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 少样本学习（Few-shot）和思维链（Chain-of-Thought, CoT）是 Prompt Engineering 的两大核心技术。Few-shot 通过在 prompt 中提供几个示例来引导模型输出格式；CoT 通过要求模型"一步步思考"来提升推理能力。
+
+> **【拓展：CoT 的推理提升效果】** Google 2022 年的论文证明，在数学推理任务上，CoT 将 PaLM 540B 的准确率从 17% 提升到 56%。Auto-CoT（自动生成推理链）和 Tree-of-Thought（搜索多个推理路径）进一步提升了复杂推理的可靠性。o1 系列模型的"深度思考"本质上是自动化的 CoT。
+
 
 ### Zero-Shot vs Few-Shot: When Examples Beat Instructions
 
@@ -326,7 +334,7 @@ Chaining beats single-prompt for three reasons:
 
 The right technique depends on three factors: accuracy requirement, latency budget, and cost tolerance. For most production systems, few-shot CoT with a 3-sample self-consistency fallback covers 90% of use cases.
 
-## Build It
+## Build It | 动手实现
 
 We will build a math problem solver that combines few-shot prompting, chain-of-thought reasoning, and self-consistency voting into a single pipeline. Then we will add tree-of-thought for hard problems.
 
@@ -455,7 +463,7 @@ def solve_with_escalation(question, examples, client, model):
 
 The escalation logic: try cheap (single CoT) first. If self-consistency confidence is below 0.8 (less than 4 of 5 samples agree), escalate to ToT. This balances cost and accuracy -- most problems are solved cheaply, hard problems get more compute.
 
-## Use It
+## Use It | 用框架实现
 
 ### With LangChain
 
@@ -535,7 +543,7 @@ result = dspy.majority(
 | Prompt optimization | Manual iteration | Manual | Automatic compilation |
 | Best for | Learning, custom pipelines | Standard workflows | Research, optimization |
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces two artifacts.
 
@@ -543,7 +551,7 @@ This lesson produces two artifacts.
 
 **2. CoT Pattern Selection Skill** (`outputs/skill-cot-patterns.md`): a decision framework for choosing the right reasoning technique based on task type, accuracy requirements, and cost constraints.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Measure the gap**: Take 10 GSM8K problems. Solve each with zero-shot, few-shot, zero-shot CoT, and few-shot CoT. Record accuracy for each. Which technique gives the biggest lift on your model?
 
@@ -555,19 +563,19 @@ This lesson produces two artifacts.
 
 5. **ToT for creative tasks**: Adapt the Tree-of-Thought solver for a creative writing task: "Write a 6-word story that is both funny and sad." Use the LLM as evaluator. Does branching exploration produce better creative outputs than single-shot generation?
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Few-shot prompting | "Give it some examples" | Including input-output demonstrations in the prompt to anchor the model's output format and behavior |
-| Chain-of-Thought | "Make it think step by step" | Eliciting intermediate reasoning tokens that extend the model's effective computation before producing a final answer |
-| Self-Consistency | "Run it multiple times" | Sampling N diverse reasoning paths at temperature > 0 and selecting the most common final answer by majority vote |
-| Tree-of-Thought | "Let it explore options" | Structured search over reasoning branches where each partial solution is evaluated and only promising paths are expanded |
-| ReAct | "Thinking + tool use" | Interleaving reasoning traces with external actions (search, compute, API calls) in a Thought-Action-Observation loop |
-| Prompt chaining | "Break it into steps" | Decomposing a complex task into sequential prompts where each output feeds the next input |
-| Zero-shot CoT | "Just add 'think step by step'" | Appending a reasoning trigger phrase to a prompt without any examples, relying on the model's latent reasoning capability |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Few-shot prompting | "Give it some examples" | Including input-output demonstrations in the prompt to anchor the model's output format and behavior | |
+| Chain-of-Thought | "Make it think step by step" | Eliciting intermediate reasoning tokens that extend the model's effective computation before producing a final answer | |
+| Self-Consistency | "Run it multiple times" | Sampling N diverse reasoning paths at temperature > 0 and selecting the most common final answer by majority vote | |
+| Tree-of-Thought | "Let it explore options" | Structured search over reasoning branches where each partial solution is evaluated and only promising paths are expanded | |
+| ReAct | "Thinking + tool use" | Interleaving reasoning traces with external actions (search, compute, API calls) in a Thought-Action-Observation loop | |
+| Prompt chaining | "Break it into steps" | Decomposing a complex task into sequential prompts where each output feeds the next input | |
+| Zero-shot CoT | "Just add 'think step by step'" | Appending a reasoning trigger phrase to a prompt without any examples, relying on the model's latent reasoning capability | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Chain-of-Thought Prompting Elicits Reasoning in Large Language Models](https://arxiv.org/abs/2201.11903) -- Wei et al. 2022. The original CoT paper from Google Brain. Read sections 2-3 for the core results.
 - [Self-Consistency Improves Chain of Thought Reasoning in Language Models](https://arxiv.org/abs/2203.11171) -- Wang et al. 2023. The self-consistency paper. Table 1 has all the numbers you need.

@@ -19,7 +19,10 @@
 - Set up regression testing that detects quality degradation when prompts, models, or parameters change
 - Design evaluation metrics that capture what matters for your use case (correctness, tone, format compliance, latency)
 
-## The Problem
+> **【中文解读】** 本课目标：为 LLM 应用建立评测体系——不只是评估模型本身，而是评估整个系统（prompt + 模型 + RAG + 工具）的性能。
+
+
+## The Problem | 问题引入
 
 You build a RAG chatbot for customer support. It works great in your demos. You ship it. Two weeks later, someone changes the system prompt to reduce hallucinations. The change works -- hallucination rate drops. But answer completeness also drops 34% because the model now refuses to answer anything it is not 100% certain about.
 
@@ -31,7 +34,12 @@ The fix is not "be more careful." The fix is automated evaluation that runs on e
 
 Evaluation is not a nice-to-have. It is table stakes. Shipping without evals is deploying blind.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** LLM 工程中的评测与模型训练评测不同——你需要评测整个系统（prompt + 模型 + RAG + 工具）的性能，而不仅仅是模型本身。关键评测维度：回答质量、事实准确性（幻觉率）、工具调用正确率、延迟和成本。
+
+> **【拓展：LLM 应用的评测框架】** RAGAS 框架专门评测 RAG 系统（faithfulness、relevancy、context precision）。LLM-as-Judge 用强模型（如 GPT-4）评估弱模型输出。LangSmith 和 LangFuse 提供追踪和评测平台。生产系统中通常需要建立 golden dataset——一套标注好的问答对用于回归测试。
+
 
 ### The Eval Taxonomy
 
@@ -222,7 +230,7 @@ You do not have to build everything from scratch. These tools provide eval infra
 
 For this lesson, we build it from scratch so you understand every layer. In production, use one of these tools.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Define the Eval Data Structures
 
@@ -730,7 +738,7 @@ if __name__ == "__main__":
     run_demo()
 ```
 
-## Use It
+## Use It | 用框架实现
 
 ### promptfoo Integration
 
@@ -816,13 +824,13 @@ DeepEval integrates with Pytest. Run `deepeval test run test_evals.py` to execut
 
 Trigger evals on every PR that touches prompts or LLM code. Block the merge if any criterion regresses beyond the threshold. Upload results as artifacts for review.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-eval-designer.md` -- a reusable prompt template for designing evaluation rubrics. Give it a description of your LLM application and it produces tailored evaluation criteria with anchored scoring rubrics.
 
 It also produces `outputs/skill-eval-patterns.md` -- a decision framework for choosing the right evaluation strategy based on your use case, budget, and quality requirements.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Add BERTScore.** Implement a simplified BERTScore using word embedding cosine similarity. Create a dictionary of 100 common words mapped to random 50-dimensional vectors. Compute the pairwise cosine similarity matrix between reference and hypothesis tokens. Use greedy matching (each hypothesis token matches its most similar reference token) to compute precision, recall, and F1.
 
@@ -834,22 +842,22 @@ It also produces `outputs/skill-eval-patterns.md` -- a decision framework for ch
 
 5. **Build a cost tracker.** Track the token usage and cost of every judge call. Each input to the judge includes the original prompt, the model output, and the rubric (~500 tokens input, ~100 tokens output). Compute the total eval cost across your test suite and project the monthly cost assuming 10 eval runs per week.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Eval | "Testing" | Systematically scoring LLM outputs against defined criteria using automated metrics, LLM judges, or human review |
-| LLM-as-judge | "AI grading" | Using a strong model (GPT-4o, Claude) to score outputs against a rubric -- correlates 80-85% with human judgment |
-| Rubric | "Scoring guide" | Anchored descriptions for each score level (1-5) that reduce judge variance by defining exactly what each score means |
-| ROUGE-L | "Text overlap" | Longest Common Subsequence-based metric measuring how much of the reference appears in the output -- recall-oriented |
-| Confidence interval | "Error bars" | A range around your measured score that tells you how much uncertainty remains -- wider with fewer test cases |
-| Regression testing | "Before/after" | Running the same eval suite on old and new prompt versions to detect quality degradation before deployment |
-| Golden test set | "Core evals" | Curated input-output pairs representing your most important use cases -- every change must pass these |
-| Pairwise comparison | "A vs B" | Showing a judge two outputs and asking which is better -- eliminates scale calibration problems |
-| Bootstrap | "Resampling" | Estimating confidence intervals by repeatedly sampling from your scores with replacement -- works with any distribution |
-| Wilson interval | "Proportion CI" | A confidence interval for pass/fail rates that works correctly even with small sample sizes or extreme proportions |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Eval | "Testing" | Systematically scoring LLM outputs against defined criteria using automated metrics, LLM judges, or human review | |
+| LLM-as-judge | "AI grading" | Using a strong model (GPT-4o, Claude) to score outputs against a rubric -- correlates 80-85% with human judgment | |
+| Rubric | "Scoring guide" | Anchored descriptions for each score level (1-5) that reduce judge variance by defining exactly what each score means | |
+| ROUGE-L | "Text overlap" | Longest Common Subsequence-based metric measuring how much of the reference appears in the output -- recall-oriented | |
+| Confidence interval | "Error bars" | A range around your measured score that tells you how much uncertainty remains -- wider with fewer test cases | |
+| Regression testing | "Before/after" | Running the same eval suite on old and new prompt versions to detect quality degradation before deployment | |
+| Golden test set | "Core evals" | Curated input-output pairs representing your most important use cases -- every change must pass these | |
+| Pairwise comparison | "A vs B" | Showing a judge two outputs and asking which is better -- eliminates scale calibration problems | |
+| Bootstrap | "Resampling" | Estimating confidence intervals by repeatedly sampling from your scores with replacement -- works with any distribution | |
+| Wilson interval | "Proportion CI" | A confidence interval for pass/fail rates that works correctly even with small sample sizes or extreme proportions | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Zheng et al., 2023 -- "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena"](https://arxiv.org/abs/2306.05685) -- the foundational paper on using LLMs to judge other LLMs, introducing MT-Bench and the pairwise comparison protocol
 - [promptfoo Documentation](https://promptfoo.dev/docs/intro) -- the most practical open-source eval framework with YAML config, 15+ providers, LLM-as-judge, and CI integration

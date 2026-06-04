@@ -19,7 +19,10 @@
 - Build a cost optimization layer with prompt compression, model routing (expensive vs cheap), and response caching
 - Design a tiered caching strategy using exact match, semantic similarity, and prefix caching for different query types
 
-## The Problem
+> **【中文解读】** 本课目标：掌握 LLM 应用的成本优化策略——Prompt Caching、语义缓存、模型路由、批处理。LLM API 成本是生产部署的主要支出。
+
+
+## The Problem | 问题引入
 
 You build a RAG chatbot. It works beautifully. Users love it.
 
@@ -44,7 +47,12 @@ The brutal part: 40-60% of those queries are near-duplicates. Users ask the same
 
 You are paying full price for redundant computation.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** LLM API 的成本优化是生产部署的关键考量。主要策略：Prompt Caching（缓存不变前缀）、语义缓存（缓存相似查询的回复）、模型路由（简单问题用便宜模型）、批处理（合并请求减少调用次数）。
+
+> **【拓展：LLM 成本的实际数据】** GPT-4o 定价 $5/$15 per M tokens（input/output），Claude 3.5 Sonnet $3/$15。一个日活 10 万用户的应用，每次交互约 2K input + 500 output tokens，月成本约 $15,000-45,000。通过 Prompt Caching 可降低约 50%，用 GPT-4o-mini 替代简单查询可再降 30%。
+
 
 ### The Cost Anatomy of an LLM Call
 
@@ -205,7 +213,7 @@ Here is a real breakdown for a RAG chatbot serving 10,000 DAU.
 
 The embedding cost for semantic caching ($180/month) pays for itself within the first hour of cache hits.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Cost Calculator
 
@@ -752,7 +760,7 @@ if __name__ == "__main__":
     run_demo()
 ```
 
-## Use It
+## Use It | 用框架实现
 
 ### Anthropic Prompt Caching
 
@@ -865,13 +873,13 @@ Batch API gives a flat 50% discount on all tokens. Results arrive within 24 hour
 
 In production, replace the linear scan with a vector index (Redis Vector Search, Pinecone, or pgvector). Linear scan works for <1,000 entries. Beyond that, use ANN (approximate nearest neighbor) for O(log n) lookup.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-cost-optimizer.md` -- a reusable prompt that analyzes your LLM application and recommends specific cost optimizations with projected savings.
 
 It also produces `outputs/skill-cost-patterns.md` -- a decision framework for choosing the right caching strategy, rate limiting configuration, and model routing rules for your use case.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Implement LRU eviction for the semantic cache.** Replace the oldest-first eviction with least-recently-used. Track the last access time for each entry and evict the entry with the oldest access time when the cache is full. Compare hit rates between the two strategies over 100 queries.
 
@@ -883,22 +891,22 @@ It also produces `outputs/skill-cost-patterns.md` -- a decision framework for ch
 
 5. **Implement a circuit breaker with degradation levels.** At 70% budget, log a warning. At 85%, automatically switch all routing to the cheapest model (gpt-4o-mini). At 95%, serve only cached responses and reject new queries. Test by simulating 1,000 requests against a $1.00 budget and verify each threshold triggers correctly.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Prompt caching | "Cache the system prompt" | Provider-level caching where repeated prompt prefixes get a discount (90% Anthropic, 50% OpenAI) -- no code changes for OpenAI, explicit markers for Anthropic |
-| Semantic caching | "Smart caching" | Embedding the query, computing similarity to past queries, and returning the cached response if similarity exceeds a threshold -- catches paraphrases that exact matching misses |
-| Exact caching | "Hash caching" | Hashing the full prompt (model + messages + temperature) and returning the cached response for identical inputs -- only works for temperature=0 deterministic calls |
-| Token bucket | "Rate limiter" | An algorithm where each user has a bucket of N tokens that refills at rate R per second -- allows bursts up to N while enforcing an average rate of R |
-| Model routing | "Cheapskate routing" | Using a classifier to send simple queries to cheap models (GPT-4o-mini, Haiku) and complex queries to expensive models (GPT-4o, Opus) -- saves 40-70% on model costs |
-| Cost tracking | "Metering" | Logging every API call with model, tokens, latency, cost, and user ID so you know exactly where money goes and which features are expensive |
-| Circuit breaker | "Kill switch" | Automatically degrading service (cheaper models, cached-only) or stopping requests entirely when spending approaches the budget limit |
-| Batch API | "Bulk discount" | OpenAI's asynchronous processing at 50% discount -- submit up to 50,000 requests, get results within 24 hours |
-| Prompt compression | "Token diet" | Rewriting system prompts and context to use fewer tokens while preserving meaning -- shorter prompts cost less and often perform better |
-| Cache hit rate | "Cache efficiency" | The percentage of requests served from cache instead of calling the LLM -- 40-60% is typical for production chatbots, saves proportionally on cost |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Prompt caching | "Cache the system prompt" | Provider-level caching where repeated prompt prefixes get a discount (90% Anthropic, 50% OpenAI) -- no code changes for OpenAI, explicit markers for Anthropic | |
+| Semantic caching | "Smart caching" | Embedding the query, computing similarity to past queries, and returning the cached response if similarity exceeds a threshold -- catches paraphrases that exact matching misses | |
+| Exact caching | "Hash caching" | Hashing the full prompt (model + messages + temperature) and returning the cached response for identical inputs -- only works for temperature=0 deterministic calls | |
+| Token bucket | "Rate limiter" | An algorithm where each user has a bucket of N tokens that refills at rate R per second -- allows bursts up to N while enforcing an average rate of R | |
+| Model routing | "Cheapskate routing" | Using a classifier to send simple queries to cheap models (GPT-4o-mini, Haiku) and complex queries to expensive models (GPT-4o, Opus) -- saves 40-70% on model costs | |
+| Cost tracking | "Metering" | Logging every API call with model, tokens, latency, cost, and user ID so you know exactly where money goes and which features are expensive | |
+| Circuit breaker | "Kill switch" | Automatically degrading service (cheaper models, cached-only) or stopping requests entirely when spending approaches the budget limit | |
+| Batch API | "Bulk discount" | OpenAI's asynchronous processing at 50% discount -- submit up to 50,000 requests, get results within 24 hours | |
+| Prompt compression | "Token diet" | Rewriting system prompts and context to use fewer tokens while preserving meaning -- shorter prompts cost less and often perform better | |
+| Cache hit rate | "Cache efficiency" | The percentage of requests served from cache instead of calling the LLM -- 40-60% is typical for production chatbots, saves proportionally on cost | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic Prompt Caching Guide](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching) -- the official docs for Anthropic's explicit cache_control markers, pricing, and cache lifetime behavior
 - [OpenAI Prompt Caching](https://platform.openai.com/docs/guides/prompt-caching) -- OpenAI's automatic caching, how to verify cache hits via usage fields, and minimum prefix lengths

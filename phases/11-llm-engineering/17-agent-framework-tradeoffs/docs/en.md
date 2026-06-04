@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 11 · 09 (Function Calling), Phase 11 · 16 (LangGraph)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 You have a task that needs more than one LLM call. Maybe it is a research workflow (plan, search, summarize, cite). Maybe it is a code-review pipeline (parse diff, critique, patch, validate). Maybe it is a multi-turn assistant that books flights, writes emails, and files expense reports. You pick a framework.
 
@@ -19,7 +19,16 @@ Three days later, you discover the framework's abstractions leak. CrewAI gives y
 
 The fix is not "pick the best framework." It is to match the framework's core abstraction to the shape of your problem. This lesson draws that map.
 
-## The Concept
+
+> **【中文解读】** Agent 框架选型的三个维度：(1) 任务复杂度——简单 RAG 用 LlamaIndex，复杂 Agent 用 LangGraph；(2) 团队经验——新手用 LangChain 模板，专家用原生 API；(3) 生产要求——需要 LangSmith 集成选 LangChain 生态。
+
+
+## The Concept | 核心概念
+
+> **【中文解读】** Agent 框架的选择是工程权衡：LangChain 生态最全但复杂度高，LlamaIndex 专注 RAG，CrewAI 适合多 Agent 协作，LangGraph 适合状态机控制流，直接用 API 最灵活但要自己写更多代码。
+
+> **【拓展：Agent 框架的选型指南】** 选型维度：(1) 任务复杂度（简单 RAG 用 LlamaIndex，复杂 Agent 用 LangGraph）；(2) 团队经验（新手用 LangChain 模板，专家用原生 API）；(3) 生产要求（LangSmith 集成选 LangChain 生态）。2025 年的趋势是框架轻量化。
+
 
 ![Agent framework matrix: core abstraction vs problem shape](../assets/framework-matrix.svg)
 
@@ -104,26 +113,26 @@ Refuse to reach for a framework before you can draw the graph, the org chart, th
 | Thousands of parallel fanouts with reducers | LangGraph + `Send` | The only one with a first-class parallel-dispatch API. |
 | Quick prototype, no framework commitment | Plain Python + provider SDK | No framework is the fastest framework. |
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Take the same task — "research Anthropic's headquarters, write a 200-word brief, cite sources" — and implement it in LangGraph (four nodes: plan, search, write, cite) and in CrewAI (three roles: researcher, writer, editor). Report token cost per run and lines of code.
 2. **Medium.** Build the same task in AutoGen (researcher ↔ writer chat, editor joins via `GroupChat`) and Agno (a single agent with `search_tools` and `write_tools`, plus a session store). Rank the four implementations on (a) cost per run, (b) ability to resume after a crash, (c) ability to inject a human approval before the write step.
 3. **Hard.** Build a decision-tree script `pick_framework.py` that takes a short problem description (JSON: `{has_typed_state, has_roles, has_dialogue, has_parallel_fanout, needs_resume}`) and returns a recommendation with one-sentence justification. Verify it on six cases you design yourself.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Orchestration | "How the agents coordinate" | The layer that decides which node/role/agent runs next. |
-| Durable state | "Resume after a restart" | State that survives process death, attached to a checkpoint or session store. |
-| LLM-selected routing | "Let the model decide" | A planner LLM picks the next step each turn; flexible but pays tokens on every decision. |
-| Explicit routing | "Developer decides" | A Python function or static edge picks the next step; cheap and auditable. |
-| Crew | "A CrewAI team" | Roles + tasks + process (sequential or hierarchical) bound into a single runnable. |
-| GroupChat | "AutoGen's multi-agent chat" | A managed conversation between N agents with a speaker selector. |
-| Team (Agno) | "Multi-agent Agno" | Route / coordinate / collaborate mode over a set of agents. |
-| StateGraph | "LangGraph's graph" | Typed-state, node, conditional-edge, checkpointer abstraction. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Orchestration | "How the agents coordinate" | The layer that decides which node/role/agent runs next. | |
+| Durable state | "Resume after a restart" | State that survives process death, attached to a checkpoint or session store. | |
+| LLM-selected routing | "Let the model decide" | A planner LLM picks the next step each turn; flexible but pays tokens on every decision. | |
+| Explicit routing | "Developer decides" | A Python function or static edge picks the next step; cheap and auditable. | |
+| Crew | "A CrewAI team" | Roles + tasks + process (sequential or hierarchical) bound into a single runnable. | |
+| GroupChat | "AutoGen's multi-agent chat" | A managed conversation between N agents with a speaker selector. | |
+| Team (Agno) | "Multi-agent Agno" | Route / coordinate / collaborate mode over a set of agents. | |
+| StateGraph | "LangGraph's graph" | Typed-state, node, conditional-edge, checkpointer abstraction. | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [LangGraph documentation](https://langchain-ai.github.io/langgraph/) — StateGraph, checkpointers, interrupts, time-travel.
 - [CrewAI documentation](https://docs.crewai.com/) — Crews, Flows, Agents, Tasks, Processes.

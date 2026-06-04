@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 11 · 09 (Function Calling), Phase 11 · 03 (Structured Outputs)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 You ship a chatbot that needs three tools: a database query, a calendar API, and a file reader. You write three JSON schemas for Claude. Then sales wants the same tools in ChatGPT — you rewrite them for OpenAI's `tools` parameter. Then you add Cursor, Zed, and Claude Code — three more rewrites, each with subtly different JSON conventions. A week later, Anthropic adds a new field; you update six schemas.
 
@@ -21,7 +21,16 @@ Model Context Protocol collapses that matrix. One JSON-RPC-based spec. One serve
 
 As of early 2026, MCP is the default tool-and-context protocol across the big three (Anthropic, OpenAI, Google) and every major agent harness.
 
-## The Concept
+
+> **【中文解读】** MCP 解决了工具集成的碎片化问题：之前每个外部工具都需要写专用集成代码，MCP 定义了统一协议。就像 USB 标准统一了设备接口一样，MCP 统一了 AI 模型与外部世界的接口。Anthropic、OpenAI、Google 都已采纳。
+
+
+## The Concept | 核心概念
+
+> **【中文解读】** MCP（Model Context Protocol）是 Anthropic 提出的开放标准，让 AI 模型通过统一协议连接外部数据源和工具。MCP 定义了模型与工具之间的标准通信格式，解决了每个工具都要写专用集成的碎片化问题。
+
+> **【拓展：MCP 的生态系统】** MCP 已被 OpenAI、Google 等主要 AI 公司采纳。MCP 生态包括：文件系统连接器、数据库连接器、GitHub/GitLab 集成、Slack/Notion 集成等数百个工具。MCP 让 Agent 开发从为每个工具写胶水代码变为即插即用，显著降低了构建 AI Agent 的门槛。
+
 
 ![MCP: one host, one server, three capabilities](../assets/mcp-architecture.svg)
 
@@ -45,7 +54,7 @@ Every session opens with `initialize`. The client sends protocol version and its
 - Not an agent framework. MCP is the plumbing; frameworks like LangGraph, PydanticAI, and OpenAI Agents SDK sit above it.
 - Not tied to Anthropic. The spec and reference implementations are open source under the `modelcontextprotocol` org.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: a minimal MCP server
 
@@ -140,7 +149,7 @@ See `code/main.py` for a runnable server + client pair demonstrating all of this
 - **Version skew.** Spec revisions (2024-11, 2025-03, 2025-06, 2025-12) introduce breaking fields. Pin protocol version in CI.
 - **Stdio deadlocks.** Servers that log to stdout corrupt the JSON-RPC stream. Log to stderr only.
 
-## Use It
+## Use It | 用框架实现
 
 The 2026 MCP stack:
 
@@ -154,7 +163,7 @@ The 2026 MCP stack:
 
 Rule of thumb: if a tool is read-only, cacheable, and called from two or more hosts, ship it as an MCP server. If it is one-off inline logic, keep it as a local function (Phase 11 · 09).
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-mcp-server-designer.md`:
 
@@ -179,27 +188,27 @@ Given a domain (internal API, database, file source) and the hosts that will mou
 Refuse to ship a server that writes to disk or calls external APIs without an approval path. Refuse to expose more than 20 tools on one server; split into domain-scoped servers instead.
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Extend the `demo-server` with a `subtract` tool. Connect it from Claude Desktop. Confirm the host picks up the new tool without a restart by emitting a `tools/list_changed` notification.
 2. **Medium.** Add a `resource` that exposes the last 100 lines of `/var/log/app.log`. Enforce a roots allowlist so `../etc/passwd` is blocked even if the model asks for it.
 3. **Hard.** Build an MCP proxy that multiplexes three upstream servers (Filesystem, GitHub, Postgres) into one aggregate surface. Handle name collisions and forward `notifications/tools/list_changed` cleanly.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| MCP | "Tool protocol for LLMs" | JSON-RPC 2.0 spec for exposing tools, resources, and prompts to any LLM host. |
-| Host | "Claude Desktop" | The LLM application — owns the model and user UI, mounts one or more clients. |
-| Client | "Connection" | A per-server connection inside the host that speaks JSON-RPC to exactly one server. |
-| Server | "The thing with the tools" | Your code; advertises tools/resources/prompts and handles their invocation. |
-| Tool | "Function call" | Model-invokable action with a JSON Schema input and a text/JSON result. |
-| Resource | "Read-only data" | URI-addressed content (file, row, API response) the host can request. |
-| Prompt | "Saved prompt" | User-invokable template (often with arguments) surfaced as a slash-command. |
-| Stdio transport | "Local dev mode" | Parent host spawns the server as a child process; JSON-RPC over stdin/stdout. |
-| Streamable HTTP | "The 2025-06 remote transport" | POST for requests, optional SSE for server-initiated messages; replaces the older SSE-only transport. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| MCP | "Tool protocol for LLMs" | JSON-RPC 2.0 spec for exposing tools, resources, and prompts to any LLM host. | |
+| Host | "Claude Desktop" | The LLM application — owns the model and user UI, mounts one or more clients. | |
+| Client | "Connection" | A per-server connection inside the host that speaks JSON-RPC to exactly one server. | |
+| Server | "The thing with the tools" | Your code; advertises tools/resources/prompts and handles their invocation. | |
+| Tool | "Function call" | Model-invokable action with a JSON Schema input and a text/JSON result. | |
+| Resource | "Read-only data" | URI-addressed content (file, row, API response) the host can request. | |
+| Prompt | "Saved prompt" | User-invokable template (often with arguments) surfaced as a slash-command. | |
+| Stdio transport | "Local dev mode" | Parent host spawns the server as a child process; JSON-RPC over stdin/stdout. | |
+| Streamable HTTP | "The 2025-06 remote transport" | POST for requests, optional SSE for server-initiated messages; replaces the older SSE-only transport. | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Model Context Protocol specification](https://modelcontextprotocol.io/specification) — canonical reference, versioned by date.
 - [modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers) — Filesystem, GitHub, Postgres, Slack, Puppeteer reference servers.

@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 11 · 01 (Prompt Engineering), Phase 11 · 05 (Context Engineering), Phase 11 · 11 (Caching and Cost)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 A coding agent sends the same 15,000-token system prompt to Claude on every turn of a conversation. Twenty turns at $3/M input tokens is $0.90 in input cost alone — before any of the user's actual messages. Multiply by 10,000 daily conversations and the bill hits $9,000/day for text that never changes.
 
@@ -19,7 +19,16 @@ You cannot shrink the prompt without hurting quality. You cannot avoid sending i
 
 That move is prompt caching. Anthropic shipped it in August 2024 (with a 1-hour extended-TTL variant in 2025), OpenAI automated it later that year, Google shipped explicit context caching alongside Gemini 1.5, and all three now offer it as a first-class feature on their frontier models.
 
-## The Concept
+
+> **【中文解读】** Prompt Caching 的价值在于系统 prompt 通常很长（5K+ tokens）且在所有请求中不变。每次请求都重新计算这些 token 的 KV-cache 是巨大的浪费。缓存后，这些 token 的计算成本从 100% 降到接近 0%。
+
+
+## The Concept | 核心概念
+
+> **【中文解读】** Prompt Caching 利用 LLM 推理的特性——如果多个请求共享相同的 prompt 前缀，可以缓存该前缀的 KV-cache 计算结果，避免重复计算。这对系统 prompt 长且固定的应用（如 RAG、Agent）特别有效。
+
+> **【拓展：Prompt Caching 的成本节省】** Anthropic 的 Prompt Caching 将重复前缀的 input 成本降低约 90%。OpenAI 的类似功能将 cached input 价格降至 $0.50/M tokens（原价 $5）。对系统 prompt 5K tokens + 平均 10 次复用的场景，月成本可降低约 75%。
+
 
 ![Prompt caching: write once, read cheap](../assets/prompt-caching.svg)
 
@@ -52,7 +61,7 @@ Violate the order — put the user message above the system prompt, interleave d
 
 Anthropic's 25% write premium means a cached block has to be read at least twice to net-save money. 1 write + 1 read averages 0.675x cost per request (saves 32%); 1 write + 10 reads averages 0.205x (saves 80%). Rule of thumb: cache anything you expect to reuse at least 3 times within the TTL.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Anthropic prompt caching with explicit markers
 
@@ -171,7 +180,7 @@ See `code/main.py` for a simulated three-provider accountant that tracks write/r
 - **Too-small blocks.** Anthropic enforces a 1,024-token floor (2,048 for Haiku). Smaller blocks silently do not cache.
 - **Blind cost dashboards.** Split "input tokens" into cached vs uncached. Otherwise a traffic drop looks like a cache win.
 
-## Use It
+## Use It | 用框架实现
 
 The 2026 caching stack:
 
@@ -185,7 +194,7 @@ The 2026 caching stack:
 
 Combine with semantic caching (Phase 11 · 11) for the user-message layer: prompt caching handles *token-identical* reuse, semantic caching handles *meaning-identical* reuse.
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-prompt-caching-planner.md`:
 
@@ -210,26 +219,26 @@ Given a prompt (system + tools + few-shot + retrieval + history + user) and a us
 Refuse to ship a cache plan that places a dynamic field above the breakpoint. Refuse to enable 1h TTL without a reuse count that makes the 2x write premium pay back.
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Take a 10-turn conversation with a 5,000-token system prompt against Claude. Run it without `cache_control` and then with. Report the input-token bill for each.
 2. **Medium.** Write a test harness that, given a prompt template and a request log, computes the expected hit rate and dollar savings per provider (Anthropic 5m, Anthropic 1h, OpenAI automatic, Gemini explicit).
 3. **Hard.** Build a layout optimizer: given a prompt and a list of fields marked `stable=True/False`, rewrite the prompt to put a single cache breakpoint at the maximum cache-friendly position without losing information. Verify on a real Anthropic endpoint.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Prompt caching | "Makes long prompts cheap" | Reusing a provider-side KV-cache for matching prefixes; 50-90% discount on repeated input tokens. |
-| `cache_control` | "The Anthropic marker" | Content-block attribute that declares "everything up to here is cacheable"; `{"type": "ephemeral"}`. |
-| Cache write | "Paying the premium" | The first request that populates the cache; billed at ~1.25x input rate on Anthropic, free on OpenAI. |
-| Cache read | "The discount" | Subsequent requests matching the prefix; billed at 10% (Anthropic), 50% (OpenAI), ~25% (Gemini). |
-| TTL | "How long it lives" | Seconds the cache stays warm; Anthropic 5m default (extendable 1h), OpenAI best-effort up to 1h, Gemini user-set. |
-| Extended TTL | "1-hour Anthropic cache" | `{"type": "ephemeral", "ttl": "1h"}`; 2x write premium but worth it for batch reuse. |
-| Prefix match | "Why my cache missed" | Caches only hit when every token from the start up to the breakpoint is byte-identical. |
-| Context caching (Gemini) | "The explicit one" | Google's named, storage-billed cache object; best for multi-day reuse of large corpora. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Prompt caching | "Makes long prompts cheap" | Reusing a provider-side KV-cache for matching prefixes; 50-90% discount on repeated input tokens. | |
+| `cache_control` | "The Anthropic marker" | Content-block attribute that declares "everything up to here is cacheable"; `{"type": "ephemeral"}`. | |
+| Cache write | "Paying the premium" | The first request that populates the cache; billed at ~1.25x input rate on Anthropic, free on OpenAI. | |
+| Cache read | "The discount" | Subsequent requests matching the prefix; billed at 10% (Anthropic), 50% (OpenAI), ~25% (Gemini). | |
+| TTL | "How long it lives" | Seconds the cache stays warm; Anthropic 5m default (extendable 1h), OpenAI best-effort up to 1h, Gemini user-set. | |
+| Extended TTL | "1-hour Anthropic cache" | `{"type": "ephemeral", "ttl": "1h"}`; 2x write premium but worth it for batch reuse. | |
+| Prefix match | "Why my cache missed" | Caches only hit when every token from the start up to the breakpoint is byte-identical. | |
+| Context caching (Gemini) | "The explicit one" | Google's named, storage-billed cache object; best for multi-day reuse of large corpora. | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Anthropic — Prompt caching](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching) — `cache_control`, 1h TTL, break-even tables.
 - [OpenAI — Prompt caching](https://platform.openai.com/docs/guides/prompt-caching) — automatic prefix matching.

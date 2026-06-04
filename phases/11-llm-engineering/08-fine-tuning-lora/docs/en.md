@@ -19,7 +19,10 @@
 - Fine-tune a model using QLoRA (4-bit quantized base + LoRA adapters) to fit within consumer GPU memory
 - Merge LoRA weights back into the base model for deployment and compare inference speed with and without adapters
 
-## The Problem
+> **【中文解读】** 本课目标：用 LoRA/QLoRA 进行参数高效微调。LoRA 仅训练低秩分解矩阵（百万级参数），而非全参数（数十亿），使微调成本降低 90%+。
+
+
+## The Problem | 问题引入
 
 You have a base model. Llama 3 8B. You want it to answer customer support tickets in your company's voice. SFT is the answer. But SFT has a cost problem.
 
@@ -33,7 +36,12 @@ There's a deeper problem too. Full fine-tuning modifies every weight in the mode
 
 You need a method that trains fewer parameters, uses less memory, and doesn't destroy the model's existing knowledge.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** LoRA（Low-Rank Adaptation）是参数高效微调（PEFT）的核心方法：冻结原始权重，仅训练低秩分解矩阵（A*B），将可训练参数从数十亿降到数百万。QLoRA 进一步量化基础模型到 4-bit，在单张消费级 GPU 上微调大模型。
+
+> **【拓展：LoRA 的工程实践】** LoRA 的秩（rank）通常设为 8-64，应用于 Q/V 投影矩阵效果最好。QLoRA（4-bit 基础模型 + LoRA）让你在单张 RTX 4090 上微调 Llama-3-8B。HuggingFace PEFT 库让 LoRA 微调几行代码即可实现。LoRA 的成本约为全参数微调的 1/10，且效果接近。
+
 
 ### LoRA: Low-Rank Adaptation
 
@@ -222,7 +230,7 @@ graph TD
     style Done fill:#0f3460,stroke:#16213e,color:#fff
 ```
 
-## Build It
+## Build It | 动手实现
 
 We implement LoRA from scratch in pure PyTorch. No libraries. No magic. You'll build the LoRA layer, inject it into a model, train it, and merge the weights back.
 
@@ -427,7 +435,7 @@ def demo():
 
 The demo creates a small model, injects LoRA into two layers, trains it, and merges the weights back. The parameter count drops from full trainable to ~1% trainable during LoRA training, then returns to the original architecture after merging.
 
-## Use It
+## Use It | 用框架实现
 
 With the Hugging Face ecosystem, LoRA on a real model takes about 20 lines:
 
@@ -506,13 +514,13 @@ model.save_pretrained("./lora-adapter")
 
 The saved adapter is 10-100MB. The base model stays untouched. You can share adapters on the Hugging Face Hub without redistributing the full model.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-lora-advisor.md` -- a prompt that helps you decide LoRA rank, target modules, and hyperparameters for your specific task
 - `outputs/skill-fine-tuning-guide.md` -- a skill that teaches agents the decision tree for when and how to fine-tune
 
-## Exercises
+## Exercises | 练习题
 
 1. **Rank ablation study.** Run the demo with ranks 2, 4, 8, 16, 32, and 64. Plot final loss vs. rank. Find the point of diminishing returns where doubling the rank no longer halves the loss. For a simple classification task on 256-dim features, this should be around r=8-16.
 
@@ -524,22 +532,22 @@ This lesson produces:
 
 5. **Merge vs. unmerged inference.** Compare the output of the LoRA model before and after merge_lora_weights on the same 100 inputs. Verify the outputs are identical (within floating-point tolerance of 1e-5). Then benchmark inference speed for both -- merged should be slightly faster since it's a single matrix multiply instead of two.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| LoRA | "Efficient fine-tuning" | Low-Rank Adaptation: freeze base weights, train two small matrices A and B whose product approximates the full weight update |
-| QLoRA | "Fine-tune on a laptop" | Quantized LoRA: load the base model in 4-bit NF4, train LoRA adapters in fp16 on top, enabling 7B fine-tuning in 6GB VRAM |
-| Rank (r) | "How much the model can learn" | The inner dimension of the A and B matrices; controls expressiveness vs. parameter count |
-| Alpha | "LoRA learning rate" | Scaling factor applied to the LoRA output; alpha/r scales the adaptation's contribution to the final output |
-| NF4 | "4-bit quantization" | Normal Float 4: a 4-bit data type with quantization levels at normal distribution quantiles, optimal for neural network weights |
-| Adapter | "The small trained part" | The LoRA A and B matrices saved as a separate file (10-100MB), loadable on top of any copy of the base model |
-| Target modules | "Which layers to LoRA" | The specific linear layers (q_proj, v_proj, etc.) where LoRA adapters are injected |
-| Merging | "Bake it in" | Computing W + (alpha/r) * BA and replacing the original weight, eliminating the adapter overhead at inference |
-| Paged optimizers | "Don't OOM during training" | Offloading optimizer states (Adam momentum, variance) to CPU when GPU memory is exhausted |
-| Catastrophic forgetting | "Fine-tuning broke everything else" | When updating all weights causes the model to lose previously learned capabilities |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| LoRA | "Efficient fine-tuning" | Low-Rank Adaptation: freeze base weights, train two small matrices A and B whose product approximates the full weight update | |
+| QLoRA | "Fine-tune on a laptop" | Quantized LoRA: load the base model in 4-bit NF4, train LoRA adapters in fp16 on top, enabling 7B fine-tuning in 6GB VRAM | |
+| Rank (r) | "How much the model can learn" | The inner dimension of the A and B matrices; controls expressiveness vs. parameter count | |
+| Alpha | "LoRA learning rate" | Scaling factor applied to the LoRA output; alpha/r scales the adaptation's contribution to the final output | |
+| NF4 | "4-bit quantization" | Normal Float 4: a 4-bit data type with quantization levels at normal distribution quantiles, optimal for neural network weights | |
+| Adapter | "The small trained part" | The LoRA A and B matrices saved as a separate file (10-100MB), loadable on top of any copy of the base model | |
+| Target modules | "Which layers to LoRA" | The specific linear layers (q_proj, v_proj, etc.) where LoRA adapters are injected | |
+| Merging | "Bake it in" | Computing W + (alpha/r) * BA and replacing the original weight, eliminating the adapter overhead at inference | |
+| Paged optimizers | "Don't OOM during training" | Offloading optimizer states (Adam momentum, variance) to CPU when GPU memory is exhausted | |
+| Catastrophic forgetting | "Fine-tuning broke everything else" | When updating all weights causes the model to lose previously learned capabilities | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - Hu et al., "LoRA: Low-Rank Adaptation of Large Language Models" (2021) -- the original paper introducing the low-rank decomposition method, tested on GPT-3 175B with rank as low as 4
 - Dettmers et al., "QLoRA: Efficient Finetuning of Quantized Language Models" (2023) -- introduces NF4, double quantization, and paged optimizers, enabling 65B fine-tuning on a single 48GB GPU

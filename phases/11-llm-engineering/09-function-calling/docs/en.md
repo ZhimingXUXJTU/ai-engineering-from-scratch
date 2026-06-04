@@ -19,7 +19,10 @@
 - Build a multi-turn agent loop that chains multiple function calls to answer complex queries
 - Handle function calling edge cases: parallel tool calls, error propagation, and preventing infinite tool loops
 
-## The Problem
+> **【中文解读】** 本课目标：掌握函数调用（Function Calling）让 LLM 调用外部工具。这是构建 AI Agent 的基础——模型通过调用搜索、数据库、API 等工具获取信息和执行操作。
+
+
+## The Problem | 问题引入
 
 You build a chatbot. A user asks: "What's the weather in Tokyo right now?"
 
@@ -33,7 +36,12 @@ This is function calling. The model outputs structured JSON describing which fun
 
 Without function calling, LLMs are encyclopedias. With it, they become agents.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 函数调用（Function Calling）让 LLM 生成结构化的工具调用请求，而不是纯文本回复。这是构建 AI Agent 的基础——模型通过调用外部工具（搜索、数据库查询、API）来获取信息和执行操作。
+
+> **【拓展：函数调用与 Agent 系统】** OpenAI 的函数调用于 2023 年推出，现已支持并行调用和强制调用。LangChain、CrewAI、AutoGen 等 Agent 框架都基于函数调用构建。实际应用包括：模型决定调用搜索 API 获取实时信息、调用 SQL 查询数据库、调用 Python 执行计算。
+
 
 ### The Function Calling Loop
 
@@ -175,7 +183,7 @@ One MCP server can expose tools to any compatible client. A Postgres MCP server 
 
 MCP is to function calling what HTTP is to networking. It standardizes the transport layer so tools become portable.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Define the Tool Registry
 
@@ -559,7 +567,7 @@ def run_demo():
         print(f"  {tool_name}({list(args.values())[0][:40]}): {'BLOCKED' if blocked else 'ALLOWED'}")
 ```
 
-## Use It
+## Use It | 用框架实现
 
 ### OpenAI Function Calling
 
@@ -675,13 +683,13 @@ Anthropic returns tool calls as content blocks with `type: "tool_use"`. The tool
 
 MCP decouples tool implementation from tool consumption. The Postgres server knows SQL. The GitHub server knows the API. Your agent just discovers and calls tools -- it does not need provider-specific code for each integration.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-tool-designer.md` -- a reusable prompt template for designing tool definitions. Give it a description of what you want a tool to do, and it produces the complete JSON Schema definition with descriptions, types, and constraints.
 
 It also produces `outputs/skill-function-calling-patterns.md` -- a decision framework for implementing function calling in production, covering tool design, error handling, security, and provider-specific patterns.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Add a 6th tool: database query.** Implement a simulated SQL tool with an in-memory table. The tool accepts a table name and filter conditions (not raw SQL). Validate that the table name is in an allowlist and that filter operators are restricted to `=`, `>`, `<`, `>=`, `<=`. Return matching rows as JSON.
 
@@ -693,22 +701,22 @@ It also produces `outputs/skill-function-calling-patterns.md` -- a decision fram
 
 5. **Implement tool call caching.** If the same tool is called with identical arguments within 60 seconds, return the cached result instead of re-executing. Use a dictionary keyed by `(tool_name, frozenset(args.items()))`. Measure cache hit rates across a conversation with 20 queries.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Function calling | "Tool use" | The model outputs structured JSON describing a function to invoke with specific arguments -- your code executes it, not the model |
-| Tool definition | "Function schema" | A JSON Schema object describing a tool's name, purpose, parameters, and types -- the model reads this to decide when and how to use the tool |
-| Tool choice | "Calling mode" | Controls whether the model must call a tool (required), may call a tool (auto), or must call a specific tool (named) |
-| Parallel calling | "Multi-tool" | The model outputs multiple tool calls in a single turn, reducing round trips -- GPT-4o and Claude both support this |
-| Tool result | "Function output" | The return value from executing a tool, sent back to the model as a message so it can use real data in its response |
-| Argument validation | "Input checking" | Verifying that model-generated arguments match the expected types, ranges, and constraints before executing the tool |
-| MCP | "Tool protocol" | Model Context Protocol -- Anthropic's open standard for exposing tools via servers that any compatible client can discover and call |
-| Agent loop | "ReAct loop" | The iterative cycle of model-decides-tool, code-executes-tool, result-feeds-back until the model has enough information to respond |
-| Tool poisoning | "Prompt injection via tools" | An attack where tool results contain instructions that manipulate the model's behavior -- sanitize all tool outputs |
-| Rate limiting | "Call budget" | Setting a maximum number of tool calls per conversation to prevent infinite loops and runaway API costs |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Function calling | "Tool use" | The model outputs structured JSON describing a function to invoke with specific arguments -- your code executes it, not the model | |
+| Tool definition | "Function schema" | A JSON Schema object describing a tool's name, purpose, parameters, and types -- the model reads this to decide when and how to use the tool | |
+| Tool choice | "Calling mode" | Controls whether the model must call a tool (required), may call a tool (auto), or must call a specific tool (named) | |
+| Parallel calling | "Multi-tool" | The model outputs multiple tool calls in a single turn, reducing round trips -- GPT-4o and Claude both support this | |
+| Tool result | "Function output" | The return value from executing a tool, sent back to the model as a message so it can use real data in its response | |
+| Argument validation | "Input checking" | Verifying that model-generated arguments match the expected types, ranges, and constraints before executing the tool | |
+| MCP | "Tool protocol" | Model Context Protocol -- Anthropic's open standard for exposing tools via servers that any compatible client can discover and call | |
+| Agent loop | "ReAct loop" | The iterative cycle of model-decides-tool, code-executes-tool, result-feeds-back until the model has enough information to respond | |
+| Tool poisoning | "Prompt injection via tools" | An attack where tool results contain instructions that manipulate the model's behavior -- sanitize all tool outputs | |
+| Rate limiting | "Call budget" | Setting a maximum number of tool calls per conversation to prevent infinite loops and runaway API costs | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [OpenAI Function Calling Guide](https://platform.openai.com/docs/guides/function-calling) -- the definitive reference for tool use with GPT-4o, including parallel calls, forced calling, and structured arguments
 - [Anthropic Tool Use Guide](https://docs.anthropic.com/en/docs/tool-use) -- Claude's tool use implementation with input_schema, multi-tool responses, and tool_choice configuration

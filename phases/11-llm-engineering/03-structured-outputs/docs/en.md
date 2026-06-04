@@ -19,7 +19,10 @@
 - Explain how constrained decoding forces valid JSON at the token level without post-processing
 - Design robust extraction prompts that reliably convert unstructured text into typed data structures
 
-## The Problem
+> **【中文解读】** 本课目标：让 LLM 输出结构化数据（JSON、XML、表格）。关键技术包括函数调用、JSON mode、约束解码。这是将 LLM 从聊天工具升级为工程组件的关键步骤。
+
+
+## The Problem | 问题引入
 
 You ask an LLM: "Extract the product name, price, and availability from this text." It responds:
 
@@ -33,7 +36,12 @@ The naive solution: add "Respond in JSON" to your prompt. This works 90% of the 
 
 This is not a prompt engineering problem. It is a decoding problem. The model generates tokens left to right. At each position, it picks the most likely next token from a vocabulary of 100K+ options. Most of those options would produce invalid JSON at any given position. If the model just emitted `{"price":`, the next token must be a digit, a quote (for string), `null`, `true`, `false`, or a negative sign. Anything else produces invalid JSON. Without constraints, the model might pick a perfectly reasonable English word that is catastrophically wrong syntactically.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 结构化输出是让 LLM 生成 JSON、XML 等格式的可控输出。关键技术：函数调用（Function Calling）让模型输出预定义的 JSON schema，JSON mode 强制模型生成合法 JSON，约束解码（constrained decoding）在 token 级别保证输出格式。
+
+> **【拓展：结构化输出的工程实践】** OpenAI 的 Structured Outputs（2024）保证模型输出严格匹配给定的 JSON Schema，可靠性从约 90% 提升到 100%。Instructor 库（Python）将 Pydantic 模型自动转为 JSON Schema 并验证输出。这是将 LLM 集成到生产系统的关键技术。
+
 
 ### The Structured Output Spectrum
 
@@ -137,7 +145,7 @@ Even with schema enforcement, structured outputs can fail in subtle ways.
 
 **Optional field omission**: the model omits fields that are technically optional but semantically important for your use case. Set them as required in the schema even if the data is sometimes missing -- force the model to produce `null` explicitly.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: JSON Schema Validator
 
@@ -423,7 +431,7 @@ def run_demo():
             print(f"  Output: FAILED after retries")
 ```
 
-## Use It
+## Use It | 用框架实现
 
 ### OpenAI Structured Outputs
 
@@ -506,13 +514,13 @@ Anthropic achieves structured output through tool use. The model emits a tool ca
 
 Instructor wraps any LLM client and adds automatic retries with validation. If the first attempt fails validation, it sends the errors back to the model as context and asks it to fix the output. This works with any provider, not just OpenAI.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-structured-extractor.md` -- a reusable prompt template that extracts structured data from any text given a schema definition. Feed it a JSON Schema and unstructured text, and it returns validated JSON.
 
 It also produces `outputs/skill-structured-outputs.md` -- a decision framework for choosing the right structured output strategy based on your provider, reliability requirements, and schema complexity.
 
-## Exercises
+## Exercises | 练习题
 
 1. Extend the schema validator to support `oneOf` (the data must match exactly one of several schemas). This handles polymorphic outputs -- for example, a field that can be either a `Product` or a `Service` object with different shapes.
 
@@ -524,22 +532,22 @@ It also produces `outputs/skill-structured-outputs.md` -- a decision framework f
 
 5. Add "confidence scores" to your extraction pipeline. For each extracted field, estimate how confident the model is (based on token probabilities, or by running extraction 3 times and measuring consistency). Flag low-confidence fields for human review.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| JSON mode | "Returns JSON" | API flag that guarantees syntactically valid JSON output, but does not enforce any particular schema |
-| Structured output | "Typed JSON" | Output that matches a specific JSON Schema with correct keys, types, and constraints |
-| Constrained decoding | "Guided generation" | At each token position, mask out tokens that would produce invalid output -- guarantees 100% schema compliance |
-| JSON Schema | "A JSON template" | A declarative language for describing the structure, types, and constraints of JSON data (used by OpenAPI, JSON Forms, etc.) |
-| Pydantic | "Python dataclasses+" | Python library that defines data models with type validation, used by FastAPI and Instructor to generate JSON Schemas |
-| Function calling | "Tool use" | LLM outputs a structured function invocation (name + typed arguments) instead of free text -- OpenAI and Anthropic both support this |
-| Instructor | "Pydantic for LLMs" | Python library that wraps LLM clients to return validated Pydantic instances, with automatic retry on validation failure |
-| Token masking | "Filtering the vocabulary" | Setting specific token probabilities to zero during generation so the model cannot produce them |
-| Schema compliance | "Matches the shape" | The output has every required field, correct types, values within constraints, and no extra disallowed fields |
-| Retry loop | "Try again until it works" | Send validation errors back to the model and ask it to fix the output -- Instructor does this automatically, up to a configurable max |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| JSON mode | "Returns JSON" | API flag that guarantees syntactically valid JSON output, but does not enforce any particular schema | |
+| Structured output | "Typed JSON" | Output that matches a specific JSON Schema with correct keys, types, and constraints | |
+| Constrained decoding | "Guided generation" | At each token position, mask out tokens that would produce invalid output -- guarantees 100% schema compliance | |
+| JSON Schema | "A JSON template" | A declarative language for describing the structure, types, and constraints of JSON data (used by OpenAPI, JSON Forms, etc.) | |
+| Pydantic | "Python dataclasses+" | Python library that defines data models with type validation, used by FastAPI and Instructor to generate JSON Schemas | |
+| Function calling | "Tool use" | LLM outputs a structured function invocation (name + typed arguments) instead of free text -- OpenAI and Anthropic both support this | |
+| Instructor | "Pydantic for LLMs" | Python library that wraps LLM clients to return validated Pydantic instances, with automatic retry on validation failure | |
+| Token masking | "Filtering the vocabulary" | Setting specific token probabilities to zero during generation so the model cannot produce them | |
+| Schema compliance | "Matches the shape" | The output has every required field, correct types, values within constraints, and no extra disallowed fields | |
+| Retry loop | "Try again until it works" | Send validation errors back to the model and ask it to fix the output -- Instructor does this automatically, up to a configurable max | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [OpenAI Structured Outputs Guide](https://platform.openai.com/docs/guides/structured-outputs) -- official documentation for JSON Schema-based constrained decoding in the OpenAI API
 - [Willard & Louf, 2023 -- "Efficient Guided Generation for Large Language Models"](https://arxiv.org/abs/2307.09702) -- the Outlines paper, describing how to compile JSON Schemas into finite state machines for token-level constraints

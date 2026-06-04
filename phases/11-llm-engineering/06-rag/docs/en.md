@@ -19,7 +19,10 @@
 - Explain why RAG is preferred over fine-tuning for knowledge-grounded applications (cost, freshness, attribution)
 - Evaluate RAG quality using retrieval metrics (precision, recall) and generation metrics (faithfulness, relevance)
 
-## The Problem
+> **【中文解读】** 本课目标：实现完整的 RAG（检索增强生成）管线——文档切分、嵌入生成、向量检索、上下文注入、答案生成。RAG 是解决 LLM 知识时效性和幻觉问题的主流方案。
+
+
+## The Problem | 问题引入
 
 You build a chatbot for your company. A customer asks "What's the refund policy for enterprise plans?" The LLM responds with a generic answer about typical SaaS refund policies. The actual policy, buried in a 200-page internal wiki, says enterprise customers get a 60-day window with pro-rated refunds. The LLM has never seen this document. It cannot know what it was not trained on.
 
@@ -27,7 +30,12 @@ Fine-tuning is one solution. Take the LLM, train it on your internal docs, and d
 
 RAG is the other solution. Leave the model untouched. When a question comes in, search your document store for relevant passages, paste them into the prompt before the question, and let the model answer using those passages as context. The document store can be updated in minutes. You can see exactly which documents were retrieved. The model itself never changes. This is why RAG is the dominant pattern in production: it's cheaper, fresher, more auditable, and works with any LLM.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** RAG（Retrieval-Augmented Generation，检索增强生成）将外部知识库与 LLM 结合：用户提问到从向量数据库检索相关文档到将检索结果注入 prompt 到 LLM 基于检索结果生成回答。RAG 解决了 LLM 的知识时效性和幻觉问题。
+
+> **【拓展：RAG 的生产实践】** 典型 RAG 管线：文档切分（chunking）到嵌入生成到向量存储（Pinecone/Weaviate/Chroma）到相似度检索到重排序（reranking）到注入 prompt。LlamaIndex 和 LangChain 是最流行的 RAG 框架。Meta 的研究显示 RAG 在知识密集型任务上将准确率提升了 30-50%。
+
 
 ### The RAG Pattern
 
@@ -183,7 +191,7 @@ Most production RAG systems use these parameters:
 - **Indexing throughput**: 100-1,000 documents per second with API embeddings
 - **Query latency**: 50-200ms for retrieval, 500-3000ms for generation
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Document Chunking
 
@@ -328,7 +336,7 @@ def simple_generate(prompt, retrieved_chunks):
     return best_sentence if best_sentence else "I don't have enough information."
 ```
 
-## Use It
+## Use It | 用框架实现
 
 With a real embedding model and LLM, the code barely changes:
 
@@ -392,13 +400,13 @@ results = collection.query(
 
 Chroma handles the embedding internally (it uses all-MiniLM-L6-v2 by default) and stores the vectors in a local database. Same pattern, different plumbing.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-rag-architect.md` -- a prompt for designing RAG systems for specific use cases
 - `outputs/skill-rag-pipeline.md` -- a skill that teaches agents how to build and debug RAG pipelines
 
-## Exercises
+## Exercises | 练习题
 
 1. Replace the TF-IDF embeddings with a simple bag-of-words approach (binary: 1 if word present, 0 if not). Compare retrieval quality on the sample documents. TF-IDF should outperform because it weights rare words higher.
 
@@ -410,22 +418,22 @@ This lesson produces:
 
 5. Build a conversation-aware RAG pipeline: maintain a history of the last 3 exchanges and include them in the prompt alongside the retrieved chunks. Test with follow-up questions like "What about enterprise?" after asking about pricing.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| RAG | "AI that reads your docs" | Retrieve relevant documents, paste them into the prompt, and generate an answer grounded in those documents |
-| Embedding | "Convert text to numbers" | A dense vector representation of text where similar meanings produce similar vectors |
-| Vector database | "Search engine for AI" | A data store optimized for storing vectors and finding the nearest neighbors by similarity |
-| Chunking | "Split docs into pieces" | Breaking documents into smaller segments (typically 256-512 tokens) so each can be embedded and retrieved independently |
-| Cosine similarity | "How similar are two vectors" | The cosine of the angle between two vectors; 1 = identical direction, 0 = orthogonal, -1 = opposite |
-| Top-k retrieval | "Get the k best matches" | Return the k most similar chunks to the query from the vector store |
-| Context window | "How much text the LLM can see" | The maximum number of tokens the LLM can process in a single request; retrieved chunks must fit within this |
-| Augmented generation | "Answer using given context" | Generating a response using retrieved documents as context rather than relying solely on trained knowledge |
-| TF-IDF | "Word importance scoring" | Term Frequency times Inverse Document Frequency; weights words by how distinctive they are within a corpus |
-| Indexing | "Preparing docs for search" | The offline process of chunking, embedding, and storing documents so they can be searched at query time |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| RAG | "AI that reads your docs" | Retrieve relevant documents, paste them into the prompt, and generate an answer grounded in those documents | |
+| Embedding | "Convert text to numbers" | A dense vector representation of text where similar meanings produce similar vectors | |
+| Vector database | "Search engine for AI" | A data store optimized for storing vectors and finding the nearest neighbors by similarity | |
+| Chunking | "Split docs into pieces" | Breaking documents into smaller segments (typically 256-512 tokens) so each can be embedded and retrieved independently | |
+| Cosine similarity | "How similar are two vectors" | The cosine of the angle between two vectors; 1 = identical direction, 0 = orthogonal, -1 = opposite | |
+| Top-k retrieval | "Get the k best matches" | Return the k most similar chunks to the query from the vector store | |
+| Context window | "How much text the LLM can see" | The maximum number of tokens the LLM can process in a single request; retrieved chunks must fit within this | |
+| Augmented generation | "Answer using given context" | Generating a response using retrieved documents as context rather than relying solely on trained knowledge | |
+| TF-IDF | "Word importance scoring" | Term Frequency times Inverse Document Frequency; weights words by how distinctive they are within a corpus | |
+| Indexing | "Preparing docs for search" | The offline process of chunking, embedding, and storing documents so they can be searched at query time | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - Lewis et al., "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks" (2020) -- the original RAG paper from Facebook AI Research that formalized the retrieve-then-generate pattern
 - Anthropic's RAG documentation (docs.anthropic.com) -- practical guidelines for chunk sizes, prompt construction, and evaluation
