@@ -23,7 +23,7 @@ Agents declare success too easily. Three failure shapes dominate:
 - "Acceptance met." Acceptance criteria interpreted loosely enough to mean "anything resembling done."
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 验证门在 Agent 执行的关键节点插入自动检查。常见验证门：(1) 编译检查——代码修改后必须通过编译；(2) 测试检查——提交前必须通过相关测试；(3) Lint 检查——代码必须符合风格规范；(4) 安全检查——不得引入已知漏洞。验证门防止错误累积。
 
 The workbench fix is a single verification gate that reads the artifacts the agent has already produced and makes the call. The gate is deterministic. The gate is in version control. The gate is wired into CI. The agent cannot bribe it.
 
@@ -42,7 +42,7 @@ flowchart TD
 ```
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 验证门在 Agent 执行的关键节点插入自动检查。常见验证门：(1) 编译检查——代码修改后必须通过编译；(2) 测试检查——提交前必须通过相关测试；(3) Lint 检查——代码必须符合风格规范；(4) 安全检查——不得引入已知漏洞。验证门防止错误累积。
 
 ### What the gate checks
 

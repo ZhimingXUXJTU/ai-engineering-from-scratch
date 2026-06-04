@@ -19,8 +19,9 @@
 Generalist agents can call tools. Can they drive a browser across 20 clicks to complete a shopping checkout? Can they configure a Linux box using only keyboard and mouse? These are the questions WebArena and OSWorld answer.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** WebArena 和 OSWorld 评估 Agent 在真实计算环境中的操作能力。WebArena 测试 Web 浏览器操作（购物、论坛、CMS）。OSWorld 测试桌面操作系统操作（文件管理、应用操作）。两者都是端到端评估——不看中间步骤，只看最终结果是否正确。
 
+> **{【拓展：WebArena (CMU, 2023) 创建了真实的 Web 环境（电商、论坛、GitLab），A...】}** WebArena (CMU, 2023) 创建了真实的 Web 环境（电商、论坛、GitLab），Agent 需要像人类一样浏览和操作。2026 年 SOTA 约 35% 成功率，人类约 80%。OSWorld (HKU, 2024) 提供真实的 Ubuntu/Windows/macOS 桌面环境，Agent 需要操作 GUI 完成任务。成功率更低，最好的 Agent 约 12%。
 ## The Concept | 概念
 
 ### WebArena (Zhou et al., ICLR 2024)

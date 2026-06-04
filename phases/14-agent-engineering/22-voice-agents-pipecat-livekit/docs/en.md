@@ -19,8 +19,9 @@
 Voice agents are not a text loop with TTS bolted on. Latency budgets are brutal (~600ms), partial audio is the default, turn detection is a model, and transports range from telephony SIP to WebRTC. Either you build a frame-based pipeline (Pipecat) or you lean on a platform (LiveKit).
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 语音 Agent 需要实时处理音频流——语音识别（ASR）、LLM 推理、语音合成（TTS）的延迟必须在 300ms 以内才能维持自然对话。Pipecat 和 LiveKit 提供了构建低延迟语音 Agent 的框架和基础设施。
 
+> **{【拓展：Pipecat（开源框架）和 LiveKit（实时音频基础设施）是 2026 年语音 Agent 生...】}** Pipecat（开源框架）和 LiveKit（实时音频基础设施）是 2026 年语音 Agent 生态的核心。Pipecat 提供模块化的音频处理管道，支持多种 ASR/TTS/LLM 后端。LiveKit 提供 WebRTC 基础设施，确保低延迟音频传输。代表产品包括 Pi AI、ChatGPT Voice 和 Claude Voice。
 ## The Concept | 概念
 
 ### Pipecat (pipecat-ai/pipecat)

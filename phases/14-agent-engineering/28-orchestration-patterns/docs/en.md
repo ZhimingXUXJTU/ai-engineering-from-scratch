@@ -19,8 +19,9 @@
 Teams reach for "multi-agent" before they need it. Four patterns recur across frameworks; once you can name them, you can pick the right one — or skip topology entirely.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** Agent 编排模式定义了多 Agent 系统中的任务分配和协调方式。四种核心模式：(1) 顺序——任务在 Agent 之间线性传递；(2) 并行——多个 Agent 同时处理不同子任务；(3) 分层——管理者 Agent 分配任务给工作者 Agent；(4) 对等——Agent 之间平等协作。
 
+> **{【拓展：Agent 编排是 2026 年生产 Agent 系统的核心挑战。Anthropic 的模式分类（P...】}** Agent 编排是 2026 年生产 Agent 系统的核心挑战。Anthropic 的模式分类（Prompt Chaining、Routing、Parallelization、Orchestrator-Workers）已成为标准。实际应用中，大多数系统混合使用多种模式——例如客服系统先用路由模式分类请求，再用分层模式分配给专门 Agent。LangGraph 的状态图是实现复杂编排的主流工具。
 ## The Concept | 概念
 
 ### Supervisor-worker

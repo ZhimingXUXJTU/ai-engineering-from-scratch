@@ -26,7 +26,7 @@ Agents fix this with one pattern: a loop that lets the model decide to pause, ca
 
 > **【中文解读】** LLM 本质上是一个自动补全器——问一个问题，返回一个字符串。它无法读文件、执行查询、打开浏览器或验证声明。Agent 的核心修复模式是：让模型能够暂停、调用工具、读取结果、继续思考的循环。Phase 14 中的所有额外能力——记忆、规划、子代理、辩论、评估——都是围绕这个循环搭建的脚手架。
 
-## The Concept
+## The Concept | 核心概念
 
 ### ReAct: the canonical format
 

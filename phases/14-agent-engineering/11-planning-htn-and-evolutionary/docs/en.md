@@ -22,8 +22,9 @@ ReWOO (Lesson 02), Plan-and-Execute, and ReAct cover most agent planning. Two ca
 2. **Optimizations with a machine-checkable fitness function.** Matrix multiplication, scheduling heuristics, compiler passes — the goal is not "a correct plan" but "the best plan."
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** Agent 规划的两种主要范式：分层任务网络（HTN）和进化规划。HTN 将高层目标递归分解为可执行的子任务，适合结构化领域。进化规划使用遗传算法优化计划种群，适合开放世界探索。现代 Agent 系统结合两者：HTN 提供结构，进化搜索提供灵活性。
 
+> **{【拓展：2026年 Agent 规划的前沿是 AlphaEvolve 和 Darwin-Godel Mach...】}** 2026年 Agent 规划的前沿是 AlphaEvolve 和 Darwin-Godel Machine（Phase 15）。这些系统将进化算法应用于 Agent 自身的策略优化——不仅是规划任务，更是规划和优化规划过程本身。HTN 在传统 AI 中已成熟数十年，但在 LLM Agent 中的应用仍是一个活跃的研究方向。
 HTN planning and AlphaEvolve solve the two different problems. Both use LLMs as amplifiers, not replacements.
 
 ## The Concept | 概念

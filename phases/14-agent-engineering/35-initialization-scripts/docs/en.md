@@ -21,7 +21,7 @@ Open a session. The agent guesses the Python version. Guesses the test command. 
 The fix is one initialization script that runs before the agent does anything else and writes a `init_report.json` the agent reads at startup.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 初始化脚本在 Agent 会话开始时设置环境和上下文。包括：(1) 环境探测——检查依赖、语言版本、工具链；(2) 项目分析——扫描文件结构、识别框架和约定；(3) 记忆加载——从上次会话恢复上下文。好的初始化脚本是 Agent 成功的前提。
 
 ## The Concept | 概念
 
@@ -36,7 +36,7 @@ flowchart TD
 ```
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 初始化脚本在 Agent 会话开始时设置环境和上下文。包括：(1) 环境探测——检查依赖、语言版本、工具链；(2) 项目分析——扫描文件结构、识别框架和约定；(3) 记忆加载——从上次会话恢复上下文。好的初始化脚本是 Agent 成功的前提。
 
 ### What the init script probes
 

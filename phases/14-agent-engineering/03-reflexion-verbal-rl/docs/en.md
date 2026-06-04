@@ -30,7 +30,7 @@ The result: on ALFWorld it beats ReAct and other non-fine-tuned baselines. On Ho
 
 > **【中文解读】** Agent 失败时，传统 RL 需要数千次试验和梯度更新。Reflexion 的思路是：让 Agent 思考失败原因，存入记忆，下次尝试时参考。无需权重更新、无需梯度，仅用自然语言在试验间传递经验。在 ALFWorld、HotpotQA、HumanEval 上都取得了显著改进。
 
-## The Concept
+## The Concept | 核心概念
 
 ### The three components
 
@@ -87,7 +87,7 @@ Reflexion does not help when:
 
 > **【中文解读】** Reflexion 适用场景：有明确失败信号、任务可重现、反思有改进空间。不适用场景：首次即成功、外部故障、反思变成迷信。2026 年的陷阱：记忆腐化——反思不断积累但部分已过时，解决方案是定期压缩、TTL 或异步清理 Agent。
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` implements Reflexion on a toy puzzle: produce a 3-element list that sums to a target. The Actor emits candidate lists; the Evaluator checks the sum; the Self-Reflector writes a line about what went wrong. The reflection goes into episodic memory for the next trial.
 
@@ -106,11 +106,11 @@ python3 code/main.py
 
 The trace shows three trials. Trial 1 fails, a reflection is stored, trial 2 sees the reflection and improves but still fails, trial 3 succeeds. Compare with a baseline run (no reflection) — it stays stuck at trial 1's answer.
 
-## Use It
+## Use It | 用框架实现
 
 LangGraph ships reflection as a node pattern. Claude Code's `/memory` command and pro-workflow's `/learn-rule` externalize the episodic buffer as a markdown file. Letta's sleep-time compute runs the Self-Reflector on downtime so the primary agent stays latency-bound. OpenAI Agents SDK does not ship Reflexion directly; you build it with a custom Guardrail that rejects trajectories by score and a memory `Session` that survives across runs.
 
-## Ship It
+## Ship It | 产出物
 
 `outputs/skill-reflexion-buffer.md` creates and maintains an episodic buffer with reflection capture, TTL, and deduplication. Given a task class and a failure, it emits a reflection that actually helps the next trial (not a generic "be more careful").
 
@@ -140,7 +140,7 @@ LangGraph ships reflection as a node pattern. Claude Code's `/memory` command an
 | Memory rot | "Stale reflections" | Episodic buffer fills with obsolete entries; fix with compaction/TTL | 记忆腐化——情景缓冲区填满过时条目 |
 | Sleep-time reflection | "Async self-reflection" | Run Self-Reflector off the hot path so primary agent stays fast | 异步反思——在非关键路径上运行反思 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Shinn et al., Reflexion: Language Agents with Verbal Reinforcement Learning (arXiv:2303.11366)](https://arxiv.org/abs/2303.11366) — the canonical paper
 - [Letta, Sleep-time Compute](https://www.letta.com/blog/sleep-time-compute) — async reflection in production

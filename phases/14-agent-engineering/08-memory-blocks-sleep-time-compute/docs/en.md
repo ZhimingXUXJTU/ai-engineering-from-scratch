@@ -23,8 +23,9 @@ MemGPT (Lesson 07) solved the virtual-memory control flow. Three production prob
 3. **Structure loss.** A flat archival store cannot express "the Human block is always in the prompt; the Persona block is always in the prompt; the Task block swaps per session."
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 记忆块（Memory Blocks）和休眠计算（Sleep-Time Compute）是 MemGPT/Letta 的两种优化策略。记忆块是固定大小的上下文分区，类似于内存页，用于精细控制上下文窗口中各类信息的占比。休眠计算指在用户不活跃时预先处理和压缩记忆，减少下次会话的延迟。
 
+> **{【拓展：Letta（原 MemGPT）在 2024-2025 年的演进中引入了记忆块和休眠计算两个关键概念。...】}** Letta（原 MemGPT）在 2024-2025 年的演进中引入了记忆块和休眠计算两个关键概念。记忆块将上下文窗口划分为系统指令、核心记忆、对话历史等固定分区，避免信息混淆。休眠计算利用空闲时间做记忆整理和预计算，类似于操作系统的后台内存整理（compaction）。
 Letta (letta.com) is the 2026 rewrite. Memory blocks make structure explicit; sleep-time compute moves consolidation off the critical path.
 
 ## The Concept | 概念

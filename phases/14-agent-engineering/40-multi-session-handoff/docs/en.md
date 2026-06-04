@@ -21,7 +21,7 @@ The session ends. The agent says "great, we made progress." The next session ope
 The cost of a bad handoff is paid every session for the life of the task. The fix is a packet generated automatically at session end: what changed, why, what was tried, what failed, what is left, what to do first next time.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 多会话交接处理 Agent 跨多个会话的连续性。当一次会话因超时、token 限制或用户中断而结束时，Agent 需要将上下文传递给下一次会话。关键技术：(1) 会话摘要——压缩关键信息；(2) 检查点——保存中间状态；(3) 恢复协议——新会话如何加载旧状态。
 
 ## The Concept | 概念
 
@@ -36,7 +36,7 @@ flowchart LR
 ```
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 多会话交接处理 Agent 跨多个会话的连续性。当一次会话因超时、token 限制或用户中断而结束时，Agent 需要将上下文传递给下一次会话。关键技术：(1) 会话摘要——压缩关键信息；(2) 检查点——保存中间状态；(3) 恢复协议——新会话如何加载旧状态。
 
 ### Seven fields every handoff carries
 

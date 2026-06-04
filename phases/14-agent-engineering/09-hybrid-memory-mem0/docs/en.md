@@ -23,8 +23,9 @@ One store is wrong for one of three query classes:
 - **Relationship reasoning** — "which customers share the same billing entity?" Graph wins; vector and KV cannot answer.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 混合记忆系统（Mem0）结合了短期工作记忆和长期持久化记忆。短期记忆存储在上下文窗口中，长期记忆使用向量数据库和图数据库。Mem0 的核心创新是自动记忆提取——从对话中自动识别需要持久化的信息并存储。
 
+> **{【拓展：Mem0 (2024-2025) 是目前最流行的 Agent 记忆解决方案之一，GitHub 25k...】}** Mem0 (2024-2025) 是目前最流行的 Agent 记忆解决方案之一，GitHub 25k+ stars。它的三层架构：短期记忆（上下文窗口）、长期记忆（向量 + 图数据库）、 episodic 记忆（事件序列）。Mem0 的自动记忆提取能力意味着开发者不需要手动管理记忆——Agent 自动决定什么值得记住。
 Production agents issue all three in one session. A single-store memory is always wrong for two of them. Mem0's contribution is wiring all three behind a single `add`/`search` surface with a scoring function that fuses them.
 
 ## The Concept | 概念

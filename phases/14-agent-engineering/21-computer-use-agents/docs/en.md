@@ -19,8 +19,9 @@
 Desktop and web agents have to see the screen and drive input. Three vendors shipped productions in the past 18 months. Each made different trade-offs on latency, scope, and safety. Know all three before you pick.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** Computer Use Agents (CUA) 是能直接操作计算机 GUI 的 Agent——截屏、点击、输入、滚动。Anthropic 的 Computer Use 和 OpenAI 的 Operator 是两个代表性系统。CUA 的核心挑战是将像素级观察映射到有意义的高层操作。
 
+> **{【拓展：Computer Use 是 2024-2025 年 AI 的重大突破之一。Anthropic 的 ...】}** Computer Use 是 2024-2025 年 AI 的重大突破之一。Anthropic 的 Claude 3.5 Sonnet 是首个广泛可用的 CUA，OpenAI 的 Operator（基于 CUA）紧随其后。关键技术：屏幕截图→视觉编码→动作预测→执行→观察的循环。CUA 的优势是通用性——不需要 API，只要人类能用，Agent 就能用。
 ## The Concept | 概念
 
 ### Claude computer use (Anthropic, Oct 22 2024)

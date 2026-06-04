@@ -21,8 +21,9 @@ LLMs cannot reliably distinguish instructions that come from the user from instr
 This is the defining agent security problem of 2024-2026. Every production agent has to defend against it.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** Prompt 注入是 Agent 系统最严重的安全威胁之一。攻击者通过工具输出、用户输入或第三方内容注入恶意指令，操控 Agent 执行非预期操作。防御需要多层保护——没有单一防御能完全阻止注入。
 
+> **{【拓展：Prompt 注入防御是 2025-2026 年的活跃研究领域。主要防御策略：(1) 输入/输出分离...】}** Prompt 注入防御是 2025-2026 年的活跃研究领域。主要防御策略：(1) 输入/输出分离——将不可信输入和系统指令隔离；(2) 检测器——使用第二个模型检测注入；(3) 权限最小化——限制 Agent 能执行的操作；(4) 人机确认——对高影响操作要求用户确认。Anthropic 的 Constitutional AI 也是防御层之一。
 ## The Concept | 概念
 
 ### Greshake et al., AISec 2023 (arXiv:2302.12173)

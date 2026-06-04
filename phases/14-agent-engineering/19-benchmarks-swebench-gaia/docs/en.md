@@ -24,8 +24,9 @@ Leaderboards tell you which model wins on one benchmark. They do not tell you:
 - Whether the evaluator is robust (AST matching, state checks, human review).
 
 
-> **【中文解读】** 本节介绍了 Agent 评估基准——如何衡量 Agent 在各类任务上的表现。
+> **【中文解读】** SWE-bench 和 GAIA 是 2026 年最重要的两个 Agent 能力基准。SWE-bench 评估 Agent 修复真实 GitHub issue 的能力（软件工程）。GAIA 评估 Agent 回答需要多步推理和工具使用的复杂问题的能力（通用推理）。两者共同定义了 Agent 的能力边界。
 
+> **{【拓展：SWE-bench (Princeton, 2023) 包含 2,294 个真实 GitHub is...】}** SWE-bench (Princeton, 2023) 包含 2,294 个真实 GitHub issue，Agent 必须在真实代码库中定位 bug、编写修复并通过测试。2026 年 SOTA 是 72% 解决率（OpenAI 的 Codex）。GAIA (Meta, 2023) 的 466 个问题需要 web 搜索、文件处理、代码执行等工具。人类平均 92%，最好的 Agent 约 70%。
 Know the three anchoring benchmarks and their failure modes before you quote a number.
 
 ## The Concept | 概念
