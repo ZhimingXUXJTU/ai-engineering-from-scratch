@@ -51,7 +51,9 @@ That "whatever order you click" part is both the superpower and the foot-gun.
 > **【中文解读】**
 > Notebook 由多个"单元格"（cell）组成，每个单元格可以是代码或 Markdown。所有单元格共享同一个 Kernel（Python 进程），变量在单元格之间持久存在。"按任意顺序执行"既是超能力也是大坑——乱序执行会导致别人无法复现你的结果。
 
-## Build It
+## Build It | 动手搭建
+
+> **【拓展：Jupyter 在 AI 行业中的地位】** 几乎所有 AI 论文附带的可复现代码都是 Jupyter Notebook 格式。Kaggle 比赛方案、Hugging Face 示例、PyTorch 教程都用它。Google Colab 本质上就是云端的 Jupyter，预装了 PyTorch/TensorFlow，并免费提供 GPU。本课程中有大量 `.ipynb` 练习。
 
 ### Step 1: Pick your interface | 选择你的界面
 
@@ -160,7 +162,9 @@ The `!` prefix runs any shell command.
 %env CUDA_VISIBLE_DEVICES  # 查看环境变量
 ```
 
-### Step 5: Display rich output inline
+### Step 5: Display rich output inline | 第5步：内嵌富文本输出
+
+> **【拓展：Notebook 是最佳 AI 实验记录工具】** Notebook 把代码、输出、图表、公式整合在一个文档中，形成了完整的"实验记录"。在 AI 研究中，这意味着别人可以直接复现你的实验——这是论文审稿的基本要求。vscode 的 Jupyter 扩展让你在编辑器内就能获得完整的 Notebook 体验。
 
 Notebooks auto-display the last expression in a cell. But you can control it:
 
@@ -195,7 +199,7 @@ from IPython.display import Image, display
 display(Image(filename="architecture.png"))
 ```
 
-### Step 6: Google Colab
+### Step 6: Google Colab | 第6步：Google Colab
 
 Colab is a free Jupyter notebook in the cloud. It gives you a GPU, pre-installed libraries, and Google Drive integration. No setup required.
 
@@ -243,7 +247,9 @@ A common workflow in AI:
 3. Once it works, move the code to `.py` files
 4. Import those `.py` files back into the notebook for further experiments
 
-### Common traps
+### Common traps | 常见陷阱
+
+> **【拓展：Notebook 反模式】** 三个最常见的 Notebook 反模式：(1) 乱序执行——你跳着跑 cell，别人从头跑就挂了；(2) 隐藏状态——你删了某个 cell，但它创建的变量还在内存中；(3) 内存泄漏——加载 4GB 数据集、训练模型、再加载另一个，内存不断增长。解法：定期 `Kernel > Restart & Run All`，或在训练后用 `del model; gc.collect()` 释放内存。
 
 **Out-of-order execution.** You run cell 5, then cell 2, then cell 7. The notebook works on your machine but breaks when someone runs it top to bottom. Fix: Kernel > Restart & Run All before sharing.
 
@@ -251,7 +257,9 @@ A common workflow in AI:
 
 **Memory leaks.** Loading a 4GB dataset, training a model, loading another dataset. Nothing gets freed. Fix: `del variable_name` and `gc.collect()`, or restart the kernel.
 
-## Ship It
+## Ship It | 产出物
+
+> **【拓展：从 Notebook 到生产代码】** 真正的 AI 工程流程：Notebook 实验 → 验证想法 → 将代码重构为 `.py` 模块 → 编写测试 → 部署。Notebook 是"草稿纸"，不是"最终产品"。养成习惯：实验完成后，把核心代码迁移到 `.py` 文件中，Notebook 只保留调用和可视化。
 
 This lesson produces:
 - `outputs/prompt-notebook-helper.md` for debugging notebook issues
@@ -281,7 +289,7 @@ This lesson produces:
 | Magic command | "Jupyter 魔法" | 以 `%` 或 `%%` 开头的特殊命令，控制笔记本环境 |
 | `.ipynb` | "笔记本文件" | 包含单元格、输出和元数据的 JSON 文件 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [JupyterLab Docs](https://jupyterlab.readthedocs.io/) for the full feature set
 - [Google Colab FAQ](https://research.google.com/colaboratory/faq.html) for Colab-specific limits and features

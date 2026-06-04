@@ -50,7 +50,9 @@ Your options:
 > **【拓展：GPU 为什么适合 AI？】**
 > GPU 拥有数千个核心，擅长并行执行大量简单计算（如矩阵乘法）。神经网络的训练本质上就是海量的矩阵运算，因此 GPU 能提供数十到上百倍的加速。NVIDIA 的 CUDA 是目前 AI 领域的主流 GPU 计算平台。
 
-## Build It
+## Build It | 动手搭建
+
+> **【中文解读】** 以下提供三种 GPU 方案：本地 NVIDIA 显卡（免费但需要硬件）、Google Colab（免费云 GPU）、云 GPU 租赁（按小时付费）。根据你的条件选择一种即可。
 
 ### Option 1: Local NVIDIA GPU | 本地 NVIDIA GPU
 
@@ -92,6 +94,8 @@ python -c "import torch; print(torch.cuda.get_device_name(0))"
 ```
 
 ### No GPU? No problem. | 没 GPU？没关系。
+
+> **【拓展：显存估算经验公式】** fp16 下每个参数占 2 字节。7B 参数模型（如 Llama 2 7B）需要约 14GB 显存。加上优化器状态（Adam 需要 2 倍参数量的额外显存），训练 7B 模型实际需要约 40-50GB 显存（一张 A100 80GB 可以跑）。推理则只需约 14GB。这就是为什么 `device = "cuda" if available else "cpu"` 这行代码在 AI 工程中随处可见。
 
 Most lessons work on CPU. The ones that need GPU will say so and include Colab links.
 
@@ -142,6 +146,8 @@ if torch.cuda.is_available():
    检查你的 GPU 显存大小，估算能装下的最大模型（经验法则：fp16 下每个参数占 2 字节）
 
 ## Key Terms | 关键术语
+
+> **【拓展：2026 年 GPU 市场参考】** AI 训练的主流 GPU：RTX 4090（24GB，~$1600，个人学习首选）、A100（80GB，云端约 $2/hr）、H100（80GB，云端约 $3/hr，训练大模型首选）。Google Colab 免费版提供 T4（16GB），足够跑完本课程大部分实验。
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|

@@ -26,7 +26,9 @@ AI projects are dependency nightmares. A typical stack includes Python, PyTorch,
 > **【中文解读】**
 > AI 项目是最需要 Docker 的项目类型之一。CUDA 版本不兼容、PyTorch 版本冲突、cuDNN 缺失——这些问题用 Docker 一次性解决。
 
-## The Concept
+## The Concept | 核心概念
+
+> **【拓展：Docker 在 AI 中的三大用途】** (1) **环境一致性**：在自己电脑上训练好的模型，部署到服务器时不会因为库版本不同而报错；(2) **GPU 隔离**：多人共享一台 GPU 服务器，每人一个容器互不干扰；(3) **一键部署**：`docker run` 一条命令启动完整的 AI 服务（模型 + API + 前端），无需手动配置。Hugging Face 的 TGI、vLLM 等推理框架都提供 Docker 镜像。
 
 Docker wraps your code, runtime, libraries, and system tools into an isolated unit called a container. Think of it as a lightweight virtual machine, except it shares the host OS kernel instead of running its own, so it starts in seconds instead of minutes.
 
@@ -45,7 +47,9 @@ graph TD
     end
 ```
 
-### Why AI projects need Docker more than most
+### Why AI projects need Docker more than most | 为什么 AI 项目特别需要 Docker
+
+> **【中文解读】** AI 项目的依赖链特别深：Python → PyTorch → CUDA → cuDNN → 系统级 C 库。任何一层版本不匹配都会导致训练崩溃或推理结果不一致。Docker 把所有层次打包成一个镜像，确保"在我机器上能跑"变成"在哪都能跑"。
 
 1. **GPU drivers are fragile.** CUDA 12.4 code does not run on CUDA 11.8. Docker isolates the CUDA toolkit inside the container while sharing the host GPU driver through the NVIDIA Container Toolkit.
 
@@ -71,7 +75,9 @@ graph TD
 | Volume（卷） | 持久化存储，容器重启后数据不丢失。 |
 | docker-compose | 用 YAML 定义多容器应用的编排工具。 |
 
-### Common container patterns in AI
+### Common container patterns in AI | AI 中常见的容器模式
+
+> **【拓展：AI 部署的标准模式】** 最常见的 AI 容器模式：(1) **训练容器**——挂载数据集目录，训练完输出模型权重；(2) **推理容器**——加载模型权重，提供 REST API；(3) **Jupyter 容器**——预装所有库的 Notebook 环境。Hugging Face、NVIDIA NGC 提供了大量预构建的 AI 基础镜像。
 
 ```
 Dev Container
@@ -87,7 +93,7 @@ Inference Container
   Runs behind a load balancer in production.
 ```
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Install Docker
 
@@ -134,7 +140,9 @@ docker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi
 
 If you see your GPU info, the toolkit is working.
 
-### Step 3: Understand base images
+### Step 3: Understand base images | 第3步：理解基础镜像
+
+> **【中文解读】** 基础镜像是 Dockerfile 的起点。AI 项目推荐使用 NVIDIA 官方的 CUDA 镜像（`nvidia/cuda:12.4.0-devel-ubuntu22.04`）或 PyTorch 官方镜像（`pytorch/pytorch:2.4.0-cuda12.4`），它们预装了 CUDA 运行时和深度学习库。选错基础镜像会导致 GPU 不可用。
 
 Choosing the right base image saves hours of debugging.
 
@@ -355,7 +363,9 @@ docker cp <container_id>:/workspace/results.csv ./results.csv
 docker logs -f <container_id>
 ```
 
-## Use It
+## Use It | 使用指南
+
+> **【拓展：Docker vs Conda 选择指南】** 简单项目用 Conda/uv 即可；需要部署或多人协作时用 Docker。经验法则：如果你说"在我机器上能跑"，说明你该用 Docker 了。本课程大部分课程不需要 Docker，但 Phase 17（基础设施与生产部署）会深度使用。
 
 You now have a reproducible AI development environment. For the rest of this course:
 

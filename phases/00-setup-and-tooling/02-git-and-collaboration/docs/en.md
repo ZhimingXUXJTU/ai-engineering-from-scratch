@@ -17,6 +17,8 @@
 > **【中文解读】**
 > Git 是版本控制工具，用于追踪代码的每一次修改。在 AI 项目中，你会在实验中频繁修改模型参数和代码，Git 让你能随时回退到之前的任何一个状态。
 
+> **【拓展：Git 在 AI 工程中的角色】** AI 工程和传统软件开发不同——每次实验（超参数调整、数据集变更）都是一个"版本"。用 Git 追踪实验意味着：训练结果变差了，你可以 `git diff` 找出改了什么；模型部署出问题，可以 `git revert` 回滚。大模型团队（如 Hugging Face）的协作流程完全建立在 Git 之上。
+
 ## The Problem | 问题描述
 
 You're about to write hundreds of code files across 20 phases. Without version control you will lose work, break things you can't undo, and have no way to collaborate with others.
@@ -49,7 +51,9 @@ Three things to remember:
 > **【中文解读】**
 > Git 的核心流程：工作目录 → 暂存区（git add）→ 本地仓库（git commit）→ 远程仓库（git push）。记住三件事：经常提交、推送到远程、用分支做实验。
 
-## Build It
+> **【拓展：分支策略与 AI 实验】** AI 项目推荐"每实验一个分支"策略：`experiment/lr-0.001`、`experiment/add-dropout` 等。这样每次实验的代码变更都被隔离，实验失败直接删分支，成功则合并。大型 AI 项目还会用 Git tag 标记模型版本（如 `v1.0-baseline`），方便部署时精确指定代码版本。
+
+## Build It | 动手实现
 
 ### Step 1: Configure git
 
@@ -78,7 +82,9 @@ git checkout main                         # 切回主分支
 git merge experiment/new-optimizer        # 把实验分支的改动合并到主分支
 ```
 
-### Step 4: Working with this course repo
+### Step 4: Working with this course repo | 第4步：使用本课程仓库
+
+> **【拓展：Fork vs Clone】** 如果你想保存自己的学习进度而不影响原仓库，用 `fork`（在 GitHub 上操作）而不是直接 clone。Fork 后你有自己的一份完整副本，可以自由提交。之后还可以通过 Pull Request 把改进提交回原仓库。
 
 ```bash
 git clone https://github.com/rohitg00/ai-engineering-from-scratch.git
@@ -90,6 +96,8 @@ git push origin my-progress
 ```
 
 ## Use It | 使用指南
+
+> **【拓展：.gitignore 在 AI 项目中至关重要】** AI 项目会产生大量不该提交的大文件：模型权重（`.pt`、`.safetensors` 可达数十 GB）、训练日志、数据集缓存（`__pycache__`、`.venv`）。一个良好的 `.gitignore` 能防止你意外把 10GB 的模型文件推到 GitHub。推荐使用 `gitignore.io` 生成 Python/ML 项目的模板。
 
 For this course, you need exactly these commands:
 
@@ -121,6 +129,8 @@ That's it. You don't need rebase, cherry-pick, or submodules for this course.
    用 `git log --oneline` 查看提交历史，了解课程是如何逐步构建的
 
 ## Key Terms | 关键术语
+
+> **【中文解读】** Commit（提交）= 项目快照，Branch（分支）= 独立开发线，Merge（合并）= 把分支改动合回来，Remote（远程）= GitHub 上的仓库副本。掌握这四个概念就能应对 90% 的 AI 项目协作场景。
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
