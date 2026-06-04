@@ -24,9 +24,11 @@
 
 ## The Problem | 问题引入
 
-You have a neural network with millions of weights. Each weight is a knob. You need to figure out which direction to turn every single knob to make the model slightly less wrong. Calculus gives you that direction.
+> **【中文解读】** 神经网络有百万个权重（旋钮），训练就是找到每个旋钮该往哪个方向转。微积分告诉你答案：导数（梯度）= 每个权重对误差的影响方向和大小。没有微积分，训练就是随机试错；有了梯度，每次都朝正确方向调整。
 
-Without calculus, training a neural network would mean trying random changes and hoping for the best. With derivatives, you know exactly how each weight affects the error. You turn every knob the right way, every time.
+## The Concept | 核心概念
+
+> **【拓展：偏导数就是"只动一个旋钮看效果"]** 神经网络的损失函数 L(w1, w2, ..., wn) 有百万个变量。偏导数 ∂L/∂w_i 告诉你"只改 w_i 一个权重，损失变化多少"。梯度就是把所有偏导数组合成一个向量，指向"最陡的上坡方向"，所以沿负梯度走就是最快的下坡路。
 
 ## The Concept | 核心概念
 

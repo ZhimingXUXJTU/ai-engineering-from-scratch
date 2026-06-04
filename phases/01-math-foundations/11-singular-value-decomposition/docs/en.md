@@ -24,7 +24,11 @@
 
 ## The Problem | 问题引入
 
-You have a 1000x2000 matrix. Maybe it is user-movie ratings. Maybe it is a document-term frequency table. Maybe it is the pixel values of an image. You need to compress it, denoise it, find hidden structure in it, or solve a least-squares system with it. Eigendecomposition only works on square matrices. Even then, it requires the matrix to have a full set of linearly independent eigenvectors.
+> **【中文解读】** 你有一个 1000×2000 的矩阵（可能是用户-电影评分、文档-词频表、图片像素）。特征值分解只适用于方阵，SVD 则对任意形状、任意秩的矩阵都有效。它把矩阵分解为三个因子 U·Σ·V^T，揭示矩阵"做了什么"的几何本质。
+
+## The Concept | 核心概念
+
+> **【拓展：SVD 是 LoRA 的数学根基】** LoRA 微调的核心假设：权重更新矩阵 ΔW 是低秩的。SVD 告诉我们，任何矩阵都可以分解为 U·Σ·V^T，其中 Σ 中的奇异值按大小排列。LoRA 只保留最大的 k 个奇异值对应的分量（即 rank-k 近似），参数从 mn 减少到 k(m+n)。这就是 SVD 从理论到应用的直接转化。 Maybe it is user-movie ratings. Maybe it is a document-term frequency table. Maybe it is the pixel values of an image. You need to compress it, denoise it, find hidden structure in it, or solve a least-squares system with it. Eigendecomposition only works on square matrices. Even then, it requires the matrix to have a full set of linearly independent eigenvectors.
 
 SVD works on any matrix. Any shape. Any rank. No conditions. It decomposes the matrix into three factors that reveal the geometry of what the matrix does to space. It is the most general and most useful factorization in all of linear algebra.
 

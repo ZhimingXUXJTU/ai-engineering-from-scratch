@@ -20,9 +20,11 @@
 
 ## The Problem | 问题引入
 
-You trained two models. Model A scores 0.87 on your test set. Model B scores 0.89. You deploy Model B. Three weeks later, production metrics are worse than before. What happened?
+> **【中文解读】** 模型 A 准确率 0.87，模型 B 准确率 0.89，你部署了 B。三周后线上效果反而变差了——因为 0.02 的差异是噪声不是真实提升。统计学回答：差异是否显著？置信区间多宽？样本量够不够？没有统计学的 ML 实验 = 瞎子摸象。
 
-Model B did not actually outperform Model A. The 0.02 difference was noise. Your test set was too small, or the variance too high, or both. You shipped randomness dressed up as improvement.
+## The Concept | 核心概念
+
+> **【拓展：AI 工程中的统计学实战】** (1) **A/B 测试**：推荐/搜索模型上线前必须做，统计显著（p<0.05）才发布；(2) **Bootstrap 置信区间**：不用假设数据分布，用重采样构建任意指标的置信区间；(3) **效应量**：p 值只告诉你"有没有差异"，效应量告诉你"差异有多大"——统计显著 ≠ 实际有用；(4) **多重比较校正**：调了 20 个超参数取最好的，必须校正否则是"多碰运气"。
 
 This happens constantly. Kaggle leaderboard shakeups. Papers that fail to reproduce. A/B tests that declare winners based on a few hundred samples. The root cause is always the same: someone skipped the statistics.
 

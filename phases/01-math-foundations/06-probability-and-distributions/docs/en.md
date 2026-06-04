@@ -24,7 +24,11 @@
 
 ## The Problem | 问题引入
 
-A classifier outputs `[0.03, 0.91, 0.06]`. A language model picks the next word from 50,000 candidates. A diffusion model generates images by sampling from learned distributions. All of these are probability in action.
+> **【中文解读】** 分类器输出 `[0.03, 0.91, 0.06]`（91% 概率是猫），语言模型从 5 万候选词中选下一个，扩散模型从学到的分布中采样生成图片——这些都是概率论在起作用。不理解概率，就无法理解 Softmax、贝叶斯推理、VAE 和扩散模型。
+
+## The Concept | 核心概念
+
+> **【拓展：概率分布是 AI 生成模型的基础】** 生成模型（VAE、GAN、扩散模型）的核心都是概率分布：学到一个数据分布 p(x)，然后从中采样生成新数据。高斯分布（正态分布）是其中的核心——VAE 假设隐变量服从高斯分布，扩散模型的前向过程是逐步添加高斯噪声，反向过程是逐步去噪。中心极限定理解释了为什么高斯分布无处不在。
 
 Every prediction a model makes is a probability distribution. Every loss function measures how far the predicted distribution is from the true one. Every training step adjusts parameters to make one distribution look more like another. Without probability, you cannot read a single ML paper, debug a single model, or understand why your training loss is NaN.
 

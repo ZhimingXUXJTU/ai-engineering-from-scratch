@@ -24,7 +24,11 @@
 
 ## The Problem | 问题引入
 
-You have a dataset with 784 features per sample. Maybe it is pixel values of handwritten digits. Maybe it is gene expression levels. Maybe it is user behavior signals. You cannot visualize 784 dimensions. You cannot plot them. You cannot even think about them.
+> **【中文解读】** 784 维的手写数字数据（28×28 像素）无法可视化，也无法直观理解。但其中大部分是冗余的——一个手写的"7"只需要几个关键特征：笔画角度、横线长度、倾斜程度。降维就是找到这些关键特征，把 784 维压缩到 2-50 维，同时保留有意义的信息结构。
+
+## The Concept | 核心概念
+
+> **【拓展：PCA 与 LoRA 的数学联系】** PCA 找到数据中方差最大的方向（主成分），这与 LoRA 微调的核心思想相同：权重更新 ΔW 的有效信息集中在少数几个方向上。PCA 用特征值分解找主成分，LoRA 用低秩矩阵 A·B 近似这些方向。理解 PCA 的数学，就能理解 LoRA 为什么能用 1% 的参数达到接近全量微调的效果。 Maybe it is pixel values of handwritten digits. Maybe it is gene expression levels. Maybe it is user behavior signals. You cannot visualize 784 dimensions. You cannot plot them. You cannot even think about them.
 
 But most of those 784 features are redundant. The actual information lives on a much smaller surface. A handwritten "7" does not need 784 independent numbers to describe it. It needs a few: the angle of the stroke, the length of the crossbar, how much it leans. The rest is noise.
 
@@ -200,7 +204,9 @@ Reconstruction error is useful beyond choosing k. You can use it for anomaly det
 
 ## Build It | 动手实现
 
-### Step 1: PCA from scratch
+> **【中文解读】** 以下从零实现 PCA 的完整流程：数据中心化 → 协方差矩阵 → 特征值分解 → 投影。然后在 MNIST 数据上对比 PCA、t-SNE、UMAP 的可视化效果。
+
+### Step 1: PCA from scratch | 第1步：从零实现 PCA
 
 ```python
 import numpy as np
@@ -315,6 +321,8 @@ except ImportError:
 ```
 
 ## Use It | 用框架实现
+
+> **【拓展：t-SNE vs UMAP 选哪个？】** t-SNE：经典方法，保持局部邻近关系，适合发现数据中的聚类结构。缺点：慢（O(n²)）、不能用于新数据投影。UMAP：更快（O(n)）、可以投影新数据、保留更多全局结构。2026 年推荐：探索性分析用 UMAP，论文中用 t-SNE（审稿人更熟悉）。两者都不适合作为下游模型的特征工程步骤。
 
 PCA as preprocessing before a classifier:
 

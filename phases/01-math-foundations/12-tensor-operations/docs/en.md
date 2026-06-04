@@ -20,13 +20,11 @@
 
 ## The Problem | 问题引入
 
-You build a transformer. The forward pass looks clean. You run it and get: `RuntimeError: mat1 and mat2 shapes cannot be multiplied (32x768 and 512x768)`. You stare at the shapes. You try a transpose. Now it says `Expected 4D input (got 3D input)`. You add an unsqueeze. Something else breaks.
-
-Shape errors are the most common bug in deep learning code. They are not hard conceptually -- each operation has a shape contract -- but they multiply fast. A transformer has dozens of reshapes, transposes, and broadcasts chained together. One wrong axis and the error cascades. Worse, some shape mistakes do not throw errors at all. They silently produce garbage by broadcasting along the wrong dimension or summing over the wrong axis.
-
-Matrices handle pairwise relationships between two sets of things. Real data does not fit into two dimensions. A batch of 32 RGB images at 224x224 is a 4D tensor: `(32, 3, 224, 224)`. Self-attention with 12 heads is also 4D: `(batch, heads, seq_len, head_dim)`. You need a data structure that generalizes to any number of dimensions, with operations that compose cleanly across all of them. That structure is the tensor. Master its operations and shape errors become trivially debuggable.
+> **【中文解读】** 你构建了一个 Transformer，运行后报错 `RuntimeError: shapes cannot be multiplied (32x768 and 512x768)`。Shape 错误是深度学习中最常见的 bug。Transformer 有几十个 reshape/transpose/broadcast 操作串联，一个轴搞错就级联报错。张量是向量和矩阵的推广，理解张量操作是调试神经网络的基本功。
 
 ## The Concept | 核心概念
+
+> **【拓展：张量 shape 是 AI 工程师的日常】** 调试神经网络 90% 的时间在处理 shape 问题。关键工具：`print(tensor.shape)` 查看形状，`.reshape()` 重塑，`.transpose()` 转置，`.unsqueeze()` 增加维度。PyTorch 的 einsum（`torch.einsum('bhd,bhd->bh', q, k)`）用 Einstein 求和约定一行搞定复杂张量运算，是 Transformer 实现的利器。
 
 ### What a tensor is
 
