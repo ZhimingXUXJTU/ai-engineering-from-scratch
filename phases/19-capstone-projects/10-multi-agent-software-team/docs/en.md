@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节阐述多 Agent 软件团队的核心问题。单 Agent 编码器在大型任务上遇到瓶颈——不是因为个体能力弱，而是 200k token 上下文无法同时容纳架构计划、四个并行代码切片、评审意见和测试输出。多 Agent 工厂将问题拆分：架构师规划、编码者在并行 worktree 中实现、评审者把关、测试者验证。失败面在交接处——架构师计划无法实现、编码者产生冲突 diff、评审者批准幻觉修复、测试者与编写者竞争。
+
+> **【拓展：多 Agent 框架生态】** 2026 年主要多 Agent 框架：SWE-AF（工厂架构）、MetaGPT（角色提示）、AutoGen 0.4（类型化 Actor 图）、Cognition Devin（产品级）、Factory Droids（产品级）。Google A2A 协议（2025）标准化了 Agent 间消息格式。关键发现：多 Agent 的核心问题不是"是否工作"而是"每美元是否更优"——token 放大效应（4 角色总 token 约为单 Agent 的 4 倍）意味着只有在并行提速显著时才值得。
+
 Single-agent coding harnesses hit a ceiling on large tasks. Not because any individual agent is weak, but because a 200k-token context cannot hold an architecture plan plus four parallel codebase slices plus reviewer commentary plus test output. Multi-agent factories split the problem: an architect owns the plan, coders own implementation in parallel worktrees, a reviewer gates, a tester verifies. SWE-AF's "factory" architecture, MetaGPT's roles, AutoGen's typed actor graph — all three framings describe the same shape.
 
 The failure surface is the handoff. Architect plans something the coders cannot implement. Coders produce conflicting diffs. Reviewer approves a hallucinated fix. Tester races a still-writing coder. You will build one of these teams, run it on 50 SWE-bench Pro issues, track every handoff, and publish the post-mortem.
 
 ## Concept
+
+> **【中文解读】** 角色是类型化 Agent：架构师（Opus 4.7，读 issue 写计划并分解子任务）、编码者（Sonnet 4.7，N 个并行实例，各自在 git worktree + Daytona 沙箱中）、评审者（GPT-5.4，读合并 diff 批准或打回）、测试者（Gemini 2.5 Pro，独立运行测试套件）。通信通过共享任务板（文件/Redis），交接使用 A2A 协议类型化消息。协调关注点包括合并冲突解决、共享状态同步和评审者利益冲突避免。
+
+> **【拓展：Token 放大效应】** 多 Agent 系统的隐含成本是 token 放大：每次角色边界增加摘要提示和交接上下文。一次 40 轮单 Agent 运行变成 4 角色 160 总轮次。评估指标包括 pass@1（解决率）和 $/solved-issue（每解决一题的美元成本）。实测中，多 Agent 在大型任务上 wall-clock 快 2-3 倍，但总 token 消耗高 3-4 倍，因此需要仔细权衡任务粒度和并行度。
 
 Roles are typed agents. **Architect** (Claude Opus 4.7) reads the issue, writes a plan, and breaks it into subtasks with explicit interfaces. **Coders** (Claude Sonnet 4.7, N parallel instances, each in a `git worktree` + Daytona sandbox) implement subtasks independently. **Reviewer** (GPT-5.4) reads the merged diff and either approves or requests specific changes. **Tester** (Gemini 2.5 Pro) runs the test suite in isolation and reports pass/fail with artifacts.
 

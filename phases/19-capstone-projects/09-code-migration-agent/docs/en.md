@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节描述大规模代码迁移的 Agent 应用。代码迁移是编码 Agent 最干净的生产应用之一——ground truth 明确（迁移后测试是否通过？）、奖励真实（Java 8 舰队迁移是人力密集项目）、基准公开（MigrationBench 50 仓库子集）。确定性工具（OpenRewrite/libcst）处理 70-80% 的机械化重写，Agent 层处理模糊情况：构建系统漂移、传递依赖冲突、测试抖动、自定义注解。
+
+> **【拓展：代码迁移产业实践】** Amazon MigrationBench（Java 8→17，50 仓库基准）和 Google App Engine Py2→Py3 迁移器是 2026 年标杆。Moderne 的 OpenRewrite 在大规模确定性 AST 重写上领先，Grit 用 codemod DSL 解决同类问题。生产模式是两层架构：确定性基底处理安全重写 + Agent 层处理歧义情况。每个仓库在 Daytona 沙箱中迭代：构建→分类失败→修复→重跑，硬限制 30 分钟/$8/20 轮。
+
 Large-scale code migration is one of the cleanest production applications of 2026 coding agents. The ground truth is obvious (does the test suite pass after the migration?), the rewards are real (a Java-8 fleet migration is a headcount-scale project), and the benchmarks are public (MigrationBench 50-repo subset). Moderne's OpenRewrite handles the deterministic side. The agent layer handles everything OpenRewrite recipes cannot: ambiguous rewrites, build-system drift, long-tail syntax, transitive dependency breakage.
 
 You will build an agent that takes a Java 8 repo (or Python 2 repo) and produces a green-CI migrated branch. You will measure pass rate, test-coverage preservation, cost per repo, and build a failure taxonomy. The side-by-side against a deterministic-only baseline tells you where the agent's value actually lives.
 
 ## Concept
+
+> **【中文解读】** 管道分两层：确定性基底（OpenRewrite 处理 Java 的导入/方法签名/空安全/try-with-resources 等机械化重写）和 Agent 层（Claude Opus 4.7 / GPT-5.4-Codex 处理构建文件升级、传递依赖冲突、测试抖动、自定义注解）。每个仓库在 Daytona 沙箱中独立运行，迭代直到全部测试通过且覆盖率不下降，否则归入失败分类。
+
+> **【拓展：失败分类学】** 50 个仓库的迁移失败分类是本项目的核心交付物。典型分类：dep_upgrade_required（传递依赖需升级）、build_tool_drift（构建工具版本差异）、custom_annotation（自定义注解）、test_flake（无关测试抖动）、syntax_edge_case（语法边界情况）、budget_exhausted（预算耗尽）。每种分类附带计数和示例 diff，为后续 recipe 开发提供方向。
 
 The pipeline has two layers. The **deterministic substrate** (OpenRewrite for Java, libcst for Python) runs the bulk of mechanical rewrites safely: imports, method signatures, null-safety edits, try-with-resources, deprecated API replacements. It is fast and produces auditable diffs. The **agent layer** (OpenAI Agents SDK or LangGraph over Claude Opus 4.7 and GPT-5.4-Codex) handles cases the recipes cannot: build-file upgrades (Maven/Gradle/pyproject), transitive dependency conflicts, test flakes, custom annotations.
 

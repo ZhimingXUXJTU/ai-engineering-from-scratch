@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节描述受监管领域 RAG 的生产挑战。法律合同、临床试验方案、保险条款——这些场景 ROI 明确且风险具体。难点不在模型，而在合规（HIPAA/GDPR/SOC2）、引用级审计、成本控制（Prompt Caching 可降低 60-90%）、幻觉检测（RAGAS 忠实度）和漂移监控（源文档更新时索引未同步）。
+
+> **【拓展：受监管领域 RAG 产品】** 2026 年主要玩家：Harvey（法律，Allen & Overy 合作）、Glean（企业搜索）、Mendable（开发者文档）。共同架构：docling/Unstructured 摄取 + ColPali 处理视觉内容 + 混合检索 + 重排序 + Prompt Caching + Llama Guard 4 安全防护 + NeMo Guardrails 策略护栏。Prompt Caching 的关键是将稳定前缀（系统提示 + 检索上下文）放在缓存头部，60-80% 命中率下每查询成本降低 3-5 倍。
+
 Regulated-domain RAG (legal contracts, clinical trial protocols, insurance policies) is the most-shipped production shape of 2026 because the ROI is obvious and the stakes are concrete. Harvey (Allen & Overy) built it for legal. Mendable ships the developer-docs flavor. Glean covers enterprise search. The pattern is: ingest high-fidelity, retrieve hybrid with rerank, synthesize with citation enforcement and prompt caching, guard with multiple safety layers, and monitor drift continuously.
 
 The hard parts are not the model. They are jurisdiction-aware compliance (HIPAA, GDPR, SOC2), citation-level auditability, cost control (prompt caching buys 60-90% discount when hit rate is high), hallucination detection via RAGAS faithfulness, and drift detection when the source documents get updated without the index catching up. This capstone asks you to ship all of it on a 200-question golden set with a red-team suite alongside.
 
 ## Concept
+
+> **【中文解读】** 管道分两侧：摄取侧（docling/Unstructured 解析 + ColPali 视觉处理 + 分块摘要/角色标签/司法管辖区标签 + pgvector/Qdrant 稠密索引 + Tantivy BM25 稀疏索引）和对话侧（LangGraph 记忆管理 + 混合检索 + 重排序 + Claude Sonnet 4.7 合成 + Llama Guard 4 + NeMo Guardrails 安全过滤）。评估栈四层：200 题黄金集（正确性）、红队测试（安全性）、RAGAS 在线评估（忠实度/相关性）、Arize Phoenix 漂移仪表盘（周监控）。
+
+> **【拓展：RAGAS 评估框架】** RAGAS 0.2 是 RAG 系统的标准化评估框架，核心指标：faithfulness（答案是否完全基于检索上下文）、answer relevance（答案是否切题）、context precision（检索结果是否精准）。配合 DeepEval 做幻觉检测和越狱测试。生产环境建议在线 RAGAS（采样 5-10% 的查询自动评分）+ 每周漂移监控（nDCG 或引用分数下降 > 5% 时告警）+ 发布前红队测试（50 个对抗性提示）。
 
 The pipeline has two sides. **Ingestion**: docling or Unstructured parses structured documents; ColPali handles visually rich ones; chunks get summaries, tags, and role-based access labels. Vectors go into pgvector + pgvectorscale (under 50M vectors) or Qdrant Cloud; sparse BM25 runs alongside. **Conversation**: LangGraph handles memory and multi-turn; each query runs hybrid retrieval, reranks with bge-reranker-v2-gemma-2b, synthesizes with Claude Sonnet 4.7 (prompt-cached), passes output through Llama Guard 4 and NeMo Guardrails, and emits a citation-anchored response.
 

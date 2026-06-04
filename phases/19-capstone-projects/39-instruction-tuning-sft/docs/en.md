@@ -20,7 +20,9 @@
 
 ## The Problem | 问题
 
-A base model trained on next-token prediction has no idea what an instruction is. Show it the string `"What is the capital of France?"` and it will continue the question or invent a new sentence. The model has the language but not the format contract.
+> **【中文解读】** 基座模型在"下一个 token 预测"上训练，不知道什么是指令。给它 "What is the capital of France?"，它会继续提问或发明新句子。SFT 的修正是将指令-响应对格式化为带边界 token 的因果序列，但只在响应 token 上计算损失——指令 token 的目标位置设为 `-100`（`ignore_index`），贡献零梯度和零损失。
+
+> **【拓展：SFT 数据集与对齐研究】** Alpaca (Stanford, 2023) 使用 GPT-3.5 生成的 52K 指令-响应对，开创了"自我指导"(Self-Instruct) 范式。LIMA (Meta, 2023) 证明仅需 1000 个高质量示例就能训练出竞争力强的模型。Dolly (Databricks) 和 OpenAssistant 提供开源 SFT 数据集。现代 SFT 通常使用聊天模板（ChatML、ChatML-Legacy、LLaMA Chat 等），支持多轮对话。损失掩码（本课的核心技巧）在所有框架中都是标准实践。 Show it the string `"What is the capital of France?"` and it will continue the question or invent a new sentence. The model has the language but not the format contract.
 
 The SFT contract is a string template. Every training example becomes a single sequence with three regions:
 
@@ -33,6 +35,8 @@ The boundary tokens are special tokens reserved at training time. The model lear
 But there is a catch. If you feed the entire sequence to a vanilla cross-entropy loss, you are training the model to also predict the instruction tokens. The instruction is given. You want zero gradient on those positions. The fix is the mask.
 
 ## The Concept | 概念
+
+> **【中文解读】** SFT 的概念图：指令-响应对 -> 应用模板（插入 INST + RESP 边界 token）-> 编码为 token ID -> 构建 loss mask（指令位置设为 -100）-> 送入 Transformer -> 仅在响应 token 上计算交叉熵损失。模型在前向传播中能看到指令（注意力可以关注指令），但损失只在响应部分计算。这实现了"以指令为条件，预测响应"。
 
 ```mermaid
 flowchart LR
@@ -137,6 +141,8 @@ The implementation is one `main.py` plus tests.
 9. `run_demo`: builds the data, trains for twenty epochs, evaluates, prints a per-category breakdown, exits zero on success.
 
 ## Why the mask matters
+
+> **【中文解读】** 没有掩码，损失将指令 token 也作为目标，模型学习预测指令。这浪费模型容量重建用户总提供的输入，且响应损失在梯度和中占比更小（指令 token 数通常多于响应 token），有效学习率低于预期。掩码不是润色，而是目标函数本身。
 
 Without the mask, the loss treats instruction tokens as targets. The model learns to predict the instruction. This is a different objective and produces a worse model in two ways. First, model capacity is wasted reconstructing inputs the user always provides. Second, the response loss is smaller in the gradient sum because instruction tokens outnumber response tokens in most batches; the optimiser's effective learning rate on the part you care about is lower than you intended. The mask is not a polish; it is the objective.
 

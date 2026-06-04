@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节描述自适应辅导 AI 的核心挑战。2026 年自适应辅导已从教育技术研究走向消费产品。共同要素：多模态输入（打字/语音/拍照方程式）、苏格拉底教学法（先提问再讲解）、每次交互后更新的学习者模型、严格的年龄适宜安全过滤。核心挑战是有效性验证——需要 10 名学习者的两周前测/后测效果研究。
+
+> **【拓展：AI 教育产品生态】** 2026 年主要 AI 教育产品：Khanmigo（Khan Academy，覆盖美国大部分学区）、Duolingo Max（数千万 MAU）、Google LearnLM/Gemini for Education（集成 Google Classroom）、Quizlet Q-Chat、Synthesis Tutor（面向好奇心儿童）。语音交互复用 LiveKit + Whisper 技术栈（Capstone 03），数学拍照输入使用 dots.ocr 或 PaliGemma 2。COPPA（儿童在线隐私保护法）要求严格的记忆保留策略和内容安全过滤。
+
 Adaptive tutoring used to be an ed-tech research niche. By 2026 it is a consumer product. Khanmigo is deployed across most US school districts. Duolingo Max hit tens of millions of MAUs. Google's LearnLM / Gemini for Education powers tutoring in Google Classroom. Quizlet Q-Chat sits alongside flashcards. Synthesis Tutor hit virality with tutor-for-curious-kids. The common elements: multimodal input (type, speak, photograph equations), Socratic pedagogy (ask first, explain later), a learner model that updates after each interaction, and strict age-appropriate safety.
 
 You will build one of these for a specific cohort. The measurement bar is an actual efficacy study: pre-test and post-test scores over two weeks with 10 learners. The voice loop must feel natural (capstone 03 sub-stack). The memory must be privacy-respecting. The safety filter must pass COPPA-aware red-team for K-12.
 
 ## Concept
+
+> **【中文解读】** 四大组件：辅导策略（苏格拉底循环——学习者求答案时反问引导问题，答对后推进下一概念，卡住时提供脚手架提示）、学习者模型（贝叶斯知识追踪，每次交互后更新课程节点的掌握概率）、课程图谱（Neo4j 中概念与先修关系图，策略沿图选择下一概念）、记忆（情节+语义存储，保存交互历史和偏好）。安全使用 Llama Guard 4 + 年龄适宜过滤器 + COPPA 记忆保留策略。
+
+> **【拓展：贝叶斯知识追踪与效果研究】** 贝叶斯知识追踪（BKT）是自适应学习的基础模型，为每个技能节点维护掌握概率 P(L)，根据学习者回答（正确/错误）和猜测/失误参数更新。现代变体包括深度知识追踪（DKT）和自适应知识追踪（AKT）。效果研究设计：10 名学习者，前测→两周自适应辅导→后测，报告学习增益 delta 和置信区间，与非自适应基线（相同内容线性交付）对比。
 
 Four components. **Tutor policy** is a Socratic loop: when the learner asks for the answer, the policy asks a leading question; when they get it right, it moves to the next concept; when they are stuck, it offers a scaffolded hint. **Learner model** is Bayesian knowledge tracing (or a simple variant) that updates mastery probability per curriculum node after each interaction. **Curriculum graph** is a Neo4j of concepts with prerequisite edges; the policy walks the graph to pick the next concept. **Memory** is an episodic + semantic store (agentmemory-style) holding past interactions, mistakes, and preferences.
 

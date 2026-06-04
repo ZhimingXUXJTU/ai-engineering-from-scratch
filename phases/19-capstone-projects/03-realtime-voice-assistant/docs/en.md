@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节描述实时语音助手面临的技术挑战。2025-2026 年语音成为 AI UX 发展最快的品类，关键指标是端到端延迟 < 800ms。难点不仅在延迟，还在于交互体验：不能打断用户、不能被用户打断时出错、中断恢复、工具调用不阻塞音频、在移动网络抖动下生存。这不是三个 REST 调用的拼接，而是端到端流式管道。
+
+> **【拓展：语音 AI 产品生态】** 2026 年主要语音 Agent 平台包括 Retell AI、Vapi.ai、LiveKit Agents 1.0、Pipecat 0.0.70。OpenAI Realtime API 和 Gemini 2.5 Live 提供集成式语音模型。ASR 领域 Deepgram Nova-3 以亚 300ms 首片延迟领先，开源方案 faster-whisper 可自托管。TTS 方面 Cartesia Sonic-2 首字节延迟最低（~200ms），ElevenLabs Flash v3 质量最优。单台 g5.xlarge GPU 服务器可支撑 50 路并发通话。
+
 Voice has been the fastest-moving AI UX category of 2025-2026. The technical ceiling dropped each quarter. OpenAI Realtime API, Gemini 2.5 Live, Cartesia Sonic-2, ElevenLabs Flash v3, LiveKit Agents 1.0, and Pipecat 0.0.70 all put sub-800ms first-audio-out within reach. The bar is not latency alone. It is the interaction feel: not cutting the user off, not getting cut off, recovering from a mid-sentence interruption, calling a tool mid-conversation without stalling the audio, surviving jittery mobile networks.
 
 You cannot get there by stitching three REST calls. The architecture is pipelined streaming end to end. Build it and the failure modes become visible: a VAD tuned for phone audio firing on background TV, a turn-detector waiting for punctuation that never comes, a TTS that buffers 400ms before emitting. The capstone is to fix these one at a time under load and publish a latency-and-quality report.
 
 ## Concept
+
+> **【中文解读】** 语音助手管道包含五个流式阶段：音频输入（WebRTC）、ASR（Deepgram Nova-3 流式转写）、轮次检测（VAD + 转完判断模型）、LLM（流式 token 输出）、TTS（首 token 后 200ms 内流式音频输出）。三个横切关注点：Barge-in（用户打断时取消 TTS）、工具调用（侧通道执行不阻塞音频）、反压（丢包时提高 VAD 阈值）。
+
+> **【拓展：VAD 与轮次检测】** Silero VAD v5 是 2026 年语音活动检测的默认选择，以 20ms 粒度判断语音/静音。但单纯 VAD 无法判断用户是否说完——LiveKit 的轮次检测器是小型 Transformer，读部分转写文本判断语义完整度。实测显示，500ms 静音 + 完整度评分 > 0.6 的组合策略可将误切断率控制在 3% 以下。WER（词错率）目标 < 8%（15dB SNR），MOS（语音质量评分）目标 > 4.2。
 
 The pipeline has five streaming stages: **audio in** (WebRTC from browser or PSTN), **ASR** (streaming partial transcripts from Deepgram Nova-3 or faster-whisper), **turn detection** (VAD plus a small turn-detector model that reads partial transcripts for completion cues), **LLM** (streaming tokens as soon as the turn is judged complete), **TTS** (streaming audio out within ~200ms of the first LLM token).
 
@@ -73,6 +81,8 @@ browser / Twilio PSTN
 - Deployment: single g5.xlarge (24GB VRAM) for self-hosted Whisper + Orpheus; hosted APIs for lowest latency
 
 ## Build It | 动手构建
+
+> **【中文解读】** 构建分为 9 个阶段：WebRTC 会话建立、ASR 流式处理（20ms PCM 帧）、VAD 与轮次检测（500ms 静音 + 完整度 > 0.6）、LLM 流式输出、TTS 流式输出（首 chunk 200ms 内）、Barge-in 处理（取消 TTS + 丢弃 LLM 输出 + 重新启动 ASR）、工具侧通道（> 300ms 时发送填充语）、评估套件（100 路通话测 WER/误切断/延迟/MOS）、负载测试（单台 50 路并发）。
 
 1. **WebRTC session.** Stand up a LiveKit room and a web client that streams microphone audio. On the server, attach an agent worker that joins the room.
 

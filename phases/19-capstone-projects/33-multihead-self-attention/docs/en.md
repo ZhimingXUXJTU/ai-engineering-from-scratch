@@ -19,7 +19,9 @@
 
 ## The frame
 
-Attention is the function that lets a token's representation pull information from other tokens in the same sequence. Self-attention means queries, keys, and values are all derived from the same input. Multi-head means the projection is split into H parallel attention problems whose outputs are concatenated and projected back.
+> **【中文解读】** 注意力是让 token 表征从同序列其他 token 拉取信息的函数。自注意力意味着 Q、K、V 都来自同一输入。多头意味着投影被切分为 H 个并行的注意力问题，输出拼接后再投影。高效实现模式：一个线性层从 D 投影到 3D，切成三个视图，重塑为 H 个头。
+
+> **【拓展：注意力机制的生产实现】** Flash Attention (Dao et al., 2022) 通过分块计算和 kernel fusion 将注意力计算速度提升 2-4 倍，显存占用从 O(N^2) 降至 O(N)。Flash Attention-2 (2023) 进一步优化到接近理论算力上限。GQA (Grouped Query Attention, Ainslie et al., 2023) 在 LLaMA-2 和 Mistral 中使用，将 KV 头数减少为 Q 头数的 1/4 到 1/8，显著降低推理显存。MQA (Multi-Query Attention) 在 PaLM 和 StarCoder 中使用，所有 Q 头共享一组 K/V。 Self-attention means queries, keys, and values are all derived from the same input. Multi-head means the projection is split into H parallel attention problems whose outputs are concatenated and projected back.
 
 The efficient implementation pattern is one linear layer that projects from `D` to `3 * D` and gets sliced into three views, then reshaped into H heads of size `D // H` each. The matmul, softmax, and weighted sum happen as batched tensor operations so the heads run in parallel on the accelerator.
 
@@ -59,9 +61,11 @@ The d_head dimension stays last so the score matmul `Q @ K.transpose(-2, -1)` co
 
 ## Scaling
 
-The scores get divided by `sqrt(d_head)` before softmax. Without that scaling, dot products grow as `d_head` grows and push the softmax into a regime where one entry has almost all the mass and the others are vanishingly small. The gradients in that regime are tiny and learning stalls. Dividing by `sqrt(d_head)` keeps the variance of the scores roughly constant across head sizes.
+> **【中文解读】** 分数在 softmax 前除以 `sqrt(d_head)`。不缩放时，点积随 d_head 增大而增长，将 softmax 推入一个入口占几乎全部质量而其他入口极小的区域，梯度极小，学习停滞。缩放保持分数方差在头大小变化时大致恒定。 Without that scaling, dot products grow as `d_head` grows and push the softmax into a regime where one entry has almost all the mass and the others are vanishingly small. The gradients in that regime are tiny and learning stalls. Dividing by `sqrt(d_head)` keeps the variance of the scores roughly constant across head sizes.
 
 ## The causal mask
+
+> **【中文解读】** Decoder-only 语言模型预测下一个 token 时只能以过去为条件。因果掩码强制执行这一点：在 softmax 前，`(T, T)` 分数矩阵对角线以上的每个位置被替换为负无穷，softmax 后这些位置权重为零。掩码注册为 buffer（不参与梯度计算），覆盖最大上下文长度，前向时切片 `(T, T)` 左上角。
 
 A decoder-only language model can only condition on the past when predicting the next token. The mask enforces that. Concretely, before the softmax, every entry above the diagonal of the `(T, T)` score matrix gets replaced by negative infinity. After softmax those positions get weight zero.
 
@@ -87,6 +91,8 @@ We register the mask as a buffer at construction so it lives on the same device 
 After per-head context vectors `(B, H, T, d_head)`, we transpose back to `(B, T, H, d_head)`, reshape to `(B, T, D)`, and apply a final `(D, D)` linear projection. The output projection lets the model mix the heads. Without it, the H heads would only ever recombine through later layers and the block would be artificially constrained.
 
 ## Attention weight inspection
+
+> **【拓展：注意力可视化与可解释性】** 注意力权重分析是理解 LLM 行为的重要工具。Anthropic 的可解释性研究团队使用注意力头分析发现了一些"归纳头"(induction heads)，它们在上下文学习中起关键作用。OpenAI 的 Microscope 项目可视化 GPT-2 各层各头的注意力模式。不同头学习不同模式：某些关注紧邻的前一个 token，某些关注句子开头，某些几乎均匀分布。
 
 The lesson exposes a `return_weights=True` flag on the forward pass. When set, the block returns the per-head attention weights of shape `(B, H, T, T)` alongside the output. The demo prints a heatmap of one head's weights on a short input so you can see the causal-triangle structure and the per-position focus.
 

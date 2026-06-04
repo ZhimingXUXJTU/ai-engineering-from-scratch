@@ -19,6 +19,10 @@
 
 ## The frame
 
+> **【中文解读】** 核心观点：运行 40 轮的编码 Agent 不是聊天循环，而是状态机——操作者可拦截节点、审计边。一旦写定契约，替换模型/工具/策略不再是重构，而是注册调用。本课定义 6 个状态、10 个 Hook 主题、2 个拉取点、11 个事件类型和一个预算信封。这是 Agent Harness 的骨架，其余所有组件（工具注册、传输、调度器）都插入这个形状。
+
+> **【拓展：Agent Harness 状态机设计】** 主流编码 Agent（Claude Code、Cursor、Devin）都采用类似的状态机架构。6 个状态通常包括：IDLE（等待输入）、PLANNING（规划）、EXECUTING（执行工具）、AWAITING_TOOL（等待工具返回）、OBSERVING（观察结果）、TERMINAL（终止）。10 个 Hook 主题覆盖完整生命周期：SessionStart/End、Pre/PostToolUse、UserPromptSubmit、Notification、Stop、PreCompact 等。预算信封限制每会话的轮次/工具调用/运行时间。
+
 A coding agent that runs unattended for forty turns is not a chat loop. It is a state machine whose nodes the operator can intercept and whose edges the operator can audit. Once you write the contract down, swapping models, tools, or policies stops being a refactor. It becomes a registration call.
 
 This lesson builds that contract. We name six states, ten hook topics, two pull points, eleven event types, and a budget envelope. Everything else in the harness (tool registry, JSON-RPC transport, dispatcher, planner) plugs into this shape.

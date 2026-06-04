@@ -13,6 +13,10 @@
 
 ## Problem
 
+> **【中文解读】** 本节描述 LLM 安全防护的核心挑战。2026 年前沿问题不是分类器是否有效（它们大致有效），而是如何正确组合它们——不过度拒绝也不留下明显漏洞。Llama Guard 4 处理英文策略违规、X-Guard 覆盖 132 种语言的多语言越狱、ShieldGemma-2 捕获图像提示注入、NVIDIA Nemotron 3 覆盖企业类别、Anthropic 宪法分类器在训练时而非服务时使用。
+
+> **【拓展：对抗性攻击工具生态】** 2026 年标准化攻击工具：garak（LLM 安全扫描器）、PyRIT（微软红队框架）、promptfoo（提示注入测试）、NVIDIA Aegis（企业安全评估）。攻击家族包括：PAIR/TAP（自动越狱发现）、GCG（梯度后缀攻击）、ASCII/base64/rot13 编码攻击、多轮攻击（人格采纳/记忆利用）、语码转换攻击（混合英语与斯瓦希里语或泰语）。每次红队运行产出 CVSS 评分的结构化发现文件。
+
 The frontier of LLM safety in 2026 is not whether classifiers work (they do, roughly) but how to compose them correctly around a production app without over-refusing or leaving obvious holes. Llama Guard 4 handles English policy violations. X-Guard (132 languages) handles multilingual jailbreak. ShieldGemma-2 catches image-based prompt injection. NVIDIA Nemotron 3 Content Safety covers enterprise categories. Anthropic's Constitutional Classifiers are a separate approach used during training rather than serving.
 
 Attack evolution matters too. PAIR and TAP automate jailbreak discovery. GCG runs gradient-based suffix attacks. Multi-turn and code-switch attacks exploit agent memory. Any deployed LLM needs a red-team range — garak and PyRIT are the canonical drivers — plus documented mitigations and CVSS-scored findings.
@@ -20,6 +24,10 @@ Attack evolution matters too. PAIR and TAP automate jailbreak discovery. GCG run
 You will harden a target application (either an 8B instruction-tuned model or one of the RAG chatbots from other capstones), run 6+ attack families against it, and produce a before/after harmlessness measurement.
 
 ## Concept
+
+> **【中文解读】** 安全管道分五层：输入净化（去零宽字符、解码 base64/rot13、Unicode 规范化）→ 策略层（NeMo Guardrails v0.12 策略护栏）→ 分类器门控（Llama Guard 4 输入/X-Guard 非英文/ShieldGemma-2 图像）→ 目标模型 → 输出过滤（Llama Guard 4 输出/Presidio PII 脱敏/引用强制）。高风险输出进入 Slack 人工队列。宪法自审是训练时干预：1000 条有害尝试 → 模型起草 → 按宪法自审 → 重训练，测量前后无害性差异。
+
+> **【拓展：Constitutional AI 方法】** Anthropic 的 Constitutional AI 方法在训练时嵌入安全原则（"无害规则"），而非仅在推理时过滤。红队测试发现，多层组合防护（输入净化 + 策略护栏 + 分类器门控 + 输出过滤）比单层防护效果提升 40-60%。但过度拒绝（false positive）是实际部署的痛点——英文策略分类器在非英文输入上误拒率可达 15-20%，因此需要 X-Guard 等多语言分类器补充。
 
 The safety pipeline is five layers. **Input sanitize**: strip zero-width chars, decode base64/rot13, normalize Unicode. **Policy layer**: NeMo Guardrails v0.12 rails (off-domain, toxicity, PII extraction). **Classifier gate**: Llama Guard 4 on input, X-Guard on non-English, ShieldGemma-2 on image inputs. **Model**: the target LLM. **Output filter**: Llama Guard 4 on output, Presidio PII scrub, citation enforcement where applicable. **HITL tier**: outputs flagged high-risk go to a Slack queue.
 

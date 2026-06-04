@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节描述 LLM 可观测性的核心需求。2026 年每个运行生产流量的 AI 团队都需要一个可观测性平台：成本归因、幻觉检测、漂移监控、越狱信号、SLO 仪表盘、PII 泄漏告警。开源方案（Langfuse、Phoenix、OpenLLMetry）已统一到 OpenTelemetry GenAI 语义约定作为摄取模式。核心挑战是：给定一个故意注入的回归（提示开始产生 PII），仪表盘在 5 分钟内捕获并告警。
+
+> **【拓展：LLM 可观测性工具生态】** 2026 年主要工具：Langfuse（开源核心，追踪+评估）、Arize Phoenix（漂移监控强项）、Helicone（每用户成本归因）、Braintrust（评估优先平台）、Traceloop OpenLLMetry（事实上的 SDK 自动仪器化）。统一基础是 OpenTelemetry GenAI 语义约定，支持 OpenAI/Anthropic/Google/LangChain/LlamaIndex/vLLM 一键仪器化。存储层通常用 ClickHouse 做 span 分析，Postgres 存元数据，S3 存原始事件归档。
+
 Every AI team running production traffic in 2026 keeps an observability plane alongside the model. Cost attribution. Hallucination detection. Drift monitoring. Jailbreak signal. SLO dashboards. PII leak alerts. The open-source references — Langfuse, Phoenix, OpenLLMetry — converged on OpenTelemetry GenAI semantic conventions as the ingest schema. You can now instrument OpenAI, Anthropic, Google, LangChain, LlamaIndex, and vLLM with one SDK and ship compatible spans.
 
 You will build a self-hosted dashboard that ingests from at least four SDK families, runs a small set of eval jobs over sampled traces, detects drift, and alerts. The measurement bar: given a deliberately injected regression (a prompt that starts producing PII), the dashboard catches it and fires an alert in under five minutes.
 
 ## Concept
+
+> **【中文解读】** 摄取通过 OTLP HTTP，SDK 产生 GenAI 语义约定 span（gen_ai.system、gen_ai.request.model、input/output tokens 等）。Span 存入 ClickHouse 做列式分析，元数据存入 Postgres。评估作业对采样追踪运行 DeepEval（忠实度/毒性/答案相关性）、RAGAS（检索指标）和自定义 LLM 评委（PII 泄漏/策略违规）。漂移检测监控嵌入空间分布变化（PSI 或 KL 散度），告警通过 Prometheus Alertmanager 路由到 Slack/PagerDuty。
+
+> **【拓展：漂移检测与 MTTR】** 漂移检测使用 PSI（Population Stability Index）比较本周与过去 4 周的提示嵌入分布，PSI > 0.2 通常表示有意义的漂移。MTTR（平均恢复时间）是可观测性的核心指标——从缺陷部署到 Slack 告警的时间。生产系统目标 MTTR < 5 分钟。尾采样策略保留 100% 的错误追踪 + 10% 的成功追踪，平衡成本和可观测性。1k span/秒的持续摄取是基本性能要求。
 
 Ingest is OTLP HTTP. The SDK produces GenAI-semconv spans: `gen_ai.system`, `gen_ai.request.model`, `gen_ai.usage.input_tokens`, `gen_ai.response.id`, `llm.prompts`, `llm.completions`. Spans land in ClickHouse for columnar analytics; metadata (users, sessions, apps) lands in Postgres.
 

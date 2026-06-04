@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节阐述代码检索增强生成（RAG）的核心痛点。即使 Claude 拥有 100 万 token 的上下文窗口，也无法解决跨仓库语义搜索问题——需要的是排序检索。朴素余弦搜索在生成代码、monorepo 重复和长尾符号上效果极差。生产级方案是混合搜索（稠密向量 + BM25），基于 AST 感知的分块和重排序，并依赖符号引用图。
+
+> **【拓展：代码搜索的产业实践】** Sourcegraph Amp、Cursor Codebase Answers、Augment Enterprise Graph 等产品在 2026 年都采用相似架构。Pinterest 内部构建了 MCP 搜索服务，Aider 使用 repomap 做 tree-sitter 排序视图。关键指标包括 MRR@10（前 10 结果的倒数排名均值）、引用忠实度（答案中可验证声明的比例）和增量索引延迟（从 git push 到可搜索的时间）。对于 200 万行代码的仓库舰队，增量重索引需在 60 秒内完成。
+
 By 2026 every frontier coding agent ships with a codebase retrieval layer because context windows alone do not solve cross-repo questions. Claude's 1M-token context helps; it does not eliminate the need for ranked retrieval. Naive cosine search over raw chunks poisons results on generated code, on monorepo duplication, and on the long tail of rarely-imported symbols. The production answer is a hybrid (dense + BM25) search over AST-aware chunks with a re-ranker, backed by a graph of symbol references.
 
 You learn this by indexing a real fleet — not one tutorial repo — and measuring MRR@10, citation faithfulness, and incremental freshness. The failure modes are infrastructural: a 100k-file monorepo, a push that retouches half the files, a query that needs to cross four repos to answer correctly.
 
 ## Concept
+
+> **【中文解读】** 核心概念是 AST 感知的摄取管道：用 tree-sitter 解析代码，在函数/类边界分块（而非固定 token 窗口）。每个分块生成三种表示：稠密嵌入（Voyage-code-3）、BM25 稀疏索引、自然语言摘要。检索采用混合搜索 + 交叉编码器重排序，最终由长上下文模型生成带引用的答案。增量索引只重嵌入变更分块，保持索引用于大仓库的实时性。
+
+> **【拓展：向量数据库选型】** 2026 年主流选择：Qdrant 1.12 支持原生混合搜索，适合中等规模（< 5000 万向量）；pgvector + pgvectorscale 适合已有 PostgreSQL 基础设施的团队；Vespa 支持多向量字段和 MaxSim，适合文档级检索。嵌入模型方面，Voyage-code-3 在代码检索上领先，nomic-embed-code-v1.5 是自托管首选。重排序模型 Cohere rerank-3 或 bge-reranker-v2-gemma-2b 可将 MRR@10 提升 10-20%。
 
 An AST-aware ingestion pipeline parses each file with tree-sitter, extracts function and class nodes, and chunks at node boundaries rather than fixed token windows. Each chunk gets three representations: a dense embedding (Voyage-code-3 or nomic-embed-code), sparse BM25 terms, and a short natural-language summary. The summary adds a third retrievable modality — users ask "how is X authorized" and the summary mentions "authz", even if the code only has `check_permission`.
 
@@ -66,6 +74,8 @@ git push --> webhook --> ingest worker (LlamaIndex Workflow)
 - Observability: Langfuse spans per retrieval + synthesis step
 
 ## Build It | 动手构建
+
+> **【中文解读】** 构建分为 9 个阶段：摄取遍历器（git push 触发 diff）、分块摘要器（Haiku 4.5 批处理）、嵌入池（Voyage-code-3 批量 128）、BM25 索引（字段加权）、符号图（Neo4j/kuzu 存储导入/调用/继承关系）、查询 Agent（LangGraph 三节点：检索-重排-合成）、引用强制（无锚点声明被过滤）、增量重索引（50 文件推送 < 60 秒）、评估（100 个标注问题测 MRR@10）。
 
 1. **Ingestion walker.** Iterate git history on every push hook. Collect changed files. For each file, parse with tree-sitter, extract function and class nodes with their full source span. Emit chunk records `{repo, path, start_line, end_line, symbol, body}`.
 

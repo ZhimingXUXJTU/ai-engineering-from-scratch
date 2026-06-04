@@ -20,7 +20,9 @@
 
 ## The Problem | 问题
 
-You pre-trained a small transformer on a generic corpus. The output head projects the last hidden state to a 1000-token vocabulary. You now have 800 SMS messages labelled spam or ham and you want a binary classifier. Three options exist.
+> **【中文解读】** 预训练的语言模型是一个自注意力块堆栈，末端是 token 预测头。当你需要垃圾邮件分类时，头是错的但主体大部分是对的。两种正确方案：(1) 仅训练头（冻结主体）——快速、省内存、在小数据上极少过拟合；(2) 全模型微调——更慢、可能过拟合，但在下游领域偏移大时精度更高。本课构建两种方案以供比较。
+
+> **【拓展：LLM 分类微调的实际应用】** 使用 LLM 进行分类微调已成为行业标准。OpenAI 的微调 API 允许在 GPT-3.5/4 上进行分类微调。HuggingFace 的 `transformers` 库中 `AutoModelForSequenceClassification` 提供了统一的分类微调接口。在生产中，BERT 风格的编码器（如 DeBERTa-v3）在分类任务上仍具有竞争力：参数更少、推理更快。LLM 的优势在于少样本泛化——800 个样本足以微调一个通用 LLM，但可能不足以从头训练一个专用分类器。 The output head projects the last hidden state to a 1000-token vocabulary. You now have 800 SMS messages labelled spam or ham and you want a binary classifier. Three options exist.
 
 The wrong option is to train a fresh classifier from scratch on 800 examples. The body of the pretrained model already encodes useful structure: word identity, position, simple co-occurrence. Throwing it away wastes the compute that built it.
 
@@ -51,6 +53,8 @@ In head-only training you compute gradients against `phi` and zero them against 
 In full fine-tuning you let gradients flow back through the whole stack. The body's weights drift to fit the classification objective. The risk is catastrophic forgetting on small data: the body's pretraining gets washed out by overfitting noise.
 
 ## The Pooling Question
+
+> **【中文解读】** 分类器需要一个向量表示整个序列，而非每个 token 一个向量。三种常见选择：均值池化（加权平均，最简单稳定）、CLS 池化（BERT 方式，需要预训练 CLS token）、末 token 池化（GPT 分类器方式）。本课使用带显式注意力掩码加权的均值池化。
 
 A classifier needs one vector per sequence, not one vector per token. Three common choices:
 
@@ -124,6 +128,8 @@ The implementation is one `main.py` plus one test module (`code/tests/test_main.
 9. `run_demo`: pretrains the body briefly, then trains and evaluates head-only, then full, prints both reports, and exits zero.
 
 ## Why the comparison matters
+
+> **【拓展：参数高效微调 (PEFT)】** 仅训练头和全模型微调是两个极端。中间地带包括：(1) LoRA (Hu et al., 2021)：在每个线性层旁添加低秩分解矩阵，仅训练这些矩阵（通常 < 1% 参数）；(2) Prefix Tuning：在每层前添加可学习的前缀 token；(3) Adapter：在每层中插入小型瓶颈网络。LoRA 已成为事实标准，被 LLaMA、Mistral、Stable Diffusion 等广泛采用。QLoRA (Dettmers et al., 2023) 将 4-bit 量化与 LoRA 结合，使 65B 模型的微调可在单张 48GB GPU 上完成。
 
 The head-only regime usually trains faster and underfits more gracefully. On this fixture you typically see precision near 0.9 and recall near 0.85 after twenty epochs of head-only training. Full fine-tuning takes about three times longer and lands within a couple of points either way, depending on the random seed.
 

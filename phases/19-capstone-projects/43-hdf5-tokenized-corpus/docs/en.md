@@ -19,7 +19,9 @@
 
 ## The Problem | 问题
 
-A modern language-model training run reads tokens at hundreds of thousands of samples per second across dozens of workers. JSONL on disk dies at the first cold-cache page fault: the JSON parser is slow, the document boundaries are not addressable, and seeking to "sample 4,217,884" requires scanning the file. Even Parquet, which compresses well, is a poor fit because the trainer does not want columns; it wants a flat token stream with O(1) random access.
+> **【中文解读】** 现代 LLM 训练以每秒数十万样本的速度读取 token，跨数十个 worker。JSONL 在磁盘上无法存活第一个冷缓存页缺失：JSON 解析慢，文档边界不可寻址，随机访问需要扫描文件。HDF5 适合因为提供分块、可调整大小的整数数据集，块在读取时是页缓存友好的。训练器请求 `tokens[start:stop]` 切片，HDF5 从页缓存拷贝到 NumPy 数组，成本仅一次 open fd 和每 chunk 过渡一次 syscall。
+
+> **【拓展：大规模训练数据格式对比】** LLM 训练数据格式的选择是工程权衡：JSONL 简单但随机访问慢；Parquet 列存压缩好但不适合 token 流；HDF5 随机访问快但生态较窄；Memory-mapped numpy 最快但需要连续内存。MosaicML (现 Databricks) 使用 MDS (Mosaic Data Silo) 格式。HuggingFace 的 `datasets` 库使用 Apache Arrow 内存格式配合 memory mapping。Meta 的 LLaMA 训练使用自定义的二进制 token 格式。LLM-foundry (MosaicML) 支持 JSONL、Parquet 和 MDS 之间的无缝转换。 JSONL on disk dies at the first cold-cache page fault: the JSON parser is slow, the document boundaries are not addressable, and seeking to "sample 4,217,884" requires scanning the file. Even Parquet, which compresses well, is a poor fit because the trainer does not want columns; it wants a flat token stream with O(1) random access.
 
 HDF5 fits because it offers a chunked, resizable, integer-only dataset whose chunks are page-cache friendly at read time. The trainer asks for a slice of `tokens[3,200,000 : 3,200,8192]` and HDF5 copies the requested hyperslab from the page cache into a freshly allocated NumPy array. The cost is one open file handle and a chunk-sized page-cache footprint per worker, which is negligible compared to the cost of decoding JSONL.
 
@@ -53,6 +55,8 @@ A single HDF5 file is a single point of failure. The pipeline writes shards in p
 
 ### Memory-mapped read
 
+> **【中文解读】** 训练时每个 worker 以 `swmr=True` 模式打开 HDF5 文件，请求 `tokens[start:stop]`。HDF5 的分块布局使热 chunk 成为页缓存支持的读取。worker 不物化整个文件：切片被拷贝到 dataloader 的 batch buffer，然后拷贝到 pinned-memory 训练张量。热路径每 chunk 过渡一次 syscall，其余全是 RAM 访问。
+
 At training time each worker opens its share of HDF5 files in `swmr=True` mode and asks for `tokens[start:stop]`. HDF5's chunk layout makes this a page-cache-backed read once the chunk is hot. The worker never materialises the whole file: the slice is copied into the dataloader's batch buffer, which the dataloader then copies into a pinned-memory training tensor at batch time. The hot path has one syscall per chunk transition; everything else is RAM access.
 
 ### Sliding-window dataloader
@@ -81,7 +85,7 @@ The script exits zero and prints batch checksums.
 
 ## Production Patterns
 
-Four patterns scale this lesson to a real training run.
+> **【拓展：HDF5 在 AI 训练中的使用】** HDF5 在深度学习中有悠久历史（Keras 默认保存格式）。在 LLM 训练中，Cerebras Systems 使用 HDF5 存储训练数据以利用其高效的 I/O。HDF5 的 SWMR（Single-Writer-Multiple-Reader）模式允许训练时在线写入新数据。分块大小与训练样本大小的匹配至关重要——不匹配会导致每次样本读取跨两个 chunk，吞吐量减半。HDF5 的替代方案包括 Zarr（云端友好的分块数组格式）和 WebDataset（基于 tar 的流式格式）。
 
 **Chunk size equals the typical read.** The trainer reads `window_size + 1` tokens per sample. Set the HDF5 chunk to a multiple of `window_size` and reads are page-cache aligned. Mismatched chunks halve the throughput because every sample touches two chunks.
 

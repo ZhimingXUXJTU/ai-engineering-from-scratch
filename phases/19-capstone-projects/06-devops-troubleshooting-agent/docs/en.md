@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节阐述 DevOps 故障排除 Agent 的核心问题。2025-2026 年 SRE 领域的共识是"AI Agent 做初步诊断，人类审批修复操作"。Agent 读取 Prometheus 指标、Loki 日志、Tempo 追踪和 kube-state-metrics，在 5 分钟内生成带遥测引用的根因假设。关键难点不在推理能力，而在安全边界设计：默认只读 RBAC、审计日志记录每个被考虑但未执行的命令、成本控制避免级联故障产生 $5000 的 Agent 账单。
+
+> **【拓展：AIOps 产业现状】** 2026 年 AIOps 主要玩家：AWS DevOps Agent（GA 发布）、Resolve AI（K8s 故障排除专用）、NeuBird（语义监控）、Metoro（SLO-first AI SRE）、PagerDuty AIOps。共同架构是告警 webhook 触发 → Agent 读取遥测 → 排名根因假设 → Slack 简报 + 审批按钮。MTTR（平均修复时间）从人工的 45-90 分钟缩短到 Agent 辅助的 10-15 分钟。安全设计上，所有破坏性操作都需要 Slack 人工审批。
+
 The 2025-2026 SRE narrative became: "AI agents triage incidents, humans approve remediations." AWS DevOps Agent, Resolve AI, NeuBird, Metoro, PagerDuty AIOps all ship this shape in production. The agent reads Prometheus metrics, Loki logs, Tempo traces, kube-state-metrics, and a knowledge graph of K8s objects. It produces a ranked root-cause hypothesis with telemetry citations in under five minutes. It never executes destructive commands without explicit human approval through Slack.
 
 Most of the hard work is scoping and safety, not reasoning. The agent needs a read-only-by-default RBAC surface, a hardened MCP tool server, and audit logs of every command considered vs executed. It needs to know when it is outside its depth and escalate. And it has to run cheap enough that OOM-kill cascades do not generate a $5k agent bill.
 
 ## Concept
+
+> **【中文解读】** Agent 操作基于 K8s 知识图谱：节点是 Pod、Deployment、Service 等对象，边编码所有权（Pod→ReplicaSet→Deployment）、调度关系（Pod→Node）和观测关系（Pod→Prometheus 指标）。告警触发时，Agent 从受影响对象出发遍历图谱，拉取相关遥测切片（最近 15 分钟），生成按证据权重排序的根因假设。修复操作默认只读，破坏性操作需 Slack 人工审批。
+
+> **【拓展：知识图谱在 SRE 中的应用】** Neo4j 和 kuzu（嵌入式图数据库）是主流选择。kube-state-metrics 每 30 秒同步一次集群状态到图数据库。根因假设评分公式：recency x specificity x graph-path-length-inverse x citation-count。实测数据显示，top-3 假设的准确率可达 80%+（20 个合成故障场景），p50 诊断时间 < 5 分钟。审计日志采用只追加 JSONL 格式，记录每个被考虑和被执行的命令。
 
 The agent operates on a knowledge graph. Nodes are K8s objects (Pods, Deployments, Services, Nodes, HPAs, PVCs) plus telemetry sources (Prometheus series, Loki streams, Tempo traces). Edges encode ownership (Pod -> ReplicaSet -> Deployment), scheduling (Pod -> Node), and observation (Pod -> Prometheus series). The graph is kept fresh by a kube-state-metrics sync and re-sampled on every alert.
 

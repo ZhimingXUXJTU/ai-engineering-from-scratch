@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节阐述编码 Agent 面临的核心工程挑战。2026 年编码 Agent 已成为 AI 应用最热门的品类，Claude Code、Cursor、Devin 等产品都采用相似的架构：终端界面 + 工具调度 + 沙箱隔离 + 规划-执行-观察循环。关键瓶颈不在模型能力，而在工具循环稳定性、上下文窗口管理和成本控制。
+
+> **【拓展：Coding Agent 产业格局】** 2026 年编码 Agent 市场规模超 50 亿美元。Anthropic 的 Claude Code 采用 Hook 系统实现生命周期管理，Cursor 的 Composer 2 引入 Agent Tabs 多任务并行，Cognition 的 Devin 专注端到端自主开发。Live-SWE-agent 在 SWE-bench Verified 上达到 79.2% 通过率（使用 Opus 4.5），OpenCode 开源项目获得 112k GitHub 星标，反映出开发者对自主编码工具的巨大需求。
+
 Coding agents became the dominant AI application category in 2026. Claude Code (Anthropic), Cursor 3 with Composer 2 and Agent Tabs (Cursor), Amp (Sourcegraph), OpenCode (112k stars), Factory Droids, and Google Jules all ship variations of the same architecture: a terminal harness, a permissioned tool surface, a sandbox, and a plan-act-observe loop built around a frontier model. The frontier is narrow — Live-SWE-agent reached 79.2% on SWE-bench Verified with Opus 4.5 — but the engineering craft is wide. Most failure modes are not model mistakes. They are tool-loop instability, context poisoning, runaway token cost, and destructive filesystem operations.
 
 You cannot reason about these agents from the outside. You have to build one, watch the loop crash on turn 47 when ripgrep returns 8MB of matches, and rebuild the truncation layer. That is the point of this capstone.
 
 ## Concept
+
+> **【中文解读】** 编码 Agent 的核心架构包含四大模块：Plan（维护待办事项状态）、Act（调度工具调用）、Observe（截断输出并反馈）、Recover（错误恢复）。2026 年新增 Hook 机制——8 种生命周期事件钩子，用于注入策略、遥测和安全防护。沙箱使用 E2B 或 Daytona，每个任务在独立的 git worktree 中运行，永不接触宿主文件系统。
+
+> **【拓展：Plan-Act-Observe 循环】** 这一架构源自 ReAct 论文（Yao et al., 2023），后被所有主流编码 Agent 采用。Claude Code 的 TodoWrite 工具将计划状态持久化到 `.claude/state.json`，支持崩溃恢复。成本控制分三层：每轮 token 上限、每会话美元预算、硬性轮次上限（通常 50 轮）。实际数据显示，一次 SWE-bench 任务的 median 成本约 $0.40-2.00，但尾部可达 $5+，因此成本天花板至关重要。
 
 The harness has four surfaces. **Plan** maintains a TodoWrite-style state object that the model rewrites each turn. **Act** dispatches tool calls (read, edit, run, search, git). **Observe** captures stdout / stderr / exit codes, truncates, and feeds the summary back. **Recover** handles tool errors without blowing the context window or looping forever. The 2026 shape adds one more thing: **hooks**. `PreToolUse`, `PostToolUse`, `SessionStart`, `SessionEnd`, `UserPromptSubmit`, `Notification`, `Stop`, and `PreCompact` — configurable extension points where the operator injects policy, telemetry, and guardrails.
 
@@ -66,6 +74,10 @@ The sandbox is E2B or Daytona. Each task runs in a fresh devcontainer with a git
 - PR posting: GitHub App with fine-grained token, scope limited to the target repo
 
 ## Build It | 动手构建
+
+> **【中文解读】** 构建步骤分为 8 个阶段：从 TUI 界面搭建开始，逐步实现计划状态管理、六大工具（文件读写/搜索/符号解析/Shell/Git）、E2B 沙箱包装、8 种 Hook 钩子、SWE-bench 评估、成本控制到最终 PR 提交。每步都有明确的量化指标，如工具输出截断至 4k token、50 轮硬限制、$5 单任务上限。
+
+> **【拓展：SWE-bench 评估体系】** SWE-bench 是目前编码 Agent 最权威的评测基准，包含真实 GitHub issue 和对应 patch。SWE-bench Verified 子集经过人工验证，确保 issue 描述足够明确。2026 年排行榜上，排名靠前的系统 pass@1 在 60-80% 区间。衡量维度不仅看通过率，还包括每任务轮次、token 消耗和美元成本。mini-swe-agent 作为最简基线实现，通常作为对比起点。
 
 1. **TUI and command loop.** Scaffold a Bun project with Ink. Accept `agent run <repo> "<task>"`. Print a split view: plan pane (top), tool-call stream (middle), token budget (bottom). Add cancel on Ctrl-C that fires `SessionEnd` hook before exit.
 

@@ -20,7 +20,9 @@
 
 ## The Problem | 问题
 
-A transformer block does nothing on its own. You need to turn token ids into vectors, mix in positional information, run them through the stack, and project back to vocabulary logits. Forget any one of those four steps and the model either fails to forward, drifts in position information, or cannot speak.
+> **【中文解读】** Transformer 块本身不做任何事。需要将 token ID 转为向量、混入位置信息、通过堆栈、投影回词汇表 logits。形状也很重要：参考 GPT-2 small 是 124M 参数，恰好对应 vocab 50257 * emb 768 + pos 1024 * 768 + 12 个块 * ~7M/块。参数计数不匹配参考值是接线错误的信号。
+
+> **【拓展：GPT 模型家族的参数规模】** GPT-2 small (124M) -> GPT-2 medium (355M) -> GPT-2 large (774M) -> GPT-2 xl (1.5B) -> GPT-3 (175B) -> GPT-4 (估计 1.8T 稀疏 MoE)。LLaMA 系列走不同路线：LLaMA-1 (7B/13B/33B/65B)、LLaMA-2 (7B/13B/70B)、LLaMA-3 (8B/70B)。7B 级别的模型可以在消费级 GPU 上运行，是学习和实验的理想尺寸。 You need to turn token ids into vectors, mix in positional information, run them through the stack, and project back to vocabulary logits. Forget any one of those four steps and the model either fails to forward, drifts in position information, or cannot speak.
 
 The shape of the model also matters. The reference GPT-2 small is 124 million parameters at exactly the configuration above. The numbers are not magic. Vocab 50257 times embedding 768 is the token table. Position 1024 times 768 is the position table. Twelve blocks at roughly 7 million parameters each is 84 million. The final head reuses the token table by weight tying. Sum the pieces and you land on 124 million. Building a model whose parameter count does not match the reference is a sign you wired something wrong.
 
@@ -47,6 +49,8 @@ Token ids become token vectors. Position ids become position vectors. The two ar
 
 ### Weight tying
 
+> **【中文解读】** Token 嵌入形状 `(vocab, d_model)`，LM head 需要从 `d_model` 投影回 `vocab`，两者互为转置。权值绑定意味着使用同一个参数张量。在 vocab=50257、d_model=768 时，该矩阵 38M 参数。绑定后只付一次代价，且嵌入和 head 一起更新产生更干净的梯度信号。
+
 The token embedding has shape `(vocab, d_model)`. The language model head needs to project from `d_model` back to `vocab`. Those are transposes of each other. Tying the two means literally the same parameter tensor, used twice. At vocab 50257 and d_model 768, the matrix is 38 million parameters. Untied, you pay for it twice. Tied, you pay for it once and you also get a slightly cleaner gradient signal because the embedding and head update together.
 
 ### Position embedding is learned, not sinusoidal
@@ -54,6 +58,10 @@ The token embedding has shape `(vocab, d_model)`. The language model head needs 
 GPT-2 ships a learned position embedding. The position table is one parameter tensor of shape `(1024, 768)`. The model looks up position 0 through T-1 at every forward and adds the lookup to the token embedding. This is the simplest of the position schemes (RoPE, ALiBi, T5 relative bias are the alternatives) and it is what the 124M reference uses.
 
 ### Generation: temperature, top-k, multinomial
+
+> **【中文解读】** 生成是自回归的。每步取最后位置的 logits，除以 temperature，可选地将除 top-k 外的 logits 掩码为负无穷，softmax 得概率，从中采样一个 token。Temperature 接近零退化为贪心；top-k=1 是贪心；top-k=40 过滤长尾。滑动窗口在超过上下文长度时丢弃最老的 token。
+
+> **【拓展：高级采样策略】** 生产 LLM 常用更精细的采样策略：(1) Top-p (nucleus) 采样：选择累计概率达到 p 的最小 token 集合，比 top-k 更自适应；(2) Min-p 采样：以最高概率 token 为基准，只保留概率不低于其 p 倍的 token；(3) 重复惩罚：除以提示和历史中已出现 token 的 logit；(4) 上下文无关 grammar 约束（如 JSON mode）：通过 logit 掩码强制输出符合特定格式。
 
 Generation is autoregressive. At every step, the model returns logits over the full vocabulary at every position. You take the last position only, divide by temperature, optionally mask all but the top k logits to negative infinity, softmax to get probabilities, and sample one token from the resulting distribution.
 
