@@ -2,8 +2,9 @@
 
 > Greenblatt, Shlegeris, Sachan, Roger (Redwood Research, arXiv:2312.06942, ICML 2024). Control reframes the safety question: given an untrusted strong model U that may be adversarially optimizing against you, what protocols let you extract useful work while bounding the probability of an unacceptable outcome? Resources are a trusted weaker model T, a budget of trusted human labor H, and the ability to edit U's outputs. Within this frame, Trusted Editing Pareto-dominates Untrusted Monitoring on code-backdoor tasks. The frame inherits worst-case assumptions from security engineering: safety is the probability that an adversarially chosen U cannot cause a concrete unacceptable outcome, measured under red-team pressure that stands in for U.
 
-> **【中文解读】** 本节介绍了 AI 控制和颠覆风险——防止 AI 系统绕过安全控制的方法。
+> **【中文解读】** 本节介绍了 AI 控制和颠覆风险——防止 AI 系统绕过安全控制的方法。Greenblatt, Shlegeris 等人（Redwood Research, ICML 2024）重新定义了安全问题：给定一个可能对抗性优化你的不可信强模型 U，什么协议让你在限制不可接受结果概率的同时提取有用工作？可信编辑在代码后门任务上 Pareto 占优于不可信监控。
 
+> **【拓展：AI 控制 → 安全工程范式】** AI 控制从经典安全工程继承最坏情况假设：安全性是对抗性选择的 U 无法在红队压力下造成具体不可接受结果的概率。这完全不同于对齐——对齐是"U 可以信任吗？"，控制是"即使 U 不可信，我们也能安全使用吗？"控制是部署协议的属性，不是模型的属性。两个议程都需要。
 
 **Type:** Learn
 **Languages:** Python (stdlib, safety-vs-usefulness frontier on code-backdoor task)
@@ -22,6 +23,8 @@
 Lessons 7-9 establish that a frontier model may be deceptively aligned, scheming, or faking alignment. The safety question re-frames: can we extract useful work from a model we do not trust, without giving it the opportunity to cause unacceptable outcomes? This is the control problem, and it is structured like classical security: assume worst-case adversary, design a protocol, measure the adversary's success rate under red-team pressure.
 
 ## The Concept | 概念
+
+> **【中文解读】** 威胁模型的三要素：U（不可信强模型）——有能力，可能对抗性；T（可信弱模型）——能力较弱，但已知不是对抗性的；H（可信人类劳动）——小预算，不可扩展。系统必须使用 U 产生有用输出。对手试图造成具体的不可接受结果（如交付代码中的后门），同时保持一定比例的合法有用工作以通过有用性阈值。
 
 ### The threat model
 
@@ -47,6 +50,8 @@ Prompts are competition-level coding problems. U produces a candidate solution. 
 
 Greenblatt et al. find Trusted Editing Pareto-dominates Untrusted Monitoring: higher usefulness at every safety level.
 
+> **【拓展：可信编辑 vs 不可信监控 → 共谋问题】** 不可信监控要求 U 的第二个实例不能与第一个协调——共谋可通过隐写术线索或共享训练先验发生。协议必须投资于抗共谋措施（释义、混淆）但这会降低监控信号。可信编辑完全避免共谋，因为 T 是可信的——T 提出的任何编辑都不是对抗性的。代价是 T 能力较弱，可能过度拒绝或遗漏微妙后门。
+
 ### Why Trusted Editing wins
 
 Untrusted Monitoring requires that U's second instance cannot coordinate with the first. Collusion is possible via steganographic cues or shared training priors. The protocol has to invest budget in collusion-resistance (paraphrasing, obfuscation) that reduces the monitor's signal. Trusted Editing avoids collusion entirely because T is trusted — any edit T proposes is, by assumption, not adversarial. The cost is that T is less capable, so it may over-reject or miss subtle backdoors.
@@ -65,6 +70,8 @@ Untrusted Monitoring requires that U's second instance cannot coordinate with th
 
 Alignment is a property of the model. Control is a property of the deployment protocol. Control does not produce aligned models; it produces safe use of possibly-unaligned models. Both agendas are needed.
 
+> **【中文解读】** 控制的三个基本限制：（1）人类不可扩展——H 预算受限于愿意审计困难 AI 输出的人数；（2）可信弱模型最终滞后——当 T 远弱于 U 时，T 的编辑信号变成噪声；（3）控制不是对齐——在 ASL-3 有效的协议在 ASL-4 可能失效，如果 U 能操纵 T 或推理 H 的审计分布。
+
 ### Three fundamental limits
 
 - Humans do not scale. The H budget is bounded by the number of humans willing to audit hard AI outputs.
@@ -78,6 +85,8 @@ UK AISI and Redwood collaborate on Control Safety Cases (metr.org / redwoodresea
 ### Where this fits in Phase 18
 
 Lessons 6-9 describe the threat (deception is possible). Lesson 10 describes the defensive paradigm under the assumption that the threat is real. Lesson 11 describes the complementary offensive paradigm (make U trustworthy via scalable oversight).
+
+> **【拓展：控制安全案例 → UK AISI 合作】** 2025 年 UK AISI 和 Redwood 合作开展控制安全案例——在关于 U 的最坏情况假设下，论证协议限制了不可接受结果的概率。安全案例（Lesson 18）继承了控制框架。控制四轴：U 扮演什么角色、T 扮演什么角色、H 如何分配、协议在抗共谋上花费多少计算。
 
 ## Use It | 使用方法
 

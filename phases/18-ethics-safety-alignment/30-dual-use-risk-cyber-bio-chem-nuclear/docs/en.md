@@ -2,8 +2,9 @@
 
 > The 2026 dual-use picture, domain by domain. Bio/chem: Lesson 17 covers WMDP; Anthropic's bioweapon-acquisition trial (2.53x uplift) and OpenAI's April 2025 Preparedness Framework v2 warning ("on the cusp of meaningfully helping novices create known biological threats") mark the inflection point. Cyber (November 2025 Anthropic report): Chinese-linked state actors used Claude's agentic coding tool to automate up to 90% of a cyberattack campaign, with human intervention only in 4-6 steps; OpenAI "trusted access" pilot gives vetted security organisations capability access for defensive dual-use work. Chem/bio execution gap erosion: the classic defense was "information access alone is insufficient." Vision-enabled frontier models (GPT-5.2, Gemini 3 Pro, Claude Opus 4.5, Grok 4.1) can observe wet-lab video and provide real-time correction. December 2025: OpenAI demonstrated GPT-5 iterating on wet-lab experiments, achieving 79x efficiency improvement via AI-driven protocol optimization. Novice-vs-expert pattern: AI provides greater relative uplift to novices but greater absolute capability to experts.
 
-> **【中文解读】** 本节介绍了双重用途风险——AI 在网络、生物、化学、核领域的滥用风险和防护。
+> **【中文解读】** 本节介绍了双重用途风险——AI 在网络、生物、化学、核领域的滥用风险和防护。2026 年双重用途画面按领域：生物——从"轻微提升"到 2.53 倍提升（Anthropic 2025），不足以排除 ASL-3；网络——中国关联国家行为者使用 Claude 的代理编码工具自动化高达 90% 的网络攻击活动（Anthropic 2025 年 11 月）；化学——视觉使能的前沿模型可以观察湿实验室视频并提供实时纠正，执行差距正在侵蚀。
 
+> **【拓展：跨领域综合 → 四领域阈值穿越】** 2024-2025 年四个领域的状态：生物从轻微提升到 ASL-3 临界（获取阶段自动化）；化学从轻微提升到执行差距侵蚀（实时湿实验室纠正）；网络从代码辅助到 80-90% 活动自动化（代理编码）；核——仍然受限于材料获取瓶颈。三个领域穿越了阈值，一个仍受非信息壁垒约束。
 
 **Type:** Learn
 **Languages:** none
@@ -33,6 +34,8 @@ Three phases (repeated from Lesson 17 for coherence):
 
 The shift is qualitative: "mild" evolved into "plausibly enabling" within eighteen months, even without a capability breakthrough.
 
+> **【中文解读】** 化学/生物执行差距侵蚀：历史防御是"信息获取必要但不充分，执行协议的技能阻止新手"。2025 年前沿模型通过视觉部分打破了这个防御——实时协议纠正（GPT-5.2, Gemini 3 Pro, Claude Opus 4.5, Grok 4.1 可以观察湿实验室视频并标记错误）。2025 年 12 月 OpenAI 展示 GPT-5 在湿实验室实验上迭代，通过协议优化实现 79 倍效率提升。
+
 ### Chem/bio execution-gap erosion
 
 Historic defense: information is necessary but not sufficient; the skill of executing the protocol blocks novices. 2025 frontier models with vision break this defense partially:
@@ -41,6 +44,8 @@ Historic defense: information is necessary but not sufficient; the skill of exec
 - **December 2025 OpenAI demonstration.** GPT-5 iterating on wet-lab experiments achieves 79x efficiency improvement via protocol optimization.
 
 The implication: execution-skill-as-defense is eroding. Procurement and equipment gaps remain, but the tacit-knowledge gap is narrowing.
+
+> **【拓展：网络提升 → 代理编码作为攻击自动化原语】** Anthropic 2025 年 11 月报告的关键发现：代理编码是攻击自动化原语。之前的 AI 网络辅助局限在代码片段级别；代理工作流整合了侦察、利用、后利用和数据外泄。4-6 个人类步骤是瓶颈——未来能力提升将减少该计数。OpenAI 的"可信访问"试点为审查通过的安全组织提供能力访问，如果试点扩展，访问不对称有利于防御者。
 
 ### Cyber uplift (November 2025)
 
@@ -51,9 +56,13 @@ Implications:
 - The 4-6 human steps are the bottleneck; future capability gains would reduce that count.
 - Defensive dual-use: OpenAI's "trusted access" pilot provides vetted security organisations (established incident-response firms, government) with capability access for defense. Asymmetry in access favors defenders if the pilot scales.
 
+> **【拓展：核领域 → 材料瓶颈仍有效】** 核是四个 CBRN 领域中在公开文档中分析最少的。威胁模型不同：裂变材料获取主导难度，不是信息。AI 在信息层面对新手的提升在实践中有限。没有 2024-2025 年的主要实验室报告识别到核特定阈值穿越。材料获取瓶颈是唯一仍然有效的非信息壁垒。
+
 ### Nuclear
 
 The least-analyzed of the four CBRN domains in public documentation. The threat model is different: fissile-material acquisition dominates the difficulty, not information. AI uplift on the information layer provides limited novice uplift in practice. No 2024-2025 major-lab report identifies a nuclear-specific threshold crossing.
+
+> **【中文解读】** 新手相对 vs 专家绝对的模式：新手相对提升——高，乘法的（Anthropic 2025 生物报告 2.53 倍）；专家绝对能力——高天花板（专家知道该问什么和如何解释）。安全案例启示：仅解决新手提升（通过输入过滤器、拒绝、不确定性表达）对专家绝对控制不够。需要额外措施：引出强化、能力遗忘（Lesson 17）和控制协议（Lesson 10）。
 
 ### Novice-relative vs expert-absolute
 

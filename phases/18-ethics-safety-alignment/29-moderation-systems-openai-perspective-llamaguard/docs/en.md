@@ -2,8 +2,9 @@
 
 > Production moderation systems operationalize the safety policies defined in Lessons 12-16. OpenAI Moderation API: `omni-moderation-latest` (2024) built on GPT-4o classifies text + images in one call; 42% better on multilingual test set than prior version; the response schema returns 13 category booleans — harassment, harassment/threatening, hate, hate/threatening, illicit, illicit/violent, self-harm, self-harm/intent, self-harm/instructions, sexual, sexual/minors, violence, violence/graphic; free for most developers. Layered patterns: Input moderation (pre-generation), Output moderation (post-generation), Custom moderation (domain rules). Async parallel calls hide latency; placeholder responses on flag. Llama Guard 3/4 (Lesson 16): 14 MLCommons hazards, Code Interpreter Abuse, 8 languages (v3), multi-image (v4). Perspective API (Google Jigsaw): toxicity scoring predating the LLM-as-moderator wave; primarily single-dimension toxicity with severe-toxicity/insult/profanity variants; baseline for content-moderation research. Deprecations: Azure Content Moderator deprecated February 2024, retired February 2027, replaced by Azure AI Content Safety.
 
-> **【中文解读】** 本节介绍了内容审核系统——OpenAI Perspective、Llama Guard 等内容安全工具。
+> **【中文解读】** 本节介绍了内容审核系统——OpenAI Perspective、Llama Guard 等内容安全工具。OpenAI Moderation API（omni-moderation-latest, 2024）基于 GPT-4o，在单次调用中分类文本+图像，返回 13 个类别布尔值。三层模式是 2026 年默认配置：输入审核（预生成）、输出审核（后生成）、自定义审核（域规则）。
 
+> **【拓展：审核栈 → 生产配置】** OpenAI 和 Llama Guard 的分类法重叠但分歧——OpenAI 有"非法"作为宽泛类别，Llama Guard 分为"暴力犯罪"和"非暴力犯罪"。部署根据策略分类法适配选择。Perspective API（Google Jigsaw）是 LLM 时代前的毒性评分基线，在内容审核研究中仍广泛使用因为有多年校准数据。Azure Content Moderator 2024 年 2 月弃用，2027 年 2 月退役，迁移到 Azure AI Content Safety。
 
 **Type:** Build
 **Languages:** Python (stdlib, three-layer moderation harness)
@@ -22,6 +23,8 @@
 Lessons 12-16 describe attacks and defense tooling. Lesson 29 covers the deployed moderation systems that operationalize the defenses at the surface where users touch the product. The three-layer pattern is the 2026 default configuration.
 
 ## The Concept | 概念
+
+> **【中文解读】** OpenAI Moderation API 的 13 个类别：骚扰/骚扰-威胁、仇恨/仇恨-威胁、自残/自残-意图/自残-指示、性/性-未成年人、暴力/暴力-图形、非法/非法-暴力。多模态支持适用于暴力、自残和性但不包括性-未成年人，其余仅限文本。比上一代审核端点多语言测试集上好 42%。
 
 ### OpenAI Moderation API
 
@@ -53,6 +56,8 @@ Toxicity scoring system predating the LLM-as-moderator wave (pre-2020). Categori
 
 Widely used as a content-moderation research baseline because the API is stable, documented, and has years of calibration data. For modern LLM-adjacent use cases, Llama Guard or OpenAI Moderation is typically a better fit.
 
+> **【中文解读】** 三层审核模式的设计逻辑：输入审核必须在生成前完成，输出审核在生成后运行。三层按顺序设计。同层内可并行——在同一文本上同时运行多个分类器（如 OpenAI Moderation + Llama Guard + Perspective）隐藏每个分类器的延迟。可选优化：输入审核完成时显示占位响应（"请稍候，正在检查..."）并推迟 token-1 流式传输。
+
 ### The three-layer pattern
 
 1. **Input moderation.** Classify the user's prompt before generation. Reject if flagged. Latency: one classifier call.
@@ -60,6 +65,8 @@ Widely used as a content-moderation research baseline because the API is stable,
 3. **Custom moderation.** Domain-specific rules (regex, allowlists, business policy). Runs at either input or output.
 
 The three layers are sequential by design: input moderation must complete before generation, and output moderation runs after generation. Parallelism applies within a layer — running multiple classifiers (e.g., OpenAI Moderation + Llama Guard + Perspective) concurrently on the same text hides per-classifier latency. As an optional optimization, a placeholder response ("one moment, checking...") may be shown while input moderation completes and token-1 streaming is deferred. Flag behaviour is configurable: refuse, sanitize, escalate to human review.
+
+> **【拓展：失败模式 → 为什么需要多层】** 仅输入审核无法捕获输出幻觉（Lesson 12-14 编码攻击绕过输入分类器）；仅输出审核允许任何输入到达模型（增加成本，向攻击者暴露内部推理）；仅自定义审核不跨类别鲁棒（正则表达式脆弱）。分层是默认——安全带+吊带。
 
 ### Failure modes
 
@@ -76,6 +83,8 @@ Azure Content Moderator: deprecated February 2024, retired February 2027. Replac
 ### Where this fits in Phase 18
 
 Lesson 16 covers the moderation tooling in the red-team context. Lesson 29 covers deployed moderation. Lesson 30 closes with the current dual-use capability evidence.
+
+> **【拓展：Azure 迁移 → 2024-2027 行业项目】** Azure Content Moderator 2024 年 2 月弃用，2027 年 2 月退役，替换为基于 LLM 的 Azure AI Content Safety 并与 Azure OpenAI 集成。迁移是一个 2024-2027 年的行业级别项目——每个使用 Azure Content Moderator 的部署都需要规划迁移路径。这是传统内容审核向 LLM 驱动审核的系统性转变。
 
 ## Use It | 使用方法
 

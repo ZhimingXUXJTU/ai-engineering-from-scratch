@@ -2,8 +2,9 @@
 
 > Five organisations define the 2026 non-lab alignment research layer. MATS (ML Alignment & Theory Scholars): 527+ researchers since late 2021, 180+ papers, 10K+ citations, h-index 47; summer 2024 cohort incorporated as 501(c)(3) with ~90 scholars and 40 mentors; 80% of pre-2025 alumni work on safety/security with 200+ at Anthropic, DeepMind, OpenAI, UK AISI, RAND, Redwood, METR, Apollo. Redwood Research: applied alignment lab founded by Buck Shlegeris; introduced AI Control (Lesson 10); collaborates with UK AISI on control safety cases. Apollo Research: pre-deployment scheming evaluations for frontier labs; authored In-Context Scheming (Lesson 8) and Towards Safety Cases for AI Scheming. METR (Model Evaluation and Threat Research): task-based capability evaluations, autonomous-task time-horizon studies; "Common Elements of Frontier AI Safety Policies" compares lab frameworks. Eleos AI Research: model-welfare pre-deployment evaluations (Lesson 19); conducted Claude Opus 4 welfare assessment.
 
-> **【中文解读】** 本节介绍了对齐研究生态系统——AI 安全对齐领域的研究机构、论文和开源项目。
+> **【中文解读】** 本节介绍了对齐研究生态系统——AI 安全对齐领域的研究机构、论文和开源项目。五个组织定义了 2026 年非实验室对齐研究层：MATS（527+ 研究员，180+ 论文，h-index 47）；Redwood Research（AI 控制议程）；Apollo Research（预部署策略评估）；METR（基于任务的能力评估）；Eleos AI（模型福利预部署评估）。
 
+> **【拓展：外部评估 → 利益冲突缓解】** 单一来源评估不可靠：实验室评估自己的模型存在结构性利益冲突。外部评估者可以发现和验证实验室可能低报的失败模式。2024 年的潜伏 Agent 论文是 Anthropic + Redwood 联合工作；对齐伪装是 Anthropic + Redwood；上下文策略是 Apollo；反策略是 Apollo + OpenAI。多组织结构是质量控制。
 
 **Type:** Learn
 **Languages:** none
@@ -23,6 +24,8 @@ The frontier labs (Lesson 18) produce safety evaluations internally and publish 
 
 ## The Concept | 概念
 
+> **【中文解读】** MATS 的规模和影响：自 2021 年底以来 527+ 研究员，180+ 论文，10K+ 引用，h-index 47。2024 年夏季：90 名学者 + 40 名导师，注册为 501(c)(3)。职业成果：约 80% 的 2025 年前校友从事安全/安全工作，200+ 人在 Anthropic、DeepMind、OpenAI、UK AISI、RAND、Redwood、METR、Apollo。
+
 ### MATS (ML Alignment & Theory Scholars)
 
 Started late 2021. Research mentorship program; scholars spend 10-12 weeks with a senior researcher on a specific alignment problem.
@@ -35,6 +38,8 @@ Scale (2026):
 - Summer 2024: 90 scholars + 40 mentors; incorporated as 501(c)(3).
 
 Career outcomes: ~80% of pre-2025 alumni are working on safety/security. 200+ at Anthropic, DeepMind, OpenAI, UK AISI, RAND, Redwood, METR, Apollo.
+
+> **【拓展：研究风格差异 → 组织定位】** Redwood 的风格：特定威胁模型、最坏情况对手、可压力测试的具体协议。Apollo 的风格：代理设置评估中欺骗可能涌现的情境，三支柱分解（错位、目标导向性、情境意识）。METR 的风格：长程任务评估、经验能力测量、框架综合。理解组织风格有助于解释哪些研究发现被谁信任。
 
 ### Redwood Research
 
@@ -62,6 +67,8 @@ Style: long-horizon task evaluations, empirical capability measurement, framewor
 
 Model-welfare pre-deployment evaluations. Conducted the Claude Opus 4 welfare assessment documented in section 5.3 of the system card. Provides the external methodology check for Lesson 19's welfare-relevant claims.
 
+> **【中文解读】** 生态系统流动：MATS 训练研究员 → 毕业生去 Anthropic、DeepMind、OpenAI（实验室安全团队）或 Redwood、Apollo、METR、Eleos（外部评估）→ 外部评估者与实验室和 UK AISI / CAISI 合作 → 出版物回馈 MATS 给下一期。人才管道是这个生态系统的命脉。
+
 ### The flow
 
 MATS trains researchers. Graduates go to Anthropic, DeepMind, OpenAI (lab safety teams) or to Redwood, Apollo, METR, Eleos (external evaluation). External evaluators partner with labs and with UK AISI / CAISI. Publications feed the ecosystem back to MATS for the next cohort.
@@ -73,6 +80,8 @@ Single-source evaluations are unreliable: labs evaluating their own models have 
 ### Where this fits in Phase 18
 
 Lessons 7-11 reference Redwood and Apollo work; Lesson 18 references METR's framework comparison; Lesson 19 references Eleos. Lesson 28 is the explicit organisational map for the ecosystem the rest of the Phase relies on.
+
+> **【拓展：外部评估者 → 多机构交叉验证】** 2024 年的关键论文展示了多机构协作的价值：潜伏 Agent 是 Anthropic + Redwood；对齐伪装是 Anthropic + Redwood；上下文策略是 Apollo；反策略是 Apollo + OpenAI。每个外部评估者带来不同的方法论风格和偏见。单一实验室的自我评估不够——多组织结构确保失败模式不会被系统性忽视。
 
 ## Use It | 使用方法
 

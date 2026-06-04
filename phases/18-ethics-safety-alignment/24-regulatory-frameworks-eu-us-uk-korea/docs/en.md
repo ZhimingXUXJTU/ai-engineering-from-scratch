@@ -2,8 +2,9 @@
 
 > Four primary regulatory regimes define the 2026 AI governance landscape. EU AI Act (in force 1 August 2024) — prohibited practices and AI literacy from 2 February 2025; GPAI obligations from 2 August 2025; full applicability and Article 50 transparency 2 August 2026; legacy GPAI and embedded high-risk systems 2 August 2027; penalties up to 15M EUR or 3% of global turnover. GPAI Code of Practice (10 July 2025): three chapters — Transparency, Copyright, Safety and Security — 12 commitments; enforcement begins August 2026. UK AISI -> AI Security Institute (February 2025): rename signals narrower scope. US AISI -> CAISI (June 2025): Center for AI Standards and Innovation under NIST; shift toward pro-growth posture. Korean AI Framework Act (passed December 2024, effective January 2026): Article 12 establishes AISI under MSIT; mandates local representatives for foreign AI companies, risk assessment, safety measures for high-impact and generative AI.
 
-> **【中文解读】** 本节介绍了监管框架——欧盟 AI 法案、美国、英国、韩国的 AI 监管政策对比。
+> **【中文解读】** 本节介绍了监管框架——欧盟 AI 法案、美国、英国、韩国的 AI 监管政策对比。EU AI Act（2024 年 8 月 1 日生效）建立风险分级结构：禁止实践、高风险系统、通用目的 AI、有限风险系统。GPAI 代码实践（2025 年 7 月 10 日）包含透明度、版权和安全三章 12 项承诺。
 
+> **【拓展：四国监管哲学对比 → 合规挑战】** 四种竞争性监管哲学：EU——严格、风险分级、重罚（最高 1500 万欧元或全球营业额 3%）；US——创新优先、分散化、各州填补联邦空白；UK——窄化安全焦点、强评估基础设施；韩国——MSIT 主导、面向外国提供商。多司法管辖区部署者必须遵守最严格的——2026 年通常是 EU AI Act。
 
 **Type:** Learn
 **Languages:** none
@@ -22,6 +23,8 @@
 Lab frameworks (Lesson 18) are voluntary. Regulatory frameworks are compulsory. The 2024-2026 period saw the first wave of comprehensive AI regulation enter force. Deployers must map technical controls to regulatory obligations; the mapping differs by jurisdiction.
 
 ## The Concept | 概念
+
+> **【中文解读】** EU AI Act 时间线：2025 年 2 月 2 日——禁止实践 + AI 素养；2025 年 8 月 2 日——GPAI + 治理；2026 年 8 月 2 日——全面适用 + Article 50 透明度 + 罚款；2027 年 8 月 2 日——遗留 GPAI + 嵌入高风险。系统性风险 GPAI（>1e25 FLOP 训练计算）有额外义务，估计约束 5-15 家公司。
 
 ### EU AI Act
 
@@ -54,6 +57,8 @@ Published 10 July 2025. Three chapters:
 
 First draft 17 December 2025. Second draft March 2026. Final version June 2026. Covers AI-generated content labelling including deepfakes — the regulatory layer that requires Lesson 23's watermarking technology.
 
+> **【拓展：UK/US 重新命名 → 政策方向转变】** UK AISI 2025 年 2 月更名为 AI Security Institute——缩小范围：放弃算法偏见和言论自由框架，聚焦前沿能力安全。US CAISI 2025 年 6 月从 NIST 的 AI Safety Institute 转型为 Center for AI Standards and Innovation——转向"促增长 AI 政策"，减少预部署评估强调。这两个更名反映了政策优先级的变化。
+
 ### UK AI Security Institute (February 2025)
 
 Renamed from AI Safety Institute. The rebrand narrows scope: drops algorithmic bias and free-speech framings; focuses on frontier capability security. Open-sourced the Inspect evaluation tool (May 2024). Collaborates with Redwood (Lesson 10) on control safety cases.
@@ -61,6 +66,8 @@ Renamed from AI Safety Institute. The rebrand narrows scope: drops algorithmic b
 ### US CAISI (June 2025)
 
 Trump administration transforms NIST's AI Safety Institute into the Center for AI Standards and Innovation. Shift toward "pro-growth AI policies" per VP Vance's Paris AI Action Summit remarks. Reduced emphasis on pre-deployment evaluation; emphasis on standards and innovation support. Domestic counterweight to EU AI Act's regulatory posture.
+
+> **【中文解读】** 韩国 AI 框架法（2024 年 12 月通过，2026 年 1 月生效）：合并了 19 项独立的 AI 法案。第 12 条在科技通信部（MSIT）下设立 AISI。要求外国 AI 公司在韩国设立本地代表、对"高影响"AI 系统进行风险评估、对生成式 AI 和高影响 AI 采取安全措施。这是亚洲第一个综合水平 AI 监管。
 
 ### Korean AI Framework Act
 
@@ -85,6 +92,8 @@ Competing regulatory philosophies. Deployers in multiple jurisdictions have to c
 ### Where this fits in Phase 18
 
 Lesson 18 is lab-voluntary governance; Lesson 24 is regulatory; Lesson 25 is an emerging class of CVEs for AI systems; Lessons 26-27 cover documentation (cards) and training-data governance.
+
+> **【拓展：GPAI 代码实践 → 透明度/版权/安全】** 2025 年 7 月 10 日发布的 GPAI 代码实践包含三章：透明度——所有 GPAI 提供商；版权——所有 GPAI 提供商；安全和安全——仅系统性风险 GPAI 提供商（估计 5-15 家公司）。12 项总承诺。签名任务组由 AI 办公室主持管理实施。执法从 2026 年 8 月 2 日开始——在此之前善意合规被接受。
 
 ## Use It | 使用方法
 
