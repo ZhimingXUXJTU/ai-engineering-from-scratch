@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了共识和拜占庭容错——多 Agent 在可能存在故障或恶意行为时如何达成一致。
 
+> **【拓展：consensus and bft→具体应用】** 拜占庭容错（BFT）在多 Agent 系统中的应用：当部分 Agent 可能故障或被攻击时，如何确保系统整体正确？经典 BFT 算法（PBFT）需要 3f+1 个节点容忍 f 个故障节点。在 LLM Agent 上下文中，'故障'可以是幻觉、被注入或拒绝执行。实践中使用多数投票作为简化的 BFT。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)

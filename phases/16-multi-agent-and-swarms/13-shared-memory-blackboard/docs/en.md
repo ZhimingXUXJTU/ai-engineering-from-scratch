@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了共享记忆和黑板系统——多 Agent 系统中的共享知识库和协调机制。
 
+> **【拓展：shared memory blackboard→具体应用】** 共享记忆/黑板模型是多 Agent 系统的经典协调机制——所有 Agent 读写一个共享的知识库。黑板模型源自 1980 年代的 Hearsay-II 语音识别系统。现代实现包括 Redis 共享状态、向量数据库和 MCP Resources。优势是简单，劣势是竞态条件（多个 Agent 同时写入）。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib, `threading`)

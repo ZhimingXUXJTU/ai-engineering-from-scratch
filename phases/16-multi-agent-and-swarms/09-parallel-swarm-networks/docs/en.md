@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了并行群体网络——大量 Agent 通过共享状态并行工作的组织模式。
 
+> **【拓展：parallel swarm networks→具体应用】** 并行群体网络让大量 Agent 同时处理子任务，然后聚合结果。适合可并行化的任务（如多文件编辑、多数据源查询）。关键挑战是结果聚合——如何合并可能冲突的部分结果。Map-Reduce 是常见的聚合模式。2026 年的实践表明，5-10 个并行 Agent 是最优范围。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib, `threading`, `queue`)

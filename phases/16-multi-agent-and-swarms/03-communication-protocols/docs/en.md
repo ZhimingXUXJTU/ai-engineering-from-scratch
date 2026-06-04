@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了多 Agent 通信协议——Agent 间交换信息的标准化方式。
 
+> **【拓展：communication protocols→具体应用】** 现代多 Agent 通信协议的三个层次：(1) 传输层——A2A (HTTP+JSON)、MCP (JSON-RPC)、gRPC；(2) 语义层——Agent Card 描述能力，任务描述意图；(3) 协调层——发言者选择、投票、协商。2026 年的实践表明，通信协议的选择主要取决于延迟要求和是否需要跨组织协作。
+
 
 **Type:** Build
 **Languages:** TypeScript

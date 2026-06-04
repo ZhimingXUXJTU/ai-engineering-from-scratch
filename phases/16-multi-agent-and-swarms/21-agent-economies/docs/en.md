@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了 Agent 经济——多 Agent 系统中的资源交易、定价和市场机制。
 
+> **【拓展：agent economies→具体应用】** Agent 经济探讨多 Agent 系统中的资源分配和激励机制。核心概念：(1) 代币经济——Agent 使用代币支付服务；(2) 声誉系统——Agent 的服务质量影响其被选择概率；(3) 拍卖机制——资源通过竞价分配。OpenAI 的 x402 支付协议和 MCP 的 scope 模型是 Agent 经济的初步实现。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib)

@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了多 Agent 系统的生产扩展——队列、检查点和扩展策略。
 
+> **【拓展：production scaling queues checkpoints→具体应用】** 多 Agent 系统的生产扩展需要：(1) 消息队列——Kafka/RabbitMQ 缓冲 Agent 间的消息；(2) 检查点——定期保存系统状态以支持恢复；(3) 负载均衡——将任务均匀分配给可用的 Agent 实例；(4) 水平扩展——动态增减 Agent 数量应对负载变化。LangGraph Cloud 和 Temporal 是这一领域的两个主流选择。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib, `asyncio`, `sqlite3`)

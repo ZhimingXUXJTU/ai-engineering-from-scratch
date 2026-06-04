@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了心智社会辩论——Marvin Minsky 的心智社会理论在多 Agent 系统中的应用。
 
+> **【拓展：society of mind debate→具体应用】** Marvin Minsky 的《心智社会》（1986）提出智能是许多简单心智的协作产物。这一思想在 2026 年的多 Agent 辩论系统中实现——多个 Agent 从不同角度讨论问题，通过辩论达成更好的结论。研究表明，3-5 个 Agent 的辩论效果最佳。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)

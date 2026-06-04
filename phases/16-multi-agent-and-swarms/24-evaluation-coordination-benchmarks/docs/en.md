@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了协调基准评估——衡量多 Agent 系统协调能力的评估方法。
 
+> **【拓展：evaluation coordination benchmarks→具体应用】** 多 Agent 协调评估基准：(1) AgentBench——多 Agent 任务完成度评估；(2) CLEVA——LLM Agent 评估框架；(3) SWE-bench——多 Agent 协作修复 bug。关键评估维度：任务完成率、协调效率（步数/成本）、鲁棒性（Agent 故障时的表现）和可扩展性（Agent 数量增加时的性能变化）。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib)

@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了角色专业化——为每个 Agent 分配明确的角色和专长，提升整体团队效率。
 
+> **【拓展：role specialization→具体应用】** 角色专业化是 CrewAI 的核心理念——每个 Agent 有角色（Role）、目标（Goal）和背景故事（Backstory）。实践表明，明确的角色定义能显著提高多 Agent 协作的效率。但过度专业化也有风险——角色边界过于严格会导致 Agent 拒绝做'不是自己职责'但必要的操作。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)

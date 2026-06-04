@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了多 Agent 的失败模式和群体思维——多 Agent 系统特有的失败模式。
 
+> **【拓展：failure modes mast groupthink→具体应用】** 多 Agent 系统的特有失败模式：(1) 群体思维（Groupthink）——Agent 过度趋同，失去多样性；(2) 信息级联——一个 Agent 的错误被后续 Agent 放大；(3) 死锁——Agent 互相等待无法继续；(4) 活锁——Agent 不断改变策略但无法收敛。防范措施包括：注入异见 Agent、随机化发言顺序、设置超时。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib)

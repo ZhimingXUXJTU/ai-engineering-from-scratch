@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了群聊发言者选择——多 Agent 讨论中决定谁发言、何时发言的机制。
 
+> **【拓展：group chat speaker selection→具体应用】** 群聊发言者选择是多 Agent 讨论中的关键问题——谁发言、什么时候发言、发言多久。三种主要策略：(1) 轮流制——按固定顺序发言；(2) 相关性制——最相关的 Agent 发言；(3) 仲裁制——一个专门的协调者决定谁发言。AutoGen 的 GroupChat 使用 LLM 作为仲裁者。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)

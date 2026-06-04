@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了 FIPA ACL 遗产——多 Agent 系统通信协议的历史标准和现代演进。
 
+> **【拓展：fipa acl heritage→具体应用】** FIPA ACL（Foundation for Intelligent Physical Agents Agent Communication Language）是 1990-2000 年代多 Agent 系统的通信标准。虽然 FIPA 组织已于 2013 年解散，但其核心思想（标准化的通信原语如 INFORM、REQUEST、PROPOSE）仍然影响着现代多 Agent 协议。2026年的 A2A 协议可以看作 FIPA ACL 的 LLM 时代重生。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib)
