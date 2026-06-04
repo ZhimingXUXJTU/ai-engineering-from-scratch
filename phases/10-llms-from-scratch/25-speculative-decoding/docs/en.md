@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 10 Lesson 12 (Inference Optimization), Phase 10 Lesson 04 (Pre-training Mini-GPT)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Decode throughput for a 70B-class model on H100 is typically 40-80 tokens/second. Each token requires a full forward pass reading all model weights from HBM. You cannot make the model smaller without changing its output. You cannot increase batch size beyond memory. You're stuck — unless you can let the model output more than one token per forward pass.
 
@@ -19,7 +19,12 @@ Autoregressive generation looks inherently serial: `x_{t+1} = sample(p(· | x_{1
 
 Leviathan, Kalai, Matias (2023, "Fast Inference from Transformers via Speculative Decoding") made this exact via a clever accept/reject rule that preserves the target model's sampling distribution. The same output distribution, 2-4× faster.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 投机解码的核心思想：用一个小型草稿模型快速生成 k 个候选 token，再用目标大模型并行验证这 k 个 token。被接受的 token 直接保留（零额外延迟），被拒绝的从第一个错误处重新生成。数学证明：输出分布与直接用大模型生成完全相同。
+
+> **【拓展：投机解码的工程实践】** 投机解码的加速比取决于草稿模型与目标模型的分布匹配度和批处理的并行效率。在实践中，使用同一模型系列的小版本（如 Llama-3-8B 为 Llama-3-70B 草稿）效果最好。vLLM 和 TensorRT-LLM 都原生支持投机解码。
+
 
 ### The Two-Model Setup
 
@@ -118,7 +123,11 @@ If `a, b` are competing first-token candidates and `c, d, e, f` are second-token
 
 Production shops typically report 2-3× wall-clock speedup on chat, 3-5× on code generation, and near-zero on creative writing.
 
-## Build It
+
+> **【拓展：投机解码的数学保证】** 投机解码的输出分布与目标模型完全一致——不是近似，而是数学上的严格等价。这通过拒绝采样实现。因此投机解码是零质量损失的加速方法。
+
+
+## Build It | 动手实现
 
 `code/main.py`:
 
@@ -160,18 +169,18 @@ def speculative_step(p_target, q_draft, K, temperature=1.0):
     return accepted
 ```
 
-## Use It
+## Use It | 用框架实现
 
 - **vLLM** and **SGLang** ship first-class speculative decoding. Flags: `--speculative_model`, `--num_speculative_tokens`. EAGLE-2/3 support via the `--spec_decoding_algorithm eagle` flag.
 - **NVIDIA TensorRT-LLM** supports Medusa and EAGLE trees natively.
 - **Reference draft models**: `Qwen/Qwen3-0.6B-spec` (drafts for Qwen3-32B), `meta-llama/Llama-3.2-1B-Instruct-spec` (drafts for 70B).
 - **Medusa heads** (Cai et al. 2024, "Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads"): instead of a draft model, add K parallel prediction heads to the target itself. Simpler to deploy, slightly lower acceptance than EAGLE.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-speculative-tuning.md` — a skill that profiles a target model's workload and chooses: draft model, K (draft length), tree width, temperature, and when to fall back to plain decode.
 
-## Exercises
+## Exercises | 练习题
 
 1. Implement the exact rejection rule and empirically verify it. Run 10K samples via `speculative_decode` and via plain target sampling; compute TV distance between the two output distributions. Should be < 0.01.
 
@@ -183,23 +192,23 @@ This lesson produces `outputs/skill-speculative-tuning.md` — a skill that prof
 
 5. Measure failure modes. Run speculative decode at temperature=1.5 (high stochasticity). Show α collapses and the algorithm is slower than plain decode due to draft overhead.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|-----------------|------------------------|
-| Target model | "The big model" | The slow, high-quality model you want samples from (p distribution) |
-| Draft model | "The speculator" | The small, fast predictor (q distribution); 5-30x smaller |
-| K / draft length | "Look-ahead" | Number of speculated tokens per verify pass |
-| α / acceptance rate | "Hit rate" | Per-token probability that the draft's proposal is accepted |
-| Exact rejection rule | "The accept test" | r < p/q compare that preserves target's distribution |
-| Residual distribution | "Corrected p-q" | (p - q)+ / ||(p - q)+||_1, the distribution to sample from on rejection |
-| Tree drafting | "Branching speculation" | Draft outputs a tree of candidates, verified in one pass with tree-structured attention mask |
-| Tree attention mask | "Topological mask" | Causal mask encoding the tree topology so each node attends only to its ancestors |
-| Medusa heads | "Parallel heads" | K extra prediction heads on the target itself; no separate draft model |
-| EAGLE feature reuse | "Hidden-state draft" | Draft input is target's last hidden state, not raw tokens, shrinking the draft |
-| Test-time simulation loss | "EAGLE-3 training" | Train draft on outputs matching target's test-time distribution, not teacher forcing |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|------------------------|---------|
+| Target model | "The big model" | The slow, high-quality model you want samples from (p distribution) | |
+| Draft model | "The speculator" | The small, fast predictor (q distribution); 5-30x smaller | |
+| K / draft length | "Look-ahead" | Number of speculated tokens per verify pass | |
+| α / acceptance rate | "Hit rate" | Per-token probability that the draft's proposal is accepted | |
+| Exact rejection rule | "The accept test" | r < p/q compare that preserves target's distribution | |
+| Residual distribution | "Corrected p-q" | (p - q)+ / ||(p - q)+||_1, the distribution to sample from on rejection | |
+| Tree drafting | "Branching speculation" | Draft outputs a tree of candidates, verified in one pass with tree-structured attention mask | |
+| Tree attention mask | "Topological mask" | Causal mask encoding the tree topology so each node attends only to its ancestors | |
+| Medusa heads | "Parallel heads" | K extra prediction heads on the target itself; no separate draft model | |
+| EAGLE feature reuse | "Hidden-state draft" | Draft input is target's last hidden state, not raw tokens, shrinking the draft | |
+| Test-time simulation loss | "EAGLE-3 training" | Train draft on outputs matching target's test-time distribution, not teacher forcing | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Leviathan, Kalai, Matias, 2023 — "Fast Inference from Transformers via Speculative Decoding"](https://arxiv.org/abs/2211.17192) — the exact rejection rule and the theoretical speedup analysis
 - [Chen, Borgeaud, Irving et al., 2023 — "Accelerating Large Language Model Decoding with Speculative Sampling"](https://arxiv.org/abs/2302.01318) — concurrent speculative-sampling paper at DeepMind

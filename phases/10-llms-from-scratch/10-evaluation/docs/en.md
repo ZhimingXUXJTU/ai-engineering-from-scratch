@@ -18,7 +18,9 @@
 - Implement task-specific evals with proper metrics: exact match, F1, BLEU, and LLM-as-judge scoring
 - Design a custom evaluation suite targeting your specific use case rather than relying solely on public leaderboards
 
-## The Problem
+> **【中文解读】** 本课聚焦 LLM 评估的工程实践。核心观点：公共基准（MMLU、HumanEval）已被饱和，前沿模型的分数压缩在 3 分范围内，差异是统计噪声而非真实能力差距。唯一重要的是在你的任务、你的数据、你的失败模式下的评测。
+
+## The Problem | 问题引入
 
 MMLU was published in 2020 with 15,908 questions across 57 subjects. Within three years, frontier models saturated it. GPT-4 scored 86.4%. Claude 3 Opus scored 86.8%. Llama 3 405B scored 88.6%. The leaderboard compressed into a 3-point range where differences are statistical noise, not real capability gaps.
 
@@ -28,7 +30,11 @@ The gap between benchmark performance and real-world reliability is the central 
 
 You need custom evals. Not because benchmarks are useless -- they are useful for rough model selection -- but because the final evaluation must match your deployment conditions exactly.
 
-## The Concept
+> **【中文解读】** 基准分数与真实世界可靠性之间的鸿沟是 LLM 评估的核心问题。GPT-4 MMLU 86.4%、Claude 3 Opus 86.8%、Llama 3 405B 88.6%——3 分的差距是统计噪声。但这些模型在"数 strawberry 里有几个 r"这样的简单任务上仍然失败。基准告诉你模型在基准上的表现，几乎不说任何关于它在你的具体任务上会如何表现的信息。
+
+> **【拓展：Arena 评测与 Elo 评分】** Chatbot Arena（LMSYS）使用盲测 Elo 评分——人类用户与两个匿名模型对话并投票选择更好的回复。这是目前公认最可靠的模型排名方式。GPT-4o、Claude 3.5 Sonnet、Gemini 1.5 Pro 在 Arena 上的 Elo 分数差距更真实地反映了实际使用体验。
+
+## The Concept | 核心概念
 
 ### The Eval Landscape
 
@@ -139,7 +145,7 @@ The only eval that matters for production. The process:
 | LLM-as-judge | ~$0.01 | ~80% | Open-ended generation |
 | Human eval | $0.10-$2.00 | N/A (is the ground truth) | Ambiguous, high-stakes tasks |
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: A Minimal Eval Framework
 
@@ -414,7 +420,7 @@ for quality, label in [(0.9, "Strong model"), (0.7, "Medium model"), (0.4, "Weak
     print(f"  {label} (quality={quality}): perplexity = {ppl:.2f}")
 ```
 
-## Use It
+## Use It | 用框架实现
 
 ### lm-evaluation-harness (EleutherAI)
 
@@ -478,13 +484,13 @@ tests:
 
 RAGAS measures what generic evals miss: whether the model's answer is grounded in the retrieved context, not just whether the answer is "correct" in the abstract.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-eval-designer.md` -- a reusable prompt that designs custom eval suites for any task. Give it a task description and it generates test cases, scoring functions, and a pass/fail threshold recommendation.
 
 It also produces `outputs/skill-llm-evaluation.md` -- a decision framework for choosing the right evaluation strategy based on your task type, budget, and latency requirements.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a "consistency" scorer that runs the same input through the model 5 times and measures how often the outputs match. Inconsistent answers on deterministic inputs reveal fragile prompts or high temperature settings.
 
@@ -496,22 +502,22 @@ It also produces `outputs/skill-llm-evaluation.md` -- a decision framework for c
 
 5. Build a "model diff" tool. Given eval results from two model versions, highlight which specific test cases improved, which regressed, and which stayed the same. This is the eval equivalent of a code diff -- essential for understanding whether a change helped or hurt.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| MMLU | "The benchmark" | Massive Multitask Language Understanding -- 15,908 multiple choice questions across 57 subjects, saturated above 88% by 2025 |
-| HumanEval | "Code eval" | 164 Python function-completion problems from OpenAI, tests only isolated function generation |
-| SWE-bench | "Real coding eval" | 2,294 GitHub issues from 12 Python repos, measures end-to-end bug fixing including test generation |
-| Perplexity | "How confused the model is" | exp(-avg(log P(token_i given context))) -- lower means the model assigns higher probability to the actual tokens |
-| ELO rating | "Chess ranking for models" | A relative skill rating computed from pairwise win/loss records, used by Chatbot Arena to rank 100+ models |
-| LLM-as-judge | "Using AI to grade AI" | A strong model scores a weaker model's outputs against a rubric, ~80% agreement with human judges at ~$0.01/judgment |
-| Data contamination | "The model saw the test" | Training data includes benchmark questions, inflating scores without improving real capability |
-| Eval suite | "A bunch of tests" | A versioned collection of (input, expected_output, scorer) triples that measure a specific capability |
-| Pass rate | "What percentage it gets right" | Fraction of eval cases scoring above a threshold -- more actionable than mean score because it measures reliability |
-| Chatbot Arena | "Model ranking website" | LMSYS platform with 2M+ human preference votes, producing the most trusted LLM leaderboard via ELO ratings |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| MMLU | "The benchmark" | Massive Multitask Language Understanding -- 15,908 multiple choice questions across 57 subjects, saturated above 88% by 2025 | |
+| HumanEval | "Code eval" | 164 Python function-completion problems from OpenAI, tests only isolated function generation | |
+| SWE-bench | "Real coding eval" | 2,294 GitHub issues from 12 Python repos, measures end-to-end bug fixing including test generation | |
+| Perplexity | "How confused the model is" | exp(-avg(log P(token_i given context))) -- lower means the model assigns higher probability to the actual tokens | |
+| ELO rating | "Chess ranking for models" | A relative skill rating computed from pairwise win/loss records, used by Chatbot Arena to rank 100+ models | |
+| LLM-as-judge | "Using AI to grade AI" | A strong model scores a weaker model's outputs against a rubric, ~80% agreement with human judges at ~$0.01/judgment | |
+| Data contamination | "The model saw the test" | Training data includes benchmark questions, inflating scores without improving real capability | |
+| Eval suite | "A bunch of tests" | A versioned collection of (input, expected_output, scorer) triples that measure a specific capability | |
+| Pass rate | "What percentage it gets right" | Fraction of eval cases scoring above a threshold -- more actionable than mean score because it measures reliability | |
+| Chatbot Arena | "Model ranking website" | LMSYS platform with 2M+ human preference votes, producing the most trusted LLM leaderboard via ELO ratings | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Hendrycks et al., 2021 -- "Measuring Massive Multitask Language Understanding"](https://arxiv.org/abs/2009.03300) -- the MMLU paper, still the most cited LLM benchmark despite its saturation
 - [Chen et al., 2021 -- "Evaluating Large Language Models Trained on Code"](https://arxiv.org/abs/2107.03374) -- the HumanEval paper from OpenAI, established code generation evaluation methodology

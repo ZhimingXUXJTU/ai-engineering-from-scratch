@@ -18,7 +18,9 @@
 - Explain why SFT is necessary: base models continue text rather than answer questions
 - Evaluate SFT quality by comparing base model vs fine-tuned model responses on a held-out instruction set
 
-## The Problem
+> **【中文解读】** 本课将基础模型转换为指令跟随助手。关键概念：SFT 使用与预训练相同的训练循环（前向→损失→反向→更新），但数据从原始文本变为结构化对话。核心技巧是损失掩码（loss masking）——只在 assistant 的回复部分计算损失，忽略 prompt 和 user 部分。
+
+## The Problem | 问题引入
 
 You trained a model in Lesson 04. It can predict the next token given a sequence. Feed it "The transformer architecture" and it might continue with "has revolutionized natural language processing." That's impressive for a next-token predictor.
 
@@ -30,7 +32,11 @@ Stanford Alpaca proved you don't need millions of examples. In March 2023, they 
 
 Meta's Llama 2 Chat used only ~27,000 high-quality examples for its initial SFT stage. The key insight: quality matters more than quantity. 27,000 examples written by skilled annotators beat 1 million noisy examples scraped from the internet.
 
-## The Concept
+> **【中文解读】** GPT-3（2020.6）和 ChatGPT（2022.11）之间只差 2 万到 10 万条精心构造的（指令，回复）对。Stanford Alpaca 用 52,000 条 GPT-3.5 生成的指令数据微调 Llama 7B，成本仅 $600。Meta 的 Llama 2 Chat 只用了约 27,000 条高质量标注数据。核心洞察：质量比数量更重要——27,000 条由熟练标注者编写的样本胜过 100 万条互联网噪声数据。
+
+> **【拓展：Llama 2 的 SFT 数据质量标准】** Meta 公开表示 Llama 2 Chat 的 SFT 数据由专业标注团队编写，每条数据都经过多轮审核。这与早期方法（从互联网抓取 QA 对）形成鲜明对比。OpenAI 据说也使用了大量人工标注的高质量对话数据来训练 ChatGPT 的 SFT 阶段。
+
+## The Concept | 核心概念
 
 ### What SFT Actually Does
 
@@ -47,6 +53,8 @@ Supervised Fine-Tuning continues the same training loop from pre-training -- for
 The model already knows that Paris is the capital of France. It learned this during pre-training on Wikipedia, textbooks, and web pages. SFT doesn't teach the model new facts. It teaches the model a new *behavior*: when you see a question, produce an answer. When you see an instruction, produce a completion. When you see a harmful request, produce a refusal.
 
 Think of it this way. Pre-training gives the model knowledge. SFT gives the model manners.
+
+> **【中文解读】** SFT 的本质是继续预训练的训练循环，但数据从原始文本变为结构化对话。关键技术是损失掩码：只在 assistant 回复部分计算损失。这意味着模型学习"如何回答"而不是"如何继续文本"。预训练赋予模型知识，SFT 赋予模型礼貌——让它在合适的时机以合适的格式输出。
 
 ### Data Formats
 
@@ -135,6 +143,10 @@ SFT uses dramatically different hyperparameters than pre-training. You're not tr
 
 The learning rate is 15x lower for SFT. This is critical. A high learning rate during fine-tuning destroys the pre-trained knowledge. The model "forgets" what it learned and overfits to the small fine-tuning dataset. This is catastrophic forgetting.
 
+> **【中文解读】** 损失掩码是 SFT 中最重要的技术细节。预训练时对所有 token 计算损失，SFT 时只对 assistant 的回复 token 计算损失。指令 token 用于提供上下文，但不参与损失计算——否则模型会学习"生成指令"而不是"回应指令"。训练超参数也截然不同：SFT 的学习率比预训练低 15 倍（2e-5 vs 3e-4），避免灾难性遗忘。
+
+> **【拓展：SFT 的数据规模与成本】** SFT 数据量远小于预训练：Llama 2 Chat 用 27,000 条、Alpaca 用 52,000 条、Vicuna 用 70,000 条对话。成本极低——Alpaca 的 SFT 数据生成成本仅 $600。关键在于数据质量远比数量重要。现代 SFT 还使用 packing 技术将多个短对话拼接到同一序列中提高 GPU 利用率。
+
 Two epochs means the model sees each training example twice. More than 3 epochs on a small dataset leads to memorization -- the model starts reproducing training examples verbatim instead of generalizing.
 
 ### Catastrophic Forgetting
@@ -193,7 +205,7 @@ graph TD
     style C3 fill:#1a1a2e,stroke:#51cf66,color:#fff
 ```
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Instruction Dataset
 
@@ -476,7 +488,7 @@ def measure_forgetting(model, test_text, seq_len=64):
 
 In real fine-tuning, you would track this metric throughout training. If the raw text loss increases by more than 10-15%, your SFT is too aggressive. Lower the learning rate or reduce the number of epochs.
 
-## Use It
+## Use It | 用框架实现
 
 ### Full SFT Pipeline Demo
 
@@ -566,11 +578,11 @@ The model learns to predict the next token given all previous tokens."""
             print(f"  Steps {i:3d}-{i + len(chunk) - 1:3d}: avg loss = {avg:.4f}")
 ```
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-sft-data-curator.md` -- a prompt that helps you design and curate instruction datasets for SFT. Given a target capability (code generation, math, conversation), it produces a data collection plan with format specifications, quality criteria, and diversity requirements.
 
-## Exercises
+## Exercises | 练习题
 
 1. Add system prompt support. Modify `tokenize_instruction_pair` to accept a system message and prepend it before the instruction. Create 5 examples with different system prompts ("You are a poet", "You are a math tutor") and verify the model sees different system prompts during training.
 
@@ -582,20 +594,20 @@ This lesson produces `outputs/prompt-sft-data-curator.md` -- a prompt that helps
 
 5. Compare learning rates. Train the same model three times with lr=1e-4, lr=2e-5, and lr=1e-6. Plot the loss curves. The 1e-4 run should show rapid initial descent but higher final loss (overfitting). The 1e-6 run should barely move. The 2e-5 run should be the sweet spot.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| SFT | "Fine-tuning on conversations" | Supervised Fine-Tuning: continuing training on (instruction, response) pairs with loss computed only on response tokens |
-| Instruction tuning | "Teaching the model to follow instructions" | Training on explicit instruction-response pairs so the base model learns the conversation pattern, not new knowledge |
-| Loss masking | "Ignoring the prompt" | Setting loss to zero for instruction tokens so gradients only flow from response token predictions |
-| ChatML | "Chat Markup Language" | A token format using `<\|im_start\|>` and `<\|im_end\|>` delimiters to mark speaker roles in conversation data |
-| Alpaca format | "Stanford's format" | A JSON format with instruction/input/output fields, used for 52K GPT-3.5-generated examples that cost $600 |
-| Catastrophic forgetting | "The model gets dumber" | Fine-tuning destroys pre-trained capabilities because gradient updates overwrite general knowledge with task-specific patterns |
-| Weight tying | "Shared embeddings" | Using the same matrix for input token embeddings and output prediction head, saving parameters and improving coherence |
-| Chat template | "How you format the prompt" | The specific token sequence (role markers, delimiters) that structures a conversation for the model |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| SFT | "Fine-tuning on conversations" | Supervised Fine-Tuning: continuing training on (instruction, response) pairs with loss computed only on response tokens | |
+| Instruction tuning | "Teaching the model to follow instructions" | Training on explicit instruction-response pairs so the base model learns the conversation pattern, not new knowledge | |
+| Loss masking | "Ignoring the prompt" | Setting loss to zero for instruction tokens so gradients only flow from response token predictions | |
+| ChatML | "Chat Markup Language" | A token format using `<\|im_start\|>` and `<\|im_end\|>` delimiters to mark speaker roles in conversation data | |
+| Alpaca format | "Stanford's format" | A JSON format with instruction/input/output fields, used for 52K GPT-3.5-generated examples that cost $600 | |
+| Catastrophic forgetting | "The model gets dumber" | Fine-tuning destroys pre-trained capabilities because gradient updates overwrite general knowledge with task-specific patterns | |
+| Weight tying | "Shared embeddings" | Using the same matrix for input token embeddings and output prediction head, saving parameters and improving coherence | |
+| Chat template | "How you format the prompt" | The specific token sequence (role markers, delimiters) that structures a conversation for the model | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Ouyang et al., 2022 -- "Training language models to follow instructions with human feedback" (InstructGPT)](https://arxiv.org/abs/2203.02155) -- the paper that introduced instruction tuning + RLHF at OpenAI
 - [Taori et al., 2023 -- "Stanford Alpaca: An Instruction-following LLaMA Model"](https://github.com/tatsu-lab/stanford_alpaca) -- 52K instruction examples for $600, proving SFT works on small datasets

@@ -18,7 +18,9 @@
 - Analyze tokenization artifacts across languages and code, identifying where specific tokenizers break down
 - Use the tiktoken and sentencepiece libraries to tokenize text and inspect the resulting token IDs
 
-## The Problem
+> **【中文解读】** 本章的学习目标围绕分词器的四个维度：实现（手写 BPE/WordPiece/Unigram 算法）、理解（词表大小的工程权衡）、分析（跨语言分词的边界情况）、应用（tiktoken/sentencepiece 工具库）。分词是 LLM 管线的第一步，直接影响模型效率和成本。
+
+## The Problem | 问题引入
 
 Your LLM does not read English. It does not read any language. It reads numbers.
 
@@ -28,7 +30,11 @@ Get this wrong and your model wastes capacity encoding common words with multipl
 
 Every API call you make to GPT-4 or Claude is priced per token. Every token your model generates costs compute. The fewer tokens required to represent an output, the faster the end-to-end inference. Tokenization is not preprocessing. It is architecture.
 
-## The Concept
+> **【中文解读】** 分词不是简单的预处理步骤，而是模型架构的一部分。每次调用 GPT-4 API 都按 token 计费，每个 token 的生成都消耗算力。"unfortunately" 被拆成 4 个 token 意味着上下文窗口利用率下降 75%。分词器的设计直接决定了模型处理不同语言和代码的能力。
+
+> **【拓展：API 定价与分词效率】** GPT-4o 的定价为 $5/M input tokens、$15/M output tokens。同一个中文段落，用 GPT-2 分词器可能消耗 500 tokens，用 GPT-4o 的 o200k_base 分词器只需约 200 tokens，成本差 2.5 倍。这也是为什么 Llama 3 将词表从 32K 扩展到 128K——降低非英语用户的推理成本。
+
+## The Concept | 核心概念
 
 ### Three Approaches That Failed (and One That Won)
 
@@ -39,6 +45,8 @@ There are three obvious ways to convert text to numbers. Two of them do not work
 **Character-level tokenization** goes the other direction. "hello" becomes ["h", "e", "l", "l", "o"]. Vocabulary is tiny (a few hundred characters). No unknown tokens ever. But sequences become extremely long. A sentence that would be 10 word-level tokens becomes 50 character-level tokens. The model must learn that "t", "h", "e" together mean "the" -- burning attention capacity on something a human learns at age three.
 
 **Subword tokenization** finds the sweet spot. Common words stay whole: "the" is one token. Rare words decompose into meaningful pieces: "unhappiness" becomes ["un", "happi", "ness"]. Vocabulary stays manageable (30K to 128K tokens). Sequences stay short. Unknown tokens essentially disappear because any word can be built from subword pieces.
+
+> **【中文解读】** 词级分词（word-level）的问题是词表爆炸——英语有百万级词形，加上代码、URL、科学记数法和其他语言，词表会无限增长。字符级分词（character-level）虽然词表小，但序列太长，模型要学会 "t"+"h"+"e" 组合为 "the"，浪费注意力容量。子词分词在两者之间取得平衡：常见词保持完整，罕见词拆分为有意义的片段。
 
 Every modern LLM uses subword tokenization. GPT-2, GPT-4, BERT, Llama 3, Claude -- all of them. The question is which algorithm.
 
@@ -108,6 +116,10 @@ Step 4 -- Merge (wes,t) -> "west":
 
 The merge table is the tokenizer. To encode new text, apply merges in the order they were learned. The training corpus determines which merges exist, and that choice permanently shapes what the model sees.
 
+> **【中文解读】** BPE 的核心训练循环：从单个字符开始，统计所有相邻字符对的出现频率，将最高频的对合并为新 token，重复直到达到目标词表大小。合并表（merge table）就是分词器本身。编码新文本时，按训练时学到的顺序依次应用合并规则——顺序很重要，因为合并 1 可能产生 "th"，合并 5 才能在 "th"+"e" 的基础上产生 "the"。
+
+> **【拓展：BPE 的压缩原理】** BPE 最初是 1994 年的通用数据压缩算法。Sennrich 等人在 2016 年将其引入 NLP 领域。在生产环境中，tiktoken 在 Rust 中实现了 BPE，编码速度可达每秒数百万 token。GPT-4 的 cl100k_base 编码器在数百 GB 文本上训练了约 100,000 次合并。
+
 ```mermaid
 graph LR
     subgraph Training["BPE Training Loop"]
@@ -126,6 +138,8 @@ graph LR
 Standard BPE operates on Unicode characters. Byte-level BPE operates on raw bytes (0-255). This gives you a base vocabulary of exactly 256, handles any language or encoding, and never produces an unknown token.
 
 GPT-2 introduced this approach. The base vocabulary covers every possible byte. BPE merges build on top of that. OpenAI's tiktoken library implements byte-level BPE with these vocabulary sizes:
+
+> **【中文解读】** 字节级 BPE（Byte-level BPE）是 GPT-2 引入的关键创新。传统 BPE 操作 Unicode 字符，而字节级 BPE 直接操作原始字节（0-255），基础词表恰好 256 个，理论上可处理任何语言或编码，永远不会出现 [UNK] token。这就是为什么 GPT 系列模型能处理代码、emoji、多语言混合文本而不会"卡住"。
 
 - GPT-2: 50,257 tokens
 - GPT-3.5/GPT-4: ~100,256 tokens (cl100k_base encoding)
@@ -160,6 +174,10 @@ SentencePiece supports two algorithms:
 - **Unigram mode**: starts with a large vocabulary and iteratively removes tokens that least affect the overall likelihood. The reverse of BPE -- prune instead of merge.
 
 Llama 2 uses SentencePiece BPE with a vocabulary of 32,000 tokens. T5 uses SentencePiece Unigram with 32,000 tokens. Note: Llama 3 switched to a tiktoken-based byte-level BPE tokenizer with 128,256 tokens.
+
+> **【中文解读】** SentencePiece 的独特之处在于它把输入当作原始 Unicode 字符流（包括空格），不做任何语言的预分词。这让它在中文、日文、泰文等不使用空格分隔词语的语言上表现优秀。它支持两种算法：BPE 模式（自底向上合并）和 Unigram 模式（自顶向下剪枝）。Llama 2 用 SentencePiece BPE（32K 词表），而 Llama 3 切换到了 tiktoken 风格的字节级 BPE（128K 词表）。
+
+> **【拓展：SentencePiece 在开源模型中的地位】** Google T5（110亿参数）、Llama 2（7B-70B）、Mistral 7B 等开源模型都使用 SentencePiece。它的优势在于语言无关性——同一个分词器可以处理 100+ 种语言而不需要任何语言特定的预处理规则。Unigram 模式还有一个独特优势：它能输出多个分词候选及其概率，用于鲁棒的模型训练。
 
 ### Vocabulary Size Tradeoffs
 
@@ -202,7 +220,11 @@ Tokenizers trained primarily on English are brutal to other languages. Korean te
 
 This is why Llama 3 quadrupled its vocabulary from 32K to 128K. More tokens dedicated to non-English scripts means fairer compression across languages.
 
-## Build It
+> **【中文解读】** 多语言税（Multilingual Tax）是分词器设计中最容易被忽略的公平性问题。以 GPT-2 分词器为例，韩文平均每个词需要 2-3 个 token，中文可能更糟。这意味着韩文/中文用户的有效上下文窗口只有英文用户的一半——付同样的价格，获得的信息密度却更低。Llama 3 将词表从 32K 扩展到 128K，正是为了给非英语文字分配更多 token，实现跨语言的公平压缩。
+
+> **【拓展：多语言分词的实际影响】** 在 GPT-3.5 的 cl100k_base 分词器中，一段 1000 字的中文大约需要 ~1500 tokens，而等量英文信息可能只需 ~500 tokens。这意味着中文用户的 API 成本是英文用户的 3 倍。Llama 3 的 128K 词表将中文的 token 效率提升了约 2 倍，但与英文相比仍有差距。这也是为什么国产模型（如 Qwen、DeepSeek）专门针对中文优化了分词器。
+
+## Build It | 动手实现
 
 ### Step 1: Character-Level Tokenizer
 
@@ -373,7 +395,11 @@ def analyze_vocabulary(tokenizer, test_texts):
 
 This reveals the Zipf distribution in your vocabulary. A few tokens dominate (spaces, "the", "e"). Most tokens are rarely used. Production tokenizers optimize for this distribution -- common patterns get short token IDs, rare patterns get longer representations.
 
-## Use It
+> **【中文解读】** 词表分析揭示了 Zipf 分布规律：少数 token 占据了绝大部分使用量（如空格、"the"、"e"），大多数 token 很少被使用。生产级分词器针对这个分布进行优化——常见模式获得短 token ID，罕见模式使用更长的表示。这也是为什么词表大小是工程权衡而非越大越好。
+
+> **【拓展：生产环境的词表优化】** GPT-4o 的 o200k_base 词表有 200,019 个 token，但最常用的 1000 个 token 覆盖了日常英文文本约 80% 的出现频率。在部署 LLM 时，embedding 矩阵的大小直接由词表决定：128K 词表 x 4096 维 = 5.24 亿参数，仅嵌入层就占用了约 2GB 显存（FP16）。
+
+## Use It | 用框架实现
 
 Your scratch BPE works. Now see what production tools look like.
 
@@ -435,11 +461,11 @@ for text in multilingual:
 
 Llama 3's 128K vocabulary compresses non-English text significantly better than GPT-2's 50K vocabulary. You can verify this yourself -- encode the same sentence in multiple languages and count the tokens.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-tokenizer-analyzer.md` -- a reusable prompt that analyzes tokenization efficiency for any text and model combination. Feed it a text sample and it tells you which model's tokenizer handles it best.
 
-## Exercises
+## Exercises | 练习题
 
 1. Modify the BPE tokenizer to print the vocabulary at each merge step. Watch how "t" + "h" becomes "th", then "th" + "e" becomes "the". Track how common English words get assembled piece by piece.
 
@@ -451,22 +477,22 @@ This lesson produces `outputs/prompt-tokenizer-analyzer.md` -- a reusable prompt
 
 5. Train your BPE tokenizer on a larger corpus (download a Wikipedia article). Tune the number of merges to achieve a compression ratio within 10% of tiktoken on that same text. This forces you to understand the relationship between corpus size, merge count, and compression quality.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Token | "A word" | A unit in the model's vocabulary -- could be a character, subword, word, or multi-word chunk |
-| BPE | "Some compression thing" | Byte Pair Encoding -- iteratively merge the most frequent adjacent pair of tokens until the target vocabulary size is reached |
-| WordPiece | "BERT's tokenizer" | Like BPE but merges maximize the likelihood ratio count(AB)/(count(A)*count(B)) instead of raw frequency |
-| SentencePiece | "A tokenizer library" | A language-agnostic tokenizer that operates on raw Unicode without pre-tokenization, supporting BPE and Unigram algorithms |
-| Vocabulary size | "How many words it knows" | The total number of unique tokens: GPT-2 has 50,257, BERT has 30,522, Llama 3 has 128,256 |
-| Fertility | "Not a tokenizer term" | Average number of tokens per word -- measures tokenizer efficiency across languages (1.0 is perfect, 3.0 means the model works three times harder) |
-| Byte-level BPE | "GPT's tokenizer" | BPE operating on raw bytes (0-255) instead of Unicode characters, guaranteeing no unknown tokens for any input |
-| Merge table | "The tokenizer file" | Ordered list of pair merges learned during training -- this IS the tokenizer, and order matters |
-| Pre-tokenization | "Splitting on spaces" | Rules applied before subword tokenization: whitespace splitting, digit separation, punctuation handling |
-| Compression ratio | "How efficient the tokenizer is" | Tokens produced divided by input bytes -- lower means better compression and faster inference |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Token | "A word" | A unit in the model's vocabulary -- could be a character, subword, word, or multi-word chunk | 词元，模型词表中的基本单元 |
+| BPE | "Some compression thing" | Byte Pair Encoding -- iteratively merge the most frequent adjacent pair of tokens until the target vocabulary size is reached | 字节对编码，贪心合并最高频相邻对 |
+| WordPiece | "BERT's tokenizer" | Like BPE but merges maximize the likelihood ratio count(AB)/(count(A)*count(B)) instead of raw frequency | 基于似然比的子词分词，BERT 使用 |
+| SentencePiece | "A tokenizer library" | A language-agnostic tokenizer that operates on raw Unicode without pre-tokenization, supporting BPE and Unigram algorithms | 语言无关的分词库，支持 BPE/Unigram |
+| Vocabulary size | "How many words it knows" | The total number of unique tokens: GPT-2 has 50,257, BERT has 30,522, Llama 3 has 128,256 | 词表大小，直接影响嵌入矩阵参数量 |
+| Fertility | "Not a tokenizer term" | Average number of tokens per word -- measures tokenizer efficiency across languages (1.0 is perfect, 3.0 means the model works three times harder) | 生育率，每词平均 token 数，衡量分词效率 |
+| Byte-level BPE | "GPT's tokenizer" | BPE operating on raw bytes (0-255) instead of Unicode characters, guaranteeing no unknown tokens for any input | 字节级 BPE，基础词表恰好 256 个字节 |
+| Merge table | "The tokenizer file" | Ordered list of pair merges learned during training -- this IS the tokenizer, and order matters | 合并表，训练学到的有序合并规则 |
+| Pre-tokenization | "Splitting on spaces" | Rules applied before subword tokenization: whitespace splitting, digit separation, punctuation handling | 预分词，子词分词前的规则化拆分 |
+| Compression ratio | "How efficient the tokenizer is" | Tokens produced divided by input bytes -- lower means better compression and faster inference | 压缩比，token 数/输入字节数，越低越好 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Sennrich et al., 2016 -- "Neural Machine Translation of Rare Words with Subword Units"](https://arxiv.org/abs/1508.07909) -- the paper that introduced BPE for NLP, turning a 1994 compression algorithm into the foundation of modern tokenization
 - [Kudo & Richardson, 2018 -- "SentencePiece: A simple and language independent subword tokenizer"](https://arxiv.org/abs/1808.06226) -- language-agnostic tokenization that made multilingual models practical

@@ -18,7 +18,7 @@
 - Trace a DualPipe schedule by hand for 8 PP ranks and 16 micro-batches and confirm the forward and reverse streams fill each other's idle slots.
 - State the tradeoff DualPipeV (Sea AI Lab, 2025) makes: drops the 2x parameter replication at the cost of a slightly larger bubble when Expert Parallelism is inactive.
 
-## The Problem
+## The Problem | 问题引入
 
 Training a 671B MoE model on 2k H800 GPUs runs into three compounding bottlenecks:
 
@@ -30,7 +30,12 @@ Each of these has separate solutions: gradient checkpointing for memory, Zero Bu
 
 Reported result: near-elimination of pipeline bubbles, over 95% GPU utilization in DeepSeek-V3's 14.8T-token training run.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** DualPipe 是 DeepSeek-V3 提出的双向流水线并行算法，通过在前向和反向传播之间重叠计算来最大化 GPU 利用率。相比传统单向流水线，DualPipe 显著减少了流水线气泡。
+
+> **【拓展：DualPipe 与 DeepSeek-V3 的效率】** DeepSeek-V3 在 2048 张 H800 GPU 上训练，使用 DualPipe + MoE 专家并行 + FSDP。DualPipe 将流水线气泡率降至约 5%（传统方法约 20%），是 DeepSeek-V3 以约 560 万美元训练出顶级模型的关键技术之一。
+
 
 ### Pipeline parallelism refresher
 
@@ -112,7 +117,11 @@ For smaller runs (under 1k GPUs), DualPipe is overkill — pipeline bubbles are 
 - Compatible with **ZeRO-3** gradient sharding. The bookkeeping for the two-copy replication needs to cooperate with ZeRO's sharded gradients.
 - Requires **custom all-to-all kernels** tuned for the specific cluster topology. DeepSeek's open-source kernels are the reference implementation.
 
-## Use It
+
+> **【拓展：流水线并行的工程细节】** DualPipe 在同一方向上交替前向和反向传播，将气泡率从约 20% 降到约 5%。这对大规模训练成本影响巨大。
+
+
+## Use It | 用框架实现
 
 `code/main.py` is a pipeline schedule simulator. It takes `(P, n_micro_batches, schedule)` and prints the stable-phase utilization for each of 1F1B, Zero Bubble, DualPipe, and DualPipeV. It is a teaching tool — the numbers match the qualitative claims in the papers, they are not a claim about production measured speedup.
 
@@ -125,11 +134,11 @@ Integration considerations for a real training run:
 - Expect to burn a week of debugging time on the schedule itself the first time. The bookkeeping is fiddly.
 - Monitor GPU utilization per rank, not just aggregate. DualPipe's benefit comes from tightening the stragglers.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-dualpipe-planner.md`. Given a training cluster specification (GPU count, topology, interconnect, model shape), it recommends a pipeline parallelism strategy, the scheduling algorithm to use, and the expected bubble fraction at the target scale.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py` on `(P=8, micro_batches=16, schedule=dualpipe)` and `(P=8, micro_batches=16, schedule=1f1b)`. Compute the GPU utilization difference and express it as recovered GPU-hours per million tokens of training.
 
@@ -141,23 +150,23 @@ This lesson produces `outputs/skill-dualpipe-planner.md`. Given a training clust
 
 5. Compare DualPipe to Chimera (a competing bidirectional scheduler from 2021). Identify the two specific properties DualPipe added that Chimera did not have, using the paper's Section 3.4 as the reference.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Pipeline bubble | "Idle time per rank" | GPU cycles wasted because a pipeline stage is waiting for its input or gradient |
-| 1F1B | "Default pipeline schedule" | One forward / one backward interleaved scheduling; the baseline DualPipe beats |
-| Zero Bubble | "Sea AI Lab 2023" | Splits backward into B (input gradient) and W (weight gradient); almost fully tightens the pipeline |
-| DualPipe | "DeepSeek-V3 schedule" | Bidirectional pipeline + compute-comm overlap; bubbles do not grow with micro-batch count |
-| DualPipeV | "Cut-in-half" | V-shape refinement that drops the 2x parameter replication at the cost of slightly larger bubbles |
-| Chunk | "Unit of pipeline work" | A forward or backward pass of one micro-batch through one pipeline stage |
-| All-to-all dispatch | "Send tokens to experts" | Cross-node comm that routes tokens to their assigned MoE experts |
-| All-to-all combine | "Bring expert outputs back" | Cross-node comm that gathers expert outputs after the MLP |
-| Expert Parallelism (EP) | "Experts across GPUs" | Shards MoE experts across ranks so different GPUs hold different experts |
-| Pipeline Parallelism (PP) | "Layers across GPUs" | Shards model layers across ranks; the dimension DualPipe schedules |
-| Bubble fraction | "Wasted GPU time" | (bubble_time / total_time); the fraction DualPipe drives toward zero |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|---------|
+| Pipeline bubble | "Idle time per rank" | GPU cycles wasted because a pipeline stage is waiting for its input or gradient | |
+| 1F1B | "Default pipeline schedule" | One forward / one backward interleaved scheduling; the baseline DualPipe beats | |
+| Zero Bubble | "Sea AI Lab 2023" | Splits backward into B (input gradient) and W (weight gradient); almost fully tightens the pipeline | |
+| DualPipe | "DeepSeek-V3 schedule" | Bidirectional pipeline + compute-comm overlap; bubbles do not grow with micro-batch count | |
+| DualPipeV | "Cut-in-half" | V-shape refinement that drops the 2x parameter replication at the cost of slightly larger bubbles | |
+| Chunk | "Unit of pipeline work" | A forward or backward pass of one micro-batch through one pipeline stage | |
+| All-to-all dispatch | "Send tokens to experts" | Cross-node comm that routes tokens to their assigned MoE experts | |
+| All-to-all combine | "Bring expert outputs back" | Cross-node comm that gathers expert outputs after the MLP | |
+| Expert Parallelism (EP) | "Experts across GPUs" | Shards MoE experts across ranks so different GPUs hold different experts | |
+| Pipeline Parallelism (PP) | "Layers across GPUs" | Shards model layers across ranks; the dimension DualPipe schedules | |
+| Bubble fraction | "Wasted GPU time" | (bubble_time / total_time); the fraction DualPipe drives toward zero | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [DeepSeek-AI — DeepSeek-V3 Technical Report (arXiv:2412.19437), Section 3.3.2 and Figure 5](https://arxiv.org/abs/2412.19437) — the primary DualPipe reference
 - [DeepSeek — DualPipe GitHub repository](https://github.com/deepseek-ai/DualPipe) — the open-source reference implementation, including DualPipeV (Cut-in-half) mode

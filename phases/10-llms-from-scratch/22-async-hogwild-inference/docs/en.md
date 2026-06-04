@@ -18,7 +18,7 @@
 - Compute the wall-time speedup of Hogwild! as a function of worker count `N`, task-level parallelism `p`, and coordination overhead `c`.
 - Implement a two-worker Hogwild! simulator on a toy problem and observe the emergent task division.
 
-## The Problem
+## The Problem | 问题引入
 
 Modern LLMs solve hard problems by producing long chains of reasoning — 5000 tokens of step-by-step logic is common, tens of thousands of tokens happens on deep math problems. At 35 tokens/sec decode on a 70B model, 50k tokens is 24 minutes. Interactive the model is not.
 
@@ -32,7 +32,12 @@ Hogwild! Inference takes a different approach. N workers share a single KV cache
 
 The speedup is workload-dependent and experimental as of April 2026. But the idea is worth knowing because it opens a new axis of inference parallelism.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 异步 Hogwild 推理允许在模型权重更新时同时进行推理，不做加锁同步。这种方法牺牲了一致性换取更高的吞吐量，适用于持续训练（continuous training）场景——模型一边学习一边服务。
+
+> **【拓展：异步推理的应用场景】** 异步推理适用于实时个性化（模型边学习用户偏好边服务）、A/B 测试（不同模型版本无缝切换）、持续预训练（模型边学新知识边回答问题）。工业界越来越关注永远在学习的模型——不需要停机重新部署就能获取新知识。
+
 
 ### The setup
 
@@ -106,7 +111,11 @@ As of April 2026, Hogwild! is a research method with an open-source PyTorch impl
 
 Worth knowing. Worth experimenting with. Not yet worth betting a product on.
 
-## Build It
+
+> **【拓展：异步推理的实际应用】** 异步 Hogwild 推理适用于持续学习场景：模型一边从用户反馈中学习，一边继续服务。工业界应用包括实时个性化推荐、在线 A/B 测试中的模型热更新、以及持续预训练中的不停机知识更新。
+
+
+## Build It | 动手实现
 
 `code/main.py` implements a toy Hogwild! simulator:
 
@@ -145,7 +154,7 @@ Run the simulator with N=1 worker and with N=2 workers, same total step budget. 
 
 Reduce the coordination heuristic's sensitivity. Run again. Observe that without good coordination, N=2 redundantly produces the same tokens and the speedup drops below 1. This matches the paper's observation: the trick only works if the workers have the reasoning capacity to self-coordinate.
 
-## Use It
+## Use It | 用框架实现
 
 Hogwild! integration in production as of April 2026 is research-grade. The reference implementation from Yandex/HSE/IST is PyTorch-based and targets single-node multi-process setups on DeepSeek-R1 and QwQ models.
 
@@ -158,11 +167,11 @@ Pragmatic adoption path:
 
 Combine with speculative decoding: each Hogwild! worker can independently use spec decode. The two speedups multiply (roughly), bringing a 3x spec decode and 1.8x Hogwild! to an effective 5.4x over naive single-worker decoding.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-parallel-inference-router.md`. Given a reasoning workload profile (token budget, task parallelism profile, model family, deployment target), it routes between voting, tree-of-thought, multi-agent, Hogwild!, and speculative decoding strategies.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py` with the default settings. Confirm the N=2 Hogwild! configuration produces more work-tokens than the N=1 baseline in the same wall time.
 
@@ -174,21 +183,21 @@ This lesson produces `outputs/skill-parallel-inference-router.md`. Given a reaso
 
 5. Combine Hogwild! with speculative decoding in the toy: each worker uses a 2-token spec-decode internally. Report the multiplicative speedup. What bookkeeping problem arises when two workers both want to extend the same shared-cache prefix?
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Hogwild! | "Parallel workers, shared cache" | N instances of the same LLM running concurrently with one shared KV cache; emergent coordination via self-prompting |
-| Shared KV cache | "The coordination medium" | A single growing KV buffer that all workers read and write; enables instant token visibility across workers |
-| Emergent coordination | "No training needed" | Reasoning-capable LLMs can read the shared cache and divide work without any fine-tuning or explicit protocol |
-| Coordination overhead (c) | "Tokens spent orienting" | The per-worker cost of reading the extended cache and deciding what to do; must stay small vs total decode time |
-| Parallelizable fraction (p) | "What can run in parallel" | Task-level parallelism: the fraction of the total work that is not intrinsically sequential |
-| RoPE enables Hogwild! | "Rotary positions are shift-invariant" | Because positions are rotations, writing into a shared cache does not require recomputing prior tokens |
-| Voting ensemble | "Run N, pick the majority" | The simplest parallel inference topology; useful for classification, less for long-form reasoning |
-| Tree of thought | "Branch and prune" | Reasoning strategy that explores multiple branches and prunes; explicit coordination logic |
-| Multi-agent framework | "Assign sub-tasks" | Each agent gets a role; a coordinator orchestrates; heavy protocol overhead |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|---------|
+| Hogwild! | "Parallel workers, shared cache" | N instances of the same LLM running concurrently with one shared KV cache; emergent coordination via self-prompting | |
+| Shared KV cache | "The coordination medium" | A single growing KV buffer that all workers read and write; enables instant token visibility across workers | |
+| Emergent coordination | "No training needed" | Reasoning-capable LLMs can read the shared cache and divide work without any fine-tuning or explicit protocol | |
+| Coordination overhead (c) | "Tokens spent orienting" | The per-worker cost of reading the extended cache and deciding what to do; must stay small vs total decode time | |
+| Parallelizable fraction (p) | "What can run in parallel" | Task-level parallelism: the fraction of the total work that is not intrinsically sequential | |
+| RoPE enables Hogwild! | "Rotary positions are shift-invariant" | Because positions are rotations, writing into a shared cache does not require recomputing prior tokens | |
+| Voting ensemble | "Run N, pick the majority" | The simplest parallel inference topology; useful for classification, less for long-form reasoning | |
+| Tree of thought | "Branch and prune" | Reasoning strategy that explores multiple branches and prunes; explicit coordination logic | |
+| Multi-agent framework | "Assign sub-tasks" | Each agent gets a role; a coordinator orchestrates; heavy protocol overhead | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Rodionov et al. — Hogwild! Inference: Parallel LLM Generation via Concurrent Attention (arXiv:2504.06261)](https://arxiv.org/abs/2504.06261) — the Hogwild! paper, preliminary evaluation on QwQ and DeepSeek-R1
 - [Recht, Re, Wright, Niu — Hogwild!: A Lock-Free Approach to Parallelizing Stochastic Gradient Descent (arXiv:1106.5730, NeurIPS 2011)](https://arxiv.org/abs/1106.5730) — the original Hogwild!, the naming origin

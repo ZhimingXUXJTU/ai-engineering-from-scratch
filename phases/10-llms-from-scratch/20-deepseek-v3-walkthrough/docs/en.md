@@ -18,13 +18,18 @@
 - Compute the KV cache footprint of MLA at 128k context and compare to what a same-active-param dense model with GQA would pay.
 - State the four DeepSeek-specific innovations (MLA, MTP, auxiliary-loss-free routing, DualPipe) and name which part of the architecture/training stack each one targets.
 
-## The Problem
+## The Problem | 问题引入
 
 DeepSeek-V3 is the first frontier open model whose architecture is meaningfully different from the Llama family. Llama 3 405B is "GPT-2 with six knobs turned." DeepSeek-V3 is GPT-2 with all six knobs plus four more. Reading the Llama 3 config is a warmup for reading the DeepSeek config, but the deep structure — the shape of the attention block, the routing logic, the training-time objective — is different enough that you need a separate walkthrough.
 
 The payoff of learning it: DeepSeek-V3's open-weights release shifted what "frontier capability" means in open models. The architecture is the blueprint many 2026 training runs are copying. Understanding it is table stakes for any role that touches frontier LLM training or inference.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** DeepSeek-V3 是 2024 年最具影响力的开源模型之一：671B 总参数（37B 激活参数）的 MoE 架构，用 MLA（多头潜在注意力）压缩 KV-cache，用 DualPipe 优化流水线并行，以约 560 万美元的训练成本达到了 GPT-4 级别的性能。
+
+> **【拓展：DeepSeek-V3 的经济性突破】** DeepSeek-V3 的训练成本仅约 560 万美元（2.788M H800 GPU 小时），约为 Llama 3 405B 训练成本的 1/18。关键因素：MoE 只激活 37B/671B 参数（降低约 18 倍计算量）、FP8 混合精度训练、DualPipe 减少流水线气泡、自研通信内核减少跨节点通信开销。
+
 
 ### The invariant core, again
 
@@ -143,7 +148,11 @@ DeepSeek-R1 (2025) is a reasoning-training run on the V3 backbone. R1 uses the s
 
 DeepSeek-V4 (if it ships) is expected to keep MLA + MoE + MTP and add DSA (DeepSeek Sparse Attention), the successor to NSA from Phase 10 · 17. The lineage is stable: architecture-level innovations accumulate; each version turns additional knobs.
 
-## Use It
+
+> **【拓展：DeepSeek-V3 的 MoE 架构细节】** DeepSeek-V3 有 256 个路由专家，每次激活 8 个（加 1 个共享专家）。671B 总参数但只激活约 37B，计算量仅约 5.5%。
+
+
+## Use It | 用框架实现
 
 `code/main.py` is the parameter calculator specialized to DeepSeek-V3's shape. Run it, compare its output to the paper's numbers, and use it on hypothetical variants (256 experts vs 512, top-8 vs top-16, MLA rank 512 vs 1024).
 
@@ -154,11 +163,11 @@ What to look at:
 - KV cache at 128k context — the MLA vs GQA comparison.
 - Per-layer breakdown to see where the parameter budget actually goes.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-deepseek-v3-reader.md`. Given a DeepSeek-family model (V3, R1, or any future variant), it produces a component-by-component architecture reading that names each field of the config, derives parameter counts by component, and identifies which of the four DeepSeek-specific innovations the model uses.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Compare the calculator's total-parameter estimate to the published 671B and identify where the delta comes from. The paper's Section 2 has the full itemization.
 
@@ -170,22 +179,22 @@ This lesson produces `outputs/skill-deepseek-v3-reader.md`. Given a DeepSeek-fam
 
 5. DeepSeek-V3 uses FP8 training for most operations. Compute the memory savings of FP8 vs BF16 for storing the 671B weights. How does this intersect with the 14.8T-token training budget?
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| MLA | "Multi-Head Latent Attention" | Compress K and V into a shared low-rank latent (kv_lora_rank, typically 512), decompress per head on-the-fly; KV cache stores only the latent |
-| kv_lora_rank | "MLA compression dim" | The size of the shared latent for K and V; DeepSeek-V3 uses 512 |
-| First k dense layers | "Early layers stay dense" | The first few MoE-model layers skip the MoE router and run a dense MLP for stability |
-| num_experts_per_tok | "Top-k routing" | How many routed experts fire per token; DeepSeek-V3 uses 8 |
-| Shared experts | "Always-on experts" | Experts that process every token regardless of routing; DeepSeek-V3 uses 1 |
-| Auxiliary-loss-free routing | "Bias-adjusted load balance" | Per-expert bias terms adjusted during training to keep expert load balanced without adding a loss term |
-| MTP module | "Extra prediction head" | Transformer block predicting t+2 from h^(1) and E(t+1); denser training, free speculative-decoding draft |
-| DualPipe | "Bidirectional pipeline" | Training schedule that overlaps forward/backward compute with cross-node all-to-all |
-| Active parameter ratio | "Sparsity" | active_params / total_params; DeepSeek-V3 hits 5.5% |
-| FP8 training | "8-bit training" | Training storage and many compute ops in FP8; roughly halves memory vs BF16 at a small quality cost |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|---------|
+| MLA | "Multi-Head Latent Attention" | Compress K and V into a shared low-rank latent (kv_lora_rank, typically 512), decompress per head on-the-fly; KV cache stores only the latent | |
+| kv_lora_rank | "MLA compression dim" | The size of the shared latent for K and V; DeepSeek-V3 uses 512 | |
+| First k dense layers | "Early layers stay dense" | The first few MoE-model layers skip the MoE router and run a dense MLP for stability | |
+| num_experts_per_tok | "Top-k routing" | How many routed experts fire per token; DeepSeek-V3 uses 8 | |
+| Shared experts | "Always-on experts" | Experts that process every token regardless of routing; DeepSeek-V3 uses 1 | |
+| Auxiliary-loss-free routing | "Bias-adjusted load balance" | Per-expert bias terms adjusted during training to keep expert load balanced without adding a loss term | |
+| MTP module | "Extra prediction head" | Transformer block predicting t+2 from h^(1) and E(t+1); denser training, free speculative-decoding draft | |
+| DualPipe | "Bidirectional pipeline" | Training schedule that overlaps forward/backward compute with cross-node all-to-all | |
+| Active parameter ratio | "Sparsity" | active_params / total_params; DeepSeek-V3 hits 5.5% | |
+| FP8 training | "8-bit training" | Training storage and many compute ops in FP8; roughly halves memory vs BF16 at a small quality cost | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [DeepSeek-AI — DeepSeek-V3 Technical Report (arXiv:2412.19437)](https://arxiv.org/abs/2412.19437) — the full architecture, training, and results document
 - [DeepSeek-V3 model card on Hugging Face](https://huggingface.co/deepseek-ai/DeepSeek-V3) — config files and deployment notes

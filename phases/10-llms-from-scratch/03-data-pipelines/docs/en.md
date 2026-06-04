@@ -18,7 +18,9 @@
 - Create fixed-length training sequences with proper attention masks and document boundary handling
 - Profile pipeline throughput to ensure the dataloader keeps up with GPU training speed
 
-## The Problem
+> **【中文解读】** 本课聚焦预训练数据管线——LLM 质量的真正决定因素。你将构建流式数据管线，在 TB 级数据上实现去重（MinHash+LSH）、质量过滤、分词打包和批处理，且所有操作都不能将数据全部加载到内存中。
+
+## The Problem | 问题引入
 
 You have a tokenizer. Now you need data.
 
@@ -30,7 +32,11 @@ The Chinchilla paper from DeepMind made this precise. For a given compute budget
 
 Your data pipeline determines whether your model learns language or learns noise.
 
-## The Concept
+> **【中文解读】** Chinchilla 论文（DeepMind 2022）证明：在固定算力预算下，模型参数量和训练 token 数应该等比例扩展。Llama 3 的 70B 模型在 15.6T tokens 上训练——远超 Chinchilla 最优比例，但 Meta 发现这种"过度训练"产出的模型推理成本更低。数据管线的质量决定了模型学习的是语言还是噪声。
+
+> **【拓展：数据混合比的工程经验】** Llama 3 公开的数据配比为：约 50% 网页数据、25% 代码、13% 书籍和论文、8% 数学、4% 多语言网页。GPT-4 的训练数据据说包含大量代码（提升推理能力）和学术文献（提升事实准确性）。比例没有公式可循，完全依赖实验和评估。
+
+## The Concept | 核心概念
 
 ### Where the Data Comes From
 
@@ -93,6 +99,10 @@ Each step eliminates a category of noise:
 **Deduplication:** The single most impactful cleaning step. Common Crawl contains enormous numbers of duplicated pages -- legal disclaimers, cookie notices, terms of service. Training on duplicates wastes compute and can cause the model to memorize and regurgitate specific passages verbatim.
 
 **PII removal:** Names, email addresses, phone numbers, social security numbers. Regex-based detection for structured PII, NER models for names in context.
+
+> **【中文解读】** 数据清洗是预训练中最不性感但最重要的环节。原始网页数据充满噪声：HTML 标签、导航菜单、机器生成的 SEO 垃圾、个人隐私信息（PII）。清洗管线依次执行：HTML 剥离 → 语言检测 → 质量过滤 → 去重 → PII 移除。RefinedWeb 使用困惑度过滤——在 Wikipedia 上训练一个小语言模型，对每篇文档评分，高困惑度文档（像垃圾内容）被删除。
+
+> **【拓展：去重的工程影响】** Llama 团队报告通过去重移除了约 38% 的网页数据。Common Crawl 中超过三分之一的页面是重复或近似重复内容。训练在重复数据上不仅浪费算力，还会导致模型逐字记忆特定段落，增加隐私泄露风险。MinHash+LSH 算法将 O(n^2) 的两两比较降到了近似线性时间。
 
 ### Deduplication with MinHash
 
@@ -163,6 +173,10 @@ The attention mask must be set correctly. Tokens from Document A should not atte
 
 Long documents get truncated or split into chunks at sequence boundaries. The split point matters: splitting mid-sentence forces the model to see incomplete thoughts. Some pipelines align splits to paragraph or sentence boundaries when possible.
 
+> **【中文解读】** 序列打包（Sequence Packing）是将变长文档填充到固定长度训练序列的技术。朴素方法用 PAD 填充会浪费大量算力。高效方法将多个短文档用 [EOS] 分隔拼接进同一个序列，但需要块对角注意力掩码（block-diagonal attention mask）——文档 A 的 token 不应该注意到同一序列中文档 B 的 token。
+
+> **【拓展：Chinchilla 定律与过度训练】** Chinchilla 定律认为模型参数和训练 token 数应等比增长。但 Llama 3 的 70B 模型在 15T tokens 上训练（远超最优的约 1.4T），这是"推理最优"策略：多花的训练成本是一次性的，但更小的模型服务成本永久降低。这种过度训练已成为 2024 年以来的行业标准。
+
 ### The Chinchilla Scaling Law
 
 For a fixed compute budget C (measured in FLOPs), the optimal model size N and dataset size D follow:
@@ -183,7 +197,7 @@ In practice, this means you should scale model size and dataset size roughly equ
 
 Llama 3 deliberately violates the Chinchilla law. Meta found that overtraining on more data -- far beyond the compute-optimal ratio -- produces better models for inference. The extra training cost is paid once, but the smaller model is cheaper to serve forever. This is sometimes called the "inference-optimal" scaling approach, and it has become the industry standard since 2024.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Text Cleaning
 
@@ -388,7 +402,7 @@ Compression ratio tells you how efficient the tokenizer is on this corpus. Engli
 
 Sequence utilization tells you how much of your packed sequences is real data versus padding. Below 90% means your packing is inefficient -- you are wasting compute on padding tokens.
 
-## Use It
+## Use It | 用框架实现
 
 ### Compare With HuggingFace Datasets
 
@@ -416,32 +430,32 @@ print(f"HuggingFace: {total_tokens:,} tokens in {hf_time:.2f}s ({total_tokens/hf
 
 The HuggingFace pipeline uses Rust tokenizers under the hood and parallel processing across 4 cores. Your pure Python pipeline will be 10-50x slower. That gap is why production teams use compiled tokenizers. The algorithm is the same. The implementation language is the difference.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces a prompt for validating and debugging data quality in LLM training pipelines. See `outputs/prompt-data-quality-checker.md`.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy:** Add language detection to the cleaning pipeline using a simple heuristic (character set analysis). Filter to only English documents and measure how many documents get removed.
 2. **Medium:** Implement exact deduplication using SHA-256 hashes alongside the MinHash near-deduplication. Compare the number of duplicates caught by each method on a web-scraped corpus.
 3. **Hard:** Build a perplexity-based quality filter. Train a small bigram language model on Wikipedia text, score each document by perplexity, and remove the bottom 20%. Compare model output quality when training on filtered vs unfiltered data.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Common Crawl | "The internet" | A non-profit that crawls the web monthly -- ~250TB raw, the starting point for most LLM training data |
-| MinHash | "Some hashing trick" | A technique to estimate Jaccard similarity between sets using fixed-size signatures -- enables near-duplicate detection at scale |
-| LSH | "Locality-Sensitive Hashing" | A method to group similar items into the same bucket -- reduces pairwise comparisons from O(n^2) to near-linear |
-| Sequence packing | "Concatenating documents" | Fitting multiple documents into fixed-length sequences with proper attention masks -- eliminates padding waste |
-| Chinchilla scaling | "Train on more data" | For a fixed compute budget, optimal performance requires scaling model size and training tokens roughly equally |
-| Fertility | "Tokens per word" | Average number of tokens per word -- 1.3 for English in GPT-4, higher for non-Latin scripts |
-| Data mixing | "Choosing training data" | The ratio of code vs text vs math vs multilingual data -- no formula, requires experimentation |
-| Perplexity filter | "Quality scoring" | Use a small language model to score documents -- high perplexity means the text is unlike clean reference data |
-| Deduplication | "Removing copies" | Eliminating exact and near-duplicate documents -- typically removes 30-40% of raw web data |
-| Attention mask | "Which tokens to look at" | A binary mask that prevents attention across document boundaries in packed sequences |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Common Crawl | "The internet" | A non-profit that crawls the web monthly -- ~250TB raw, the starting point for most LLM training data | 通用爬虫，LLM 训练数据的起点 |
+| MinHash | "Some hashing trick" | A technique to estimate Jaccard similarity between sets using fixed-size signatures -- enables near-duplicate detection at scale | 最小哈希，近似重复检测的核心技术 |
+| LSH | "Locality-Sensitive Hashing" | A method to group similar items into the same bucket -- reduces pairwise comparisons from O(n^2) to near-linear | 局部敏感哈希，将 O(n^2) 降为近似线性 |
+| Sequence packing | "Concatenating documents" | Fitting multiple documents into fixed-length sequences with proper attention masks -- eliminates padding waste | 序列打包，消除填充浪费 |
+| Chinchilla scaling | "Train on more data" | For a fixed compute budget, optimal performance requires scaling model size and training tokens roughly equally | Chinchilla 缩放定律，参数和数据应等比增长 |
+| Fertility | "Tokens per word" | Average number of tokens per word -- 1.3 for English in GPT-4, higher for non-Latin scripts | 生育率，每词 token 数 |
+| Data mixing | "Choosing training data" | The ratio of code vs text vs math vs multilingual data -- no formula, requires experimentation | 数据混合比，需实验确定 |
+| Perplexity filter | "Quality scoring" | Use a small language model to score documents -- high perplexity means the text is unlike clean reference data | 困惑度过滤，低质量文档评分高 |
+| Deduplication | "Removing copies" | Eliminating exact and near-duplicate documents -- typically removes 30-40% of raw web data | 去重，通常移除 30-40% 网页数据 |
+| Attention mask | "Which tokens to look at" | A binary mask that prevents attention across document boundaries in packed sequences | 注意力掩码，阻止跨文档注意力 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Hoffmann et al., 2022 -- Training Compute-Optimal Large Language Models (Chinchilla)](https://arxiv.org/abs/2203.15556) -- the paper that changed how we think about data scale
 - [Penedo et al., 2023 -- The RefinedWeb Dataset for Falcon LLM](https://arxiv.org/abs/2306.01116) -- how to filter Common Crawl to high quality

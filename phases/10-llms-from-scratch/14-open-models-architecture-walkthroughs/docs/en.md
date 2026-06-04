@@ -18,7 +18,7 @@
 - Compute parameter count, KV cache size, and activation memory for any open model from its config alone
 - Pick the right open model for a deployment target given latency, memory, and capability constraints
 
-## The Problem
+## The Problem | 问题引入
 
 In Lesson 04 you wrote 350 lines of numpy and had a GPT-2-shaped model. Llama 3 405B has a 200-page technical report. Your instinct is that these are different beasts. They are not. The 200 pages describe the same object with five or six well-motivated modifications, plus a thousand implementation details about scaling. The skeleton -- embedding, transformer blocks, attention, MLP, norm, head -- is unchanged.
 
@@ -26,7 +26,12 @@ This lesson is a diff. For each major open model family, we list exactly what ch
 
 The practical payoff is that when Meta releases Llama 5 or DeepSeek releases V4, you will not need a new mental model. You will look at the config, see which of the well-known knobs moved, and know what the downstream implications are. The 2026 architectures are a finite toolbox. Each new model picks a different subset.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 本课对比开源 LLM 的架构演进：GPT 系列（密集 Transformer）→ Llama 2/3（RMSNorm、SwiGLU、RoPE、GQA）→ Mistral（滑动窗口注意力）→ Mixtral（MoE 稀疏激活）。理解这些架构差异是选择合适模型的基础。
+
+> **【拓展：架构演进的趋势】** 2024-2025 年的架构趋势：RoPE 旋转位置编码已取代绝对位置编码，GQA（分组查询注意力）减少了 KV-cache 大小，SwiGLU 替代 ReLU 提升了性能，RMSNorm 替代 LayerNorm 降低了计算开销。MoE（混合专家）通过稀疏激活降低推理成本，DeepSeek-V3 的 MoE 每次只激活约 37B/671B 参数。
+
 
 ### The Invariant Core
 
@@ -224,7 +229,11 @@ The 8B weights are 16 GB in BF16. The KV cache for a single 128k sequence is lar
 - **Long-context needs**: Llama 3 (128k with RoPE scaling), DeepSeek (MLA advantage).
 - **Low-latency serving**: Gemma 2 9B (sliding window cuts long-context compute).
 
-## Build It
+
+> **【拓展：开源模型的选型指南】** 2024-2025 年开源模型选型：通用对话选 Llama-3-70B，推理任务选 DeepSeek-R1，代码生成选 DeepSeek-Coder-V2，长上下文选 Qwen-2.5-72B（128K 上下文），轻量级选 Llama-3-8B 或 Qwen-2.5-7B。
+
+
+## Build It | 动手实现
 
 The lesson's code is a calculator. Given any config.json, it prints parameter count by component, KV cache at max context, SwiGLU MLP ratio, and a short verdict on the architecture (dense / GQA / MLA / MoE).
 
@@ -241,17 +250,17 @@ The script walks the architecture field by field, computes param counts for embe
 
 See `code/main.py` for the implementation.
 
-## Use It
+## Use It | 用框架实现
 
 Run the calculator on Llama 3 8B, Mistral 7B, Mixtral 8x7B, and DeepSeek V3 configs bundled in the script. Compare the parameter breakdowns. Notice that the MoE models have a total param count that dwarfs the dense models but an active param count that is often smaller. Notice that DeepSeek V3's KV cache is smaller than Llama 3 405B's despite having more total parameters -- that is MLA in action.
 
 Then plug in a config for any model you have locally, read the summary, and decide whether it fits your GPU.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-open-model-picker.md`. Given a deployment target (GPU type, VRAM, context length, latency budget) and a task profile (chat, code, reasoning, long-context), it recommends an open model, a quantization scheme from Lesson 11, and an inference stack from Lesson 12, with explicit reasoning about the six architectural knobs.
 
-## Exercises
+## Exercises | 练习题
 
 1. Read the Qwen 2.5 72B config from HuggingFace. Compute total parameters from scratch. Compare to the HF-reported value and identify where any delta comes from (head dim rounding, KV sharing factor, etc.).
 
@@ -263,22 +272,22 @@ This lesson produces `outputs/skill-open-model-picker.md`. Given a deployment ta
 
 5. Find a recent frontier open model that was released after this lesson was written. Identify which of the six knobs it picked and whether it introduced a seventh knob. The curriculum will feel out of date the moment a new architecture ships -- the goal is to update your table without rebuilding your mental model.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| RMSNorm | "LayerNorm without the mean" | Normalize by root mean square only, with a learned scale — cheaper and comparable to LayerNorm |
-| RoPE | "Rotary positions" | Rotate each Q and K vector in 2D pairs by an angle that depends on position — extrapolates beyond training length with scaling tricks |
-| SwiGLU | "The new MLP activation" | Gated linear unit with Swish: `(xW1) * sigmoid(xW1) * xV` — standard in every 2024+ open model |
-| GQA | "Middle ground attention" | Grouped-Query Attention: G groups of Q heads share one K and one V head — shrinks KV cache without MQA's accuracy hit |
-| MLA | "DeepSeek's attention" | Multi-Head Latent Attention: compress K/V into a shared low-rank latent, decompress per head — smallest KV cache for large models |
-| MoE | "Sparse experts" | Mixture of Experts: N MLPs per block, router picks top-k per token — huge total params, small active params |
-| Top-k routing | "Pick k experts per token" | The router computes a score per expert and activates the k highest — typical k is 2 (Mixtral) to 8 (DeepSeek) |
-| YaRN | "Stretch RoPE" | Yet another RoPE extension — interpolates rotary angles to extend context from 8k to 128k+ at inference time |
-| Sliding-window attention | "Don't attend to everything" | Each token attends only to the last W tokens — caps attention cost at O(W) per token, used in Gemma 2 and early Mistral |
-| Active params | "What runs per token" | For MoE models, the parameter count that sees a forward pass per token (much smaller than total params) — governs per-token FLOPs |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| RMSNorm | "LayerNorm without the mean" | Normalize by root mean square only, with a learned scale — cheaper and comparable to LayerNorm | |
+| RoPE | "Rotary positions" | Rotate each Q and K vector in 2D pairs by an angle that depends on position — extrapolates beyond training length with scaling tricks | |
+| SwiGLU | "The new MLP activation" | Gated linear unit with Swish: `(xW1) * sigmoid(xW1) * xV` — standard in every 2024+ open model | |
+| GQA | "Middle ground attention" | Grouped-Query Attention: G groups of Q heads share one K and one V head — shrinks KV cache without MQA's accuracy hit | |
+| MLA | "DeepSeek's attention" | Multi-Head Latent Attention: compress K/V into a shared low-rank latent, decompress per head — smallest KV cache for large models | |
+| MoE | "Sparse experts" | Mixture of Experts: N MLPs per block, router picks top-k per token — huge total params, small active params | |
+| Top-k routing | "Pick k experts per token" | The router computes a score per expert and activates the k highest — typical k is 2 (Mixtral) to 8 (DeepSeek) | |
+| YaRN | "Stretch RoPE" | Yet another RoPE extension — interpolates rotary angles to extend context from 8k to 128k+ at inference time | |
+| Sliding-window attention | "Don't attend to everything" | Each token attends only to the last W tokens — caps attention cost at O(W) per token, used in Gemma 2 and early Mistral | |
+| Active params | "What runs per token" | For MoE models, the parameter count that sees a forward pass per token (much smaller than total params) — governs per-token FLOPs | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Dubey et al., 2024 -- "The Llama 3 Herd of Models"](https://arxiv.org/abs/2407.21783) -- the architectural and training reference for the dense Llama 3 family
 - [DeepSeek-AI, 2024 -- "DeepSeek-V3 Technical Report"](https://arxiv.org/abs/2412.19437) -- MLA plus auxiliary-loss-free load balancing plus 671B MoE

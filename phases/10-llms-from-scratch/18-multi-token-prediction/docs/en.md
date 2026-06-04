@@ -18,7 +18,7 @@
 - Compute the parameter and memory overhead of adding MTP modules to a pre-training run.
 - Implement one MTP module from scratch: the shared embedding, the per-depth transformer block, the projection, and the shared output head.
 
-## The Problem
+## The Problem | 问题引入
 
 Next-token prediction is the standard LLM training objective. Every hidden state is supervised to predict exactly one thing: the immediately following token. That is a surprisingly weak signal. Most of the information in a sequence extends beyond one token — structure, coherence, factuality, arithmetic flow. The model has to learn those by accumulating many one-token signals over trillions of tokens.
 
@@ -28,7 +28,12 @@ DeepSeek-V3 (December 2024) re-designed MTP as sequential modules that keep the 
 
 This lesson builds a single MTP module and the D-depth loss from scratch. The math is tidy. The implementation is 150 lines.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 多 token 预测让模型同时预测多个未来 token（而非仅预测下一个），提供更丰富的训练信号。Meta 的研究表明多 token 预测不仅加速训练，还能提升模型的规划能力和推理性能。
+
+> **【拓展：Meta 的多 token 预测研究】** Meta 在 2024 年发表的论文表明，4-token 预测在代码生成和推理任务上显著优于标准下一个 token 预测。DeepSeek-V3 也使用了辅助的多 token 预测头来增强训练信号。这种方法与投机解码有天然联系——模型已经学会了预测未来多个 token。
+
 
 ### The sequential MTP recipe
 
@@ -109,7 +114,11 @@ EAGLE trains a small draft model SEPARATELY after pre-training. MTP bakes the dr
 | Acceptance rate | 0.88-0.92 | 0.80+ at depth 1 |
 | Benefit beyond speedup | Speculative decoding only | Denser training signal + speedup |
 
-## Build It
+
+> **【拓展：多 token 预测与推理加速的联系】** 多 token 预测训练的模型天然适合投机解码——因为它已经学会了预测未来多个 token。Meta 的研究表明，4-token 预测训练的模型在代码生成上比标准训练提升 5-10%。
+
+
+## Build It | 动手实现
 
 `code/main.py` builds a single MTP module end to end: shared embedding, projection, transformer block, shared output head. It then computes the per-depth cross-entropy loss on a short synthetic sequence and prints the parameter count by component. A toy vocabulary of 32 tokens keeps the numbers readable.
 
@@ -145,7 +154,7 @@ Cross-entropy of softmax(logits) against the ground-truth token at offset `k`. A
 
 Print the total parameter count, the shared (embedding, head) count, and the per-module extra count. Show the ratio of MTP extra to main-model size.
 
-## Use It
+## Use It | 用框架实现
 
 MTP is integrated into DeepSeek-V3 (December 2024) and the DeepSeek-R1 series. At inference:
 
@@ -164,11 +173,11 @@ When not to:
 - Fine-tuning an existing pre-trained dense model. The MTP module is not trained.
 - Research models where you want a clean baseline to compare against. MTP changes the architecture.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-mtp-planner.md`. Given a pre-training run specification (model size, data, compute), it returns a plan for integrating MTP: number of depths D, `lambda` schedule, memory overhead, and the inference-time speculative-decoding wiring.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Show the per-depth loss decreases monotonically as the synthetic signal strengthens. Modify the synthetic to use a fixed pattern and verify both depth-1 and depth-2 losses converge.
 
@@ -180,22 +189,22 @@ This lesson produces `outputs/skill-mtp-planner.md`. Given a pre-training run sp
 
 5. Use the trained MTP module as an EAGLE-style draft: call module k to propose `t_{i+k}` at inference. Measure the acceptance rate of these draft tokens against the main model's predictions on a held-out sequence. If you hit 50%+ on the toy, you have reproduced the empirical MTP-as-draft property.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| MTP module | "Extra loss block" | A small transformer block plus projection that predicts a token `k` positions ahead of the main model |
-| Prediction depth | "Which offset" | The integer `k` such that module `k` predicts `t_{i+k}` from prefix through position `i` |
-| Parallel MTP | "Gloeckle-style" | D independent heads on the same backbone hidden state, no conditional chain |
-| Sequential MTP | "DeepSeek-V3 style" | Each module conditions on the previous depth's hidden state plus the next token's embedding; preserves causal chain |
-| Shared output head | "Reuse the main head" | The MTP modules call the main model's LM head, not a separate output projection |
-| Shared embedding | "Reuse the main table" | Same vocabulary embedding table is used everywhere; no duplicate parameters |
-| Projection matrix M_k | "Combine hidden + next-token" | An `h x 2h` linear layer that folds the previous hidden state and the target-token embedding into the next depth's input |
-| Joint loss L_MTP | "Averaged extra losses" | Arithmetic mean of per-depth cross-entropy losses, scaled by `lambda` |
-| Acceptance rate at depth 1 | "How often MTP draft is right" | The rate at which the D=1 MTP module's top-1 prediction equals the main model's top-1 prediction; 80%+ on DeepSeek-V3 |
-| Lambda weighting | "Extra-loss importance" | Per-depth scaling factor; 0.3 at start of training, 0.1 later on DeepSeek-V3 |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|---------|
+| MTP module | "Extra loss block" | A small transformer block plus projection that predicts a token `k` positions ahead of the main model | |
+| Prediction depth | "Which offset" | The integer `k` such that module `k` predicts `t_{i+k}` from prefix through position `i` | |
+| Parallel MTP | "Gloeckle-style" | D independent heads on the same backbone hidden state, no conditional chain | |
+| Sequential MTP | "DeepSeek-V3 style" | Each module conditions on the previous depth's hidden state plus the next token's embedding; preserves causal chain | |
+| Shared output head | "Reuse the main head" | The MTP modules call the main model's LM head, not a separate output projection | |
+| Shared embedding | "Reuse the main table" | Same vocabulary embedding table is used everywhere; no duplicate parameters | |
+| Projection matrix M_k | "Combine hidden + next-token" | An `h x 2h` linear layer that folds the previous hidden state and the target-token embedding into the next depth's input | |
+| Joint loss L_MTP | "Averaged extra losses" | Arithmetic mean of per-depth cross-entropy losses, scaled by `lambda` | |
+| Acceptance rate at depth 1 | "How often MTP draft is right" | The rate at which the D=1 MTP module's top-1 prediction equals the main model's top-1 prediction; 80%+ on DeepSeek-V3 | |
+| Lambda weighting | "Extra-loss importance" | Per-depth scaling factor; 0.3 at start of training, 0.1 later on DeepSeek-V3 | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [DeepSeek-AI — DeepSeek-V3 Technical Report (arXiv:2412.19437)](https://arxiv.org/abs/2412.19437) — the full sequential MTP description (Section 2.2), including the joint-loss equations and the 1.8× speedup at inference
 - [Gloeckle et al. — Better & Faster Large Language Models via Multi-token Prediction (arXiv:2404.19737)](https://arxiv.org/abs/2404.19737) — the parallel MTP baseline DeepSeek's design improves on

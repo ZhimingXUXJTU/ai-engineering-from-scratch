@@ -18,7 +18,9 @@
 - Calculate the memory budget for a given model size (weights + optimizer states + gradients + activations) to determine the minimum hardware
 - Configure FSDP or DeepSpeed ZeRO stages to shard model states across GPUs and fit models that exceed single-GPU memory
 
-## The Problem
+> **【中文解读】** 本课聚焦 LLM 训练的核心瓶颈：显存。7B 模型在 FP16 下仅权重就需 14GB，加上 Adam 优化器状态（28GB）和梯度（14GB），总计 56GB——还没算激活值。你将学习三种并行策略（数据并行、张量并行、流水线并行）以及 FSDP/ZeRO 分片技术来突破单卡显存限制。
+
+## The Problem | 问题引入
 
 A 7B parameter model in FP16 needs 14GB just for the weights. Adam optimizer stores two additional copies of every parameter (first and second moment estimates). That is another 28GB. Gradients during backpropagation add 14GB more. You are at 56GB before a single activation is stored.
 
@@ -32,7 +34,7 @@ Llama 3 405B was trained on 16,384 NVIDIA H100 GPUs. The training run cost an es
 
 This lesson covers the four strategies that make large-scale training possible: data parallelism, tensor parallelism, pipeline parallelism, and fully sharded data parallelism. You will simulate each one in pure Python to understand the mechanics before ever touching a distributed training framework.
 
-## The Concept
+## The Concept | 核心概念
 
 ### Why Distribution is Required
 
@@ -48,6 +50,10 @@ Here is the memory math for real models. Every number is calculated, not estimat
 The "Adam States" column is the killer. Adam stores a running mean (m) and a running variance (v) for every parameter, both in FP32. For a 70B model, that is 70B x 4 bytes x 2 = 560GB. The optimizer alone needs seven A100s.
 
 A single H100 has 80GB. Llama 3 405B needs at least 61 H100s to hold the weights, optimizer, and gradients. Add activations and the number grows further. Meta used 16,384 GPUs not because they wanted to -- because they had to.
+
+> **【中文解读】** 显存预算是 LLM 训练的第一道关卡。以 Llama 3 70B 为例：FP16 权重 140GB + Adam 优化器状态 560GB + 梯度 140GB = 840GB（不含激活值）。单张 H100 只有 80GB，至少需要 11 张 GPU 才能放下这些状态。Llama 3 405B 的总需求高达 4,860GB。Adam 优化器是显存杀手——它为每个参数存储两个 FP32 的动量估计（m 和 v），参数量 x 8 字节 x 2。
+
+> **【拓展：Llama 3 的 16384 GPU 训练】** Llama 3 405B 在 16,384 张 H100 GPU 上训练，使用了 3D 并行（数据并行 + 张量并行 + 流水线并行）。训练总成本估计约 1 亿美元。作为对比，DeepSeek-V3 用 MoE 架构（每次只激活部分参数）和 DualPipe 流水线，以约 560 万美元训练了同等能力的模型。
 
 ### Data Parallelism
 
@@ -95,6 +101,10 @@ Consider a weight matrix of shape (8192, 8192) in a feedforward layer. With 4-wa
 
 **Real usage:** Megatron-LM pioneered tensor parallelism. Llama 3 405B uses 8-way tensor parallelism within each node.
 
+> **【中文解读】** 张量并行（Tensor Parallelism）将单个层的矩阵乘法拆分到多张 GPU 上。例如一个 (8192, 8192) 的权重矩阵在 4 路并行下，每张 GPU 只需存储 (8192, 2048) 的分片。但缺点是每层都需要全归约（all-reduce）通信，因此几乎只限于 NVLink 连接的单节点内（8 张 GPU）。Llama 3 405B 就使用 8 路张量并行。
+
+> **【拓展：流水线并行的气泡问题】** 流水线并行将模型按层分配到不同 GPU（如 GPU1 跑 1-8 层，GPU2 跑 9-16 层）。但会产生"气泡"——GPU 空闲等待。GPipe 通过微批次（micro-batch）重叠计算来缓解：4 个阶段用 16 个微批次，气泡率降至 (4-1)/16 = 18.75%。
+
 ### Pipeline Parallelism
 
 Split the model by layers. GPU 1 runs layers 1-8. GPU 2 runs layers 9-16. GPU 3 runs layers 17-24. GPU 4 runs layers 25-32. Data flows through the pipeline: GPU 1 computes its layers and sends activations to GPU 2, which computes its layers and sends to GPU 3, and so on.
@@ -123,6 +133,10 @@ Before a layer's forward pass, FSDP runs an **all-gather** to collect the full p
 Without FSDP, you cannot fit a 70B model on a single 80GB GPU. With FSDP on 8 GPUs, each GPU uses 105GB -- wait, that still does not fit. You need at least 16 GPUs to get under 80GB per GPU, or you combine FSDP with activation checkpointing (recompute activations during backward instead of storing them).
 
 The communication cost is higher than vanilla data parallelism because of the all-gather before each layer. But the memory savings make previously impossible training runs possible.
+
+> **【中文解读】** FSDP（完全分片数据并行）是数据并行和分片的结合。每个 GPU 只存储 1/N 的参数、梯度和优化器状态。前向传播前，通过 all-gather 从所有 GPU 收集完整参数；前向传播后，丢弃非本地参数；反向传播后再通过 reduce-scatter 分发梯度分片。70B 模型在 8 GPU 上用 FSDP 后每卡 105GB——还是超了，需要配合激活检查点（activation checkpointing）才能放下。
+
+> **【拓展：DeepSpeed ZeRO 的三个阶段】** ZeRO Stage 1 分片优化器状态（省 4x 显存），Stage 2 加上梯度分片（省 8x），Stage 3 加上参数分片（省 N 倍，N 为 GPU 数）。FSDP 本质上是 ZeRO Stage 3 的 PyTorch 原生实现。Llama 3 405B 的 16,384 GPU 训练使用了 FSDP + 张量并行 + 流水线并行的 3D 组合。
 
 ```mermaid
 graph TD
@@ -194,6 +208,10 @@ BF16 (Brain Float 16) has the same exponent range as FP32 (8 exponent bits) but 
 
 Google's TPUs use BF16 natively. NVIDIA's A100 and H100 support both FP16 and BF16. The industry has largely moved to BF16 because it eliminates loss scaling headaches.
 
+> **【中文解读】** 混合精度训练是现代 LLM 训练的标准做法：前向传播用 BF16（16 位），优化器维护 FP32 主权重（32 位），损失缩放防止梯度下溢。BF16 与 FP32 有相同的指数范围（8 位），但精度降低（7 位尾数 vs 23 位），几乎不需要损失缩放。业界已从 FP16 全面转向 BF16。混合精度为 7B 模型节省约 28GB 显存。
+
+> **【拓展：3D 并行与 MoE 的经济性】** Llama 3 405B 使用 3D 并行：节点间数据并行 + 节点内 8 路张量并行 + 跨节点流水线并行。DeepSeek-V3 则用 MoE（混合专家）架构降低成本——每次前向传播只激活约 37B 参数（总参数 671B），训练成本仅约 560 万美元，是 Llama 3 的 1/18。
+
 **Memory comparison for a 7B model:**
 
 | Precision | Weights | Optimizer | Gradients | Total |
@@ -243,7 +261,7 @@ graph TD
     style N1 fill:#1a1a2e,stroke:#e94560,color:#fff
 ```
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Simulate Data Parallelism
 
@@ -452,7 +470,7 @@ def mixed_precision_comparison(params_billions):
 
 The biggest surprise for most people: mixed precision does not halve the memory. The optimizer states (Adam's m and v) stay in FP32 regardless of precision. For a 7B model, FP32 training uses 112GB. Mixed precision uses 84GB. That is a 25% reduction, not 50%. The optimizer dominates.
 
-## Use It
+## Use It | 用框架实现
 
 ### Run All Simulations
 
@@ -531,11 +549,11 @@ def run_all_demos():
               f"Savings={result['savings_vs_fp32']:.0%}")
 ```
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-distributed-training-planner.md` -- a prompt that takes a model size and available hardware, then produces a complete distributed training plan: parallelism strategy, memory budget, communication overhead, and expected throughput.
 
-## Exercises
+## Exercises | 练习题
 
 1. Modify the memory calculator to include activation checkpointing. With checkpointing, only store activations at every K-th layer (typical K=1, meaning recompute all). Show the memory-compute tradeoff: how much memory does checkpointing save, and how much does it slow down training (roughly 33% more compute for full checkpointing)?
 
@@ -547,22 +565,22 @@ This lesson produces `outputs/prompt-distributed-training-planner.md` -- a promp
 
 5. Add ZeRO-Offload to the memory calculator. Assume CPU RAM is 512GB per node and NVMe is 2TB. Show how offloading optimizer states to CPU allows a 70B model to train on 4 GPUs instead of 16, at the cost of 30-50% slower optimizer steps.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Data parallelism | "Copy the model to every GPU" | Each GPU processes a different data shard; gradients are averaged via all-reduce after each step |
-| Tensor parallelism | "Split a layer across GPUs" | Partition weight matrices so each GPU computes part of the matmul; requires fast NVLink interconnect |
-| Pipeline parallelism | "Split layers across GPUs" | Each GPU runs a different group of layers; data flows through the pipeline with micro-batches to reduce bubbles |
-| FSDP | "Shard everything" | Fully Sharded Data Parallel -- each GPU holds 1/N of weights, gradients, and optimizer states; all-gather before compute |
-| ZeRO | "DeepSpeed's version of FSDP" | Zero Redundancy Optimizer with 3 stages: shard optimizer (Stage 1), + gradients (Stage 2), + parameters (Stage 3) |
-| All-reduce | "Average across GPUs" | Collective operation where every GPU ends with the sum (or average) of all GPUs' inputs -- typically implemented as ring all-reduce |
-| All-gather | "Collect from all GPUs" | Collective operation where every GPU ends with the concatenation of all GPUs' data -- used in FSDP to reconstruct full parameters |
-| Reduce-scatter | "Sum and distribute" | Collective operation that reduces (sums) data and scatters different chunks to different GPUs -- used in FSDP for gradient sharding |
-| Mixed precision | "Train in half precision" | Use FP16/BF16 for forward/backward and FP32 for optimizer states -- saves ~25% memory, not 50%, because the optimizer dominates |
-| Pipeline bubble | "Idle time in the pipeline" | Fraction of time GPUs sit idle waiting for data from the previous stage -- reduced by using more micro-batches |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Data parallelism | "Copy the model to every GPU" | Each GPU processes a different data shard; gradients are averaged via all-reduce after each step | |
+| Tensor parallelism | "Split a layer across GPUs" | Partition weight matrices so each GPU computes part of the matmul; requires fast NVLink interconnect | |
+| Pipeline parallelism | "Split layers across GPUs" | Each GPU runs a different group of layers; data flows through the pipeline with micro-batches to reduce bubbles | |
+| FSDP | "Shard everything" | Fully Sharded Data Parallel -- each GPU holds 1/N of weights, gradients, and optimizer states; all-gather before compute | |
+| ZeRO | "DeepSpeed's version of FSDP" | Zero Redundancy Optimizer with 3 stages: shard optimizer (Stage 1), + gradients (Stage 2), + parameters (Stage 3) | |
+| All-reduce | "Average across GPUs" | Collective operation where every GPU ends with the sum (or average) of all GPUs' inputs -- typically implemented as ring all-reduce | |
+| All-gather | "Collect from all GPUs" | Collective operation where every GPU ends with the concatenation of all GPUs' data -- used in FSDP to reconstruct full parameters | |
+| Reduce-scatter | "Sum and distribute" | Collective operation that reduces (sums) data and scatters different chunks to different GPUs -- used in FSDP for gradient sharding | |
+| Mixed precision | "Train in half precision" | Use FP16/BF16 for forward/backward and FP32 for optimizer states -- saves ~25% memory, not 50%, because the optimizer dominates | |
+| Pipeline bubble | "Idle time in the pipeline" | Fraction of time GPUs sit idle waiting for data from the previous stage -- reduced by using more micro-batches | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Rajbhandari et al., 2020 -- "ZeRO: Memory Optimizations Toward Training Trillion Parameter Models"](https://arxiv.org/abs/1910.02054) -- the DeepSpeed ZeRO paper that defined the three sharding stages
 - [Shoeybi et al., 2020 -- "Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism"](https://arxiv.org/abs/1909.08053) -- NVIDIA's tensor parallelism for transformers

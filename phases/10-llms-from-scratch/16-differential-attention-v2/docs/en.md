@@ -18,7 +18,7 @@
 - Walk the V1-to-V2 diff: what got faster, what got simpler, what got more stable, and why each change was necessary for production pre-training.
 - Implement differential attention from scratch in pure Python and empirically verify the noise-cancellation property on a synthetic signal-plus-noise query.
 
-## The Problem
+## The Problem | 问题引入
 
 Standard softmax attention has a mathematical property that turns into an operational headache at scale. For a query `q`, the attention weights are `softmax(qK^T / sqrt(d))`. Softmax can never produce exact zeros — every non-matching token gets some positive mass. That residual mass is noise, and it scales with context length. At 128k tokens, even if each non-matching token gets only 0.001% of the probability, 127,999 of them combined contribute about 12% of the total. The model has to learn to route around a noise floor that grows with context.
 
@@ -26,7 +26,12 @@ Empirically this shows up as attention-head interference: hallucinated citations
 
 DIFF V1 had three problems that kept it out of frontier pre-training pipelines. Its value cache had to be loaded twice per decode step, it required custom CUDA kernels that broke FlashAttention compatibility, and its per-head RMSNorm destabilized long-run training at 70B-plus scale. DIFF V2 (Microsoft unilm blog, January 20, 2026) fixed all three. This lesson walks both versions, builds the difference operator, and benchmarks noise cancellation on a toy query.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 差分注意力（Differential Attention）通过计算两个独立 softmax 的差值来消除注意力噪声，让模型更专注于真正相关的信息。这种方法减少了注意力机制中的注意力分散问题。
+
+> **【拓展：注意力机制的演进】** 从标准 Multi-Head Attention → GQA（分组查询注意力，Llama 2/3 使用）→ MLA（多头潜在注意力，DeepSeek-V2/V3 使用，将 KV-cache 压缩到低维潜在空间）→ 差分注意力。MLA 将 DeepSeek-V3 的 KV-cache 压缩了约 10 倍，是推理效率的关键创新。
+
 
 ### The noise floor of softmax
 
@@ -99,7 +104,11 @@ The value grows with context length. At 4k tokens the noise floor is small enoug
 | FlashAttention | Yes in V2 (was no in V1) |
 | Speculative decoding | Yes (attention change is invisible to the spec-decode loop) |
 
-## Build It
+
+> **【拓展：注意力机制的关键创新时间线】** 2017 年 Multi-Head Attention 到 2022 年 GQA（Llama 2，减少 KV-cache）到 2024 年 MLA（DeepSeek-V2，KV 压缩到潜在空间）到 2024 年 Differential Attention（消除注意力噪声）。MLA 将 KV-cache 缩小约 10 倍。
+
+
+## Build It | 动手实现
 
 `code/main.py` implements differential attention in pure Python. A toy query with known signal-plus-noise structure lets you measure the noise-cancellation ratio directly.
 
@@ -144,7 +153,7 @@ Given a config (hidden=4096, heads=32, d_head=128), print:
 
 The toy measures the extra parameter cost for V2 (roughly `hidden * hidden` extra per attention block) and prints it.
 
-## Use It
+## Use It | 用框架实现
 
 DIFF V2 is not yet shipping in every production inference server as of April 2026, but integration is underway in vLLM and SGLang. Meanwhile the pattern shows up in:
 
@@ -162,11 +171,11 @@ When you would not:
 - You are serving a pre-trained dense model with stable long-context performance. The retraining cost rarely pays back on existing weights.
 - Your context is always under 16k. Noise floor is negligible.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-diff-attention-integrator.md`. Given a model architecture, target context length, hallucination profile, and training budget, it produces an integration plan for adding differential attention to a new pre-training run or LoRA fine-tune.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Verify the signal-to-noise ratio reported for differential attention is higher than standard softmax attention on the synthetic query. Vary the noise amplitude and show the crossover point where standard attention becomes unusable.
 
@@ -178,21 +187,21 @@ This lesson produces `outputs/skill-diff-attention-integrator.md`. Given a model
 
 5. Extend the toy to GQA + DIFF V2. Pick 8 KV heads and 32 Q heads. Show that the KV cache size matches a baseline GQA model with the same (8, 32) configuration.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Differential attention | "Two softmaxes minus each other" | Split Q, K into two halves, compute two softmax maps, subtract the second (scaled by lambda) from the first, then multiply by V |
-| Noise floor | "The non-zero tail of softmax" | The O(1/N) weight softmax puts on every unrelated token, which sums to O(1) across long contexts |
-| lambda | "The subtraction scale" | Per-head learnable scalar parameterized as `exp(lq1.lk1) - exp(lq2.lk2) + lambda_init`; can be negative |
-| DIFF V1 | "The ICLR 2025 version" | Original Differential Transformer; halves head dim to preserve parameter count, needs custom kernel, slower decode |
-| DIFF V2 | "The January 2026 fix" | Doubles Q heads keeping KV heads; matches baseline decode speed and works with FlashAttention |
-| Per-head RMSNorm | "The V1 stabilizer" | Extra norm V1 applied after the difference; V2 removed it to prevent late-training instability |
-| Signal-to-noise ratio | "How much attention is wasted" | Ratio of weight on the true signal position to average weight on unrelated positions |
-| Lost in the middle | "Long-context failure mode" | Empirical phenomenon where retrieval accuracy dips for documents in the middle of a long context — DIFF attention reduces this |
-| Arithmetic intensity | "FLOPs per byte loaded" | Ratio V2 increased at decode by doubling queries per KV load; important for memory-bound decode |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|---------|
+| Differential attention | "Two softmaxes minus each other" | Split Q, K into two halves, compute two softmax maps, subtract the second (scaled by lambda) from the first, then multiply by V | |
+| Noise floor | "The non-zero tail of softmax" | The O(1/N) weight softmax puts on every unrelated token, which sums to O(1) across long contexts | |
+| lambda | "The subtraction scale" | Per-head learnable scalar parameterized as `exp(lq1.lk1) - exp(lq2.lk2) + lambda_init`; can be negative | |
+| DIFF V1 | "The ICLR 2025 version" | Original Differential Transformer; halves head dim to preserve parameter count, needs custom kernel, slower decode | |
+| DIFF V2 | "The January 2026 fix" | Doubles Q heads keeping KV heads; matches baseline decode speed and works with FlashAttention | |
+| Per-head RMSNorm | "The V1 stabilizer" | Extra norm V1 applied after the difference; V2 removed it to prevent late-training instability | |
+| Signal-to-noise ratio | "How much attention is wasted" | Ratio of weight on the true signal position to average weight on unrelated positions | |
+| Lost in the middle | "Long-context failure mode" | Empirical phenomenon where retrieval accuracy dips for documents in the middle of a long context — DIFF attention reduces this | |
+| Arithmetic intensity | "FLOPs per byte loaded" | Ratio V2 increased at decode by doubling queries per KV load; important for memory-bound decode | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Ye et al. — Differential Transformer (arXiv:2410.05258, ICLR 2025)](https://arxiv.org/abs/2410.05258) — the original paper with noise-cancellation theory and long-context ablations
 - [Microsoft unilm — Differential Transformer V2 (Hugging Face blog, January 2026)](https://huggingface.co/blog/microsoft/diff-attn-v2) — the production-stack rewrite, matching baseline decode, FlashAttention-compatible

@@ -18,7 +18,9 @@
 - Implement continuous batching and PagedAttention concepts to maximize GPU utilization under concurrent requests
 - Compare inference optimization techniques (KV-cache, speculative decoding, flash attention) and their throughput/latency tradeoffs
 
-## The Problem
+> **【中文解读】** 本课聚焦 LLM 推理优化。两个核心概念：(1) Prefill 阶段并行处理 prompt，受限于 GPU 计算量（FLOPS）；(2) Decode 阶段逐 token 生成，受限于显存带宽。KV-cache 避免重复计算已生成 token 的 K/V，连续批处理最大化 GPU 利用率，PagedAttention 解决 KV-cache 的显存碎片问题。
+
+## The Problem | 问题引入
 
 You deploy Llama 3 70B on 4xA100 GPUs. A single user gets ~50 tokens per second. Feels fast. Then 100 users hit the endpoint simultaneously. Throughput drops to 3 tokens/second/user. Your $25,000/month GPU bill is serving responses slower than a human types.
 
@@ -28,7 +30,12 @@ This is not a scaling problem. It is a scheduling problem. The techniques in thi
 
 vLLM serving Llama 3 70B on 4xA100-80GB achieves ~50 tokens/second/user at low concurrency, and sustains 15-25 TPS/user at 100 concurrent requests through continuous batching and PagedAttention. Without these optimizations, the same hardware serves 5 TPS/user at that concurrency. Same GPUs, same model, 4x the throughput.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** LLM 推理的两个阶段有截然不同的瓶颈：Prefill 阶段受限于 GPU FLOPS（计算量），Decode 阶段受限于显存带宽（每次生成都要读取整个模型权重）。KV-cache 是最基本的优化——缓存已生成 token 的 Key/Value，避免重复计算，将 Decode 阶段的复杂度从 O(n^2) 降到 O(n)。
+
+> **【拓展：vLLM 和 PagedAttention】** vLLM 引入的 PagedAttention 将 KV-cache 像虚拟内存一样管理，用固定大小的页存储 KV 向量，解决了显存碎片问题。这使得 vLLM 的吞吐量比 HuggingFace TGI 高 2-4 倍。连续批处理（continuous batching）则在有请求完成时立即插入新请求，将 GPU 利用率从约 30% 提升到 90%+。
+
 
 ### Prefill vs Decode
 
@@ -247,7 +254,7 @@ When ops:byte is high (prefill, large batches), you hit the compute roof. Memory
 
 The crossover point on A100 is around ops:byte = 156 (312 TFLOPS / 2 TB/s). Below 156, you are memory-bound. Above 156, you are compute-bound. Continuous batching pushes decode toward this crossover by packing more tokens per iteration.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: KV Cache from Scratch
 
@@ -687,7 +694,7 @@ def memory_budget(config, gpu_memory_gb, model_dtype_bytes=2, kv_dtype_bytes=2):
     }
 ```
 
-## Use It
+## Use It | 用框架实现
 
 With vLLM:
 
@@ -742,12 +749,12 @@ outputs = runner.generate(
 )
 ```
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/skill-inference-optimization.md` -- a skill for diagnosing and optimizing LLM inference serving
 
-## Exercises
+## Exercises | 练习题
 
 1. Modify the KV cache profiler to compare FP16 vs FP8 vs INT4 KV cache quantization. For Llama 3 70B at 4K context, compute the max concurrent users for each on 4xA100-80GB. KV quantization to INT4 should roughly 4x the user capacity.
 
@@ -759,22 +766,22 @@ This lesson produces:
 
 5. Extend the speculative decoding simulator to implement tree-based speculation (EAGLE-2 style). Instead of a single chain of K draft tokens, generate a tree of candidates (e.g., 2 branches at each of 3 levels = 8 leaf candidates). Compare total tokens accepted per verification round vs linear speculation.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Prefill | "Processing the prompt" | Computing attention over all input tokens in parallel -- compute-bound because the full matrix multiplication keeps GPU cores busy |
-| Decode | "Generating tokens" | Producing one token per forward pass, reading the full model weights each time -- memory-bound because compute finishes before the next weights arrive |
-| KV cache | "Caching attention states" | Storing the key and value projections for all previous tokens so they are not recomputed at each decode step -- trades memory for compute |
-| Continuous batching | "Dynamic batching" | Inserting new requests into the running batch as soon as any request finishes, evaluated at every decode iteration rather than waiting for the whole batch |
-| PagedAttention | "Virtual memory for KV cache" | Allocating KV cache in fixed-size pages instead of contiguous blocks, eliminating memory fragmentation and enabling copy-on-write for shared prefixes |
-| Speculative decoding | "Draft and verify" | Using a fast draft model to propose multiple tokens, then verifying them all in one target model forward pass -- mathematically exact, 2-3x speedup |
-| EAGLE | "Self-speculative decoding" | A speculative decoding variant that trains a lightweight head on the target model's own hidden states, achieving higher acceptance rates than a separate draft model |
-| Prefix caching | "Reusing system prompt KV" | Storing computed KV cache entries for common prefixes (system prompts, few-shot examples) and reusing them across requests to skip redundant prefill |
-| Ops:byte ratio | "Arithmetic intensity" | The ratio of compute operations to memory bytes read -- determines whether a workload is compute-bound (high ratio) or memory-bound (low ratio) |
-| Time to first token | "TTFT" | Latency from receiving a request to producing the first output token -- dominated by prefill time for long prompts |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Prefill | "Processing the prompt" | Computing attention over all input tokens in parallel -- compute-bound because the full matrix multiplication keeps GPU cores busy | |
+| Decode | "Generating tokens" | Producing one token per forward pass, reading the full model weights each time -- memory-bound because compute finishes before the next weights arrive | |
+| KV cache | "Caching attention states" | Storing the key and value projections for all previous tokens so they are not recomputed at each decode step -- trades memory for compute | |
+| Continuous batching | "Dynamic batching" | Inserting new requests into the running batch as soon as any request finishes, evaluated at every decode iteration rather than waiting for the whole batch | |
+| PagedAttention | "Virtual memory for KV cache" | Allocating KV cache in fixed-size pages instead of contiguous blocks, eliminating memory fragmentation and enabling copy-on-write for shared prefixes | |
+| Speculative decoding | "Draft and verify" | Using a fast draft model to propose multiple tokens, then verifying them all in one target model forward pass -- mathematically exact, 2-3x speedup | |
+| EAGLE | "Self-speculative decoding" | A speculative decoding variant that trains a lightweight head on the target model's own hidden states, achieving higher acceptance rates than a separate draft model | |
+| Prefix caching | "Reusing system prompt KV" | Storing computed KV cache entries for common prefixes (system prompts, few-shot examples) and reusing them across requests to skip redundant prefill | |
+| Ops:byte ratio | "Arithmetic intensity" | The ratio of compute operations to memory bytes read -- determines whether a workload is compute-bound (high ratio) or memory-bound (low ratio) | |
+| Time to first token | "TTFT" | Latency from receiving a request to producing the first output token -- dominated by prefill time for long prompts | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - Kwon et al., "Efficient Memory Management for Large Language Model Serving with PagedAttention" (2023) -- the vLLM paper that introduced paged KV cache management, now the industry standard for inference serving
 - Leviathan et al., "Fast Inference from Transformers via Speculative Decoding" (2023) -- the foundational paper proving that draft-verify speculation produces exact target model distributions while achieving 2-3x speedup

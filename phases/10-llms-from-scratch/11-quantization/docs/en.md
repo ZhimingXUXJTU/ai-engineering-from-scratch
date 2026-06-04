@@ -18,7 +18,9 @@
 - Explain the difference between post-training quantization (PTQ) and quantization-aware training (QAT)
 - Apply GPTQ or AWQ to quantize a real model and measure the accuracy-memory tradeoff on a benchmark
 
-## The Problem
+> **【中文解读】** 本课实现量化技术——用精度换显存和速度。核心方法：对称/非对称量化、逐张量/逐通道缩放、PTQ（训练后量化）vs QAT（量化感知训练）。量化是每个大于 7B 的模型的标准部署路径。
+
+## The Problem | 问题引入
 
 Llama 3 70B has 70 billion parameters. Each parameter is a 16-bit floating point number. That is 140 billion bytes. 140GB. A single A100 has 80GB of VRAM. You cannot even load the weights, let alone run inference, on a single GPU. You need two A100s at $2/hour each just to serve one model.
 
@@ -30,7 +32,11 @@ The cost is accuracy. Every bit you remove destroys information. The question is
 
 Community quantizations of Llama 3 to INT4 with GPTQ show roughly 1-2 perplexity points lost on WikiText. Mistral released FP8 checkpoints of Mixtral 8x22B with zero measurable quality loss on MMLU. The GGUF format powers llama.cpp, running 70B models on MacBooks with M-series chips. Quantization is not a hack. It is the standard deployment path for every model larger than 7B.
 
-## The Concept
+> **【中文解读】** FP16 每参数 16 位，70B 模型需要 140GB。但 95% 的权重集中在 -0.1 到 +0.1 之间——用 16 位表示这些值太浪费了。量化到 INT4 将显存需求降至 35GB，可在消费级 GPU 上运行。良好的 INT4 量化保留原始模型 95-99% 的质量。GPTQ 量化 Llama 3 到 INT4 仅损失 1-2 个困惑度点，Mistral 的 FP8 量化在 MMLU 上几乎零损失。
+
+> **【拓展：量化生态】** 量化生态已非常成熟：GPTQ（基于近似二阶信息的逐层量化）、AWQ（激活感知权重量化，保护 salient 权重）、GGUF（llama.cpp 的量化格式，支持 2-8 bit 混合精度）。llama.cpp 让 70B 模型在 MacBook M 系列芯片上运行，催生了本地大模型部署的生态（Ollama、LM Studio 等）。
+
+## The Concept | 核心概念
 
 ### Number Formats: What Each Bit Does
 
@@ -223,7 +229,7 @@ FP16 to INT4 (GGUF Q4_K_M): 3.5x memory reduction, 1-2% quality loss. Optimized 
 
 FP16 to INT2: 8x memory reduction, 5-15% quality loss. Only viable for specific narrow tasks where you can tolerate degradation. Research frontier, not production-ready for general use.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Number Format Representations
 
@@ -771,7 +777,7 @@ if __name__ == "__main__":
     print("=" * 70)
 ```
 
-## Use It
+## Use It | 用框架实现
 
 ### Quantizing with AutoGPTQ
 
@@ -827,11 +833,11 @@ if __name__ == "__main__":
 
 vLLM natively supports AWQ and GPTQ models. It handles the dequantization during matrix multiplication and uses paged attention for the KV cache. For FP8 on H100, add `--dtype float8_e4m3fn`.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-quantization.md`, a decision framework for choosing the right quantization strategy. Given your model size, target hardware, and quality requirements, it tells you which format, method, and validation steps to use. It includes memory budget calculations, per-component precision recommendations, and deployment recipes for vLLM, llama.cpp, and TensorRT-LLM.
 
-## Exercises
+## Exercises | 练习题
 
 1. Implement group quantization. Instead of one scale per channel, use one scale per group of 128 weights within a channel. This is what GPTQ and AWQ actually use. Compare group sizes of 32, 64, 128, and 256 on the same weight matrix. Smaller groups give better quality but more storage overhead for scale factors.
 
@@ -843,26 +849,26 @@ This lesson produces `outputs/skill-quantization.md`, a decision framework for c
 
 5. Implement a quantization quality dashboard. Given a weight matrix, compute and display: the weight distribution histogram, the quantization error distribution, per-channel scale factors, the worst-quantized channels (highest reconstruction error), and the cosine similarity between original and quantized outputs across 100 random inputs. Identify which channels should be kept at higher precision.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| FP16 | "Half precision" | 16-bit float with 5 exponent bits and 10 mantissa bits, max value 65,504, standard inference format |
-| BF16 | "Brain float" | 16-bit float with 8 exponent bits (same range as FP32) and 7 mantissa bits, designed by Google for training |
-| FP8 | "Eight-bit float" | Two variants: E4M3 (inference, more precision) and E5M2 (training, more range), native on H100 |
-| INT8 | "Eight-bit integer" | 256 uniformly spaced values from -128 to 127, needs a scale factor to map from floats |
-| INT4 | "Four-bit integer" | 16 levels total, requires sophisticated methods (GPTQ, AWQ) to maintain quality |
-| Per-channel quantization | "One scale per row" | Uses a separate scale factor for each output channel instead of one for the whole tensor, dramatically reduces error |
-| GPTQ | "The Hessian method" | Post-training quantization using second-order information to minimize output error, one layer at a time |
-| AWQ | "Activation-aware" | Scales salient weights (those multiplied by large activations) before quantization to protect them |
-| GGUF | "The llama.cpp format" | Self-contained model file with mixed-precision layers, optimized for CPU and Apple Silicon inference |
-| PTQ | "Quantize after training" | Convert a trained model's weights to lower precision without retraining, fast but limited at extreme compression |
-| QAT | "Quantize during training" | Insert fake quantization into the forward pass so the model learns to tolerate rounding, better at INT4/INT2 |
-| Calibration data | "The 128 examples" | A small dataset run through the model to compute activation statistics for setting scale factors |
-| Scale factor | "The multiplier" | Converts between floating-point range and integer range: `float_val = int_val * scale` |
-| Perplexity delta | "How much worse" | Difference in perplexity between original and quantized model, < 0.5 is excellent, > 2.0 is a problem |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| FP16 | "Half precision" | 16-bit float with 5 exponent bits and 10 mantissa bits, max value 65,504, standard inference format | |
+| BF16 | "Brain float" | 16-bit float with 8 exponent bits (same range as FP32) and 7 mantissa bits, designed by Google for training | |
+| FP8 | "Eight-bit float" | Two variants: E4M3 (inference, more precision) and E5M2 (training, more range), native on H100 | |
+| INT8 | "Eight-bit integer" | 256 uniformly spaced values from -128 to 127, needs a scale factor to map from floats | |
+| INT4 | "Four-bit integer" | 16 levels total, requires sophisticated methods (GPTQ, AWQ) to maintain quality | |
+| Per-channel quantization | "One scale per row" | Uses a separate scale factor for each output channel instead of one for the whole tensor, dramatically reduces error | |
+| GPTQ | "The Hessian method" | Post-training quantization using second-order information to minimize output error, one layer at a time | |
+| AWQ | "Activation-aware" | Scales salient weights (those multiplied by large activations) before quantization to protect them | |
+| GGUF | "The llama.cpp format" | Self-contained model file with mixed-precision layers, optimized for CPU and Apple Silicon inference | |
+| PTQ | "Quantize after training" | Convert a trained model's weights to lower precision without retraining, fast but limited at extreme compression | |
+| QAT | "Quantize during training" | Insert fake quantization into the forward pass so the model learns to tolerate rounding, better at INT4/INT2 | |
+| Calibration data | "The 128 examples" | A small dataset run through the model to compute activation statistics for setting scale factors | |
+| Scale factor | "The multiplier" | Converts between floating-point range and integer range: `float_val = int_val * scale` | |
+| Perplexity delta | "How much worse" | Difference in perplexity between original and quantized model, < 0.5 is excellent, > 2.0 is a problem | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Frantar et al., 2022 -- "GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers"](https://arxiv.org/abs/2210.17323) -- the paper that made INT4 quantization practical for LLMs using Hessian-guided weight rounding
 - [Lin et al., 2023 -- "AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration"](https://arxiv.org/abs/2306.00978) -- protecting salient weights by scaling before quantization, matching or beating GPTQ

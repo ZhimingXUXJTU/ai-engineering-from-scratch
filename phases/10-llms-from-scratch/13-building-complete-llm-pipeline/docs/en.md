@@ -18,7 +18,7 @@
 - Build an orchestrator that tracks experiments, hashes artifacts, and gates ship decisions on eval thresholds
 - Design the rollback plan: which artifacts are cheap to re-run, which are expensive, and what a corrupted checkpoint costs
 
-## The Problem
+## The Problem | 问题引入
 
 The previous lessons each work. Tokenizer trained. Tiny GPT pre-trained. SFT dataset assembled. Reward model trained. DPO run. Evals measured. Quantized weights exported. Inference server spun up. Each one is a notebook. Each one has its own conventions, its own output paths, its own seed.
 
@@ -28,7 +28,12 @@ This is the capstone. You will not run the pipeline end-to-end on a laptop. You 
 
 The pattern scales from 100M to 1T parameters unchanged. The same four components -- manifest, orchestrator, eval gate, artifact store -- run Llama 3 and also run your hobby GPT. The difference is the size of the numbers inside each stage's config, not the shape of the pipeline.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 本课将前面所有组件整合为完整的 LLM 训练管线：分词器 → 数据管线 → 预训练 → SFT → 对齐。这是从理解每个组件到构建完整系统的飞跃。理解完整管线是设计 AI 工程系统的基础。
+
+> **【拓展：完整管线的成本估算】** 训练一个 Llama 3 70B 级别模型的完整管线成本：预训练约 200-500 万美元（GPU 时间），SFT 约 1-5 万美元（数据标注），RLHF/DPO 约 5-10 万美元（偏好数据标注）。总成本中预训练占 95%+，但对齐阶段决定了模型的实用性和安全性。
+
 
 ### The Twelve Stages
 
@@ -197,7 +202,11 @@ Most frontier teams converged on the same skeleton.
 
 The numbers change every six months. The skeleton does not.
 
-## Build It
+
+> **【拓展：训练管线的工程挑战】** 完整 LLM 训练管线的工程挑战包括：检查点管理（每 N 步保存模型状态，训练中断后可恢复）、日志和监控（WandB 追踪损失曲线、学习率、吞吐量）、超参数搜索、故障恢复。
+
+
+## Build It | 动手实现
 
 The lesson's code is an orchestrator and a manifest checker, not twelve training scripts. Each stage is simulated with a placeholder that produces an output artifact with the correct shape and hash. Running the orchestrator end-to-end proves the pipeline's plumbing works before you burn GPU money on the real stages.
 
@@ -212,7 +221,7 @@ See `code/main.py` for the full implementation. The key pieces:
 
 The pipeline in `main.py` runs twelve placeholder stages, produces a manifest, and exercises a failing eval gate to show what a held run looks like. Swap each placeholder for the real training script from the corresponding lesson and you have the skeleton a real frontier pipeline uses.
 
-## Use It
+## Use It | 用框架实现
 
 The canonical workflow has three commands.
 
@@ -226,11 +235,11 @@ Run `plan` first every time. Most pipeline bugs show up at plan time -- missing 
 
 The output of `gate` is either `SHIP` or `HOLD: <reason>`. A held run is not a failure; it is a decision point. A named reviewer either overrides (and the override is logged), or they approve the rollback.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-llm-pipeline-reviewer.md`. Feed it a proposed pipeline manifest and it checks all the contracts: stage typing, hash chain, gates, rollback plan, cost estimate. It refuses to approve a manifest with a missing eval gate, an unbounded KL budget, or a run that mixes eval and training data.
 
-## Exercises
+## Exercises | 练习题
 
 1. Extend the orchestrator to support parallel execution of stages 07 and 08. Use the stdlib `concurrent.futures` module. Confirm the final manifest records both stages' outputs and that stage 09's input hash is a deterministic combination of both.
 
@@ -242,22 +251,22 @@ This lesson produces `outputs/skill-llm-pipeline-reviewer.md`. Feed it a propose
 
 5. Add observability. Emit OpenTelemetry spans for each stage, with attributes for params, tokens seen, loss, and cost. Pipe the spans to a local collector. The point is not dashboards; the point is that every stage's health is traceable from a single trace ID.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Manifest | "The recipe file" | YAML or JSON describing pipeline version, seed, per-stage config, and gate thresholds — sufficient to replay a run |
-| Content-addressed | "By hash not name" | Artifacts stored by SHA-256 of their contents, so you can never confuse version A with version B |
-| Eval gate | "The ship criteria" | Numeric thresholds on benchmark metrics and safety scores that must pass before an artifact is marked shippable |
-| KL budget | "How far alignment drifted" | A cap on cumulative KL(policy || reference) across alignment stages, enforced as a gate |
-| MFU | "How much of the GPU you used" | Model FLOPs Utilization — achieved FLOPs divided by theoretical peak. 40% is typical at 70B scale, 55% at 7B |
-| Rollback plan | "What we do when it breaks" | Pre-written set of actions per stage on failure: re-run, fall back, retrain with revised inputs |
-| Orchestrator | "The conductor" | The process that reads the manifest, dispatches stages, verifies hashes, halts on any contract violation |
-| Artifact store | "Versioned S3 for weights" | Immutable content-addressed object store — single source of truth for checkpoints, datasets, eval reports |
-| Reproducible | "Same metrics on replay" | Different bit-level weights but equivalent downstream metrics — the realistic target for distributed LLM training |
-| Cost gate | "You cannot exceed X" | Pre-run cost estimate plus in-run tracker — the pipeline refuses to start if the estimate exceeds budget |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Manifest | "The recipe file" | YAML or JSON describing pipeline version, seed, per-stage config, and gate thresholds — sufficient to replay a run | |
+| Content-addressed | "By hash not name" | Artifacts stored by SHA-256 of their contents, so you can never confuse version A with version B | |
+| Eval gate | "The ship criteria" | Numeric thresholds on benchmark metrics and safety scores that must pass before an artifact is marked shippable | |
+| KL budget | "How far alignment drifted" | A cap on cumulative KL(policy || reference) across alignment stages, enforced as a gate | |
+| MFU | "How much of the GPU you used" | Model FLOPs Utilization — achieved FLOPs divided by theoretical peak. 40% is typical at 70B scale, 55% at 7B | |
+| Rollback plan | "What we do when it breaks" | Pre-written set of actions per stage on failure: re-run, fall back, retrain with revised inputs | |
+| Orchestrator | "The conductor" | The process that reads the manifest, dispatches stages, verifies hashes, halts on any contract violation | |
+| Artifact store | "Versioned S3 for weights" | Immutable content-addressed object store — single source of truth for checkpoints, datasets, eval reports | |
+| Reproducible | "Same metrics on replay" | Different bit-level weights but equivalent downstream metrics — the realistic target for distributed LLM training | |
+| Cost gate | "You cannot exceed X" | Pre-run cost estimate plus in-run tracker — the pipeline refuses to start if the estimate exceeds budget | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Dubey et al., 2024 -- "The Llama 3 Herd of Models"](https://arxiv.org/abs/2407.21783) -- the most detailed public description of a frontier pipeline including data, training, alignment, eval
 - [DeepSeek-AI, 2024 -- "DeepSeek-V3 Technical Report"](https://arxiv.org/abs/2412.19437) -- efficiency-first pipeline at roughly 1/10th the cost of Llama 3 class training
