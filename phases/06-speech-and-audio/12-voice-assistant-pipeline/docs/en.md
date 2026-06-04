@@ -9,9 +9,12 @@
 **Prerequisites:** Phase 6 · 04, 05, 06, 07, 11; Phase 11 · 09 (Function Calling); Phase 14 · 01 (Agent Loop)
 **Time:** ~120 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Build an end-to-end assistant:
+
+> **【中文解读】** 本节提出的问题是：如何在实际工程中正确理解和应用这一技术。理解问题背景有助于把握技术选型的关键决策点。在实际 AI 系统中，错误的技术选型往往比实现细节的 bug 代价更高。
+
 
 1. Captures mic input (16 kHz mono).
 2. Detects start/end of user speech.
@@ -23,7 +26,10 @@ Build an end-to-end assistant:
 
 Latency target: first TTS audio byte within 800 ms of the user finishing their utterance on a laptop CPU. Quality target: no missed words, no hallucinated subtitles on silence, no voice cloning leakage, no prompt injection success.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 本节介绍核心概念和理论基础。掌握这些概念是后续动手实现的前提，同时也是面试和工程实践中高频考察的知识点。
+
 
 ![Voice assistant pipeline: mic → VAD → STT → LLM+tools → TTS → speaker](../assets/voice-assistant.svg)
 
@@ -53,7 +59,19 @@ Latency target: first TTS audio byte within 800 ms of the user finishing their u
 | Vapi / Retell (managed) | 300-500 ms | commercial | Fastest to launch; limited customization |
 | Whisper.cpp + llama.cpp + Kokoro-ONNX | offline | open | Privacy / edge |
 
-## Build It
+> **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
+
+> **【拓展：语音 AI 的产品化】** 语音技术在产品化中面临独特挑战：不同口音、背景噪声、远场拾音、多人说话等。Siri、Alexa、小爱同学等产品都投入了大量工程优化来解决这些 "长尾问题"。实时性要求（<300ms 延迟）也是语音产品的核心指标。
+
+> **【拓展：多语言语音技术】** 全球语言的语音特性差异巨大：声调语言（如中文）的音高携带语义，低资源语言缺乏训练数据。Meta 的 MMS 模型支持 1000+ 种语言的语音识别，Whisper 在多语言场景表现出色，但仍需针对特定语言微调。
+
+> **【拓展：语音隐私与安全】** 语音数据包含大量个人隐私信息（声纹、对话内容）。深度伪造（Deepfake）语音技术可以被滥用于诈骗。音频水印（Audio Watermarking）和声纹反欺诈（Anti-spoofing）是当前的研究热点。
+
+
+
+
+
+## Build It | 动手实现
 
 ### Step 1: mic capture with chunking (pseudocode)
 
@@ -118,6 +136,9 @@ async for chunk in llm.stream(user_text, tools=tools):
 
 ### Step 5: interruption handling
 
+> **【中文解读】** 本节展示如何用成熟框架（如 PyTorch、HuggingFace 等）快速应用该技术。在实际项目中，优先使用经过验证的框架实现，可以减少 bug 并提高开发效率。
+
+
 ```python
 tts_task = asyncio.create_task(tts_loop())
 while True:
@@ -129,7 +150,12 @@ while True:
         break
 ```
 
-## Use It
+
+
+
+> **【拓展：语音与情感计算】** 语音不仅传递文字信息，还携带丰富的情感信号（语调、语速、音高变化）。情感语音识别（Speech Emotion Recognition, SER）在客服质检、心理健康监测、智能教育等领域有广泛应用。当前 SOTA 模型通常基于 wav2vec 2.0 或 HuBERT 等预训练模型微调。
+
+## Use It | 用框架实现
 
 See `code/main.py` for a runnable simulation that wires all seven components with stub models, so you can see the pipeline shape even without hardware. For a real implementation, swap stubs with:
 
@@ -138,6 +164,8 @@ See `code/main.py` for a runnable simulation that wires all seven components wit
 - `openai` (`gpt-4o`) or `anthropic`
 - `kokoro` or `cartesia`
 - `sounddevice` for I/O
+
+
 
 ## Pitfalls
 
@@ -148,17 +176,23 @@ See `code/main.py` for a runnable simulation that wires all seven components wit
 - **Overzealous hallucination filters.** Over-filter and the assistant repeats "I can't help with that." Under-filter and it says anything. Calibrate on a held-out set.
 - **No wake-word option.** Always-listening is a privacy liability. Add a wake-word gate (Porcupine or openWakeWord).
 
-## Ship It
+> **【中文解读】** 本节关注如何将模型部署为可用的产品。从原型到生产级系统需要考虑性能优化、错误处理、监控等多个维度。
+
+
+## Ship It | 产出物
 
 Save as `outputs/skill-voice-assistant-architect.md`. Given budget + scale + language + compliance constraints, produce a full stack spec.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py`. It simulates one full turn end-to-end with stub modules and prints per-stage latency.
 2. **Medium.** Replace the STT stub with a real Whisper model on a pre-recorded `.wav`. Measure WER and end-to-end latency.
 3. **Hard.** Add tool calling: implement `get_weather` (any API) and `set_timer`. Route the LLM through the tools and verify that when the user says "set a 5 minute timer" the right function fires and the spoken reply confirms it.
 
-## Key Terms
+> **【中文解读】** 术语表中的 "What people say" vs "What it actually means" 区分了日常口语和精确技术含义。在团队协作中，统一术语定义可以避免大量沟通误解。
+
+
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -169,7 +203,10 @@ Save as `outputs/skill-voice-assistant-architect.md`. Given budget + scale + lan
 | Pre-roll | Pre-speech buffer | Keep 200-400 ms of audio before VAD fires to avoid first-word clip. |
 | Tool call | Function invocation | LLM emits JSON; runtime dispatches; result feeds back in-loop. |
 
-## Further Reading
+> **【中文解读】** 延伸阅读提供了深入学习的高质量资源。这些论文和教程是该领域的经典参考文献，适合需要深入理解的读者。
+
+
+## Further Reading | 延伸阅读
 
 - [LiveKit — voice agent quickstart](https://docs.livekit.io/agents/) — production-grade reference.
 - [Pipecat — voice agent examples](https://github.com/pipecat-ai/pipecat) — DIY-friendly framework.
@@ -177,3 +214,6 @@ Save as `outputs/skill-voice-assistant-architect.md`. Given budget + scale + lan
 - [Kyutai Moshi](https://github.com/kyutai-labs/moshi) — full-duplex reference (Lesson 15).
 - [Porcupine wake-word](https://picovoice.ai/products/porcupine/) — wake-word gating.
 - [Anthropic — tool use guide](https://docs.anthropic.com/en/docs/build-with-claude/tool-use) — LLM function calling.
+
+> **【中文解读】** 延伸阅读提供了深入学习的高质量资源，包括论文、教程和工具。建议按需选读，优先阅读标注为 "the critical read" 的核心论文。
+

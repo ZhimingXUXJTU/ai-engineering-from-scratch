@@ -11,15 +11,21 @@
 **Prerequisites:** Phase 6 · 02 (Spectrograms), Phase 4 · 10 (Diffusion Models)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Text → a 30-second to 4-minute music clip, with lyrics, vocals, and structure. Three sub-problems:
+
+> **【中文解读】** 本节提出的问题是：如何在实际工程中正确理解和应用这一技术。理解问题背景有助于把握技术选型的关键决策点。在实际 AI 系统中，错误的技术选型往往比实现细节的 bug 代价更高。
+
 
 1. **Instrumental generation.** Text like "lo-fi hip-hop drums with warm keys" → audio. MusicGen, Stable Audio, AudioLDM.
 2. **Song generation (with vocals + lyrics).** "Country song about rainy Texas nights" → full song. Suno, Udio, YuE, ACE-Step.
 3. **Conditional / controllable.** Extend an existing clip, regenerate a bridge, swap genre, stem-separate, or inpaint. Udio's inpainting + stem separation is the 2026 feature to match.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 本节介绍核心概念和理论基础。掌握这些概念是后续动手实现的前提，同时也是面试和工程实践中高频考察的知识点。
+
 
 ![Music generation: token-LM vs diffusion, the 2026 model map](../assets/music-generation.svg)
 
@@ -45,6 +51,12 @@ Closed weights. Likely AR codec LM + diffusion-based vocoder with specialized vo
 - **Musicality (subjective).** Human preference. Suno v5 ELO 1293 leads.
 - **Text-audio alignment.** CLAP score between prompt and output.
 - **Musicality artifacts.** Off-beat transitions, vocal-phrase drift, loss of structure past 30 s.
+
+> **【拓展：语音 AI 的产品化】** 语音技术在产品化中面临独特挑战：不同口音、背景噪声、远场拾音、多人说话等。Siri、Alexa、小爱同学等产品都投入了大量工程优化来解决这些 "长尾问题"。实时性要求（<300ms 延迟）也是语音产品的核心指标。
+
+> **【拓展：多语言语音技术】** 全球语言的语音特性差异巨大：声调语言（如中文）的音高携带语义，低资源语言缺乏训练数据。Meta 的 MMS 模型支持 1000+ 种语言的语音识别，Whisper 在多语言场景表现出色，但仍需针对特定语言微调。
+
+
 
 ## 2026 model map
 
@@ -72,7 +84,10 @@ Safe-to-ship patterns:
 3. Train on owned or licensed catalog (most enterprises end up here).
 4. Tag generations with watermarks + metadata.
 
-## Build It
+> **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
+
+
+## Build It | 动手实现
 
 ### Step 1: generate with MusicGen
 
@@ -116,13 +131,21 @@ Computes VGGish-embedding distance. Useful for genre-level regression tests; not
 
 Combine with the ideas from Lessons 7-8:
 
+> **【中文解读】** 本节展示如何用成熟框架（如 PyTorch、HuggingFace 等）快速应用该技术。在实际项目中，优先使用经过验证的框架实现，可以减少 bug 并提高开发效率。
+
+
 ```python
 prompt = "Write a 30-second jazz loop. Describe the drums, bass, and piano voicing."
 description = llm.complete(prompt)
 music = musicgen.generate([description], duration=30)
 ```
 
-## Use It
+
+
+
+> **【拓展：语音与情感计算】** 语音不仅传递文字信息，还携带丰富的情感信号（语调、语速、音高变化）。情感语音识别（Speech Emotion Recognition, SER）在客服质检、心理健康监测、智能教育等领域有广泛应用。当前 SOTA 模型通常基于 wav2vec 2.0 或 HuBERT 等预训练模型微调。
+
+## Use It | 用框架实现
 
 | Goal | Stack |
 |------|-------|
@@ -133,6 +156,8 @@ music = musicgen.generate([description], duration=30)
 | Short ad jingle | MusicGen melody-conditioned on a hummed reference |
 | Music-video background | MusicGen + Stable Video Diffusion |
 
+
+
 ## Pitfalls that still ship in 2026
 
 - **Copyright-laundering prompts.** "Song in the style of Taylor Swift" — commercial Suno/Udio filter these now, open models do not. Add your own filter list.
@@ -141,17 +166,23 @@ music = musicgen.generate([description], duration=30)
 - **Vocal intelligibility.** Suno is excellent; open models are often mushy on words. If lyrics matter, use a commercial API or fine-tune.
 - **Mono output.** Open models generate mono or fake-stereo. Upgrade with a proper stereo reconstruction (ezst, Cartesia's stereo diffusion).
 
-## Ship It
+> **【中文解读】** 本节关注如何将模型部署为可用的产品。从原型到生产级系统需要考虑性能优化、错误处理、监控等多个维度。
+
+
+## Ship It | 产出物
 
 Save as `outputs/skill-music-designer.md`. Pick model, license strategy, length / structure plan, and disclosure metadata for a music-gen deployment.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py`. It produces a "generative" chord progression + drum pattern as ASCII symbols — a music-gen cartoon. Play it back via any MIDI renderer if you want.
 2. **Medium.** Install `audiocraft`, generate 10-second clips across 4 genre prompts with MusicGen-small, measure FAD against a reference genre set.
 3. **Hard.** Using ACE-Step (or MusicGen-melody), generate three variations of the same tune with different timbre prompts. Compute CLAP similarity to the prompt to verify alignment.
 
-## Key Terms
+> **【中文解读】** 术语表中的 "What people say" vs "What it actually means" 区分了日常口语和精确技术含义。在团队协作中，统一术语定义可以避免大量沟通误解。
+
+
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -162,7 +193,10 @@ Save as `outputs/skill-music-designer.md`. Pick model, license strategy, length 
 | CLAP | Text-audio CLIP | Contrastive audio-text embedding; eval text-audio alignment. |
 | EnCodec | Music codec | Meta's neural codec used by MusicGen; 32 kHz, 4 codebooks. |
 
-## Further Reading
+> **【中文解读】** 延伸阅读提供了深入学习的高质量资源。这些论文和教程是该领域的经典参考文献，适合需要深入理解的读者。
+
+
+## Further Reading | 延伸阅读
 
 - [Copet et al. (2023). MusicGen](https://arxiv.org/abs/2306.05284) — the open autoregressive benchmark.
 - [Evans et al. (2024). Stable Audio Open](https://arxiv.org/abs/2407.14358) — the sound-design default.
@@ -170,3 +204,6 @@ Save as `outputs/skill-music-designer.md`. Pick model, license strategy, length 
 - [Suno v5 platform docs](https://suno.com) — the commercial quality leader.
 - [AudioLDM2](https://arxiv.org/abs/2308.05734) — latent diffusion for music + sound effects.
 - [WMG-Suno settlement coverage](https://www.musicbusinessworldwide.com/suno-warner-music-settlement/) — Nov 2025 precedent.
+
+> **【中文解读】** 延伸阅读提供了深入学习的高质量资源，包括论文、教程和工具。建议按需选读，优先阅读标注为 "the critical read" 的核心论文。
+
