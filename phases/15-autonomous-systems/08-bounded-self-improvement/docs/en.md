@@ -14,7 +14,7 @@ Lesson 7's race simulator showed that small rate differences compound into large
 The ICLR 2026 RSI Workshop summary (openreview.net/pdf?id=OsPQ6zTQXV) identifies four such primitives. Anthropic's RSP v3.0 (Lesson 19) and DeepMind's FSF v3 (Lesson 20) both reference them in capability thresholds. The Meta HyperAgents work and community frameworks like SAHOO (March 2026) implement subsets in production.
 
 
-> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
+> **【中文解读】** 有界自我改进探讨 AI 系统在安全边界内改进自身能力的可能性和限制。核心问题：(1) 改进循环是否可验证——系统能否证明改进后的版本等价或更优？(2) 边界如何定义——哪些方面的改进是允许的？(3) 是否存在收敛保证——改进是否会收敛到某个上限？
 
 The honest framing: these are mitigations. Information-theoretic results bound what any system can prove about its own successor, and no current design closes the problem formally. A well-bounded loop is safer than an unbounded one, not safe in absolute terms.
 

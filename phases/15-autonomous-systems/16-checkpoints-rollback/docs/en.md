@@ -9,6 +9,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 检查点和回滚机制允许 Agent 在执行过程中保存状态快照，出错时恢复到之前的良好状态。这类似于数据库的事务和 Git 的版本控制。检查点保存在关键节点（如修改文件前），回滚在检测到错误时执行。LangGraph 的内置检查点和 Git 的 revert 是两个典型实现。
+
+> **【拓展：checkpoints rollback】** 检查点-回滚是可靠 Agent 系统的基础设施。实现选择：(1) 文件系统级——使用 Git 或快照保存文件状态；(2) 数据库级——使用事务保证数据一致性；(3) 应用级——Agent 自己管理检查点（如 LangGraph）。关键权衡是检查点粒度——太细会增加开销，太粗会丢失更多工作。
+
 Durable execution (Lesson 12) makes a crashed agent resumable. Propose-then-commit (Lesson 15) makes an approved action auditable. This lesson joins them: what happens when an approved action executes partially, crashes, and resumes? When does the rollback run, and against what state?
 
 Real systems wire this up differently:

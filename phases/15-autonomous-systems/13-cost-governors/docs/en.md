@@ -9,6 +9,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 成本控制器（Cost Governors）监控和限制 Agent 的资源消耗——主要是 API 调用费用和 token 使用量。没有成本控制器的 Agent 可能在循环或低效执行中产生巨额账单。三种控制策略：(1) 预算上限——硬性 token/费用限制；(2) 速率限制——每分钟/每小时调用上限；(3) 效率门控——当成本/收益比恶化时暂停。
+
+> **【拓展：cost governors】** 成本控制是 2025-2026 年 Agent 生产部署的关键挑战。公开案例：多个用户报告编码 Agent 在陷入修复循环后产生数千美元的 API 费用。解决方案包括：(1) OpenAI 的 max_output_tokens 限制；(2) Anthropic 的 usage tracking API；(3) 第三方工具如 Helicone 和 Braintrust 的成本监控。最佳实践是为每个任务设置明确的成本上限。
+
 Autonomous agents spend real money on every turn. A chatbot's bad output is a bad reply; an agent's bad loop is a bill. The industry-documented term for the failure mode is "Denial of Wallet" — the agent keeps reasoning, keeps tool-calling, keeps billing, and nothing stops it because nothing was designed to.
 
 The fix is not one number. It is a stack of limits at different time scales and granularities: per-request, per-task, per-hour, per-day, per-month. A well-designed stack catches a runaway loop within minutes, a slow leak within hours, and a bad release within a day. The same stack keeps a budget at all when the agent is long-horizon and autonomous.

@@ -9,6 +9,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** Llama Guard（Meta）是一个专门用于内容安全分类的 LLM。它检查输入和输出是否违反安全策略，分为多个风险类别（暴力、自残、仇恨言论等）。Llama Guard 3 (2025) 支持多语言和自定义安全策略，是开源安全工具链的核心组件。
+
+> **【拓展：llama guard】** Llama Guard 是开源 AI 安全工具链的重要组成。与闭源方案（OpenAI Moderation API、Anthropic 的安全层）相比，Llama Guard 可以本地部署，适合数据隐私敏感的场景。使用模式：(1) 输入过滤——检查用户请求是否安全；(2) 输出过滤——检查模型响应是否安全；(3) 工具输出过滤——检查工具返回的内容。
+
 Classifiers for LLM inputs and outputs sit at the narrowest point in the agent stack: every request passes through, every response passes through. A good classifier layer is fast, taxonomy-based, and catches a large fraction of obvious misuse for a small compute cost. A bad classifier layer is a false sense of security.
 
 The 2024–2026 classifier stack has converged on a small set of production-ready options. Llama Guard (Meta) ships open-weights under Meta's Community License. NeMo Guardrails (NVIDIA) ships permissive-licensed rails plus Colang for dialog-flow rules. Both are designed to pair with a foundation model, not replace its safety behaviour.

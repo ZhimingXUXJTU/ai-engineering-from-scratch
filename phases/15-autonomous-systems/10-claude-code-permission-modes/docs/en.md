@@ -9,6 +9,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** Claude Code 的权限模式是 Agent 安全控制的典型案例。四种模式：(1) Ask——每次操作需用户确认；(2) Edit——文件编辑自动批准，命令需确认；(3) YOLO——所有操作自动批准（危险）；(4) Plan——先规划后执行。这些模式反映了 Agent 自主性与安全性的基本权衡。
+
+> **【拓展：claude code permission modes】** Claude Code 的权限设计体现了 2026 年编码 Agent 的安全最佳实践。关键原则：(1) 最小权限——默认只授予必要权限；(2) 渐进授权——用户可以根据信任度逐步放宽限制；(3) 审计追踪——所有操作都有日志；(4) 紧急停止——随时可以中断。这些原则同样适用于其他 Agent 系统的设计。
+
 An autonomous coding agent on your machine is a distinct security category. The attack surface is everything the agent can reach — file system, network, credentials, clipboard, any browser tab, any open terminal. Bruce Schneier and others have flagged this publicly: computer-use agents are not a "feature update" of chatbots, they are a new kind of tool with a new kind of risk profile.
 
 Claude Code's permission system is Anthropic's answer. Rather than one "autonomous / not autonomous" switch, there are seven modes spanning a capability ladder: plan → default → acceptEdits → … → bypassPermissions. Each mode is a different trade-off between speed and review-per-action. Auto Mode (March 2026) adds a two-stage classifier that moves approval off the user's critical path for actions the classifier judges safe, while preserving a review layer for actions the classifier flags.

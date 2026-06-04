@@ -18,7 +18,7 @@ The straightforward way to teach a model to reason is to collect human-written r
 STaR (Self-Taught Reasoner, Zelikman et al., 2022) asks: what if the model writes its own rationales and grades them against known answers? The loop is:
 
 
-> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
+> **【中文解读】** Star 家族推理技术（STaR、Quiet-STaR、ReST、ReST-EM）通过迭代式自我训练提升 LLM 推理能力。核心思想：让模型生成推理轨迹，过滤高质量轨迹，用这些轨迹微调模型，循环迭代。这是 OpenAI o1/o3 系列和 Anthropic Extended Thinking 的技术基础。
 
 1. Sample a reasoning trace plus answer.
 2. If the final answer is correct, keep the trace.

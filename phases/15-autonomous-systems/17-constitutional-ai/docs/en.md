@@ -9,6 +9,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** Constitutional AI（CAI, Anthropic 2022）是一种通过'宪法'（一组原则）指导 AI 行为的方法。模型在生成响应时自我检查是否符合这些原则，并在违反时自我纠正。CAI 的核心创新是用 AI 反馈替代人类反馈（RLAIF），减少对人类标注的依赖。
+
+> **【拓展：constitutional ai】** Constitutional AI 是 Anthropic 安全方法论的基石。它使用一组'宪法原则'（如'不要帮助用户做危险的事情'）让模型自我监督。流程：(1) 模型生成初始响应；(2) 用宪法原则批评自己的响应；(3) 根据批评修改响应；(4) 在修改后的响应上训练。Claude 系列模型都经过 CAI 训练。
+
 A fielded agent sees inputs that its designers never saw. No rule list is long enough to cover them. No rule list is short enough to apply quickly under compute pressure. The practical question: how do you align an agent to principles that survive both a long tail of cases and fast inference?
 
 Rule-based alignment (RBA): list every disallowed thing. Fast to check, easy to audit, impossible to keep current, often over-refuses on close analogs it didn't anticipate. Reason-based alignment (the 2026 Claude Constitution): encode principles, let the model reason. Scales across unseen cases, harder to audit, failure mode is principle-misapplication rather than miss-the-rule.

@@ -9,6 +9,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 编码 Agent 景观是 2025-2026 年变化最快的 AI 应用领域之一。主要玩家包括 Claude Code、Cursor、GitHub Copilot、Devin、Windsurf 等。关键差异化因素：(1) 自主性级别——从补全建议到完全自主编码；(2) 上下文管理——如何处理大型代码库；(3) 工具集成——支持哪些开发工具。
+
+> **【拓展：coding agent landscape】** 2026年编码 Agent 的竞争格局：(1) Claude Code——Anthropic 的自主编码 Agent，支持全栈开发、Git 操作和终端命令执行；(2) Cursor——基于 VS Code 的 AI 编辑器，强调人机协作；(3) Devin——Cognition AI 的全自主编码 Agent，可以独立完成开发任务；(4) Windsurf（原 Codeium）——AI 优先的 IDE。SWE-bench 上的表现是主要竞争指标。
+
 "Which coding agent is best" is the wrong question. The right question is: on a task distribution that matches my work, with the scaffolding I will run in production, what end-to-end reliability do I get?
 
 Between 2022 and 2026 the field learned that scaffolding — the retrieval layer, the planner, the sandbox, the edit-verify loop, the feedback format — is load-bearing. Claude Sonnet 4.5 on SWE-agent v1 scored 43.2% on SWE-bench Verified; the same model inside Cline's autonomous scaffold scored 59.8%. 16.6 absolute points of difference, same weights. The base model is a component; the loop is the product.

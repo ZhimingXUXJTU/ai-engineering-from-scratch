@@ -9,6 +9,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 持久执行确保 Agent 任务在故障后能恢复。传统 Agent 在内存中运行，进程崩溃意味着从头开始。持久执行将状态保存到外部存储（数据库、文件系统），任何时刻都可以从最近的检查点恢复。Temporal 和 LangGraph 是实现持久执行的两个主流框架。
+
+> **【拓展：durable execution】** 持久执行对长时间运行的 Agent 至关重要。如果一个需要运行 2 小时的 Agent 在第 90 分钟崩溃，没有持久执行就意味着重新开始。Temporal 通过事件溯源实现持久工作流，LangGraph 通过检查点实现持久状态图。2026 年的最佳实践是每个重要步骤后自动保存检查点。
+
 Consider an agent that runs for four hours. It calls three tools, prompts the user twice, and makes forty LLM calls. Halfway through, the host it is running on reboots. What happens?
 
 - In a naive `while True` loop: everything is lost. The run restarts from scratch. The three tool calls (with real side effects) execute again. The user is prompted again for things they already approved. Forty LLM calls are re-billed.

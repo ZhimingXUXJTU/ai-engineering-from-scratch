@@ -14,7 +14,7 @@ Frontier labs publish scaling policies that are partly technical documents, part
 The v3.0 vs v2.0 diff is the useful unit. What got added: Frontier Safety Roadmaps, Risk Reports, the AI R&D-4 threshold. What got removed: the 2023 pause commitment. What got reframed: a two-tier mitigation schedule split between Anthropic-unilateral and industry-recommendation. External review — SaferAI — downgraded the score from 2.2 (v2) to 1.9 (v3.0). This is how a scaling policy can get less rigorous while looking more polished.
 
 
-> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
+> **【中文解读】** Anthropic 的负责任扩展政策（RSP, Responsible Scaling Policy）定义了在 AI 能力增长时保持安全的框架。核心承诺：(1) 评估前沿——定期评估模型是否达到新的危险能力阈值；(2) 安全等级——定义与能力匹配的安全措施；(3) 暂停承诺——如果评估失败则暂停扩展。
 
 ## The Concept | 概念
 

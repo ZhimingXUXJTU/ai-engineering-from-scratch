@@ -9,6 +9,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 终止开关（Kill Switches）和金丝雀测试（Canaries）是 Agent 安全的两道防线。终止开关允许人类操作员立即停止 Agent 的所有操作。金丝雀测试在 Agent 执行前用小规模测试检测潜在问题——类似于矿井中的金丝雀预警有毒气体。两者结合形成'检测-停止'的安全模式。
+
+> **【拓展：kill switches canaries】** 终止开关和金丝雀测试借鉴了软件工程和工业安全的最佳实践。金丝雀部署在软件工程中指先向 1% 的用户发布新版本，检测问题后再全面部署。在 Agent 上下文中，金丝雀测试指在执行高风险操作前先用安全数据做小规模测试。终止开关则类似于工厂的紧急停止按钮——简单、可靠、无条件。
+
 Cost governors (Lesson 13) bound what the agent can spend. They do not bound what the agent can do inside the budget. An agent with a $50 velocity limit can still exfiltrate a secret, publish the wrong post, or delete a resource — the expensive action is often the cheap one in tokens.
 
 This lesson covers the three detectors that sit next to the cost layer:
