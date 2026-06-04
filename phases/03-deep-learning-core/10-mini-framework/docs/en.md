@@ -9,14 +9,16 @@
 **Prerequisites:** All of Phase 03 (Lessons 01-09)
 **Time:** ~120 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build a complete deep learning framework (~500 lines) with Module, Linear, ReLU, Sigmoid, Dropout, BatchNorm, Sequential, loss functions, optimizers, and DataLoader
 - Explain the Module abstraction (forward, backward, parameters) and why train/eval mode toggling is necessary
 - Wire all components into a working training loop that trains a 4-layer network on circle classification
 - Map each component of your framework to its PyTorch equivalent (nn.Module, nn.Sequential, optim.Adam, DataLoader)
 
-## The Problem
+> **【中文解读】** 本章是 Phase 03 的集成章节——把前面 9 课的所有概念串成一个完整的 ~500 行框架。核心抽象是 Module（forward/backward/parameters），对应 PyTorch 的 nn.Module。完成后你会真正理解 PyTorch 每一行代码背后发生的事情。
+
+## The Problem | 问题引入
 
 You have ten lessons of building blocks scattered across separate files. A `Value` class here, a training loop there, weight initialization in another file, learning rate schedules in yet another. To train a network, you copy-paste from five different lessons and wire them together by hand.
 
@@ -26,9 +28,13 @@ You are going to build the same thing in ~500 lines of Python. No numpy. No exte
 
 When you finish, you will understand exactly what happens when you write `model = nn.Sequential(...)` in PyTorch. You will understand why `model.train()` and `model.eval()` exist. You will understand why `optimizer.zero_grad()` is a separate call. You will understand all of it, because you built all of it.
 
-## The Concept
+> **【中文解读】** 框架的核心价值：把散落的组件统一到一个接口下。Module 是一切的基础——Linear、ReLU、Dropout、BatchNorm 都是 Module。Sequential 是组合模式——一堆 Module 串起来还是一个 Module。这和 PyTorch 的设计完全一致。
 
-### The Module Abstraction
+> **【拓展：PyTorch 框架的设计哲学】** PyTorch 的核心设计只有 5 个概念：Tensor（数据）、nn.Module（模型）、autograd（自动微分）、Optimizer（优化器）、DataLoader（数据加载）。但就是这 5 个概念支撑了 GPT-4、Stable Diffusion、AlphaFold 等所有前沿模型的训练。简洁是最大的力量。
+
+## The Concept | 核心概念
+
+### The Module Abstraction | Module 抽象
 
 Every layer in PyTorch inherits from `nn.Module`. A Module has three responsibilities:
 
@@ -38,23 +44,27 @@ Every layer in PyTorch inherits from `nn.Module`. A Module has three responsibil
 
 A Linear layer is a Module. A ReLU activation is a Module. A dropout layer is a Module. A batch normalization layer is a Module. They all have the same interface.
 
-### Sequential Container
+### Sequential Container | Sequential 容器
 
 `nn.Sequential` chains Modules. Forward pass: feed data through Module 1, then Module 2, then Module 3. Backward pass: reverse the chain. The container itself is a Module -- it has forward(), parameters(), and backward(). This is the composite pattern: a sequence of Modules is itself a Module.
 
-### Training vs Evaluation Mode
+> **【拓展：真实框架的额外功能】** 你的迷你框架覆盖了 PyTorch 的核心概念，但真实框架还有：(1) autograd 自动微分（不需要手写 backward）；(2) GPU 支持（CUDA 内存管理和 kernel 调度）；(3) 分布式训练（DDP、FSDP、DeepSpeed）；(4) 混合精度训练（AMP）；(5) 模型序列化（state_dict + save/load）。PyTorch 的代码库超过 100 万行，但核心抽象还是你实现的这 5 个。
+
+### Training vs Evaluation Mode | 训练与评估模式
 
 Dropout randomly zeroes neurons during training but passes everything through during evaluation. Batch normalization uses batch statistics during training but running averages during evaluation. The `train()` and `eval()` methods toggle this behavior. Every Module has a `training` flag.
 
-### Optimizer
+### Optimizer | 优化器
 
 The optimizer updates parameters using their gradients. SGD: `param -= lr * grad`. Adam: maintains momentum and variance estimates, then updates. The optimizer does not know about the network architecture -- it only sees a flat list of parameters and their gradients.
 
-### DataLoader
+### DataLoader | 数据加载器
 
 Batching matters for two reasons. First, you cannot fit the entire dataset in memory for large problems. Second, mini-batch gradient descent provides noise that helps escape local minima. The DataLoader splits data into batches and optionally shuffles between epochs.
 
-### Framework Architecture
+> **【拓展：DataLoader 在大模型训练中的演进】** PyTorch 的 DataLoader 是单机的。大模型训练需要分布式 DataLoader：(1) WebDataset 用于流式加载 TB 级数据；(2) Meta 的 SPDL (Streaming Parallel Data Loader) 支持从 S3/GCS 直接流式加载；(3) HuggingFace datasets 库使用 memory-mapped 文件处理超大数据集。Llama 3 的训练数据约 15T token，不可能全部加载到内存。
+
+### Framework Architecture | 框架架构
 
 ```mermaid
 graph TD
@@ -91,7 +101,7 @@ graph TD
     DataLoader --> |"feeds"| Sequential
 ```
 
-### Training Loop
+### Training Loop | 训练循环
 
 ```mermaid
 sequenceDiagram
@@ -112,7 +122,7 @@ sequenceDiagram
     end
 ```
 
-### Module Hierarchy
+### Module Hierarchy | Module 层级
 
 ```mermaid
 classDiagram
@@ -149,9 +159,11 @@ classDiagram
     Sequential *-- Module
 ```
 
-## Build It
+## Build It | 动手实现
 
-### Step 1: Module Base Class
+> **【中文解读】** 下面按顺序构建框架的每个组件：Module 基类 → Linear 层 → 激活函数 → Dropout → BatchNorm → Sequential 容器 → 损失函数 → 优化器 → DataLoader → 完整训练循环。每一步对应 PyTorch 的一个核心类。
+
+### Step 1: Module Base Class | 第一步：Module 基类
 
 The abstract interface that every layer implements.
 
@@ -176,7 +188,7 @@ class Module:
         self.training = False
 ```
 
-### Step 2: Linear Layer
+### Step 2: Linear Layer | 第二步：Linear 层
 
 The fundamental building block. Stores weights and biases, computes Wx + b forward, and weight/input gradients backward.
 
@@ -225,7 +237,7 @@ class Linear(Module):
         return params
 ```
 
-### Step 3: Activation Modules
+### Step 3: Activation Modules | 第三步：激活函数 Module
 
 ReLU, Sigmoid, and Tanh as Modules. Each caches what it needs for the backward pass.
 
@@ -272,7 +284,7 @@ class Tanh(Module):
         return [g * (1 - o * o) for g, o in zip(grad, self.output)]
 ```
 
-### Step 4: Dropout Module
+### Step 4: Dropout Module | 第四步：Dropout Module
 
 Randomly zeroes elements during training. Scales remaining elements by 1/(1-p) so expected values stay the same. Does nothing during eval.
 
@@ -295,7 +307,7 @@ class Dropout(Module):
         return [g * m for g, m in zip(grad, self.mask)]
 ```
 
-### Step 5: BatchNorm Module
+### Step 5: BatchNorm Module | 第五步：BatchNorm Module
 
 Normalizes activations to zero mean and unit variance per feature across the batch. Maintains running statistics for eval mode.
 
@@ -375,7 +387,7 @@ class BatchNorm(Module):
         return params
 ```
 
-### Step 6: Sequential Container
+### Step 6: Sequential Container | 第六步：Sequential 容器
 
 Chains modules. Forward goes left-to-right, backward goes right-to-left.
 
@@ -412,7 +424,7 @@ class Sequential(Module):
             module.eval()
 ```
 
-### Step 7: Loss Functions
+### Step 7: Loss Functions | 第七步：损失函数
 
 MSE and Binary Cross-Entropy. Each returns the loss value and provides a backward() that returns the gradient.
 
@@ -453,7 +465,7 @@ class BCELoss:
         return grads
 ```
 
-### Step 8: SGD and Adam Optimizers
+### Step 8: SGD and Adam Optimizers | 第八步：SGD 和 Adam 优化器
 
 Both take a parameter list and update weights using gradients.
 
@@ -518,7 +530,7 @@ class Adam:
                 grad_container[i] = 0.0
 ```
 
-### Step 9: DataLoader
+### Step 9: DataLoader | 第九步：DataLoader
 
 Splits data into batches, optionally shuffles each epoch.
 
@@ -544,7 +556,7 @@ class DataLoader:
         return (len(self.data) + self.batch_size - 1) // self.batch_size
 ```
 
-### Step 10: Train a 4-Layer Network on Circle Classification
+### Step 10: Train a 4-Layer Network on Circle Classification | 第十步：4 层网络分类训练
 
 Wire everything together. Define a model, pick a loss, pick an optimizer, run the training loop.
 
@@ -629,7 +641,9 @@ def train():
     return model, test_accuracy
 ```
 
-## Use It
+## Use It | 用框架实现
+
+> **【中文解读】** 下面的 PyTorch 代码和你的迷你框架结构完全一致：Sequential、Linear、ReLU、Sigmoid、BCELoss、Adam、zero_grad、backward、step、train、eval。唯一的区别是 PyTorch 用 autograd 自动计算梯度，而你需要手写 backward()。训练循环的五步模式是不变的。
 
 Here is the PyTorch equivalent of what you just built:
 
@@ -670,12 +684,12 @@ The structure is identical. `Sequential`, `Linear`, `ReLU`, `Sigmoid`, `BCELoss`
 
 Now when you see PyTorch code, you know exactly what is happening at every line. That understanding is the whole point.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-framework-architect.md` -- a prompt for designing neural network architectures using framework abstractions
 
-## Exercises
+## Exercises | 练习题
 
 1. Add a `SoftmaxCrossEntropyLoss` class for multi-class classification. Softmax the predictions, compute cross-entropy loss, and handle the combined backward pass. Test it on a 3-class spiral dataset.
 
@@ -687,7 +701,7 @@ This lesson produces:
 
 5. Replace the per-sample training loop with proper mini-batch gradient accumulation: accumulate gradients across all samples in a batch, then divide by batch size and take one optimizer step. Measure whether this changes convergence speed.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -702,7 +716,7 @@ This lesson produces:
 | Evaluation mode | "model.eval()" | A flag that disables dropout and uses running statistics for batch normalization |
 | Zero grad | "Clear the gradients" | Resetting all parameter gradients to zero before computing the next batch's gradients |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - Paszke et al., "PyTorch: An Imperative Style, High-Performance Deep Learning Library" (2019) -- the paper describing PyTorch's design decisions
 - Chollet, "Deep Learning with Python, Second Edition" (2021) -- Chapter 3 covers Keras internals with the same module/layer abstraction

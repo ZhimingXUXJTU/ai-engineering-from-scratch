@@ -9,14 +9,16 @@
 **Prerequisites:** Lesson 03.04 (Activation Functions), Lesson 03.07 (Regularization)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement zero, random, Xavier/Glorot, and Kaiming/He initialization strategies and measure their effect on activation magnitudes through 50 layers
 - Derive why Xavier init uses Var(w) = 2/(fan_in + fan_out) and Kaiming uses Var(w) = 2/fan_in
 - Demonstrate the symmetry problem with zero initialization and explain why random scale alone is insufficient
 - Match the correct initialization strategy to the activation function: Xavier for sigmoid/tanh, Kaiming for ReLU/GELU
 
-## The Problem
+> **【中文解读】** 本章核心问题：如何选择初始权重，让信号在 50 层网络中既不消失也不爆炸。答案是 Xavier 初始化（sigmoid/tanh 配套）和 Kaiming 初始化（ReLU/GELU 配套）。PyTorch 的 nn.Linear 默认使用 Kaiming 初始化——这就是为什么大多数网络"开箱即用"。
+
+## The Problem | 问题引入
 
 Initialize all weights to zero. Nothing learns. Every neuron computes the same function, receives the same gradient, and updates identically. After 10,000 epochs, your 512-neuron hidden layer is still 512 copies of the same neuron. You paid for 512 parameters and got 1.
 
@@ -26,9 +28,13 @@ Initialize them randomly from a standard normal distribution. Works for 3 layers
 
 Weight initialization is the most underrated decision in deep learning. Architecture gets papers. Optimizers get blog posts. Initialization gets a footnote. But get it wrong and nothing else matters -- your network is dead before training begins.
 
-## The Concept
+> **【中文解读】** 初始化是深度学习中最被低估的决策。零初始化导致对称性（所有神经元学一样的东西），随机初始化的方差不对会导致 50 层网络信号消失或爆炸。Xavier 和 Kaiming 初始化通过数学推导解决了这个问题。
 
-### The Symmetry Problem
+> **【拓展：GPT-2 的残差缩放技巧】** GPT-2 引入了 1/sqrt(2N) 的残差缩放（N 是层数）。每个残差连接 x = x + sublayer(x) 都会增加方差，126 层的 Llama 3 会让方差增长 126 倍。缩放因子让方差保持稳定。这个技巧现在被所有 Transformer 采用。
+
+## The Concept | 核心概念
+
+### The Symmetry Problem | 对称性问题
 
 Every neuron in a layer has the same structure: multiply inputs by weights, add bias, apply activation. If all weights start at the same value (zero is the extreme case), every neuron computes the same output. During backpropagation, every neuron receives the same gradient. During the update step, every neuron changes by the same amount.
 
@@ -36,7 +42,7 @@ You're stuck. The network has hundreds of parameters, but they all move in locks
 
 But "random" is not enough. The *scale* of the randomness determines whether the network trains.
 
-### Variance Propagation Through Layers
+### Variance Propagation Through Layers | 方差逐层传播
 
 Consider a single layer with fan_in inputs:
 
@@ -56,7 +62,9 @@ If Var(w) = 0.001, the output variance shrinks by 0.001 * 512 = 0.512 per layer.
 
 The goal: choose Var(w) so that Var(z) = Var(x). Signal magnitude stays constant across layers.
 
-### Xavier/Glorot Initialization
+> **【中文解读】** 方差传播的数学：Var(z) = fan_in * Var(w) * Var(x)。如果 fan_in=512 且 Var(w)=1，输出方差是输入的 512 倍。10 层后：512^10 = 1.2e27，信号爆炸。Xavier 和 Kaiming 的目标都是让 Var(z) = Var(x)，使信号幅度逐层保持恒定。
+
+### Xavier/Glorot Initialization | Xavier/Glorot 初始化
 
 Glorot and Bengio (2010) derived the solution for sigmoid and tanh activations. To keep variance constant in both the forward and backward pass:
 
@@ -78,7 +86,7 @@ w ~ Normal(0, sqrt(2 / (fan_in + fan_out)))
 
 This works because sigmoid and tanh are roughly linear near zero, where properly initialized activations live. The variance stays stable through dozens of layers.
 
-### Kaiming/He Initialization
+### Kaiming/He Initialization | Kaiming/He 初始化
 
 ReLU kills half the outputs (everything negative becomes zero). The effective fan_in is halved because on average half the inputs are zeroed. Xavier init doesn't account for this -- it underestimates the variance needed.
 
@@ -96,7 +104,9 @@ w ~ Normal(0, sqrt(2 / fan_in))
 
 The factor of 2 compensates for ReLU zeroing half the activations. Without it, the signal shrinks by ~0.5x per layer. With 50 layers: 0.5^50 = 8.8e-16. Kaiming init prevents this.
 
-### Transformer Initialization
+> **【拓展：PyTorch 的默认初始化】** PyTorch 的 nn.Linear 默认使用 Kaiming Uniform 初始化（`nn.init.kaiming_uniform_`，mode='fan_in'），配合 LeakyReLU 的 negative_slope=sqrt(5)。这意味着当你写 `nn.Linear(784, 256)` 时，PyTorch 已经帮你选好了初始化。但自定义架构（Transformer、混合专家模型）需要手动调整。
+
+### Transformer Initialization | Transformer 初始化
 
 GPT-2 introduced a different pattern. Residual connections add the output of each sub-layer to its input:
 
@@ -107,6 +117,8 @@ x = x + sublayer(x)
 Each addition increases variance. With N residual layers, variance grows proportionally to N. GPT-2 scales the weights of residual layers by 1/sqrt(2N), where N is the number of layers. This keeps the accumulated signal magnitude stable.
 
 Llama 3 (405B parameters, 126 layers) uses a similar scheme. Without this scaling, the residual stream would grow unbounded through 126 layers of attention and feedforward blocks.
+
+> **【拓展：混合专家模型（MoE）的初始化挑战】** Mixtral 8x7B 和 GPT-4 等模型使用 MoE 架构，每个 token 只激活部分专家。初始化时需要确保：路由器的初始权重不能让所有 token 都选择同一个专家。常见做法是用小的初始化方差 + 噪声偏置，确保初始路由均匀。初始化不当会导致"路由崩塌"——一个专家承担所有负载。
 
 ```mermaid
 flowchart TD
@@ -129,7 +141,7 @@ flowchart TD
     end
 ```
 
-### Activation Magnitude Through 50 Layers
+### Activation Magnitude Through 50 Layers | 50 层激活幅度实验
 
 ```mermaid
 graph LR
@@ -146,7 +158,7 @@ graph LR
     end
 ```
 
-### Choosing the Right Init
+### Choosing the Right Init | 选择正确的初始化
 
 ```mermaid
 flowchart TD
@@ -163,9 +175,11 @@ flowchart TD
     GPT --> Check
 ```
 
-## Build It
+## Build It | 动手实现
 
-### Step 1: Initialization Strategies
+> **【中文解读】** 实验设计：让信号通过 50 层网络，测量每层的激活幅度。零初始化 → 所有神经元相同；随机 N(0,1) → 爆炸；随机 N(0,0.01) → 消失；Xavier+tanh / Kaiming+ReLU → 稳定。这个实验直观展示了初始化的重要性。
+
+### Step 1: Initialization Strategies | 第一步：初始化策略
 
 Four ways to initialize a weight matrix. Each returns a list of lists (a 2D matrix) with fan_in columns and fan_out rows.
 
@@ -192,7 +206,7 @@ def kaiming_init(fan_in, fan_out):
     return [[random.gauss(0, std) for _ in range(fan_in)] for _ in range(fan_out)]
 ```
 
-### Step 2: Activation Functions
+### Step 2: Activation Functions | 第二步：激活函数
 
 We need sigmoid, tanh, and ReLU to test each init strategy with its intended activation.
 
@@ -210,7 +224,7 @@ def relu(x):
     return max(0.0, x)
 ```
 
-### Step 3: Forward Pass Through 50 Layers
+### Step 3: Forward Pass Through 50 Layers | 第三步：50 层前向传播
 
 Pass random data through a deep network and measure mean activation magnitude at each layer.
 
@@ -243,7 +257,7 @@ def forward_deep(init_fn, activation_fn, n_layers=50, width=64, n_samples=100):
     return layer_magnitudes
 ```
 
-### Step 4: The Experiment
+### Step 4: The Experiment | 第四步：实验
 
 Run all combinations: zero init, random N(0,1), random N(0,0.01), Xavier with sigmoid, Xavier with tanh, Kaiming with ReLU. Print the magnitude at key layers.
 
@@ -275,7 +289,7 @@ def run_experiment():
         print(row)
 ```
 
-### Step 5: Symmetry Demonstration
+### Step 5: Symmetry Demonstration | 第五步：对称性演示
 
 Show that zero init produces identical neurons.
 
@@ -299,7 +313,7 @@ def symmetry_demo():
     print(f"  Effective parameters: 1 (not {len(weights) * len(weights[0])})")
 ```
 
-### Step 6: Layer-by-Layer Magnitude Report
+### Step 6: Layer-by-Layer Magnitude Report | 第六步：逐层幅度报告
 
 Print a visual bar chart of activation magnitudes through 50 layers.
 
@@ -318,7 +332,9 @@ def magnitude_report(name, magnitudes):
             print(f"  Layer {i+1:3d}: {bar} ({mag:.6f})")
 ```
 
-## Use It
+## Use It | 用框架实现
+
+> **【中文解读】** PyTorch 内置 `nn.init.xavier_uniform_`、`nn.init.kaiming_normal_` 等函数。nn.Linear 默认用 Kaiming Uniform，所以简单网络"开箱即用"。但自定义架构需要手动调用这些函数。
 
 PyTorch provides these as built-in functions:
 
@@ -341,12 +357,12 @@ When you call `nn.Linear(512, 256)`, PyTorch defaults to Kaiming uniform initial
 
 For transformers, HuggingFace models typically handle initialization in their `_init_weights` method. GPT-2's implementation scales residual projections by 1/sqrt(N). If you're building a transformer from scratch, you need to add this yourself.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-init-strategy.md` -- a prompt that diagnoses weight initialization problems and recommends the right strategy
 
-## Exercises
+## Exercises | 练习题
 
 1. Add LeCun initialization (Var = 1/fan_in, designed for SELU activation). Run the 50-layer experiment with LeCun init + tanh and compare to Xavier + tanh.
 
@@ -358,7 +374,7 @@ This lesson produces:
 
 5. Implement orthogonal initialization (generate a random matrix, compute its SVD, use the orthogonal matrix U). Compare to Kaiming for ReLU networks at 50 layers.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -373,7 +389,7 @@ This lesson produces:
 | Dead network | "Nothing trains" | A network where poor initialization causes all gradients to be zero or all activations to saturate |
 | Exploding activations | "Values go to infinity" | When weight variance is too high, causing activation magnitudes to grow exponentially through layers |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - Glorot & Bengio, "Understanding the difficulty of training deep feedforward neural networks" (2010) -- the original Xavier initialization paper with variance analysis
 - He et al., "Delving Deep into Rectifiers" (2015) -- introduced Kaiming initialization for ReLU networks

@@ -9,14 +9,16 @@
 **Prerequisites:** Lesson 03.06 (Optimizers)
 **Time:** ~75 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement dropout with inverted scaling, L2 weight decay, batch normalization, layer normalization, and RMSNorm from scratch
 - Measure the train-test accuracy gap and diagnose overfitting using regularization experiments
 - Explain why transformers use LayerNorm instead of BatchNorm and why modern LLMs prefer RMSNorm
 - Apply the correct combination of regularization techniques based on the severity of overfitting
 
-## The Problem
+> **【中文解读】** 本章从零实现正则化的五大核心工具：Dropout（随机丢弃神经元）、L2 权重衰减、BatchNorm（批归一化）、LayerNorm（层归一化）、RMSNorm（均方根归一化）。重点理解为什么 Transformer 用 LayerNorm 而不是 BatchNorm，以及为什么 Llama/Mistral 用 RMSNorm。
+
+## The Problem | 问题引入
 
 A neural network with enough parameters can memorize any dataset. This is not a hypothetical -- Zhang et al. (2017) proved it by training standard networks on ImageNet with random labels. The networks reached near-zero training loss on completely random label assignments. They memorized a million random input-output pairs with no pattern to learn. Training loss was perfect. Test accuracy was zero.
 
@@ -24,9 +26,13 @@ This is the overfitting problem, and it gets worse as models get larger. GPT-3 h
 
 The gap between training performance and test performance is the overfitting gap. Every technique in this lesson attacks that gap from a different angle. Dropout forces the network to not rely on any single neuron. Weight decay prevents any single weight from growing too large. Batch normalization smooths the loss landscape so the optimizer finds flatter, more generalizable minima. Layer normalization does the same thing but works where batch normalization fails (small batches, variable-length sequences). RMSNorm does it 10% faster by dropping the mean calculation. Each technique is simple. Together, they're the difference between a model that memorizes and one that generalizes.
 
-## The Concept
+> **【中文解读】** 模型参数越多，越容易过拟合。GPT-3 有 1750 亿参数、5000 亿 token——没有正则化，它只会背诵训练数据。每个正则化手段从不同角度攻击过拟合：Dropout 强制冗余表示、权重衰减限制参数幅度、归一化平滑损失曲面。
 
-### The Overfitting Spectrum
+> **【拓展：大模型的正则化策略】** GPT-4 和 Llama 3 的正则化非常简洁：AdamW 权重衰减 (wd=0.01) + Dropout (p=0.1) + RMSNorm。没有用复杂的正则化技巧。关键洞察：在超大规模数据上训练时，数据本身就是最好的正则化。模型见过足够多样的数据，过拟合自然减轻。
+
+## The Concept | 核心概念
+
+### The Overfitting Spectrum | 过拟合谱系
 
 Every model sits somewhere on a spectrum from underfitting (too simple to capture the pattern) to overfitting (so complex it captures noise). The sweet spot is in between, and regularization pushes models toward it from the overfit side.
 
@@ -41,7 +47,7 @@ graph LR
     Aug["Data Augmentation"] -->|"Pushes left"| Over
 ```
 
-### Dropout
+### Dropout | 随机丢弃
 
 The simplest regularization technique with the most elegant interpretation. During training, randomly set each neuron's output to zero with probability p.
 
@@ -64,7 +70,9 @@ This is cleaner because test code doesn't need to know about dropout at all.
 
 Default rates: p = 0.1 for transformers, p = 0.5 for MLPs, p = 0.2-0.3 for CNNs. Higher dropout = stronger regularization = more underfitting risk.
 
-### Weight Decay (L2 Regularization)
+> **【拓展：Dropout 在 BERT 和 GPT 中的不同用法】** BERT 使用 Dropout p=0.1 应用于 attention 和 hidden 层。GPT-2 也用 p=0.1，但只在训练时使用。有趣的是，推理时可以用 MC Dropout（保持 Dropout 开启）来估计模型不确定性——运行 30-100 次取方差。这在医疗 AI 等需要不确定性估计的场景非常有用。
+
+### Weight Decay (L2 Regularization) | 权重衰减（L2 正则化）
 
 Add the squared magnitude of all weights to the loss:
 
@@ -84,7 +92,7 @@ The lambda hyperparameter controls the strength. Typical values:
 
 As discussed in lesson 06: weight decay and L2 regularization are equivalent in SGD but not in Adam. Always use AdamW (decoupled weight decay) when training with Adam.
 
-### Batch Normalization
+### Batch Normalization | 批归一化
 
 Normalize the output of each layer across the mini-batch before passing it to the next layer.
 
@@ -105,7 +113,9 @@ Why BatchNorm works is still debated. The original paper claimed it reduces "int
 
 BatchNorm has a fundamental limitation: it depends on batch statistics. With batch size 1, the mean and variance are meaningless. With small batches (< 32), the statistics are noisy and hurt performance. This matters for tasks like object detection (where memory limits batch size) and language modeling (where sequence lengths vary).
 
-### Layer Normalization
+> **【中文解读】** BatchNorm 的根本局限：依赖批量统计量。batch_size=1 时均值方差无意义；batch_size<32 时统计量噪声太大。这就是 Transformer 用 LayerNorm 的原因——语言模型 batch 小、序列长度不一。
+
+### Layer Normalization | 层归一化
 
 Normalize across features instead of across the batch. For a single sample:
 
@@ -120,7 +130,7 @@ D is the feature dimension. Each sample is normalized independently -- no depend
 
 LayerNorm in transformers is applied after each self-attention block and each feed-forward block (Post-LN), or before them (Pre-LN, which is more stable for training).
 
-### RMSNorm
+### RMSNorm | 均方根归一化
 
 LayerNorm without the mean subtraction. Proposed by Zhang & Sennrich (2019).
 
@@ -133,7 +143,11 @@ That's it. No mean computation, no beta parameter. The observation: the re-cente
 
 LLaMA, LLaMA 2, LLaMA 3, Mistral, and most modern LLMs use RMSNorm instead of LayerNorm. At the scale of billions of parameters and trillions of tokens, that 10% savings is significant.
 
-### Normalization Comparison
+> **【拓展：RMSNorm 为什么能省 10%】** LayerNorm 计算均值和方差两步，RMSNorm 跳过均值只算 RMS。在 Llama 3 405B（126 层）上，每步训练调用 252 次 RMSNorm（每层 attention + FFN 各一次）。省 10% 意味着每次 forward 节省约 25 次 LayerNorm 的均值计算。在大规模训练中这相当于节省数百 GPU 小时。
+
+### Normalization Comparison | 归一化方法对比
+
+### Normalization Comparison | 归一化方法对比
 
 ```mermaid
 graph TD
@@ -154,7 +168,7 @@ graph TD
     end
 ```
 
-### Data Augmentation as Regularization
+### Data Augmentation as Regularization | 数据增强作为正则化
 
 Not a model modification but a data modification. Transform training inputs while preserving labels:
 
@@ -164,11 +178,13 @@ Not a model modification but a data modification. Transform training inputs whil
 
 The effect is identical to regularization: it increases the effective size of the training set, making it harder for the model to memorize specific examples. A model that only sees each image once in its original form can memorize it. A model that sees 50 augmented versions of each image is forced to learn the invariant structure.
 
-### Early Stopping
+### Early Stopping | 早停法
 
 The simplest regularizer: stop training when validation loss starts increasing. The model hasn't overfit yet at that point. In practice, you track validation loss every epoch, save the best model, and continue training for a "patience" window (typically 5-20 epochs). If validation loss doesn't improve within the patience window, you stop and load the best saved model.
 
-### When to Apply What
+> **【拓展：Early Stopping 在大模型中的实践】** GPT 和 Llama 等大模型通常不使用 early stopping——训练在固定 token 数后结束。但在微调阶段（如 LoRA fine-tuning），early stopping 非常重要，因为小数据集上容易过拟合。HuggingFace 的 Trainer 默认使用 early stopping（patience=3），监控 eval_loss。
+
+### When to Apply What | 正则化选择指南
 
 ```mermaid
 flowchart TD
@@ -189,9 +205,11 @@ flowchart TD
     Light --> WD0["Weight decay 1e-4"]
 ```
 
-## Build It
+## Build It | 动手实现
 
-### Step 1: Dropout (Train and Eval Mode)
+> **【中文解读】** 下面从零实现五种正则化技术。关键是 Dropout 的 inverted scaling（训练时除以 (1-p)，推理时不变）和 BatchNorm 的双模式（训练用批量统计、推理用运行平均）。
+
+### Step 1: Dropout (Train and Eval Mode) | 第一步：Dropout（训练/评估模式）
 
 ```python
 import random
@@ -228,7 +246,7 @@ class Dropout:
         return grads
 ```
 
-### Step 2: L2 Weight Decay
+### Step 2: L2 Weight Decay | 第二步：L2 权重衰减
 
 ```python
 def l2_regularization(weights, lambda_reg):
@@ -241,7 +259,7 @@ def l2_gradient(weights, lambda_reg):
     return [lambda_reg * w for w in weights]
 ```
 
-### Step 3: Batch Normalization
+### Step 3: Batch Normalization | 第三步：批归一化
 
 ```python
 class BatchNorm:
@@ -291,7 +309,7 @@ class BatchNorm:
         return output
 ```
 
-### Step 4: Layer Normalization
+### Step 4: Layer Normalization | 第四步：层归一化
 
 ```python
 class LayerNorm:
@@ -314,7 +332,7 @@ class LayerNorm:
         return output
 ```
 
-### Step 5: RMSNorm
+### Step 5: RMSNorm | 第五步：均方根归一化
 
 ```python
 class RMSNorm:
@@ -331,7 +349,7 @@ class RMSNorm:
         return output
 ```
 
-### Step 6: Training With and Without Regularization
+### Step 6: Training With and Without Regularization | 第六步：正则化对比训练
 
 ```python
 def sigmoid(x):
@@ -435,7 +453,9 @@ class RegularizedNetwork:
         return history
 ```
 
-## Use It
+## Use It | 用框架实现
+
+> **【中文解读】** PyTorch 中使用正则化的关键：model.train()/model.eval() 切换 Dropout 和 BatchNorm 的行为。在 Transformer 中，LayerNorm + Dropout p=0.1 是标配。忘记 model.eval() 是最常见的深度学习 bug 之一。
 
 PyTorch provides all normalization and regularization as modules:
 
@@ -490,12 +510,12 @@ class TransformerBlock(nn.Module):
 
 LayerNorm, not BatchNorm. Dropout p=0.1, not p=0.5. These are the transformer defaults.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-regularization-advisor.md` -- a prompt that diagnoses overfitting and recommends the right regularization strategy
 
-## Exercises
+## Exercises | 练习题
 
 1. Implement spatial dropout for 2D data: instead of dropping individual neurons, drop entire feature channels. Simulate this by treating groups of consecutive features as channels and dropping whole groups. Compare the train-test gap to standard dropout on the circle dataset with hidden_size=32.
 
@@ -507,7 +527,7 @@ This lesson produces:
 
 5. Compare LayerNorm vs RMSNorm on a 4-layer network (not just 2). Initialize both with the same weights. Train for 200 epochs and compare final accuracy, training speed (time per epoch), and gradient magnitudes at the first layer. Verify that RMSNorm is faster with the same accuracy.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -522,7 +542,7 @@ This lesson produces:
 | Data augmentation | "More data from less" | Transforming training inputs (flip, crop, noise) to increase effective dataset size and force invariance learning |
 | Generalization gap | "Train-test split" | The difference between training and test performance; regularization aims to minimize this gap |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - Srivastava et al., "Dropout: A Simple Way to Prevent Neural Networks from Overfitting" (2014) -- the original dropout paper with the ensemble interpretation and extensive experiments
 - Ioffe & Szegedy, "Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift" (2015) -- introduced BatchNorm and its training procedure, one of the most cited deep learning papers

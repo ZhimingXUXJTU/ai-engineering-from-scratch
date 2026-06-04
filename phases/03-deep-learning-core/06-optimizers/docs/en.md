@@ -16,7 +16,7 @@
 - Demonstrate why AdamW produces better generalization than Adam with L2 regularization on the same task
 - Select the appropriate optimizer and default hyperparameters for transformers, CNNs, GANs, and fine-tuning
 
-## The Problem
+## The Problem | 问题引入
 
 You computed the gradients. You know that weight #4,721 should decrease by 0.003 to reduce the loss. But 0.003 in what units? Scaled by what? And should you move the same amount on step 1 as on step 1,000?
 
@@ -61,7 +61,9 @@ Why this fixes oscillation: gradients that point in the same direction accumulat
 
 Real numbers: SGD alone on a badly conditioned loss landscape might take 10,000 steps. SGD with momentum (beta=0.9) typically takes 3,000-5,000 steps on the same problem. The speedup is not marginal.
 
-### RMSProp
+> **【拓展：SGD + Momentum 的 resurgence】** 虽然 Adam 是默认选择，但 2023 年的论文显示 SGD+Momentum 在特定任务上仍有优势。ResNet 系列（ImageNet 分类冠军）和许多 Kaggle 竞赛赢家仍然用 SGD+Momentum (lr=0.1, momentum=0.9)。原因是 SGD 找到的极小值更"平"，泛化性更好。
+
+### RMSProp | 均方根传播
 
 The first per-parameter adaptive learning rate method that actually worked. Proposed by Hinton in a Coursera lecture (never formally published).
 
@@ -102,6 +104,8 @@ w = w - lr * m_hat / (sqrt(v_hat) + epsilon)
 
 Adam defaults: lr = 0.001, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8. These defaults work for 80% of problems. When they don't, change lr first. Then beta2. Almost never change beta1 or epsilon.
 
+> **【拓展：Adam 的局限性】** 尽管 Adam 是最常用的优化器，它并不完美：(1) 在某些 convex 问题上收敛不如 SGD；(2) Adam 的泛化性有时比 SGD 差（因为自适应学习率可能导致过拟合）；(3) Adam 的内存开销是 SGD 的 2-3 倍（需要存储 m 和 v）。2024 年的 AdamW + ScheduleFree 是新的改进方向。
+
 ### AdamW: Weight Decay Done Right | AdamW：正确的权重衰减
 
 L2 regularization adds lambda * w^2 to the loss. In vanilla SGD, this is equivalent to weight decay (subtracting lambda * w from the weight at each step). In Adam, this equivalence breaks.
@@ -122,7 +126,7 @@ This seems like a minor detail. It's not. AdamW converges to better solutions th
 
 > **【拓展：LoRA 微调中的 AdamW】** 用 LoRA 微调 LLM 时，通常用 AdamW（lr=2e-5~1e-4, weight_decay=0.01）。LoRA 只训练低秩分解矩阵 A 和 B，AdamW 的权重衰减帮助控制这些新增参数的幅度。
 
-### Learning Rate: The Most Important Hyperparameter
+### Learning Rate: The Most Important Hyperparameter | 学习率：最重要的超参数
 
 ```mermaid
 graph TD
@@ -146,7 +150,7 @@ If you tune one hyperparameter, tune the learning rate. A 10x change in learning
 - Fine-tuning pretrained models: lr = 1e-5 to 5e-5
 - Learning rate warmup: linear ramp over first 1-10% of steps
 
-### Optimizer Comparison
+### Optimizer Comparison | 优化器对比
 
 ```mermaid
 flowchart LR
@@ -159,7 +163,7 @@ flowchart LR
     SGD_P --> Mom_P --> Adam_P --> AdamW_P
 ```
 
-### When Each Optimizer Wins
+### When Each Optimizer Wins | 优化器选择指南
 
 ```mermaid
 flowchart TD
@@ -172,9 +176,13 @@ flowchart TD
     Type -->|"Don't know yet"| Default["Start with AdamW<br/>lr=3e-4, wd=0.01"]
 ```
 
-## Build It
+> **【拓展：深度学习中优化器的演进】** 从 2012 年 AlexNet 的 SGD+Momentum，到 2014 年 Adam 的提出，再到 2017 年 AdamW 的诞生——优化器的发展让训练从"需要数周调参"变成"默认参数就能跑"。Llama 3 405B 的训练使用 AdamW，峰值 lr=3e-4，在 16384 块 H100 GPU 上训练了 30.8M GPU 小时。
 
-### Step 1: Vanilla SGD
+## Build It | 动手实现
+
+> **【中文解读】** 下面从零实现四种优化器：SGD → SGD+Momentum → Adam → AdamW。每个都在前一个基础上增加一个关键机制。注意 Adam 的偏差修正和 AdamW 的解耦权重衰减——这是面试常考的知识点。
+
+### Step 1: Vanilla SGD | 第一步：原始 SGD
 
 ```python
 class SGD:
@@ -186,7 +194,7 @@ class SGD:
             params[i] -= self.lr * grads[i]
 ```
 
-### Step 2: SGD with Momentum
+### Step 2: SGD with Momentum | 第二步：带动量的 SGD
 
 ```python
 class SGDMomentum:
@@ -203,7 +211,7 @@ class SGDMomentum:
             params[i] -= self.lr * self.velocities[i]
 ```
 
-### Step 3: Adam
+### Step 3: Adam | 第三步：Adam 优化器
 
 ```python
 import math
@@ -235,7 +243,7 @@ class Adam:
             params[i] -= self.lr * m_hat / (math.sqrt(v_hat) + self.epsilon)
 ```
 
-### Step 4: AdamW
+### Step 4: AdamW | 第四步：AdamW 优化器
 
 ```python
 class AdamW:
@@ -267,7 +275,7 @@ class AdamW:
             params[i] -= self.lr * self.weight_decay * params[i]
 ```
 
-### Step 5: Training Comparison
+### Step 5: Training Comparison | 第五步：训练对比
 
 Train the same two-layer network on the circle dataset from lesson 05 with all four optimizers. Compare convergence.
 
@@ -389,7 +397,11 @@ class OptimizerTestNetwork:
         return losses
 ```
 
-## Use It
+> **【拓展：GPT 训练中的优化器选择】** OpenAI 的 GPT 系列全部使用 Adam 优化器（GPT-4 推测也用 AdamW）。训练时一个常见技巧：对 embedding 层和 output 层使用不同的学习率。在 PyTorch 中通过 parameter groups 实现：`optimizer = AdamW([{'params': base_params}, {'params': head_params, 'lr': lr*0.1}])`。
+
+## Use It | 用框架实现
+
+> **【中文解读】** PyTorch 中的训练循环模式：zero_grad → forward → loss → backward → clip → step → schedule。这个顺序不能搞错。CNN 用 SGD+Momentum（lr=0.1），Transformer 用 AdamW（lr=1e-4）。
 
 PyTorch optimizers handle parameter groups, gradient clipping, and learning rate scheduling:
 
@@ -421,7 +433,7 @@ The pattern is always: zero_grad, forward, loss, backward, (clip), step, (schedu
 
 For CNNs, many practitioners still prefer SGD + momentum (lr=0.1, momentum=0.9, weight_decay=1e-4) with a step or cosine schedule. SGD finds flatter minima, which often generalize better. For transformers and LLMs, AdamW with warmup + cosine decay is the universal default. Don't fight the consensus without a measured reason.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-optimizer-selector.md` -- a decision prompt for choosing the right optimizer and learning rate for any architecture
@@ -471,7 +483,7 @@ This lesson produces:
 | 学习率调度 (LR schedule) | "随时间改变 lr" | 训练中调整学习率的函数；warmup + cosine decay 是现代标配 |
 | 梯度裁剪 (Gradient clipping) | "限制梯度范数" | 梯度范数超限时缩小梯度；防止梯度爆炸 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - Kingma & Ba, "Adam: A Method for Stochastic Optimization" (2014) -- the original Adam paper with convergence analysis and the bias correction derivation
 - Loshchilov & Hutter, "Decoupled Weight Decay Regularization" (2017) -- proved that L2 regularization and weight decay are not equivalent in Adam, and proposed AdamW
