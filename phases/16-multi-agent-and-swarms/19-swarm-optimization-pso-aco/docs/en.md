@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了群体优化算法——PSO（粒子群）和 ACO（蚁群）等生物启发优化在多 Agent 中的应用。
 
+> **【拓展：swarm optimization pso aco→具体应用】** 群体优化算法在多 Agent 中的应用：(1) 粒子群优化（PSO）——Agent 根据自身最优位置和全局最优位置调整搜索方向；(2) 蚁群优化（ACO）——Agent 通过信息素标记好的路径，后来者倾向于跟随强信息素路径。这些算法适合大规模搜索空间中的优化问题，如 Agent 任务分配和路径规划。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)

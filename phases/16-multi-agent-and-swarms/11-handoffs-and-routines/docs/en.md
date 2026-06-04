@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了交接和例程——Agent 间传递任务控制权的标准流程和例程。
 
+> **【拓展：handoffs and routines→具体应用】** 交接（Handoffs）是 OpenAI Agents SDK 的核心概念——Agent A 将控制权移交给 Agent B。关键设计决策：(1) 上下文传递——B 收到多少 A 的历史？(2) 恢复机制——B 完成后控制权回到 A 还是交给 C？(3) 超时处理——B 如果卡住怎么办？Routines 是预定义的交接序列。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)

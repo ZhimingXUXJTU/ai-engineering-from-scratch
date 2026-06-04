@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了 2026 年 SOTA 多 Agent 案例研究——最新最佳多 Agent 系统的分析。
 
+> **【拓展：case studies 2026 sota→具体应用】** 2026年 SOTA 多 Agent 系统案例：(1) Anthropic 的 Claude Research——多 Agent 协作进行深度研究；(2) OpenAI 的 Codex——多 Agent 协作编码；(3) 微软的 AutoGen 团队——多 Agent 软件开发。共同趋势：专业化分工、层次化编排、MCP 工具使用和 A2A Agent 间通信的结合。
+
 
 **Type:** Learn (capstone)
 **Languages:** —

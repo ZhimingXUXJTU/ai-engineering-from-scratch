@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了原始模型——多 Agent 系统的最基本构建单元和交互原语。
 
+> **【拓展：primitive model→具体应用】** 多 Agent 系统的最小原语模型定义了 Agent 之间的基本交互模式：(1) 消息传递——Agent 通过发送消息通信；(2) 共享状态——Agent 通过读写共享存储协调；(3) 事件通知——Agent 订阅感兴趣的事件。AutoGen 用消息传递，LangGraph 用共享状态，黑板系统用事件通知。大多数实际系统混合使用多种原语。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib)

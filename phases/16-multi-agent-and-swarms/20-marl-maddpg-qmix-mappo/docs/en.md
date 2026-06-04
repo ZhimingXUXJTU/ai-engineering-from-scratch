@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了多 Agent 强化学习——MADDPG、QMIX、MAPPO 等多 Agent RL 算法。
 
+> **【拓展：marl maddpg qmix mappo→具体应用】** 多 Agent 强化学习（MARL）算法：(1) MADDPG——每个 Agent 有独立的 Actor-Critic，但 Critic 可以看到所有 Agent 的动作；(2) QMIX——集中式训练分散式执行，通过混合网络保证单调性；(3) MAPPO——PPO 的多 Agent 扩展。2026 年 MARL 在游戏 AI、机器人协作和交通控制中取得进展，但在 LLM Agent 中的应用仍处于早期。
+
 
 **Type:** Learn
 **Languages:** Python (stdlib, small NumPy-free implementations)

@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了为什么需要多 Agent 系统——单 Agent 的上下文溢出、角色混乱和串行瓶颈问题，以及多 Agent 如何通过分工协作来解决这些问题。
 
+> **【拓展：why multi agent→具体应用】** 单 Agent 在处理复杂任务时面临三个瓶颈：(1) 上下文溢出——所有信息塞进一个窗口，重要的被淹没；(2) 角色混乱——一个 Agent 扮演多个角色导致提示词冲突；(3) 串行执行——工具调用只能排队。多 Agent 通过分工协作解决这些问题。Anthropic 的研究表明，多 Agent 系统在 BrowseComp 基准上比单 Agent 提升 90.2%，80% 的方差仅由 token 使用量解释。
+
 
 **Type:** Learn
 **Languages:** TypeScript

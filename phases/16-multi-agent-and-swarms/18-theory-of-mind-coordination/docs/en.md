@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了心智理论协调——Agent 理解和预测其他 Agent 意图的协调机制。
 
+> **【拓展：theory of mind coordination→具体应用】** 心智理论（Theory of Mind）是指理解和预测他人心理状态的能力。在多 Agent 系统中，具有心智理论的 Agent 能更好地协调——它知道其他 Agent 知道什么、想要什么、会做什么。2025-2026 年的研究表明，显式建模其他 Agent 的意图能显著提高协调效率，但也增加了计算成本。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)

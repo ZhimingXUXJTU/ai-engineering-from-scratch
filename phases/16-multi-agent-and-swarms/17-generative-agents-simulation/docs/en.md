@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了生成式 Agent 模拟——斯坦福的 AI 小镇实验，25 个 AI Agent 在虚拟社区中自主生活。
 
+> **【拓展：generative agents simulation→具体应用】** 斯坦福的生成式 Agent 实验（Park et al., 2023）创建了 25 个 AI Agent 在虚拟小镇中自主生活——每天起床、上班、社交、形成关系和记忆。核心创新是记忆流架构——每个 Agent 维护按时间排序的经历序列，通过反思和总结提取高层洞察。这个实验证明了 LLM Agent 能产生涌现性的社会行为。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)

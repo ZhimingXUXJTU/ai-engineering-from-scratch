@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了协商和讨价还价——多 Agent 在资源分配和任务分配中的协商策略。
 
+> **【拓展：negotiation bargaining→具体应用】** 协商和讨价还价是多 Agent 资源分配的核心机制。三种协商策略：(1) 合作型——Agent 追求整体利益最大化；(2) 竞争型——Agent 追求自身利益最大化；(3) 混合型——兼顾个体和整体。在 Agent 经济中，协商通常通过结构化的提议-响应协议实现，类似于合同网协议（Contract Net Protocol）。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)

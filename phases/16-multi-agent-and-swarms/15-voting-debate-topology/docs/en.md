@@ -4,6 +4,8 @@
 
 > **【中文解读】** 本节介绍了投票和辩论拓扑——多 Agent 通过投票或辩论来决策的组织结构。
 
+> **【拓展：voting debate topology→具体应用】** 投票和辩论拓扑定义了多 Agent 决策的结构。三种常见拓扑：(1) 星形——所有 Agent 独立投票，中心聚合；(2) 链形——Agent 依次修改前一个 Agent 的输出；(3) 图形——Agent 形成讨论网络，多轮交互。研究表明，图形拓扑在复杂推理任务上效果最好，但协调成本最高。
+
 
 **Type:** Learn + Build
 **Languages:** Python (stdlib)
