@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** GPU 自动扩缩在 Kubernetes 上有三个层面的故障模式：(1) HPA 使用错误的信号（GPU 占用率而非队列深度），导致该扩时不扩；(2) Cluster Autoscaler 节点供给太慢，长提示请求超时；(3) 多 GPU 分布式推理时部分分配（7-of-8 trap），7 个 GPU 空转等待第 8 个。三层问题需要三种不同的工具组合解决。
+
+> **【拓展：GPU 集群管理】** 2026 年 Kubernetes 已成为 LLM 推理服务的标准编排平台。NVIDIA DGX Cloud、Google GKE、AWS EKS 都提供 GPU 节点池管理。关键挑战在于 GPU 是昂贵且稀缺的资源（H100 约 $3-4/hr），扩缩决策必须精确——过度供给浪费成本，供给不足影响 SLA。Karpenter + KAI Scheduler 的组合是目前最成熟的 GPU 调度方案。
+
 Your team ships an LLM-serving service on Kubernetes. You set up HPA with `DCGM_FI_DEV_GPU_UTIL` as the signal. The service pins at 100% utilization during business hours. HPA never scales up — it already thinks you're full. You add a replica manually; TTFT drops. HPA still doesn't scale. The signal is lying to you.
 
 Separately, you use Cluster Autoscaler for nodes. A 1M-token prompt arrives at 2 a.m.; the cluster spends 3 minutes provisioning a node, and the request times out.
@@ -30,6 +34,8 @@ Three layers, three different failure modes. GPU-aware autoscaling in 2026 is no
 ## The Concept | 概念
 
 ### Layer 1 — node provisioning (Karpenter)
+
+> **【中文解读】** 第一层是节点供给。Karpenter 监控待调度的 Pod，在 45-60 秒内按需创建 GPU 节点，比传统 Cluster Autoscaler 快约 40%。关键陷阱是 `WhenEmptyOrUnderutilized` 合并策略——它会终止正在运行推理的 GPU 节点来迁移到更便宜的实例类型，导致请求失败和模型重新加载（5-20 分钟中断）。GPU 池应使用 `WhenEmpty` + `consolidateAfter: 1h` 的安全策略。
 
 Karpenter watches pending pods and provisions nodes within ~45-60 seconds (Cluster Autoscaler typically takes 90-120 seconds for GPU nodes). It picks instance types dynamically per the `NodePool` constraint — if your pod needs 8 H100s and the cluster has no matching node, Karpenter provisions one directly instead of scaling an existing group.
 
@@ -47,6 +53,10 @@ Lets Karpenter consolidate truly empty nodes after an hour but never evict a run
 
 ### Layer 2 — gang scheduling (KAI Scheduler)
 
+> **【中文解读】** 第二层是调度协调。KAI Scheduler 解决 default kube-scheduler 无法处理的三个问题：(1) Gang Scheduling——全有全无调度，8-GPU 推理要么全部启动要么全部等待；(2) 拓扑感知——根据 NVLink/InfiniBand/机架拓扑放置 Pod；(3) 分层队列——多团队竞争同一 GPU 池时按优先级和配额管理。这对于 tensor parallelism 至关重要，因为 DeepSeek-V3 等 MoE 模型的张量必须在同一 NVLink 域内。
+
+> **【拓展：GPU 调度器生态】** 2026 年 GPU 调度器的选择包括 KAI Scheduler（原 Karp，支持 gang + topology + queue）、YuniKorn（Apache 项目，支持队列和抢占）、以及 default kube-scheduler + 设备插件。KAI Scheduler 是唯一原生支持 gang scheduling 的方案，已被 Ray 和 vLLM production-stack 集成。对于需要多 GPU 分布式推理的场景（70B+ 模型），KAI 是必选项。
+
 KAI Scheduler (project "Karp" then renamed) handles what default kube-scheduler does not:
 
 **Gang scheduling** — schedule all-or-nothing. A distributed inference pod requiring 8 GPUs either all 8 start together or none do. Without this, you get the partial-allocation trap: 7 of 8 pods start, wait indefinitely, burn money.
@@ -58,6 +68,10 @@ KAI Scheduler (project "Karp" then renamed) handles what default kube-scheduler 
 KAI is deployed alongside kube-scheduler as a secondary scheduler; you annotate workloads to use it. Ray and vLLM production-stack both integrate.
 
 ### Layer 3 — application-level signals
+
+> **【中文解读】** 第三层是应用级信号。传统的 `DCGM_FI_DEV_GPU_UTIL` 是 GPU 占用率（duty cycle）指标——100% 可能意味着 10 个请求或 100 个请求，因为 GPU 都在忙碌。vLLM 预分配 KV Cache 内存，即使只有一个请求，内存使用也接近 90%，导致基于内存的 HPA 永远不会缩容。2026 年正确的扩缩信号应该是队列深度、KV Cache 利用率、每副本 P99 TTFT 和 Goodput。
+
+> **【拓展：推理感知自动扩缩】** NVIDIA Dynamo Planner 和 llm-d Workload Variant Autoscaler 是 2026 年专门为 LLM 推理设计的扩缩器。它们直接消费推理引擎的内部指标（队列深度、KV Cache 块使用率），而非通用的 GPU 指标。这种"推理感知"扩缩比传统 HPA 更精确，可将资源利用率提升 30-50%，同时保持 SLA。配合 Karpenter 的快速节点供给，从零到服务的冷启动时间可从 5 分钟降到 1 分钟。
 
 **The HPA trap**: `DCGM_FI_DEV_GPU_UTIL` is a duty-cycle metric — it measures whether the GPU was doing work at each sampling interval. 100% utilization could mean 10 concurrent requests or 100; the GPU was busy either way. Scaling on duty cycle is scaling blindly.
 
@@ -82,7 +96,13 @@ NVIDIA Dynamo Planner and llm-d Workload Variant Autoscaler consume these signal
 | Choose GPU type | Karpenter NodePool |
 | Preempt low-priority | KAI Scheduler queues |
 
+> **【拓展：GPU 集群成本优化策略】** GPU 集群成本优化在 2026 年的关键策略包括：(1) Spot Instance——AWS/GCP/Azure 的 GPU Spot 实例可节省 60-70%，但需要处理中断（Karpenter + 热池缓解）；(2) 自动扩缩——Karpenter 在非高峰时段自动缩减节点池，50% 成本节省；(3) GPU 共享——通过 MIG（Multi-Instance GPU）将 H100 切分为多个实例，适合小模型推理；(4) 混合精度——FP8/INT4 量化减少 GPU 内存需求，允许更多并发；(5) 分离式部署——prefill/decode 分离到不同 GPU 类型，30-40% 成本节省。
+
 ### Disaggregated prefill/decode complicates everything
+
+> **【中文解读】** 分离式预填充/解码架构（Phase 17·17）进一步增加了扩缩复杂性：预填充 Pod 按队列深度扩缩，解码 Pod 按 KV Cache 压力扩缩。不能在两者之上使用单一 HPA——需要各自独立的扩缩策略。llm-d 将两者暴露为独立的 Kubernetes Service，每个 Service 有自己的 HPA。
+
+> **【拓展：Kubernetes GPU 生态】** 2026 年 Kubernetes GPU 管理的关键组件包括：NVIDIA GPU Operator（自动安装驱动/CUDA/container toolkit）、NVIDIA Device Plugin（GPU 资源发现和分配）、MIG（Multi-Instance GPU，将一张 A100/H100 切分为多个实例）、时间分片（GPU 共享）。结合 Karpenter + KAI Scheduler + Dynamo Planner，可以实现从节点供给到 Pod 调度到副本扩缩的完整 GPU 自动扩缩链。
 
 If you run disaggregated prefill/decode (Phase 17 · 17), you have two pod classes with different scaling triggers: prefill pods scale on queue depth, decode pods scale on KV cache pressure. llm-d exposes these as separate `Services` with per-role HPA. Do not try to put a single HPA in front of both.
 
@@ -98,6 +118,8 @@ Cold-start mitigation (Phase 17 · 10) is where node provisioning time becomes u
 - Karpenter `WhenEmptyOrUnderutilized`: terminates running GPU jobs. Use `WhenEmpty + consolidateAfter: 1h` for inference.
 
 ## Use It | 使用方法
+
+> **【拓展：GPU 自动扩缩成本模型】** GPU 自动扩缩的成本优化核心是减少空转时间。以 H100（$3/hr）为例，8-GPU 集群 24/7 运行每月成本约 $17,280。通过 Karpenter 按需供给 + `WhenEmpty` 合并策略 + 推理感知 HPA，可在非高峰时段自动缩容到 2-GPU，将月成本降至约 $8,640（节省 50%）。Spot Instance 可进一步节省 60-70%，但需要处理中断。
 
 `code/main.py` simulates a three-layer autoscaler on a bursty GPU workload. Compares naive HPA (duty cycle), queue-depth HPA, and KAI-gang-scheduled scaling. Reports unmet requests, idle-GPU minutes, and a composite score.
 

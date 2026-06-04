@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** LLM 可观测性工具分为两类：(1) 开发平台（LangSmith、Langfuse、Opik）——捆绑监控、评估、提示管理、会话回放；(2) 网关/遥测工具（Helicone、SigNoz、OpenLLMetry、Phoenix）——专注于遥测采集。选择涉及四个维度：技术栈（LangChain？原始 SDK？）、许可证（MIT only？商业可接受？）、预算、自托管需求。
+
+> **【拓展：LLM 可观测性市场格局】** 2026 年 LLM 可观测性市场的关键玩家：(1) Langfuse（MIT 开源，50K events/month 免费云）——LangSmith 级功能但可自托管；(2) LangSmith（商业，$39/user/month）——LangChain 生态最佳；(3) Phoenix（Elastic License 2.0）——RAG/漂移可视化优秀；(4) Arize AX（商业）——zero-copy Iceberg/Parquet，号称比单体可观测性便宜 100x；(5) Helicone（MIT，100K req/month 免费）——proxy-based，15-30 分钟设置。生产常见模式是：网关（Helicone/Portkey）+ 评估平台（Phoenix/TruLens），通过 OpenTelemetry 胶水连接。
+
 You shipped an LLM feature. It works. You have no visibility into prompt failures, tool loops, latency regressions, cost spikes, or prompt-cache hit rate. You Google "LLM observability" and get eight tools all claiming they solve the same problem at three different price points.
 
 They don't solve the same problem. LangSmith answers "why did this LangGraph run fail?" Phoenix answers "is my RAG pipeline drifting?" Helicone answers "which app is burning tokens?" Langfuse answers "can I self-host the whole thing?" Different tools, different audiences.
@@ -34,6 +38,8 @@ Picking involves four axes: stack (LangChain? raw SDK? multi-vendor?), license t
 **Gateway/telemetry tools** instrument inference calls — prompt, response, tokens, latency, model, cost. Helicone, SigNoz, OpenLLMetry, Phoenix. Minimalist. Can be combined with a separate eval tool via OpenTelemetry.
 
 ### Langfuse — OSS balance
+
+> **【拓展：LLM 可观测性工具选型决策】** 2026 年 LLM 可观测性工具选型的关键维度：(1) 技术栈——LangChain/LangGraph 生态优先选 LangSmith；自研 SDK 选 Langfuse 或 Phoenix；(2) 许可证——要求 MIT 选 Langfuse/Opik；Elastic License 2.0 可接受选 Phoenix；商业可接受选 LangSmith；(3) 自托管——必须自托管选 Langfuse 或 Opik（Docker 部署）；(4) 预算——免费层 Langfuse 50K events/month、Helicone 100K req/month；(5) 规模——>10M traces/day 选 Arize AX 的 zero-copy 架构。
 
 - Core Apache / MIT licensed; self-host via Docker.
 - Cloud free tier: 50K events/month. Paid: $29/mo for team.
@@ -80,6 +86,10 @@ Picking involves four axes: stack (LangChain? raw SDK? multi-vendor?), license t
 
 ### The glue: OpenTelemetry + GenAI semantic conventions
 
+> **【中文解读】** OpenTelemetry 在 2025 年末发布了 GenAI 语义约定（`gen_ai.system`、`gen_ai.request.model`、`gen_ai.usage.input_tokens`），让不同工具可以互操作。2026 年的生产模式是：(1) 从每个 LLM 调用发出带 GenAI 约定的 OTel；(2) 路由到网关（Helicone/Portkey）做日常监控；(3) 双写到评估平台（Phoenix/Langfuse）做回归检测；(4) 存档到数据湖（Iceberg）通过 Arize AX 或 DuckDB 做长期分析。
+
+> **【拓展：LLM 可观测性的成本控制】** 在 >1M 请求/天的规模下，全量 trace 保留的成本超过 LLM 调用本身。采样策略：100% 错误、100% 高成本请求、5% 成功请求。始终保留聚合数据，只对长尾保留原始 trace。Langfuse 50K events/month 免费层适合小团队；大规模部署建议使用 OpenTelemetry Collector + 自有数据湖架构，成本可降低 80%+。
+
 OpenTelemetry published GenAI semantic conventions in late 2025 (`gen_ai.system`, `gen_ai.request.model`, `gen_ai.usage.input_tokens`). Tools that consume OTel can interoperate. The production pattern emerging:
 
 1. Emit OTel with GenAI conventions from every LLM call.
@@ -88,6 +98,8 @@ OpenTelemetry published GenAI semantic conventions in late 2025 (`gen_ai.system`
 4. Archive in data lake (Iceberg) for long-term analysis via Arize AX or DuckDB.
 
 ### The trap: instrumenting at the wrong layer
+
+> **【中文解读】** 埋点层级的选择：在 Agent 框架内埋点（如添加 LangSmith traces）会耦合到该框架；在 HTTP/OpenAI-SDK 层埋点（通过 OpenLLMetry 或网关）则可移植。2026 年的最佳实践是在协议层埋点——无论底层使用什么框架，都通过 OpenTelemetry + GenAI 语义约定统一采集。
 
 Instrumenting inside your agent framework (e.g., adding LangSmith traces) couples you to that framework. Instrumenting at the HTTP/OpenAI-SDK layer (via OpenLLMetry or your gateway) is portable.
 

@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 推理的解码阶段是内存带宽受限的——每解码一个 token 需要读取约 140 GB/s 的权重，GPU 计算几乎空闲。推测解码利用这个空闲：用廉价的小模型生成 K 个候选 token，然后让目标模型在一次前向传播中验证所有 K 个。接受率 alpha 是唯一重要的指标——低于 0.55 时推测解码在高并发下反而有害。
+
+> **【拓展：推测解码的产业应用】** Google 在 2025 年将推测解码部署到 AI Overviews（搜索引擎摘要生成），在不损失质量的情况下显著加快了响应速度。vLLM V1 提供了 `speculative_config` 作为官方接口。生产中，推测解码特别适合实时对话（TTFT 敏感）和代码补全（延迟敏感）场景。但需注意：高并发（256+）时，decode batch 已经足够大，内存带宽的差距缩小，推测解码的收益降低。
+
 Decode is memory-bound. On an H100 running Llama 3.3 70B FP8, each decoded token reads ~140 GB/s of weights and emits one token. The GPU compute is almost idle during decode — the bottleneck is HBM bandwidth, not matmul throughput.
 
 Speculative decoding exploits the gap. Generate K candidate tokens with a cheap draft model, then ask the target model to verify all K in a single forward pass. Each verified token is effectively free (amortized into a batch-of-K forward the target would have had to do anyway).
@@ -31,6 +35,8 @@ The catch: EAGLE-3 is opt-in in vLLM 2026. `speculative_config` must be set expl
 
 ### What speculative decoding actually buys
 
+> **【中文解读】** 推测解码的加速比公式为 `S = (1 + K*alpha) / (1 + verify_overhead)`。对于 K=5, alpha=0.7，理论加速 4.1x。但实际生产中通常只达到 2-3x，因为 alpha 在真实流量上很少达到 0.7 以上，且验证开销在高 batch size 时增大。
+
 Without spec decode, per-token cost is one target forward. With spec decode at draft length K and acceptance alpha, expected tokens per target forward is `1 + K * alpha`. The speedup is `(1 + K * alpha) / (1 + epsilon)` where epsilon is draft-plus-verify overhead. For K=5, alpha=0.7: `(1 + 5*0.7) / (1 + 0.1) = 4.5 / 1.1 = 4.1x`. Real-world numbers cluster around 2-3x because alpha is rarely that high on production traffic and epsilon grows at high batch size.
 
 ### Why alpha is the only metric that matters
@@ -41,12 +47,18 @@ Alpha varies by workload. On ShareGPT-style general chat, EAGLE-3 trained on Sha
 
 ### EAGLE generations at a glance
 
+> **【中文解读】** 推测解码经历了三代演进：(1) Classic draft model（同一系列的小模型，alpha 0.3-0.5）——简单但接受率低；(2) EAGLE-1/2（在目标模型隐状态上训练 draft head，alpha 0.5-0.7）——更高接受率；(3) EAGLE-3（在多层隐状态上训练，alpha 0.6-0.8）——2025-2026 年的生产级方案。关键区别是 EAGLE 直接在目标模型的内部表示上训练 draft，而非在原始 token 上，因此分布更接近目标。
+
+> **【拓展：推测解码 vs 其他加速技术】** LLM 推理加速技术对比：(1) 推测解码（EAGLE-3）——2-3x 加速，需要额外 draft head；(2) 量化（INT8/FP8）——推理加速 1.5-2x，有轻微质量损失；(3) 分块预填充——降低 ITL tail 但不直接提升吞吐；(4) 分离式 prefill/decode——消除资源浪费，30-40% 成本节省；(5) 自研芯片（Groq/Cerebras）——5-10x 解码速度但单价更高。这些技术可以叠加使用：EAGLE-3 + FP8 + 分离式部署的综合效果可达 10x+。
+
 - **Classic draft model**: small model of same family. Alpha 0.3-0.5. Infrastructure simple — two models loaded, draft runs K forwards per target forward.
 - **EAGLE-1 (2024)**: single draft head trained on target hidden states (last layer). Alpha ~0.5-0.6. Small param overhead on top of target.
 - **EAGLE-2 (2025)**: adaptive draft length and tree-based drafts (verify multiple branches in one target pass). Alpha ~0.6-0.7. More complex draft scheduler.
 - **EAGLE-3 (2025-2026)**: draft head trained on multiple target layers (not just last), better alignment. Alpha ~0.6-0.8 on general chat.
 
 ### The 2026 production recipe
+
+> **【中文解读】** 生产环境 EAGLE-3 部署的五步流程：(1) 先以基础模型上线，建立 TTFT/ITL/吞吐量基线；(2) 启用 EAGLE-3 draft 配置；(3) 监控接受率 alpha——vLLM V1 通过 `spec_decode_metrics.accepted_tokens_per_request` 暴露此指标；(4) 如果 alpha < 0.55，禁用推测解码或训练领域特定的 draft head；(5) 在生产并发水平重新测试，确认 P99 ITL 没有恶化。
 
 1. Ship target model plain. Measure baseline TTFT, ITL, throughput at target concurrency.
 2. Enable EAGLE-3 draft via vLLM `speculative_config`. Re-run the benchmark.
@@ -67,6 +79,10 @@ Google deployed speculative decoding in AI Overviews in 2025 (same quality, fast
 Expected speedup: `S(alpha, K) = (1 + K*alpha) / (1 + verify_overhead)`. Setting `S = 1` solves for alpha: `alpha_breakeven = verify_overhead / K`. For typical verify_overhead ~0.15 and K=5: `alpha_breakeven = 0.03`. But that is the raw decode math. At high concurrency the verify overhead rises and the decode batch already amortizes memory reads across sequences, so effective alpha_breakeven climbs to ~0.45-0.55 in practice.
 
 ### When not to use speculative decoding
+
+> **【拓展：推测解码的适用场景】** 推测解码在以下场景有效：(1) 实时对话（TTFT < 200ms 要求）——2-3x 加速显著改善用户体验；(2) 代码补全（实时性要求高）；(3) 低并发场景（< 50 concurrent）——内存带宽差距大，收益明显。在以下场景应避免：(1) 批量离线生成——延迟不重要，使用 plain target；(2) 短输出（< 50 tokens）——draft 开销和验证成本主导；(3) 专业领域（无领域训练的 draft head）——alpha 太低；(4) vLLM v0.18.0 + draft-model + chunked-prefill 的组合——不兼容。
+
+> **【拓展：vLLM 推测解码配置】** vLLM V1 支持三种推测解码模式：(1) Draft model——传统小模型作为 draft，与 chunked-prefill 不兼容；(2) EAGLE——在隐状态上训练的 draft head，推荐用于通用场景；(3) N-gram GPU——基于 prompt 中 N-gram 查找的 GPU 端 draft，是唯一与 chunked-prefill 兼容的模式。`speculative_config` 必须显式设置，vLLM 默认不开启任何推测解码。
 
 - Batch-1 offline generation where latency does not matter. Use plain target.
 - Very short outputs (under 50 tokens). Draft overhead and verify cost dominate.

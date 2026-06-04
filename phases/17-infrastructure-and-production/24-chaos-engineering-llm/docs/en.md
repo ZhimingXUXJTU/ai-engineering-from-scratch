@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** LLM 混沌工程是 2026 年的独立学科。LLM 栈增加了新的故障模式：4K-token 的毒化字符使分词器卡住 12 秒；上游提供商 429 触发网关重试，重试放大并发导致 OOM；突发负载下 KV Cache 淘汰风暴引发 re-prefill 级联，耗尽计算资源。这些都不会出现在单元测试中——混沌工程是在用户之前发现它们的手段。
+
+> **【拓展：LLM 混沌工程的五类实验】** 2026 年 LLM 特定的五类混沌实验：(1) 内存过载——发送长上下文高并发请求引发 KV Cache 抢占风暴，观察服务是优雅降级还是崩溃；(2) 网络故障——切断推理网关与提供商的连接，观察 failover 是否在 SLA 内生效；(3) 提供商中断模拟——100% OpenAI 429，观察路由是否 failover 到 Anthropic；(4) 畸形提示——注入分词器卡死的负载（深层嵌套 Unicode、巨大 UTF-8 码点），观察是否单个请求锁住 worker；(5) KV 淘汰风暴——饱和 vLLM 块预算强制淘汰，观察 LMCache 恢复还是服务降级。
+
 Chaos testing in traditional stacks is established. LLM stacks add new failure modes. A 4K-token prompt with a poison character stalls the tokenizer for 12 seconds. An upstream provider 429s; your gateway retries; your service OOMs on retry-amplified concurrency. A KV cache eviction storm under burst load causes re-prefill cascades that saturate compute.
 
 None of these show up in unit tests. Chaos engineering is how you discover them before users do.
@@ -26,6 +30,8 @@ None of these show up in unit tests. Chaos engineering is how you discover them 
 ## The Concept | 概念
 
 ### Prerequisites
+
+> **【中文解读】** 在生产中运行混沌测试的五个前提：(1) SLI/SLO 已定义；(2) 可观测性（trace + metric + log）已部署；(3) 自动回滚机制就绪；(4) 结构化 runbook 已编写；(5) 有值班人员响应。缺少任何一项，混沌就会变成真实事件。四个平面：控制面（实验调度器）、目标面（服务/基础设施）、安全面（kill switch + 抑制窗口 + blast radius 限制）、可观测面（指标 + trace 关联）。反馈循环将发现回馈到 SLO 调整、runbook 更新和代码修复。
 
 Don't run chaos in production without:
 
@@ -51,6 +57,8 @@ Missing any means chaos becomes real incident.
 
 ### Guardrails are mandatory
 
+> **【拓展：混沌工程的安全护栏】** 混沌工程的三个必要安全护栏：(1) 燃尽率告警——实验期间如果每日错误预算消耗超过预期的 2x，自动暂停实验；(2) 抑制窗口——在实验的爆炸半径内静默非实验告警，避免 on-call 噪音；(3) Trace-ID 关联——所有实验引起的错误携带标签，使 on-call 可以去重。这些护栏确保混沌实验不会变成真实事件——缺少任何一个都意味着混沌失控。
+
 - **Burn-rate alert**: pause experiment if daily error-budget burn exceeds 2x expected.
 - **Suppression windows**: silence non-experiment alerts in the blast radius during experiment.
 - **Trace-ID correlation**: all experiment-induced errors carry a tag so on-call can dedupe.
@@ -74,6 +82,8 @@ Missing any means chaos becomes real incident.
 - **Quarterly** — cross-team resilience audit; dependency map update.
 
 ### Tooling
+
+> **【拓展：混沌工程工具选择】** 2026 年混沌工程工具选择：(1) Harness Chaos Engineering——商业，AI 驱动的实验推荐，blast radius 自动缩放，MCP 工具集成；(2) LitmusChaos——CNCF 毕业，Kubernetes 工作流式；(3) Chaos Mesh——CNCF 沙箱，Kubernetes-native CRD 风格；(4) Gremlin——商业，广泛支持；(5) AWS FIS / Azure Chaos Studio——托管云服务。节奏建议：每周小 canary 实验 + SLO 审查，每月 game day + postmortem，每季度跨团队韧性审计 + 依赖映射更新。
 
 - **Harness Chaos Engineering** — commercial; AI-derived experiment recommendations; blast-radius downscaling; MCP tool integration.
 - **LitmusChaos** — CNCF graduated; Kubernetes workflow-based.

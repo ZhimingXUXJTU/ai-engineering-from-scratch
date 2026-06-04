@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** Serverless LLM 端点的冷启动问题：70B 模型从零到服务需要 3-8 分钟（节点供给 45-60s + 容器拉取 120-300s + 权重加载 45-120s + 引擎初始化 10-30s），远超 2s 的 SLA。解决方案是保留热池（min_workers=1），但这意味着 24/7 支付空闲 GPU 费用——5 个产品各保留 1 个热副本，每月 3600 GPU-hours 无论是否有用户调用。
+
+> **【拓展：Serverless LLM 平台对比】** 2026 年 Serverless LLM 平台的冷启动表现：Modal 凭借 GPU 快照技术实现 2-4s 冷启动（业界最快）；Baseten 默认 5-10s，预加热后可低于 1s；AWS Lambda + 容器镜像通常 10-30s（不包含模型加载）；GCP Cloud Run + GPU 较新，冷启动约 15-30s。对于 TTFT P99 < 60s 的 70B+ 模型，热池是强制性的——没有任何冷启动优化能在 60s 内完成全流程。
+
 Your serverless LLM endpoint scales to zero overnight. At 8 a.m. traffic spikes. The first request waits while:
 
 1. Karpenter provisions a GPU node: 45-60s.
@@ -34,19 +38,29 @@ Cold-start mitigation is how to keep the serverless economics while approximatin
 
 ### Layer 1 — pre-seeded node images (Bottlerocket)
 
+> **【中文解读】** 第一层——预播种节点镜像。AWS Bottlerocket 的双卷架构将操作系统与数据分离。将容器镜像（含模型权重）预烘焙到数据卷快照中，在 `EC2NodeClass` 中引用快照 ID。新节点启动时权重已在本地 NVMe 上——消除了镜像拉取步骤，为大型模型节省 2-4 分钟。GCP 和 Azure 有类似的自定义 VM 镜像模式。
+
 On AWS, Bottlerocket's dual-volume architecture separates OS from data. Snapshot the data volume with your container image pre-pulled; reference the snapshot ID in your `EC2NodeClass`. New nodes boot with weights already on local NVMe — steps 2 and part of 3 vanish. Works with Karpenter natively. Typical savings: 2-4 minutes per cold start for large models.
 
 Equivalent on GCP: custom VM images with pre-baked container layers. On Azure: managed disk snapshots with the same pattern.
 
 ### Layer 2 — model streaming (Run:ai Model Streamer)
 
+> **【中文解读】** 第二层——模型流式加载。NVIDIA Run:ai Model Streamer 不需要等整个文件加载完才开始服务，而是将权重逐层流式加载到 GPU 内存，并在第一个 transformer 块加载完成后就开始处理。2026 年 vLLM 原生支持此功能。兼容 S3、GCS 和本地 NVMe。通过重叠 I/O 和计算设置，可将大型模型的权重加载时间减半。
+
 Instead of loading the full file before answering the first request, stream weights into GPU memory layer-by-layer and start processing as soon as the first transformer block is resident. The NVIDIA Run:ai Model Streamer ships native in vLLM 2026. Works with S3, GCS, and local NVMe. Cuts weight-load time roughly in half for large models by overlapping I/O with compute setup.
 
 ### Layer 3 — GPU memory snapshots (Modal)
 
+> **【中文解读】** 第三层——GPU 内存快照。Modal 在首次加载后对 GPU 状态（权重、CUDA graph、KV Cache 区域）做检查点，后续重启直接反序列化到 HBM——比重新初始化快 10x。这是"2 秒启动热 GPU"最接近的技术。代价是快照与 GPU 拓扑绑定——如果 Karpenter 将你迁移到不同 SKU，需要重新制作快照。
+
+> **【拓展：冷启动优化策略叠加】** 五层冷启动缓解可以叠加使用：(1) 预播种镜像（消除镜像拉取）+ (2) 模型流式加载（减半权重加载时间）+ (3) GPU 快照（消除重复加载）+ (4) 热池（避免冷启动）+ (5) 分层加载（NVMe→DRAM→HBM）。全栈叠加可将 70B 模型从 328s 冷启动降到约 15s——22x 改善。选择哪几层取决于 SLA 严格程度和预算。
+
 Modal takes a checkpoint of the GPU state (weights, CUDA graphs, KV cache region) after first load. Subsequent restarts deserialize directly into HBM — 10x faster than re-initializing. This is the closest thing to "boot a warm GPU in 2 seconds." Trade-off: snapshots are per-GPU-topology, so if Karpenter migrates you to a different SKU, you re-checkpoint.
 
 ### Layer 4 — warm pools (min_workers=1)
+
+> **【拓展：Serverless LLM 平台的冷启动对比】** 2026 年 Serverless LLM 平台的冷启动表现：Modal 以 GPU 快照技术实现 2-4s（业界最快）；Baseten 默认 5-10s，预加热后 <1s；AWS Lambda + 容器镜像通常 10-30s（不含模型加载）；原始 70B 模型冷启动 3-8 分钟。Modal 的快照技术是关键差异——它将 GPU 状态（权重 + CUDA graph + KV Cache 区域）序列化，重启时直接反序列化到 HBM，比重新初始化快 10x。代价是快照与 GPU 拓扑绑定，迁移到不同 SKU 需要重新制作快照。
 
 Simplest mitigation: keep one replica always ready. Cost is one GPU's hourly rate 24x7. The arithmetic is brutal on small models (you pay $0.85-$1.50/hr to avoid a 30s cold start) and kind to large ones (pay $4/hr to avoid a 5-minute cold start). The SLA threshold where warm pools become mandatory: typically TTFT P99 < 60s on a 70B+ model.
 
@@ -60,6 +74,8 @@ When a node becomes unavailable (spot eviction, node drain), traditional pattern
 
 ### The warm-pool math
 
+> **【中文解读】** 热池数学：对于 P99 TTFT SLA 为 2s 的服务，问题不是"热池 yes/no"而是"多少热副本、哪些路径需要"。高价值交互路径（实时聊天、语音 Agent）→ min_workers=1-2；后台批处理路径（夜间分类）→ scale-to-zero 可接受；高级层级 → 按租户专用热副本。简单算术：5 个产品各 1 个热副本 = 5 × 24 × 30 = 3600 GPU-hours/月，无论是否有用户调用。
+
 For a service with P99 TTFT SLA of 2s, the question is not "warm pool yes/no" but "how many warm replicas, and which paths get them."
 
 - High-value interactive paths (live chat, voice agent): `min_workers=1-2`.
@@ -67,6 +83,8 @@ For a service with P99 TTFT SLA of 2s, the question is not "warm pool yes/no" bu
 - Premium tier: `min_workers` per tenant with dedicated capacity.
 
 ### Measure before optimizing
+
+> **【中文解读】** 70B 模型冷启动解剖（示意数据）：节点供给 50s + 镜像拉取 180s + 权重到 HBM 75s + 引擎初始化 20s + 首次前向 3s = 总计 328s。全栈缓解后：预播种消除镜像拉取、模型流式加载减半权重加载、GPU 快照消除重复初始化 = 约 15s 总冷启动（22x 降低）。
 
 Cold-start anatomy for a 70B model on a fresh node (illustrative):
 

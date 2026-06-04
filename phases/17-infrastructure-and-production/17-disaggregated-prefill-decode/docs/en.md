@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 分离式预填充/解码的核心问题：prefill 是计算受限的，decode 是内存受限的，在同一 GPU 上运行两者浪费一种资源。在混合工作负载下，20-40% 的 GPU 时间浪费在错误的资源上——你用 H100 的算力跑内存受限的 decode，或用 H100 的带宽跑计算受限的 prefill。分离式架构将两者分配到各自优化的独立池中，KV Cache 通过高速互连（RDMA/InfiniBand）传输。
+
+> **【拓展：分离式推理的经济学】** 分离式推理的经济学：内部综合数据显示，从共置服务切换到 Dynamo 分离式部署，可在保持相同 P99 延迟 SLA 的前提下节省 30-40%（$2M 年支出可节省 $600-800K/年）。Baseten 报告 Dynamo KV routing 带 2x 更快 TTFT 和 61% 更高吞吐。关键条件：提示 >512 tokens + 输出 >200 tokens 时才值得分离——短提示的 KV 传输开销超过收益。
+
 You run Llama 3.3 70B on 8 H100s. Under mixed workload (long prompts + short outputs), GPUs idle during decode because most of the compute was spent on prefill. Under different workload (short prompts + long outputs), the opposite happens. Colocated prefill + decode means you over-provision both.
 
 Budget impact: 20-40% of GPU time is wasted on the wrong resource. You are buying H100 compute to run memory-bound decode, or buying H100 HBM bandwidth to run compute-bound prefill. Both are expensive waste.
@@ -56,6 +60,8 @@ NIXL is NVIDIA's inter-node transport. Uses RDMA/InfiniBand when available, TCP 
 
 ### Dynamo vs llm-d
 
+> **【中文解读】** 两种分离式推理框架的对比：(1) NVIDIA Dynamo——位于 vLLM/SGLang/TRT-LLM 之上的编排器，Rust 核心 + Python 扩展，Planner Profiler 自动配置 prefill:decode 比例，在 GB200 NVL72 + DeepSeek-R1 MoE 上报告 6x 吞吐提升；(2) llm-d（Red Hat + AWS）——Kubernetes 原生，prefill/decode/router 作为独立 Service，per-role HPA，`packDomain: rack` 确保同一机架内的高带宽 KV 传输。选 Dynamo 如果想要托管编排器，选 llm-d 如果 committed to CNCF 生态。
+
 **NVIDIA Dynamo** (GTC 2025 announce, 1.0 GA):
 - Sits above vLLM, SGLang, TRT-LLM as an orchestrator.
 - Planner Profiler measures workload, SLA Planner auto-configures prefill:decode ratios.
@@ -85,6 +91,8 @@ We synthesize this figure from multiple customer disclosures rather than a singl
 
 ### When NOT to disaggregate
 
+> **【拓展：分离式推理的适用条件】** 分离式推理 NOT 适用的场景：(1) 提示 <512 tokens 且输出 <200 tokens——KV 传输税超过收益；(2) 小集群（<4 GPUs）——没有足够的池多样性；(3) 团队无法运营两个按角色扩展的 GPU 池——Dynamo 有帮助但并非简单；(4) 没有 RDMA 网络——TCP 传输税更重。NIXL 的 4K-prompt KV 在 70B FP8 上约 500MB，RDMA 100 GB/s 传输 = 5ms，TCP 10 GB/s = 50ms——对于严格的 SLA 来说差异巨大。
+
 - Prompts < 512 tokens and outputs < 200 tokens: transfer tax dominates gain.
 - Small cluster (< 4 GPUs): not enough pool diversity.
 - Team cannot operate two GPU pools with per-role scaling: Dynamo helps but not trivially.
@@ -95,6 +103,10 @@ We synthesize this figure from multiple customer disclosures rather than a singl
 Disaggregated routers are KV-cache-aware (Phase 17 · 11). A request lands on the decode pool holding its prefix — if no match, it flows prefill → decode. Hit rate and disaggregation compound — the cache-aware router determines whether a new prefill is even needed.
 
 ### MoE on Blackwell is where the real numbers are
+
+> **【中文解读】** MoE（混合专家）模型在 Blackwell 上是分离式推理的最大受益者。MoE 的 expert routing 在 prefill 阶段是计算密集的，在 decode 阶段是内存密集的（expert cache），因此分离是双重收益。2026 年的前沿模型服务以 MoE 为主导（DeepSeek-V3、未来的 GPT-5 变体），GB300 NVL72 + Dynamo 显示相对 Hopper 基线高达 50x 的 MoE 吞吐提升。
+
+> **【拓展：分离式推理与缓存路由的协同】** 分离式推理的 router 是 KV-cache-aware 的（Phase 17·11）。请求到达 decode 池时，如果已有前缀缓存，可以直接复用而无需经过 prefill 池——命中率与分离式部署的收益复合。NIXL 是 NVIDIA 的节点间传输层，使用 RDMA/InfiniBand（可用时）或 TCP 回退。4K-prompt KV 在 70B FP8 上的传输延迟约 20-80ms——这是短提示不值得分离式部署的原因。
 
 GB300 NVL72 + Dynamo shows 50x MoE throughput over Hopper baselines. MoE expert routing is compute-heavy on prefill but memory-heavy on decode (expert caches), so disaggregation is a double win. 2026 frontier model serving is MoE-dominant (DeepSeek-V3, future GPT-5 variants).
 

@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 2026 年推理经济学的前沿问题是"每美元多少 token"。答案取决于四层叠加选择：硬件代际（Hopper H100/H200 vs Blackwell B200/GB200）、精度（BF16 → FP8 → NVFP4）、推理引擎（vLLM vs SGLang vs TRT-LLM）和编排（朴素 vs 分离式 vs Dynamo）。在 Hopper + vLLM 上运行 120B MoE 约 $0.09/M tokens；在 Blackwell + TRT-LLM + Dynamo 上仅 $0.012/M——7x 差距。这个差距的代价是 NVIDIA 锁定——你无法在其他厂商的硬件上复现。
+
+> **【拓展：NVIDIA Blackwell 架构】** Blackwell（B200/GB200）是 NVIDIA 2024-2025 年推出的 GPU 架构，相比 Hopper (H100) 在 LLM 推理上有 11-15x 的每 GPU 吞吐提升。关键特性包括：NVFP4 精度（4-bit 微缩放浮点，硬件加速）、NVLink 5（MoE 专家通信延迟降低 3x）、第二代 Transformer Engine、以及 GB200 NVL72 的 72-GPU 一致内存域。MLPerf Inference v6.0（2026 年 4 月）显示 Blackwell 在所有提交任务中全面领先。
+
 The frontier of inference economics in 2026 is "how many tokens per dollar". The answer depends on four stacked choices: hardware generation (Hopper H100/H200 vs Blackwell B200/GB200), precision (BF16 → FP8 → NVFP4), serving engine (vLLM vs SGLang vs TRT-LLM), and orchestration (plain vs disaggregated vs Dynamo).
 
 On Hopper with vLLM, a 120B MoE runs at ~$0.09 per million tokens. On Blackwell with TRT-LLM + Dynamo, the same model runs at ~$0.012 — 7x cheaper. Some of that gap is hardware (Blackwell is 11-15x per-GPU LLM throughput vs Hopper). Some is the stack: FP4 weights, MTP draft, disaggregated prefill/decode, and NVLink 5 all-to-all for MoE expert communication.
@@ -28,6 +32,8 @@ You cannot replicate this outside NVIDIA's stack. That is the tradeoff — porta
 ## The Concept | 概念
 
 ### Why FP8 is still the floor for KV cache
+
+> **【中文解读】** FP8 是 KV Cache 的最低精度要求。KV Cache 存储的注意力键值跨越很宽的动态范围——将 KV 量化到 FP4 会导致灾难性精度损失。NVFP4 只适用于权重和激活——微缩放让每个权重块有独立的缩放因子。典型的 Blackwell 配置是：权重 NVFP4（4-bit 微缩放）、激活 NVFP4、KV Cache FP8、注意力累加器 FP32。
 
 A common mistake in 2026: assuming NVFP4 applies everywhere. It does not. KV cache needs FP8 (8-bit floating point) because it stores attention keys and values that span a wide dynamic range. Quantizing KV to FP4 causes catastrophic accuracy loss — the tail of the distribution drops off and attention scores collapse. FP8's exponent bits give KV cache the range it needs.
 
@@ -59,11 +65,19 @@ The typical Blackwell config:
 
 ### What FP4 actually costs in quality
 
+> **【中文解读】** NVFP4 在推理密集型工作负载（思维链、数学、长上下文代码生成）上会导致可见的质量退化。每块校准可以缓解但不能消除。2026 年的实践指南是：推理模型使用 FP8 权重 + FP4 激活作为折中，或继续使用 H200 全 FP8。规则是：在提交 NVFP4 权重之前，必须在自己的评估集上验证任务质量。
+
+> **【拓展：量化精度 vs 推理成本权衡】** 量化精度的选择是质量和成本的权衡：(1) BF16——无质量损失，但内存需求大（70B 模型需 140GB）；(2) FP8——近乎无损，Hopper/Blackwell 硬件加速，推荐用于推理密集型任务；(3) INT4（AWQ/GPTQ）——4-bit 权重，MATH 分数下降 3-5 点，适合通用聊天；(4) NVFP4——最激进，Blackwell 专用，必须在目标评估集上验证。生产中通常混合使用：权重低精度、KV Cache FP8。
+
 NVFP4 is aggressive. On reasoning-heavy workloads (chain-of-thought, math, code-gen with long context), FP4 weights degrade visibly. Per-block calibration mitigates but does not eliminate. Teams shipping reasoning models often use FP8 weights + FP4 activations as a compromise, or stick to H200 with FP8 throughout.
 
 The rule: always validate task quality on your eval set before committing to NVFP4 weights.
 
 ### Why this is an NVIDIA-lock decision
+
+> **【中文解读】** TRT-LLM 是 C++ + CUDA + 闭源内核的组合。模型需要为特定 GPU SKU 编译。不支持 AMD、Intel 或 ARM。如果你的基础设施策略是多供应商，TRT-LLM 对于这个层是不可选项——你仍然可以在混合硬件上使用 vLLM。但如果你是 NVIDIA-only，7x 的经济差距值得这个锁定。
+
+> **【拓展：NVIDIA vs AMD 推理生态】** 2026 年 AI 推理芯片市场的格局：NVIDIA 凭借 CUDA 生态和 TRT-LLM 占据约 80% 的数据中心推理份额。AMD MI300X 在原始算力上有竞争力，但软件栈（ROCm + vLLM）仍在追赶。Intel Gaudi 3 是另一个选项但采用率较低。对于年推理支出 $100M+ 的企业，迁移到 Blackwell + TRT-LLM + Dynamo 的 7x 成本差距可以节省数千万美元。
 
 TRT-LLM is C++ + CUDA + closed-source kernels. Models need to be compiled for a specific GPU SKU. No AMD, no Intel, no ARM. If your infra strategy is multi-vendor, TRT-LLM is a non-starter for the TRT-LLM-served tier — you can still serve from vLLM on mixed hardware. If you are NVIDIA-only, the 7x gap pays for the lock.
 
@@ -76,6 +90,8 @@ For a $100M+ annual inference bill, running on Hopper + vLLM leaves 7-10x on the
 TRT-LLM's disaggregated serving (separate prefill and decode pools) is covered in depth in Phase 17 · 20. On Blackwell, the multiplier stacks: FP4 weights × MTP speedup × disaggregated placement × cache-aware routing. The 7x number assumes this full stack.
 
 ## Use It | 使用方法
+
+> **【拓展：Blackwell 迁移决策】** 从 Hopper 迁移到 Blackwell + TRT-LLM 的决策框架：(1) 年推理支出是否超过 $5M？是→值得评估迁移；(2) 是否可以接受 NVIDIA 锁定？否→继续使用 vLLM + Hopper；(3) 工作负载是否包含 MoE 模型？是→Blackwell 的 NVLink 5 all-to-all 提供额外 3x 加速；(4) 推理密集型任务占比是否超过 30%？是→需要验证 NVFP4 质量。迁移 ROI 通常在 6-12 个月内回本。
 
 `code/main.py` computes HBM footprint, decode throughput (memory-bound regime), and $/M-tokens for a model across three stacks: H100 + BF16 + vLLM, H100 + FP8 + vLLM, B200 + NVFP4/FP8 + TRT-LLM. Run it to see the compounding effect and the share of the gap each change contributes.
 

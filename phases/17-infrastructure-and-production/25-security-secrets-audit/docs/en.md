@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** LLM 服务的安全需要解决三个向量：(1) 凭证管理——实习生提交 `.env` 含 API keys，已在 git 历史中，轮换流程是"Slack 群发，更新 40 个配置文件，重新部署所有服务——8 小时后只有一半服务上线"；(2) PII 泄露——用户提示包含"My SSN is 123-45-6789"，直接发送到 OpenAI，虽然有 BAA 但内部政策要求发送前脱敏；(3) 网络出口——EKS 集群的 LLM Pod 可以访问任何互联网主机，有人通过 DNS 查询到攻击者控制的域名外泄数据。
+
+> **【拓展：2026 年 LLM 安全事件】** 2026 年的典型 LLM 安全事件包括：(1) Vercel 供应链攻击——受损的 CI/CD 凭证外泄了数千个客户部署的环境变量；(2) 提示注入攻击——通过用户输入操纵 LLM 执行非预期操作；(3) 数据泄露——LLM 在响应中泄露训练数据中的敏感信息。防御措施包括：集中式 Vault（HashiCorp Vault、AWS Secrets Manager）、PII 脱敏（spaCy NER + Presidio）、网络出口白名单、不可变审计日志。
+
 An intern commits `.env` with API keys. They delete it quickly. The keys are already in git history — GitGuardian scan catches it, your rotation process is "Slack the team, update 40 config files, redeploy all services." 8 hours later, half your services are live and half are waiting for deploy windows.
 
 Separately, user prompts include "My SSN is 123-45-6789." Prompt goes to OpenAI. You have a BAA but your internal policy is to mask PII before forwarding. You didn't.
@@ -30,6 +34,8 @@ Security for LLM services has to address all three vectors. Vault-backed credent
 ## The Concept | 概念
 
 ### Centralized vault + IAM-role pull
+
+> **【拓展：AI 网关密钥管理模式】** 2026 年 LLM 服务的密钥管理最佳实践——AI 网关模式：应用→网关→模型提供商，网关在请求时从 Vault 拉取 `OPENAI_API_KEY`。在 Vault 中轮换密钥后，下一次请求自动获得新密钥——无需重新部署、无需 Slack"谁有新密钥"消息。支持的 Vault 包括：HashiCorp Vault、AWS Secrets Manager、Azure Key Vault、GCP Secret Manager。配合 IAM 角色认证（应用通过 IAM 身份而非静态密钥认证），轮换策略 <= 90 天，可消除密钥散布问题。
 
 **Vault**: HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, GCP Secret Manager. One source of truth.
 
@@ -59,6 +65,8 @@ Run on every commit. Block PR if new secret detected.
 
 ### PII / PHI scrubbing
 
+> **【中文解读】** PII/PHI 脱敏的四步流程：(1) 实体识别（spaCy NER、Presidio、商业工具）；(2) 掩码匹配的实体——"My SSN is 123-45-6789" → "My SSN is [SSN_TOKEN_A3F]"；(3) 一致性标记化（Mesh 方法）——相同值映射到相同占位符，LLM 可以保持关系语义；(4) 可选的 LLM 响应逆映射。静态正则过滤器捕获基本模式，NER 捕获更多——两者都使用。
+
 Before the prompt leaves your infra:
 
 1. Entity recognition (spaCy NER, Presidio, commercial).
@@ -75,6 +83,8 @@ Input: block known jailbreaks, forbidden topics; rate-limit per-user.
 Output: regex scrub for leaked secrets (API key patterns, email patterns in refusal contexts), classifier for policy violations.
 
 ### Network egress whitelist
+
+> **【拓展：LLM 安全纵深防御】** LLM 服务的纵深防御策略包括：(1) 集中式 Vault + IAM 角色拉取——应用/网关通过 IAM 身份认证，Vault 返回有限期令牌，轮换在 Vault 中完成，所有应用自动获得新密钥；(2) AI 网关模式——应用→网关→提供商，网关从 Vault 拉取凭证，无需重新部署；(3) 90 天轮换策略——所有 API key、vault root token、CI/CD 凭证；(4) 每次提交扫描——TruffleHog / GitGuardian / Gitleaks 在 CI 中阻止含新密钥的 PR；(5) 不可变审计日志——每次 LLM 调用的时间戳、用户/租户、提示哈希、模型+版本、token 数、成本、响应哈希、guardrail 触发。SOC 2 保留 1 年，HIPAA 保留 6 年。
 
 LLM services in a dedicated subnet:
 - Whitelist: `api.openai.com`, `api.anthropic.com`, vector DB endpoints, vault endpoints.

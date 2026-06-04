@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 推理服务有多个延迟轴，每个轴以不同方式失败。Prefill 是计算受限的，随提示长度增长；Decode 是内存受限的，随 batch size 增长；排队延迟是运维问题；网络是物理距离问题。需要不同的指标来衡量每个维度，需要百分位数，还需要一个综合指标说"用户是否得到了期望的体验"——这就是 Goodput。
+
+> **【拓展：LLM 推理指标体系】** 2026 年 LLM 推理的完整指标体系包括：(1) TTFT（首 token 延迟）——用户感知到的首次响应时间；(2) TPOT/ITL（每 token 延迟/inter-token 延迟）——流式输出的平滑度；(3) E2E（端到端延迟）——从请求到完成的总时间；(4) Throughput（吞吐量）——集群效率指标；(5) Goodput（有效吞吐）——同时满足所有 SLA 的请求比例。MLPerf Inference v6.0 已将 Goodput 作为官方提交指标。
+
 "Our throughput is 15,000 tokens per second." So what? If 40% of requests blew past 2 seconds end-to-end, users abandoned the session. Throughput alone does not tell you whether the product works.
 
 Inference has multiple axes of latency and each one fails differently. Prefill is compute-bound and scales with prompt length. Decode is memory-bound and scales with batch size. Queuing delay is an operational problem. Network is a physical-distance problem. You need distinct metrics for each, and you need percentiles, and you need a single composite that says "did the user get what they expected" — that is goodput.
@@ -27,11 +31,15 @@ Inference has multiple axes of latency and each one fails differently. Prefill i
 
 ### TTFT — time to first token
 
+> **【中文解读】** TTFT = queue_time + network_request + prefill_time。Prefill 在长提示时占主导——32K prompt 在 Llama 3.3 70B FP8 H100 上需要约 800ms 的纯 prefill。排队时间是负载下的调度器行为，网络请求包括 TLS 的线缆时间。TTFT 是用户在流式返回任何内容之前感知到的延迟。
+
 `TTFT = queue_time + network_request + prefill_time`
 
 Prefill dominates when prompts are long. On Llama-3.3-70B FP8 on H100, a 32k prompt takes ~800 ms of pure prefill. Queue time is scheduler behavior under load. Network request is wire time including TLS. TTFT is the latency the user sees before anything streams back.
 
 ### TPOT / ITL — inter-token latency
+
+> **【中文解读】** TPOT（time per output token）= ITL（inter-token latency）= decode latency per token。公式：TPOT = (decode_forward_time + scheduler_overhead) / tokens_produced。在 Llama 3.3 70B H100 + 分块预填充下，TPOT 均值约 7ms；无分块预填充时，在长 prefill 邻居序列期间 TPOT 可飙升至 50ms。永远监控 P99 而非均值。
 
 Many names for one quantity. `TPOT` (time per output token), `ITL` (inter-token latency), `decode latency per token` — all the same. It is the time between consecutive streamed tokens after the first.
 
@@ -53,6 +61,8 @@ Aggregate metric. Tells you fleet efficiency. Does not tell you individual-reque
 
 ### Goodput — the metric you actually care about
 
+> **【中文解读】** Goodput 是唯一真正重要的综合指标。SLO 是多约束的——一个请求只有同时满足 TTFT <= a、TPOT <= b、E2E <= c 才算"好"。高吞吐量在 60% Goodput 时是失败；低吞吐量在 99% Goodput 时才是目标。2026 年 MLPerf Inference v6.0 和 AI 平台提供商的内部 SLA 追踪都以 Goodput 为核心指标。
+
 `goodput = fraction of requests meeting (TTFT <= a) AND (TPOT <= b) AND (E2E <= c)`
 
 The SLO is a multi-constraint. A request is "good" only if every constraint held. Goodput is the share. High throughput at 60% goodput is failure. Lower throughput at 99% goodput is the target.
@@ -60,6 +70,8 @@ The SLO is a multi-constraint. A request is "good" only if every constraint held
 In 2026, goodput is the metric used in MLPerf Inference v6.0 submissions and in internal SLA tracking at AI platform providers.
 
 ### Why mean is the wrong statistic
+
+> **【中文解读】** LLM 延迟分布是右偏的。一个包含长 prefill 邻居的 decode batch 可能发出 500 个 TPOT ~7ms 的 token 和 20 个 TPOT ~60ms 的 token。均值 TPOT 是 9ms，但 P99 TPOT 是 65ms。用户经常遇到 P99——这就是他们离开的原因。永远报告三元组（P50, P90, P99），对于用户体验，P99 是需要优化的目标。
 
 LLM latency distributions are right-skewed. A decode batch with one long-prefill neighbor can ship 500 tokens with TPOT ~7 ms and 20 tokens with TPOT ~60 ms. Mean TPOT is 9 ms. P99 TPOT is 65 ms. Users hit the P99 regularly — that is why they leave.
 
@@ -76,6 +88,10 @@ These are the published NVIDIA reference points. They change with model size (70
 
 ### The measurement trap
 
+> **【中文解读】** 2026 年最常用的两个基准测试工具在 TPOT 上产生不同结果：NVIDIA GenAI-Perf 将 TTFT 从 ITL 计算中排除（从 token 2 开始），LLMPerf 包含 TTFT（从 token 1 开始）。同一个请求（TTFT 500ms、100 输出 token、700ms decode），GenAI-Perf 报告 ITL=7.07ms，LLMPerf 报告 ITL=12.00ms。永远说明使用哪个工具，永远发布定义。
+
+> **【拓展：LLM 基准测试工具生态】** 2026 年 LLM 推理基准测试工具包括：(1) NVIDIA GenAI-Perf——Triton 客户端，全面指标覆盖，ITL 不含 TTFT；(2) LLMPerf（Anyscale）——Rust-backed 分词，流式感知，含 TTFT 的 ITL；(3) LLM-Locust（TrueFoundry）——Locust 扩展，修复了 GIL 问题；(4) guidellm——大规模合成基准测试；(5) k6 v2026.1.0——流式感知，Kubernetes-native。选择工具时要了解其 ITL 定义差异。
+
 Two of the most-used 2026 benchmark tools disagree on TPOT for the same run:
 
 - **NVIDIA GenAI-Perf**: excludes TTFT from the ITL calculation. ITL starts from token 2.
@@ -86,6 +102,8 @@ For a request with TTFT 500 ms and 100 output tokens in 700 ms total decode, Gen
 Always state which tool. Always publish the definition.
 
 ### Constructing an SLO
+
+> **【拓展：LLM SLO 设定参考】** 2026 年推荐的消费级 70B 对话模型 SLO：TTFT P99 <= 800ms、TPOT P99 <= 25ms、E2E P99 <= 3s（<300 token 输出）、Goodput >= 99%。企业级 SLO 收紧 TTFT（200-400ms）但放宽 E2E。测量方法：使用真实流量或 LLMPerf 合成流量（`--mean-input-tokens 800 --stddev-input-tokens 300 --mean-output-tokens 150`），目标 2x 峰值并发，运行 30-50 次迭代取百分位数。
 
 A reasonable consumer-facing SLO for a 70B chat model in 2026:
 
@@ -108,6 +126,8 @@ Enterprise SLOs tighten TTFT (200-400 ms) and loosen E2E. The point is to write 
 `code/main.py` is a toy goodput calculator. Generate a synthetic latency distribution, apply an SLO, and compute goodput. Also shows the GenAI-Perf vs LLMPerf TPOT difference on the same trace.
 
 ## Ship It | 部署上线
+
+> **【拓展：SLO 设定与 Goodput 门控】** 2026 年推荐的 70B 对话模型 SLO：TTFT P99 <= 800ms、TPOT P99 <= 25ms、E2E P99 <= 3s（<300 token 输出）、Goodput 目标 >= 99%。企业级 SLO 收紧 TTFT（200-400ms）但放宽 E2E。关键实践：(1) 在 CI/CD 中 gate 部署决策于 Goodput 而非吞吐量；(2) 用 2x 峰值并发运行基准测试；(3) 运行 30-50 次迭代取百分位数；(4) 发布时标注工具名、版本、模型、硬件、并发数、提示分布。
 
 This lesson produces `outputs/skill-slo-goodput-gate.md`. Given a workload and SLO, it produces a CI/CD-ready benchmark recipe that gates deploys on goodput rather than throughput.
 

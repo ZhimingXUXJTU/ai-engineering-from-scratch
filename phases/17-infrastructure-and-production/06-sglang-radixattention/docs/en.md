@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 传统推理服务将每个请求的 prompt 视为不透明的——即使 5000 个 RAG 请求共享相同的 2000-token 系统提示，vLLM 也会执行 5000 次完整的 prefill。RadixAttention 通过将 token 序列存储在 radix tree 中解决此问题：新请求沿树匹配已有前缀，只需 prefill 新增的后缀部分。挑战在于调度——FCFS（先来先服务）会破坏前缀局部性，需要 cache-aware 调度器优先服务共享长前缀的请求。
+
+> **【拓展：前缀共享在 Agent 场景的价值】** Agent 工作负载天然具有前缀共享特征：系统提示、工具 schema、few-shot 示例、对话历史跨请求重复。Cursor（AI 代码编辑器）在 2026 年报告其 Agent 调用中系统提示 + 工具定义占 prompt 的 80%，仅用户查询部分不同。使用 SGLang 的 RadixAttention 后，这些共享前缀只需计算一次，后续请求复用 KV Cache，将推理成本降低 60-80%。
+
 Classic serving treats each request's prompt as opaque. Even when 5,000 RAG requests all start with the same 2,000-token system prompt plus same retrieval preamble, vLLM prefills that 2,000-token prefix 5,000 times. The GPU does the same work over and over.
 
 The observation: prompts in agentic and RAG workloads share long prefixes almost always. System prompt, tool schemas, few-shot examples, retrieval headers, conversation history — all repeat across requests. If you stored the KV cache for that prefix once and reused it, you would not prefill it again.
@@ -30,6 +34,8 @@ The challenge is scheduling. If two requests share a 2,000-token prefix and a th
 ## The Concept | 概念
 
 ### The radix tree as a KV index
+
+> **【中文解读】** Radix tree（紧凑前缀树）是 SGLang 的核心数据结构。每个节点拥有一个 token 范围和对应的 KV 块。新请求进入时沿树匹配：系统提示匹配节点复用 124 个 KV 块，文档分支匹配复用 31 个块，只需为新问题分配 4-6 个块。以 160 个总块为例，radix tree 只需 4 块新计算（40x 节省）。这不仅是内核技巧，更是调度策略——SGLang 的 cache-aware 调度器优先路由到热点分支，保持前缀在 HBM 中常驻。
 
 A radix tree (compact trie) stores token sequences. Each node owns a token range and the KV blocks computed for that range. Children extend the sequence one or more tokens.
 
@@ -45,6 +51,8 @@ root
 A new request comes in with system prompt + "Context: <doc A>" + "Question: Carol". The scheduler walks: system prefix matches (124 blocks reused), doc-A branch matches (31 blocks reused), then allocates fresh blocks only for "Question: Carol" (4 blocks). Prefill cost: 4 blocks of new tokens. Without the tree: 160 blocks. ~40x savings on prefill.
 
 ### Cache-aware scheduling
+
+> **【中文解读】** 缓存感知调度的两个关键策略：(1) 深度优先调度——优先服务与当前运行集共享分支的请求，保持热点分支常驻 HBM；(2) 分支级 LRU 淘汰——以整棵分支为单位淘汰（从最少使用的叶子开始），而非单个块。FCFS 违反这两个策略——一个共享 2000 token 的请求可能排在共享 50 token 的请求后面，导致长前缀分支被淘汰。
 
 Radix-tree-backed reuse is pointless if the cache churns. Two key policies:
 
@@ -63,6 +71,10 @@ FCFS violates both. A request sharing 2,000 tokens sits behind a request sharing
 
 ### The ordering gotcha
 
+> **【中文解读】** 6.4x 加速依赖于一致的提示模板排序。如果客户端有时构造 `[system, tools, context, history, question]`，有时构造 `[system, context, tools, history, question]`，radix tree 无法找到共享前缀——对人类看起来相同的提示，对 radix tree 是两条不同的序列。工程师的关键杠杆是：将提示模板视为缓存键。将不可变内容（系统提示、工具 schema）放最前，检索上下文居中，用户问题放最后。一次模板排序调整就曾将缓存命中率从 7% 提升到 74%。
+
+> **【拓展：SGLang 在生产中的采用】** SGLang 在 2026 年已部署在超过 40 万块 GPU 上，用户包括 xAI（Grok）、LinkedIn、Cursor、Oracle，以及 GCP/Azure/AWS 的托管服务。核心优势场景是 Agent 和 RAG 工作负载——这些场景中系统提示和工具定义的重复率极高。SGLang 团队由 UC Berkeley LMSYS（Chatbot Arena 的创建者）成员组成，与 vLLM 团队有密切合作。两者不是严格竞争关系——vLLM 也在 2026 年添加了 prefix caching 功能。
+
 The 6.4x number relies on consistent prompt-template ordering. If your client constructs prompts as `[system, tools, context, history, question]` in some requests and `[system, context, tools, history, question]` in others, the tree cannot find the shared prefix. What looks like a shared prefix to a human is two distinct sequences to the radix tree.
 
 Engineer's lever: your prompt template is a cache key. Fix the order. Put everything immutable (system, tools, schemas) first. Put retrieval context next. Put user question last. Do not interleave dynamic content into the prefix.
@@ -70,6 +82,8 @@ Engineer's lever: your prompt template is a cache key. Fix the order. Put everyt
 Real case from the research: moving dynamic content out of the cacheable prefix took one deployment from 7% to 74% cache hit rate in one change.
 
 ### Where RadixAttention wins and loses
+
+> **【拓展：RadixAttention vs Prefix Caching 性能对比】** SGLang 与 vLLM 的前缀缓存性能对比：在 Llama 3.1 8B H100 上，通用 ShareGPT 工作负载中 SGLang 达到 ~16,200 tok/s vs vLLM ~12,500 tok/s（29% 优势）；在重度前缀复用的 RAG 工作负载中优势可达 6.4x；语音克隆工作负载缓存命中率 86%。但 vLLM 在 2026 年也添加了 prefix caching 和 cache-aware router（Rust 实现）——差距缩小但未完全消除，因为 SGLang 的整个栈都是 radix-first 设计。
 
 Wins:
 - RAG (same retrieval preamble, varying question).
@@ -94,6 +108,8 @@ The two systems are not strict competitors. In 2026 vLLM added prefix caching (`
 `code/main.py` implements a toy radix-tree KV cache plus a scheduler with two policies: FCFS and cache-aware. Runs the same workload through both, reports prefix-cache hit rate and throughput delta. Then runs a "scrambled ordering" workload to show the 6.4x collapse.
 
 ## Ship It | 部署上线
+
+> **【拓展：前缀缓存策略选择】** 2026 年前缀缓存有三个层面：(1) 应用级语义缓存（Phase 17·14）——在调用 LLM 前用嵌入相似度匹配历史响应，命中率 10-70%；(2) 服务端前缀缓存（SGLang RadixAttention / vLLM prefix caching）——复用 KV Cache，10x 延迟降低；(3) 跨节点缓存路由（Phase 17·11）——通过 cache-aware router 将请求路由到持有前缀的副本。三者可以叠加：语义缓存避免 LLM 调用 → 服务端前缀缓存避免重复 prefill → 跨节点路由避免请求错配。
 
 This lesson produces `outputs/skill-radix-scheduler-advisor.md`. Given a workload description (prompt-template shape, retrieval pattern, number of concurrent tenants), it produces a prompt-ordering prescription and a go/no-go for SGLang adoption.
 

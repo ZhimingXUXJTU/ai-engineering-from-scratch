@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 传统 A/B 测试不是为非确定性 LLM 构建的。关键区分：评估（evals）回答"模型能做这件事吗？"，A/B 测试回答"用户在乎吗？"两者都是必需的——凭感觉上线（vibes check）的时代已经结束。2026 年可测试的三个维度：提示工程（措辞）、模型选择（GPT-4 vs GPT-3.5 vs OSS；准确率 vs 成本 vs 延迟）、生成参数（temperature、top-p）。
+
+> **【拓展：LLM A/B 测试的真实案例】** 2026 年 LLM A/B 测试的生产案例：(1) 聊天机器人奖励模型变体——+70% 对话长度、+30% 留存率；(2) Nextdoor AI 主题行实验——奖励函数优化后 +1% CTR；(3) Khan Academy Khanmigo——在延迟 vs 数学准确率轴上迭代。平台选择：Statsig（2025 年 9 月被 OpenAI 以 $1.1B 收购）——全合一；GrowthBook——开源、仓库原生、Bayesian + Frequentist + Sequential 引擎。
+
 You hand-tuned a system prompt. It feels better. You ship it. Conversion changes by noise. You blame the metric. Or you shipped a new model and conversion didn't move — did the model degrade or was the change too small to detect? You don't know, because you shipped without an A/B.
 
 Evals answer whether the model can do a task on a labeled set. They do not answer whether users prefer the output. Only a controlled online experiment answers that, and only if the experiment has enough power, controls for non-determinism, and corrects for multiple comparisons.
@@ -41,6 +45,8 @@ Both required. Evals catch regressions before exposure; A/B confirms product imp
 
 ### CUPED — variance reduction
 
+> **【中文解读】** CUPED（使用预实验数据的受控实验）是 A/B 测试的关键方差降低技术。原理是在比较后验期之前，回归掉前验期的方差。典型方差降低 30-70%，等效于免费增加有效样本量。Statsig 和 GrowthBook 都实现了 CUPED。
+
 Controlled-experiments Using Pre-Experiment Data. Regress out pre-period variance before comparing post-period. Typical variance reduction: 30-70%. Effective sample size goes up for free.
 
 Implementation: both Statsig and GrowthBook implement.
@@ -58,6 +64,8 @@ Running 20 A/B tests at 95% confidence produces one false positive by chance. Bo
 Assignment hash randomizes users to variants. If 50/50 split delivers 47/53, something is broken — SRM check flags it. Both platforms implement.
 
 ### Statsig vs GrowthBook
+
+> **【拓展：Statsig vs GrowthBook 选型】** Statsig vs GrowthBook 的 2026 年选型对比：Statsig 2025 年 9 月被 OpenAI 以 $1.1B 收购，是全合一 SaaS（feature flags + 实验分析 + 可观测性），内置序贯检验和 CUPED，适合想要捆绑产品的团队。GrowthBook 是 MIT 开源，仓库原生（直接读 Snowflake/BigQuery/Redshift），支持 Bayesian + Frequentist + Sequential 三种引擎、CUPED、SRM 检查、Benjamini-Hochberg + Bonferroni 校正，适合数据团队控制指标层的仓库-SQL 商店。选型关键：是否介意 OpenAI 所有权 + 是否偏好仓库-SQL。
 
 **Statsig**:
 - Acquired by OpenAI for $1.1B (September 2025). Hosted, SaaS.
@@ -83,6 +91,8 @@ Same prompt produces varying outputs. Traditional power calculations assume IID 
 - Khan Academy Khanmigo: iterative latency-vs-math-accuracy trade.
 
 ### The anti-pattern: shipping on vibes
+
+> **【拓展：LLM 非确定性对 A/B 测试的影响】** LLM 的非确定性影响 A/B 测试的统计功效。相同提示产生不同输出，传统的 power 计算假设 IID 观测值。在 LLM 非确定性下，有效样本量低于名义值——需要将所需样本量乘以 1.3-1.5x 作为安全边际。Sequential testing（序贯检验）允许在明确赢家出现时提前停止，比固定样本量测试节省 20-40% 的实验时间。多重比较校正（Bonferroni / Benjamini-Hochberg）在同时运行多个实验时必不可少。
 
 Every senior engineer can name a feature that was shipped because "it feels better" with no A/B. Most of them regressed product metrics the team didn't notice for months. A/B is the forcing function.
 
