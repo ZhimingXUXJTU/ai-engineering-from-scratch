@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** AI 网关位于应用和模型提供商之间，解决的核心问题是多供应商统一管理。产品同时调用 OpenAI、Anthropic 和自托管 Llama，每个提供商有不同的 SDK、错误模型、速率限制和认证方案。网关层将所有这些统一为一个 OpenAI 兼容的 API，提供故障转移、统一凭证存储、统一可观测性和按租户速率限制。
+
+> **【拓展：2026 年 AI 网关市场】** 2026 年 AI 网关市场的四个主要玩家：(1) LiteLLM——MIT 开源，100+ 提供商，但在 ~2000 RPS 时崩溃（8GB 内存）；(2) Portkey——2026 年 3 月开源 Apache 2.0，控制面定位（guardrails、PII 脱敏、越狱检测、审计追踪），20-40ms 延迟开销；(3) Kong AI Gateway——基于成熟 API 网关产品，Kong 自己的基准测试显示比 Portkey 快 228%、比 LiteLLM 快 859%；(4) Cloudflare/Vercel AI Gateway——托管、零运维、边缘部署。
+
 Your product calls OpenAI, Anthropic, and a self-hosted Llama. Each provider has a different SDK, error model, rate limit, and auth scheme. You want failover (if OpenAI 429s, try Anthropic), a single credential store, unified observability, and rate limits per tenant.
 
 Reinventing this at the app layer couples every service to every provider. A gateway layer consolidates it into one process with one API (typically OpenAI-compatible) that fans out to providers.
@@ -70,9 +74,15 @@ Reinventing this at the app layer couples every service to every provider. A gat
 
 ### Self-hosted vs managed
 
+> **【中文解读】** 自托管 vs 托管的决策驱动因素是数据驻留。医疗和金融默认自托管（LiteLLM 或 Portkey OSS 或 Kong）；消费产品默认托管（Cloudflare AI Gateway）或中间层（Portkey managed）。混合模式：受监管租户自托管，其他托管。网关延迟直接影响 TTFT——对于 TTFT P99 < 100ms 的 SLA，只能选 Kong（3-8ms 开销）或 Cloudflare（1-3ms）；对于 P99 < 500ms，任何网关都可以。
+
+> **【拓展：网关 + 可观测性 + 路由的组合】** Phase 17·13（可观测性）+ 16（模型路由）+ 19（网关）在生产中是同一层。选择一个覆盖所有三者的工具，或仔细连接它们：大多数 2026 年部署将 Helicone（可观测性）或 Portkey（guardrails）与 Kong（规模）组合为分拆角色。Portkey 的 Apache 2.0 开源使得"自托管 guardrails + Kong 规模"的组合成为受监管行业的标准模式。
+
 Data residency is the forcing function. Healthcare and finance default self-host (LiteLLM or Portkey OSS or Kong). Consumer products default managed (Cloudflare AI Gateway) or middle-tier (Portkey managed). Hybrid: self-hosted for regulated tenant, managed for others.
 
 ### Latency budget
+
+> **【拓展：AI 网关延迟预算分析】** AI 网关延迟直接影响 TTFT，是选型的关键因素。2026 年各网关的延迟开销：(1) LiteLLM 5-15ms——Python 实现，简单但高并发下不稳定；(2) Portkey 20-40ms——功能最全面但延迟最高；(3) Kong 3-8ms——Go + OpenResty，延迟最低且高并发稳定；(4) Cloudflare/Vercel 1-3ms——边缘部署优势。对于 TTFT P99 < 100ms 的 SLA，只有 Kong 或 Cloudflare 可选；对于 P99 < 500ms，任何网关都在预算内。
 
 - LiteLLM: 5-15 ms overhead typical.
 - Portkey: 20-40 ms overhead.

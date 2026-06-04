@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 批处理 API 是 LLM 成本工具箱中最便宜的杠杆——每个主要提供商都提供 50% 折扣 + 24 小时周转的异步批处理接口。叠加缓存后，隔夜工作负载可降至同步-未缓存成本的约 10%。但大多数团队不使用它——原因是组织性的：团队认为"实时"处理，而 SLA 实际上是"到早上"。
+
+> **【拓展：三大提供商的批处理 API】** 2026 年三大 LLM 提供商的批处理接口：(1) OpenAI Batch API——JSONL 文件上传，/v1/batches 端点，50% 折扣，实际周转 2-8 小时；(2) Anthropic Message Batches——JSONL 上传，支持 cache_control，50% 折扣；(3) Google Vertex AI Batch Prediction——BigQuery 或 GCS 输入，Gemini 50% 折扣。文件格式各不相同，跨提供商的统一批处理客户端需要适配器代码。Portkey 和 LiteLLM 的部分层级提供多提供商批处理的薄封装。
+
 Your team ships a nightly report generation pipeline. 50,000 documents, summarize each, cluster the summaries, draft an executive brief. Running synchronously it takes 4 hours at $2,000/night. You hear about batch APIs.
 
 The batch gets you 50% off. You also enable prompt caching on the system prompt (shared across all 50k calls). Stacked, the bill drops to $180/night — ~9% of baseline. Same pipeline, three config changes.
@@ -41,6 +45,8 @@ Batch is "I promise to return within 24 hours" — not "this will take 24 hours.
 
 ### Stack with caching
 
+> **【拓展：批处理 + 缓存的叠加经济模型】** 批处理 + 缓存叠加的具体经济模型：50K 文档摘要任务，共享 4K-token 系统提示。同步未缓存：50000 × ($input × 4000 + $output × 200) 全价；同步+缓存：系统提示首次写入后，后续 49999 次享受约 10x 更便宜的输入；批处理+缓存：上述所有基础上再加 50% 折扣。最终结果：批处理 + 缓存 = 同步未缓存成本的约 10%。任何隔夜运行且共享系统提示的工作负载都应使用这个组合。
+
 A 50k-document summarization with the same 4K-token system prompt:
 
 - Synchronous uncached: 50000 × ($input × 4000 + $output × 200) at full rates.
@@ -50,6 +56,10 @@ A 50k-document summarization with the same 4K-token system prompt:
 The stack: batch + cache = ~10% of sync uncached bill. Any workload that runs overnight and has a shared system prompt should use this.
 
 ### Workload triage
+
+> **【中文解读】** 工作负载分诊是使用批处理 API 的前提。三条车道：(1) 交互式（用户等待响应）——TTFT 重要，必须同步调用+提示缓存；(2) 半交互式（用户提交任务，几分钟后回来查看）——异步队列+同步后备；(3) 批处理（用户期望"明早"或"一小时后"）——内容流水线、大规模分类、离线分析，必须批处理+叠加缓存。常见错误是将所有工作负载标记为"交互式"，仅仅因为流水线是生产级的。
+
+> **【拓展：批处理 API 的陷阱】** 批处理 API 有两个常见陷阱：(1) 部分交互性——用户期望比 24 小时更快（如带有"刷新"按钮的夜间报告），团队错误地使用同步调用；(2) 输出 schema 漂移——不同提供商的批处理文件格式不同（OpenAI JSONL、Anthropic JSONL、Vertex BigQuery/TFRecord），编写"一个批处理客户端"需要每个提供商的适配器代码。
 
 **Interactive** — user waits for the response. TTFT matters. Synchronous call with prompt caching. Cannot batch.
 

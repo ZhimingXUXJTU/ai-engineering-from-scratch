@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** vLLM 推理服务在高并发时 GPU HBM 占满，发生抢占事件——请求被逐出、重新排队、同一个 2K-token 提示一分钟内被重新 prefill 四次。GPU 计算花在冗余 prefill 上，Goodput 远低于原始吞吐。添加更多 GPU 是线性成本，但 CPU DRAM 很便宜——一个 socket 有 512GB+，延迟虽比 HBM 差几个数量级，但对于"临时温热"的 KV Cache 足够。
+
+> **【拓展：vLLM Production Stack 架构】** vLLM production-stack 是 2026 年推荐的 Kubernetes 部署方案，包含五个组件：(1) Router——cache-aware（Phase 17·11），消费 KV 事件；(2) Engines——vLLM workers，每 GPU 或每 TP/PP 组一个；(3) KV Cache 卸载——LMCache 部署或原生连接器；(4) 可观测性——Prometheus + Grafana + OTel traces；(5) 控制面——服务发现、配置、滚动更新。以 Helm chart + operator 形式发布。
+
 Your vLLM serving shows GPUs at 100% HBM with preemption events whenever concurrency climbs. Requests get evicted, requeued, and you re-prefill the same 2K-token prompt four times in a minute. GPU compute is spent on redundant prefills; goodput is well below raw throughput.
 
 Adding more GPUs costs linearly. Adding more HBM is not possible. But CPU DRAM is cheap — one socket has 512 GB+ at latency orders of magnitude worse than HBM but fine for "temporarily warm" KV cache.
@@ -47,6 +51,8 @@ vLLM 0.11.0 (January 2026) adds an asynchronous offload path — offload can hap
 
 ### Native CPU offload vs LMCache
 
+> **【中文解读】** 两种 KV Cache 卸载方案的对比：(1) 原生 vLLM CPU 卸载——引擎本地，存储 KV 块到主机 RAM，实现快速，零网络跳转，但不跨引擎共享；(2) LMCache 连接器——集群级，存储块到共享 LMCache 服务器（CPU DRAM + Ceph/S3 层），任何引擎都可访问。选原生当单引擎有 HBM 压力，选 LMCache 当多引擎共享前缀（RAG 共享系统提示、多租户共享模板）。
+
 **Native vLLM CPU offload**: engine-local. Stores KV blocks in host RAM. Fast to implement, zero network hop. Does not cross engines.
 
 **LMCache connector**: cluster-scale. Stores blocks in a shared LMCache server (CPU DRAM + Ceph/S3 tier). Blocks are accessible to any engine. 16x H100 benchmarks published.
@@ -55,6 +61,8 @@ Pick native when a single engine has HBM pressure. Pick LMCache when multiple en
 
 ### Benchmark behavior
 
+> **【拓展：LMCache 基准测试数据】** LMCache 在 16x H100（80GB HBM）跨 4 个 a3-highgpu-4g 的基准测试表现：(1) 低 KV 足迹（短提示、低并发）——所有配置匹配基线，LMCache 增加 ~3-5% 开销；(2) 中等足迹——LMCache 开始在前缀复用方面提供帮助；(3) KV 超过 HBM——原生 CPU 卸载和 LMCache 都显著改善吞吐，LMCache 因跨引擎共享收益更大。关键洞察：只在 HBM 有压力时 LMCache 才是决定性的——过早启用只增加开销。
+
 The 16x H100 (80 GB HBM) spread across 4 a3-highgpu-4g test:
 
 - Low KV footprint (short prompts, low concurrency): all configs match baseline, LMCache adds ~3-5% overhead.
@@ -62,6 +70,10 @@ The 16x H100 (80 GB HBM) spread across 4 a3-highgpu-4g test:
 - KV exceeds HBM: native CPU offload and LMCache both improve throughput substantially; LMCache larger gain because cross-engine sharing.
 
 ### When LMCache is decisive
+
+> **【中文解读】** LMCache 在以下场景是决定性的：(1) 多租户服务——系统提示跨租户共享；(2) RAG——文档块跨查询重复；(3) 微调变体（LoRA）——同一基础模型的 KV 复用减少冗余工作；(4) 抢占密集型工作负载——从 CPU 恢复比重新 prefill 更便宜。不应启用的场景：HBM 压力小（只有开销没有收益）、短上下文（<1K tokens，传输时间 > 重新 prefill）、单租户单提示（无复用可捕获）。
+
+> **【拓展：KV Cache 卸载的集成】** Phase 17·17 分离式服务 + LMCache 的协同效应：从 prefill 池到 decode 池的 KV 转移如果不立即使用，可以存入 LMCache；后续查询从 LMCache 拉取而非重新 prefill。Phase 17·11 的 cache-aware router 可以路由到本地或 LMCache 共享缓存匹配的引擎。vLLM 0.11.0（2026 年 1 月）添加的异步卸载路径在后台执行卸载，引擎不会在常见情况下阻塞。
 
 - Multi-tenant serving where system prompts are shared across tenants.
 - RAG where document chunks repeat across queries.

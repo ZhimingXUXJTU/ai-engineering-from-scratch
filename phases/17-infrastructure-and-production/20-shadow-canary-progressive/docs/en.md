@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** LLM 部署结合了软件部署中最难的部分：没有单元测试、模糊的失败模式、延迟的信号。正确的序列是：(1) 影子模式——将生产请求复制到候选模型，日志对比，零用户影响；(2) 金丝雀发布——10%→25%→50%→75%→100% 渐进流量切换，每个阶段有门控指标；(3) A/B 测试——稳定性确认后的对比。回滚速度是决定性的——策略标志翻转（30 秒）vs 重新部署（3 小时）。
+
+> **【拓展：LLM 非确定性与部署】** LLM 的非确定性是不可约的——相同输入在相同模型上可能产生高达 15% 的准确率差异（原因：GPU FP 非结合性、batch size 差异、temperature > 0 的采样）。这意味着"稳定"在 LLM 部署中意味着"指标在预期方差内"，而非"与基线相同"。金丝雀门控阈值必须设置在噪声地板之上，否则会频繁误报。成本也是变量——一个好 20% 的模型可能贵 3x，成本/请求必须是五个门控指标之一。
+
 You ship a new model. Offline evals show 3% accuracy gain. You flip it on in production. Within 24 hours, cost is up 40%, user thumbs-down is up 8%, three customer tickets report "weird answers." You roll back. Redeploy takes 3 hours. Your weekend is ruined.
 
 Every piece of that was avoidable. Shadow mode would have caught the 40% cost spike before any user saw it. Canary would have stopped at 10% when thumbs-down moved. Policy-flag rollback would have taken 30 seconds. The discipline is what fills in the gap between "offline evals look good" and "real users are happy."
@@ -26,6 +30,8 @@ Every piece of that was avoidable. Shadow mode would have caught the 40% cost sp
 ## The Concept | 概念
 
 ### Shadow mode
+
+> **【中文解读】** 影子模式——候选模型接收与生产相同的请求，输出仅记录不返回给用户。日志内容包括：输出内容（与生产 diff）、token 数量（成本差异）、延迟、拒绝和错误。能捕获：成本爆炸、长度退化、明显的拒绝变化、硬错误。不能捕获：用户会感知到的质量差异——影子是烟雾测试，不是质量测试。
 
 Candidate receives the same requests as production; outputs are logged, not returned to users. Zero user impact. Log:
 
@@ -37,6 +43,8 @@ Candidate receives the same requests as production; outputs are logged, not retu
 Catches: cost blow-ups, length regressions, obvious refusal changes, hard errors. Does NOT catch: quality delta users would perceive. Shadow is a smoke test, not a quality test.
 
 ### Canary rollout
+
+> **【拓展：LLM 金丝雀发布的五个门控指标】** LLM 金丝雀发布必须监控的五个门控指标：(1) 延迟百分位（P50/P95/P99）——canary P99 > 1.5x 基线则触发；(2) 每请求成本——>20% 高于基线则触发；(3) 错误/拒绝率——2x 基线则触发；(4) 输出长度分布——均值 + P99 分布偏移则触发；(5) 用户反馈率——thumbs-down/工单 1.5x 基线则触发。典型进度 1%→10%→25%→50%→75%→100%，每个阶段累积足够样本（5-15 分钟检查间隔）。
 
 Progressive traffic shift with gates. Typical progression: 1% → 10% → 25% → 50% → 75% → 100%. Gate on 5 metrics at each step:
 
@@ -69,6 +77,8 @@ A 20% better model can be 3x more expensive per call. Cost/request is one of the
 If your stack requires redeploy to rollback, fix that before rolling.
 
 ### Tooling
+
+> **【拓展：LLM 渐进式部署工具链】** 2026 年 LLM 渐进式部署的工具选择：(1) Argo Rollouts / Flagger——Kubernetes 原生渐进式部署控制器，与 Istio/Linkerd 加权路由集成；(2) Istio weighted routing——服务网格级流量切分；(3) KServe / Seldon Core——模型服务自带 canary 功能；(4) Feature flags——LaunchDarkly、Flagsmith、Unleash，策略级翻转无需重新部署。回滚基础设施：策略标志（feature flag system）翻转百分比在配置中（秒级）+ 模型注册摘要固定（pinned digest 不自动升级）。如果你的堆栈需要重新部署来回滚，先修复这个再上线。
 
 **Argo Rollouts** / **Flagger** — Kubernetes progressive delivery controllers. Integrate with Istio/Linkerd weighted routing.
 

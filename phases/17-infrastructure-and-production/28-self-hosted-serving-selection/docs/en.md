@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 自托管推理引擎的选择取决于三个维度：硬件（CPU / AMD / NVIDIA Hopper / Blackwell）、规模（1 用户 / 100 / 10,000）、工作负载（通用聊天 / Agent / 长上下文）。2025 年 12 月 11 日 HuggingFace TGI 进入维护模式（仅 bug fix），这使得新项目应默认远离 TGI，转向 vLLM 或 SGLang。2026 年的流水线模式是：开发用 Ollama，预发布用 llama.cpp，生产用 vLLM 或 SGLang——全程使用相同的 GGUF/HF 权重。
+
+> **【拓展：2026 年推理引擎选择决策】** 2026 年推理引擎的硬件优先决策树：(1) CPU-only → llama.cpp（唯一有竞争力的选项）；(2) AMD GPU → vLLM（ROCm 支持），TRT-LLM 不支持 AMD；(3) NVIDIA Hopper → vLLM 或 SGLang 或 TRT-LLM（三选一）；(4) NVIDIA Blackwell → TRT-LLM 吞吐最高；(5) Apple Silicon → llama.cpp（Metal 后端）。规模决策：1 用户→Ollama，10-100→vLLM 单 GPU，100-10K→vLLM production-stack 或 SGLang，10K+→production-stack + 分离式 + LMCache。
+
 Your team starts a new self-hosted LLM project. One engineer says Ollama, another says vLLM, a third says "doesn't TGI just work out of the box?" All three are right for different contexts. None is right for all.
 
 In 2026 the choice tree matters: hardware first, scale second, workload third. And one specific 2025 event — TGI entering maintenance mode December 11 — changes the default for new projects.
@@ -71,6 +75,10 @@ In 2026 the choice tree matters: hardware first, scale second, workload third. A
 
 ### The TGI maintenance trap
 
+> **【中文解读】** TGI 陷阱：HuggingFace TGI 在 2025 年 12 月 11 日进入维护模式——仅 bug fix，不再有功能更新。历史上 TGI 有顶级的可观测性和 HF 生态集成（模型卡、安全工具），原始吞吐略低于 vLLM（约 10%）。对于 2026 年的新项目，应默认远离 TGI。现有 TGI 部署可以继续运行，但应规划迁移。SGLang 和 vLLM 是更安全的默认选择。
+
+> **【拓展：工作负载驱动的引擎选择】** 工作负载维度驱动引擎选择：(1) 通用聊天/问答 → vLLM（广泛默认）；(2) Agent 多轮对话（工具、规划、记忆）→ SGLang RadixAttention 主导；(3) RAG 重前缀复用 → SGLang；(4) 代码生成 → vLLM 足够，SGLang 缓存略好；(5) 长上下文（128K+）→ vLLM + 分块预填充，SGLang + 分层 KV。Ollama 适合开发但不是生产共享服务的理想选择——Go HTTP 序列化增加开销、并发管理比 vLLM 简单、OpenTelemetry 支持滞后。
+
 Hugging Face TGI entered maintenance mode December 11, 2025 — only bug fixes going forward. Historically: top-tier observability, best-in-class HF-ecosystem integration (model cards, safety tools), slightly behind vLLM on raw throughput.
 
 For new projects in 2026: default away from TGI. Existing TGI deployments can continue but should migrate eventually. SGLang and vLLM are the safer defaults.
@@ -99,6 +107,8 @@ Phase 17 · 01 (managed hyperscalers), · 02 (inference platforms) cover managed
 `code/main.py` is a decision-tree walker: given hardware + scale + workload, picks an engine and explains why.
 
 ## Ship It | 部署上线
+
+> **【拓展：自托管 vs 托管的决策】** 自托管 vs 托管是独立的决策。自托管的理由：(1) 数据驻留——数据不能离开组织；(2) 自定义微调——LoRA/QLoRA 适配器需要本地部署；(3) 大规模总拥有成本——年推理支出超过 $5M 时自托管通常更经济；(4) 领域模型不在托管平台上可用。Phase 17·01（托管 hyperscaler）和 ·02（推理平台）覆盖了托管选项。2026 年的混合模式也很常见：实验层用托管（快速迭代），生产层用自托管（成本控制）。
 
 This lesson produces `outputs/skill-engine-picker.md`. Given constraints, picks an engine and writes the migration plan.
 

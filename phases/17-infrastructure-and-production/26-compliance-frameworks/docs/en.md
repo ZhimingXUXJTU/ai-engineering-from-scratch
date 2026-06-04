@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 多框架覆盖是 2026 年企业交易的入场券。企业客户的采购要求 SOC 2 Type II、GDPR、HIPAA BAA、ISO 27001 和"EU AI Act 合规声明"。这不是 LLM 特有问题——是企业 SaaS 问题加上 LLM 特定的叠加层。采购团队 2026 年想要的是一个矩阵（框架×控制），而不是一个 PDF。
+
+> **【拓展：EU AI Act 关键时间线】** EU AI Act 关键时间线：(1) 2024 年 8 月 1 日生效；(2) 2025 年 2 月 2 日——禁止 AI 实践条款执行；(3) 2026 年 8 月 2 日——高风险系统条款执行（合规评估、文档、日志）；(4) 2027 年 8 月——受协调立法约束产品中的高风险系统。罚款：高风险系统违规最高 €15M 或全球年营业额 3%（Art. 99(4)）；禁止 AI 实践最高 €35M 或 7%（Art. 99(3)）。大多数 B2B LLM SaaS 属于"有限风险"；高风险涉及就业、信贷、教育、执法、移民、基本服务。
+
 An enterprise customer's procurement asks for SOC 2 Type II, GDPR, HIPAA BAA, ISO 27001, and "EU AI Act compliance statement." Your team has SOC 2 Type I. You're six months from Type II and haven't started GDPR Article 30 records.
 
 Multi-framework coverage is not an LLM problem — it's an enterprise-SaaS problem, with LLM-specific overlays. Procurement teams in 2026 want a matrix with a row per framework and a column per control, not a PDF.
@@ -26,6 +30,8 @@ Multi-framework coverage is not an LLM problem — it's an enterprise-SaaS probl
 ## The Concept | 概念
 
 ### The seven frameworks
+
+> **【拓展：2026 年 LLM 合规框架全景】** 2026 年 LLM 产品需要关注的七大合规框架：(1) SOC 2 Type II——B2B SaaS 基线，Type II 要求 6-12 个月的操作控制审计；(2) HIPAA——美国医疗，BAA 不可选，PHI 不能发送到无 BAA 的外部 AI；(3) GDPR——EU 用户，实时推理层脱敏是 2026 年防御性标准，最大 AI 相关罚款 €30.5M；(4) PCI-DSS——支付数据，AI 触及支付需要配置+合同；(5) EU AI Act——服务 EU 用户，高风险系统 2026 年 8 月执行，罚款最高 €35M/7%；(6) Colorado AI Act——2026 年 6 月 30 日生效，影响评估+上诉权；(7) ISO 42001——AI 治理新兴标准，与 ISO 27001 配套。
 
 | Framework | Scope | LLM-specific requirement |
 |-----------|-------|--------------------------|
@@ -50,6 +56,8 @@ Fines (Article 99): up to €15M or 3% global annual turnover for breaches of hi
 
 ### GDPR — real-time redaction is the standard
 
+> **【中文解读】** GDPR 的推理层实时脱敏是 2026 年的防御性标准。后处理清理（LLM 看到数据后再脱敏）不可防御——模型已经看到了数据。正确做法：LLM 调用前的实体识别 + 一致性标记化（Mesh 方法）保持语义 + 仅存储脱敏提示 + 用户同意的 opt-in 原始数据。最大 AI 相关 GDPR 罚款：Clearview AI €30.5M（荷兰 DPA，2024 年 9 月）；最大 LLM 相关罚款：OpenAI €15M（意大利 Garante，2024 年 12 月，2026 年 3 月上诉后推翻）。
+
 Post-processing cleanup (redact PII after the LLM sees it) is not a defensible posture — the model already saw the data. Real-time inference-layer redaction is the 2026 standard:
 
 - Entity recognition before the LLM call.
@@ -72,6 +80,8 @@ B2B procurement in 2026 defaults to Type II. Type I is a starter; Type II is the
 Common audit drivers: access logs (who saw what), change management (how was it deployed), risk assessments (quarterly), incident response (tested?). Audit log from Phase 17 · 25 is directly reusable.
 
 ### Cross-framework mapping
+
+> **【拓展：跨框架映射降低审计疲劳】** 跨框架控制映射是减少审计疲劳的关键。一个访问控制策略可以同时满足多个框架的控制要求：访问日志 → ISO 27001 A.5.15-5.18 + GDPR Art. 32 + HIPAA §164.312(a)；变更管理 → ISO 27001 A.8.32 + PCI DSS Req. 6 + HIPAA 违规通知范围；传输加密 → ISO 27001 A.8.24 + GDPR Art. 32 + HIPAA §164.312(e)；密钥管理 → ISO 27001 A.8.19 + PCI DSS Req. 8 + SOC 2 CC6.1。合规自动化工具（Drata、Vanta、Secureframe）可以自动化这个映射——大规模部署时值得投资。OpenAI 的参考合规档案（SOC 2 Type 2 + ISO 27001 + ISO 27701 + GDPR/CCPA/HIPAA/FERPA + PCI-DSS）大致是 2026 年的企业入场标准。
 
 One access control policy satisfies multiple framework controls:
 

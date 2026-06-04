@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** AI SRE 的核心洞察：2026 年，事件调查的前 20 分钟是可自动化的——按服务分组日志、关联到最近部署、匹配 runbook——都是 RAG + 工具使用。监督式 Agent 可以在人类打开 Datadog 之前完成首轮分类并呈现假设。完全自主修复是不同的问题——重启 Pod 安全、扩展 GPU 池安全（如果策略允许）、重新架构服务绝对不行。
+
+> **【拓展：AI SRE 产品市场】** 2026 年 AI SRE 产品：(1) Datadog Bits AI——Datadog 内部的托管 SRE copilot；(2) Azure SRE Agent——Azure 原生；(3) NeuBird Hawkeye——对抗性评估（两个模型独立分析同一事件，一致=高置信，不一致=升级）+ 操作记忆（post-mortem 存入向量 DB）；(4) PagerDuty AIOps——分类 + 去重；(5) Incident.io Autopilot——事件指挥官 + 协调。MIT 2025 研究显示，LLM 在历史日志 + GPU 温度 + API 错误模式上训练，可在 10-15 分钟前预测 89% 的停机。
+
 An on-call engineer gets paged at 3 a.m. "High error rate in checkout." They check Datadog, Loki, three runbooks, the deploy log. 30 minutes later they realize the root cause is a vLLM OOM from a KV cache spike. They restart the pod; error clears.
 
 In 2026 the first 20 minutes of that investigation are automatable. Grouping logs by service, correlating to recent deploys, matching against runbooks — all are RAG + tool-use. A supervised agent can do first-pass triage and present a hypothesis before the human opens Datadog.
@@ -28,6 +32,8 @@ Fully autonomous remediation is a different problem. Restart pod: safe. Scale GP
 ## The Concept | 概念
 
 ### Multi-agent architecture
+
+> **【中文解读】** 多 Agent AI SRE 架构：Supervisor 将事件拆分为子查询，分派给专业化 Agent（日志 Agent 搜索日志、指标 Agent 查询 PromQL、Runbook Agent 检索文档）。Supervisor 综合，向人类呈现假设 + 证据。人类批准或重定向。安全自动修复范围：重启 Pod、回滚特定部署、在预批准范围内扩展池。不安全范围：更改服务拓扑、修改资源限制、部署新代码、更改 IAM。
 
 ```
           Incident
@@ -53,6 +59,8 @@ Fully autonomous remediation is a different problem. Restart pod: safe. Scale GP
 Supervisor breaks the incident into sub-queries. Specialized agents have tool access (log search, PromQL, doc retrieval). Supervisor synthesizes, presents hypothesis + evidence to human. Human approves or redirects.
 
 ### Auto-remediation scope
+
+> **【拓展：AI SRE 自动修复的安全边界】** AI SRE 自动修复的安全边界划分：安全（窄范围）——重启 Pod、回滚特定部署、在预批准范围内扩展池、启用预批准 feature flag。不安全（广范围）——更改服务拓扑、修改资源限制、部署新代码、更改 IAM、修改数据库。任何声称"设置后就忘了"的供应商都在过度承诺。安全集合随 AI SRE 成熟而扩大，但边界是真实的。2026 年的最佳实践是：AI 建议、人类批准——仅对明确的窄范围操作（如 Pod 重启）允许完全自动化。
 
 **Safe (narrow)**: restart pod, revert specific deploy, scale pool within pre-approved bounds, enable pre-approved feature flag.
 
@@ -83,6 +91,8 @@ Reality check: predictions without actuation are dashboards. The operational que
 - **Incident.io Autopilot** — incident commander + coordination.
 
 ### Runbooks as code
+
+> **【拓展：AI SRE 实施路径】** AI SRE 的实施建议：(1) 首先将非结构化 runbook 转为结构化 markdown（症状、假设、验证、行动）；(2) 实现对抗性评估——两个独立模型分析同一事件；(3) 建立操作记忆——将 post-mortem + runbook 存入向量 DB；(4) 从"AI 建议人类批准"开始，不要直接跳到自主行动；(5) 预事件预测——MIT 研究显示 10-15 分钟提前量，但"预测后做什么"需要策略定义（预排水？告警？自动扩展？）。预计到 2026 年底 95% 的企业 LLM 服务将有自动 failover。
 
 Runbooks evolve from Confluence pages to versioned markdown with structured sections (symptom, hypothesis, verify, act). Structured runbooks feed better RAG retrieval. Start any AI-SRE rollout by turning unstructured runbooks into structured.
 

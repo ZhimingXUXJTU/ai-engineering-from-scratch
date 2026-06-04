@@ -20,6 +20,8 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 传统 FinOps 在 LLM 支出上失效的核心原因：LLM 成本是 token 交易而非资源运行时间。标签（tags）无法直接映射——API 调用是交易而非资产。工程决策（提示设计、上下文窗口、输出长度）就是财务决策。你的账单显示 $40,000，但你不知道：哪个租户花了多少、哪个产品功能驱动的、是否有用户滥用、是 prompt 膨胀还是工具调用还是记忆放大导致的。
+
 Your bill says $40,000. You don't know:
 - Which tenant spent it.
 - Which product feature drove it.
@@ -53,6 +55,10 @@ Bucketing all four together makes optimization blind. Break them out in your att
 
 ### Enforcement ladder
 
+> **【中文解读】** 多租户产品的三级强制阶梯：(1) 速率限制——每租户 2-3x 预期峰值，返回 429 + Retry-After，租户感受到摩擦但无意外账单；(2) 日支出上限——每租户 1.5-3x 合约上限，触发时收紧速率限制 + 告警客户成功团队；(3) Kill switch——当支出 z-score > 4（相对租户基线）时自动暂停租户，通知值班，升级到运维和客户成功。
+
+> **【拓展：LLM FinOps 的复合优化栈】** LLM FinOps 的复合优化栈（缓存 + 批处理 + 路由 + 网关）叠加后的效果：(1) 缓存 L2（Phase 17·14）——约 10x 更便宜的输入；(2) 批处理（Phase 17·15）——50% 折扣；(3) 路由到廉价模型（Phase 17·16）——60% 成本降低；(4) 网关效率（Phase 17·19）——冗余 + 重试。全栈叠加最优可降至朴素基线的约 5-10%。大多数团队只启用了 2-3 个杠杆，很少有团队叠加全部四个。
+
 1. **Rate limit** per tenant. 2-3x expected peak. Return 429 with `Retry-After`. Tenant sees friction; no surprise bill.
 
 2. **Daily spend cap** per tenant. 1.5-3x contracted ceiling. Trigger: tighten rate limit + alert customer-success.
@@ -69,6 +75,8 @@ Bucketing all four together makes optimization blind. Break them out in your att
 - **Real-time streaming**: dashboard updates sub-second.
 
 ### Cost per X is the unit metric
+
+> **【中文解读】** $/M tokens 是供应商语言。产品指标应该是：(1) 每解决的支持工单成本；(2) 每生成文章成本；(3) 每成功 Agent 任务成本；(4) 每用户会话分钟成本。将成本绑定到产品产出上，否则优化没有锚点。关键原则：在请求创建时就埋点（retroactive tagging 总是遗漏），不要事后补充归因。
 
 $/M tokens is vendor speak. Product metrics:
 

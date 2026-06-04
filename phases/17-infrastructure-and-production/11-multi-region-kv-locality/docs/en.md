@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 多区域 LLM 服务的三个核心问题：(1) 缓存路由——轮询负载均衡破坏了 KV Cache 局部性，导致缓存命中率从 70% 跌到 8%；(2) DR 卫生——32% 的 LLM DR 失败是因为团队备份了权重但忘记了分词器文件或量化配置；(3) 数据驻留——GDPR 要求 EU 用户数据不能离开 EU，cache-aware router 不能为了前缀匹配将巴黎用户的请求路由到 us-east-1。
+
+> **【拓展：多区域推理的产业实践】** 2026 年多区域 LLM 部署的最佳实践包括：(1) 每 region 独立的 cache-aware router（vLLM Router / llm-d router），避免跨区域 KV 转移的高延迟（US-EU RTT 约 75ms，US-APAC 约 220ms）；(2) GORGO 研究将网络延迟作为路由目标的显式项——联合优化 prefill_time + network_latency；(3) Bedrock cross-region inference 和 GKE Multi-Cluster Gateway 处理可用性，但不处理 TTFT——你仍需要应用层 cache-aware router。
+
 Your service runs in us-east-1, us-west-2, and eu-west-1. You put an ALB in front with round-robin. Prefix cache hit rate in production drops to 8%. TTFT P50 triples. Your vLLM logs show every request is paying full prefill cost.
 
 Round-robin is optimal for stateless services. LLM inference is stateful by design — the KV cache encodes everything the model has seen. Routing blind is routing into the wrong cache.
@@ -31,6 +35,8 @@ Multi-region LLM serving is a cache problem, a routing problem, and a DR-hygiene
 
 ### Cache-aware routing
 
+> **【中文解读】** Cache-aware 路由的工作机制：请求到达后，路由器对前缀（如前 512 tokens）做哈希，查询每个副本"你是否有这个前缀缓存？"。副本通过 pub/sub 频道发布 KV Cache 事件（分配/淘汰块），路由器维护前缀哈希→副本的索引。匹配到则路由到该副本，未匹配则按 GPU 利用率选择。vLLM Router（Rust 实现，2026 production-stack）支持 O(1) 查找，未匹配时回退到最小队列深度。
+
 Request arrives with a prompt. Router hashes the prefix (say, first 512 tokens); it asks each replica "do you have this prefix cached?". Replicas publish KV-cache events on a pub/sub channel as they allocate and evict blocks. Router picks the replica with the match, falls through to GPU-util-based tie-breaker if no one does.
 
 **vLLM Router** (Rust, 2026 production-stack): subscribes to `kv.cache.block_added` events, maintains a prefix-hash → replica index, routes with O(1) lookup. Falls through to least-queue-depth when no match.
@@ -40,6 +46,8 @@ Request arrives with a prompt. Router hashes the prefix (say, first 512 tokens);
 **SGLang RadixAttention** (Phase 17 · 06) is the intra-replica equivalent. Cross-replica routing is strictly upstream.
 
 ### Numbers
+
+> **【拓展：KV Cache 路由的性能数据】** 多区域 KV Cache 路由的性能差距：2K-token 提示在 Llama 3.3 70B FP8 H100 上，cache hit（同副本、前缀常驻）TTFT ~80ms；cache miss（冷 prefill）TTFT ~800ms——10x 差距。如果路由器在副本间实现 60-80% 的前缀缓存命中率，可以在 N 副本容量下近似单副本性能。区域间 RTT 也是关键因素：us-east-1 ↔ us-west-2 ~65ms、us-east-1 ↔ eu-west-1 ~75ms、us-east-1 ↔ ap-southeast-1 ~220ms——跨区域路由只在 prefill 时间远大于网络延迟时才有价值。
 
 TTFT P50 on a 2K-token prompt, Llama 3.3 70B FP8, H100:
 - Cache hit (same replica, prefix resident): ~80 ms.
@@ -63,6 +71,10 @@ AWS Bedrock cross-region inference automatically routes requests to other region
 You still need an app-layer cache-aware router even when using these. They handle the "us-east-1 is on fire" case. Cache-aware routing handles the TTFT case.
 
 ### DR hygiene — the 32% missing-files problem
+
+> **【中文解读】** DR 卫生的三文件最低清单：(1) HF 模型仓库下的所有文件（权重 + 配置 + 分词器）；(2) 引擎特定的服务配置（vllm_config.yaml 等）；(3) 部署清单（K8s YAML、Dockerfile、依赖锁文件）。加上：每季度演练 DR——JPMorgan 2024 年 11 月的 us-east-1 故障演练达到 22 分钟恢复，正是因为预案经过了排练。
+
+> **【拓展：LLM 灾难恢复最佳实践】** 2026 年 LLM DR 的关键实践：(1) 模型制品完整性——不只是权重文件，还包含 tokenizer.json、quantize_config.json、RoPE 缩放配置、聊天模板；(2) 跨区域同步——S3 cross-region replication 用于模型仓库，确保所有 region 有完整副本；(3) 自动化 DR 测试——使用 Chaos Engineering（Phase 17·24）定期验证 failover 流程；(4) RTO 目标——企业级 LLM 服务通常要求 RTO < 30 分钟。
 
 Widely cited 2026 stat: 32% of LLM DR failures happen because teams backed up weights but forgot:
 

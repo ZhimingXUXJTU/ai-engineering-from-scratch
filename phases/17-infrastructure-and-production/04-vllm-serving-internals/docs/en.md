@@ -20,6 +20,8 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 朴素 PyTorch 服务循环一次处理一个请求。静态批处理将所有请求填充到最长序列，浪费 GPU 资源并让快请求等待慢请求。vLLM 通过三个核心优化解决此问题：PagedAttention（KV Cache 碎片率从 60-80% 降到 4% 以下）、连续批处理（在解码迭代间动态加入新请求）、分块预填充（将长提示切片以防止解码饥饿）。
+
 A naive PyTorch serve loop runs one request at a time: tokenize, prefill, decode until EOS, return. At one user this works. At one hundred, it is a queue of patient people. The obvious fix — static batching — pads every request to the longest prompt in the window, pads every decode to the longest expected output, and stalls the whole batch on the slowest sequence. You pay for padding you never use, and fast requests wait for slow ones.
 
 vLLM solves three problems at once. PagedAttention stops KV cache fragmentation from eating 60-80% of GPU memory the way classic contiguous allocation does. Continuous batching lets requests join and leave the batch between each decode iteration, so the batch is always full of real work. Chunked prefill breaks a 32k-token prompt into ~512-token slices that interleave with decode, so a long prompt does not freeze every decode token on the GPU.
@@ -30,6 +32,10 @@ The 2026 production default is all three on. You need to understand what each on
 
 ### PagedAttention as a virtual memory system
 
+> **【中文解读】** PagedAttention 借鉴操作系统虚拟内存分页思想管理 KV Cache。传统连续分配为每个序列预分配最大长度（如 8192 tokens），但平均请求只用 1500 tokens，浪费 82% 的 HBM。PagedAttention 将 KV Cache 分为固定大小的块（默认 16 tokens），每个序列有一个块表映射逻辑位置到物理块 ID，按需分配，碎片率低于 4%。这是 vLLM 唯一的分配器，通过 `--gpu-memory-utilization`（默认 0.9）控制 KV Cache 可用的 HBM 比例。
+
+> **【拓展：KV Cache 内存管理演进】** KV Cache 内存管理经历了三代演进：(1) 连续预分配——简单但浪费 60-80% 内存；(2) PagedAttention（vLLM 2023）——分页管理，碎片率 <4%，成为行业标准；(3) RadixAttention（SGLang 2024）——在前缀共享场景下进一步优化，通过 radix tree 索引实现跨请求的 KV 复用。在 70B 模型 128 并发的生产负载下，PagedAttention 相比连续分配可节省 50-70% 的 GPU 内存。
+
 A KV cache is `num_layers × 2 × num_heads × head_dim × seq_len × bytes_per_element` per sequence. For Llama 3.3 70B at 8192 tokens, that is roughly 1.25 GB per sequence in BF16. If you pre-reserve 8192 slots for every request but the average request only uses 1500 tokens, you waste roughly 82% of the HBM you reserved. Classic batching pays this waste.
 
 PagedAttention borrows the idea from OS virtual memory. KV cache is not contiguous per sequence. It is allocated in fixed-size blocks (default 16 tokens). Each sequence has a block table that maps its logical token positions to physical block IDs. When a sequence grows past its allocated blocks, one more block is added. When it finishes, its blocks return to the pool.
@@ -37,6 +43,8 @@ PagedAttention borrows the idea from OS virtual memory. KV cache is not contiguo
 Fragmentation drops from 60-80% (classic) to under 4% (PagedAttention). You do not enable PagedAttention with a flag — it is the only allocator vLLM ships. The knob is `--gpu-memory-utilization` (default 0.9), which tells vLLM how much HBM to reserve for KV blocks after loading weights and activations.
 
 ### Continuous batching at the iteration level
+
+> **【中文解读】** 连续批处理在每个解码步骤之间做出接纳/释放决策。每个迭代：(1) 移除已完成（EOS 或 max_tokens）的序列；(2) 检查等待队列，如果有空闲 KV 块则接纳新序列；(3) 对 RUNNING 列表中的所有序列执行一次前向传播。批次大小不固定，不同输出位置的序列共享同一次融合前向计算。2026 年 vLLM V1 调度器的核心不变量是：调度器每个解码迭代运行一次，而非每个请求运行一次。
 
 The old "dynamic batching" waited for a window (say 10 ms) to fill a batch, then ran prefill + decode + decode + decode until every sequence finished. Fast sequences left early and sat idle while the GPU finished the slow ones.
 
@@ -50,6 +58,10 @@ The batch size is never padded to a fixed number. Sequences at different positio
 
 ### Chunked prefill protects TTFT tail
 
+> **【中文解读】** 分块预填充解决了长提示"冻结"其他序列解码的问题。一个 32K token 的提示在 70B 模型上需要约 800ms 的纯 prefill 计算，期间所有其他序列的解码 token 都在等待。分块预填充将 prefill 切成固定大小的块（默认 512 tokens），每个块之间调度器可以推进其他序列的解码。代价是 prefill 延迟增加几毫秒，但 P99 ITL 从约 50ms 降到约 15ms——这是用户体验的关键改善。
+
+> **【拓展：vLLM 生产部署最佳实践】** 2026 年 vLLM 生产部署的关键配置包括：(1) `--gpu-memory-utilization 0.9`——预留 90% HBM 给 KV Cache；(2) `--max-model-len` 根据实际需求设置而非默认最大值；(3) 分块预填充默认开启但与某些推测解码模式不兼容；(4) `--enable-prefix-caching` 在 RAG/Agent 场景下可大幅减少重复 prefill；(5) Prometheus 指标端点用于监控队列深度和 KV 利用率。
+
 Prefill is compute-bound. A 32k-token prompt on Llama 3.3 70B takes ~800 ms of pure prefill on one H100. While prefill runs, decode tokens for every other sequence in the batch wait. In a serving loop, the first-token latency (TTFT) of one long prompt becomes the inter-token latency (ITL) blip for dozens of other users.
 
 Chunked prefill splits prefill into fixed-size chunks (default 512 tokens) and schedules each chunk as a unit. Between chunks the scheduler can advance decode sequences by one token. You trade a small absolute prefill latency hit (a few ms per chunk) for much lower decode-time jitter. P99 ITL under mixed load drops from ~50 ms to ~15 ms in published benchmarks.
@@ -61,6 +73,8 @@ All three features assume each other. PagedAttention gives the scheduler a fine-
 You do not need to know every flag. You need to know what the scheduler optimizes: goodput under KV-block budget, subject to chunked prefill slicing.
 
 ### The 2026 v0.18.0 gotcha
+
+> **【中文解读】** vLLM v0.18.0 中不能同时启用 `--enable-chunked-prefill` 和 draft-model 推测解码（`--speculative-model`）。唯一的例外是 V1 调度器中的 N-gram GPU 推测解码。不阅读发布说明就开启所有优化标志的团队会在启动时遇到运行时错误，而非软性退化。如果推测解码的收益值得开启分块预填充，2026 年的正确答案通常是 EAGLE-3 而非 draft model。
 
 In vLLM v0.18.0 you cannot combine `--enable-chunked-prefill` with draft-model speculative decoding (`--speculative-model`). The documented exception is N-gram GPU speculative decoding in the V1 scheduler. Teams that flip every flag on without reading the release notes get a run-time error at startup, not a soft regression. If your speculative gain was worth enabling chunked prefill for, revisit the choice — the right answer in 2026 is often EAGLE-3 without chunked prefill, not a draft model plus chunked prefill that does not compile.
 
@@ -109,6 +123,8 @@ while True:
 The output shows total throughput (tokens per virtual second), TTFT mean, and P99 ITL. The `CONTINUOUS + CHUNKED` row should dominate on mixed traffic.
 
 ## Ship It | 部署上线
+
+> **【拓展：LLM 推理引擎对比】** 2026 年主流开源 LLM 推理引擎包括：vLLM（通用生产默认，PagedAttention+连续批处理）、SGLang（前缀共享优化，RadixAttention）、TensorRT-LLM（NVIDIA 专属，Blackwell 上吞吐最高）、llama.cpp（CPU/边缘，GGUF 格式）。选择取决于硬件（CPU/GPU/Hopper/Blackwell）、工作负载（通用聊天/Agent/RAG）和合规要求（自托管/云托管）。vLLM 占据约 60% 的生产部署份额（2026 Canonical AI 基础设施调查）。
 
 This lesson produces `outputs/skill-vllm-scheduler-reader.md`. Given a serving config (batch size, KV memory utilization, chunked prefill size, speculative config), it produces a scheduler diagnosis that names which of the three defaults is bottlenecking and what to tune.
 

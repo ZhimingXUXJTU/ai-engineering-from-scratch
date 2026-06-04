@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 边缘推理的核心约束是内存带宽而非计算能力。移动 DRAM 带宽 50-90 GB/s，数据中心 HBM3 达 2-3 TB/s——30-50x 差距。由于 decode 阶段是内存带宽受限的，这个差距是决定性的。7B 模型 Q4 量化后权重 3.5GB，在 50 GB/s 带宽下读取需要 70ms——理论上限仅约 14 tok/s。2026 年边缘推理是四个不同的平台、四种不同的解决方案。
+
+> **【拓展：边缘 AI 芯片市场】** 2026 年边缘 AI 芯片的竞争格局：(1) Apple Neural Engine (M4/A18)——38 TOPS，统一内存架构，无需 CPU↔NPU 数据拷贝；(2) Qualcomm Hexagon (Snapdragon X Elite / 8 Gen 4)——45 TOPS，QNN SDK 提供转换链路；(3) Intel Lunar Lake / AMD Ryzen AI 300——40-50 TOPS，软件生态落后于 Apple/Qualcomm；(4) NVIDIA Jetson Orin/Thor——边缘 GPU 方案，支持 vLLM 和 TensorRT Edge-LLM。语音代理是边缘推理的杀手级应用——本地推理完全消除网络延迟。
+
 A customer wants an on-device chatbot: voice-first, private-by-default, works offline. On a MacBook Pro M3 Max, Llama 3.1 8B Q4 runs at ~55 tok/s — fine. On an iPhone 16 Pro, the same model runs at 3 tok/s — not fine. On a mid-range Android with Snapdragon 8 Gen 3, 7 tok/s. In the browser via WebGPU on Chrome Android v121+, 4-8 tok/s depending on the device.
 
 The throughput variance is not a porting issue. It is the bandwidth gap times the quantization format times whether the NPU is accessible from user-space. Edge inference in 2026 is four different problems with four different solutions.
@@ -26,6 +30,8 @@ The throughput variance is not a porting issue. It is the bandwidth gap times th
 ## The Concept | 概念
 
 ### Bandwidth is the real ceiling
+
+> **【中文解读】** 边缘推理的真正天花板是内存带宽。Decode 阶段每生成一个 token 需要读取全部权重。7B Q4 模型 3.5GB，在 50 GB/s 带宽下读取需 70ms——理论上限仅约 14 tok/s。在 90 GB/s（高端移动 DRAM）下上限升至约 25 tok/s。数据中心 HBM3 在 3 TB/s 下读取同一模型仅需 1.2ms——上限 830 tok/s。同样的模型、同样的权重、不同的内存子系统。
 
 Decode reads the full set of weights for every token. One 7B model in Q4 is 3.5 GB. Reading 3.5 GB at 50 GB/s takes 70 ms — a theoretical ceiling of ~14 tok/s. At 90 GB/s (high-end mobile DRAM) the ceiling moves to ~25 tok/s. No amount of compute helps below this number.
 
@@ -51,6 +57,8 @@ Datacenter HBM3 at 3 TB/s clears the same 3.5 GB in 1.2 ms — ceiling is 830 to
 
 ### WebGPU + WebLLM
 
+> **【中文解读】** WebGPU + WebLLM 是浏览器内 LLM 推理的方案——无需安装，通过 WebGPU compute shader 运行模型。在 M3 Max 上 Llama 3.1 8B Q4 达到 ~41 tok/s，约为原生性能的 70-80%。2026 年覆盖率：Chrome Android v121+、Safari iOS 26 GA、Firefox Android 仍在追赶，总体约 70-75% 移动浏览器覆盖。17.6k GitHub stars，OpenAI 兼容的 JavaScript API。
+
 - Run models in the browser via WebGPU compute shaders; no install.
 - Llama 3.1 8B Q4 at ~41 tok/s on M3 Max — roughly 70-80% of native via same backend.
 - 17.6k GitHub stars on WebLLM; OpenAI-compatible JS API; Apache 2.0.
@@ -75,9 +83,15 @@ Datacenter HBM3 at 3 TB/s clears the same 3.5 GB in 1.2 ms — ceiling is 830 to
 
 ### The long-context trap on edge
 
+> **【中文解读】** 边缘设备上的长上下文陷阱：Llama 3.1 的 128K 上下文是数据中心特性。在 8GB RAM 的手机上，4GB 模型 + 2GB KV Cache（32K tokens）+ 系统开销 = OOM。边缘部署通常将上下文限制在 4K-8K，除非使用激进的 KV 量化（Q4 KV）。
+
+> **【拓展：边缘推理的隐私优势】** 边缘推理在隐私敏感场景中有独特优势：(1) 医疗——患者数据不离开设备；(2) 金融——交易分析在本地完成；(3) 法律——律师-客户通信不上传云端；(4) 军事/政府——完全离线运行。2026 年 Apple Intelligence 的"Private Cloud Compute"是一个折中方案——简单任务在设备上完成，复杂任务在 Apple 专有云上处理但承诺不存储数据。这种"设备优先、云端后备"的模式正在成为行业标准。
+
 Llama 3.1's 128K context is a datacenter feature. On a phone with 8 GB RAM, 4 GB model + 2 GB KV cache for 32K tokens + OS overhead = OOM. Edge deployments keep context at 4K-8K unless aggressive KV quantization (Q4 KV) is accepted.
 
 ### Voice is the killer app
+
+> **【拓展：边缘推理的应用场景】** 边缘推理的杀手级应用是语音代理——语音 Agent 对延迟极度敏感（首 token < 500ms）。本地推理完全消除网络延迟。结合语音转文字（Whisper Turbo 变体在边缘运行），边缘推理成为生产质量的语音环路。其他场景包括：隐私优先的医疗/金融分析、离线代码补全、实时翻译。Apple 的"Private Cloud Compute"是一种折中——简单任务设备端完成，复杂任务在 Apple 专有云处理但承诺不存储数据。
 
 Voice agents are latency-sensitive (first token < 500 ms). Local inference eliminates network latency entirely. Combine with speech-to-text (Whisper Turbo variants run on edge) and edge inference becomes the production-quality voice loop.
 

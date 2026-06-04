@@ -25,7 +25,15 @@ Worse, the business model behind each pricing page is different. Fireworks runs 
 
 This lesson models the six and tells you when each wins.
 
+> **【中文解读】** 推理平台市场的核心难题是定价模型不统一。按 token 计费（Fireworks/Together）、按分钟计费（Baseten）、按秒计费（Modal）、按预测计费（Replicate）——同样的 LLM 响应，背后是完全不同的成本函数。不能只看单价，必须根据工作负载特征建模才能做出正确选择。
+
+> **【拓展：LLM 推理成本构成】** LLM 推理的成本主要由 GPU 租赁（H100 约 $2-3/hr）、电力（约 $0.3/hr/GPU）、网络带宽和运维组成。推理平台的毛利率通常在 20-40%（a16z 2025 AI 基础设施报告）。优化推理成本的关键是提高 GPU 利用率和 batch 大小——vLLM 的 continuous batching 可将利用率从 30% 提升到 80%+。
+
 ## The Concept | 概念
+
+> **【中文解读】** 推理平台市场分为三大细分：(1) 自研芯片（Groq LPU、Cerebras WSE、SambaNova RDU）——以 5-10x 解码速度取胜但单价更高；(2) GPU 平台（Baseten、Together、Fireworks、Modal）——运行 NVIDIA GPU，介于原始 GPU 租赁和 hyperscaler 托管服务之间；(3) API 优先市场（Replicate、DeepInfra、OpenRouter）——强调快速上手和广度。
+
+> **【拓展：自研推理芯片竞赛】** Groq 的 LPU（Language Processing Unit）在 Llama 70B 上可实现 300+ tokens/s，是 GPU 推理的 10x。Cerebras 的 CS-3 晶圆级引擎可达 2000+ tokens/s。但这些芯片的缺点是灵活性低——只能运行特定架构的模型。2025-2026 年自研推理芯片投资超过 $50B（CB Insights），核心赌注是推理需求将超过 GPU 供给。
 
 ### The three segments
 
@@ -80,6 +88,10 @@ Per-token makes sense when the workload is latency-insensitive and bursty — yo
 
 Rough rule: for workloads above ~30% sustained utilization of a dedicated GPU, per-minute (Baseten, Modal) starts to beat per-token (Fireworks, Together). Below that, per-token wins because you avoid paying for idle.
 
+> **【中文解读】** 定价模型选择的核心是利用率。按 token 计费适合突发、低频场景——只付实际使用量；按分钟计费适合持续高负载场景——当 GPU 利用率超过约 30% 时，按分钟通常更便宜。30% 是经验法则，实际交叉点取决于模型大小、batch 配置和具体平台定价。
+
+> **【拓展：推理经济学趋势】** 2024-2026 年 LLM 推理价格下降了约 90%（ARK Invest 2025 报告）。GPT-4 级别模型的推理成本从 2023 年的 $30/M tokens 降到 2025 年的 $3/M tokens。趋势驱动因素包括：模型量化（INT8/INT4）、更好的 batch 调度、自研芯片竞争和开源推理引擎（vLLM/SGLang）的成熟。预计到 2027 年，同等质量的推理成本将再降 80%。
+
 ### Custom engine is the real moat
 
 Every platform above vLLM and SGLang claims a custom engine. FireAttention, RayTurbo, Baseten's inference stack. Custom-engine claims shade marketing — the honest framing is that vLLM + SGLang represent about 80% of production open-source inference, and the differentiators at the platform layer are DX, attribution, and SLAs.
@@ -97,9 +109,13 @@ Every platform above vLLM and SGLang claims a custom engine. FireAttention, RayT
 
 `code/main.py` compares the six vendors on a synthetic workload across pricing models. Reports $/day and effective $/M tokens. Run it to find the break-even between per-token and per-minute.
 
+> **【中文解读】** 实践部分通过模拟工作负载对比六个供应商的定价模型。关键输出是每天成本（$/day）和等效每百万 token 成本（$/M tokens），帮助你找到按 token 和按分钟计费的交叉点。
+
 ## Ship It | 部署上线
 
 This lesson produces `outputs/skill-inference-platform-picker.md`. Given workload profile, SLA, and budget, picks the primary inference platform and names the runner-up.
+
+> **【拓展：推理平台选型决策树】** 选型决策路径：(1) 是否需要 < 50ms TTFT？是 → Groq/Cerebras；(2) 是否需要自托管/合规？是 → Baseten/Modal；(3) 是否需要最大模型广度？是 → Together/OpenRouter；(4) 是否需要多媒体模型？是 → Replicate/Fal；(5) 默认 → Fireworks（延迟优化）或 Together（成本优化）。
 
 ## Exercises | 练习题
 
@@ -111,17 +127,17 @@ This lesson produces `outputs/skill-inference-platform-picker.md`. Given workloa
 
 ## Key Terms | 关键术语
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Custom silicon | "non-GPU chips" | Groq LPU, Cerebras WSE, SambaNova RDU — optimized for decode |
-| FireAttention | "Fireworks engine" | Custom attention kernel; marketed at 4x lower latency than vLLM |
-| Truss | "Baseten's format" | Model packaging manifest; dependencies + secrets + serving config |
-| Per-token | "API pricing" | Charge by tokens consumed; pay for no idle |
-| Per-minute | "dedicated pricing" | Charge by wall-clock GPU time; wins at high utilization |
-| Per-prediction | "Replicate pricing" | Charge per model invocation; common for image/video |
-| RayTurbo | "Anyscale engine" | Proprietary inference on Ray; competes with vLLM on Ray clusters |
-| Batch tier | "50% off" | Non-interactive queue at reduced rate; common on Fireworks, OpenAI |
-| Fine-tuned at base rate | "Fireworks LoRA" | Charge LoRA-served requests at base model's rate (differentiator) |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|----------|
+| Custom silicon | "non-GPU chips" | Groq LPU, Cerebras WSE, SambaNova RDU — optimized for decode | 自研推理芯片——Groq LPU、Cerebras WSE 等 |
+| FireAttention | "Fireworks engine" | Custom attention kernel; marketed at 4x lower latency than vLLM | Fireworks 自研注意力引擎，号称比 vLLM 快 4x |
+| Truss | "Baseten's format" | Model packaging manifest; dependencies + secrets + serving config | Baseten 的模型打包格式，包含依赖、密钥、服务配置 |
+| Per-token | "API pricing" | Charge by tokens consumed; pay for no idle | 按 token 计费——只付实际使用量 |
+| Per-minute | "dedicated pricing" | Charge by wall-clock GPU time; wins at high utilization | 按分钟计费——高利用率时更划算 |
+| Per-prediction | "Replicate pricing" | Charge per model invocation; common for image/video | 按预测次数计费——常见于图像/视频模型 |
+| RayTurbo | "Anyscale engine" | Proprietary inference on Ray; competes with vLLM on Ray clusters | Anyscale 基于 Ray 的自研推理引擎 |
+| Batch tier | "50% off" | Non-interactive queue at reduced rate; common on Fireworks, OpenAI | 批量推理队列——半价用于非交互任务 |
+| Fine-tuned at base rate | "Fireworks LoRA" | Charge LoRA-served requests at base model's rate (differentiator) | 微调模型按基础模型费率计费 |
 
 ## Further Reading | 延伸阅读
 
