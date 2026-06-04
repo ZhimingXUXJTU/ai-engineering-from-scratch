@@ -1,0 +1,102 @@
+# 初始化 脚本 Agent
+
+> Every session that starts cold pays a tax. The agent reads the same files, retries the same probes, and rediscovers the same paths. An init script pays the tax once and writes the answers into state.
+
+
+**类型：** 构建
+**语言：** Python (stdlib)
+**前置条件：** Phase 14 · 32 (Minimal Workbench), Phase 14 · 34 (Repo Memory)
+**预计时间：** ~45 minutes
+
+## 学习目标
+
+- Identify the work an agent should never have to redo per session.
+- Build a deterministic init script that probes runtime, dependencies, and repo health.
+- Persist the probe result so the agent reads it instead of re-running checks.
+- Fail loud, fast, and with one place to look when initialization fails.
+
+## 问题引入
+
+> **【中文解读】** 初始化脚本在 Agent 会话开始时设置环境和上下文。包括：(1) 环境探测——检查依赖、语言版本、工具链；(2) 项目分析——扫描文件结构、识别框架和约定；(3) 记忆加载——从上次会话恢复上下文。好的初始化脚本是 Agent 成功的前提。
+
+## 核心概念
+
+```mermaid
+flowchart TD
+  Start[Session Start] --> Init[init_agent.py]
+  Init --> Probes[probe runtime / deps / paths / env / tests]
+  Probes --> Report[init_report.json]
+  Report --> Decision{healthy?}
+  Decision -- yes --> Agent[Agent Loop]
+  Decision -- no --> Halt[fail loud, halt, surface to human]
+```
+> **【中文解读】** 初始化脚本在 Agent 会话开始时设置环境和上下文。包括：(1) 环境探测——检查依赖、语言版本、工具链；(2) 项目分析——扫描文件结构、识别框架和约定；(3) 记忆加载——从上次会话恢复上下文。好的初始化脚本是 Agent 成功的前提。
+### What the init script probes
+| Probe | Why it matters |
+|-------|----------------|
+| Runtime versions | Wrong Python or Node version means silent wrong-version bugs |
+| Dependency availability | A missing package later costs ten times the cost of catching it now |
+| Test command | The agent must know how to verify; if the command is missing the workbench is broken |
+| Repo paths | Hard-coded paths drift; resolve them once and pin |
+| Environment variables | Missing `OPENAI_API_KEY` is a failure surface, not a runtime mystery |
+| State + board freshness | Stale state from a crashed session is a footgun |
+| Last-known-good commit | Anchor for the handoff diff at the end of the session |
+### Fail loud, fail fast, fail in one place
+A probe failure means halt and surface to the human. No "the agent will figure it out." The whole point of init is to refuse to start when the workbench is broken.
+### Idempotent
+Run it twice in a row. The second run should be a no-op except for a fresh timestamp. Idempotency is what lets you wire the script into CI, hooks, or a pre-task slash command.
+### Init versus startup rules
+Rules (Phase 14 · 33) describe what must be true to act. Init is the script that establishes that those rules can be checked. Rules without init become "be careful." Init without rules becomes a polished failure.
+
+## 动手实现
+
+`code/main.py` implements `init_agent.py`:
+- Five probes: Python version, listed dependencies via `importlib.util.find_spec`, test command resolvability, required env vars, state file freshness.
+- Each probe returns `(name, status, detail)`.
+- The script writes `init_report.json` with the full probe set and exits non-zero if any block-severity probe fails.
+Run it:
+```
+python3 code/main.py
+```
+The script prints the table of probes, writes `init_report.json`, and exits zero on the happy path or non-zero with a list of failed probes.
+## Production patterns in the wild
+Three patterns separate a useful init script from a ceremony.
+**Last-known-good commit anchoring.** Probe the current commit against a `LKG` file written on the last successful merge. If the diff exceeds a budget (default 50 files), refuse to start and require a human to ratify the new baseline. This is what Cloudflare's AI Code Review uses to scope reviewer agents: every review session anchors against the same last-known-good and never compounds drift across sessions.
+**Lock files with TTL.** Write a `prereqs.lock` after the first successful probe pass. Subsequent runs trust the lock for N hours (24h default) and skip the expensive probes. The init script reads the lock first; if it is fresh and the dependency manifest hash matches, it short-circuits. This is the same pattern Docker uses for layer caches: idempotent probe + content hash = skip.
+**No network, no LLM, no surprises in the hot path.** Init probes are deterministic plumbing. A probe that calls an LLM to classify a failure or that hits an external service to check a license is not a probe; it is a workflow. If a probe takes longer than three seconds in a dry run, treat that as a workbench smell and either move it out of init or cache its result.
+
+## 用框架实现
+
+- **Claude Code hooks.** `pre-task` hook calls the init script and refuses to launch the agent if it fails.
+- **GitHub Actions.** A `setup-agent` job runs the init script; the agent job depends on it.
+- **Docker entrypoint.** The agent container runs the init script before exec-ing the agent runtime; logs surface on failure.
+
+## 产出物
+
+`outputs/skill-init-script.md` interviews the project, classifies its setup work into probes, and emits a project-specific `init_agent.py` plus a CI workflow that runs it before any agent step.
+
+## 练习题
+
+1. Add a probe that diffs the current commit against the last-known-good commit and refuses to start if more than 50 files changed.
+   *思考并实践此练习*
+2. Wire the script to write a `prereqs.lock` file and refuse to start if the lock is older than seven days.
+   *思考并实践此练习*
+3. Add a `--fix` flag that auto-installs missing dev dependencies but never modifies runtime dependencies without approval.
+   *思考并实践此练习*
+4. Move probes from hardcoded functions to a YAML registry. Defend the trade-off.
+   *思考并实践此练习*
+5. Add a timing budget per probe. A probe that runs longer than three seconds is a workbench smell.
+   *思考并实践此练习*
+
+## 术语速查表
+
+| 术语 | 实际含义 |
+|------|---------|
+| Probe | "A check" |
+| Init report | "Setup output" |
+| Idempotent | "Safe to re-run" |
+| Fail loud | "Don't swallow" |
+| Setup tax | "Bootstrap cost" |
+
+## 延伸阅读
+
