@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 8 · 02 (VAE), Phase 8 · 06 (DDPM), Phase 7 · 09 (ViT)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Pixel-space diffusion at 512² means the U-Net runs on tensors of shape `[B, 3, 512, 512]`. Each sampling step is ~100 GFLOPS for a 500M-param U-Net. Fifty steps is 5 TFLOPS per image. Train on a billion images and the compute bill is absurd.
 
@@ -19,7 +19,11 @@ Most of those FLOPs go to pushing perceptually unimportant details through the n
 
 This is the Stable Diffusion recipe. SD 1.x / 2.x used an 860M U-Net over `64×64×4` latents, SDXL used a 2.6B U-Net over `128×128×4`, SD3 swapped the U-Net for a Diffusion Transformer (DiT) with flow matching. Flux.1-dev (Black Forest Labs, 2024) ships a 12B-param DiT-MMDiT. All run on the same two-stage substrate.
 
-## The Concept
+> **【中文解读】** Stable Diffusion 的核心架构是两阶段设计：(1) 第一阶段——VAE 编码器将 512x512 图像压缩到 64x64x4 潜在空间（16 倍压缩）；(2) 第二阶段——在潜在空间中运行扩散过程。U-Net 在 64x64 张量上运行，计算量降低约 64 倍。从 SD 1.x 到 SD3 的演进：U-Net → DiT（Diffusion Transformer），DDPM → Flow Matching。
+
+> **【拓展：从 U-Net 到 DiT 的架构变迁】** SD 1.x/2.x 使用 U-Net 作为去噪网络。SD3（2024）和 FLUX 转向 DiT（Diffusion Transformer）——用 Transformer 替代 U-Net。DiT 的优势在于扩展性更好（Transformer 的缩放定律适用）、支持更高分辨率、可以更好地融合文本条件。这一架构变迁与 NLP 领域的 Transformer 统一趋势一致。
+
+## The Concept | 核心概念
 
 ![Latent diffusion: VAE compression + diffusion in latent space](../assets/latent-diffusion.svg)
 
@@ -47,7 +51,7 @@ This is the Stable Diffusion recipe. SD 1.x / 2.x used an 860M U-Net over `64×6
 
 The trend: replace U-Net with DiT (transformer over latent patches), scale the text encoder (T5 beats CLIP for prompt adherence), increase latent channels (4 → 16 gives more detail headroom).
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` stacks a toy 1-D "VAE" (identity encoder + decoder, for demonstration; a real VAE would be a conv net) on top of the DDPM from Lesson 06 and adds class conditioning with classifier-free guidance. It shows that the same diffusion loss works whether you run on raw 1-D values or on encoded values — the key insight.
 
@@ -92,7 +96,7 @@ This is the only substantive difference between a class-conditional diffusion mo
 - **CFG too high.** `w > 10` produces saturated, oily images and over-fits the prompt at the cost of diversity. The sweet spot is `w = 3-7`.
 - **Negative prompts leaking.** Empty negative prompt becomes the null token; a filled negative prompt becomes the `ε_uncond`. These are not the same; some pipelines silently default to the null.
 
-## Use It
+## Use It | 用框架实现
 
 Production stacks in 2026:
 
@@ -105,17 +109,17 @@ Production stacks in 2026:
 | Edit workflows | Flux.1-Kontext (Dec 2024) — natively accepts image + text |
 | Research, baseline | SD 1.5 — ancient but well-studied |
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-sd-prompter.md`. Skill takes a text prompt + target style and outputs: model + checkpoint, CFG scale, sampler, negative prompt, resolution, optional ControlNet/IP-Adapter combo, and a per-step QA checklist.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py` with guidance `w ∈ {0, 1, 3, 7, 15}`. Record mean sample by class. At what `w` do the class means diverge past the real data means?
 2. **Medium.** Swap the toy linear encoder for a tanh-MLP encoder/decoder pair with a reconstruction loss. Retrain diffusion on the new latents. Does sample quality change?
 3. **Hard.** Set up a real Stable Diffusion inference with diffusers: load `sdxl-base`, run 30 Euler steps with CFG=7, time it. Now switch to `sdxl-turbo` with 4 steps and CFG=0. Same subject, different quality — describe what changed and why.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -138,7 +142,7 @@ the reference Flux integration is the canonical "I have a consumer GPU, can I sh
 
 The memory accounting is: `10 GB T5 / 8 = 1.25 GB` quantized, `12 B params × 0.5 bytes = ~6 GB` quantized DiT, plus activations. In stas00's terms this is the extreme-end of TP=1 inference — no model parallelism, maximum quantization. For production you'd run TP=2 or TP=4 on H100s; for a single dev laptop, this is the recipe.
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Rombach et al. (2022). High-Resolution Image Synthesis with Latent Diffusion Models](https://arxiv.org/abs/2112.10752) — Stable Diffusion.
 - [Podell et al. (2023). SDXL: Improving Latent Diffusion Models for High-Resolution Image Synthesis](https://arxiv.org/abs/2307.01952) — SDXL.

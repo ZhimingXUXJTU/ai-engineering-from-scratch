@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 7 · 05 (Full Transformer), Phase 7 · 07 (GPT)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 When you have C FLOPs of training compute and want the best model, you face two knobs:
 
@@ -24,7 +24,11 @@ Hoffmann et al. (2022), training a small family of models called Chinchilla, fou
 
 2026 is Chinchilla's world — with one important twist. Llama 3 8B was trained on 15 trillion tokens, a ratio of 1,875 tokens per parameter. Ninety-four times past Chinchilla-optimal. Inference cost matters more than training cost for models that will be used at scale, so over-training (past Chinchilla) for a smaller deployable footprint is the 2026 default.
 
-## The Concept
+> **【中文解读】** 缩放定律的核心洞察：FLOPs ≈ 6 × N × D（参数量 × token 数）。Kaplan（2020）倾向于增大 N，但 Chinchilla（2022）证明最优比例约为 20 token/参数。2026 年的实践更进一步：Llama 3 8B 用了 1,875 token/参数训练——远超 Chinchilla 最优，因为推理成本比训练成本更重要，过度训练小模型以降低部署成本已成为行业标准。
+
+> **【拓展：过度训练策略的经济逻辑】** Llama 3 8B 用 15T token 训练（远超 Chinchilla 最优的 160B token），推理成本却大幅降低。这是因为推理时每个 token 的计算量与参数量成正比，8B 参数的推理成本仅为 70B 模型的约 1/9。对于部署量大的模型（如 API 服务），推理成本的节约远超额外训练成本。这解释了为什么 Phi-3-mini（3.8B）和 Qwen2-1.5B 等小模型都被过度训练。
+
+## The Concept | 核心概念
 
 ![Chinchilla curves: loss vs compute at various N/D ratios](../assets/scaling-laws.svg)
 
@@ -72,6 +76,10 @@ Schaeffer et al. (2023) argued this is a measurement artifact: emergent metrics 
 
 In 2026 the consensus is: predictions via continuous loss are reliable. Benchmark jumps are often scorer artifacts. Plan budgets against continuous metrics.
 
+> **【中文解读】** "涌现能力"（emergence）在 2023 年引发了大量讨论——某些能力似乎在特定规模突然出现。但 Schaeffer 等人证明这可能是度量伪影：不连续的评分标准（如精确匹配）隐藏了底层 logits 的平滑改善。2026 年的共识是：用连续损失（如交叉熵）预测是可靠的，基准测试的跳变往往是评分标准的问题。
+
+> **【拓展：数据质量比数据量更重要】** 2026 年缩放定律的新变量是数据质量。Microsoft 的 Phi 系列证明，精心筛选的"高质量" token 可以将有效计算量提升 2 倍以上。Llama 3 使用了数据配比优化和合成数据增强。MoE 架构则进一步解耦了总参数量和活跃计算量。这些因素使得传统的 Chinchilla 曲线需要重新校准。
+
 ### The 2026 picture
 
 Scaling laws still work, but:
@@ -84,9 +92,11 @@ Scaling laws still work, but:
 | Multimodality | Image + text tokens scale together; separate curves per modality |
 | Synthetic data | Models generate training data; effective compute can compound |
 
+> **【拓展：合成数据与缩放定律的未来】** 2026 年缩放定律面临数据墙问题——高质量人类文本数据可能在未来几年耗尽。合成数据（模型生成的训练数据）是潜在的解决方案。Microsoft 的 Phi 系列使用 GPT-4 生成的"教科书质量"合成数据进行训练，NVIDIA 的 Nemotron 使用合成数据增强。如果合成数据有效，缩放定律的"有效计算"可以持续增长。
+
 The Muon optimizer (Kimi Moonlight, 2024) showed a ~2× effective-compute gain over AdamW at matched data. Some 2026 training runs use Muon by default. Changes the absolute constant in the scaling law, not its shape.
 
-## Build It
+## Build It | 动手实现
 
 See `code/main.py`. We implement the Chinchilla loss equation and solve for compute-optimal `(N, D)` at each of several compute budgets.
 
@@ -111,7 +121,7 @@ Compute the extra loss you pay to train a 10× smaller model (1/10 of optimal N,
 
 Drop in known `(N, D)` pairs for GPT-3, Chinchilla, Llama 3 8B, DeepSeek-V3 (active params), and compare predicted vs reported loss.
 
-## Use It
+## Use It | 用框架实现
 
 You're unlikely to train a frontier model yourself. But scaling laws tell you:
 
@@ -125,17 +135,17 @@ You're unlikely to train a frontier model yourself. But scaling laws tell you:
 - **Compute-multiplier tricks.** Muon optimizer, MoE, better data curation — each shifts the absolute constants, not the asymptote.
 - **Scaling laws for RL.** Open question. Early evidence suggests power-law in RL samples but with very different exponents than pretraining.
 
-## Ship It
+## Ship It | 产出物
 
 See `outputs/skill-training-budget-estimator.md`. The skill picks `(N, D, hours, GPU)` for a new training run given compute budget, deployment constraints, and target loss.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py`. Print Chinchilla-optimal `(N, D)` for compute budgets `1e20`, `1e22`, `1e24`. Compare to the real model table.
 2. **Medium.** Implement the Hoffmann loss-as-function-of-compute curve. Plot loss vs `log10(C)` for the compute-optimal frontier. Identify when the law predicts we'd need `>10^28` FLOPs for the next 0.1 reduction in cross-entropy.
 3. **Hard.** Fit your own scaling law on 5 tiny models (100K to 10M params) trained on the same dataset. Estimate `α` and `E`. How well do your exponents match published ones?
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -148,7 +158,7 @@ See `outputs/skill-training-budget-estimator.md`. The skill picks `(N, D, hours,
 | Emergent capability | "Sudden jumps at scale" | Often a scorer artifact; continuous loss is smooth. |
 | Effective compute | "Training-efficiency multiplier" | Better data / optimizer / architecture multiplies how far a FLOP goes. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Kaplan et al. (2020). Scaling Laws for Neural Language Models](https://arxiv.org/abs/2001.08361) — the first scaling law paper; undertrained.
 - [Hoffmann et al. (2022). Training Compute-Optimal Large Language Models](https://arxiv.org/abs/2203.15556) — Chinchilla.

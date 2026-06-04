@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 9 · 01 (MDPs), Phase 9 · 02 (Dynamic Programming), Phase 9 · 03 (Monte Carlo)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Monte Carlo works but it has two expensive demands. It needs episodes that terminate, and it only updates after the final return is in. If your episode is 1,000 steps, MC waits 1,000 steps to update anything. It is high-variance, low-bias, and slow in practice.
 
@@ -23,7 +23,7 @@ This is the pivot on which all of modern RL — DQN, A2C, PPO, SAC — turns. Th
 
 > **【拓展：游戏AI→LLM对齐】** Q-learning 是 2013 年 Atari DQN 的核心，开启了深度 RL 时代。PPO 则是 ChatGPT RLHF 训练的核心算法——两者都基于 TD 误差的思想。理解 Q-learning 和 SARSA 是理解大模型对齐训练的基础。
 
-## The Concept
+## The Concept | 核心概念
 
 ![Q-learning vs SARSA: off-policy max vs on-policy Q(s', a')](../assets/td.svg)
 
@@ -57,7 +57,9 @@ Lower variance than SARSA (no sample of `a'`), same on-policy target. Often the 
 
 **n-step TD and TD(λ).** Interpolate between TD(0) and MC by waiting `n` steps before bootstrapping. `n=1` is TD, `n=∞` is MC. TD(λ) averages over all `n` with geometric weights `(1-λ)λ^{n-1}`. Most deep-RL uses `n` between 3 and 20.
 
-## Build It
+> **【拓展：TD 误差在 LLM RLHF 中的对应】** TD 误差 δ = r + γV(s') - V(s) 在 LLM 的 RLHF 训练中有直接对应：PPO 的优势函数 A = r + γV(s') - V(s) 就是 TD 误差的变体。每生成一个 token，计算当前 token 的奖励（来自 RM）加上 critic 对未来价值的估计减去当前估计。理解 TD 误差是理解 PPO 优势函数的关键。
+
+## Build It | 动手实现
 
 ### Step 1: SARSA on ε-greedy policy
 
@@ -123,7 +125,7 @@ Run value iteration (Lesson 02) to get `Q*`. Check `max_{s,a} |Q_learned(s,a) - 
 - **Non-terminating episodes.** TD can learn without terminals, but you need to either cap steps or handle bootstrap correctly at the cap. Standard: treat cap as non-terminal, keep bootstrapping.
 - **State hashing.** If states are tuples/tensors, use a hashable key (tuple, not list; tuple of floats rounded, not raw).
 
-## Use It
+## Use It | 用框架实现
 
 The 2026 TD landscape:
 
@@ -138,7 +140,7 @@ The 2026 TD landscape:
 
 Ninety percent of the "RL" you read about in 2026 papers is some elaboration of Q-learning or SARSA. Understand the tabular update in your fingers before reading deeper.
 
-## Ship It
+## Ship It | 产出物
 
 Save as `outputs/skill-td-agent.md`:
 
@@ -163,7 +165,7 @@ Given a tabular or small-feature environment, output:
 Refuse to apply tabular TD to state spaces > 10⁶. Refuse to ship a Q-learning agent without a max-bias caveat. Flag any agent trained with ε held at 1.0 throughout (no exploitation phase).
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Implement Q-learning and SARSA on the 4×4 GridWorld. Plot learning curves (mean return per 100 episodes) for 2,000 episodes. Who converges faster?
    > **练习1：** 在 GridWorld 上对比 Q-learning 和 SARSA 的学习曲线。
@@ -172,7 +174,7 @@ Refuse to apply tabular TD to state spaces > 10⁶. Refuse to ship a Q-learning 
 3. **Hard.** Implement Double Q-learning. On a noisy-reward GridWorld (Gaussian noise σ=5 added to per-step reward), show Q-learning overestimates `V*(0,0)` by a meaningful amount while Double Q-learning does not.
    > **练习3：** 实现双重 Q-learning，验证它能消除 Q-learning 的最大化偏差。
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -185,7 +187,7 @@ Refuse to apply tabular TD to state spaces > 10⁶. Refuse to ship a Q-learning 
 | Bootstrapping | "Using current estimate in the target" / 自举 | What distinguishes TD from MC. Source of bias but massive variance reduction. |
 | Maximization bias | "Q-learning overestimates" / 最大化偏差 | `max` over noisy estimates is upward-biased; fixed by Double Q-learning. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Watkins & Dayan (1992). Q-learning](https://link.springer.com/article/10.1007/BF00992698) — the original paper and convergence proof.
 - [Sutton & Barto (2018). Ch. 6 — Temporal-Difference Learning](http://incompleteideas.net/book/RLbook2020.pdf) — TD(0), SARSA, Q-learning, Expected SARSA.

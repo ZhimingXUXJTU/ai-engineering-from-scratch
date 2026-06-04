@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 7 Lesson 03 (Multi-Head Attention), Phase 8 Lesson 06 (DDPM)
 **Time:** ~90 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Autoregressive generation dominated language modeling because it scales predictably: more compute, more parameters, lower perplexity, better outputs. Image generation had two main AR attempts before 2024: PixelRNN/PixelCNN (pixel-by-pixel) and DALL-E 1 / Parti / MuseGAN (token-by-token on VQ-VAE codes).
 
@@ -21,7 +21,11 @@ VAR fixes the generation-order problem by changing what is being generated. Inst
 
 Each scale attends to all previous scales (causally in "scale order") and parallel within its own scale. The order problem disappears: the whole image at scale k is produced in one transformer pass.
 
-## The Concept
+> **【中文解读】** VAR（Visual Autoregressive）的核心创新：将图像生成的自回归顺序从"逐像素/逐 token"改为"逐尺度"。先预测 1x1 的全局摘要，再 2x2 的粗特征，再 4x4 的细节，直到目标分辨率。每个尺度内并行生成，消除了传统图像 AR 的"生成顺序问题"。2024 年论文证明 VAR 展现了类似 GPT 的 Scaling Law。
+
+> **【拓展：VAR 与扩散模型的对比】** VAR 是继扩散模型之后最有潜力的图像生成新范式。优势：(1) 清晰的 Scaling Law——像 GPT 一样可预测扩展；(2) 生成过程结构化——先全局后局部，更符合人类感知；(3) 在相同计算预算下超越 DiT。挑战：需要多尺度 VQ-VAE tokenizer，训练更复杂。如果 Scaling Law 验证成功，VAR 可能成为下一代图像生成的基础架构。
+
+## The Concept | 核心概念
 
 ### VQ-VAE Multi-Scale Tokenizer
 
@@ -92,7 +96,7 @@ VAR and diffusion share the same data-compression story: both break the generati
 
 They are different axes through the problem. Both yield tractable conditional distributions. Empirically VAR is faster at inference (fewer passes, all parallel within a scale) and matches or beats DiT on class-conditional ImageNet. Text-conditional VAR (VARclip, HART) is an active research direction.
 
-## Build It
+## Build It | 动手实现
 
 In `code/main.py` you will:
 1. Build a tiny **multi-scale VQ tokenizer** on synthetic "image" data (2D Gaussian rings).
@@ -102,11 +106,11 @@ In `code/main.py` you will:
 
 This is a toy implementation. The point is to see the scale-structured attention mask and the parallel-within-scale generation actually working.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-var-tokenizer-designer.md` — a skill for designing a multi-scale tokenizer: number of scales, scale ratios, codebook size, residual sharing, decoder architecture.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Scale count ablation.** Train VAR with 4, 6, 8, 10 scales. Measure reconstruction quality vs number of autoregressive passes. More scales = finer residuals = better quality but more passes.
 
@@ -118,7 +122,7 @@ This lesson produces `outputs/skill-var-tokenizer-designer.md` — a skill for d
 
 5. **Text conditioning.** Extend VAR to take a text embedding (CLIP pooled) as an extra conditioning input via adaLN. This is the HART recipe. How much does FID improve on text-aligned sampling?
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -133,7 +137,7 @@ This lesson produces `outputs/skill-var-tokenizer-designer.md` — a skill for d
 | HART | "Hybrid VAR + text" | Text-conditional VAR variant combining MaskGIT-style iterative decoding with VAR's scale structure |
 | Scale position embedding | "(scale, row, col) triple" | Positional encoding carries both the scale index and spatial coordinates within the scale |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Tian et al., 2024 — "Visual Autoregressive Modeling: Scalable Image Generation via Next-Scale Prediction"](https://arxiv.org/abs/2404.02905) — the VAR paper, canonical reference
 - [Peebles and Xie, 2022 — "Scalable Diffusion Models with Transformers"](https://arxiv.org/abs/2212.09748) — DiT, the diffusion comparison baseline

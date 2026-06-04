@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 8 · 07 (Latent Diffusion), Phase 7 · 09 (ViT), Phase 8 · 06 (DDPM)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 A 10-second 1080p video at 24fps is 240 frames of 1920×1080×3 pixels. That's ~1.5 GB of raw data per clip. Pixel-space diffusion is infeasible. You need:
 
@@ -22,7 +22,7 @@ A 10-second 1080p video at 24fps is 240 frames of 1920×1080×3 pixels. That's ~
 
 The architecture that solved this is the **Diffusion Transformer (DiT)** applied to spatiotemporal patches, trained on huge (prompt, caption, video) datasets. Same diffusion loss as Lesson 06.
 
-## The Concept
+## The Concept | 核心概念
 
 ![Video diffusion: patchify, DiT, decode](../assets/video-generation.svg)
 
@@ -37,6 +37,10 @@ A transformer processes the flat sequence of patches. Each patch has a 3D positi
 - **Spatial attention** within each frame's patches.
 - **Temporal attention** across frames at the same spatial location.
 - **Full 3D attention** is 16-100x more expensive; used only at low resolution or in research.
+
+> **【中文解读】** 视频生成的核心技术栈：(1) 3D VAE 将视频压缩为时空潜在表示；(2) 将潜在表示切分为时空 patch；(3) DiT（Diffusion Transformer）处理 patch 序列，使用 3D 位置编码；(4) 注意力通常分解为空间注意力和时间注意力以降低计算量。这与 Sora 的架构一致。
+
+> **【拓展：Sora 架构与 DiT 在视频中的应用】** Sora 的核心是将 ViT 的 patch 化思想扩展到视频领域——将视频视为"时空 patch 序列"。DiT（Diffusion Transformer）用 Transformer 替代 U-Net 作为去噪网络，在视频生成中表现出更好的扩展性。开源实现如 CogVideoX、HunyuanVideo 和 WAN 2.2 都遵循这一架构。
 
 ### Text conditioning
 
@@ -64,7 +68,7 @@ Standard diffusion loss (ε or v prediction) over spatiotemporal latents. Data: 
 
 Open weights are closing the gap faster than in the image space: HunyuanVideo + WAN 2.2 LoRAs already power most open-source workflows by mid-2026.
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` simulates the core spatiotemporal DiT idea: patchify a small synthetic video, add a per-patch position embedding, and denoise the whole sequence with a transformer-style attention over patches. No numpy; pure Python. We show that temporal coherence emerges even in 1-D when adjacent-frame patches share a denoiser and position embeddings.
 
@@ -100,7 +104,7 @@ After training, sample a video. Measure the frame-to-frame delta. If the model h
 - **First-frame conditioning.** Most production models also accept an image as the first frame. This is "image-to-video" mode; training includes this variant.
 - **Physics drift.** Long clips (>10s) accumulate subtle inconsistencies. Sliding-window generation + keyframe anchoring helps.
 
-## Use It
+## Use It | 用框架实现
 
 | Use case | 2026 pick |
 |----------|-----------|
@@ -114,17 +118,17 @@ After training, sample a video. Measure the frame-to-frame delta. If the model h
 
 Cost per second of video at quality parity has dropped 20x between 2024 and 2026.
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-video-brief.md`. Skill takes a video brief (duration, aspect ratio, style, camera plan, subject consistency, audio) and outputs: model + hosting, prompt scaffolding (camera language, subject description, motion descriptors), seed + reproducibility protocol, and a frame-level QA checklist.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** In `code/main.py`, compare frame-to-frame delta for (a) independent per-frame sampling, (b) joint sequence sampling. Report the mean and variance of the deltas.
 2. **Medium.** Add a first-frame condition: pin frame 0 to a given value and sample the rest. Measure how the pinned value propagates.
 3. **Hard.** Use HuggingFace diffusers to run CogVideoX-2B on a local GPU. Time 20 inference steps at 720p for a 6-second clip. Profile the spatiotemporal attention to identify the bottleneck.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -147,7 +151,7 @@ Three production knobs, all straight from production-inference literature infere
 - **Frame batching = continuous batching.** At generation time, video is conceptually a batch of frames linked by attention. Continuous batching (in-flight scheduling) applies: start rendering frame `t+1` while frame `t-1` is being returned, if the model architecture allows sliding-window generation.
 - **Clip-level prefill cache.** For image-to-video, the first-frame conditioning is analogous to an LLM's prompt prefill: compute it once, reuse across the temporal decoder passes. This is effectively a KV-cache for video.
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Brooks et al. (2024). Video generation models as world simulators](https://openai.com/index/video-generation-models-as-world-simulators/) — Sora technical report.
 - [Yang et al. (2024). CogVideoX: Text-to-Video Diffusion Models with An Expert Transformer](https://arxiv.org/abs/2408.06072) — CogVideoX.

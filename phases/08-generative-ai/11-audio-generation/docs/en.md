@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 6 · 02 (Audio Features), Phase 6 · 04 (ASR), Phase 8 · 06 (DDPM)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Three audio generation tasks:
 
@@ -21,7 +21,11 @@ Three audio generation tasks:
 
 All three run on the same substrate: neural audio codec + token-AR or diffusion generator.
 
-## The Concept
+> **【中文解读】** 音频生成的三大任务——语音合成（TTS）、音乐生成、音效生成——都基于相同的基础架构：神经音频编解码器（如 EnCodec）将音频压缩为离散 token，然后 Transformer 或扩散模型在 token 序列上生成。这与语言模型的"tokenizer + Transformer"模式完全一致。
+
+> **【拓展：ElevenLabs 与语音克隆技术】** ElevenLabs 是 2026 年最流行的 AI 语音平台。它只需几秒钟的参考音频就能克隆说话人的声音，然后用克隆的声音合成任意文本。底层技术结合了神经编解码器和条件语言模型。语音克隆在有声书、配音、虚拟人等领域有广泛应用，但也引发了深度伪造（deepfake）的伦理担忧。
+
+## The Concept | 核心概念
 
 ![Audio generation: codec tokens + transformer or diffusion](../assets/audio-generation.svg)
 
@@ -60,7 +64,7 @@ The 2024-2026 trend: flow matching is winning for music (faster inference, clean
 | AudioCraft 2 | Music + SFX | Flow matching | ~5s for 5s clip |
 | Riffusion v2 | Music | Spectrogram diffusion | ~10s |
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` simulates the core idea: train a tiny next-token transformer on synthetic "audio token" sequences generated from two distinct "styles" (alternating low and high tokens for style A, monotonic ramp for style B). Condition on style and sample.
 
@@ -91,7 +95,7 @@ Given the style token and a starting token, sample the next token from the predi
 - **Clean-data appetite.** Music generators need tens of thousands of hours of licensed music. The Suno / Udio RIAA lawsuit (2024) brought this to the surface.
 - **Voice cloning ethics.** A 3-second sample plus a text prompt is enough for VALL-E / XTTS / ElevenLabs to clone a voice. Every production model needs abuse detection + opt-out lists.
 
-## Use It
+## Use It | 用框架实现
 
 | Task | 2026 stack |
 |------|------------|
@@ -104,17 +108,17 @@ Given the style token and a starting token, sample the next token from the predi
 | Open-weights music research | MusicGen 3.3B, Stable Audio Open 1.0, AudioLDM 2 |
 | Dubbing / translation | HeyGen, ElevenLabs Dubbing |
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-audio-brief.md`. Skill takes an audio brief (task, duration, style, voice, license) and outputs: model + hosting, prompt format (genre tags, style descriptors, structural markers), codec + generator + vocoder chain, seed protocol, and eval plan (MOS / CLAP score / CER for TTS / user A/B).
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py` and set style explicitly. Verify the generated sequences match the style's pattern.
 2. **Medium.** Add delayed parallel decoding: simulate 2 streams of tokens that must stay offset by 1 step. Train a joint predictor.
 3. **Hard.** Use HuggingFace transformers to run MusicGen-small locally. Generate a 10-second clip with three different prompts; A/B for style adherence.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -137,7 +141,7 @@ Two architectural consequences:
 
 If the product is "live voice chat" or "real-time music continuation", pick the codec AR path. If it is "render a 30-second clip on submit", flow-matching wins on quality and total latency.
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Défossez et al. (2022). Encodec: High Fidelity Neural Audio Compression](https://arxiv.org/abs/2210.13438) — the codec standard.
 - [Zeghidour et al. (2021). SoundStream](https://arxiv.org/abs/2107.03312) — the first widely used neural audio codec.

@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 7 · 05 (Full Transformer), Phase 5 · 02 (Text Representation)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 In 2018 every NLP task — sentiment, NER, QA, entailment — trained its own model from scratch on its own labeled data. There was no pre-trained "understand English" checkpoint you could fine-tune. ELMo (2018) showed you could pre-train contextual embeddings with a bidirectional LSTM; it helped but did not generalize.
 
@@ -19,7 +19,9 @@ The result: within 18 months BERT and its variants (RoBERTa, ALBERT, ELECTRA) do
 
 In 2026 encoder-only models are still the right tool for classification, retrieval, and structured extraction — they run 5–10× faster per token than decoders and their embeddings are the backbone of every modern retrieval stack. ModernBERT (Dec 2024) pushed the architecture to 8K context with Flash Attention + RoPE + GeGLU.
 
-## The Concept
+> **【中文解读】** BERT 的革命性在于"预训练+微调"范式：在大规模无标注语料上用掩码语言模型（MLM）预训练，然后在特定任务上微调少量参数。编码器的双向注意力让它能同时利用左右上下文预测被掩码的词，这是自回归模型（如 GPT）做不到的。
+
+## The Concept | 核心概念
 
 ![Masked language modeling: pick tokens, mask them, predict originals](../assets/bert-mlm.svg)
 
@@ -45,6 +47,10 @@ Of the 15% of tokens selected for prediction:
 - 10% are left unchanged.
 
 Why not always `[MASK]`? Because `[MASK]` never appears at inference time. Training the model to expect `[MASK]` at 100% of masked positions would create a distribution shift between pretraining and fine-tuning. The 10% random + 10% unchanged keeps the model honest.
+
+> **【中文解读】** BERT 掩码的三条规则（80% [MASK]、10% 随机替换、10% 保持不变）是为了缩小预训练和微调之间的分布差异。推理时不会出现 [MASK] token，所以需要让模型在训练时也见到正常和随机替换的 token。
+
+> **【拓展：BERT 在 RAG 系统中的角色】** 现代 RAG（检索增强生成）系统中，BERT 变体仍然是检索阶段的核心。sentence-transformers 模型（如 all-MiniLM-L6-v2）本质上就是用对比学习微调的 BERT。交叉编码器（cross-encoder）重排序器也是 BERT 架构——它让查询和文档在同一注意力层中交互，质量远超双编码器。
 
 ### Next Sentence Prediction (NSP) — and why it was dropped
 
@@ -75,7 +81,7 @@ And unlike the 2018 stack, it is Flash-Attention-native. Inference is 2–3× fa
 | Zero-shot entailment (NLI) | Classifier head on top of encoder |
 | Reranker for RAG | Cross-encoder scoring, 10x faster than LLM rerankers |
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: masking logic
 
@@ -109,7 +115,9 @@ Show how the three-way rule keeps the model usable without `[MASK]`. Predict on 
 
 Replace the MLM head with a classification head on a toy sentiment dataset. Only the head trains; the encoder is frozen. This is the pattern every BERT application follows.
 
-## Use It
+> **【拓展：BERT 微调的实践技巧】** BERT 微调的最佳实践包括：(1) 使用较小的学习率（2e-5 到 5e-5）避免破坏预训练权重；(2) 对分类任务使用 [CLS] token 的输出作为句子表示；(3) 对于 NER 等逐 token 任务，使用每个位置的输出；(4) 逐步解冻（gradual unfreezing）可以在小数据集上提升泛化能力。
+
+## Use It | 用框架实现
 
 ```python
 from transformers import AutoModel, AutoTokenizer
@@ -128,17 +136,19 @@ out = model(**inputs).last_hidden_state   # (1, N, 768)
 
 **When not to pick BERT in 2026.** Anything generative. The encoder has no sensible way to autoregressively produce tokens. Also: anything under 1B params where a small decoder can match quality with more flexibility (Phi-3-Mini, Qwen2-1.5B).
 
-## Ship It
+> **【拓展：ModernBERT 的现代化改进】** ModernBERT（2024）将 2018 年的 BERT 架构全面升级：RoPE 替代学习式位置编码、GeGLU 替代 GELU、前归一化 RMSNorm 替代后归一化 LayerNorm、交替使用局部和全局注意力以支持 8K 上下文。推理速度比 DeBERTa-v3 快 2-3 倍，同时 GLUE 分数更高。
+
+## Ship It | 产出物
 
 See `outputs/skill-bert-finetuner.md`. The skill scopes a BERT fine-tune (backbone choice, head spec, data, eval, stopping) for a new classification or extraction task.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py` and print the mask distribution across 10,000 tokens. Confirm ~15% are selected, and of those ~80% become `[MASK]`.
 2. **Medium.** Implement whole-word masking: if a word is tokenized into subwords, mask all subwords together or none. Measure whether this improves MLM accuracy on a 500-sentence corpus.
 3. **Hard.** Train a tiny (2-layer, d=64) BERT on 10,000 sentences from a public dataset. Fine-tune the `[CLS]` token for SST-2 sentiment. Compare against a decoder-only baseline at matched params — which wins?
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -151,7 +161,7 @@ See `outputs/skill-bert-finetuner.md`. The skill scopes a BERT fine-tune (backbo
 | Cross-encoder | "A reranker" | A BERT that takes both query and doc as input, outputs a relevance score. |
 | ModernBERT | "2024 refresh" | Encoder rebuilt with RoPE, RMSNorm, GeGLU, alternating local/global attention, 8K context. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Devlin et al. (2018). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://arxiv.org/abs/1810.04805) — original paper.
 - [Liu et al. (2019). RoBERTa: A Robustly Optimized BERT Pretraining Approach](https://arxiv.org/abs/1907.11692) — how to train BERT right; kills NSP.

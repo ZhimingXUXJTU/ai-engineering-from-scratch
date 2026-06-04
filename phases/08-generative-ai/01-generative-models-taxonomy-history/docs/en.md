@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 2 (ML Fundamentals), Phase 3 (Deep Learning Core), Phase 7 · 14 (Transformers)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 A generative model does one job: given training samples drawn from some unknown distribution `p_data(x)`, output new samples that look like they came from the same distribution. Faces, sentences, MIDI files, protein structures — all the same problem if you squint.
 
@@ -19,7 +19,11 @@ The rub is that `p_data` lives in a space with millions of dimensions (a 512x512
 
 Five families have survived the last twelve years. Knowing which compromise each family makes tells you why it wins on some tasks and collapses on others.
 
-## The Concept
+> **【中文解读】** 生成模型的核心任务：从训练样本中学习未知分布 p_data(x)，然后生成看起来来自同一分布的新样本。挑战在于高维空间（512x512 图像约 786K 维）中的稀疏数据。五大模型家族各有不同的妥协方式：自回归/流模型直接建模密度但受限于架构；VAE/扩散模型优化密度下界；GAN 跳过密度直接生成样本。
+
+> **【拓展：从扩散模型到 Flow Matching 的范式转移】** 2024-2026 年最重要的趋势是从扩散模型（DDPM）向 Flow Matching（流匹配）的转移。Flow Matching 训练更简单（不需要噪声调度）、采样路径更直（更少步数）、速度提升 4-10 倍。Stable Diffusion 3、FLUX、AudioCraft 2 都已采用 Flow Matching。这是生成式 AI 领域正在发生的范式变革。
+
+## The Concept | 核心概念
 
 ![Five families of generative models — taxonomy by what they model](../assets/taxonomy.svg)
 
@@ -30,6 +34,8 @@ Five families have survived the last twelve years. Knowing which compromise each
 **3. Implicit density.** Skip density entirely; learn a generator `G(z)` that produces samples and a discriminator `D(x)` that tells real from fake. GANs (Goodfellow 2014). Fast at inference (one forward pass) but notoriously unstable during training. StyleGAN 1/2/3 remain state of the art for fixed-domain photorealism (faces, bedrooms) even in 2026.
 
 **4. Score-based / continuous-time.** Learn the gradient of the log-density `∇_x log p(x)` (the score) directly. Song & Ermon (2019) showed score matching generalizes diffusion to an SDE. Flow matching (Lipman 2023) is the 2024-2026 hotness: simulate-free training, straighter paths, 4-10x faster sampling than DDPM. Stable Diffusion 3, Flux, AudioCraft 2 all use flow matching.
+
+> **【中文解读】** 分数匹配和 Flow Matching 是扩散模型的泛化和改进。分数匹配直接学习 log 密度的梯度（分数函数），Flow Matching 进一步简化了训练过程——不需要模拟 SDE，直接学习从噪声到数据的直线路径。采样速度比 DDPM 快 4-10 倍，这是 2026 年图像/视频/3D 生成的主流方向。
 
 **5. Token-based autoregressive over discrete codes.** Compress high-dim data with a VQ-VAE or residual quantizer into a short sequence of discrete tokens, then use a Transformer to model the token sequence. Parti, MuseNet, AudioLM, VALL-E, Sora's patch tokenizer all use this. This is bucket 1 plus a learned tokenizer.
 
@@ -64,7 +70,9 @@ When a new generative model paper drops, answer these five questions before read
 
 You will re-answer these five for every lesson in this phase. By the end, they will be reflex.
 
-## Build It
+> **【中文解读】** 这五个问题（建模对象、显式/隐式密度、采样方式、条件类型、评估指标）是分析任何生成模型的通用框架。在后续每节课中反复回答这五个问题，可以帮助你快速理解新论文的核心贡献和技术选择。
+
+## Build It | 动手实现
 
 The code for this lesson is a lightweight visualization: fit a 1-D mixture-of-Gaussians from samples using three toy approaches (kernel density, discrete histogram, and a nearest-sample "GAN-ish" generator) so you can see the difference between explicit vs implicit density on a problem you can print on one screen.
 
@@ -78,7 +86,7 @@ implicit (nearest-sample gen): 20 new samples printed, no p(x)
 
 Notice: the first two let you ask "how likely is this point?" The third cannot. This is the *explicit vs implicit* distinction that will matter for every future lesson.
 
-## Use It
+## Use It | 用框架实现
 
 Which family, for which task, in 2026?
 
@@ -93,19 +101,19 @@ Which family, for which task, in 2026?
 | Density estimation (no sampling) | Flows | Only family with exact `log p(x)`. |
 | Simulation / physics | Flow matching, score SDE | Straight-line paths, smooth vector fields. |
 
-## Ship It
+## Ship It | 产出物
 
 Save as `outputs/skill-model-chooser.md`.
 
 The skill takes a task description and outputs: (1) which family to use, (2) a ranked list of three open and three hosted options, (3) the likely failure mode you should watch for, and (4) a compute/time budget.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** For each of these five products, identify the family and backbone: ChatGPT image, Midjourney v7, Sora, Runway Gen-3, ElevenLabs. Evidence should be from public technical reports.
 2. **Medium.** The paper you are about to read tomorrow claims 100x faster sampling than diffusion. Write down three questions to check whether the speedup survives conditioning and high resolution.
 3. **Hard.** Take one domain you care about (e.g. protein structure, CAD, molecules, trajectories). Answer the five-question triage for the current SOTA model in that domain and sketch what a better model would change.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -128,7 +136,7 @@ Each family maps to a different inference-server cost curve. production-inferenc
 
 When you see "faster than diffusion" in a paper abstract, translate it to "fewer steps × same step cost" or "same steps × cheaper step cost". Everything else is marketing.
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Goodfellow et al. (2014). Generative Adversarial Nets](https://arxiv.org/abs/1406.2661) — the GAN paper.
 - [Kingma & Welling (2013). Auto-Encoding Variational Bayes](https://arxiv.org/abs/1312.6114) — the VAE paper.

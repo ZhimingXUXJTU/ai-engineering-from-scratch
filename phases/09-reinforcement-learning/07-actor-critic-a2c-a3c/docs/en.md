@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 9 · 04 (TD Learning), Phase 9 · 06 (REINFORCE)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Vanilla REINFORCE works, but its variance is terrible. Monte Carlo returns `G_t` can swing over a factor of 10 between episodes. Multiplying that noise by `∇ log π` and averaging produces a gradient estimator that takes thousands of episodes to move the policy the same distance you could move it with far fewer DQN updates.
 
@@ -19,7 +19,7 @@ The variance comes from using raw returns. If you subtract a baseline `b(s_t)` �
 
 An action is good if it produced above-average return; bad if below. REINFORCE with a learned critic is *actor-critic*. The critic gives the actor a low-variance teacher. This is every deep-policy method after 2015 (A2C, A3C, PPO, SAC, IMPALA).
 
-## The Concept
+## The Concept | 核心概念
 
 ![Actor-critic: policy net plus value net, TD residual as advantage](../assets/actor-critic.svg)
 
@@ -45,6 +45,10 @@ An action is good if it produced above-average return; bad if below. REINFORCE w
 
 with `λ ∈ [0, 1]`. `λ = 0` is TD (low variance, high bias). `λ = 1` is MC (high variance, unbiased). `λ = 0.95` is the 2026 default — tune until the bias/variance dial is where you want it.
 
+> **【中文解读】** GAE（广义优势估计）是 Actor-Critic 的关键改进：通过指数加权平均所有 n 步优势，在偏差和方差之间找到最优平衡。lambda=0 是纯 TD（低方差高偏差），lambda=1 是纯 MC（高方差无偏差），lambda=0.95 是 2026 年默认值。GAE 是 PPO 的核心组件。
+
+> **【拓展：GAE 在 RLHF 中的应用】** ChatGPT 的 PPO 训练使用 GAE 计算优势函数。在 LLM 场景中，"状态"是已生成的 token 序列，"动作"是下一个 token，"奖励"来自奖励模型。GAE 让 PPO 能在长文本生成（数百 token）中稳定训练，平衡即时奖励和长期回报。
+
 **A2C: synchronous advantage actor-critic.** Collect `T` steps across `N` parallel environments. Compute advantages for each step. Update actor and critic on the combined batch. Repeat. The simpler, more-scalable sibling of A3C.
 
 **A3C: asynchronous advantage actor-critic.** Mnih et al. (2016). Spawn `N` worker threads, each running an env. Each worker computes gradients locally on its own rollout, then asynchronously applies them to a shared parameter server. No replay buffer needed — workers decorrelate by running different trajectories. A3C proved you could train on CPUs at scale. In 2026, GPU-based A2C (batched parallel envs) dominates because GPUs want large batches.
@@ -59,7 +63,7 @@ Three terms: policy-gradient loss, value regression, entropy bonus. `c_v ~ 0.5`,
 
 > **【拓展：GAE→PPO→RLHF】** GAE (广义优势估计) 是 PPO 的核心组件，而 PPO 是 ChatGPT RLHF 训练的标准算法。λ=0.95 是 2026 年的默认值，在偏差和方差之间取得平衡。理解 GAE 就理解了大模型对齐训练中最关键的优势估计方法。
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: a critic
 
@@ -130,7 +134,7 @@ Our toy code is single-threaded for clarity; rewriting to batched A2C is three l
 - **Entropy collapse.** Without `c_e > 0`, policy becomes near-deterministic in a few hundred updates and stops exploring.
 - **Reward scale.** Advantage magnitudes depend on reward scale. Normalize rewards (e.g., running-std dividing) for consistent gradient magnitudes across tasks.
 
-## Use It
+## Use It | 用框架实现
 
 A2C/A3C are rarely the final choice in 2026 but they are the architecture everything later refines:
 
@@ -145,7 +149,7 @@ A2C/A3C are rarely the final choice in 2026 but they are the architecture everyt
 
 If you see "advantage" in a 2026 paper, think actor-critic.
 
-## Ship It
+## Ship It | 产出物
 
 Save as `outputs/skill-actor-critic-trainer.md`:
 
@@ -170,13 +174,13 @@ Given an environment and compute budget, output:
 Refuse single-worker A2C on environments with horizon > 1000 (too on-policy, too slow). Refuse to ship without advantage normalization. Flag any run with `c_e = 0` and observed entropy < 0.1 as entropy-collapsed.
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Train actor-critic with MC advantage (`G_t - V(s_t)`) on 4×4 GridWorld. Compare sample efficiency to REINFORCE-with-running-mean-baseline from Lesson 06.
 2. **Medium.** Switch to TD-residual advantage (`r + γ V(s') - V(s)`). Measure variance of the advantage batches. By how much does it drop?
 3. **Hard.** Implement GAE(λ). Sweep `λ ∈ {0, 0.5, 0.9, 0.95, 1.0}`. Plot final return vs sample efficiency. Where is the bias/variance sweet spot for this task?
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -189,7 +193,7 @@ Refuse single-worker A2C on environments with horizon > 1000 (too on-policy, too
 | A3C | "Async actor-critic" / 异步演员-评论家 | Worker threads push gradients to a shared param server. Original paper; less common in 2026. |
 | Bootstrap | "Use V at the horizon" / 自举截断 | Truncate the rollout, add `γ^n V(s_{t+n})` to close the sum. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Mnih et al. (2016). Asynchronous Methods for Deep Reinforcement Learning](https://arxiv.org/abs/1602.01783) — A3C, the original async actor-critic paper.
 - [Schulman et al. (2016). High-Dimensional Continuous Control Using Generalized Advantage Estimation](https://arxiv.org/abs/1506.02438) — GAE.

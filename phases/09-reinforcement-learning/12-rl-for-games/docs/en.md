@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 9 · 05 (DQN), Phase 9 · 08 (PPO), Phase 9 · 09 (RLHF), Phase 9 · 10 (MARL)
 **Time:** ~120 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Games have everything RL wants. Clean reward (win/loss). Infinite episodes (self-play resets). Perfect simulation (the game *is* the simulator). Discrete or small continuous action spaces. Multi-agent structure that forces adversarial robustness.
 
@@ -17,7 +17,7 @@ And games are how every major RL breakthrough was tested. TD-Gammon (backgammon,
 
 This capstone surveys the three landmark architectures — AlphaZero, MuZero, and GRPO — through a single unifying lens: **self-play + search + policy improvement**. Each generalizes the previous; GRPO in particular is AlphaZero's recipe applied to LLM reasoning, with tokens as actions and mathematical verification as the win signal.
 
-## The Concept
+## The Concept | 核心概念
 
 ![AlphaZero ↔ MuZero ↔ GRPO: same loop, different environments](../assets/rl-games.svg)
 
@@ -47,6 +47,10 @@ Zero human knowledge. Zero handcrafted heuristics. A single recipe that mastered
   - `f(s_latent)`: predict policy prior + value.
 - MCTS runs in the *learned latent space*. Same search, same training loop.
 - Works on Go, chess, shogi *and* Atari — one algorithm, no rule knowledge.
+
+> **【中文解读】** AlphaZero 和 MuZero 的核心循环：自我博弈 → MCTS 搜索改进策略 → 监督学习更新网络。AlphaZero 需要已知游戏规则，MuZero 通过学习隐空间动力学模型消除了这个限制。这个"自我博弈+搜索+策略改进"循环直接启发了 DeepSeek-R1 的推理训练——用可验证奖励替代游戏胜负信号。
+
+> **【拓展：DeepSeek-R1 与 AlphaZero 范式】** DeepSeek-R1（2025）将 AlphaZero 的范式应用于 LLM 推理：token 就是动作，推理过程就是"游戏"，验证器（数学题对错、代码是否通过测试）就是"胜负信号"。GRPO 替代 PPO，组内采样替代自我博弈。这验证了游戏 AI 的方法论可以迁移到大模型推理训练。
 
 **Stochastic MuZero (2022).** Adds stochastic dynamics and chance nodes; extends to backgammon-class games.
 
@@ -86,7 +90,7 @@ The result matches o1 on AIME and MATH-500 at open weights, and is small enough 
 - *Perfect-information games with long horizons* (Go, chess): still search-based. AlphaZero / MuZero dominate.
 - *LLM reasoning*: no MCTS yet in production; GRPO on full rollouts, best-of-N for inference compute. Process reward models (PRMs) hint at step-level search being added back.
 
-## Build It
+## Build It | 动手实现
 
 The code in `code/main.py` implements **GRPO in miniature** — a bandit with multiple groups of samples. The algorithm is the same as on an LLM; only the policy and environment are simpler. It teaches the *loss* and the *group-relative advantage*, which is the 2025 innovation.
 
@@ -153,7 +157,7 @@ Same diagnostics as RLHF: mean KL to reference, policy entropy, reward-over-time
 - **Compute floor.** MuZero / AlphaZero need massive compute. A single ablation is often hundreds of GPU-hours. Miniature demos exist (e.g., AlphaZero on Connect Four) for learning.
 - **Verifier coverage.** Unit tests that pass for a buggy solution reinforce the bug. Design verifiers that catch edge cases.
 
-## Use It
+## Use It | 用框架实现
 
 The 2026 game-RL landscape, by domain:
 
@@ -170,7 +174,7 @@ The 2026 game-RL landscape, by domain:
 
 The *recipe* — self-play, search-augmented improvement, policy distillation — spans text, pixels, and physical control. GRPO is the youngest instance; more are coming.
 
-## Ship It
+## Ship It | 产出物
 
 Save as `outputs/skill-game-rl-designer.md`:
 
@@ -195,13 +199,13 @@ Given a target (perfect-info game / imperfect-info / Atari / LLM reasoning / com
 Refuse AlphaZero on imperfect-info games (route to CFR). Refuse GRPO without a trusted verifier. Refuse any game-RL pipeline without a fixed baseline opponent set (self-play ELO is uncalibrated otherwise).
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Implement the GRPO bandit in `code/main.py`. Train on 2 prompts × 4 answer tokens each. Converge in < 1,000 updates with `G=8`.
 2. **Medium.** Plug in PPO (clipped) and vanilla REINFORCE. Compare sample efficiency and reward variance to GRPO on the same bandit.
 3. **Hard.** Extend to a length-2 "reasoning chain": the agent emits two tokens and the verifier rewards the pair. Measure how GRPO handles the credit assignment across two-step sequences. (Hint: compute group advantage per *full sequence*, propagate to both token positions.)
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -215,7 +219,7 @@ Refuse AlphaZero on imperfect-info games (route to CFR). Refuse GRPO without a t
 | Verifier reward | "Verifiable RL" / 验证器奖励 | Reward comes from a deterministic checker (tests pass, answer matches). |
 | Process reward | "PRM" / 过程奖励模型 | Scores each reasoning step, not just the final answer. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Silver et al. (2017). Mastering the game of Go without human knowledge (AlphaGo Zero)](https://www.nature.com/articles/nature24270).
 - [Silver et al. (2018). A general reinforcement learning algorithm that masters chess, shogi, and Go through self-play (AlphaZero)](https://www.science.org/doi/10.1126/science.aar6404).

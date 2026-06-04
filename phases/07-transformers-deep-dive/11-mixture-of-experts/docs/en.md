@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 7 · 05 (Full Transformer), Phase 7 · 07 (GPT)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 A dense transformer's FLOPs at inference equal its parameter count (times 2 for forward pass). Scale up a dense model and every token pays the full bill. By 2024 the frontier was hitting a compute wall: to be meaningfully smarter, you needed exponentially more FLOPs per token.
 
@@ -17,7 +17,11 @@ Mixture of Experts breaks this link. Replace each FFN with `E` independent exper
 
 The 2026 frontier is almost entirely MoE: DeepSeek-V3 (671B total / 37B active), Mixtral 8×22B, Qwen2.5-MoE, Llama 4, Kimi K2, gpt-oss. On Artificial Analysis's independent leaderboard, the top 10 open-source models are all MoE.
 
-## The Concept
+> **【中文解读】** MoE 打破了"参数量 = 计算量"的等式。每个 FFN 层替换为 E 个独立专家 + 路由器，每 token 只激活 k 个专家。总参数量随 E 增长，但每个 token 的计算量只随 k 增长。典型配置 E=256, k=8，存储随 E 缩放，计算随 k 缩放。这是 2020 年代最重要的扩展思路。
+
+> **【拓展：DeepSeek-V3 的 MoE 创新】** DeepSeek-V3 拥有 671B 总参数但每 token 只激活 37B——通过 256 个路由专家 + 1 个共享专家实现。它还引入了辅助损失无关的负载均衡策略，避免了传统 MoE 的路由崩塌问题。在 Artificial Analysis 排行榜上，DeepSeek-V3 以不到 GPT-4 十分之一的推理成本达到了可比的性能。
+
+## The Concept | 核心概念
 
 ![MoE layer: router selects k of E experts per token](../assets/moe.svg)
 
@@ -63,6 +67,8 @@ Classic MoE (GShard, Switch): each expert is as wide as a full FFN. `E` is small
 
 Modern fine-grained MoE (DeepSeek-V3, Qwen-MoE): each expert is narrower (1/8 FFN size). `E` is large (256+), `k` is larger (8+). Same total parameters, but combinations scale much faster. `C(256, 8) = 400 trillion` possible "experts" per token. Quality goes up, latency stays flat.
 
+> **【拓展：MoE 的路由崩塌问题】** MoE 训练中的核心挑战是路由崩塌（router collapse）——路由器可能将大部分 token 分配给少数几个专家，导致其他专家得不到训练。解决方案包括：辅助损失（auxiliary loss）鼓励均匀分配、噪声注入（在路由决策前加随机扰动）、DeepSeek-V3 的辅助损失无关负载均衡策略。
+
 ### The cost profile
 
 Per token, per layer:
@@ -80,7 +86,11 @@ DeepSeek-V3 beats Llama 3 70B (dense) on almost every benchmark while doing **fe
 
 All experts live on GPU regardless of which ones fire. A 671B model needs ~1.3 TB of VRAM for fp16 weights. Frontier MoE deployment requires expert parallelism — shard experts across GPUs, route tokens across the network. Latency is dominated by the all-to-all communication, not the matmul.
 
-## Build It
+> **【中文解读】** MoE 的核心权衡：用内存换计算。DeepSeek-V3 以 37B 活跃参数达到超越 70B 稠密模型的性能，但需要 1.3TB 显存存储所有专家。这推动了专家并行（expert parallelism）技术的发展——将专家分散到多个 GPU 上，通过网络路由 token。
+
+> **【拓展：细粒度专家 vs 粗粒度专家】** 传统 MoE（Switch Transformer）使用少量大型专家（E=8-64）。现代细粒度 MoE（DeepSeek-V3）使用大量小型专家（E=256+），每个专家只有 1/8 的 FFN 宽度。组合数 C(256,8) 约为 400 万亿种，远超粗粒度的组合空间。质量提升显著，延迟基本不变。
+
+## Build It | 动手实现
 
 See `code/main.py`. A compact MoE layer in pure stdlib with:
 
@@ -115,7 +125,7 @@ Track which experts fire how often. Without the bias, usage is skewed. With a bi
 
 Print the "dense equivalent" of an MoE config. DeepSeek-V3-shaped: 256 routed + 1 shared, 8 active, d_model=7168. The total parameter count is eye-watering. The active count is a seventh of a dense Llama 3 70B.
 
-## Use It
+## Use It | 用框架实现
 
 HuggingFace loading:
 
@@ -136,17 +146,17 @@ model = AutoModelForCausalLM.from_pretrained("mistralai/Mixtral-8x22B-v0.1")
 - Latency-critical single-user serving — expert routing adds overhead.
 - Small models (<7B) — MoE's quality advantage only appears above a compute threshold (~6B active params).
 
-## Ship It
+## Ship It | 产出物
 
 See `outputs/skill-moe-configurator.md`. The skill picks E, k, and shared-expert layout for a new MoE given parameter budget, training tokens, and deployment target.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py`. Watch how the auxiliary-loss-free bias update evens out expert usage over 50 iterations.
 2. **Medium.** Replace the learned router with a hash-based router (deterministic, no learning). Compare quality and balance. Why is the learned router better?
 3. **Hard.** Implement GRPO-style "rollout-matched routing" (DeepSeek-V3.2 trick): log which experts fire during inference, force the same routing during gradient computation. Measure the effect on a toy policy-gradient setup.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -159,7 +169,7 @@ See `outputs/skill-moe-configurator.md`. The skill picks E, k, and shared-expert
 | Expert parallelism | "Shard by expert" | Distribute different experts to different GPUs; route tokens across the network. |
 | Sparsity | "Active params < total params" | The ratio `k × expert_size / (E × expert_size)`; 37/671 ≈ 5.5% for DeepSeek-V3. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Shazeer et al. (2017). Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer](https://arxiv.org/abs/1701.06538) — the idea.
 - [Fedus, Zoph, Shazeer (2022). Switch Transformer: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity](https://arxiv.org/abs/2101.03961) — Switch, the classic MoE.

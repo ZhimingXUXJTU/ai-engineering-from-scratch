@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 7 · 02 (Self-Attention), Phase 7 · 03 (Multi-Head Attention)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Scaled dot-product attention is order-blind. The attention matrix `softmax(Q K^T / √d) V` is computed from pairwise similarities. Shuffle the rows of `X`, get the rows of the output shuffled the same way. Nothing inside attention cares about position.
 
@@ -23,7 +23,9 @@ The fix is to inject position into the embeddings somehow. Three eras of answers
 
 As of 2026, essentially every frontier open model uses RoPE: Llama 2/3/4, Qwen 2/3, Mistral, Mixtral, DeepSeek-V3, Kimi. A handful of long-context models use ALiBi or its modern variants. Absolute sinusoidal is historical.
 
-## The Concept
+> **【中文解读】** 自注意力本身是排列不变的——打乱输入顺序，输出只是对应打乱。这对语言是致命的。三种位置编码方案代表了三个时代：(1) 绝对正弦编码——简单但外推差；(2) RoPE——通过旋转编码相对位置，2026 年主流；(3) ALiBi——直接对注意力分数加距离偏置，外推能力最强。
+
+## The Concept | 核心概念
 
 ![Sinusoidal absolute vs RoPE rotations vs ALiBi distance bias](../assets/positional-encoding.svg)
 
@@ -51,6 +53,10 @@ Rotate the Q and K vectors (not embeddings). For a pair of dimensions `(2i, 2i+1
 
 Apply the same rotation to keys with position `pos_k`. The dot product `q'_m · k'_n` becomes a function of `(m - n)` alone. That is: **the attention score depends only on the relative distance**, even though the rotation was keyed off absolute positions. Beautiful trick.
 
+> **【中文解读】** RoPE 的精妙之处：虽然旋转角度基于绝对位置，但 Q·K 的点积只取决于相对距离 (m-n)。这意味着模型自然地学会了相对位置关系。调整 base 参数还可以实现长上下文外推，Llama 3 正是通过这种方式从 8K 扩展到 128K 上下文。
+
+> **【拓展：RoPE 在 Llama 3 中的长上下文扩展】** Llama 3 通过 YaRN（Yet another RoPE extensioN）方法将上下文从 8K 扩展到 128K。核心思路是调整 RoPE 的 base 频率，使高频维度保持原始分辨率，低频维度进行插值。这种"分维度处理"策略既保持了短距离的精确位置感知，又扩展了长距离的外推能力。
+
 Extending RoPE: `base` can be scaled (NTK-aware, YaRN, LongRoPE) to extrapolate to longer contexts without retraining. Llama 3 extended from 8K to 128K context this way.
 
 ### ALiBi
@@ -75,7 +81,11 @@ Where `m_h` is a head-specific slope (e.g. `1 / 2^(8·h/H)`). Closer tokens get 
 
 RoPE won because it slots into attention without changing the architecture, encodes relative position, and its `base` hyperparameter gives a clean knob for long-context fine-tuning.
 
-## Build It
+> **【中文解读】** 2026 年位置编码的选择很明确：新项目默认 RoPE。它不改变架构、编码相对位置、且通过 base 参数提供了长上下文微调的清晰路径。只有在极端外推场景（训练 4K、推理 1M）才考虑 ALiBi。
+
+> **【拓展：位置编码对长上下文 RAG 的影响】** 在 RAG（检索增强生成）系统中，位置编码直接影响长文档处理能力。RoPE + YaRN 让 Llama 3 能处理 128K token 的上下文，这意味着可以一次性处理约 300 页文档。位置编码方案的选择决定了 RAG 系统是否需要复杂的分块策略。
+
+## Build It | 动手实现
 
 ### Step 1: sinusoidal encoding
 
@@ -113,6 +123,8 @@ def apply_rope(x, pos, base=10000):
 
 Crucial: apply the same function to Q at position `m` and K at position `n`. Their dot product picks up a `cos((m-n)·θ_i)` factor on every coordinate pair. Attention learns relative position for free.
 
+> **【中文解读】** RoPE 的实现核心：对 Q 和 K 的每一对维度 (2i, 2i+1) 做位置相关的旋转。旋转角度与位置成正比，因此 Q_m · K_n 的点积中会出现 cos((m-n)*theta) 项，自然编码了相对距离。
+
 ### Step 3: ALiBi slopes and bias
 
 ```python
@@ -132,7 +144,9 @@ Add `bias[h]` to the `(seq_len, seq_len)` attention score matrix of head `h`, th
 
 Pick two random vectors `a, b`. Rotate by `(pos_a, pos_b)`. Then by `(pos_a + k, pos_b + k)`. Both dot products must match within floating-point error. That property is the whole point of RoPE — it is invariant to the absolute offset, only the relative gap matters.
 
-## Use It
+> **【拓展：位置编码的历史演进】** 从 Vaswani（2017）的绝对正弦编码，到 GPT-2/3 的学习式位置嵌入，再到 RoPE（2021）和 ALiBi（2022），位置编码经历了从"绝对位置"到"相对位置"的范式转变。RoPE 的成功在于它不改变注意力架构，直接在 Q/K 旋转中编码相对位置，同时提供了长上下文扩展的清晰路径。
+
+## Use It | 用框架实现
 
 PyTorch 2.5+ ships RoPE utilities in `torch.nn.functional`. Most production code uses `flash_attn` or `xformers` where RoPE is applied inside the attention kernel.
 
@@ -149,17 +163,17 @@ model = AutoModel.from_pretrained("meta-llama/Llama-3.2-3B")
 - **LongRoPE.** Microsoft's 2024 method that uses evolutionary search to pick per-dimension scale factors. Phi-3-Long uses it.
 - **Position interpolation + fine-tuning.** Just shrink positions by the extension factor and fine-tune for 1–5B tokens. Surprisingly effective.
 
-## Ship It
+## Ship It | 产出物
 
 See `outputs/skill-positional-encoding-picker.md`. The skill picks an encoding strategy for a new model given target context length, extrapolation needs, and training budget.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Plot the sinusoidal `PE` matrix as a heatmap for `max_len=512, d=128`. Confirm the "stripes get wider as dimension index grows" pattern.
 2. **Medium.** Implement NTK-aware RoPE scaling. Train a tiny LM on sequences of length 256, then test on length 1024 with and without scaling. Measure perplexity.
 3. **Hard.** Implement ALiBi and RoPE in the same attention module. Train a 4-layer transformer on a copy task with sequences of length 512. Extrapolate to 2048 at test time. Compare degradation.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -172,7 +186,7 @@ See `outputs/skill-positional-encoding-picker.md`. The skill picks an encoding s
 | YaRN | "The fancy one" | Per-dimension interpolation+extrapolation that preserves attention entropy. |
 | Extrapolation | "Works beyond trained length" | Can the position scheme serve correct output past `max_len` seen in training? |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Vaswani et al. (2017). Attention Is All You Need §3.5](https://arxiv.org/abs/1706.03762) — original sinusoidal.
 - [Su et al. (2021). RoFormer: Enhanced Transformer with Rotary Position Embedding](https://arxiv.org/abs/2104.09864) — RoPE paper.

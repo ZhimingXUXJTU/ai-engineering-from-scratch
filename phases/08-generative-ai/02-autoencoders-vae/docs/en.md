@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 3 · 02 (Backprop), Phase 3 · 07 (CNNs), Phase 8 · 01 (Taxonomy)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Compress a 784-pixel MNIST digit to a 16-number code, then reconstruct. A plain autoencoder will ace reconstruction MSE but the code space is a lumpy mess. Pick a random point in the code space, decode it, and you get noise. It has no sampler. It is a compression model dressed up.
 
@@ -21,7 +21,11 @@ Kingma's 2013 VAE solves this by training the encoder to output a *distribution*
 
 In 2026 VAEs rarely ship standalone — they have been outclassed by diffusion for raw image quality — but they are the encoder of choice for every latent-diffusion model (SD 1/2/XL/3, Flux, AudioCraft). Learn the VAE and you learn the invisible first layer of every image pipeline you use.
 
-## The Concept
+> **【中文解读】** VAE 的核心洞察：让编码器输出分布而非点估计。通过重参数化技巧 `z = mu + sigma * epsilon` 使采样可微，用 KL 散度约束编码空间接近标准正态分布。ELBO 损失 = 重建损失 + beta * KL 散度，两者相互权衡。推理时只需从标准正态采样并解码，一次前向传播即可生成。
+
+> **【拓展：beta-VAE 与解耦表示学习】** beta-VAE（2017）通过调节 beta 参数控制重建与 KL 的权衡。beta<1 时重建更清晰但潜在空间不规整；beta>1 时潜在空间更规整但图像更模糊。当 beta 足够大时，VAE 可以学到"解耦"的表示——每个维度编码独立的语义因子（如颜色、形状、大小）。这启发了后续的扩散模型在潜在空间中做可控生成。
+
+## The Concept | 核心概念
 
 ![Autoencoder vs VAE: the reparameterization trick](../assets/vae.svg)
 
@@ -42,7 +46,11 @@ Reconstruction pushes `x̂` toward `x`. KL pushes `q(z|x)` toward the prior. The
 
 **Sampling.** At inference: draw `z ~ N(0, I)`, forward through decoder. One forward pass — no iterative sampling like diffusion.
 
-## Build It
+> **【中文解读】** ELBO 损失的两个组成部分各有分工：重建损失确保解码质量，KL 散度确保潜在空间的规整性。推理时完全不需要编码器——直接从 N(0,I) 采样 z 送入解码器。VAE 生成速度快（单次前向传播），但图像质量通常比扩散模型模糊，因为它优化的是 ELBO 下界而非精确似然。
+
+> **【拓展：Stable Diffusion 中的 VAE】** Stable Diffusion 使用预训练的 VAE 将 512x512 图像压缩到 64x64 的潜在空间（8 倍下采样）。扩散过程在潜在空间中进行，大幅降低了计算量。SD 3 使用的 VAE 更先进——支持 16 通道潜在空间，图像质量更高。VAE 的压缩质量直接影响最终生成图像的细节保真度。
+
+## Build It | 动手实现
 
 `code/main.py` implements a tiny VAE without numpy or torch. Input is 8-dimensional synthetic data drawn from a 2-component Gaussian mixture in 8-D. Encoder and decoder are single hidden-layer MLPs. We implement tanh activation, forward pass, loss, and a hand-written backward pass. Not production — pedagogy.
 
@@ -99,7 +107,7 @@ That is the generative model. Five lines.
 - **β too large, too early.** See posterior collapse. Start at β≈0.01 and ramp.
 - **Latent dim too small.** 16-D works for MNIST, 256-D for ImageNet 256², 2048-D for ImageNet 1024². Stable Diffusion's VAE compresses 512×512×3 → 64×64×4 (32x downsample factor in spatial area, 32x in channels).
 
-## Use It
+## Use It | 用框架实现
 
 The 2026 VAE stack:
 
@@ -114,19 +122,19 @@ The 2026 VAE stack:
 
 A latent-diffusion model is a VAE with a diffusion model living between encoder and decoder. The VAE does coarse compression, the diffusion model does the heavy lifting. Same pattern for video (VAE + video-diffusion DiT) and audio (Encodec + MusicGen transformer).
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-vae-trainer.md`.
 
 Skill takes: dataset profile + latent-dim target + downstream use (reconstruction, sampling, or latent-diffusion input) and outputs: architecture choice (plain/β/VQ/RVQ), β schedule, latent dim, decoder likelihood (Gaussian vs categorical), and evaluation plan (recon MSE, KL per dim, Fréchet distance between `q(z|x)` and `N(0, I)`).
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Change `β` in `code/main.py` to `0.01`, `0.1`, `1.0`, `5.0`. Record the final reconstruction MSE and KL. Which β is Pareto-best for your synthetic data?
 2. **Medium.** Replace the Gaussian decoder likelihood with a Bernoulli likelihood (cross-entropy loss). Compare sample quality on a binarized version of the same synthetic data.
 3. **Hard.** Extend `code/main.py` into a mini VQ-VAE: replace the continuous `z` with a nearest-neighbour lookup in a codebook of K=32 entries. Compare reconstruction MSE and report how many codebook entries get used (codebook collapse is real).
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -146,7 +154,7 @@ In a Stable Diffusion / Flux / SD3 pipeline the VAE is called twice per request 
 - **Slice or tile the decode.** `diffusers` exposes `pipe.vae.enable_slicing()` and `pipe.vae.enable_tiling()`. Tiling trades a small seam artifact for `O(tile²)` memory instead of `O(H·W)`. Essential for 1024²+ on consumer GPUs.
 - **bf16 decoder, fp32 numerics for the final resize.** The SD 1.x VAE was released in fp32 and *silently produces NaNs* when cast to fp16 at 1024²+. SDXL ships `madebyollin/sdxl-vae-fp16-fix` — always prefer the fp16-fix variant or use bf16.
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Kingma & Welling (2013). Auto-Encoding Variational Bayes](https://arxiv.org/abs/1312.6114) — the VAE paper.
 - [Higgins et al. (2017). β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework](https://openreview.net/forum?id=Sy2fzU9gl) — disentangled β-VAE.

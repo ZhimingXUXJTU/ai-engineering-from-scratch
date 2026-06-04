@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 7 · 02 (Self-Attention from Scratch)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 A single self-attention head computes one attention matrix. That matrix captures one kind of relationship — usually the one that minimizes loss on whatever the training signal is. If your data has subject-verb agreement, co-reference, long-range discourse, and syntactic chunking all tangled together, a single head smears them into a single soft-max distribution and loses half the signal.
 
@@ -17,7 +17,9 @@ The fix from the 2017 Vaswani paper: run several attention functions in parallel
 
 Multi-head attention is the default every transformer in 2026 ships with. The only argument is about *how many* heads and whether keys and values share projections (Grouped-Query Attention, Multi-Query Attention, Multi-head Latent Attention).
 
-## The Concept
+> **【中文解读】** 单个注意力头只能学习一种关系模式，但自然语言中存在多种关系（主谓一致、指代消解、句法结构等）。多头注意力的核心思想：用多个独立的注意力头并行工作，每个头在不同子空间中学习不同的关系，最后拼接混合。参数量不变，表达能力大幅提升。
+
+## The Concept | 核心概念
 
 ![Multi-head attention splits, attends, concatenates](../assets/multi-head-attention.svg)
 
@@ -28,6 +30,10 @@ Multi-head attention is the default every transformer in 2026 ships with. The on
 **Concatenate and project.** Stack heads back to `(N, d_model)` and multiply by a learned output matrix `W_o` of shape `(d_model, d_model)`. `W_o` is where heads get to mix.
 
 **Why it works.** Each head can specialize without competing with the others for representational budget. Probing studies from 2019–2024 show distinct head roles: positional heads, head that attends to the previous token, copy heads, named-entity heads, induction heads (which underlie in-context learning).
+
+> **【中文解读】** 三步走：Split（拆分到多个子空间）→ Attend（每个头独立做注意力）→ Concat+Project（拼接并通过 W_o 混合）。关键洞察：每个头在不同子空间中独立工作，不争夺表示资源。实验表明不同头确实学会了不同的"职责"。
+
+> **【拓展：GQA 在 Llama 3 中的实际应用】** Llama 3 70B 使用 64 个查询头但只有 8 个 KV 头，将 KV 缓存压缩了 8 倍。这在推理时节省大量显存，同时几乎不损失模型质量。GQA 已成为 2024-2026 年开源大模型的标配。DeepSeek-V2 的 MLA 则更进一步，将 KV 压缩到低秩隐空间。
 
 **The 2026 lineage of variations:**
 
@@ -40,7 +46,7 @@ Multi-head attention is the default every transformer in 2026 ships with. The on
 
 GQA is the modern default because it cuts KV-cache memory by a factor of `N/G` while keeping nearly full quality. MLA goes further by compressing K/V into a latent space, then projecting back at compute time — costs FLOPs, saves a lot more memory.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: split heads from the single-head attention we already have
 
@@ -58,6 +64,8 @@ def combine_heads(H):
 ```
 
 One reshape and one transpose. No loop. This is exactly what PyTorch does under `nn.MultiheadAttention`.
+
+> **【中文解读】** `split_heads` 和 `combine_heads` 只是 reshape + transpose 操作，无需循环。这就是多头注意力在 GPU 上高效的原因——它本质上就是批量矩阵乘法。
 
 ### Step 2: run scaled-dot-product attention per head
 
@@ -93,11 +101,13 @@ def gqa_project(X, W, n_kv_heads, n_heads):
 
 At inference this saves memory because only `n_kv_heads` copies live in the KV cache, not `n_heads`. Llama 3 70B uses 64 query heads with 8 KV heads — an 8× cache shrink.
 
+> **【拓展：MQA/GQA 在推理中的内存节约】** KV 缓存的大小与 KV 头数成正比。Llama 3 70B 使用 64 个查询头但仅 8 个 KV 头，将 KV 缓存压缩了 8 倍。对于 128K 上下文，这意味着节省数 GB 显存。这是大模型长上下文推理的关键优化——GQA 几乎不损失质量，但显著降低推理成本。
+
 ### Step 4: probe what each head learned
 
 Run MHA on a short sentence with 4 heads. For each head, print the `(N, N)` attention matrix. You'll see different heads pick out different structure even with random initialization — that's partly signal, partly rotational symmetry in the subspaces.
 
-## Use It
+## Use It | 用框架实现
 
 In PyTorch, the one-line version:
 
@@ -129,17 +139,17 @@ out = scaled_dot_product_attention(q, k, v, is_causal=True, enable_gqa=True)
 
 `d_head` almost always lands at 64 or 128. It is the unit of how much one head can "see." Drop below 32 and heads start fighting the scaling factor `sqrt(d_head)`; go above 256 and you lose the "many small specialists" benefit.
 
-## Ship It
+## Ship It | 产出物
 
 See `outputs/skill-mha-configurator.md`. The skill recommends head count, kv-head count, and projection strategy for a new transformer given parameter budget, sequence length, and deployment target.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Take the MHA from `code/main.py` and change `n_heads` from 1 to 16 with `d_model=64` fixed. Plot the loss of a tiny one-layer model on a synthetic copy task. Do more heads help, plateau, or hurt?
 2. **Medium.** Implement MQA (one KV head shared across all query heads). Measure how much parameter count drops vs full MHA. Compute how much the KV-cache size shrinks at inference for N=2048.
 3. **Hard.** Implement a tiny version of Multi-head Latent Attention: compress K,V to a rank-`r` latent, store the latent in the KV cache, decompress at attention time. At what `r` does cache memory cross below 1/8 of full MHA while quality stays within 1 bit of validation ppl?
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -152,10 +162,12 @@ See `outputs/skill-mha-configurator.md`. The skill recommends head count, kv-hea
 | MLA | "DeepSeek's trick" | Multi-head Latent Attention: K,V compressed to low-rank latent, decompressed at attend time. |
 | Induction head | "The circuit behind in-context learning" | A pair of heads that detect previous occurrences and copy what followed them. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Vaswani et al. (2017). Attention Is All You Need §3.2.2](https://arxiv.org/abs/1706.03762) — the original multi-head spec.
 - [Shazeer (2019). Fast Transformer Decoding: One Write-Head is All You Need](https://arxiv.org/abs/1911.02150) — the MQA paper.
 - [Ainslie et al. (2023). GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](https://arxiv.org/abs/2305.13245) — how to convert MHA to GQA after training.
 - [DeepSeek-AI (2024). DeepSeek-V2 Technical Report](https://arxiv.org/abs/2405.04434) — MLA and why it beats MHA/GQA on cache memory.
 - [Olsson et al. (2022). In-context Learning and Induction Heads](https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html) — mechanistic look at what heads actually do.
+
+> **【拓展：Induction Heads 与上下文学习】** Anthropic 的研究发现，Transformer 的上下文学习能力（in-context learning）主要由一种称为"induction head"的注意力头实现。它们检测序列中之前出现的模式并复制后续内容。这解释了为什么大模型能"从示例中学习"而无需更新权重——这是 prompt engineering 有效性的底层机制。

@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 8 · 01 (Taxonomy), Phase 2 · 04 (Evaluation Metrics)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 A generative model is judged on *sample quality* and *conditioning adherence*. Neither has a closed-form measure. Your model has to render 10,000 images; something has to assign them numbers; you have to trust the numbers across model families, across resolutions, across architectures. Three metrics survived the 2014-2026 gauntlet:
 
@@ -21,7 +21,11 @@ A generative model is judged on *sample quality* and *conditioning adherence*. N
 
 You will also see: IS (inception score, largely retired), KID, CMMD, ImageReward, PickScore, HPSv2, MJHQ-30k. Each corrects for one failure of the previous.
 
-## The Concept
+> **【中文解读】** 生成模型评估的三大指标：(1) FID——在 Inception 网络特征空间中衡量生成分布与真实分布的距离，越低越好；(2) CLIP Score——生成图像与文本 prompt 的语义匹配度，越高越好；(3) 人类偏好——两个模型对比选择更好的，聚合为 Elo 分数。每个指标都有已知漏洞，组合使用更可靠。
+
+> **【拓展：生成模型评估的"刷榜"问题】** FID 可以被优化——通过选择性地生成高分样本、调整 Inception 模型的特征层、或过拟合到参考分布。CLIP Score 也有偏差——CLIP 模型对某些概念更敏感。人类偏好评估（如 Artificial Analysis 的 Arena）是最可靠但最昂贵的方法。2026 年的趋势是使用 GPT-4 级别模型作为"自动评判员"来近似人类偏好。
+
+## The Concept | 核心概念
 
 ![FID, CLIP, and preference: three axes, different failure modes](../assets/evaluation.svg)
 
@@ -83,7 +87,7 @@ A production eval report should include:
 
 Any single metric is a lie. Three corroborating metrics + qualitative review are a claim.
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` implements FID, CLIP-score-like, and Elo aggregation on synthetic "feature vectors" (we use 4-D vectors as stand-ins for Inception features). You see:
 
@@ -131,7 +135,7 @@ def elo_update(r_a, r_b, winner, k=32):
 - **Elo bias from prompt overlap.** If both models saw a benchmark prompt during training, Elo is meaningless. Use held-out prompt sets.
 - **Human eval paid-crowd skew.** Prolific, MTurk annotators skew younger / tech-friendly. Mix with recruited art/design experts.
 
-## Use It
+## Use It | 用框架实现
 
 Production eval protocol in 2026:
 
@@ -144,17 +148,17 @@ Production eval protocol in 2026:
 
 All four pillars in one report = claim. Any one alone = marketing.
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-eval-report.md`. Skill takes a new model checkpoint + baseline and outputs a full eval plan: sample sizes, metrics, failure-mode probes, sign-off criteria.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py`. Compare FID at N=100 vs N=1000 on the same synthetic distributions. Report bias magnitude.
 2. **Medium.** Implement CMMD from synthetic CLIP-style features (see Jayasumana et al., 2024 for the formula). Compare sensitivity to quality differences vs FID.
 3. **Hard.** Replicate the HPSv2 setup: take 1000 image-prompt pairs from a subset of Pick-a-Pic, fine-tune a small CLIP-based scorer on the preferences, and measure its agreement with a held-out set.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -176,7 +180,7 @@ Running FID on 10k samples means generating 10k images. For a 50-step SDXL base 
 
 For CI / regression gates: run FID + CLIP score on a 500-sample subset per PR (~30 min); run full 10k FID + HPSv2 + Elo nightly.
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Heusel et al. (2017). GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium (FID)](https://arxiv.org/abs/1706.08500) — FID paper.
 - [Jayasumana et al. (2024). Rethinking FID: Towards a Better Evaluation Metric for Image Generation (CMMD)](https://arxiv.org/abs/2401.09603) — CMMD.

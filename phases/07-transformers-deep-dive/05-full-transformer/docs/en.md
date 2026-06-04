@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 7 · 02 (Self-Attention), Phase 7 · 03 (Multi-Head Attention), Phase 7 · 04 (Positional Encoding)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 A single attention layer is a feature extractor, not a model. One matmul per layer is not enough capacity for language. You need depth — and depth breaks without the right plumbing.
 
@@ -17,7 +17,9 @@ The 2017 Vaswani paper packaged six design decisions that turned one attention l
 
 This lesson is the skeleton. Next lessons specialize it — 06 for encoders, 07 for decoders, 08 for encoder-decoder.
 
-## The Concept
+> **【中文解读】** 单个注意力层只是一个特征提取器，不是完整的模型。2017 年的论文将六个设计决策打包成可堆叠的块：嵌入+位置编码、自注意力、FFN、残差连接、层归一化、交叉注意力。所有后续 Transformer 变体——BERT、GPT、T5——都继承了相同的骨架。
+
+## The Concept | 核心概念
 
 ![Encoder and decoder block internals, wired](../assets/full-transformer.svg)
 
@@ -68,6 +70,10 @@ Vaswani 2017 shipped LayerNorm + ReLU. Modern stacks replaced both. What product
 
 RMSNorm drops the mean-centering of LayerNorm (one fewer subtraction), which saves compute and is empirically at least as stable. SwiGLU (`Swish(W1 x) ⊙ W3 x`) consistently outperforms ReLU/GELU FFN by ~0.5 point ppl in the Llama, PaLM and Qwen papers.
 
+> **【中文解读】** 2026 年的现代 Transformer 块与 2017 年原版相比：LayerNorm→RMSNorm，ReLU→SwiGLU，后归一化→前归一化，绝对位置编码→RoPE，全多头注意力→GQA。每一项改进都是渐进的，但组合起来显著提升了训练稳定性和模型质量。
+
+> **【拓展：为什么 Decoder-only 成为主流】** 虽然编码器-解码器架构在翻译等任务上有天然优势，但 Decoder-only 模型（GPT、Llama）在扩展性和通用性上更胜一筹。它可以用同一架构处理理解和生成任务，训练目标统一（下一个 token 预测），且扩展性已被 Chinchilla 定律验证。这正是 2024-2026 年几乎所有前沿大模型选择 Decoder-only 的原因。
+
 ### Parameter count
 
 For one block with `d_model = d` and FFN expansion `r`:
@@ -78,7 +84,9 @@ For one block with `d_model = d` and FFN expansion `r`:
 
 At `d = 4096, r = 2.6, layers = 32` (roughly Llama 3 8B), total: `32 · (4·4096² + 3·2.6·4096²) ≈ 32 · (16 + 32) M = ~1.5B parameters per layer × 32 ≈ 7B` (plus embeddings and head). Matches published counts.
 
-## Build It
+> **【拓展：参数计数与模型规模的实际意义】** Transformer 的参数主要集中在注意力投影（4d^2）和 FFN（约 8d^2 for SwiGLU）中。Llama 3 8B 每层约 1.5B 参数，32 层共约 7B 加上嵌入层和输出头。理解参数分布有助于优化：MoE 替换 FFN 可以增加总参数而不增加活跃计算；量化（如 GPTQ、AWQ）主要压缩 FFN 权重。
+
+## Build It | 动手实现
 
 ### Step 1: the building blocks
 
@@ -118,7 +126,7 @@ Feed a 6-token source and a 5-token target through. Verify the output shape is `
 
 Replace LayerNorm and ReLU-FFN with RMSNorm and SwiGLU. Confirm shapes still match. This is the 2026 modernization with one function substitution.
 
-## Use It
+## Use It | 用框架实现
 
 The PyTorch/TF reference implementations: `nn.TransformerEncoderLayer`, `nn.TransformerDecoderLayer`. But most 2026 production code rolls its own block because:
 
@@ -138,17 +146,21 @@ HF `transformers` has clean reference blocks you should read: `modeling_llama.py
 
 Decoder-only won language because it scales cleanest and handles both comprehension and generation. Encoder-decoder is still best when the input has a clear "source sequence" identity (translation, speech recognition, structured tasks).
 
-## Ship It
+> **【中文解读】** 三种架构的选择：Encoder-only（BERT）适合分类和嵌入；Decoder-only（GPT/Llama）适合生成和通用任务；Encoder-Decoder（T5/BART）适合有明确"源序列"的结构化转换任务。2026 年的主流选择是 Decoder-only，因为它的扩展性最好、训练最简洁。
+
+> **【拓展：SwiGLU 为何优于 ReLU】** SwiGLU（Swish-Gated Linear Unit）通过门控机制让 FFN 的表达能力更强。Llama、PaLM、Qwen 等模型的实验一致表明 SwiGLU 比 ReLU/GELU 在语言建模困惑度上低约 0.5 个点。虽然它需要三个权重矩阵而非两个（参数量增加 50%），但通常通过将扩展比从 4x 降到 2.6x 来补偿。
+
+## Ship It | 产出物
 
 See `outputs/skill-transformer-block-reviewer.md`. The skill reviews a new transformer block implementation against the 2026 defaults and flags missing pieces (pre-norm, RoPE, RMSNorm, GQA, FFN expansion ratio).
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Count the parameters in your encoder_block at `d_model=512, n_heads=8, ffn_expansion=4, swiglu=True`. Validate by implementing the block and using `sum(p.numel() for p in block.parameters())`.
 2. **Medium.** Switch from post-norm to pre-norm. Initialize both and measure the activation norm after 12 stacked layers on random input. Post-norm's activations should explode; pre-norm's should stay bounded.
 3. **Hard.** Implement a 4-layer encoder-decoder on a toy copy task (copy `x` reversed). Train 100 steps. Report loss. Swap in RMSNorm + SwiGLU + RoPE — does loss drop?
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -161,7 +173,7 @@ See `outputs/skill-transformer-block-reviewer.md`. The skill reviews a new trans
 | FFN expansion | "How wide the middle MLP is" | Ratio of hidden-size to d_model, usually 4 (LayerNorm) or 2.6 (SwiGLU). |
 | Bias-free | "Drop the +b terms" | Modern stacks omit biases in linear layers; slight ppl improvement, smaller model. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Vaswani et al. (2017). Attention Is All You Need](https://arxiv.org/abs/1706.03762) — original block spec.
 - [Xiong et al. (2020). On Layer Normalization in the Transformer Architecture](https://arxiv.org/abs/2002.04745) — why pre-norm beats post-norm deeply.

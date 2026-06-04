@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 7 · 01 through 13. Don't skip.
 **Time:** ~120 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 You've read every paper. You've implemented attention, multi-head splits, positional encodings, encoder and decoder blocks, BERT and GPT losses, MoE, KV cache. Now make them work together on a real task.
 
@@ -17,7 +17,11 @@ The capstone: train a small decoder-only transformer end-to-end on a character-l
 
 This is the "nanoGPT" of the course. It is not original — Karpathy's 2023 nanoGPT tutorial is the reference implementation every student writes at least once. We lift the shape and retool it around what we've covered.
 
-## The Concept
+> **【中文解读】** 这个毕业项目将前 13 节课的所有知识整合：字符级语言建模、token 嵌入、位置编码、RMSNorm、多头因果注意力、SwiGLU FFN、残差连接，训练一个能在笔记本上 10 分钟内完成的 Shakespeare 生成器。虽然小，但架构与 GPT-4 相同——增大数据和训练量就能得到真正的语言模型。
+
+> **【拓展：从 nanoGPT 到生产级 LLM】** Karpathy 的 nanoGPT 是学习 Transformer 的最佳起点。从 nanoGPT 到生产级 LLM 的关键差异在于：数据规模（从 MB 到 TB）、训练基础设施（从单 GPU 到数千 GPU 集群）、分布式训练（数据并行、模型并行、流水线并行）、以及后训练（SFT + RLHF）。但核心架构是一样的。
+
+## The Concept | 核心概念
 
 ![Transformer-from-scratch block diagram](../assets/capstone.svg)
 
@@ -62,6 +66,8 @@ shift-by-one cross-entropy            ◀── Lesson 07
 - Training loop with AdamW, cosine LR, gradient clipping.
 - Char-level tokenizer on Shakespeare text.
 
+> **【中文解读】** 完整的 GPT 实现包含：配置类、多头因果注意力（可选 Flash Attention）、SwiGLU FFN、前归一化残差块、完整的 GPT 模型类（嵌入 + 堆叠块 + LM 头 + 生成函数）、AdamW + 余弦学习率训练循环。为了简洁，使用了学习式位置嵌入（而非 RoPE）且未实现 KV 缓存，但练习要求你添加这些。
+
 ### What we don't ship
 
 - RoPE — implemented conceptually in Lesson 04. Here we use learned positional embeddings for simplicity. The exercises ask you to swap in RoPE.
@@ -77,7 +83,9 @@ On a Mac M2 laptop, a 4-layer, 4-head, d_model=128 GPT trained for 2,000 steps o
 - Sampled output looks Shakespeare-shaped: archaic words, line breaks, proper names like "ROMEO:" emerge.
 - Val loss (held-out final 10% of text) tracks training loss closely; no overfitting at this size/budget.
 
-## Build It
+> **【拓展：从字符级到子词级 Tokenizer】** 本项目使用字符级 tokenizer（简单但低效）。生产级 LLM 使用 BPE（Byte Pair Encoding）或 SentencePiece 等子词级 tokenizer。Llama 使用 BPE，GPT-4 使用 cl100k_base BPE tokenizer。子词 tokenization 在词汇量、序列长度和语义粒度之间取得平衡，是现代 LLM 的标配。
+
+## Build It | 动手实现
 
 This lesson uses PyTorch. Install `torch` (CPU build is fine). See `code/main.py`. The script handles:
 
@@ -136,7 +144,7 @@ The chief that well shame and hath been his friends,
 
 Not Shakespeare. But Shakespeare-shaped. A clear win for ~800K parameters and 6 minutes on a laptop.
 
-## Use It
+## Use It | 用框架实现
 
 This capstone is a reference architecture. Three extensions to ship it to something real:
 
@@ -146,11 +154,13 @@ This capstone is a reference architecture. Three extensions to ship it to someth
 
 This ends up as a 125M-parameter GPT that generates fluent English. Not a frontier model. But the same code path — just bigger — is what Karpathy, EleutherAI, and the Allen Institute use to train research checkpoints in 2026.
 
-## Ship It
+> **【拓展：Karpathy 的 nanoGPT 与教育意义】** Andrej Karpathy 的 nanoGPT（2023）是 AI 教育史上最有影响力的教程之一。它证明了一个完整、可训练的 GPT 可以用约 300 行 PyTorch 实现。这种"从零构建"的教学方法让你真正理解每个组件的作用，而不是把 Transformer 当作黑盒。
+
+## Ship It | 产出物
 
 See `outputs/skill-transformer-review.md`. The skill reviews a transformer-from-scratch implementation for correctness across all 13 prior lessons.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py`. Verify your trained model's final-step validation loss is under 2.0. Change `max_steps` from 2,000 to 5,000 — does val loss keep improving?
 2. **Medium.** Replace learned positional embeddings with RoPE. Apply the rotation to Q and K inside `MultiHeadAttention`. Train and verify val loss is at least as low.
@@ -158,7 +168,7 @@ See `outputs/skill-transformer-review.md`. The skill reviews a transformer-from-
 4. **Hard.** Add a second head to the model that predicts the next-plus-one token (MTP — Multi-Token Prediction from DeepSeek-V3). Train jointly. Does it help?
 5. **Hard.** Replace the single FFN per block with a 4-expert MoE. Router + top-2 routing. See how val loss changes at matched active parameters.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -171,6 +181,6 @@ See `outputs/skill-transformer-review.md`. The skill reviews a transformer-from-
 | MFU | "Model FLOP Utilization" | Achieved FLOPs / theoretical peak; 40% dense, 30% MoE is strong in 2026. |
 | Val loss | "Held-out loss" | Cross-entropy on data the model never saw; overfit detector. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [The Annotated Transformer (Harvard NLP)](https://nlp.seas.harvard.edu/annotated-transformer/) — the classic annotated implementation.

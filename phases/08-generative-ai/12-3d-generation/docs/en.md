@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 4 (Vision), Phase 8 · 07 (Latent Diffusion)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 3D content is painful:
 
@@ -22,7 +22,11 @@
 
 The 2026 stack separates the two problems. First, generate *2D multi-view images* with a diffusion model. Second, fit a *3D representation* (usually Gaussian splatting) to those images.
 
-## The Concept
+> **【中文解读】** 3D 生成的核心挑战：表示方式多样（网格、点云、体素、SDF、NeRF、3D 高斯）、数据稀缺（远少于 2D 图像）、内存需求巨大、监督信号弱（通常只有 2D 视图）。2026 年的主流方案是两阶段策略：先用扩散模型生成多视角 2D 图像，再用 3D 高斯溅射（Gaussian Splatting）拟合 3D 表示。
+
+> **【拓展：3D Gaussian Splatting 的革命性影响】** 3DGS（2023）取代 NeRF 成为 3D 重建的主流方法。它用数百万个 3D 高斯椭球体表示场景，渲染速度快 100 倍以上，质量相当或更优。结合多视角扩散模型，3DGS 使"从文字/图片生成可交互 3D 场景"成为可能，在游戏、VR/AR、建筑可视化中有巨大应用前景。
+
+## The Concept | 核心概念
 
 ![3D generation: multi-view diffusion + 3D reconstruction](../assets/3d-generation.svg)
 
@@ -63,7 +67,7 @@ Fine-tune a pretrained image diffusion model to generate multiple consistent vie
 
 Neural Radiance Field (Mildenhall et al., 2020). A tiny MLP takes `(x, y, z, view direction)` and outputs `(color, density)`. Render by integrating along rays. Beats mesh-based novel-view synthesis in quality but is 100-1000x slower to render. Superseded by Gaussian splatting for most real-time use but still dominant in research.
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` implements a toy 2D "Gaussian splatting" fit: represent a synthetic target image (a smooth gradient) as a sum of 2D Gaussian splats. Optimize positions, colors, and covariances by gradient descent to match the target. You see the two core operations: forward render (splat + alpha-composite) and fit by gradient descent.
 
@@ -109,7 +113,7 @@ for step in range(steps):
 - **Topology issues.** Meshes from implicit fields (SDFs) often have holes or self-intersections. Run a remesher (e.g. blender's voxel remesh) before shipping.
 - **License of training data.** Objaverse has mixed licenses; commercial use varies per model.
 
-## Use It
+## Use It | 用框架实现
 
 | Task | 2026 pick |
 |------|-----------|
@@ -123,17 +127,17 @@ for step in range(steps):
 
 For shipping production 3D in a game or e-commerce pipeline: Meshy 4 or Rodin Gen-1.5 output PBR meshes that go straight into Unity / Unreal.
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-3d-pipeline.md`. Skill takes a 3D brief (input: text / one image / few images; output: mesh / splat / NeRF; usage: render / game / VR) and outputs: pipeline (multi-view diffusion + fit, or direct mesh model), base model, iteration budget, topology post-processing, material channels needed.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py` with 4, 16, 64 Gaussians. Report final MSE vs target.
 2. **Medium.** Extend to color Gaussians (RGB). Confirm reconstruction matches the target color pattern.
 3. **Hard.** Using gsplat or Nerfstudio, reconstruct a real object from a 50-photo capture. Report fit time and final SSIM on held-out views.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -155,7 +159,7 @@ Unlike image (latent diffusion + DiT) and video (spatiotemporal DiT), 3D has no 
 
 For most 2026 products, the right answer is "run a multi-view diffusion model on request, reconstruct to 3DGS asynchronously, serve the 3DGS for real-time viewing". This splits the workload cleanly between a GPU-inference server (fast) and an offline optimizer (slow).
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Mildenhall et al. (2020). NeRF: Representing Scenes as Neural Radiance Fields](https://arxiv.org/abs/2003.08934) — NeRF.
 - [Kerbl et al. (2023). 3D Gaussian Splatting for Real-Time Radiance Field Rendering](https://arxiv.org/abs/2308.04079) — 3DGS.

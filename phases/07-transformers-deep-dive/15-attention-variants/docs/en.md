@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 7 · 02 (Self-Attention), Phase 7 · 03 (Multi-Head), Phase 7 · 12 (KV Cache / Flash Attention)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Full attention costs `O(N²)` memory and `O(N²)` compute in sequence length. For a 128K-context Llama 3 70B that is 16 billion attention entries per layer, times 80 layers. Flash Attention (Lesson 12) hides the `O(N²)` activation memory but does not change the arithmetic cost — every token still attends to every other token.
 
@@ -21,7 +21,9 @@ Three classes of variants change the topology of the attention matrix itself:
 
 These coexist. A 2026 frontier model often mixes them: most layers are SWA-1024, every fifth is global full attention, and a handful are differential heads that clean up retrieval. Gemma 3's 5:1 SWA-to-global ratio is the current textbook default.
 
-## The Concept
+> **【中文解读】** 三种降低注意力复杂度的方法：(1) 滑动窗口（SWA）——只关注局部邻域，O(N*W) 复杂度；(2) 稀疏/块注意力——只计算选定的 token 对；(3) 差分注意力——两组 Q/K 注意力相减，消除"注意力汇聚"现象。2026 年的模型通常混合使用这些变体。
+
+## The Concept | 核心概念
 
 ### Sliding Window Attention (SWA)
 
@@ -57,6 +59,8 @@ Pick an `N × N` sparsity pattern ahead of time. Three canonical shapes:
 
 Sparse attention is a kernel-engineering story. The math is simple (mask the score matrix); the win comes from never loading the zero entries into SRAM. FlashAttention-3 and the 2026 FlexAttention API make custom sparse patterns first-class in PyTorch.
 
+> **【拓展：滑动窗口的信息传递机制】** 滑动窗口注意力看似只能捕获局部信息，但通过多层堆叠，信息可以"渗透"到更远的位置。W 窗口的 L 层注意力，有效感受野为 L×W。例如 W=1024、L=32 的模型有效感受野为 32K token。Mistral 7B 正是利用了这个特性在保持 O(N*W) 计算复杂度的同时实现长上下文建模。
+
 ### Differential Attention (DIFF Transformer, 2024)
 
 Regular attention has an "attention sink" problem: softmax forces every row to sum to 1, so tokens that don't want to attend to anything in particular dump weight on the first token (or the first few). This steals capacity that should have gone to real content.
@@ -73,6 +77,10 @@ where `λ` is a learned scalar (typically 0.5–0.8). A1 captures real content w
 
 Reported results (Microsoft 2024): 5–10% lower perplexity, 1.5–2× longer effective context at same trained length, sharper needle-in-haystack retrieval.
 
+> **【中文解读】** 差分注意力的创新之处：标准注意力因 softmax 归一化导致"注意力汇聚"（attention sink）——不相关的 token 把权重集中在序列开头的 token 上。差分注意力计算两组注意力并相减，A1 捕获真实内容权重，A2 捕获汇聚噪声，相减后消除汇聚现象。困惑度降低 5-10%。
+
+> **【拓展：Gemma 3 的混合注意力策略】** Google 的 Gemma 3 使用 5:1 的滑动窗口与全局注意力比例——每 5 层局部注意力后接 1 层全局注意力。这既保持了长上下文的建模能力（全局层提供远程连接），又大幅降低了计算成本（局部层只有 O(N*W) 复杂度）。这种混合策略已成为 2026 年长上下文模型的标准范式。
+
 ### Variant Comparison
 
 | Variant | Compute | KV cache | Quality vs full | Production use |
@@ -84,7 +92,7 @@ Reported results (Microsoft 2024): 5–10% lower perplexity, 1.5–2× longer ef
 | Native Sparse (DeepSeek-V3.2) | O(N · active fraction) | O(N) | within 0.05 ppl | DeepSeek-V3.2, 2025 |
 | Differential | O(2·N²) | O(2N) | -5 to -10% ppl | DIFF Transformer, early 2026 models |
 
-## Build It
+## Build It | 动手实现
 
 See `code/main.py`. We implement a causal mask comparator that shows full, SWA, local+strided, and differential attention side by side on a toy sequence.
 
@@ -142,7 +150,7 @@ Two attention passes, subtract with a learned mixing coefficient. In the code we
 
 Print the cache size per layer at `N = 131072` for each variant. SWA and sparse variants drop by 10–100×. Differential doubles. Pay your memory bill consciously.
 
-## Use It
+## Use It | 用框架实现
 
 2026 production patterns:
 
@@ -174,18 +182,18 @@ This compiles to a custom Triton kernel. Within 10% of FlashAttention-3 speed fo
 - **Sparse block attention** — custom kernel, custom pattern. Reserved for specialized workloads (retrieval, audio).
 - **Differential attention** — any workload where attention-sink contamination hurts (long-context RAG, needle-in-haystack).
 
-## Ship It
+## Ship It | 产出物
 
 See `outputs/skill-attention-variant-picker.md`. The skill picks an attention topology for a new model given target context length, retrieval demands, and training/inference compute profile.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py`. Verify SWA at `window=4` zeroes everything outside the last 4 tokens per row. Verify `window=n` reproduces full causal attention bit-identically.
 2. **Medium.** Implement causal SWA with `window=1024` on top of the Lesson 07 capstone. Train for 1,000 steps on tinyshakespeare. How much does val loss regress vs full attention? How much does peak memory drop?
 3. **Hard.** Implement a Gemma-3-style 5:1 layer mix (5 SWA, 1 global) in the capstone model. Compare loss, memory, and generation quality against pure-SWA and pure-global baselines at matched parameters.
 4. **Hard.** Implement differential attention with a learned `λ` per head. Train on a synthetic retrieval task (one needle, 2,000 distractors). Measure retrieval accuracy vs a single-attention baseline at matched parameters.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -198,7 +206,7 @@ See `outputs/skill-attention-variant-picker.md`. The skill picks an attention to
 | FlexAttention | "Mask-as-Python" | PyTorch 2.5+ API that compiles arbitrary mask functions into FlashAttention-shape kernels. |
 | Layer type mix | "5:1 SWA-to-global" | Interleave sparse and full attention layers in a stack to keep quality at lower memory. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Beltagy, Peters, Cohan (2020). Longformer: The Long-Document Transformer](https://arxiv.org/abs/2004.05150) — the canonical sliding-window + global-token paper.
 - [Zaheer et al. (2020). Big Bird: Transformers for Longer Sequences](https://arxiv.org/abs/2007.14062) — local + global + random.

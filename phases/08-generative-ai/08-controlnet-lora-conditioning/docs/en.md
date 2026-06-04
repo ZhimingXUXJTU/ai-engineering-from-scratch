@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 8 · 07 (Latent Diffusion), Phase 10 (LLMs from Scratch — for LoRA foundation)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 A prompt like "a woman in a red dress walking a dog on a busy street" gives the model no information about *where* the dog is, *what pose* the woman is in, or *the perspective* of the street. Text pins down about 10% of what you need to specify an image. The rest is visual and cannot be described efficiently in words.
 
@@ -21,7 +21,7 @@ You also want to teach the model new concepts (your face, your product, your sty
 
 ControlNet + LoRA + text = the 2026 practitioner's toolkit. Most production image pipelines layer 2-5 LoRAs, 1-3 ControlNets, and an IP-Adapter on top of an SDXL / SD3 / Flux base.
 
-## The Concept
+## The Concept | 核心概念
 
 ![ControlNet clones the encoder; LoRA adds low-rank deltas](../assets/controlnet-lora.svg)
 
@@ -70,7 +70,11 @@ A tiny adapter that accepts an *image* as conditioning (alongside text). Uses th
 
 ControlNet ≈ spatial. LoRA ≈ semantic. Use both.
 
-## Build It
+> **【中文解读】** ControlNet 的核心机制：克隆 SD U-Net 编码器，冻结原始部分，训练克隆部分接受额外条件输入（边缘、深度、姿态）。零卷积（zero-convolution）初始化确保训练开始时 ControlNet 不影响原始模型。LoRA 在线性层上添加低秩矩阵 B@A，只训练极少量参数（20-200MB vs 基础模型 5GB）。
+
+> **【拓展：ControlNet + LoRA 的组合控制】** 实际生产中，ControlNet（空间控制）和 LoRA（风格/主题控制）通常组合使用。例如：ControlNet 控制人物姿态，LoRA 注入特定艺术风格，文本 prompt 描述场景内容。这种三层控制机制是 2026 年商业 AI 图像服务的标准配置。IP-Adapter 则提供了"用图片控制图片"的第四维度。
+
+## Build It | 动手实现
 
 `code/main.py` simulates the two mechanisms on 1-D:
 
@@ -104,7 +108,7 @@ At step 0 the output is identical to base. Early training updates `gate` slowly 
 - **Textual Inversion drift.** Tokens trained on one checkpoint drift badly on another. LoRA is more portable.
 - **LoRA weight-merging and storage.** You can bake a LoRA into the base model weights for faster inference (no runtime addition), but you lose the ability to scale `α` at runtime. Keep both versions.
 
-## Use It
+## Use It | 用框架实现
 
 | Goal | 2026 pipeline |
 |------|---------------|
@@ -117,17 +121,17 @@ At step 0 the output is identical to base. Early training updates `gate` slowly 
 | Background replace | ControlNet-Seg + Inpainting (Lesson 09) |
 | Fast 1-step style | LCM-LoRA on SDXL-Turbo |
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-sd-toolkit-composer.md`. Skill takes a task (input assets: prompt, optional reference image, optional pose, optional depth, optional scribble) and outputs the tool stack, weights, and a reproducible seed protocol.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** In `code/main.py`, vary the LoRA rank `r` from 1 to 4. At what rank does the LoRA exactly match a rank-2 target delta?
 2. **Medium.** Train two separate LoRAs on two target transforms. Load them together and show their additive interaction. When does the interaction break linearity?
 3. **Hard.** Use diffusers to stack: SDXL-base + Canny-ControlNet (weight 0.8) + a style LoRA (α 0.8) + IP-Adapter (weight 0.6). Measure FID-vs-prompt-adherence trade-off as the stack weights vary.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -150,7 +154,7 @@ A real text-to-image SaaS serves hundreds of LoRAs and a dozen ControlNets over 
 
 Flux-specific: Niels' Flux-on-8GB notebook quantizes the base to 4-bit; stacking a style LoRA (`pipe.load_lora_weights("user/style-lora")`) on that quantized base at `weight_name="pytorch_lora_weights.safetensors"` still works. This is the recipe most SaaS agencies ship in 2026.
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Zhang, Rao, Agrawala (2023). Adding Conditional Control to Text-to-Image Diffusion Models](https://arxiv.org/abs/2302.05543) — ControlNet.
 - [Hu et al. (2021). LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685) — LoRA (originally for LLMs; ports to diffusion).

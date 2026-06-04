@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 8 · 03 (GANs), Phase 4 · 08 (Normalization), Phase 3 · 07 (CNNs)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 A DCGAN maps `z` to an image through a stack of transposed convolutions. The problem: `z` controls everything — pose, lighting, identity, background — entangled together. Move along one axis of `z`, all four change. You cannot ask the model "same person, different pose" because the representation does not factor that way.
 
@@ -19,7 +19,11 @@ Karras et al. (2019, NVIDIA) proposed: stop feeding `z` directly into conv layer
 
 The result: `W` has roughly orthogonal axes for "high-level style" (pose, identity) vs "fine style" (lighting, color). You can swap styles between two images by using image A's `w` for the low-resolution levels and image B's `w` for the high. This unlocked editing, cross-domain stylization, and the entire "StyleGAN-inversion" line of research.
 
-## The Concept
+> **【中文解读】** StyleGAN 的关键创新：(1) 映射网络 z→w 解开纠缠的隐空间；(2) AdaIN 在每个分辨率层级注入风格——低分辨率层控制粗粒度（姿势、身份），高分辨率层控制细粒度（颜色、纹理）；(3) 每层随机噪声添加细节（毛孔、发丝）。Style Mixing 技术可以混合不同图像的粗细特征。
+
+> **【拓展：StyleGAN 3 的平移等变性】** StyleGAN 2 生成的图像有"纹理粘附"问题——特征（如头发）会"粘"在特定像素位置而非物体表面。StyleGAN 3（2021）通过连续的信号处理解决了这个问题，使生成结果对平移和旋转具有等变性。这对视频生成和 3D 应用尤为重要。
+
+## The Concept | 核心概念
 
 ![StyleGAN: mapping network + AdaIN + per-layer noise](../assets/stylegan.svg)
 
@@ -51,7 +55,7 @@ where `y_scale` and `y_bias` come from affine projections of `w`. Normalize per 
 
 In 2026 StyleGAN3 remains the default for (a) narrow-domain photorealism at high FPS, (b) few-shot domain adaptation (train on a new dataset with 100 images, freeze mapping), (c) inversion-based editing (find the `w` that reconstructs a real photo, then edit that `w`). For open-domain text-to-image, it is not the tool — diffusion is.
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` implements a toy "style-GAN lite" in 1-D: a mapping MLP, a synthesis function that takes a learned constant vector and modulates it with `w`-derived scale/bias, and per-layer noise. It shows that injecting `w` via affine-modulation matches or beats concatenating `z` into the generator's input.
 
@@ -93,7 +97,7 @@ Sigma per-channel is learnable.
 - **Mode coverage.** Truncation `ψ < 0.7` looks clean but samples from a narrow cone; use `ψ = 1.0` if you need diversity.
 - **Inversion is lossy.** Inverting a real photo into `W` is usually done through optimization or an encoder (e4e, ReStyle, HyperStyle). Results drift over many iterations.
 
-## Use It
+## Use It | 用框架实现
 
 | Use case | Approach |
 |----------|----------|
@@ -106,17 +110,17 @@ Sigma per-channel is learnable.
 
 For product-grade demos where the answer is "photo of a person's face", StyleGAN beats diffusion on inference cost (single forward pass, <10ms on a 4090) and sharpness for the same quality bar.
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-stylegan-inversion.md`. Skill takes a real photo and outputs: inversion method (e4e / ReStyle / HyperStyle), expected latent loss, editing budget (how far in `W` you can move before artifacts), and a list of known-good editing directions (age, expression, pose).
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py` with `adain_on=True` and `adain_on=False`. Compare the spread of outputs for a fixed latent vs perturbed latent.
 2. **Medium.** Implement mixing regularization: for a training batch, compute `w_a`, `w_b`, and apply `w_a` for the first half of synthesis and `w_b` for the second half. Does the decoder learn disentangled styles?
 3. **Hard.** Take a pretrained StyleGAN3 FFHQ model (ffhq-1024.pkl). Find the `w` direction that controls "smile" by training an SVM on labelled samples; report how far you can push before identity drifts.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -138,7 +142,7 @@ Two operational consequences:
 - **No scheduler, no batcher.** Static batch at the target occupancy is optimal. Continuous batching (essential for LLMs and diffusion) provides zero benefit because every request takes the same FLOPs.
 - **Truncation `ψ` is the safety knob.** `ψ < 0.7` samples from a narrow cone of the mapping network's range. This is the only lever the serving layer has over sample variance. Lower `ψ` at peak load, raise it for premium users.
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Karras et al. (2019). A Style-Based Generator Architecture for GANs](https://arxiv.org/abs/1812.04948) — StyleGAN.
 - [Karras et al. (2020). Analyzing and Improving the Image Quality of StyleGAN](https://arxiv.org/abs/1912.04958) — StyleGAN2.
