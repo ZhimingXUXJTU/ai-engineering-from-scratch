@@ -18,7 +18,7 @@
 - Compute expected speedup from acceptance rate `α` and draft-to-verifier cost ratio `c`, and choose the optimal draft length `N` for each regime.
 - Implement the full speculative loop from scratch: draft, verify, reject-sample from the residual, roll the KV cache back on rejection, emit the bonus token on full acceptance.
 
-## The Problem
+## The Problem | 问题引入
 
 Autoregressive decoding on a 70B model runs at maybe 35 tokens per second on an H100. The GPU is nowhere near saturated. Memory bandwidth is the ceiling: every token loads 70B of weights from HBM, does one step of arithmetic, and produces one float. The compute units sit mostly idle.
 
@@ -28,7 +28,12 @@ The theorem that matters is Leviathan, Kalman, Matias (ICML 2023): the output di
 
 What Phase 7 · Lesson 16 gave you was the math. What this lesson gives you is the training stack. A good draft is worth 2× more speedup than a cheap draft. EAGLE, EAGLE-2, and EAGLE-3 (Li et al., 2024–2025) turned "draft = smaller version of the same model" into a precise engineering discipline. 2026 production inference servers default to EAGLE-3.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 投机解码（Speculative Decoding）用小模型快速猜测多个 token，再用大模型并行验证——被接受的 token 直接保留，被拒绝的从拒绝点重新生成。EAGLE 系列方法在特征层面而非 token 层面进行投机，接受率更高。
+
+> **【拓展：投机解码的加速效果】** 标准投机解码可实现 2-3x 推理加速而不损失输出质量。EAGLE-2 和 Medusa 等方法通过多头并行预测达到 3-4x 加速。关键技术指标是接受率（acceptance rate）——小模型与大模型的分布越接近，接受率越高，加速效果越好。
+
 
 ### The invariant: Leviathan rejection sampling
 
@@ -77,7 +82,11 @@ For EAGLE-2 tree search, the verifier runs attention with a non-causal mask that
 
 In 2026 production: vLLM and SGLang default to EAGLE-3 when available, EAGLE-2 otherwise. TensorRT-LLM has the fastest Medusa path for Meta and NVIDIA public models. llama.cpp ships vanilla draft for CPU deployments.
 
-## Build It
+
+> **【拓展：EAGLE 的创新点】** EAGLE 不在 token 空间而是在特征空间做投机——用前几层的特征预测未来的特征，再从特征解码 token。接受率从传统方法的约 60% 提升到约 80%，实现 3-4x 加速。
+
+
+## Build It | 动手实现
 
 See `code/main.py`. This is the full Leviathan speculative loop with all the pieces: draft-of-N, verifier parallel pass, per-position rejection, residual sampling, bonus token, KV rollback, and empirical verification that the output distribution matches direct sampling from `q`.
 
@@ -117,7 +126,7 @@ Run 50,000 speculative steps. Count the empirical distribution of accepted token
 
 Sweep the draft quality by perturbing `p` away from `q` at different amplitudes. Measure `α`, then plot expected tokens per verifier call as a function of `α` and `N`. The code prints a table showing how EAGLE-3-class draft quality (`α ≈ 0.9`) unlocks 4–5 tokens per verifier call.
 
-## Use It
+## Use It | 用框架实现
 
 Production-level `vllm serve` with EAGLE-3:
 
@@ -144,11 +153,11 @@ When not to:
 - Tiny batch-1 CPU deployments. Memory overhead of the draft model may not be worth it.
 - Very-high-temperature creative sampling where `α` collapses.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-eagle3-tuner.md`. Given an inference workload (model, batch size, target latency, task profile), it recommends a speculative-decoding strategy and tuning parameters (draft family, `N`, tree depth, temperature-aware switching).
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Confirm the chi-square statistic on the Leviathan distribution check stays below the 95% critical value on 50,000 samples.
 
@@ -160,22 +169,22 @@ This lesson produces `outputs/skill-eagle3-tuner.md`. Given an inference workloa
 
 5. Read the EAGLE-3 paper's Section 4 (Training-Time Test). Explain in two sentences why naive draft training without TTT suffers from exposure bias, and why feeding the draft its own predictions during training fixes it. Connect this to the scheduled-sampling literature in seq2seq.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Leviathan rule | "min(1, q over p)" | Bernoulli accept/reject with probability `min(1, q(d)/p(d))`, preserves the verifier distribution exactly when you sample from the residual on rejection |
-| Residual distribution | "(q minus p) plus, normalized" | `(q - p)_+` clamped at zero and renormalized — the correct distribution to sample from on rejection |
-| Acceptance rate α | "how often the draft is right" | Expected per-token Bernoulli-success probability under the rejection rule; governs all speedup math |
-| EAGLE-1 | "hidden-state draft" | Tiny transformer draft conditioned on the verifier's last-layer hidden state (Li et al., 2024) |
-| EAGLE-2 | "dynamic draft tree" | EAGLE-1 plus a tree of candidate continuations scored with tree attention in one verifier pass |
-| EAGLE-3 | "training-time test" | Drops the feature-prediction loss, trains on direct token prediction with the draft fed its own outputs during training |
-| Training-time test (TTT) | "exposure bias fix" | Run the draft autoregressively during training so train and test input distributions match — the direct analog of scheduled sampling |
-| KV rollback | "undo rejected drafts" | Bookkeeping that resets the verifier's KV cache to the accepted-prefix length after a rejection |
-| Bonus token | "the free one" | When all `N` drafts accept, sample one extra from `q_{N+1}` at no additional verifier cost |
-| Tree attention | "verify many candidates at once" | Attention with a non-causal mask that respects the topology of a draft tree; computes `q_i` for every node in the tree in one forward pass |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|---------|
+| Leviathan rule | "min(1, q over p)" | Bernoulli accept/reject with probability `min(1, q(d)/p(d))`, preserves the verifier distribution exactly when you sample from the residual on rejection | |
+| Residual distribution | "(q minus p) plus, normalized" | `(q - p)_+` clamped at zero and renormalized — the correct distribution to sample from on rejection | |
+| Acceptance rate α | "how often the draft is right" | Expected per-token Bernoulli-success probability under the rejection rule; governs all speedup math | |
+| EAGLE-1 | "hidden-state draft" | Tiny transformer draft conditioned on the verifier's last-layer hidden state (Li et al., 2024) | |
+| EAGLE-2 | "dynamic draft tree" | EAGLE-1 plus a tree of candidate continuations scored with tree attention in one verifier pass | |
+| EAGLE-3 | "training-time test" | Drops the feature-prediction loss, trains on direct token prediction with the draft fed its own outputs during training | |
+| Training-time test (TTT) | "exposure bias fix" | Run the draft autoregressively during training so train and test input distributions match — the direct analog of scheduled sampling | |
+| KV rollback | "undo rejected drafts" | Bookkeeping that resets the verifier's KV cache to the accepted-prefix length after a rejection | |
+| Bonus token | "the free one" | When all `N` drafts accept, sample one extra from `q_{N+1}` at no additional verifier cost | |
+| Tree attention | "verify many candidates at once" | Attention with a non-causal mask that respects the topology of a draft tree; computes `q_i` for every node in the tree in one forward pass | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Leviathan, Kalman, Matias — Fast Inference from Transformers via Speculative Decoding (arXiv:2211.17192, ICML 2023)](https://arxiv.org/abs/2211.17192) — the foundational paper and equivalence theorem
 - [Chen et al. — Accelerating Large Language Model Decoding with Speculative Sampling (arXiv:2302.01318)](https://arxiv.org/abs/2302.01318) — concurrent independent introduction with a clean proof

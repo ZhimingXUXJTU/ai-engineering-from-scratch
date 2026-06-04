@@ -18,7 +18,9 @@
 - Implement autoregressive text generation with temperature sampling and top-k/top-p filtering
 - Monitor training loss curves and validate that the model learns coherent language patterns
 
-## The Problem
+> **【中文解读】** 本课用纯 numpy 从零实现 GPT-2 Small（124M 参数）。你将看到 1.24 亿个参数如何通过前向传播、损失计算、反向传播、权重更新的训练循环来预测下一个 token。这不是 PyTorch 黑箱——每一个矩阵乘法都是可见的。
+
+## The Problem | 问题引入
 
 You know what a transformer is. You have read the diagrams. You can recite "attention is all you need" and draw boxes labeled "Multi-Head Attention" on a whiteboard.
 
@@ -30,7 +32,7 @@ If you have never built this yourself, you are working with a black box. You can
 
 This lesson builds GPT-2 Small from scratch. Not in PyTorch. In numpy. Every matrix multiplication is visible. Every gradient is computed by your code. You will see exactly how 124 million numbers conspire to predict the next word.
 
-## The Concept
+## The Concept | 核心概念
 
 ### The GPT Architecture
 
@@ -87,6 +89,10 @@ Each of the 12 blocks follows the same pattern. Pre-norm architecture (GPT-2 use
 6. Residual connection (add input back)
 
 The residual connections are critical. Without them, gradients vanish by the time they reach block 1 during backpropagation. With them, gradients can flow directly from the loss to any layer through the "skip" path. This is why you can stack 12, 32, or even 96 blocks (GPT-4 is rumored to use 120).
+
+> **【中文解读】** GPT 架构的核心是 Transformer 解码器块的堆叠。每个块包含：LayerNorm → 多头自注意力 → 残差连接 → LayerNorm → 前馈网络（MLP）→ 残差连接。GPT-2 使用 pre-norm（先归一化再注意力），而非原始 Transformer 的 post-norm。残差连接是关键——没有它，梯度在 12 层反向传播后会消失，无法训练深层网络。
+
+> **【拓展：GPT 系列的架构演进】** GPT-2 Small（124M，12 层 768 维）→ GPT-2 Medium（355M，24 层 1024 维）→ GPT-2 Large（774M，36 层 1280 维）→ GPT-2 XL（1.5B，48 层 1600 维）→ GPT-3（175B，96 层 12288 维）。架构基本相同，只是层数和维度不断扩展。GPT-4 的具体参数量未公开，但推测使用了约 120 层和 MoE（混合专家）架构。
 
 ### Attention: The Core Mechanism
 
@@ -224,7 +230,9 @@ The learning rate schedule matters more than you might expect. GPT-2 warms up fr
 
 The output projection (logits head) shares weights with the token embedding matrix. This is called weight tying -- it reduces the parameter count by 38M and improves performance because it forces the model to use the same representation space for input and output.
 
-## Build It
+> **【中文解读】** GPT-2 的参数分布：token 嵌入层占 38.6M（50257 x 768），12 个 Transformer 块各占约 7.1M，最终 LayerNorm 仅 1.5K。权重共享（weight tying）让输出投影层复用 token 嵌入矩阵，减少 38M 参数的同时还提升了性能——因为输入和输出被强制使用同一表示空间。
+
+## Build It | 动手实现
 
 ### Step 1: Embedding Layer
 
@@ -468,7 +476,7 @@ Temperature controls randomness. Temperature 1.0 uses the raw distribution. Temp
 
 The `tokens[-seq_len:]` window is necessary because the model has a maximum context length (1024 for GPT-2). Once you exceed it, you must drop the oldest tokens. This is the "context window" that everyone talks about.
 
-## Use It
+## Use It | 用框架实现
 
 ### Full Training and Generation Demo
 
@@ -496,11 +504,11 @@ print(f"\nGenerated: {generated_text}")
 
 On a small corpus with a small model, the generated text will be semi-coherent at best. It will learn some byte-level patterns from the training text but cannot generalize the way GPT-2 does with 40GB of training data and the full 124M parameter architecture. The point is not the output quality. The point is that you can trace every step: embedding lookup, attention computation, feedforward transformation, logit projection, softmax, and sampling. Every operation is visible.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-gpt-architecture-analyzer.md` -- a prompt that analyzes the architecture choices in any GPT-style model. Feed it a model card or technical report and it breaks down the parameter allocation, attention design, and scaling decisions.
 
-## Exercises
+## Exercises | 练习题
 
 1. Modify the model to use 24 layers and 16 heads instead of 12/12. Count the parameters. How does doubling the depth compare to doubling the width (embedding dimension)?
 
@@ -512,22 +520,22 @@ This lesson produces `outputs/prompt-gpt-architecture-analyzer.md` -- a prompt t
 
 5. Build a training loss curve plotter. Train the model for 1000 steps and plot loss vs step. Identify the three phases: rapid initial descent (learning common bytes), slower middle phase (learning byte patterns), and plateau (overfitting on the small corpus). The shape of this curve is the same whether you are training a 128-dim model or GPT-4.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Autoregressive | "It generates one word at a time" | Each output token is conditioned on all previous tokens -- the model predicts P(token_n \| token_0, ..., token_{n-1}) |
-| Causal mask | "It can't see the future" | An upper-triangular matrix of -infinity values that prevents attention to future positions during training |
-| Multi-head attention | "Multiple attention patterns" | Splitting Q, K, V into parallel heads (e.g., 12 heads of 64 dims each for GPT-2) so each head can learn different relationship types |
-| KV Cache | "Caching for speed" | Storing computed Key and Value tensors from previous tokens to avoid redundant computation during autoregressive generation |
-| Prefill | "Processing the prompt" | The first inference phase where all prompt tokens are processed in parallel -- compute-bound on GPU FLOPS |
-| Decode | "Generating tokens" | The second inference phase where tokens are generated one at a time -- memory-bound on GPU bandwidth |
-| Weight tying | "Sharing embeddings" | Using the same matrix for input token embeddings and the output projection head -- saves 38M params in GPT-2 |
-| Residual connection | "Skip connection" | Adding the input directly to the output of a sublayer (x + sublayer(x)) -- enables gradient flow in deep networks |
-| Layer normalization | "Normalizing activations" | Normalizing across the feature dimension to mean 0 and variance 1, with learnable scale and bias parameters |
-| Cross-entropy loss | "How wrong the predictions are" | -log(probability assigned to the correct next token), averaged over all positions -- the standard LLM training objective |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Autoregressive | "It generates one word at a time" | Each output token is conditioned on all previous tokens -- the model predicts P(token_n \| token_0, ..., token_{n-1}) | 自回归，逐 token 生成，每个 token 依赖之前所有 token |
+| Causal mask | "It can't see the future" | An upper-triangular matrix of -infinity values that prevents attention to future positions during training | 因果掩码，防止看到未来位置 |
+| Multi-head attention | "Multiple attention patterns" | Splitting Q, K, V into parallel heads (e.g., 12 heads of 64 dims each for GPT-2) so each head can learn different relationship types | 多头注意力，并行学习不同关系类型 |
+| KV Cache | "Caching for speed" | Storing computed Key and Value tensors from previous tokens to avoid redundant computation during autoregressive generation | KV 缓存，避免重复计算已生成 token 的 K/V |
+| Prefill | "Processing the prompt" | The first inference phase where all prompt tokens are processed in parallel -- compute-bound on GPU FLOPS | 预填充阶段，并行处理 prompt，计算密集 |
+| Decode | "Generating tokens" | The second inference phase where tokens are generated one at a time -- memory-bound on GPU bandwidth | 解码阶段，逐 token 生成，访存密集 |
+| Weight tying | "Sharing embeddings" | Using the same matrix for input token embeddings and the output projection head -- saves 38M params in GPT-2 | 权重共享，输入输出共用嵌入矩阵 |
+| Residual connection | "Skip connection" | Adding the input directly to the output of a sublayer (x + sublayer(x)) -- enables gradient flow in deep networks | 残差连接，使深层网络梯度流通 |
+| Layer normalization | "Normalizing activations" | Normalizing across the feature dimension to mean 0 and variance 1, with learnable scale and bias parameters | 层归一化，特征维度归一化 |
+| Cross-entropy loss | "How wrong the predictions are" | -log(probability assigned to the correct next token), averaged over all positions -- the standard LLM training objective | 交叉熵损失，LLM 训练的标准目标函数 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Radford et al., 2019 -- "Language Models are Unsupervised Multitask Learners" (GPT-2)](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) -- the GPT-2 paper that introduced the 124M to 1.5B parameter family
 - [Vaswani et al., 2017 -- "Attention Is All You Need"](https://arxiv.org/abs/1706.03762) -- the original transformer paper with scaled dot-product attention and multi-head attention

@@ -18,7 +18,9 @@
 - Add pre-tokenization regex patterns that split text at word boundaries before applying BPE merges
 - Train a custom tokenizer on a corpus and evaluate its compression ratio against tiktoken on multilingual text
 
-## The Problem
+> **【中文解读】** 本课目标是将第一课的玩具 BPE 升级为生产级分词器。关键改进包括：Unicode 归一化（NFKC）、预分词正则（防止跨词边界的合并）、字节级回退（零未知 token）、特殊 token 管理（BOS/EOS/聊天模板标记）。这些是让分词器处理"整个互联网"的必备机制。
+
+## The Problem | 问题引入
 
 Your BPE tokenizer from Lesson 01 works on English text. Now throw Japanese at it. Or emoji. Or Python code with mixed tabs and spaces.
 
@@ -30,7 +32,11 @@ GPT-2's tokenizer has 50,257 tokens. Llama 3 has 128,256. GPT-4 has roughly 100,
 
 You are going to build that machinery.
 
-## The Concept
+> **【中文解读】** 生产级分词器不是单一算法，而是一个五阶段管线：归一化 → 预分词 → BPE 合并 → 特殊 token 注入 → ID 映射。每个阶段解决不同的问题。例如 NFKC 归一化把 "fi" 连字（U+FB01）变成 "fi" 两个字符，预分词防止 "the cat" 被合并出 "e c" 这样的 token。
+
+> **【拓展：Llama 3 的分词器升级】** Meta 在 Llama 3 中将词表从 32K（Llama 2 的 SentencePiece BPE）升级到 128K（tiktoken 风格字节级 BPE），专门增加了非英语文字的 token 分配。这个改变使多语言压缩效率提升了约 2 倍，但嵌入矩阵参数量也相应增加了 4 倍（32K→128K）。
+
+## The Concept | 核心概念
 
 ### The Full Pipeline
 
@@ -72,6 +78,8 @@ GPT-2 added a trick: map each byte to a printable Unicode character so the vocab
 
 The real power: byte-level BPE handles every language on earth. Chinese characters are 3 UTF-8 bytes each. Japanese can be 3-4 bytes. Arabic, Devanagari, emoji -- all just byte sequences. The BPE algorithm finds patterns in these byte sequences exactly the same way it finds patterns in English ASCII bytes.
 
+> **【中文解读】** 字节级 BPE 的核心优势：基础词表恰好 256 个字节值，任何输入都能编码。GPT-2 还做了一个"花招"——把每个字节映射到一个可打印的 Unicode 字符，让词表更易读。中文字符在 UTF-8 中每个占 3 字节，日文占 3-4 字节，emoji 占 4 字节——BPE 算法在所有这些字节序列上以完全相同的方式工作。
+
 ### Pre-Tokenization
 
 Before BPE touches your text, you need to split it into chunks. This prevents the merge algorithm from creating tokens that span word boundaries.
@@ -104,6 +112,10 @@ Every production tokenizer reserves token IDs for structural markers:
 | `<\|assistant\|>` | Assistant turn marker | Llama 3 |
 
 Special tokens are never split by BPE. They are matched exactly before the merge algorithm runs, replaced with their fixed ID, and the surrounding text is tokenized normally.
+
+> **【中文解读】** 特殊 token 是分词器中"不可触碰"的保留标记：`[BOS]`（序列开始）、`[EOS]`（序列结束）、`[PAD]`（批次填充）、聊天模板标记等。它们有固定的 ID，永远不参与 BPE 合并，而是在合并之前通过精确匹配被提取出来。Llama 3 使用 `<|start_header_id|>`、`<|end_header_id|>`、`<|eot_id|>` 来标记对话结构，ChatGPT 使用 `<|im_start|>` 和 `<|im_end|>`。
+
+> **【拓展：聊天模板的工程陷阱】** 聊天模板是实际部署中最容易出错的地方。每个模型在训练时使用特定格式的特殊 token，任何偏差——缺少换行、多一个空格、token 顺序错误——都会让输入偏离训练分布，导致模型输出垃圾。HuggingFace 的 `chat_template` Jinja2 模板机制就是为了标准化这个过程。
 
 ### Chat Templates
 
@@ -152,7 +164,7 @@ For perspective: tokenizing 15 trillion tokens for Llama 3 pre-training at 1 mil
 
 You are building in Python to understand the algorithm. In production, you would use a compiled implementation and only touch the Python wrapper.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Byte-Level Encoding
 
@@ -381,7 +393,11 @@ for text in test_texts:
 
 Chinese characters produce 3 bytes each. The emoji produces 4 bytes. None of these crash the tokenizer. None produce unknown tokens. That is the power of byte-level BPE.
 
-## Use It
+> **【中文解读】** 以上代码将所有组件串联起来：归一化 → 特殊 token 分割 → 预分词 → BPE 合并 → ID 映射。测试覆盖了英文、中文、emoji、代码和特殊 token 的混合场景。字节级 BPE 保证任何输入都不会产生未知 token——这就是它成为工业标准的根本原因。
+
+> **【拓展：分词速度的工程意义】** 纯 Python 分词器每秒处理约 1M tokens，Llama 3 的预训练语料有 15 万亿 tokens，用 Python 需 174 天。tiktoken（Rust 实现）每秒 100M tokens，只需 1.7 天。这就是为什么生产级分词器都用编译语言：tiktoken 用 Rust，HuggingFace tokenizers 用 Rust，SentencePiece 用 C++。
+
+## Use It | 用框架实现
 
 ### Comparing Real Tokenizers
 
@@ -415,30 +431,30 @@ You will see different token counts for the same text. Llama 3 with 128K vocabul
 
 The tradeoff is always the same: larger vocabulary means shorter sequences but more parameters.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces a prompt for building and debugging production tokenizers. See `outputs/prompt-tokenizer-builder.md`.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy:** Add a `get_token_bytes(id)` method that shows the raw bytes for any token ID. Use it to inspect what your most common merged tokens actually represent.
 2. **Medium:** Implement the Llama-style pre-tokenizer that splits on whitespace and digits but keeps leading spaces. Compare its vocabulary with the GPT-2 regex approach on the same corpus.
 3. **Hard:** Add a chat template method that takes a list of `{"role": ..., "content": ...}` messages and produces the correct token sequence for the Llama 3 chat format. Test it against the HuggingFace implementation.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Byte-level BPE | "Tokenizer that works on bytes" | BPE with a base vocabulary of 256 byte values -- handles any input without unknown tokens |
-| Pre-tokenization | "Splitting before BPE" | Regex or rule-based splitting that prevents BPE from merging across word boundaries |
-| NFKC normalization | "Unicode cleanup" | Canonical decomposition followed by compatibility composition -- "fi" ligature becomes "fi", fullwidth "A" becomes "A" |
-| Chat template | "How messages become tokens" | The exact format for converting a list of role/content messages into a flat token sequence -- model-specific and must match training format |
-| Special tokens | "Control tokens" | Reserved token IDs that bypass BPE -- [BOS], [EOS], [PAD], chat markers -- matched exactly before merge |
-| Fertility | "Tokens per word" | Ratio of output tokens to input words -- 1.3 for English in GPT-4, 2-3 for Korean, higher means wasted context |
-| tiktoken | "OpenAI tokenizer" | Rust BPE implementation with Python bindings -- 10-100x faster than pure Python |
-| Merge table | "The vocabulary" | Ordered list of byte-pair merges learned during training -- this IS the tokenizer's learned knowledge |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Byte-level BPE | "Tokenizer that works on bytes" | BPE with a base vocabulary of 256 byte values -- handles any input without unknown tokens | 字节级 BPE，基础词表 256 个字节值 |
+| Pre-tokenization | "Splitting before BPE" | Regex or rule-based splitting that prevents BPE from merging across word boundaries | 预分词，防止跨词边界的 token 合并 |
+| NFKC normalization | "Unicode cleanup" | Canonical decomposition followed by compatibility composition -- "fi" ligature becomes "fi", fullwidth "A" becomes "A" | NFKC 归一化，统一 Unicode 表示 |
+| Chat template | "How messages become tokens" | The exact format for converting a list of role/content messages into a flat token sequence -- model-specific and must match training format | 聊天模板，消息转 token 的格式规则 |
+| Special tokens | "Control tokens" | Reserved token IDs that bypass BPE -- [BOS], [EOS], [PAD], chat markers -- matched exactly before merge | 特殊 token，绕过 BPE 的控制标记 |
+| Fertility | "Tokens per word" | Ratio of output tokens to input words -- 1.3 for English in GPT-4, 2-3 for Korean, higher means wasted context | 生育率，每词 token 数 |
+| tiktoken | "OpenAI tokenizer" | Rust BPE implementation with Python bindings -- 10-100x faster than pure Python | OpenAI 的 Rust 分词器实现 |
+| Merge table | "The vocabulary" | Ordered list of byte-pair merges learned during training -- this IS the tokenizer's learned knowledge | 合并表，分词器的核心知识 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [OpenAI tiktoken source](https://github.com/openai/tiktoken) -- Rust BPE implementation used by GPT-3.5/4
 - [HuggingFace tokenizers](https://github.com/huggingface/tokenizers) -- Rust tokenizer library supporting BPE, WordPiece, Unigram

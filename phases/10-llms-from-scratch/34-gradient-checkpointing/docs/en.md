@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 10 Lesson 04 (Pre-Training Mini-GPT), Phase 10 Lesson 05 (Scaling & Distributed)
 **Time:** ~70 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Training a transformer stores, for each layer, the inputs to every op that is differentiated in backward: the attention inputs, the Q/K/V projections, the softmax output, the FFN inputs, the norm outputs, and the residual stream. For a layer with hidden size `d`, sequence length `L`, batch `B`, this is on the order of `12 * B * L * d` floats per layer.
 
@@ -21,7 +21,12 @@ The two-sided bill: BF16 weights plus optimizer state might fit in 80GB, but act
 
 Done naively, checkpointing costs roughly 33% more forward-pass FLOPs per step. Done well — selective checkpointing per the "smart selection" of Korthikanti et al. — you save 5x memory for under 5% FLOP overhead. And with FP8 matmuls, FSDP offload, and expert-parallel MoE this really matters: you can't afford either the memory or the wasted compute.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 梯度检查点（Gradient Checkpointing）用计算换显存：前向传播时不保存中间激活值，反向传播时重新计算需要的激活。这将以约 30% 的额外计算开销为代价，将激活值显存占用降低约 70%。
+
+> **【拓展：梯度检查点在训练中的关键作用】** 梯度检查点是训练大模型的标配技术。对于 Llama 3 70B，没有检查点时每个样本需要约 16GB 激活值显存，开启后降至约 5GB。结合 FSDP 和混合精度，梯度检查点使得在有限的 GPU 显存内训练大模型成为可能。
+
 
 ### What Backward Actually Needs
 
@@ -112,7 +117,11 @@ All three give the same functional result. Wrappers are the standard idiom.
 - **Pipeline parallel:** typical pattern is to checkpoint each pipeline-stage's forward so reverse-order microbatches can reuse activation memory.
 - **FP8 recompute:** amax histories updated during recompute must match the original forward's, or the FP8 scale drifts. Most frameworks snapshot the scale.
 
-## Build It
+
+> **【拓展：梯度检查点与 FSDP 的配合】** 梯度检查点通常与 FSDP/ZeRO 配合使用。FSDP 分片参数和优化器状态，梯度检查点减少激活值显存，两者互补。对于 70B 级别的模型，FSDP + 梯度检查点 + 混合精度使得在 8xA100 上训练成为可能。
+
+
+## Build It | 动手实现
 
 ### Step 1: A Toy Model With Segments
 
@@ -258,18 +267,18 @@ def should_recompute(layer_type, activation_bytes, recompute_flops_ratio):
     return False
 ```
 
-## Use It
+## Use It | 用框架实现
 
 - **torch.utils.checkpoint**: `from torch.utils.checkpoint import checkpoint` — the canonical wrapper in PyTorch. Wraps a function; stores only inputs, recomputes on backward.
 - **Megatron-Core activation recomputation**: supports `selective`, `full`, and `block` modes. Standard in 2024+ frontier training.
 - **FSDP2 offload**: `module.to_empty(device="cpu")` with `offload_policy` in FSDP2 shards activations to CPU instead of recomputing.
 - **DeepSpeed ZeRO-Offload**: CPU offload for optimizer states and activations, complementing checkpointing.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-activation-recompute-policy.md` — a prompt that takes your model config (layers, hidden, seq, batch) and available GPU memory and emits a per-layer recompute policy (none / selective / full / offload).
 
-## Exercises
+## Exercises | 练习题
 
 1. Verify correctness. Run `model_forward` + `model_backward` (full activations) vs `model_forward_checkpointed` + `model_backward_checkpointed` (segments). Parameter gradients must be identical to machine precision.
 
@@ -281,22 +290,22 @@ This lesson produces `outputs/prompt-activation-recompute-policy.md` — a promp
 
 5. Benchmark a real PyTorch transformer with and without `torch.utils.checkpoint`. Measure memory (via `torch.cuda.max_memory_allocated`) and step time.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Gradient checkpointing | "Save memory by redoing forward" | Store segment inputs only; recompute intermediates during backward to get gradient-support tensors |
-| Activation recomputation | "Same as checkpointing" | The HPC-flavored name for the same technique |
-| Segment size (k) | "How many layers per checkpoint" | Number of layers whose intermediates are dropped and rematerialized together |
-| Selective checkpointing | "Korthikanti's trick" | Recompute only expensive-to-store activations (attention softmax); keep cheap ones |
-| Full checkpointing | "The naive version" | Recompute every layer's intermediates in every segment |
-| Block checkpointing | "Coarse-grained" | Checkpoint whole transformer blocks; largest granularity |
-| FLOP overhead | "The compute tax" | Extra FLOPs per step = (recompute FLOPs) / (fwd + bwd FLOPs); 33% naive, 5% selective |
-| Activation offload | "Ship to CPU" | Move activations to CPU RAM across forward->backward; alternative to recompute |
-| sqrt-L rule | "The classical optimum" | For uniform-cost layers, optimal checkpoint spacing is sqrt(L) layers |
-| Attention-softmax volume | "The O(L^2) problem" | L^2 * heads * batch floats; dominates activation memory at long contexts |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Gradient checkpointing | "Save memory by redoing forward" | Store segment inputs only; recompute intermediates during backward to get gradient-support tensors | |
+| Activation recomputation | "Same as checkpointing" | The HPC-flavored name for the same technique | |
+| Segment size (k) | "How many layers per checkpoint" | Number of layers whose intermediates are dropped and rematerialized together | |
+| Selective checkpointing | "Korthikanti's trick" | Recompute only expensive-to-store activations (attention softmax); keep cheap ones | |
+| Full checkpointing | "The naive version" | Recompute every layer's intermediates in every segment | |
+| Block checkpointing | "Coarse-grained" | Checkpoint whole transformer blocks; largest granularity | |
+| FLOP overhead | "The compute tax" | Extra FLOPs per step = (recompute FLOPs) / (fwd + bwd FLOPs); 33% naive, 5% selective | |
+| Activation offload | "Ship to CPU" | Move activations to CPU RAM across forward->backward; alternative to recompute | |
+| sqrt-L rule | "The classical optimum" | For uniform-cost layers, optimal checkpoint spacing is sqrt(L) layers | |
+| Attention-softmax volume | "The O(L^2) problem" | L^2 * heads * batch floats; dominates activation memory at long contexts | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Chen et al., 2016 -- "Training Deep Nets with Sublinear Memory Cost"](https://arxiv.org/abs/1604.06174) -- the original paper that formalized gradient checkpointing
 - [Korthikanti et al., 2022 -- "Reducing Activation Recomputation in Large Transformer Models"](https://arxiv.org/abs/2205.05198) -- selective activation recomputation and the formal cost analysis

@@ -18,7 +18,7 @@
 - Compute the attention compute savings of NSA versus full attention at 64k context as a function of compression block size and selection top-k.
 - Implement the three-branch combination in stdlib Python on a short synthetic sequence and verify the gating weights behave.
 
-## The Problem
+## The Problem | 问题引入
 
 Full attention at sequence length N costs `O(N^2)` time and `O(N)` KV cache per layer. At 64k tokens, the compute and memory bandwidth numbers are catastrophic. Measured theoretical estimate from the NSA paper: attention accounts for 70-80% of total decode latency at 64k. Everything downstream — TTFT, tokens/sec, cost per million tokens — is dominated by attention cost.
 
@@ -26,7 +26,12 @@ Sparse attention is the obvious answer. Prior attempts fall into two buckets. Fi
 
 Native Sparse Attention (Yuan et al., DeepSeek + PKU + UW, ACL 2025 best paper, arXiv:2502.11089) does both: a sparsity pattern the model learns during pre-training, implemented as a kernel-aligned algorithm that actually delivers the compute savings at inference. Two years from now, NSA or a direct descendant is the default attention on every frontier long-context model.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 原生稀疏注意力（Native Sparse Attention）让模型学习哪些位置需要关注，哪些可以跳过。相比密集注意力（O(n^2) 复杂度），稀疏注意力将计算量降到 O(n*sqrt(n)) 或更低，使超长上下文成为可能。
+
+> **【拓展：长上下文的稀疏注意力方案】** 稀疏注意力的工程实现包括：滑动窗口（Mistral 的 32K 窗口）+ 全局 token（[CLS]）+ 选择性关注。Google 的 Ring Attention 和 Block-Sparse Attention 将上下文扩展到百万 token。DeepSeek 的 NSA（Native Sparse Attention）在训练时直接学习稀疏模式。
+
 
 ### Three parallel branches
 
@@ -86,7 +91,11 @@ With `N = 128k, l = 64, k = 16, b = 64, w = 512`: per-query cost is `2000 + 1024
 
 MoBA (Moonshot, arXiv:2502.13189) was concurrently published and takes a similar three-is-better-than-one approach, applying the MoE principle to attention blocks. NSA and MoBA are the two architectures to know for 2026 long-context pre-training.
 
-## Build It
+
+> **【拓展：稀疏注意力在长上下文中的应用】** 密集注意力的 O(n^2) 计算量使得 128K 上下文的预填充阶段需要约 30 秒。稀疏方法（如 NSA、Ring Attention）将其降到可接受的范围。Gemini 1.5 Pro 的 1M token 上下文就依赖于稀疏注意力。
+
+
+## Build It | 动手实现
 
 `code/main.py` implements the three branches on a short synthetic sequence and shows:
 
@@ -131,7 +140,7 @@ A small MLP on the query produces three gate weights. The final output is a weig
 
 Print the number of keys attended per query for each branch and the total. Compare to `N` (full attention). On a 1024-token synthetic with `l = 32, k = 4, w = 128`, NSA sees `32 + 128 + 128 = 288` keys per query versus 1024 for full attention — 3.5x fewer.
 
-## Use It
+## Use It | 用框架实现
 
 NSA is shipping in DeepSeek's own long-context pre-training pipeline. Integration status in public inference stacks as of April 2026:
 
@@ -151,11 +160,11 @@ When not to:
 - Context under 16k. The three-branch overhead dominates the savings.
 - Batch-1 interactive chat. Latency-sensitive decode benefits, but only at long contexts.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-nsa-integrator.md`. Given a long-context pre-training run specification, it produces an NSA integration plan: compression block size, top-k, sliding window, gate MLP width, kernel choice, and the specific long-context evals that would justify the architecture change.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py` on a 1024-token synthetic. Sweep `(l, k, w)` across three presets and print compute counts. Identify the preset that achieves the lowest key-count per query while keeping 95% recall against full attention on a needle-in-haystack test.
 
@@ -167,22 +176,22 @@ This lesson produces `outputs/skill-nsa-integrator.md`. Given a long-context pre
 
 5. Read Section 4 of the NSA paper (arXiv:2502.11089) and explain in three sentences why the compressed branch's attention scores are reused for top-k selection rather than computing a separate routing score. Tie the answer to gradient flow.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Compressed branch | "Coarse view" | Attention over block-averaged keys that provides global context in O(N/l) keys per query |
-| Selected branch | "Top-k blocks" | Fine-grained attention over the `k` blocks with highest compressed-branch scores |
-| Sliding window | "Local context" | Attention over the last `W` tokens for short-range patterns |
-| Native trainability | "Pre-train with the sparsity on" | The sparsity pattern is learned during pre-training, not bolted on at inference |
-| Compression block size l | "Group size for coarse view" | How many tokens get merged into one summary; 32-64 typical |
-| Top-k | "Blocks to keep" | Number of compressed blocks whose uncompressed tokens get read; 16 typical |
-| Sliding window W | "Local attention radius" | Typically 512; shorter hurts local coherence, longer wastes compute |
-| Branch gate | "How to mix the three" | Per-position MLP output that weights the three branches' contributions |
-| Hardware alignment | "Kernel-friendly sparsity" | Sparse pattern chosen so that the actual GPU kernel achieves the theoretical speedup |
-| DSA | "NSA's successor" | Deepseek Sparse Attention, the architecture that followed NSA in DeepSeek's lineage |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|---------|
+| Compressed branch | "Coarse view" | Attention over block-averaged keys that provides global context in O(N/l) keys per query | |
+| Selected branch | "Top-k blocks" | Fine-grained attention over the `k` blocks with highest compressed-branch scores | |
+| Sliding window | "Local context" | Attention over the last `W` tokens for short-range patterns | |
+| Native trainability | "Pre-train with the sparsity on" | The sparsity pattern is learned during pre-training, not bolted on at inference | |
+| Compression block size l | "Group size for coarse view" | How many tokens get merged into one summary; 32-64 typical | |
+| Top-k | "Blocks to keep" | Number of compressed blocks whose uncompressed tokens get read; 16 typical | |
+| Sliding window W | "Local attention radius" | Typically 512; shorter hurts local coherence, longer wastes compute | |
+| Branch gate | "How to mix the three" | Per-position MLP output that weights the three branches' contributions | |
+| Hardware alignment | "Kernel-friendly sparsity" | Sparse pattern chosen so that the actual GPU kernel achieves the theoretical speedup | |
+| DSA | "NSA's successor" | Deepseek Sparse Attention, the architecture that followed NSA in DeepSeek's lineage | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Yuan et al. — Native Sparse Attention: Hardware-Aligned and Natively Trainable Sparse Attention (arXiv:2502.11089, ACL 2025 Best Paper)](https://arxiv.org/abs/2502.11089) — the paper
 - [DeepSeek-V3 Technical Report (arXiv:2412.19437)](https://arxiv.org/abs/2412.19437) — the architecture family NSA targets

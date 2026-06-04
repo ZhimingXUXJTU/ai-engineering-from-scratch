@@ -18,7 +18,9 @@
 - Explain why RLHF requires three models (SFT, reward, policy) and how the KL constraint prevents reward hacking
 - Evaluate the effect of RLHF by comparing response quality before and after preference optimization
 
-## The Problem
+> **【中文解读】** 本课实现 RLHF 的完整管线：从人类偏好数据训练奖励模型，到用 PPO 算法优化语言模型策略。RLHF 需要三个模型协同工作——SFT 模型（参考策略）、奖励模型（评分器）、策略模型（被优化的模型）。KL 散度惩罚防止策略模型偏离 SFT 模型太远，避免奖励黑客（reward hacking）。
+
+## The Problem | 问题引入
 
 Ask a model "Explain quantum computing" and it might produce:
 
@@ -32,7 +34,11 @@ SFT can't capture this distinction. It trains the model on "correct" responses, 
 
 RLHF solves this. It trains a reward model to predict which response a human would prefer, then uses that reward signal to push the language model toward higher-quality outputs. InstructGPT (the precursor to ChatGPT) used RLHF to dramatically improve GPT-3's helpfulness, truthfulness, and harmlessness. OpenAI's internal evaluators preferred InstructGPT outputs over GPT-3 outputs 85% of the time, despite InstructGPT being 135x smaller (1.3B vs 175B parameters).
 
-## The Concept
+> **【中文解读】** SFT 的局限在于它无法区分"哪个回答更好"——两个语法正确、事实准确的回答在有用性上可能天差地别。RLHF 通过训练奖励模型来预测人类偏好，再用这个奖励信号引导策略模型生成更高质量的输出。InstructGPT（ChatGPT 的前身）用 RLHF 后，尽管参数量只有 GPT-3 的 1/135（1.3B vs 175B），但 85% 的情况下被人类评估者认为更好。
+
+> **【拓展：InstructGPT 的突破】** InstructGPT 论文（OpenAI 2022）是 RLHF 应用于大模型的里程碑。关键发现：(1) 1.3B 参数的 RLHF 模型优于 175B 的原始 GPT-3；(2) RLHF 显著减少了有害输出（毒性降低约 80%）；(3) 真实性也有提升。这证明了"对齐税"（alignment tax）是可以接受的——对齐训练后的模型不仅更安全，也更有用。
+
+## The Concept | 核心概念
 
 ### The Three Stages
 
@@ -43,6 +49,8 @@ RLHF is not a single training run. It's a pipeline of three sequential stages, e
 **Stage 2: Reward Model.** Collect human preference data: show annotators two responses to the same prompt and ask "which is better?" Train a model to predict these preferences. The reward model takes (prompt, response) as input and outputs a scalar score.
 
 **Stage 3: PPO.** Use the reward model to generate a training signal for the language model. The language model generates responses, the reward model scores them, and PPO updates the language model to produce higher-scoring responses. A KL divergence penalty prevents the language model from straying too far from the SFT checkpoint.
+
+> **【中文解读】** RLHF 的三阶段管线：Stage 1 用 SFT 让基础模型学会跟随指令；Stage 2 收集人类偏好数据（对同一 prompt 的两个回复，标注"哪个更好"）训练奖励模型；Stage 3 用 PPO 算法让策略模型生成高奖励的回复，同时用 KL 散度惩罚防止偏离 SFT 模型。KL 惩罚是对抗奖励黑客的关键——没有它，策略会找到奖励模型的漏洞而不是真正改善输出质量。
 
 ```mermaid
 graph TD
@@ -181,7 +189,7 @@ Mitigation strategies: stronger KL penalty (prevents the model from straying far
 
 Anthropic's 2022 paper trained a 52B reward model on 22,000 comparisons. Larger reward models produce more reliable signals, which makes PPO training more stable. Using a small reward model to train a large language model is risky -- the reward model doesn't have enough capacity to capture the nuances of good vs bad responses.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Synthetic Preference Data
 
@@ -495,7 +503,7 @@ def compare_models(sft_model, rlhf_model, reward_model, prompts, max_seq_len=128
     return sft_total / n, rlhf_total / n
 ```
 
-## Use It
+## Use It | 用框架实现
 
 ### Full RLHF Pipeline Demo
 
@@ -594,11 +602,11 @@ if __name__ == "__main__":
         print(f"  KL > {kl_threshold}: {'Yes (model drifted significantly)' if max(kls) > kl_threshold else 'No (model stayed close to reference)'}")
 ```
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-reward-model-designer.md` -- a prompt for designing reward model training pipelines. Given a target behavior (helpfulness, coding ability, safety), it produces a data collection protocol, annotator guidelines, and reward model evaluation criteria.
 
-## Exercises
+## Exercises | 练习题
 
 1. Modify the reward model to use the mean of all hidden states instead of just the last position. Compare accuracy. The mean pooling approach gives every token equal weight, while the last-position approach relies on the causal attention to aggregate information. Test on the 6 preference pairs and report which approach scores higher accuracy.
 
@@ -610,21 +618,21 @@ This lesson produces `outputs/prompt-reward-model-designer.md` -- a prompt for d
 
 5. Compare different KL coefficients. Run PPO with beta=0.001 (too low, reward hacking), beta=0.02 (standard), and beta=0.5 (too high, no learning). Plot the reward curve and KL curve for each. The beta=0.02 run should show steady reward improvement with bounded KL.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| RLHF | "Training with human feedback" | Reinforcement Learning from Human Feedback: a three-stage pipeline (SFT, reward model, PPO) that optimizes language model outputs using human preference signals |
-| Reward model | "A model that scores responses" | A transformer with a scalar output head, trained on pairwise human preferences using the Bradley-Terry loss |
-| Bradley-Terry | "The comparison model" | A probabilistic model where P(A > B) = sigmoid(score(A) - score(B)), converting pairwise preferences into a consistent scoring function |
-| PPO | "The RL algorithm" | Proximal Policy Optimization: updates the policy to maximize reward while clipping the update magnitude to prevent instability |
-| KL divergence | "How different two distributions are" | A measure of the difference between the policy model's token distribution and the reference model's -- used as a penalty to prevent reward hacking |
-| KL penalty | "The leash on the model" | Beta * KL(policy \|\| reference) subtracted from the reward signal -- prevents the policy from diverging too far from the SFT checkpoint |
-| Reward hacking | "Gaming the reward" | When the policy finds degenerate high-reward outputs by exploiting weaknesses in the reward model instead of genuinely improving |
-| Preference pair | "Which is better, A or B?" | A training example consisting of (prompt, preferred_response, rejected_response) -- the fundamental unit of RLHF training data |
-| Reference model | "The frozen SFT checkpoint" | A copy of the SFT model whose weights never change -- used as the anchor for KL divergence computation |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| RLHF | "Training with human feedback" | Reinforcement Learning from Human Feedback: a three-stage pipeline (SFT, reward model, PPO) that optimizes language model outputs using human preference signals | |
+| Reward model | "A model that scores responses" | A transformer with a scalar output head, trained on pairwise human preferences using the Bradley-Terry loss | |
+| Bradley-Terry | "The comparison model" | A probabilistic model where P(A > B) = sigmoid(score(A) - score(B)), converting pairwise preferences into a consistent scoring function | |
+| PPO | "The RL algorithm" | Proximal Policy Optimization: updates the policy to maximize reward while clipping the update magnitude to prevent instability | |
+| KL divergence | "How different two distributions are" | A measure of the difference between the policy model's token distribution and the reference model's -- used as a penalty to prevent reward hacking | |
+| KL penalty | "The leash on the model" | Beta * KL(policy \|\| reference) subtracted from the reward signal -- prevents the policy from diverging too far from the SFT checkpoint | |
+| Reward hacking | "Gaming the reward" | When the policy finds degenerate high-reward outputs by exploiting weaknesses in the reward model instead of genuinely improving | |
+| Preference pair | "Which is better, A or B?" | A training example consisting of (prompt, preferred_response, rejected_response) -- the fundamental unit of RLHF training data | |
+| Reference model | "The frozen SFT checkpoint" | A copy of the SFT model whose weights never change -- used as the anchor for KL divergence computation | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Ouyang et al., 2022 -- "Training language models to follow instructions with human feedback" (InstructGPT)](https://arxiv.org/abs/2203.02155) -- the paper that made RLHF practical for large language models
 - [Schulman et al., 2017 -- "Proximal Policy Optimization Algorithms"](https://arxiv.org/abs/1707.06347) -- the original PPO paper from OpenAI

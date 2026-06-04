@@ -18,7 +18,7 @@
 - Compute the KV cache footprint of a Jamba model at 256k context and compare to what a pure-Transformer model would need.
 - Name the three Mamba-3 innovations (exponential-trapezoidal discretization, complex-valued state update, MIMO) and the problem each one targets.
 
-## The Problem
+## The Problem | 问题引入
 
 Attention is quadratic in sequence length. State space models are linear. That difference compounds: at 256k tokens, a Transformer attention map is 65B entries per head; an SSM's recurrent state is fixed-size regardless of sequence length.
 
@@ -28,7 +28,12 @@ The obvious fix: use both. Put Transformer layers where exact recall matters. Us
 
 This lesson reads all three papers and produces the mental model for "pick the right ratio."
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** Jamba 是 AI21 Labs 提出的混合 SSM-Transformer 架构，将 Mamba（状态空间模型）层与 Transformer 注意力层交替堆叠。SSM 层提供线性复杂度的长程依赖建模，注意力层提供精确的回溯能力。
+
+> **【拓展：SSM 与 Transformer 的融合趋势】** Mamba 等 SSM 的推理复杂度是 O(1)（固定状态），而 Transformer 是 O(n)（KV-cache 随序列增长）。Jamba 将两者结合：SSM 处理长程依赖（高效），注意力处理需要精确回溯的任务（准确）。这种混合架构可能是长上下文推理的未来方向。
+
 
 ### An SSM in one page
 
@@ -126,7 +131,11 @@ Hybrids lose when:
 
 The 2026 landscape: pure-Transformer MoE dominates the frontier, but hybrids own the 256k-plus context niche. Mamba-3's state-tracking wins may push hybrid ratios lower (more SSM, less attention) in the next generation.
 
-## Use It
+
+> **【拓展：Mamba/SSM 的优势与局限】** Mamba 推理复杂度 O(1)，远优于 Transformer 的 O(n)。但 SSM 在精确回溯任务上弱于注意力。Jamba 混合策略是折中方案。
+
+
+## Use It | 用框架实现
 
 `code/main.py` is a memory calculator for hybrid architectures. Given an SSM-Transformer ratio and a hidden-size / layer-count config, it computes:
 
@@ -148,11 +157,11 @@ Integration considerations for a real deployment:
 - At 256k context, Jamba's memory advantage shows up in concurrent-request throughput. On the same VRAM you fit more Jamba sequences than Transformer sequences.
 - Mamba-3 as a standalone model is not yet shipping in production — research preview at 1.5B.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-hybrid-picker.md`. Given a workload specification (context length profile, task mix, memory budget), it recommends between a pure Transformer, a Jamba-style hybrid, and a pure SSM, with explicit reasoning about the memory and quality tradeoffs.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py` to compute KV cache at 256k context for a 32-layer pure Transformer (hidden 4096, 32 heads) and for a Jamba-1 hybrid of the same shape. Verify the ~8x memory reduction the AI21 paper claims.
 
@@ -164,22 +173,22 @@ This lesson produces `outputs/skill-hybrid-picker.md`. Given a workload specific
 
 5. Read Section 3 of the Mamba-3 paper (arXiv:2603.15569). Explain in three sentences why a complex-valued state update is equivalent to a data-dependent rotary embedding. Tie the answer to Phase 7 · Lesson 04's RoPE derivation.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| State space model (SSM) | "Recurrence with a fixed state" | A layer with a learned recurrence `h_t = A h_{t-1} + B x_t`; constant memory per token |
-| Selective SSM | "Mamba's trick" | Data-dependent A, B, C parameters that give the model gating-like selectivity at linear time |
-| Attention-to-Mamba ratio | "How many attention layers" | In Jamba, `l = 8` means 1 attention layer per 7 Mamba layers |
-| Jamba block | "The 8-layer group" | One attention + seven Mamba + MoE on alternate positions |
-| SSM state | "The hidden buffer" | Fixed-size per-layer state that replaces the KV cache for Mamba layers |
-| 256k context | "Jamba's flagship number" | The sequence length Jamba-1 fits on a single 80GB GPU; pure Transformer cannot at that size |
-| Mamba-3 | "2026 pure SSM" | Current-best pure-SSM architecture with complex state + MIMO; the baseline hybrids rebuild around |
-| MIMO | "Multi-input multi-output" | Mamba-3 innovation using matrix-valued projections instead of scalar per-feature |
-| Exponential-trapezoidal discretization | "Mamba-3's recurrence" | More expressive recurrence that subsumes Mamba-2's Euler-method discretization |
-| Hybrid architecture | "Mix attention and SSM" | Any model that interleaves Transformer and SSM layers; Jamba is the production archetype |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|---------|
+| State space model (SSM) | "Recurrence with a fixed state" | A layer with a learned recurrence `h_t = A h_{t-1} + B x_t`; constant memory per token | |
+| Selective SSM | "Mamba's trick" | Data-dependent A, B, C parameters that give the model gating-like selectivity at linear time | |
+| Attention-to-Mamba ratio | "How many attention layers" | In Jamba, `l = 8` means 1 attention layer per 7 Mamba layers | |
+| Jamba block | "The 8-layer group" | One attention + seven Mamba + MoE on alternate positions | |
+| SSM state | "The hidden buffer" | Fixed-size per-layer state that replaces the KV cache for Mamba layers | |
+| 256k context | "Jamba's flagship number" | The sequence length Jamba-1 fits on a single 80GB GPU; pure Transformer cannot at that size | |
+| Mamba-3 | "2026 pure SSM" | Current-best pure-SSM architecture with complex state + MIMO; the baseline hybrids rebuild around | |
+| MIMO | "Multi-input multi-output" | Mamba-3 innovation using matrix-valued projections instead of scalar per-feature | |
+| Exponential-trapezoidal discretization | "Mamba-3's recurrence" | More expressive recurrence that subsumes Mamba-2's Euler-method discretization | |
+| Hybrid architecture | "Mix attention and SSM" | Any model that interleaves Transformer and SSM layers; Jamba is the production archetype | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Lieber et al. — Jamba: A Hybrid Transformer-Mamba Language Model (arXiv:2403.19887)](https://arxiv.org/abs/2403.19887) — the original Jamba paper, ratio ablations, 256k context claim
 - [AI21 — Jamba 1.5: Hybrid Transformer-Mamba at Scale (arXiv:2408.12570)](https://arxiv.org/abs/2408.12570) — the scaled-up family, 398B/94B and 12B/52B public releases
