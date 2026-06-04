@@ -18,7 +18,10 @@
 > **【中文解读】**
 > ML 管线把数据预处理、特征工程、模型训练串成一条流水线。sklearn Pipeline 确保训练和推理的数据处理一致。生产环境中管线化是模型部署的基础。
 
-## The Problem
+> **【拓展：从 sklearn Pipeline 到 MLOps 工业级管线】**
+> sklearn Pipeline 处理单机场景的端到端流水线，但在工业界，ML 管线涉及更多环节：数据版本管理（DVC）、实验追踪（MLflow/W&B）、模型注册（Model Registry）、持续训练（CT）、模型服务（Seldon/TF Serving）。Google 的 TFX（TensorFlow Extended）和 Kubeflow Pipelines 是端到端 MLOps 的代表框架。核心理念不变：每一步都要可复现、可追踪、可回滚。
+
+## The Problem | 问题引入
 
 You have a notebook that loads data, fills missing values with the median, scales features, trains a model, and prints accuracy. It works. You ship it.
 
@@ -26,7 +29,10 @@ A month later, someone retrains the model and gets different results. The median
 
 These are not hypothetical. They are the most common reasons ML systems fail in production. Pipelines solve all of them by packaging every transformation step into a single, ordered, reproducible object.
 
-## The Concept
+> **【中文解读】**
+> ML 管线解决的核心问题：训练和推理的数据处理必须完全一致。最常见的失败模式——在训练时用全量数据计算均值做标准化（包含了测试集），推理时用新数据计算均值——这就是数据泄漏。Pipeline 通过"只在训练集上 fit，在测试集/推理时只 transform"来保证一致性。
+
+## The Concept | 核心概念
 
 ### What a Pipeline Is
 
@@ -262,7 +268,13 @@ The typical progression:
 | No data validation | Silently wrong predictions on bad data | Add schema checks before prediction |
 | Training/serving skew | Model sees different features in prod | One Pipeline object for both |
 
-## Build It
+## Build It | 动手实现
+
+> **【中文解读】**
+> 从零实现 ML 管线：自定义 Transformer（实现 fit/transform 接口）、Pipeline 类（链式调用多个变换器）、ColumnTransformer（按列分组处理不同类型特征）。管线的关键保证是：fit 只在训练数据上学习参数，transform 在测试/推理数据上应用相同变换，杜绝数据泄漏。
+
+> **【拓展：sklearn Pipeline 在 Kaggle 和工业界的标准模式】**
+> Kaggle Grandmaster 的标准代码模板几乎总是包含一个 sklearn Pipeline：数值特征用 SimpleImputer + StandardScaler，类别特征用 SimpleImputer + OneHotEncoder，通过 ColumnTransformer 组合后输入模型。这确保了：交叉验证中每折独立 fit、新数据推理时变换一致、代码简洁可维护。在生产中，Pipeline 可以用 joblib 序列化保存，部署时直接加载使用。
 
 The code in `code/pipeline.py` builds a complete ML pipeline from scratch:
 
@@ -318,13 +330,13 @@ The code demonstrates how cross-validation with a pipeline prevents data leakage
 
 A complete pipeline with `ColumnTransformer`, multiple preprocessing paths, and a model, trained with proper cross-validation and experiment logging.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-ml-pipeline.md` -- a skill for building and debugging ML pipelines
 - `code/pipeline.py` -- a complete pipeline from scratch through sklearn
 
-## Exercises
+## Exercises | 练习题
 
 1. Build a pipeline that handles a dataset with 3 numeric columns and 2 categorical columns. Use `ColumnTransformer` to apply median imputation + scaling to numerics and most-frequent imputation + one-hot encoding to categoricals. Train with 5-fold cross-validation.
 
@@ -336,7 +348,13 @@ This lesson produces:
 
 5. Set up MLflow tracking for the pipeline. Run 5 experiments with different hyperparameters. Use the MLflow UI (`mlflow ui`) to compare runs and pick the best model.
 
-## Key Terms
+> **【中文解读】**
+> ML 管线的关键设计原则：(1) 所有变换必须可序列化——用 joblib/pickle 保存完整的 fitted pipeline，部署时直接加载；(2) ColumnTransformer 处理混合类型——数值特征和类别特征分别变换后合并；(3) 管线内不能有任何全局状态——每个 transformer 的 fit 只依赖传入的训练数据。这些原则确保了训练-推理一致性。
+
+> **【拓展：数据泄漏的六种常见形式】**
+> (1) 在全量数据上 fit scaler 再划分；(2) 目标编码使用全量数据计算均值；(3) 时间序列随机划分；（4）特征选择在全量数据上做；(5) 交叉验证中重复样本出现在多个 fold；(6) 预测时使用了未来才能获取的特征。Pipeline 通过严格的 fit/transform 分离防止前四种泄漏。对于时间序列和重复样本，需要特殊的交叉验证策略。
+
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -350,7 +368,7 @@ This lesson produces:
 | Training/serving skew | "It worked in the notebook" | Differences between how data is processed during training versus inference, causing silent errors |
 | Reproducibility | "Same code, same result" | The ability to get identical results from the same code, data, and configuration |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [scikit-learn Pipeline docs](https://scikit-learn.org/stable/modules/compose.html) -- the official pipeline reference
 - [MLflow documentation](https://mlflow.org/docs/latest/index.html) -- experiment tracking and model registry

@@ -18,7 +18,10 @@
 > **【中文解读】**
 > 异常检测找出不一样的数据点。信用卡欺诈检测、设备故障预警、网络入侵检测都依赖它。Isolation Forest 和 One-Class SVM 是常用方法。sklearn 中的 IsolationForest。
 
-## The Problem
+> **【拓展：异常检测在金融和网络安全中的核心应用】**
+> Visa 的实时欺诈检测系统每秒处理约 76,000 笔交易，使用异常检测+监督学习的混合方法，在约 150 毫秒内判断是否为欺诈。Google 的网络安全系统使用异常检测发现 DDoS 攻击和异常登录行为。特斯拉的电池管理系统用异常检测提前预警电池故障。异常检测的核心挑战是极度不平衡——欺诈率通常低于 0.1%，使得监督学习难以直接使用。
+
+## The Problem | 问题引入
 
 A credit card is used in New York at 2pm, then in Tokyo at 2:05pm. A factory sensor reads 150 degrees when the normal range is 80-120. A server sends 50,000 requests per second when the daily average is 200.
 
@@ -28,7 +31,10 @@ The challenge: you rarely have labeled examples of anomalies. Fraud makes up 0.1
 
 Anomaly detection flips the problem. Instead of learning what is abnormal, learn what is normal. Anything that deviates from normal is suspicious. This works without labels, adapts to new types of anomalies, and scales to massive datasets.
 
-## The Concept
+> **【中文解读】**
+> 异常检测的关键思路反转：不学"什么是异常"，而是学"什么是正常"，偏离正常的就是可疑的。常用方法：Z-score（基于统计）、IQR（基于四分位距）、Isolation Forest（基于隔离的随机森林）、One-Class SVM（学习正常数据的边界）。异常类型分为点异常、上下文异常和集合异常，不同类型需要不同的检测策略。
+
+## The Concept | 核心概念
 
 ### Types of Anomalies
 
@@ -231,7 +237,13 @@ In practice, anomaly detection follows this workflow:
 
 The pipeline is never "done." Data distributions shift, new anomaly types emerge, and thresholds need adjustment. Treat anomaly detection as a living system, not a one-time model.
 
-## Build It
+## Build It | 动手实现
+
+> **【中文解读】**
+> 从零实现三种异常检测方法：Z-score（基于均值和标准差，适合近似正态分布的数据）、IQR（基于四分位距，对异常值鲁棒）、Isolation Forest（随机选择特征和分裂点隔离数据点，异常点平均需要更少的分裂次数）。Isolation Forest 是工业界最常用的无监督异常检测方法。
+
+> **【拓展：异常检测在 AIOps 和制造业中的应用】**
+> Microsoft Azure Monitor 使用异常检测自动发现云服务的性能异常；Netflix 用异常检测监控流媒体服务的各项指标（延迟、错误率等），每天检测数十亿数据点；富士康在生产线中使用异常检测提前发现设备故障，将停机时间减少 30%。异常检测的关键挑战是控制误报率——太多误报会让运维人员对告警"免疫"。
 
 The code in `code/anomaly_detection.py` implements Z-score, IQR, and Isolation Forest from scratch.
 
@@ -329,7 +341,7 @@ The code generates multiple test scenarios:
 
 Each demo compares all methods using precision, recall, F1, and Precision@k.
 
-## Use It
+## Use It | 用框架实现
 
 With sklearn (using library implementations, not from-scratch):
 
@@ -402,7 +414,7 @@ More sophisticated ensembles weight each detector by its estimated reliability (
 4. **Feature engineering.** Raw features are rarely enough. Add rolling statistics, ratios, time-since-last-event, and domain-specific features. A good feature set matters more than the choice of detector.
 5. **Feedback loop.** When operators investigate flagged items and confirm or dismiss them, feed this back into the system. Accumulate labeled data over time to evaluate and improve the detector.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/skill-anomaly-detector.md` -- a decision skill for choosing the right detector
@@ -427,7 +439,7 @@ For real-time anomaly detection in production:
 3. **Score distribution monitoring.** Track the distribution of anomaly scores over time. If the median score drifts upward, either the data is changing or the model is stale.
 4. **Explainability.** When you flag an anomaly, say why. Z-score: "Feature X is 4.2 standard deviations above normal." Isolation Forest: "This point was isolated in 3.1 splits on average (normal points take 8.5)."
 
-## Exercises
+## Exercises | 练习题
 
 1. **Threshold tuning.** Run the Z-score detector with thresholds from 1.0 to 5.0 in steps of 0.5. Plot precision and recall at each threshold. Where is the sweet spot for your data?
 
@@ -439,7 +451,10 @@ For real-time anomaly detection in production:
 
 5. **Real-world evaluation.** Take a dataset with known anomalies (credit card fraud from Kaggle, for example). Evaluate all four methods using precision@100, precision@500, and AUPRC. Which method works best? Why?
 
-## Key Terms
+> **【中文解读】**
+> 异常检测的评估用 Precision@K（排名前 K 个可疑案例中有多少是真正的异常）和 AUPRC（精确率-召回率曲线下面积）比准确率更有意义。Isolation Forest 的核心洞察：异常数据点更"稀疏"，随机特征分裂更容易将它们单独隔离——平均需要的分裂次数更少。这使它不需要定义"正常"的具体形式就能发现异常。
+
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -454,7 +469,7 @@ For real-time anomaly detection in production:
 | Precision@k | "Of the top k flags, how many are real" | Precision computed on only the k most suspicious points, useful for imbalanced anomaly detection |
 | AUPRC | "Area under precision-recall curve" | A metric that summarizes precision-recall performance across all thresholds, better than AUROC for imbalanced data |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Liu et al., Isolation Forest (2008)](https://cs.nju.edu.cn/zhouzh/zhouzh.files/publication/icdm08b.pdf) -- the original Isolation Forest paper
 - [Breunig et al., LOF: Identifying Density-Based Local Outliers (2000)](https://dl.acm.org/doi/10.1145/342009.335388) -- the original LOF paper

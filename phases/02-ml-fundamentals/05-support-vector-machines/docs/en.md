@@ -18,7 +18,10 @@
 > **【中文解读】**
 > SVM 找到最大间隔的分类边界。核技巧让 SVM 在高维空间中处理非线性问题——直观理解就是升维后再切分。sklearn 中的 SVC/SVR。文本分类、图像识别中曾广泛使用。
 
-## The Problem
+> **【拓展：SVM 在深度学习时代仍然重要的场景】**
+> SVM 在小数据集（数百到数千样本）上仍然优于深度学习。Google 在早期垃圾邮件分类中使用线性 SVM（LIBLINEAR），因为 TF-IDF 特征维度高但样本稀疏，SVM 的高维优势恰好发挥。在生物信息学（蛋白质分类、基因表达分析）中，SVM 仍是主流算法。One-Class SVM 被广泛用于异常检测（如网络安全入侵检测）。
+
+## The Problem | 问题引入
 
 You have two classes of data points and need to draw a line (or hyperplane) separating them. Infinitely many lines could work. Which one should you pick?
 
@@ -28,7 +31,10 @@ This intuition leads to Support Vector Machines, one of the most mathematically 
 
 SVMs connect directly to Phase 1: the optimization is convex (Lesson 18), the margin is measured with norms (Lesson 14), and the kernel trick exploits dot products to handle nonlinear boundaries without ever computing in the high-dimensional space.
 
-## The Concept
+> **【中文解读】**
+> SVM 的核心思想：在无数条可分离两类数据的直线中，选择离最近数据点最远的那条——即"最大间隔"原则。间隔越大，分类器越自信，泛化能力越好。只有恰好位于间隔边界上的少数点（支持向量）决定了决策边界，其他点不影响结果。这使得 SVM 在预测时内存效率很高。
+
+## The Concept | 核心概念
 
 ### The maximum margin classifier
 
@@ -159,6 +165,9 @@ Gradient with respect to b:
 
 This is called the primal formulation. It runs in O(n * d) per epoch, where n is the number of samples and d is the number of features. For large, sparse, high-dimensional data (text classification), this is fast.
 
+> **【中文解读】**
+> 合页损失（Hinge Loss）是 SVM 的核心损失函数：当样本被正确分类且在间隔之外时损失为 0，否则线性惩罚。与逻辑回归的交叉熵损失不同，合页损失产生稀疏解——只有支持向量有非零贡献，预测时只需存储这些点。C 参数控制间隔宽度与分类错误的权衡：大 C = 窄间隔少犯错（可能过拟合），小 C = 宽间隔多犯错（可能欠拟合）。
+
 ### The dual formulation and the kernel trick
 
 The Lagrangian dual of the SVM problem (from Phase 1 Lesson 18, KKT conditions) is:
@@ -191,6 +200,12 @@ graph LR
 ```
 
 The kernel trick computes the dot product in the high-dimensional space without ever going there. For the polynomial kernel of degree d in D dimensions, the explicit feature space has O(D^d) dimensions. But K(x, z) is computed in O(D) time.
+
+> **【中文解读】**
+> 核技巧是 SVM 最优雅的数学贡献。对偶形式只涉及数据点之间的点积 x_i · x_j，将其替换为核函数 K(x_i, x_j) 即可在高维（甚至无限维）空间中学习非线性边界，而无需显式计算高维映射。RBF 核将数据映射到无限维空间，能学习任意光滑的决策边界。计算开销：多项式核的显式特征空间有 O(D^d) 维，但核函数只需 O(D) 时间。
+
+> **【拓展：核技巧的思想在现代 AI 中的延续】**
+> 核技巧的核心思想——"在高维空间中计算相似度而不显式映射"——在 Transformer 的注意力机制中有类似体现。注意力分数 A(q,k) = softmax(qK^T/√d) 本质上也是一种相似度核函数。此外，核方法在 GP（高斯过程）中仍然是核心工具，被 Google DeepMind 用于贝叶斯优化（如超参数调优工具 Vizier）。
 
 ### SVM for regression (SVR)
 
@@ -225,7 +240,7 @@ SVMs still win in these situations:
 - Binary classification with clear margin structure
 - Anomaly detection (one-class SVM)
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Hinge loss and gradient
 
@@ -236,9 +251,9 @@ def hinge_loss(X, y, w, b):
     n = len(X)
     total_loss = 0.0
     for i in range(n):
-        margin = y[i] * (dot(w, X[i]) + b)
-        total_loss += max(0.0, 1.0 - margin)
-    return total_loss / n
+        margin = y[i] * (dot(w, X[i]) + b)  # 计算样本到决策边界的函数间隔
+        total_loss += max(0.0, 1.0 - margin)  # 合页损失：间隔 < 1 时才有惩罚
+    return total_loss / n  # 返回平均损失
 ```
 
 ### Step 2: Linear SVM via gradient descent
@@ -248,11 +263,11 @@ Train by minimizing regularized hinge loss. No QP solver needed.
 ```python
 class LinearSVM:
     def __init__(self, lr=0.001, lambda_param=0.01, n_epochs=1000):
-        self.lr = lr
-        self.lambda_param = lambda_param
+        self.lr = lr  # 学习率
+        self.lambda_param = lambda_param  # 正则化参数（对应 1/C）
         self.n_epochs = n_epochs
-        self.w = None
-        self.b = 0.0
+        self.w = None  # 权重向量
+        self.b = 0.0  # 偏置
 
     def fit(self, X, y):
         n_features = len(X[0])
@@ -261,17 +276,19 @@ class LinearSVM:
 
         for epoch in range(self.n_epochs):
             for i in range(len(X)):
-                margin = y[i] * (dot(self.w, X[i]) + self.b)
+                margin = y[i] * (dot(self.w, X[i]) + self.b)  # 函数间隔
                 if margin >= 1:
+                    # 样本在间隔之外，只需正则化梯度
                     self.w = [wj - self.lr * self.lambda_param * wj
                               for wj in self.w]
                 else:
+                    # 样本在间隔内或被误分类，需要额外的损失梯度
                     self.w = [wj - self.lr * (self.lambda_param * wj - y[i] * X[i][j])
                               for j, wj in enumerate(self.w)]
                     self.b -= self.lr * (-y[i])
 
     def predict(self, X):
-        return [1 if dot(self.w, x) + self.b >= 0 else -1 for x in X]
+        return [1 if dot(self.w, x) + self.b >= 0 else -1 for x in X]  # 根据符号预测类别
 ```
 
 ### Step 3: Kernel functions
@@ -280,14 +297,14 @@ Implement linear, polynomial, and RBF kernels.
 
 ```python
 def linear_kernel(x, z):
-    return dot(x, z)
+    return dot(x, z)  # 线性核：直接点积
 
 def polynomial_kernel(x, z, degree=3, c=1.0):
-    return (dot(x, z) + c) ** degree
+    return (dot(x, z) + c) ** degree  # 多项式核：(x·z + c)^d
 
 def rbf_kernel(x, z, gamma=0.5):
-    diff = [xi - zi for xi, zi in zip(x, z)]
-    return math.exp(-gamma * dot(diff, diff))
+    diff = [xi - zi for xi, zi in zip(x, z)]  # 计算差向量
+    return math.exp(-gamma * dot(diff, diff))  # RBF 核：exp(-γ||x-z||²)
 ```
 
 ### Step 4: Margin and support vector identification
@@ -306,7 +323,10 @@ def find_support_vectors(X, y, w, b, tol=1e-3):
 
 See `code/svm.py` for the complete implementation with all demos.
 
-## Use It
+## Use It | 用框架实现
+
+> **【中文解读】**
+> sklearn 中 SVM 的使用关键点：(1) 必须先标准化特征——SVM 对特征尺度敏感，因为间隔依赖 ||w||；(2) 小数据集用 SVC（支持核函数），大数据集用 LinearSVC（使用原始形式，O(n) 每轮）；(3) gamma 控制 RBF 核的影响范围，太大→过拟合，太小→欠拟合。Pipeline 封装确保 scaler 在训练集上 fit、在测试集上只 transform。
 
 With scikit-learn:
 
@@ -315,9 +335,10 @@ from sklearn.svm import SVC, LinearSVC, SVR
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 
+# 标准化 + SVM 的标准管线
 clf = Pipeline([
-    ("scaler", StandardScaler()),
-    ("svm", SVC(kernel="rbf", C=1.0, gamma="scale")),
+    ("scaler", StandardScaler()),  # 标准化是 SVM 的必选项
+    ("svm", SVC(kernel="rbf", C=1.0, gamma="scale")),  # RBF 核 SVM
 ])
 clf.fit(X_train, y_train)
 print(f"Accuracy: {clf.score(X_test, y_test):.4f}")
@@ -337,7 +358,7 @@ clf = Pipeline([
 ])
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. Generate a 2D linearly separable dataset. Train your LinearSVM and identify the support vectors. Verify that the support vectors are the points closest to the decision boundary.
 
@@ -349,7 +370,7 @@ clf = Pipeline([
 
 5. Implement SVR (epsilon-insensitive loss). Fit it to y = sin(x) + noise. Plot the epsilon tube around the predictions and highlight the support vectors (points outside the tube).
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What it actually means |
 |------|----------------------|
@@ -367,7 +388,7 @@ clf = Pipeline([
 | Slack variables | xi_i: measures how much a point violates the margin. Zero for correctly classified points outside margin |
 | Maximum margin | The principle of choosing the hyperplane that maximizes the distance to the nearest points of each class |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Vapnik: The Nature of Statistical Learning Theory (1995)](https://link.springer.com/book/10.1007/978-1-4757-3264-1) - the foundational text on SVMs and statistical learning
 - [Cortes & Vapnik: Support-vector networks (1995)](https://link.springer.com/article/10.1007/BF00994018) - the original SVM paper

@@ -18,7 +18,10 @@
 > **【中文解读】**
 > 不平衡数据中少数类极少（如欺诈占比 0.1%）。过采样（SMOTE）、欠采样、类权重调整是常用策略。金融欺诈检测和医疗诊断中不平衡数据是常态。
 
-## The Problem
+> **【拓展：不平衡数据在真实系统中的挑战】**
+> PayPal 每天处理约 4 亿笔交易，欺诈率仅 0.3%，但每天仍意味着约 120 万笔欺诈交易。用准确率评估毫无意义（99.7% 准确率可以是全猜"非欺诈"），必须用 F1、AUPRC 等指标。SMOTE（合成少数类过采样技术）通过在少数类样本之间插值生成新样本来缓解不平衡，但在高维空间中可能生成噪声样本。
+
+## The Problem | 问题引入
 
 You build a fraud detection model. It gets 99.9% accuracy. You celebrate. Then you realize it predicts "not fraud" for every single transaction.
 
@@ -28,7 +31,10 @@ This happens everywhere real classification matters. Disease diagnosis: 1% posit
 
 Accuracy fails because it treats all correct predictions equally. Correctly labeling a legitimate transaction and correctly catching fraud both count as one point of accuracy. But catching fraud is the entire reason the model exists. We need metrics, techniques, and training strategies that force the model to pay attention to the rare but important class.
 
-## The Concept
+> **【中文解读】**
+> 不平衡数据的核心问题：准确率是"谎言"。99.9% 准确率可能只是全猜多数类。正确做法：(1) 换指标——用 F1、AUPRC、MCC 替代准确率；(2) 重采样——SMOTE 过采样少数类或欠采样多数类；(3) 代价敏感学习——给少数类更大的损失权重；(4) 调整阈值——降低分类阈值来提高召回率。通常组合使用多种策略效果最好。
+
+## The Concept | 核心概念
 
 ### Why Accuracy Fails
 
@@ -215,7 +221,13 @@ flowchart TD
     M -->|Yes| O[Ship it]
 ```
 
-## Build It
+## Build It | 动手实现
+
+> **【中文解读】**
+> 从零实现 SMOTE（合成少数类过采样技术）：对每个少数类样本，找到其 K 个最近邻，在连线上随机插值生成新的合成样本。相比简单复制少数类样本，SMOTE 生成的样本更多样化，不易过拟合。此外实现类权重调整和阈值优化策略。
+
+> **【拓展：工业级不平衡数据处理的高级技术】**
+> 在实际金融风控中，处理不平衡数据的策略比 SMOTE 更复杂：使用 Focal Loss（焦点损失，让模型更关注难分类样本）、两阶段训练（先用过采样训练，再用原始数据微调）、代价敏感学习（将欺诈的误分类代价设为正常交易的 100 倍）。Square（前 Square Inc.）的欺诈检测系统使用多模型融合 + 动态阈值来处理每天百万级交易中的极少数欺诈案例。
 
 ### Step 1: Generate an imbalanced dataset
 
@@ -461,7 +473,7 @@ preds_thresh = (probs_cw >= best_thresh).astype(int)
 
 The code file runs all of this in a single script and prints results.
 
-## Use It
+## Use It | 用框架实现
 
 With scikit-learn and imbalanced-learn, these techniques are one-liners:
 
@@ -495,12 +507,12 @@ print(classification_report(y_test, pipeline.predict(X_test)))
 
 The from-scratch implementations show exactly what each technique does. SMOTE is just k-NN interpolation on the minority class. Class weights multiply the loss. Threshold tuning is a for-loop over cutoffs. No magic.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/skill-imbalanced-data.md` -- a decision checklist for handling imbalanced classification problems
 
-## Exercises
+## Exercises | 练习题
 
 1. **Borderline-SMOTE**: modify the SMOTE implementation to only generate synthetic samples for minority points that are near the decision boundary (those whose k-nearest neighbors include majority class samples). Compare results with standard SMOTE on a dataset where classes overlap.
 
@@ -512,7 +524,13 @@ This lesson produces:
 
 5. **Imbalance ratio experiment**: take a balanced dataset and progressively increase the imbalance ratio (50/50, 70/30, 90/10, 95/5, 99/1). For each ratio, train with and without SMOTE. Plot F1 vs imbalance ratio for both approaches. At what ratio does SMOTE start making a meaningful difference?
 
-## Key Terms
+> **【中文解读】**
+> 不平衡数据处理的完整策略组合：(1) 评估指标——用 F1/AUPRC/MCC 替代准确率；(2) 重采样——SMOTE 过采样少数类或随机欠采样多数类；(3) 代价敏感——在损失函数中给少数类加权（sklearn 中 class_weight='balanced'）；(4) 阈值调整——降低分类阈值提高召回率。关键洞察：没有万能方法，不同策略的组合通常效果最好。
+
+> **【拓展：Focal Loss——深度学习中的不平衡数据解决方案】**
+> Focal Loss（Lin et al., 2017）最初为解决目标检测中正负样本极度不平衡而提出（背景像素远多于目标像素）。核心思想：降低"容易分类"样本的损失权重，让模型聚焦于"难分类"样本。公式：FL(p) = -(1-p)^gamma * log(p)，gamma=2 时效果最好。RetinaNet 使用 Focal Loss 在 COCO 检测任务上超越了当时的 SOTA 方法。
+
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -526,7 +544,7 @@ This lesson produces:
 | Cost-sensitive learning | "Different mistakes cost different amounts" | Incorporating real-world misclassification costs into the training objective so the model optimizes for total cost, not error count |
 | Random oversampling | "Duplicate the minority" | Repeating minority class samples to balance class counts; simple but risks overfitting to duplicated points |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [SMOTE: Synthetic Minority Over-sampling Technique (Chawla et al., 2002)](https://arxiv.org/abs/1106.1813) -- the original SMOTE paper, still the most cited work on imbalanced learning
 - [Learning from Imbalanced Data (He & Garcia, 2009)](https://ieeexplore.ieee.org/document/5128907) -- comprehensive survey covering sampling, cost-sensitive, and algorithmic approaches

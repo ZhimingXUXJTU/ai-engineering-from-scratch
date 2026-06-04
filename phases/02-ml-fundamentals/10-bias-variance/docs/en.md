@@ -18,7 +18,10 @@
 > **【中文解读】**
 > 偏差（模型太简单欠拟合）vs 方差（模型太复杂过拟合）的平衡。正则化（L1/L2）、增加数据、降低模型复杂度是常用手段。理解偏差-方差权衡是调参的理论基础。
 
-## The Problem
+> **【拓展：偏差-方差在深度学习中的新理解】**
+> 经典理论认为增大模型会增高方差，但深度学习中存在"双重下降"（double descent）现象：模型超过"插值阈值"（能完美记忆训练数据）后，测试误差反而再次下降。GPT-3（1750 亿参数）远超训练所需，但泛化性能反而更好。这意味着在深度学习中，"更大=更好"在一定条件下成立，打破了传统偏差-方差权衡的认知。
+
+## The Problem | 问题引入
 
 You trained a model. It has some error on test data. Where does that error come from?
 
@@ -26,7 +29,10 @@ If your model is too simple (linear regression on a curved dataset), it will con
 
 You cannot minimize both at the same time for a fixed model capacity. Push bias down and variance goes up. Push variance down and bias goes up. Understanding this tradeoff is the single most useful diagnostic skill in machine learning. It tells you whether to make your model more complex or less complex, whether to get more data or engineer better features, whether to regularize more or less.
 
-## The Concept
+> **【中文解读】**
+> 误差 = 偏差² + 方差 + 不可约噪声。偏差来自模型的错误假设（如用直线拟合曲线），方差来自对训练数据波动的过度敏感。诊断方法：训练误差高+测试误差高→高偏差（欠拟合）；训练误差低+测试误差高→高方差（过拟合）。对应的解决方案完全不同。
+
+## The Concept | 核心概念
 
 ### Bias: Systematic Error
 
@@ -258,7 +264,10 @@ flowchart TD
     G --> H[Try more complex model]
 ```
 
-## Build It
+## Build It | 动手实现
+
+> **【中文解读】**
+> 通过实验可视化偏差-方差权衡：用不同复杂度的多项式回归（degree 1→20）拟合同一组数据，观察训练误差和测试误差随复杂度的变化。低复杂度时两者都高（高偏差），中等复杂度时两者都低（最优），高复杂度时训练误差极低但测试误差回升（高方差）。
 
 The code in `code/bias_variance.py` runs the full bias-variance decomposition experiment. Here is the approach, step by step.
 
@@ -359,7 +368,7 @@ At low alpha, the degree-15 polynomial is nearly unconstrained. Variance dominat
 
 This is the same U-curve from varying polynomial degree, but controlled by a continuous knob instead of a discrete one. In practice, regularization is the preferred way to control the tradeoff because it allows fine-grained control without changing the feature set.
 
-## Use It
+## Use It | 用框架实现
 
 sklearn provides `learning_curve` and `validation_curve` to automate these diagnostics without writing bootstrap loops.
 
@@ -430,11 +439,11 @@ In practice, you run these diagnostics in sequence:
 
 This takes 10-15 minutes of compute for most tabular datasets and saves hours of guessing.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces: `outputs/prompt-model-diagnostics.md`
 
-## Exercises
+## Exercises | 练习题
 
 1. Run the decomposition with `noise_std=0` (no noise). What happens to the irreducible error term? Does the optimal complexity change?
 
@@ -446,7 +455,13 @@ This lesson produces: `outputs/prompt-model-diagnostics.md`
 
 5. Implement a simple bootstrap aggregating (bagging) wrapper: train 10 models on bootstrap samples and average predictions. Show that this reduces variance without increasing bias much.
 
-## Key Terms
+> **【中文解读】**
+> 偏差-方差分解的数学表达：E[(y - f_hat)^2] = Bias^2 + Variance + sigma^2。其中 Bias^2 是模型系统性错误的平方，Variance 是模型对训练数据波动的敏感度，sigma^2 是数据本身的不可约噪声。降低偏差的方法：更复杂的模型、更好的特征。降低方差的方法：正则化、增加数据、集成方法（Bagging）。
+
+> **【拓展：正则化如何在偏差和方差之间取得平衡】**
+> L2 正则化（Ridge）通过惩罚大权重来降低模型复杂度，本质上是故意引入一些偏差来大幅减少方差。Dropout（深度学习中的随机失活）也是一种正则化——训练时随机丢弃神经元，迫使网络不依赖任何单个神经元。在 GPT-4 的训练中，使用了权重衰减（weight decay）和 dropout 来控制方差，确保模型在万亿 token 上训练后仍然能泛化到新的输入。
+
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -459,7 +474,7 @@ This lesson produces: `outputs/prompt-model-diagnostics.md`
 | Double descent | "More parameters can help" | Test error decreases again when model capacity far exceeds the interpolation threshold. |
 | Model complexity | "How flexible the model is" | The capacity of a model to fit arbitrary patterns. Controlled by architecture, features, or regularization. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Hastie, Tibshirani, Friedman: Elements of Statistical Learning, Ch. 7](https://hastie.su.domains/ElemStatLearn/) -- the definitive treatment of bias-variance decomposition
 - [Belkin et al., Reconciling modern machine learning practice and the bias-variance trade-off (2019)](https://arxiv.org/abs/1812.11118) -- the double descent paper
