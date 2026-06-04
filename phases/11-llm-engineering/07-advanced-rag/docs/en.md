@@ -19,7 +19,10 @@
 - Apply query transformation techniques (HyDE, multi-query, step-back) to improve retrieval on ambiguous or complex questions
 - Diagnose and fix common RAG failures: wrong chunk retrieved, answer not in context, multi-hop reasoning breakdown
 
-## The Problem
+> **【中文解读】** 本课目标：掌握高级 RAG 技术——查询重写、混合检索、重排序、自适应检索、多跳推理。这些技术解决基础 RAG 在复杂查询上的局限性。
+
+
+## The Problem | 问题引入
 
 You built a basic RAG pipeline in Lesson 06. It works for straightforward questions on a small corpus. Now try these:
 
@@ -31,7 +34,12 @@ You built a basic RAG pipeline in Lesson 06. It works for straightforward questi
 
 Basic RAG fails because vector similarity is not the same as relevance. A chunk can be semantically similar to a query without being useful for answering it. Advanced RAG addresses this with four techniques: hybrid search (add keyword matching), reranking (score candidates more carefully), query transformation (fix the query before searching), and better chunking (retrieve at the right granularity).
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 高级 RAG 技术解决基础 RAG 的局限性：查询重写（将模糊问题转为精确查询）、混合检索（向量 + 关键词）、重排序（用 Cross-encoder 精排）、自适应检索（判断是否需要检索）、多跳推理（分解复杂问题为多次检索）。
+
+> **【拓展：高级 RAG 的工业应用】** 生产级 RAG 系统通常包含：查询意图分类到查询扩展/重写到混合检索（BM25 + 向量）到 Cross-encoder 重排序到上下文压缩到答案生成 + 引用标注。Notion AI、Perplexity 等产品都使用了高级 RAG 技术。Self-RAG 让模型自己决定何时检索。
+
 
 ### Hybrid Search: Semantic + Keyword
 
@@ -174,7 +182,7 @@ graph TD
     end
 ```
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: BM25 Implementation
 
@@ -419,7 +427,7 @@ def evaluate_retrieval_recall(queries_with_relevant, retrieval_fn, k=5):
     return avg_recall, results
 ```
 
-## Use It
+## Use It | 用框架实现
 
 With a real cross-encoder for reranking:
 
@@ -490,13 +498,13 @@ response = collection.query.hybrid(
 
 The alpha parameter controls the balance: 0.0 = pure keyword (BM25), 1.0 = pure vector, 0.5 = equal weight. Most production systems use alpha between 0.3 and 0.7.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-advanced-rag-debugger.md` -- a prompt for diagnosing and fixing RAG quality issues
 - `outputs/skill-advanced-rag.md` -- a skill for building production-grade RAG with hybrid search and reranking
 
-## Exercises
+## Exercises | 练习题
 
 1. Compare BM25 vs vector search vs hybrid search on the sample documents. For each of the 5 test queries, record which approach returns the most relevant chunk in position #1. Hybrid search should win on at least 3 out of 5.
 
@@ -508,22 +516,22 @@ This lesson produces:
 
 5. Create an evaluation dataset: 10 questions with known answer chunks. Measure Recall@3, Recall@5, and Recall@10 for (a) vector search only, (b) BM25 only, (c) hybrid search, (d) hybrid + reranking. Plot the results and identify where reranking helps most.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| BM25 | "Keyword search" | A probabilistic ranking algorithm that scores documents by term frequency, inverse document frequency, and document length normalization |
-| Hybrid search | "Best of both worlds" | Running semantic (vector) and keyword (BM25) search in parallel, then merging results with rank fusion |
-| Reciprocal Rank Fusion | "Merge ranked lists" | Combining multiple ranked lists by summing 1/(k + rank) for each document across all lists |
-| Reranking | "Second pass scoring" | Using a more expensive cross-encoder model to re-score a candidate set from initial retrieval |
-| Cross-encoder | "Joint query-document model" | A model that takes a query and document as a single input, producing a relevance score; more accurate than bi-encoders but too slow for full corpus search |
-| Bi-encoder | "Independent embedding model" | A model that embeds queries and documents independently; fast because embeddings are precomputed, but less accurate than cross-encoders |
-| HyDE | "Search with a fake answer" | Generate a hypothetical answer to the query, embed it, and search for real documents similar to it |
-| Parent-child chunking | "Small search, big context" | Index small chunks for precise retrieval but return the larger parent chunk to provide sufficient context |
-| Metadata filtering | "Narrow before searching" | Filtering documents by attributes (date, source, category) before running vector search to reduce the search space |
-| Faithfulness | "Did it stay grounded" | Whether the generated answer is supported by the retrieved documents, as opposed to hallucinated from the model's training data |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| BM25 | "Keyword search" | A probabilistic ranking algorithm that scores documents by term frequency, inverse document frequency, and document length normalization | |
+| Hybrid search | "Best of both worlds" | Running semantic (vector) and keyword (BM25) search in parallel, then merging results with rank fusion | |
+| Reciprocal Rank Fusion | "Merge ranked lists" | Combining multiple ranked lists by summing 1/(k + rank) for each document across all lists | |
+| Reranking | "Second pass scoring" | Using a more expensive cross-encoder model to re-score a candidate set from initial retrieval | |
+| Cross-encoder | "Joint query-document model" | A model that takes a query and document as a single input, producing a relevance score; more accurate than bi-encoders but too slow for full corpus search | |
+| Bi-encoder | "Independent embedding model" | A model that embeds queries and documents independently; fast because embeddings are precomputed, but less accurate than cross-encoders | |
+| HyDE | "Search with a fake answer" | Generate a hypothetical answer to the query, embed it, and search for real documents similar to it | |
+| Parent-child chunking | "Small search, big context" | Index small chunks for precise retrieval but return the larger parent chunk to provide sufficient context | |
+| Metadata filtering | "Narrow before searching" | Filtering documents by attributes (date, source, category) before running vector search to reduce the search space | |
+| Faithfulness | "Did it stay grounded" | Whether the generated answer is supported by the retrieved documents, as opposed to hallucinated from the model's training data | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - Robertson & Zaragoza, "The Probabilistic Relevance Framework: BM25 and Beyond" (2009) -- the definitive reference for BM25, explaining the probabilistic foundations behind the formula
 - Cormack et al., "Reciprocal Rank Fusion Outperforms Condorcet and Individual Rank Learning Methods" (2009) -- the original RRF paper showing it beats more complex fusion methods

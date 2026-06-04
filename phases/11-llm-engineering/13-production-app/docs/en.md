@@ -19,7 +19,10 @@
 - Build observability into the application: request logging, cost tracking, latency percentiles, and error rate dashboards
 - Deploy the application with health checks, rate limiting, and a fallback strategy for provider outages
 
-## The Problem
+> **【中文解读】** 本课目标：将 LLM 应用从原型部署到生产环境——API 网关、负载均衡、推理引擎、监控告警、版本管理、A/B 测试。
+
+
+## The Problem | 问题引入
 
 Building an LLM feature takes an afternoon. Shipping an LLM product takes months.
 
@@ -36,7 +39,12 @@ Every LLM application in production today -- Perplexity, Cursor, ChatGPT, Notion
 
 This is the capstone. You will build a complete production LLM service that integrates prompt management (L01-02), embeddings and vector search (L04-07), function calling (L09), evaluation (L10), caching (L11), guardrails (L12), streaming, error handling, observability, and cost tracking. One service. Every component wired together.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 将 LLM 应用部署到生产环境需要完整的工程栈：API 网关到负载均衡到推理引擎到向量数据库到缓存层到监控告警。关键挑战包括：版本管理（模型/prompt 更新）、A/B 测试、故障恢复、成本控制。
+
+> **【拓展：LLM 生产架构】** 典型生产架构：FastAPI/Flask API 层到 LangChain/LlamaIndex 编排层到 vLLM/TGI 推理层到 Pinecone/Weaviate 向量存储到 Redis 缓存到 LangSmith 监控。关键指标：P99 延迟、幻觉率、每日成本、用户满意度。
+
 
 ### Production Architecture
 
@@ -263,7 +271,7 @@ Without caching, the same traffic costs $11,625/month. A 35% cache hit rate save
 | 14 | CORS configured for production domains only | Security |
 | 15 | Load test with 100 concurrent users passing | Performance |
 
-## Build It
+## Build It | 动手实现
 
 This is the capstone. One file. Every component wired together.
 
@@ -1002,7 +1010,7 @@ if __name__ == "__main__":
     main()
 ```
 
-## Use It
+## Use It | 用框架实现
 
 ### FastAPI Server (Production Deployment)
 
@@ -1107,13 +1115,13 @@ Replace the simulated LLM calls with actual provider SDKs.
 
 Four workers. Each handles async I/O. A single box with 4 workers serves 400+ concurrent LLM requests because they are all waiting on network I/O, not CPU.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-architecture-reviewer.md` -- a reusable prompt that reviews the architecture of any LLM application against the production checklist. Give it a description of your system and it returns a gap analysis.
 
 It also produces `outputs/skill-production-checklist.md` -- a decision framework for shipping LLM applications to production, covering every component from this lesson with specific thresholds and pass/fail criteria.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Add RAG integration.** Build a simple in-memory vector store with 20 documents. When the template is `rag_answer`, embed the query, find the 3 most similar documents, and inject them as context. Measure how response quality changes with and without RAG context. Track retrieval latency separately from LLM latency.
 
@@ -1125,22 +1133,22 @@ It also produces `outputs/skill-production-checklist.md` -- a decision framework
 
 5. **Add OpenTelemetry tracing.** Instrument every component (cache lookup, guardrail check, LLM call, cost calculation) as a separate span. Each span records its duration. Export traces to the console. Show the full trace for a single request, with each component's contribution to total latency visible.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| API Gateway | "The frontend" | The entry point that handles authentication, rate limiting, CORS, and request routing before any LLM logic runs |
-| Prompt Router | "Template selector" | Logic that picks the right prompt template based on request type, A/B experiment assignment, and user context |
-| Semantic Cache | "Smart cache" | A cache keyed by embedding similarity rather than exact string match -- two differently-phrased identical questions return the same cached response |
-| SSE (Server-Sent Events) | "Streaming" | A unidirectional HTTP protocol where the server pushes events to the client -- used by OpenAI, Anthropic, and Google for token-by-token delivery |
-| Exponential Backoff | "Retry logic" | Waiting 1s, 2s, 4s, 8s between retries (doubling each time) with random jitter to prevent all clients retrying simultaneously |
-| Fallback Chain | "Model cascade" | An ordered list of models tried in sequence -- when the primary fails, fall through to cheaper or more available alternatives |
-| Graceful Degradation | "Partial failure handling" | When a secondary component fails (cache, RAG, guardrails), the system continues with reduced functionality rather than crashing |
-| Cost Per Request | "Unit economics" | The total LLM spend (input tokens + output tokens at model pricing) for a single user request -- the number that determines if your business model works |
-| Shadow Mode | "Dark launch" | Running a new prompt or model on real traffic but only logging results, not showing them to users -- risk-free A/B testing |
-| Health Check | "Readiness probe" | An endpoint that returns the status of all dependencies (cache, LLM availability, guardrails) -- used by load balancers and Kubernetes to route traffic |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| API Gateway | "The frontend" | The entry point that handles authentication, rate limiting, CORS, and request routing before any LLM logic runs | |
+| Prompt Router | "Template selector" | Logic that picks the right prompt template based on request type, A/B experiment assignment, and user context | |
+| Semantic Cache | "Smart cache" | A cache keyed by embedding similarity rather than exact string match -- two differently-phrased identical questions return the same cached response | |
+| SSE (Server-Sent Events) | "Streaming" | A unidirectional HTTP protocol where the server pushes events to the client -- used by OpenAI, Anthropic, and Google for token-by-token delivery | |
+| Exponential Backoff | "Retry logic" | Waiting 1s, 2s, 4s, 8s between retries (doubling each time) with random jitter to prevent all clients retrying simultaneously | |
+| Fallback Chain | "Model cascade" | An ordered list of models tried in sequence -- when the primary fails, fall through to cheaper or more available alternatives | |
+| Graceful Degradation | "Partial failure handling" | When a secondary component fails (cache, RAG, guardrails), the system continues with reduced functionality rather than crashing | |
+| Cost Per Request | "Unit economics" | The total LLM spend (input tokens + output tokens at model pricing) for a single user request -- the number that determines if your business model works | |
+| Shadow Mode | "Dark launch" | Running a new prompt or model on real traffic but only logging results, not showing them to users -- risk-free A/B testing | |
+| Health Check | "Readiness probe" | An endpoint that returns the status of all dependencies (cache, LLM availability, guardrails) -- used by load balancers and Kubernetes to route traffic | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [FastAPI Documentation](https://fastapi.tiangolo.com/) -- the async Python framework used in this lesson, with native SSE streaming and automatic OpenAPI docs
 - [OpenAI Production Best Practices](https://platform.openai.com/docs/guides/production-best-practices) -- rate limits, error handling, and scaling guidance from the largest LLM API provider

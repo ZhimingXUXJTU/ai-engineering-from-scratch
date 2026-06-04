@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 11 · 09 (Function Calling), Phase 11 · 14 (Model Context Protocol)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 You ship a function-calling agent. It works for three turns, then something goes wrong: the model tries a tool that returns 500, the user changes their mind mid-task, or the agent decides to refund an order without a human signing off. The `while True:` loop has no hooks. You can't pause it, you can't rewind it, and you can't branch off into "what if the model had picked the other tool." The moment you ship this past a demo, the agent becomes a black box that either worked or didn't.
 
@@ -19,7 +19,16 @@ The next step is obvious once you see it. The agent is already a state machine �
 
 LangGraph is the library that ships this abstraction. It is not an agent framework in the LangChain sense ("here is an AgentExecutor, good luck"). It is a graph runtime with first-class state, first-class persistence, and first-class interrupts. The agent loop is something you draw, not something you hand-write.
 
-## The Concept
+
+> **【中文解读】** LangGraph 的核心优势是支持复杂控制流：循环（Agent 遇到错误时重试）、条件分支（根据任务类型选择不同工具）、人工审批（高风险操作需人工确认）。简单的 LangChain Chain 无法表达这些复杂逻辑。
+
+
+## The Concept | 核心概念
+
+> **【中文解读】** LangGraph 将 LLM Agent 建模为状态机（State Machine）：定义状态节点（如检索、生成、验证）和转换边（条件分支）。相比简单的链式调用，状态机支持循环、条件分支、人工审批等复杂控制流。
+
+> **【拓展：LangGraph 与 Agent 编排】** LangGraph 是 LangChain 团队推出的 Agent 编排框架，支持：多 Agent 协作、人工介入（Human-in-the-loop）、持久化状态、时间旅行调试。与 CrewAI（角色扮演 Agent）和 AutoGen（多 Agent 对话）相比，LangGraph 更适合需要精确控制流的复杂业务场景。
+
 
 ![LangGraph StateGraph: nodes, edges, and the checkpointer](../assets/langgraph-stategraph.svg)
 
@@ -64,7 +73,7 @@ That is it. You get the full ReAct loop (Thought → Action → Observation → 
 
 A compiled graph can be a node in another graph. The outer graph sees a single node; the inner graph has its own state and its own checkpoints. This is how teams build supervisor-worker agents: the supervisor graph routes user intent to a per-domain worker subgraph.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: state and nodes
 
@@ -178,26 +187,26 @@ Before you reach for LangGraph, do a 60-second design:
 
 Refuse to ship a LangGraph agent that has no checkpointer. Refuse to ship one that interrupts *after* the side effect. Refuse to ship a `messages` field without `add_messages` as its reducer.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Implement the four-node ReAct graph above with a calculator tool and a web-search tool. Verify that `list(app.get_state_history(config))` returns at least four checkpoints for a two-turn conversation.
 2. **Medium.** Add a `planner` node that runs before `agent` and writes a structured `plan: list[str]` into state. Have `agent` mark plan steps as done. Fail the test if `plan` is lost across a checkpoint resume (wrong reducer).
 3. **Hard.** Build a supervisor graph that routes between three subgraphs (`researcher`, `writer`, `reviewer`) using `Send`. Each subgraph has its own state and checkpointer. Add an `interrupt_before=["writer"]` on the outer graph so a human can approve the research brief. Confirm that time-travel from a prior checkpoint re-runs only the forked branch.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| StateGraph | "The LangGraph graph" | The builder object you add nodes and edges to before compile. |
-| Reducer | "How the field merges" | A function `(old, new) -> merged` applied when a node returns an update for that field; default is overwrite, `add_messages` appends. |
-| Thread | "A conversation ID" | A `thread_id` string that scopes all checkpoints for one session. |
-| Checkpoint | "A paused state" | A persisted snapshot of the full graph state after a node transition, keyed on `(thread_id, checkpoint_id)`. |
-| Interrupt | "Pause for a human" | `interrupt_before` / `interrupt_after` stop execution at a node boundary; resume with `Command(resume=...)`. |
-| Time-travel | "Fork from a prior step" | `graph.invoke(None, config_with_old_checkpoint_id)` replays from that checkpoint forward. |
-| Send | "Parallel subgraph dispatch" | A constructor a node can return to spawn N parallel executions of a target node. |
-| Subgraph | "A compiled graph as a node" | A compiled StateGraph used as a node in another graph; preserves its own state scope. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| StateGraph | "The LangGraph graph" | The builder object you add nodes and edges to before compile. | |
+| Reducer | "How the field merges" | A function `(old, new) -> merged` applied when a node returns an update for that field; default is overwrite, `add_messages` appends. | |
+| Thread | "A conversation ID" | A `thread_id` string that scopes all checkpoints for one session. | |
+| Checkpoint | "A paused state" | A persisted snapshot of the full graph state after a node transition, keyed on `(thread_id, checkpoint_id)`. | |
+| Interrupt | "Pause for a human" | `interrupt_before` / `interrupt_after` stop execution at a node boundary; resume with `Command(resume=...)`. | |
+| Time-travel | "Fork from a prior step" | `graph.invoke(None, config_with_old_checkpoint_id)` replays from that checkpoint forward. | |
+| Send | "Parallel subgraph dispatch" | A constructor a node can return to spawn N parallel executions of a target node. | |
+| Subgraph | "A compiled graph as a node" | A compiled StateGraph used as a node in another graph; preserves its own state scope. | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [LangGraph documentation](https://langchain-ai.github.io/langgraph/) — canonical reference for StateGraph, reducers, checkpointers, and interrupts.
 - [LangGraph concepts: state, reducers, checkpointers](https://langchain-ai.github.io/langgraph/concepts/low_level/) — the mental model this lesson uses, straight from the source.

@@ -19,7 +19,10 @@
 - Build a semantic search index that retrieves documents by meaning rather than exact keyword match
 - Evaluate embedding quality using retrieval benchmarks (precision@k, recall) and choose the right embedding model for your task
 
-## The Problem
+> **【中文解读】** 本课目标：理解文本嵌入的原理和应用。嵌入将文本转为向量，使语义相似文本在向量空间中距离更近。这是语义搜索、RAG、聚类等任务的基础。
+
+
+## The Problem | 问题引入
 
 You have 10,000 support tickets. A customer writes "my payment didn't go through." You need to find similar past tickets. Keyword search finds tickets containing "payment" and "didn't go through." It misses "transaction failed," "charge was declined," and "billing error." These tickets describe the exact same problem with completely different words.
 
@@ -29,7 +32,12 @@ You need a representation of text where meaning, not spelling, determines simila
 
 That representation is an embedding.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 嵌入（Embeddings）将文本转换为高维向量，使语义相似的文本在向量空间中距离更近。嵌入是 RAG、语义搜索、聚类、分类等任务的基础。主流嵌入模型包括 OpenAI text-embedding-3-large、BGE、E5 等。
+
+> **【拓展：嵌入模型的演进】** 嵌入模型从 Word2Vec/GloVe（静态词嵌入）到 BERT（上下文嵌入）到专用嵌入模型（如 BGE、E5、GTE）。OpenAI 的 text-embedding-3-large 在 MTEB 基准上达到约 64 分。嵌入维度通常为 768-3072，可以通过 Matryoshka 嵌入在推理时截断到更短维度以节省存储。
+
 
 ### What Is an Embedding?
 
@@ -219,7 +227,7 @@ Binary quantization converts each float to a single bit: positive values become 
 
 The accuracy hit is around 5-10% on retrieval recall. The common pattern: binary quantization for the first-pass search over millions of vectors, then rescore the top-1000 with full-precision vectors. This gets you 95%+ of full-precision accuracy at 32x less memory.
 
-## Build It
+## Build It | 动手实现
 
 We build a semantic search engine from scratch. No vector database. No external embedding API. Pure Python with numpy for the math.
 
@@ -414,7 +422,7 @@ def compare_metrics(engine, query, top_k=3):
     return results
 ```
 
-## Use It
+## Use It | 用框架实现
 
 With a production embedding API, the architecture stays identical. Only the embedder changes:
 
@@ -466,13 +474,13 @@ embeddings = model.encode(["semantic search query", "another document"])
 
 The VectorIndex class from our build works with any of these. Swap the embedding function, keep the search logic.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-embedding-advisor.md` -- a prompt for choosing embedding models and strategies for specific use cases
 - `outputs/skill-embedding-patterns.md` -- a skill that teaches agents how to use embeddings effectively in production
 
-## Exercises
+## Exercises | 练习题
 
 1. **Metric comparison**: run the same 5 queries against the sample documents using cosine similarity, dot product, and euclidean distance. Record the top-3 results for each. For which queries do the metrics disagree? Why?
 
@@ -484,24 +492,24 @@ This lesson produces:
 
 5. **Sentence-based chunking**: replace fixed-size chunking with `chunk_by_sentences`. Run the same queries and compare retrieval scores. Does respecting sentence boundaries improve the results?
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Embedding | "Text to numbers" | A dense vector where geometric proximity encodes semantic similarity |
-| Word2Vec | "The OG embedding" | 2013 model that learned word vectors by predicting context words; proved vector arithmetic encodes meaning |
-| Cosine similarity | "How similar are two vectors" | Cosine of the angle between vectors; 1 = identical direction, 0 = orthogonal, -1 = opposite |
-| HNSW | "Fast vector search" | Hierarchical Navigable Small World graph -- multi-layer structure enabling O(log n) approximate nearest neighbor search |
-| Bi-encoder | "Embed separately, compare fast" | Encodes query and document independently into vectors; enables pre-computation and fast retrieval |
-| Cross-encoder | "Slow but accurate reranker" | Processes query-document pair jointly through the full model; higher accuracy, no pre-computation |
-| Matryoshka embeddings | "Truncatable vectors" | Embeddings trained so the first N dimensions capture the most important information, enabling variable-size storage |
-| Binary quantization | "1-bit embeddings" | Converting float vectors to binary (sign bit only) for 32x storage reduction with Hamming distance search |
-| Chunking | "Split docs for embedding" | Breaking documents into 256-512 token segments so each can be independently embedded and retrieved |
-| Vector database | "Search engine for embeddings" | Data store optimized for storing vectors and performing approximate nearest neighbor search at scale |
-| Contrastive learning | "Train by comparison" | Training approach that pushes similar pair embeddings together and dissimilar pair embeddings apart |
-| MTEB | "The embedding benchmark" | Massive Text Embedding Benchmark -- 56 datasets across 8 tasks; standard for comparing embedding models |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Embedding | "Text to numbers" | A dense vector where geometric proximity encodes semantic similarity | |
+| Word2Vec | "The OG embedding" | 2013 model that learned word vectors by predicting context words; proved vector arithmetic encodes meaning | |
+| Cosine similarity | "How similar are two vectors" | Cosine of the angle between vectors; 1 = identical direction, 0 = orthogonal, -1 = opposite | |
+| HNSW | "Fast vector search" | Hierarchical Navigable Small World graph -- multi-layer structure enabling O(log n) approximate nearest neighbor search | |
+| Bi-encoder | "Embed separately, compare fast" | Encodes query and document independently into vectors; enables pre-computation and fast retrieval | |
+| Cross-encoder | "Slow but accurate reranker" | Processes query-document pair jointly through the full model; higher accuracy, no pre-computation | |
+| Matryoshka embeddings | "Truncatable vectors" | Embeddings trained so the first N dimensions capture the most important information, enabling variable-size storage | |
+| Binary quantization | "1-bit embeddings" | Converting float vectors to binary (sign bit only) for 32x storage reduction with Hamming distance search | |
+| Chunking | "Split docs for embedding" | Breaking documents into 256-512 token segments so each can be independently embedded and retrieved | |
+| Vector database | "Search engine for embeddings" | Data store optimized for storing vectors and performing approximate nearest neighbor search at scale | |
+| Contrastive learning | "Train by comparison" | Training approach that pushes similar pair embeddings together and dissimilar pair embeddings apart | |
+| MTEB | "The embedding benchmark" | Massive Text Embedding Benchmark -- 56 datasets across 8 tasks; standard for comparing embedding models | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - Mikolov et al., "Efficient Estimation of Word Representations in Vector Space" (2013) -- the Word2Vec paper that started the embedding revolution with the king-queen analogy
 - Reimers & Gurevych, "Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks" (2019) -- how to train bi-encoders for sentence-level similarity, foundation of modern embedding models

@@ -19,7 +19,10 @@
 - Design a layered defense system combining input filtering, system prompt hardening, and output validation
 - Test guardrails against a red-team prompt set and measure the false positive/negative rate
 
-## The Problem
+> **【中文解读】** 本课目标：为 LLM 应用构建安全护栏——输入过滤、输出验证、内容审核、PII 检测。安全是 LLM 部署到企业环境的必要条件。
+
+
+## The Problem | 问题引入
 
 You deploy a customer support bot for a bank. Day one, someone types:
 
@@ -37,7 +40,12 @@ These are not theoretical. Bing Chat's system prompt was extracted on day one of
 
 No single defense stops all attacks. But layered defenses make attacks go from trivial to sophisticated. You want attackers to need a PhD, not a Reddit thread.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** Guardrails（护栏）是 LLM 应用的安全保障层：输入过滤（防止注入攻击）、输出验证（确保格式和内容合规）、内容审核（过滤有害内容）、PII 检测（防止泄露个人信息）。这是将 LLM 部署到企业环境的必要条件。
+
+> **【拓展：Guardrails 的工业实践】** NeMo Guardrails（NVIDIA）提供可配置的对话护栏框架。Llama Guard（Meta）是专门的内容安全分类模型。生产系统通常使用多层防护：LLM 自检到规则引擎过滤到分类模型审核到人工复核（高风险场景）。Prompt 注入攻击是目前最常见的安全威胁。
+
 
 ### The Guardrail Sandwich
 
@@ -181,7 +189,7 @@ No defense is perfect. Here is the spectrum:
 
 Most applications should target layered defense. Maximum security is for financial services, healthcare, and government. The cost-benefit math: a $50/month moderation API is cheaper than one viral screenshot of your bot producing harmful content.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Input Guardrails
 
@@ -748,7 +756,7 @@ if __name__ == "__main__":
     run_demo()
 ```
 
-## Use It
+## Use It | 用框架实现
 
 ### OpenAI Moderation API
 
@@ -855,13 +863,13 @@ NeMo Guardrails works as a wrapper around your LLM. Define flows in Colang, and 
 
 Guardrails AI has 50+ validators on their hub. Install validators individually: `guardrails hub install hub://guardrails/detect_pii`. It automatically retries when validation fails, asking the model to regenerate a compliant response.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/prompt-safety-auditor.md` -- a reusable prompt that audits any LLM application for safety vulnerabilities. Give it your system prompt, tool definitions, and deployment context. It returns a threat assessment with specific attack vectors and recommended defenses.
 
 It also produces `outputs/skill-guardrail-patterns.md` -- a decision framework for choosing and implementing guardrails in production, covering tool selection, layering strategy, and cost-performance tradeoffs.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Build a LlamaGuard-style classifier.** Create a keyword + regex classifier that maps inputs and outputs to 13 safety categories (from the MLCommons AI Safety taxonomy: violent crimes, non-violent crimes, sex-related crimes, child sexual exploitation, specialized advice, privacy, intellectual property, indiscriminate weapons, hate, suicide, sexual content, elections, code interpreter abuse). Return the category code and confidence. Test on 50 hand-written prompts and measure precision/recall.
 
@@ -873,22 +881,22 @@ It also produces `outputs/skill-guardrail-patterns.md` -- a decision framework f
 
 5. **Implement a full red-team suite.** Create 100 attack prompts across 5 categories: direct injection (20), indirect injection (20), jailbreak (20), PII extraction (20), and prompt extraction (20). Run all 100 through your guardrail pipeline. Measure per-category detection rates. Identify which category has the lowest detection rate and write 3 additional rules to improve it.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|---|---|---|
-| Prompt injection | "Hacking the AI" | Crafting input that overrides the system prompt, causing the model to follow attacker instructions instead of developer instructions |
-| Indirect injection | "Poisoned context" | Malicious instructions embedded in data the model processes (retrieved docs, emails, web pages) rather than in the user message |
-| Jailbreak | "Bypassing safety" | Techniques that override the model's safety training (not your system prompt) to produce content the model would normally refuse |
-| Guardrail | "Safety filter" | Any validation layer that checks input or output of an LLM application for safety, relevance, or policy compliance |
-| Content filter | "Moderation" | A classifier that detects harmful content categories (hate, violence, sexual, self-harm) and blocks or flags them |
-| PII detection | "Data masking" | Identifying personal information (names, emails, SSNs, phone numbers) in text, typically using regex + NLP + pattern matching |
-| LlamaGuard | "Safety model" | Meta's open-source classifier that labels text as safe/unsafe across 13 categories, usable for both input and output filtering |
-| NeMo Guardrails | "Conversation rails" | NVIDIA's framework using Colang DSL to define hard boundaries on what an LLM can discuss and how it responds |
-| Red teaming | "Attack testing" | Systematically trying to break your LLM application with adversarial prompts to find vulnerabilities before attackers do |
-| Defense-in-depth | "Layered security" | Using multiple independent security layers so that no single point of failure compromises the entire system |
+| Term | What people say | What it actually means | 中文释义 |
+|---|---|---|---------|
+| Prompt injection | "Hacking the AI" | Crafting input that overrides the system prompt, causing the model to follow attacker instructions instead of developer instructions | |
+| Indirect injection | "Poisoned context" | Malicious instructions embedded in data the model processes (retrieved docs, emails, web pages) rather than in the user message | |
+| Jailbreak | "Bypassing safety" | Techniques that override the model's safety training (not your system prompt) to produce content the model would normally refuse | |
+| Guardrail | "Safety filter" | Any validation layer that checks input or output of an LLM application for safety, relevance, or policy compliance | |
+| Content filter | "Moderation" | A classifier that detects harmful content categories (hate, violence, sexual, self-harm) and blocks or flags them | |
+| PII detection | "Data masking" | Identifying personal information (names, emails, SSNs, phone numbers) in text, typically using regex + NLP + pattern matching | |
+| LlamaGuard | "Safety model" | Meta's open-source classifier that labels text as safe/unsafe across 13 categories, usable for both input and output filtering | |
+| NeMo Guardrails | "Conversation rails" | NVIDIA's framework using Colang DSL to define hard boundaries on what an LLM can discuss and how it responds | |
+| Red teaming | "Attack testing" | Systematically trying to break your LLM application with adversarial prompts to find vulnerabilities before attackers do | |
+| Defense-in-depth | "Layered security" | Using multiple independent security layers so that no single point of failure compromises the entire system | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Greshake et al., 2023 -- "Not What You Signed Up For: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection"](https://arxiv.org/abs/2302.12173) -- the foundational paper on indirect prompt injection, demonstrating attacks on Bing Chat, ChatGPT plugins, and code assistants
 - [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/) -- industry standard vulnerability list for LLM apps covering injection, data leakage, insecure output, and 7 more categories

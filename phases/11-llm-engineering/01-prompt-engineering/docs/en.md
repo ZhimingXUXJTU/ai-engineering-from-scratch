@@ -19,7 +19,10 @@
 - Diagnose prompt failures (hallucination, refusal, format violations) and fix them with targeted prompt modifications
 - Implement a prompt testing harness that evaluates prompt changes against a set of expected outputs
 
-## The Problem
+> **【中文解读】** 本课目标：掌握 Prompt Engineering 的六大策略（清晰指令、参考文本、任务拆分、思考时间、外部工具、反复迭代），并通过实践理解每个策略对模型输出的影响。Prompt 是与大模型交互的唯一接口，写好 prompt 是 AI 工程师的基本功。
+
+
+## The Problem | 问题引入
 
 You open ChatGPT. You type: "Write me a marketing email." You get something generic, bloated, and unusable. You try again with more detail. Better, but still off. You spend 20 minutes rephrasing the same request. This is not a model problem. It is an instruction problem.
 
@@ -41,7 +44,12 @@ This gap between what you ask and what you get is the entire discipline of promp
 
 Prompt engineering is not dead. The people who say it is are the same people who said CSS was dead in 2015. What changed is that it became table stakes. Every serious AI engineer needs it. The question is not whether to learn it but how deep to go.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 本课聚焦 Prompt Engineering 的系统化方法。Prompt 是与大模型交互的核心接口——同一个模型，不同的 prompt 可以产出天差地别的结果。核心技巧包括：清晰指令、结构化输出、少样本示例、思维链（CoT）、角色设定等。
+
+> **【拓展：Prompt Engineering 的实用价值】** OpenAI 官方推荐的 prompt 策略：写清晰指令、提供参考文本、拆分复杂任务、给模型"思考时间"。在工程实践中，好的 prompt 可以减少 50%+ 的API 成本（减少重试），并将准确率提升 20-40%。Anthropic 的 Claude 对长且结构化的 prompt 响应特别好。
+
 
 ### Anatomy of a Prompt
 
@@ -302,7 +310,7 @@ The best prompts are model-agnostic. They work on GPT-5, Claude Opus 4.7, Gemini
 5. Test with temperature=0 first to isolate prompt quality from sampling randomness
 6. Include 2-3 few-shot examples -- they transfer across models better than instructions alone
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Prompt Template Library
 
@@ -875,7 +883,7 @@ if __name__ == "__main__":
     run_test_suite()
 ```
 
-## Use It
+## Use It | 用框架实现
 
 ### OpenAI: Temperature and System Messages
 
@@ -979,7 +987,7 @@ Gemini processes system instructions as part of the model configuration, not as 
 
 LangChain lets you write one prompt template and run it across providers. This is the practical implementation of cross-model prompt design.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces two outputs:
 
@@ -989,7 +997,7 @@ This lesson produces two outputs:
 
 The Python code (`code/prompt_engineering.py`) is a standalone testing harness. Swap in real API calls by replacing `simulate_llm_call` with actual HTTP requests to OpenAI, Anthropic, and Google APIs. The pattern library, builder, scorer, and comparison logic all work without modification.
 
-## Exercises
+## Exercises | 练习题
 
 1. Take the 5 test cases in `TEST_SUITE` and add 5 more that cover the remaining patterns (meta-prompt, decomposition, critique, audience adaptation, boundary). Run the full suite and identify which pattern produces the most consistent scores across models.
 
@@ -1001,22 +1009,22 @@ The Python code (`code/prompt_engineering.py`) is a standalone testing harness. 
 
 5. Create a "prompt diff" tool. Given two versions of a prompt, identify what changed (added constraints, removed examples, changed role, modified format) and predict whether the change will improve or degrade output quality. Test your predictions against actual outputs.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| System message | "The instructions" | A special message processed with high priority that sets identity, rules, and constraints for the model's entire conversation |
-| Temperature | "Creativity knob" | A scaling factor on the logit distribution before softmax -- higher values flatten the distribution (more random), lower values sharpen it (more deterministic) |
-| Top-p | "Nucleus sampling" | Limit token sampling to the smallest set whose cumulative probability exceeds p, cutting off the long tail of unlikely tokens |
-| Few-shot prompting | "Giving examples" | Including 2-10 input/output examples in the prompt so the model learns the task pattern without any fine-tuning |
-| Chain-of-thought | "Think step by step" | Prompting the model to show intermediate reasoning steps, which improves accuracy on math, logic, and multi-step problems by 10-40% |
-| Role prompting | "You are an expert" | Setting a persona that biases sampling toward a specific quality distribution in the training data |
-| Prompt injection | "Jailbreaking" | An attack where user input contains instructions that override the system prompt, causing the model to ignore its rules |
-| Context window | "How much it can read" | The maximum number of tokens (input + output) the model can process in a single call -- ranges from 8K to 2M across current models |
-| Assistant prefill | "Starting the response" | Providing the first few tokens of the model's response to steer format and eliminate preamble -- supported natively by Anthropic |
-| Meta-prompting | "Prompts that write prompts" | Using an LLM to generate, critique, and optimize prompts for other LLM tasks |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| System message | "The instructions" | A special message processed with high priority that sets identity, rules, and constraints for the model's entire conversation | |
+| Temperature | "Creativity knob" | A scaling factor on the logit distribution before softmax -- higher values flatten the distribution (more random), lower values sharpen it (more deterministic) | |
+| Top-p | "Nucleus sampling" | Limit token sampling to the smallest set whose cumulative probability exceeds p, cutting off the long tail of unlikely tokens | |
+| Few-shot prompting | "Giving examples" | Including 2-10 input/output examples in the prompt so the model learns the task pattern without any fine-tuning | |
+| Chain-of-thought | "Think step by step" | Prompting the model to show intermediate reasoning steps, which improves accuracy on math, logic, and multi-step problems by 10-40% | |
+| Role prompting | "You are an expert" | Setting a persona that biases sampling toward a specific quality distribution in the training data | |
+| Prompt injection | "Jailbreaking" | An attack where user input contains instructions that override the system prompt, causing the model to ignore its rules | |
+| Context window | "How much it can read" | The maximum number of tokens (input + output) the model can process in a single call -- ranges from 8K to 2M across current models | |
+| Assistant prefill | "Starting the response" | Providing the first few tokens of the model's response to steer format and eliminate preamble -- supported natively by Anthropic | |
+| Meta-prompting | "Prompts that write prompts" | Using an LLM to generate, critique, and optimize prompts for other LLM tasks | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [OpenAI Prompt Engineering Guide](https://platform.openai.com/docs/guides/prompt-engineering) -- official best practices from OpenAI covering system messages, few-shot, and chain-of-thought
 - [Anthropic Prompt Engineering Guide](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview) -- Claude-specific techniques including XML formatting, assistant prefill, and thinking tags
