@@ -86,6 +86,10 @@ output: CVSS-scored findings + disclosure timeline + before/after harmlessness d
 
 ## Build It | 动手构建
 
+> **【中文解读】** 构建宪法安全测试线束：对待测模型（8B 指令微调模型或 RAG 聊天机器人）运行 10 类攻击（越狱、提示注入、数据泄露、幻觉、偏见、毒性、版权、隐私、拒绝合法请求和可用性退化），每类 20 个测试用例，共 200 个测试。评估通过 6 个指标：拒绝率、误拒率、泄露率、毒性分数、偏见分数和可用性退化度。
+
+> **【拓展：AI 安全评估在 2026 年的标准化进展】** NIST 的 AI RMF（风险管理框架）和 ISO/IEC 42001 成为 AI 安全评估的国际标准。MLCommons 的 Safety v0.5 benchmark 包含 CSB（儿童安全）、激进行为、自残等维度的标准测试集。Anthropic 的 Responsible Scaling Policy 和 OpenAI 的 Preparedness Framework 都要求在模型发布前通过类似本课的 10 类攻击测试。宪法 AI（Constitutional AI）是 Anthropic 的核心安全方法——模型根据预设原则自我批评和修订输出。
+
 1. **Target setup.** Stand up an 8B instruction-tuned model on vLLM (or reuse a RAG chatbot from another capstone). This is the app under test.
 
 2. **Safety pipeline wrap.** Wire the five-layer pipeline around the target. Verify each layer is individually observable (span per layer in Langfuse).

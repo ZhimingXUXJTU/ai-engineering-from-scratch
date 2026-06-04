@@ -20,6 +20,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 当 Agent Harness 让模型自由调用工具时，三类 bug 在实际使用的第一小时内就会出现。1）无界观察：一个 grep 在 200K 行代码库上搜索将 50 万 token 倾倒到下一轮，浪费上下文。2）过时信息：长任务积累 50 次工具调用，模型把第三轮的旧数据当作当前状态。3）权限蔓延：研究任务从 web_search 开始，不知怎么就运行了 shell。验证门是确定性函数 `(call, history, ledger) -> ALLOW | DENY`——不是模型、不是判断，是确定性的拒绝。
+
+> **【拓展：验证门在 Claude Code 和 Devin 中的实现】** Claude Code 的工具调用系统在每个工具执行前运行权限检查：文件操作限制在项目目录内，shell 命令需要用户确认，网络访问受限。Devin 的安全层更进一步：所有文件操作通过沙盒代理执行，网络请求通过白名单过滤。本课的四门设计（白名单门、正则门、时效门、预算门）是这些工业系统的核心模式。
+
 When an agent harness lets the model call tools freely, three classes of bug appear within the first hour of real use.
 
 The first is unbounded observation. A grep across a 200K-line repo dumps half a million tokens of output into the next turn. The model sees one match per kilobyte and the rest of the context is wasted. The token bill is large and the agent is now worse, not better, at the task.
@@ -31,6 +35,8 @@ The third is privilege creep. A research task starts by calling `web_search`, th
 A verification gate is the harness component that says no. It is not a model. It is not a judge. It is a deterministic function of `(call, history, ledger)` that returns either ALLOW or DENY with a reason. The reason is logged. The model is told. The loop continues or aborts.
 
 ## The Concept | 概念
+
+> **【中文解读】** 门（Gate）是任何具有 `evaluate(call, ctx) -> GateDecision` 方法的对象。链（Chain）是有序列表，评估在第一个 DENY 时短路。顺序重要：廉价的结构门在昂贵的 token 计数门前运行。本课提供四个门：WhitelistGate（O(1) 哈希查找）、RegexGate（拒绝 rm -rf 或内网 IP）、RecencyGate（只显示最近 N 轮的观察）、BudgetGate（累积 token 上限）。
 
 ```mermaid
 flowchart LR
@@ -68,6 +74,8 @@ The harness asks the chain. The chain either nods or refuses. If it nods, the to
 
 ## What you will build
 
+> **【拓展：观察预算在 RAG 系统中的对应物】** RAG 系统中的上下文窗口管理是观察预算的直接对应物。当检索系统返回的文档填充了 LLM 的上下文窗口时，模型的质量实际上下降了——噪声淹没了信号。LangChain 的 ContextualCompressionRetriever 和 LlamaIndex 的 SentenceWindowRetriever 都实现了类似 BudgetGate 的机制。本课的 ObservationLedger 可以直接映射为 RAG 系统中的 token 使用追踪器。
+
 The implementation is a single `main.py` plus tests.
 
 1. `Observation` and `ToolCall` dataclasses define the wire shapes.
@@ -80,6 +88,10 @@ The implementation is a single `main.py` plus tests.
 The token counter is intentionally a stupid `len(text) // 4` heuristic. The point of this lesson is the gate plumbing, not the tokenizer. Drop in a real tokenizer in production.
 
 ## Why the chain order matters
+
+> **【中文解读】** 拒绝比允许便宜，且门按成本升序排列：WhitelistGate O(1) < RegexGate O(pattern) < RecencyGate O(slice) < BudgetGate O(ledger)。也按爆炸半径排序：白名单是最强声明（工具不在契约中），正则门检查参数合法性，时效门仍关心但调用结构合法，预算门在所有其他门通过后才触发。
+
+> **【拓展：短路评估在安全系统中的标准实践】** Web 应用防火墙（WAF）的规则链使用相同的短路模式：先检查 IP 黑名单（O(1)），再检查请求体正则（O(n)），最后检查速率限制（O(redis call)）。Kubernetes 的 Admission Controller 链也按类似顺序执行。本课的门链设计是安全工程中"快速失败"（fail fast）原则的直接应用。
 
 A deny is cheaper than an allow. `WhitelistGate` runs in O(1) hash lookup. `RegexGate` runs in O(pattern * argv). `RecencyGate` reads a small slice of the message store. `BudgetGate` reads the entire ledger. You order them by ascending cost so a denied call short-circuits before doing the expensive work.
 

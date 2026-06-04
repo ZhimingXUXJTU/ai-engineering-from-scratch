@@ -81,6 +81,10 @@ eval:
 
 ## Build It | 动手构建
 
+> **【中文解读】** 构建 8 个阶段：语料摄入（Unstructured/docling 解析 + ColPali 视觉页面）、索引（pgvector 密集向量 + Tantivy BM25）、混合检索（RRF 融合 + 角色过滤）、重排序（Cohere Rerank 3）、上下文压缩、对话记忆、RAG 评估（RAGAS 框架）和合规审计（GDPR/HIPAA 标签）。
+
+> **【拓展：生产 RAG 系统在 2026 年的最佳实践】** Airbnb、Notion、Dropbox 的 AI 搜索都基于 RAG 架构。2026 年的关键改进：1）混合检索（dense + sparse）比纯向量搜索准确率高 10-15%；2）ColPali 视觉检索直接在文档截图上做检索，跳过 OCR；3）chunk 级别的角色标签和权限过滤确保合规；4）RAGAS 评估框架提供 faithfulness、relevancy、context recall 等维度。
+
 1. **Ingestion.** Parse your corpus (1000-10000 documents for a serious build) with Unstructured or docling. For scanned / visual-heavy pages, route through ColPali. Produce chunks with summaries, role-labels, jurisdiction tags.
 
 2. **Index.** Dense embeddings (Voyage-3 or Nomic-embed-v2) into pgvector + pgvectorscale. BM25 side-index via Tantivy. Role and jurisdiction filters as payload.

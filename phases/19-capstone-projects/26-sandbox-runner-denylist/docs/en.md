@@ -20,6 +20,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 能执行 shell 命令的编码 Agent 可以在一个回合内安装后门、窃取密钥、损坏开发者笔记本和产生巨额云账单。三类故障反复出现：1）危险可执行文件（sudo, chmod -R 777, rm -rf, mkfs）；2）argv 把戏（python3 -c "import os; os.system('rm -rf /')"）；3）路径逃逸（读取 ../../etc/passwd）。沙盒不是操作系统意义的安全边界——它是开发时的护栏，使常见故障模式变得明显。
+
+> **【拓展：沙盒技术在 AI Agent 产品中的演进】** Claude Code 的沙盒限制文件操作在项目目录内，shell 命令需要用户确认。Devin 使用 Docker 容器 + 文件系统只读挂载。OpenHands 使用 Firecracker microVM 提供内核级隔离。本课的 denylist + path jail + 超时 + 截断是这些方案的核心简化版本——覆盖了 90% 的常见 Agent 故障模式。
+
 A coding agent that can shell out can install backdoors, exfiltrate keys, brick a developer laptop, and rack up a cloud bill in a single turn. The least costly defense is to not give it shell. The second least costly is a sandbox that says no to a precise list of patterns.
 
 Three classes of failure recur in agent traces.
@@ -33,6 +37,8 @@ The third is path escape. The model is told to read `./src/main.py` and instead 
 The sandbox is not a security boundary in the operating system sense. A determined attacker with code execution can still break out. The sandbox is a development-time guardrail: it makes the common failure modes loud and stops the agent from doing damage out of sheer ineptitude.
 
 ## The Concept | 概念
+
+> **【中文解读】** 沙盒有四个拒绝轴：名称（denylist 检查可执行文件名）、argv（检查解释器 -c 模式和 shell 元字符）、路径（通过 realpath 检查路径是否在 project_root 内）、结构（shell=False 时拒绝管道和重定向）。每个轴是纯函数，子进程只在所有轴通过后才启动。路径监狱是最精巧的部分——通过 `os.path.realpath` 解析符号链接，防止符号链接逃逸攻击。
 
 ```mermaid
 flowchart TD
@@ -50,6 +56,8 @@ The sandbox has four refusal axes: name, argv, path, structure. Each axis is a p
 The `SandboxResult` exit codes are the conventional ones: 0 success, non-zero failure, plus three sentinel codes for denied (-100), timed_out (-101), and truncated (the exit code is the real one, with a flag set). Downstream lessons read this structured result rather than parsing stderr.
 
 ## Architecture | 架构
+
+> **【拓展：从 denylist 到 seccomp 的安全升级路径】** 本课的 denylist 方案覆盖了约 90% 的常见 Agent 故障。生产级升级路径：1）Docker 容器（文件系统隔离 + 网络隔离）；2）gVisor（用户态内核，系统调用过滤）；3）Firecracker microVM（完整虚拟化，KVM 后端）；4）seccomp-bpf（精确的系统调用白名单）。OpenHands 使用 Docker + seccomp，Devin 使用 Firecracker。每一步升级增加安全边界但减少灵活性——denylist 是最灵活但最弱的选择。
 
 ```mermaid
 flowchart LR
@@ -76,6 +84,8 @@ The implementation is `main.py` plus a tests dir.
 The sandbox uses `subprocess.run` with `shell=False` by default and `capture_output=True`. The wall-clock timeout uses the `timeout` argument; on `TimeoutExpired`, the sandbox kills the process group and synthesizes a SandboxResult.
 
 ## Why this is not a real sandbox
+
+> **【中文解读】** 本课沙盒不使用 namespace、cgroup、seccomp、gVisor、Firecracker 或任何内核级隔离——子进程能做的沙盒也能做。保护是结构性的：拒绝最常见的危险调用，并将明确的拒绝记录到可观测性系统中。生产 Agent 需要在此基础上叠加：Docker 容器、microVM、降权、只读挂载、ulimit 等。
 
 The lesson sandbox does not use namespaces, cgroups, seccomp, gVisor, Firecracker, or any kernel-level isolation. Anything the subprocess can do, the sandbox can do. The protection is structural: the agent is denied the most common dangerous invocations, and the loud refusal goes into observability instead of silently running.
 

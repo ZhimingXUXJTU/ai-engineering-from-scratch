@@ -76,6 +76,10 @@ production apps:
 
 ## Build It | 动手构建
 
+> **【中文解读】** 构建 LLM 可观测性仪表板的 8 个阶段：OTel Collector 配置（100% 错误追踪 + 10% 成功采样）、ClickHouse schema（GenAI 语义约定列）、成本仪表板（按模型/用户/应用聚合 token 和美元）、质量仪表板（幻觉率和工具成功率）、延迟热力图、用户级审计追踪、告警规则和 SLO 仪表板。
+
+> **【拓展：LLM 可观测性在 2026 年的关键指标】** Braintrust、Langfuse、Helicone 等平台追踪的核心指标：1）token 成本（input/output/推理 分别计费）；2）幻觉率（通过自动验证或用户反馈检测）；3）P50/P95/P99 延迟（特别是首 token 延迟 TTFT）；4）工具调用成功率（Agent 场景特有）；5）用户满意度（thumbs up/down 或 implicit signal）。本课的 ClickHouse + Grafana 架构是这些平台的开源自建替代。
+
 1. **Collector config.** OpenTelemetry Collector with the OTLP HTTP receiver, a tail-sampler keeping 100% of errored traces and 10% of successes, and exporters to ClickHouse and S3.
 
 2. **ClickHouse schema.** Table `spans` with columns mirroring GenAI semconv: `gen_ai_system`, `gen_ai_request_model`, `input_tokens`, `output_tokens`, `latency_ms`, `prompt_hash`, `trace_id`, `parent_span_id`, plus JSON bag for long payloads. Add secondary indexes by user_id and app_id.

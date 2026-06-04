@@ -54,6 +54,8 @@ The model sees the whole sequence during the forward pass; attention can attend 
 
 ## The Data
 
+> **【拓展：SFT 数据质量的重要性】** LIMA (Meta, 2023) 的核心发现是"数据质量比数量更重要"——1000 个精心标注的示例训练出的模型，在人类评估中优于用 52K 自动生成数据训练的 Alpaca。本课的 200 个确定性生成样本覆盖了 6 种任务类型（事实问答、算术、列表提取、摘要、代码、定义），每种任务的难度梯度从简单到复杂。生产级 SFT 数据集通常需要 10K-100K 高质量样本，数据清洗和去重是关键的前置步骤。
+
 Two hundred instruction-response pairs are generated deterministically in `main.py`. They cover six task types:
 
 - factual single-shot (capital of X)

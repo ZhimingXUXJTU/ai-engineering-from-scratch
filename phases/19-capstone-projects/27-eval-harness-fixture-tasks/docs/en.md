@@ -20,6 +20,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 没有评估线束的 Agent 基准测试困扰于三种故障模式：1）未验证的通过——Agent 声称修复了 bug，人类扫了一眼 diff，三周后回归测试发现同样的 bug；2）未检测的回归——提示模板变更让 Agent 在嘈杂任务上好 4% 但在安静任务上差 14%；3）每任务漂移——周一评估 100 个任务，周五只有 95 个，通过率看似提高了 5%但其实不是。线束是将这些失败转化为事实的程序。
+
+> **【拓展：pass@k 指标在代码生成评估中的核心地位】** pass@k 由 Chen et al. (2021, HumanEval 论文) 引入，已成为代码生成模型的标准评估指标。公式 `pass@k = 1 - (1-p)^k`，其中 p 是经验通过率。DeepSeek-Coder、CodeLlama、StarCoder2 都报告 pass@1 和 pass@5。pass@5 = 0.95 但 pass@1 = 0.6 的模型需要采样和排名策略才能实际使用——仅看 pass@5 会掩盖这个问题。
+
 Three failure modes plague agent benchmarks built without an eval harness.
 
 The first is unverified pass. The agent says it fixed the bug, the human glances at the diff, the suite is marked green, and three weeks later the regression test surfaces the same bug. The agent had reasoned plausibly without actually fixing anything.
@@ -31,6 +35,8 @@ The third is per-task drift. The eval was run on Monday with 100 tasks and on Fr
 The harness is the program that turns these failures into facts. It runs every fixture, every time, in a reproducible order, against a verifier that returns true or false on a deterministic check.
 
 ## The Concept | 概念
+
+> **【中文解读】** FixtureTask 是 JSON 文件 + 可选的 expected/ 目录。JSON 声明 id、goal（给 Agent 的提示）、setup（放入临时目录的文件）和 verifier（验证器名称和参数）。三种验证器形状覆盖大部分有用任务：file_equals（精确匹配）、regex_match（正则匹配）、shell_exit_zero（shell 命令退出码为零）。线束对每个任务运行 k 次，报告 pass@1 和 pass@k。
 
 ```mermaid
 flowchart LR
@@ -53,6 +59,8 @@ The third is `shell_exit_zero`. The harness runs a shell command (through the sa
 The harness runs each task `k` times. Pass@k is `1 - (1 - p)^k` where p is the empirical pass rate; the harness also reports raw counts so you can spot variance. Latency is wall-clock per sample. Cost is whatever the agent self-reports (token count, USD, or both); the harness sums it across samples and presents the per-task and aggregate numbers.
 
 ## Architecture | 架构
+
+> **【拓展：SWE-bench 和 HumanEval 的评估线束设计】** SWE-bench（Princeton）使用真实的 GitHub issue 作为 fixture task，验证器是单元测试套件的通过率。HumanEval (OpenAI) 使用 164 个 Python 函数补全任务，验证器是输入输出对测试。本课的五 fixture task 设计是这些基准测试的教育性简化——相同的架构（JSONL 任务定义、可交换的验证器、pass@k 指标），但规模更小、可在 90 分钟内完成。
 
 ```mermaid
 flowchart TD
@@ -85,6 +93,8 @@ The candidate is a callable: `Callable[[FixtureTask, str], SampleResult]`. The h
 The fixture tasks are bundled as JSON files in `tasks/` plus paired source files in `tasks/<id>/buggy/` and `tasks/<id>/expected/`. The harness copies buggy into a scratch dir, hands it to the candidate, and verifies against expected.
 
 ## Why pass@k and not just pass@1
+
+> **【中文解读】** 真实 LLM Agent 是随机的。pass@1 = 0.6 看起来是失败，但 pass@5 = 0.95 说明 Agent 大部分时候能找到正确答案，只是在早期样本上选错了。修复是采样和排名，而非更多训练。pass@k 与 pass@1 一起报告，因为 pass@k 掩盖了真实故障——如果模型 20 次尝试中只对了 1 次，你没有有用的 Agent。
 
 Real LLM agents are stochastic. A pass@1 of 0.6 looks like a failure. A pass@5 of 0.95 says the agent gets the right answer most of the time but is choosing wrong on early samples. The fix is sampling and ranking, not always more training. Pass@k makes that visible.
 

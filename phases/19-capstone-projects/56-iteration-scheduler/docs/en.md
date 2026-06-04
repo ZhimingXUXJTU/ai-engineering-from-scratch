@@ -20,6 +20,10 @@
 
 ## Why a scheduler, not a worklist
 
+> **【中文解读】** 平面工作列表按提交顺序运行作业，但研究不是独立的——实验三的结果改变了实验四五的优先级。调度器读取结果扇入并重排队列，每单位计算获得更多有用工作。核心设计选择是评分规则：贪婪评分者永远选择当前领导者不探索；均匀评分者永远不利用。UCB（Upper Confidence Bound）是中间路径：利用领导者同时为尝试较少的分支保留容量。
+
+> **【拓展：UCB 在推荐系统和 AutoML 中的应用】** UCB 算法源自多臂老虎机（Multi-Armed Bandit）问题，广泛应用于推荐系统（新闻推荐、广告投放）和 AutoML（自动超参数搜索）。Google Vizier 使用改进的 UCB 变体进行超参数优化。在科研自动化中，每个"研究分支"是一个臂——UCB 自动平衡"深入有前途的方向"和"探索新方向"之间的权衡。
+
 A flat worklist runs jobs in submission order. That is fine when each job is independent. Research is not independent: a finding from experiment three changes the priority of experiments four and five. A scheduler that reads the result fan-in and reorders the queue gets more useful work done per unit of compute.
 
 The interesting design choice is the scoring rule. A greedy scorer always picks the current leader and never explores. A uniform scorer never exploits. UCB (upper confidence bound) is the middle path: exploit the leader while reserving capacity for branches that have been tried less.
@@ -58,6 +62,8 @@ flowchart TB
 
 ## UCB scoring
 
+> **【中文解读】** UCB1 公式：`ucb(branch) = mean_reward + c * sqrt(ln(total_runs) / runs(branch))`。c 默认为 sqrt(2)。零次运行的分支获得 +inf，保证未尝试分支优先调度。高均值奖励的分支保持高分直到其他分支追上；运行多次但奖励低的分支被更少运行的替代方案超越。剪枝门在至少 3 次试验后移除均值奖励低于绝对地板（默认 0.2）的分支。
+
 The UCB formula used in this lesson is the classic UCB1.
 
 ```text
@@ -69,6 +75,10 @@ ucb(branch) = mean_reward(branch) + c * sqrt( ln(total_runs) / runs(branch) )
 The pruning gate is separate from the picker. Pruning removes a branch from future scheduling when its mean reward falls below an absolute floor (default `0.2`) after at least `prune_after_runs` trials (default `3`). This keeps the queue bounded.
 
 ## Parallel slots with asyncio
+
+> **【中文解读】** 调度器使用 `asyncio.create_task` 驱动实验，每个任务运行异步实验运行器。主循环通过 `asyncio.wait(..., return_when=FIRST_COMPLETED)` 等待飞行中的任务集，每次完成时触发评分更新。三个并发槽位持续调度——队列空且无飞行任务时停止。调度器永不阻塞在单个实验上。
+
+> **【拓展：异步调度在工业级科研平台中的应用】** 带有 GPU 集群的科研平台（如 Determined AI、Ray Tune）使用类似的异步调度模式。Ray Tune 的 AsyncHyperBandScheduler 使用异步结果收集 + 动态资源分配，与本课的 asyncio + UCB 架构在概念上一致。区别在于规模：Ray 管理数千个 GPU 槽位，本课管理 3 个 asyncio 任务。
 
 The scheduler drives experiments with `asyncio.create_task`. Each task runs the experiment runner (an `async def` callable) that returns a `Result`. The main loop waits on the set of in-flight tasks with `asyncio.wait(..., return_when=asyncio.FIRST_COMPLETED)` and fires the scoring update on each completion.
 
@@ -91,6 +101,8 @@ Three slots run concurrently. The main loop never blocks on a single experiment.
 
 ## Fan-out: paper triggers
 
+> **【拓展：研究自动化中的探索-利用平衡】** 科研中的探索-利用困境是真实存在的：持续深入一个研究方向（利用）可能错过更好的替代方案（探索）。本课的 UCB 调度器自动平衡这两者。在实际科研管理中，Google DeepMind 使用"20% time"政策鼓励探索，Microsoft Research 使用"研究赌注"组合管理。UCB 是这些管理策略的数学形式化——c 参数（默认 sqrt(2)）直接控制探索强度。
+
 When a branch's mean reward crosses `paper_threshold` (default `0.7`) and that branch has not yet produced a paper, the scheduler fans a `paper.trigger` event onto an output list. Downstream the paper writer from lesson fifty-four would pick this up. In this lesson the trigger is captured as a list so tests can assert it.
 
 ## Fan-out: follow-up hypotheses
@@ -98,6 +110,8 @@ When a branch's mean reward crosses `paper_threshold` (default `0.7`) and that b
 When a high-yield result lands, the scheduler can call the user-supplied `expander` to produce one or more follow-up hypotheses on the same branch. The expander is a pure function from `Result` to `list[Hypothesis]`. The lesson ships a deterministic expander that produces two follow-ups for any result whose reward exceeds the paper threshold.
 
 ## Budgets
+
+> **【中文解读】** 两个预算保护调度器免于失控循环：`max_experiments`（跨所有分支的总实验数）和 `max_seconds`（墙钟上限）。任一触发时，调度器停止调度新任务，等待飞行中的任务完成，返回最终轨迹。轨迹包含 `stop_reason` 供下游使用。
 
 Two budgets protect the scheduler from runaway loops.
 

@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 每周都有新语言模型发布，营销声称性能优异，但真正的问题是：在什么任务上优秀？没有评估线束，团队只能凭感觉比较两个模型。线束是昨天运行和今天运行之间的契约——固定任务集、固定度量、JSON 输出可 diff。核心陷阱是过度拟合线束到单一模型——线束必须足够小以在 15 分钟内读完，任务足够小可以随仓库分发，度量从零编写以便同事审计。
+
+> **【拓展：lm-evaluation-harness 在 AI 行业中的地位】** EleutherAI 的 lm-evaluation-harness 是开源 LLM 评估的事实标准，HuggingFace 的 Open LLM Leaderboard 基于它构建。它支持 HellaSwag、ARC、MMLU、TruthfulQA 等核心基准。Meta 评估 LLaMA 时使用了定制版本，增加了代码生成和数学推理任务。评估线束的设计原则是：适配器（adapter）是唯一与模型相关的代码，交换适配器不影响任务和度量。
+
 A new language model lands every week. The marketing claim is that it does well. The honest question is: well at what? The honest answer is the leaderboard you wrote yourself, because the vendor's leaderboard is the one they tuned to.
 
 Without a harness in your repo you compare two models by vibes. With a harness you compare them by score on a fixed task set with a fixed metric, on a JSON output you can diff. The harness is the contract between yesterday's run and today's run. Without it, regressions ship.
@@ -62,6 +66,8 @@ A task is a `.jsonl` file under `outputs/tasks/`. The file name is the task name
 
 ### The five fixture tasks
 
+> **【中文解读】** 五个内置任务覆盖不同评估维度：算术（exact_match，token 级正确性）、摘要（rouge_l，最长公共子序列 F1）、代码执行（code_exec，输入输出对验证）、多选（multiple_choice，首字母匹配）、生成（substring_contains，自由文本包含目标子串）。code_exec 指标在剥离的 builtins 命名空间中执行预测——断言 `import os` 会失败。
+
 | Task | Metric | What it tests |
 |------|--------|---------------|
 | arithmetic | exact_match | Token-level correctness on a deterministic answer |
@@ -71,6 +77,8 @@ A task is a `.jsonl` file under `outputs/tasks/`. The file name is the task name
 | generation | substring_contains | Free-form text must contain at least one target substring |
 
 ### The metric contract
+
+> **【中文解读】** 每个度量是从 `(prediction, targets, extras)` 到 `[0.0, 1.0]` 的函数。线束将每例得分平均得到任务得分，再将任务得分平均得到总分。度量函数都极小：exact_match 做小写化和空白归一化后比较相等性；rouge_l 计算最长公共子序列的 F1；code_exec 在受限命名空间执行预测并验证输入输出对。
 
 Every metric is a function from `(prediction, targets, extras) -> float in [0.0, 1.0]`. The harness averages the per-example scores to get a task score, then averages task scores to get the overall. The metric functions are tiny:
 
@@ -83,6 +91,8 @@ Every metric is a function from `(prediction, targets, extras) -> float in [0.0,
 The code_exec metric runs the prediction in a stripped builtins namespace. The lesson's test asserts that `import os` blows up because `os` is not in the namespace; you cannot reach the filesystem from a code prediction.
 
 ### The model adapter
+
+> **【中文解读】** 适配器是评估线束的接缝（seam）——`generate(prompts) -> list[str]` 是唯一的模型相关接口。本课提供 `ToyAdapter`（对固定任务返回正确答案的确定性模式匹配器）和 `HttpAdapter`（调用真实 API 的示例）。交换适配器，任务、度量和排行榜不变。
 
 ```python
 class ModelAdapter(Protocol):
@@ -139,6 +149,8 @@ python3 code/main.py
 The script seeds the fixtures on first run, scores them with the toy adapter (which gets every fixture right), and writes `outputs/leaderboard.json`. Overall score is 1.0 with the toy adapter; the stub adapter test in `test_main.py` shows the same harness produces 0.0 when the adapter cannot answer.
 
 ## Use It | 使用方法
+
+> **【拓展：大语言模型评估基准的演进】** 2024-2026 年的评估基准经历了显著变化：1）MMLU 被证明存在数据污染，MMLU-Pro 被提出替代；2）HumanEval 扩展为 HumanEval+（增加测试用例）；3）IFEval（指令遵循评估）成为新标准；4）GPQA（研究生级别问答）取代 ARC 作为推理能力基准；5）LiveCodeBench 使用持续更新的 LeetCode 题目避免数据污染。本课的五任务设计是这些复杂基准的核心简化——相同的架构原则，更小的规模。
 
 To plug a real model in, write an adapter. The shape:
 

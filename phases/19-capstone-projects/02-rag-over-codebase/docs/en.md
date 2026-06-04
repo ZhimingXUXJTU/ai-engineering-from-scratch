@@ -77,6 +77,8 @@ git push --> webhook --> ingest worker (LlamaIndex Workflow)
 
 > **【中文解读】** 构建分为 9 个阶段：摄取遍历器（git push 触发 diff）、分块摘要器（Haiku 4.5 批处理）、嵌入池（Voyage-code-3 批量 128）、BM25 索引（字段加权）、符号图（Neo4j/kuzu 存储导入/调用/继承关系）、查询 Agent（LangGraph 三节点：检索-重排-合成）、引用强制（无锚点声明被过滤）、增量重索引（50 文件推送 < 60 秒）、评估（100 个标注问题测 MRR@10）。
 
+> **【拓展：tree-sitter 在代码分析中的核心地位】** tree-sitter 是代码解析的事实标准，被 Neovim、Helix、Zed 编辑器和 GitHub 代码搜索使用。它提供增量解析（文件修改时只重新解析受影响子树）和错误容忍（即使代码有语法错误也能提取部分 AST）。支持 50+ 语言，每种语言的 grammar 约 1000-5000 行。本课使用 tree-sitter 提取函数/类级分块，比固定 token 窗口分块在代码检索中准确率高 20-30%。
+
 1. **Ingestion walker.** Iterate git history on every push hook. Collect changed files. For each file, parse with tree-sitter, extract function and class nodes with their full source span. Emit chunk records `{repo, path, start_line, end_line, symbol, body}`.
 
 2. **Chunk summarizer.** Batch chunks into Haiku 4.5 calls with prompt caching on the system preamble. Prompt: "Summarize this function in one sentence, naming its public contract and side effects." Store summary alongside the chunk.
