@@ -11,15 +11,21 @@
 **Prerequisites:** Phase 6 · 13 (Neural Audio Codecs), Phase 6 · 11 (Real-Time Audio), Phase 7 · 05 (Full Transformer)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Every voice agent built from Lessons 11 + 12 has a fundamental latency floor around 300-500 ms: VAD fires, STT processes, LLM reasons, TTS generates. Each stage has its own minimum latency. You can tune and parallelize, but the pipeline shape caps you.
+
+> **【中文解读】** 本节提出的问题是：如何在实际工程中正确理解和应用这一技术。理解问题背景有助于把握技术选型的关键决策点。在实际 AI 系统中，错误的技术选型往往比实现细节的 bug 代价更高。
+
 
 Moshi (Kyutai, 2024-2026) asks a different question: what if there is no pipeline? What if one model takes audio in and emits audio out directly, continuously, with text as an intermediate "inner monologue" instead of a required stage?
 
 The answer is **full-duplex speech-to-speech**. Theoretical latency 160 ms (80 ms Mimi frame + 80 ms acoustic delay). Practical latency 200 ms on a single L4 GPU. That's half what a best-in-class pipelined voice agent achieves.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 本节介绍核心概念和理论基础。掌握这些概念是后续动手实现的前提，同时也是面试和工程实践中高频考察的知识点。
+
 
 ![Moshi architecture: two parallel Mimi streams + inner-monologue text](../assets/moshi-hibiki.svg)
 
@@ -76,7 +82,16 @@ Sesame CSM (2025) uses a similar idea — a Llama-3 backbone with a Mimi codec h
 | GPT-4o Realtime | ~300 ms | closed, OpenAI API | commercial |
 | Gemini 2.5 Live | ~350 ms | closed, Google API | commercial |
 
-## Build It
+> **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
+
+> **【拓展：语音 AI 的产品化】** 语音技术在产品化中面临独特挑战：不同口音、背景噪声、远场拾音、多人说话等。Siri、Alexa、小爱同学等产品都投入了大量工程优化来解决这些 "长尾问题"。实时性要求（<300ms 延迟）也是语音产品的核心指标。
+
+> **【拓展：多语言语音技术】** 全球语言的语音特性差异巨大：声调语言（如中文）的音高携带语义，低资源语言缺乏训练数据。Meta 的 MMS 模型支持 1000+ 种语言的语音识别，Whisper 在多语言场景表现出色，但仍需针对特定语言微调。
+
+
+
+
+## Build It | 动手实现
 
 ### Step 1: the interface
 
@@ -135,7 +150,15 @@ Moshi does not win:
 - Factual accuracy on niche topics.
 - Most production enterprise use cases (still use pipelines in 2026).
 
-## Use It
+> **【中文解读】** 本节展示如何用成熟框架（如 PyTorch、HuggingFace 等）快速应用该技术。在实际项目中，优先使用经过验证的框架实现，可以减少 bug 并提高开发效率。
+
+
+
+
+
+> **【拓展：语音与情感计算】** 语音不仅传递文字信息，还携带丰富的情感信号（语调、语速、音高变化）。情感语音识别（Speech Emotion Recognition, SER）在客服质检、心理健康监测、智能教育等领域有广泛应用。当前 SOTA 模型通常基于 wav2vec 2.0 或 HuBERT 等预训练模型微调。
+
+## Use It | 用框架实现
 
 | Situation | Pick |
 |-----------|------|
@@ -146,6 +169,8 @@ Moshi does not win:
 | Custom-voice TTS in context | Sesame CSM |
 | Speech-to-speech, any languages | GPT-4o Realtime or Gemini 2.5 Live (commercial) |
 
+
+
 ## Pitfalls
 
 - **Limited tool calling.** Moshi is a dialogue model, not an agent framework. Combine with pipeline for tools.
@@ -153,17 +178,23 @@ Moshi does not win:
 - **Language coverage.** French + English is excellent; others limited. Hibiki-Zero helps, but you still need training data.
 - **Resource cost.** A full Moshi session holds a GPU slot; not a cheap shared-tenant deploy pattern.
 
-## Ship It
+> **【中文解读】** 本节关注如何将模型部署为可用的产品。从原型到生产级系统需要考虑性能优化、错误处理、监控等多个维度。
+
+
+## Ship It | 产出物
 
 Save as `outputs/skill-duplex-pipeline.md`. Pick pipeline vs full-duplex architecture for a voice-agent workload, with reason.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py`. It simulates the two-stream + inner-monologue architecture symbolically.
 2. **Medium.** Pull Moshi from HuggingFace, run the server, test one conversation. Measure wall-clock latency from end-of-user-speech to start-of-Moshi-response.
 3. **Hard.** Take your Lesson 12 pipeline agent and compare P50 latency vs Moshi on 20 matched test utterances. Write up when a pipeline architecturally wins anyway.
 
-## Key Terms
+> **【中文解读】** 术语表中的 "What people say" vs "What it actually means" 区分了日常口语和精确技术含义。在团队协作中，统一术语定义可以避免大量沟通误解。
+
+
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -174,7 +205,10 @@ Save as `outputs/skill-duplex-pipeline.md`. Pick pipeline vs full-duplex archite
 | Streaming S2S | Audio → audio live | Chunk-by-chunk translation/dialogue, no pipeline stages. |
 | Back-channeling | "Mhm" reactions | Moshi can emit small acknowledgments without breaking its turn. |
 
-## Further Reading
+> **【中文解读】** 延伸阅读提供了深入学习的高质量资源。这些论文和教程是该领域的经典参考文献，适合需要深入理解的读者。
+
+
+## Further Reading | 延伸阅读
 
 - [Défossez et al. (2024). Moshi — speech-text foundation model](https://arxiv.org/html/2410.00037v2) — the paper.
 - [Kyutai Labs (2026). Hibiki-Zero](https://arxiv.org/abs/2602.12345) — streaming translation without aligned data.
@@ -182,3 +216,6 @@ Save as `outputs/skill-duplex-pipeline.md`. Pick pipeline vs full-duplex archite
 - [Kyutai — Moshi repo](https://github.com/kyutai-labs/moshi) — install + server.
 - [OpenAI — Realtime API](https://platform.openai.com/docs/guides/realtime) — closed commercial peer.
 - [Kyutai — Delayed Streams Modeling](https://github.com/kyutai-labs/delayed-streams-modeling) — the STT/TTS framework under the hood.
+
+> **【中文解读】** 延伸阅读提供了深入学习的高质量资源，包括论文、教程和工具。建议按需选读，优先阅读标注为 "the critical read" 的核心论文。
+
