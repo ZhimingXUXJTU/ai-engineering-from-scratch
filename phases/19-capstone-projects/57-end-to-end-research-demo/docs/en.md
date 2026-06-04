@@ -20,6 +20,10 @@
 
 ## What composes here
 
+> **【中文解读】** 端到端研究演示组合了 Track D 的四个先前课程：种子假设送入迭代调度器，调度器用 UCB 选择假设并运行实验，结果触发论文写作，批评循环迭代草稿到收敛，论文写作者输出最终 LaTeX/BibTeX/Manifest。五个阶段通过纯 Python 导入连接，而非框架。每个阶段要么成功要么抛出类型化错误——失败短路整个演示。
+
+> **【拓展：端到端科研自动化的里程碑】** Sakana AI 的 "The AI Scientist"（2024）首次展示了从假设生成到论文撰写的完整自动化流程，在 ICLR 2024 的研讨会上被评为 Top-10。Google DeepMind 的 FunSearch 使用 LLM 发现新的数学算法并发表在 Nature 上。本课的端到端演示是这些系统的教育性简化——展示了完整的科研循环骨架，每个组件都可以替换为真实的 LLM 驱动版本。
+
 ```mermaid
 flowchart LR
     Seed[Seed hypotheses] --> Sched[Iteration scheduler]
@@ -51,11 +55,15 @@ The inline stub stands in for lessons fifty through fifty-three: a small generat
 
 ## Determinism guarantees
 
+> **【中文解读】** 演示按构造确定性：实验运行器使用种子 numpy，批评循环的修订者按固定顺序遍历固定维度，论文写作者的散文生成器是模拟的，调度器的 UCB 选择器用迭代顺序（而非随机选择）打破平局。相同种子产生相同报告——测试通过运行两次演示并比较 manifest 来断言此属性。
+
 The demo is deterministic by construction. The experiment runner is seeded numpy. The critic loop's reviser walks fixed dimensions in fixed order. The paper writer's prose generator is the mocked one from lesson fifty-four. The scheduler's UCB picker breaks ties on iteration order, not random choice.
 
 Given the same seed, the demo emits the same report. The test asserts this property by running the demo twice and comparing the manifest.
 
 ## The demo report shape
+
+> **【拓展：组合式架构在 AI 系统中的优势】** 本课的端到端演示证明了"组合即架构"（composition is architecture）：五个课程通过纯 Python 导入连接，无框架依赖。这种设计使得每个组件可以独立测试、独立替换、独立演进。LangGraph 和 CrewAI 提供了框架级的多 Agent 组合方案，但本课展示了最小可行的组合模式——当框架过于重量级时，这种朴素的方法更有教育价值和实际灵活性。
 
 ```mermaid
 flowchart TB
@@ -70,6 +78,8 @@ Each field comes verbatim from the upstream stage. The demo does not transform a
 
 ## Failure mode handling
 
+> **【中文解读】** 每个阶段要么成功要么抛出类型化错误：调度器返回带 stop_reason 的报告，最佳结果选取在无触发器时抛出 NoTriggerError，批评循环返回带状态的 LoopResult，论文写作者在契约违反时抛出 PaperValidationError。任何阶段的失败用类型化异常短路演示——测试断言下游阶段不会被调用。
+
 Each stage either succeeds or raises a typed error.
 
 ```text
@@ -83,6 +93,8 @@ Paper writer ..... raises PaperValidationError on contract break
 A failure in any stage short-circuits the demo with a typed exception. The tests pin this contract: `test_no_triggers_raises_typed_error` and `test_best_picker_raises_when_no_triggers` assert the picker raises `NoTriggerError` / `BestResultError` when no branch fired a trigger, and the writer is never invoked.
 
 ## The best-result picker
+
+> **【中文解读】** 调度器按分支发出论文触发器。选取器选择所有触发器中均值奖励最高的分支，平局按分支 id 字母序打破以保证确定性。选取器是一个小型纯函数。`mini_to_full_paper` 将收敛的 MiniPaper 升级为完整 Paper——附加选中分支的图表和合成参考文献。
 
 The scheduler emits paper triggers per branch. The picker selects the branch with the highest mean reward across all triggers. Ties break alphabetically by branch id so the demo is deterministic. The picker is a small pure function; the test pins it on a fixed scheduler report.
 

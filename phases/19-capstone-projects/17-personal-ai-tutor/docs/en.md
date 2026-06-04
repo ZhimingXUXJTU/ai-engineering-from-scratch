@@ -85,6 +85,10 @@ learner device
 
 ## Build It | 动手构建
 
+> **【中文解读】** 构建个人 AI 导师系统：课程知识图谱（50-150 个概念节点 + 前置依赖边）、知识诊断测试（项目反应理论 IRT 模型评估学生水平）、个性化学习路径（基于诊断结果的图遍历）、多模态解释生成（文本+图表+代码示例）、间隔重复调度和 Bloom 分类法问题生成。
+
+> **【拓展：AI 教育在 2026 年的突破】** Khan Academy 的 Khanmigo、Duolingo 的 AI 辅导、Coursera 的 AI 学习助手都采用类似架构。关键创新：1）IRT（Item Response Theory）模型精准定位学生知识盲区；2）Bloom 分类法确保问题覆盖记忆/理解/应用/分析/评价/创造六个层次；3）间隔重复算法（Anki 风格）优化长期记忆保持率。Meta 2025 年的研究显示，AI 辅导将学习效率提升约 30%，但完全自主 AI 导师在情感支持和动机维持方面仍不足。
+
 1. **Curriculum graph.** Build a Neo4j of 50-150 concept nodes (e.g., K-12 algebra from "number line" to "quadratic formula") with prerequisite edges. Attach OER content per node (Open Textbook, OpenStax).
 
 2. **Learner model.** Initialize Bayesian knowledge tracing with priors: guess, slip, learn-rate. Update per-concept mastery after each interaction. Persist per learner.

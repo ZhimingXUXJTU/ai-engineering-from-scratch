@@ -19,11 +19,19 @@
 
 ## Why JSON-RPC stays the lingua franca
 
+> **【中文解读】** JSON-RPC 2.0 自 2013 年以来一直是 Agent 与工具服务器通信的标准协议。它只有两页规范，却对称地支持 stdio、socket、websocket 和 HTTP 传输。与 gRPC、自定义二进制协议不同，JSON-RPC 不在流式/批处理/传输耦合之间做取舍——这正是它能存活至今的原因。
+
+> **【拓展：JSON-RPC 在 AI Agent 中的应用】** Model Context Protocol (MCP) 的传输层直接基于 JSON-RPC 2.0 over stdio。Claude Code 的工具调用、Cursor 的插件通信、VS Code 的语言服务器协议 (LSP) 都采用相同的 JSON-RPC 框架。理解这一层是理解 AI Agent 工具链基础设施的关键。
+
 A coding agent in 2026 talks to maybe twelve tool servers in a single session. Each server is a separate process or a remote endpoint. The wire format has been the same since 2013. JSON-RPC 2.0 is two-page spec. It survives because the alternatives (gRPC, HTTP per call, custom binary) all impose a tradeoff JSON-RPC does not: they pick either streaming or batching or transport-coupling. JSON-RPC is symmetric across stdio, sockets, websockets, and HTTP, and a client can drive a server it has never seen if both honor the spec.
 
 This lesson builds the stdio variant. Newline-delimited JSON. Each request is one line. Each response is one line. The transport boundary is `\n`.
 
 ## The wire shape
+
+> **【中文解读】** JSON-RPC 2.0 定义了四种信封形状：请求（request）、成功响应（response）、通知（notification）和错误响应（error）。关键规则是通知没有 `id` 字段，服务器不得响应通知——这保持了帧计算的简洁性。批处理（batch）是请求数组，服务器返回响应数组。
+
+> **【拓展：MCP 协议中的消息类型】** Claude 的 MCP 协议严格遵循这一信封结构。`tools/call` 是请求-响应模式，`notifications/progress` 是单向通知，`cancelled` 通知用于取消进行中的调用。这种设计使得 Agent 可以在等待工具返回的同时接收进度更新。
 
 Four envelope shapes exist. Two are spoken by the client. Two are spoken by the server.
 
@@ -45,6 +53,10 @@ A batch is a JSON array of requests or notifications. The server replies with an
 
 ## The five error codes
 
+> **【中文解读】** JSON-RPC 2.0 定义了五个标准错误码：-32700（解析错误）、-32600（无效请求）、-32601（方法未找到）、-32602（无效参数）、-32603（内部错误）。解析错误的响应中 `id` 必须为 `null`，因为请求未能解析到足以提取 id 的程度。错误码 -32000 到 -32099 保留给服务器自定义错误。
+
+> **【拓展：错误码在 LLM 工具调用中的映射】** 当 GPT-4 或 Claude 调用工具失败时，错误码直接映射到这些语义：参数类型不匹配返回 -32602，工具不存在返回 -32601，工具内部异常返回 -32603。模型根据错误信息自动修正参数并重试，这是 Agent 自修复能力的基础。
+
 ```text
 -32700  Parse error      JSON could not be parsed
 -32600  Invalid Request  Envelope shape is wrong
@@ -64,6 +76,8 @@ The transport reads one line at a time. A line is bytes up to and including `\n`
 For the lesson we wrap an `io.BytesIO` pair as stdin and stdout. The server reads requests until EOF, writes responses for each, and returns. The client reads the responses back. No process spawn. No timeouts. The transport behavior is identical to a real subprocess pipe because Python's `io` interface presents the same `.readline()` and `.write()` contract.
 
 ## Method dispatch
+
+> **【中文解读】** 传输层不关心方法是否存在——它只负责解析和序列化。方法分派委托给 `handler(method, params)` 可调用对象。三种异常类映射到特定错误码：`MethodNotFound` -> -32601、`InvalidParams` -> -32602、其他异常 -> -32603。这种分层设计使传输层、注册中心和分派器各自独立。
 
 The transport does not know which methods exist. It hands off to a callable `handler(method, params)` that the harness supplies. The handler returns a result or raises. Three exception classes surface specific codes.
 
@@ -89,6 +103,10 @@ client writes              server reads             server writes
 A broken JSON line does not stop the loop. A missing `method` field does not stop the loop. A handler exception does not stop the loop. The transport keeps reading until EOF.
 
 ## Notifications and asymmetric flows
+
+> **【中文解读】** 通知是"发射后不管"（fire-and-forget）模式。Agent 利用通知进行进度推送、取消信号和日志输出。长运行工具可以在请求处理过程中发出进度通知，无需等待往返确认。这种非对称流使 Agent 能在等待工具返回的同时接收实时状态更新。
+
+> **【拓展：流式响应与通知模式】** Claude 的流式响应（streaming）本质上就是通知模式的应用。`content_block_delta` 通知持续推送生成中的 token，而最终的 `message_stop` 是正式响应。OpenAI 的 function_calling 也采用了类似的双重模式：工具调用结果可以流式返回。
 
 A notification is fire-and-forget. The harness uses notifications for progress events, cancellation signals, and log lines. Notifications are how a long-running tool can stream status updates without round-tripping for each one.
 

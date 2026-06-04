@@ -79,6 +79,10 @@ model card (2026 MOF) + safety eval (Llama Guard 4)
 
 ## Build It | 动手构建
 
+> **【中文解读】** 构建 8 个阶段：数据管道（Datatrove 去重 + 质量分类 + PII 清洗）、污染检查（MinHash 对比基准测试集）、Axolotl SFT（ZeRO-3 + FA3 + 序列打包）、TRL DPO/GRPO 偏好对齐、GPTQ/AWQ/GGUF 三种量化、vLLM 投机解码推理、完整评估（SWE-bench/HumanEval+/GPQA）和成本分析。
+
+> **【拓展：端到端微调在 LLM 公司中的标准化流程】** Meta 的 LLaMA 微调流程、Mistral 的模型工厂、Cohere 的 Command 系列都遵循相同的阶段：预训练 -> SFT -> DPO/RLHF -> 量化 -> 部署。2026 年的标准化工具链：Axolotl 或 LLaMA-Factory（训练配置）、TRL（对齐）、AutoGPTQ/AutoAWQ（量化）、vLLM 或 TensorRT-LLM（推理）。关键指标：$/1M tokens vs 商业 API 价格。
+
 1. **Data pipeline.** Run Datatrove dedup on raw corpus. Apply Nemotron-CC-style quality classifier. Presidio scrubs PII. Write train/val splits with explicit seed.
 
 2. **Contamination check.** For every validation split, compute MinHash against MMLU-Pro, MT-Bench-v2, RewardBench-2 test sets. Reject any overlap.

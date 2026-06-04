@@ -77,6 +77,10 @@ Coder A          Coder B          Coder C          Coder D          (4 parallel)
 
 ## Build It | 动手构建
 
+> **【中文解读】** 构建多 Agent 软件开发团队：架构师（分解任务为 DAG）、多个编码 Agent（并行实现子任务）、代码审查 Agent（检查正确性和风格）、测试 Agent（编写和运行测试）。任务板是文件支持的 JSONL，角色通过标签订阅消息。关键设计是子任务接口的显式声明——每个子任务指定涉及的文件、公共函数和测试影响。
+
+> **【拓展：多 Agent 软件开发的产业实践】** Meta 的多人协作编程工具、Sourcegraph 的 Cody Team 模式、Devin 的多 Agent 架构都采用类似的"架构师 + 工人 + 审查者"模式。ChatDev 和 MetaGPT 的学术研究显示，多 Agent 协作在代码生成质量上优于单 Agent，关键因素是角色分离带来的上下文隔离。本课的 JSONL 任务板是这些系统核心通信协议的教育性简化。
+
 1. **Task board.** File-backed JSONL with typed messages: `plan_request`, `subtask`, `diff_ready`, `review_needed`, `test_needed`, `approved`, `rejected`, `replan_needed`. Agents subscribe to tags.
 
 2. **Architect.** Reads the GitHub issue, runs Opus 4.7 with a plan template requiring explicit subtask interfaces (files touched, public functions, test impact). Emits one `plan_request` with a DAG of subtasks.

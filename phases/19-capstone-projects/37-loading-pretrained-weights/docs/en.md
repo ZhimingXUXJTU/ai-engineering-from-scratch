@@ -101,6 +101,10 @@ Real GPT-2 weights are 0.5 GB. The demo does not download them; it generates a s
 
 ## Build It | 动手构建
 
+> **【中文解读】** 构建权重加载器的核心组件：名称映射函数（将预训练名称转换为本地模型名称）、safetensors 读取器（遍历张量名称、映射、检查形状、转置 conv1d 权重）、LoadReport（记录命中、缺失和形状不匹配）。演示步骤：随机初始化模型 -> 生成续写 -> 加载权重 -> 再次生成 -> 验证两次输出不同。
+
+> **【拓展：权重加载在 LLM 工程中的实际场景】** 实际工程中权重加载远比本课复杂：1）LoRA 权重合并（base_weight + lora_A @ lora_B）；2）量化权重解量化（GPTQ/AWQ 的 scale 和 zero_point）；3）跨框架转换（PyTorch -> GGUF -> ONNX）；4）分片权重合并（Megatron-LM 的 TP 分片需要重新排列）。HuggingFace 的 `transformers` 库有超过 200 个模型的加载脚本，每个都是一组名称映射规则。
+
 `code/main.py` implements:
 
 - A small replica of the lesson 35 `GPTModel` so this lesson is self contained.

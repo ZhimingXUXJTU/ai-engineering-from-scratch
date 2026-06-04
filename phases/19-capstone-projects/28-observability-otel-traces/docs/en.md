@@ -20,6 +20,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 生产中的编码 Agent 每轮产生三类产物：模型调用、工具执行和验证门决策。没有结构化遥测，三类故障无法解决：1）缺失追踪——只有 500 行聊天日志，无工具运行记录、token 消耗和门拒绝信息；2）不可解析的追踪——使用自设字段名，Grafana/Honeycomb/Jaeger 无法读取；3）未聚合的度量——可以看到单个慢工具调用，但无法回答"read_file 调用过去一小时的 p95 延迟是多少？"
+
+> **【拓展：OpenTelemetry GenAI 语义约定在 LLM 可观测性中的地位】** OpenTelemetry 的 GenAI 语义约定定义了标准属性键：`gen_ai.system`（提供商）、`gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.usage.output_tokens` 等。LangChain、LlamaIndex 和 Anthropic SDK 都在集成这些约定。本课从零构建的 span builder 教会你线路格式——生产中接入真正的 OTel SDK 后获得 OTLP 导出器、批处理和资源检测。
+
 A coding agent in production produces three classes of artifact every turn: a model call, a tool execution, and a verification gate decision. None of these are useful without structured telemetry.
 
 The first failure mode is the missing trace. Something went wrong on Tuesday but the only record is a 500-line chat log. There is no record of which tool ran, how long it took, how many tokens went into the prompt, or whether the gate refused anything. The agent author has to guess.
@@ -31,6 +35,8 @@ The third failure mode is the unaggregated metric. You can see one slow tool cal
 The OpenTelemetry GenAI semantic conventions exist exactly for this. They define a small set of standard attributes that span emitters across LLM frameworks share. If your harness writes those attributes, every OTel-compatible backend can read them.
 
 ## The Concept | 概念
+
+> **【中文解读】** Harness 中的每个操作产生一个 span。Span 有 trace id（整个 Agent 调用）、span id（单个操作）、name（如 gen_ai.chat、gen_ai.tool.execution）、遵循 GenAI 约定的属性、起止时间和状态。导出器写入 JSONL——每行一个 JSON 对象，最简单且下游工具可流式读取、grep 和导入。度量与追踪并行：计数器记录每个工具调用次数，直方图记录延迟，两者序列化为 Prometheus 文本格式。
 
 ```mermaid
 flowchart TD
@@ -51,6 +57,8 @@ The exporter writes JSONL. One JSON object per line. This is the simplest possib
 Metrics live next to traces. A counter increments on each tool call: `tools_called_total{tool="read_file"}`. A histogram records the observed latency: `tool_latency_ms{tool="read_file"}`. Both serialise into Prometheus text exposition format, which is the de-facto standard for pull-based metrics.
 
 ## Architecture | 架构
+
+> **【拓展：LLM 可观测性平台生态】** 2026 年的 LLM 可观测性平台包括：Langfuse（开源，追踪 + 评估）、Helicone（代理层追踪）、Arize AI（Phoenix，模型评估）、Braintrust（评估 + 日志）。它们都采用相同的架构：span-based 追踪 + 度量聚合 + 仪表板。本课的 JSONL 导出器 + Prometheus 文本格式是这些平台核心功能的从零构建版本，直接教会你它们的数据模型。
 
 ```mermaid
 flowchart LR
@@ -81,6 +89,8 @@ The span id and trace id are 16-byte hex strings, generated from `os.urandom`. T
 The histogram has a fixed bucket set (the OTel default for latency in milliseconds: 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, +Inf). Samples are stored as a list; exposition computes per-bucket counts on demand.
 
 ## Why hand-rolled instead of opentelemetry-sdk
+
+> **【中文解读】** OTel Python SDK 是几千行代码、需要多进程运行 OTLP 导出器、运行时代价超过课程预算。手写版本教授线路格式——生产中将相同属性接入真正 SDK 获得 OTLP 导出器和批处理。语义约定是稳定的——本课发出的线路格式在 2030 年仍能被解析，因为 OTel 永远不会破坏 GenAI 属性名，只会添加新的。
 
 The OTel Python SDK is a real dependency. It is also several thousand lines of code, multiple processes for the OTLP exporter, and a runtime cost that swamps a lesson budget. The hand-rolled version teaches the wire format. In production you wire the same attributes into the real SDK and get the OTLP exporter, batching, and resource detection for free.
 

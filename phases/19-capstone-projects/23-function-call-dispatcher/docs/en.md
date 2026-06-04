@@ -19,6 +19,10 @@
 
 ## Where the dispatcher sits
 
+> **【中文解读】** 分派器是 Agent Harness 的核心中间层，位于循环（Lesson 20）、工具注册中心（Lesson 21）和传输层（Lesson 22）之间。它负责超时控制、指数退避重试、幂等性去重和错误映射——这些都是模型调用工具时不可回避的工程问题。分派器是唯一了解计时器、重试和幂等性的层。
+
+> **【拓展：分派器在 Claude Code 和 Devin 中的实现】** Claude Code 的工具分派器实现了类似的分层：Tool Registry 定义 Schema，Dispatcher 管理超时和重试，Transport 负责 JSON-RPC 序列化。Devin 的 agent harness 增加了 circuit breaker（断路器）模式——当某个工具连续失败 N 次后自动进入冷却期，避免雪崩效应。
+
 Between the harness loop (lesson twenty) and the tool registry (lesson twenty-one). The transport (lesson twenty-two) feeds the loop. The loop hands a tool call to the dispatcher. The dispatcher calls the registry, runs the handler, and returns either a result or a JSON-RPC-shaped error envelope.
 
 ```mermaid
@@ -41,11 +45,17 @@ The dispatcher is the only layer that knows about timers, retries, and idempoten
 
 ## Timeouts
 
+> **【中文解读】** 每个工具有默认超时时间（`timeout_ms`），分派器可按调用覆盖。使用 `asyncio.wait_for` 实现超时控制。关键设计：非幂等工具（如 `db.write`）超时后不自动重试，因为操作可能已提交，重试会导致重复写入。分派器通过注册中心记录的 `idempotent` 标志来决定是否重试。
+
 Each tool has a default timeout. The registry record carries `timeout_ms`. The dispatcher overrides it from a per-call override when the harness passes one. We use `asyncio.wait_for`. On timeout, the handler task is cancelled and the dispatcher returns `DispatchError(kind="timeout")`.
 
 A timeout is not a retryable error by default for non-idempotent tools. A `db.write` that timed out may or may not have committed. Retrying duplicates the write. The dispatcher honors the `idempotent` flag from the registry record. Idempotent tools retry. Non-idempotent tools do not.
 
 ## Retries with exponential backoff
+
+> **【中文解读】** 重试策略：最多 3 次尝试，指数退避加抖动（jitter）。只有 `timeout` 和 `transient`（瞬时）错误会重试。`schema` 错误、`not_found` 和 `internal` 错误不重试——因为模式错误是确定性的，重试不会改变结果，只会浪费 token 预算。
+
+> **【拓展：抖动（Jitter）在分布式系统中的重要性】** AWS 架构博客的经典文章"Exponential Backoff And Jitter"证明，在并发重试场景中，不加抖动的指数退避会导致"雷群效应"（thundering herd）。添加随机抖动使重试间隔分散，显著降低系统负载。Claude API 和 OpenAI API 的 SDK 都采用了带抖动的退避策略。
 
 The retry policy is three attempts maximum. Backoff is exponential with jitter.
 
@@ -69,6 +79,8 @@ The key is the caller's responsibility. The harness derives it from the planner:
 
 ## Error envelope
 
+> **【中文解读】** 失败的分派返回统一的 `DispatchError` 结构，包含错误类型（kind）、消息、尝试次数和 JSON-RPC 错误码。Harness 循环根据 `kind` 决定下一步动作：`schema`/`not_found` 触发重新规划，`timeout`/`transient` 根据尝试次数决定，`budget_exceeded` 触发预算超限处理。这种统一错误信封是 Agent 系统可靠性的基石。
+
 A failed dispatch returns a single shape.
 
 ```text
@@ -82,6 +94,10 @@ DispatchError
 The harness loop maps `kind` to the next state. `schema` and `not_found` go to `on_error` and trigger a replan. `timeout` and `transient` go to `on_error` and may or may not replan depending on attempts. `budget_exceeded` triggers `on_budget_exceeded`.
 
 ## Concurrency limit on fan-out
+
+> **【中文解读】** 当 Agent 需要并行调用 40 个工具时，`gather(*calls)` 会同时打开 40 个连接。分派器用信号量（semaphore）包装 `gather`，默认并发限制为 8。每个调用在分派前获取信号量，完成后释放。调用方看到的是 `gather` 形状的输出，但实际调度受到并发约束。
+
+> **【拓展：并发控制在 LLM Agent 中的实践】** Devin 的并行工具调用限制为 5 个并发，Claude Code 的最大并发工具调用数为 10。这种限制不仅是后端保护，也是成本控制——40 个并行 API 调用意味着 40 倍的 token 消耗速率。合理的并发限制是 Agent 生产部署的关键参数。
 
 `gather(*calls)` runs all coroutines simultaneously. With forty tool calls, that is forty open sockets or forty subprocess pipes. Most backends do not like forty parallel connections from one client.
 

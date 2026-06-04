@@ -76,6 +76,10 @@ file under failure class + attach repro
 
 ## Build It | 动手构建
 
+> **【中文解读】** 构建代码迁移 Agent 的 8 个阶段：先运行确定性迁移脚本（OpenRewrite/libcst）处理 70-80% 的机械性变更，再让 Agent 处理剩余的语义级迁移。每个迁移任务在 Daytona 沙箱中运行，构建失败时自动移交给 Agent。
+
+> **【拓展：AI 代码迁移在企业中的应用】** 2026 年的代码迁移场景：Java 8 -> 17+、Python 2 -> 3（长尾）、AngularJS -> React、REST -> GraphQL。Amazon Q Developer Agent 专门支持 AWS 服务迁移。GPT-5 和 Claude 在代码迁移中的优势在于理解跨文件依赖和 API 语义变化——确定性脚本只能做语法级转换，Agent 能理解"这个方法签名变了，调用方需要适配新参数"。
+
 1. **Recipe pass.** Run OpenRewrite (Java) or libcst (Python) recipes first. Catch the 70-80% of migrations that are mechanical. Commit as "recipe" commit.
 
 2. **Build trial.** Daytona sandbox: install target runtime, run the build. If green, skip to tests. If red, hand off to agent.

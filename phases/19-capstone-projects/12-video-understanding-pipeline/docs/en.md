@@ -75,6 +75,10 @@ answer + (start, end) timestamps + frame thumbs + citations
 
 ## Build It | 动手构建
 
+> **【中文解读】** 构建视频理解流水线的 8 个阶段：视频摄入（YouTube/MP4 降采样到 720p）、关键帧提取（每秒 1 帧 + 场景变化检测）、音频转录（Whisper large-v3）、OCR（PaddleOCR）、帧描述（视觉语言模型）、时序对齐（将转录/OCR/帧描述对齐到时间轴）、多模态融合检索和幻觉基准测试。
+
+> **【拓展：视频理解在 2026 年的前沿进展】** Google 的 Gemini 2.5 Pro 原生支持 1 小时视频输入，Claude 的视觉模式支持截图分析。Twelve Labs 的 Pegasus API 提供专用视频嵌入。关键挑战是时序理解——"第 3 分钟提到了什么"需要帧级别的对齐。本课的 keyframe + transcript + OCR 三流融合是工业级视频理解的标准架构，Netflix 和 YouTube 都采用类似的字幕+视觉多模态索引方案。
+
 1. **Ingest walker.** Accept YouTube URLs or local MP4s. Downscale to 720p if needed. Persist `{video_id, file_path}`.
 
 2. **Scene segmentation.** Run TransNetV2 or PySceneDetect to produce `[{scene_id, start_ms, end_ms, keyframe_path}]`. Target 100 hours: ~6k-8k scenes.

@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 你想在有效批次 512 下训练（损失曲线更平滑），但加速器只能容纳 32 个样本。梯度累积是 2017 年以来的标准技巧：连续运行 16 次反向传播，让梯度在参数缓冲区中累积，仅在达到目标时才执行优化器步骤。关键风险是损失缩放——16 个小批次的交叉熵简单求和是完整批次的 16 倍，方向正确但幅度错误，优化器步长 16 倍过大。修复只需一次除法，但也最容易被遗忘。
+
+> **【拓展：梯度累积在 LLaMA 和 GPT 训练中的关键作用】** LLaMA 2 65B 的训练中，每个 GPU 的微批次大小为 4，通过梯度累积 16 步达到有效批次 64（每 GPU），再乘以数据并行度达到全局有效批次。GPT-3 175B 的训练使用了类似策略：微批次 0.5M tokens，累积 8 步，全局有效批次 3.2M tokens。梯度累积是连接硬件内存限制和训练质量需求的桥梁。
+
 You want to train at an effective batch of 512 because the loss curve is smoother and the optimizer step makes more sense at that scale. The accelerator on the desk holds 32 examples before it runs out of memory. Doubling the batch is not an option. Halving the model is not an option. The trick the field reached for in 2017 and never stopped using is to run 16 backward passes, let the gradients accumulate inside the parameter buffers, and only step the optimizer when the count reaches the target.
 
 The risk is that the loss is no longer the same number it was at the bigger batch. The cross entropy of 16 mini-batches summed naively is 16 times the loss of one full batch. Without scaling, the gradient direction is correct but the magnitude is wrong, and the optimizer step is 16 times too big. The fix is one division. The fix is also easy to forget.
@@ -45,6 +49,10 @@ The contract is short:
 
 ### The equivalence proof in code
 
+> **【中文解读】** 等价性证明：完整批次的前向/反向传播等价于将批次分成 N 份、每份损失除以 N 后累积梯度。关键点：PyTorch 默认将梯度累加到 `param.grad` 中，除法 N 使累积和回到正确尺度。优化器状态（动量缓冲、Adam 矩）每有效步只更新一次——否则指数移动平均看到错误的频率。
+
+> **【拓展：分布式训练中的 no_sync 模式】** 在 DDP（分布式数据并行）中，每个非最终微批次需要跳过梯度 all-reduce 通信。PyTorch 的 `model.no_sync()` 上下文管理器实现了这一点。LLaMA 训练中，梯度累积步数为 16 时，通信次数从 16 次减少到 1 次，显著降低了网络带宽消耗。
+
 ```python
 loss = criterion(model(x_full), y_full)
 loss.backward()
@@ -63,6 +71,8 @@ opt.step()
 up to floating point summation order. The accumulated gradient buffer at the end of the loop is the same tensor that a single full-batch backward would produce. The lesson code asserts this with a max-abs difference under 1e-4 in `equivalence_check`.
 
 ### Where the cost goes
+
+> **【中文解读】** 每个微批次消耗一次前向和一次反向传播。累积是用时间换内存——每步优化器的墙钟时间翻倍，但梯度估计的方差降低了。文献将大批次和小批次视为不同的优化问题；本课的重点是力学而非统计。关键权衡：加倍累积步数使优化器步进频率减半，但每步更稳定。
 
 Each micro-batch costs one forward and one backward. With accumulation you trade memory for time. The throughput curve in `outputs/accum-curve.json` shows what happens as the effective batch grows at fixed micro-batch:
 
@@ -110,6 +120,10 @@ python3 code/main.py
 The script prints the equivalence diff, then the sweep table, then the JSON path. Exit code zero.
 
 ## Use It | 使用方法
+
+> **【中文解读】** 生产训练中，梯度累积的公式是 `accumulation_steps = effective_batch // (micro_batch * world_size)`。三个实践模式：1）微批次大小选择为饱和设备内存的值；2）有效批次由学习率调度决定（大批次需要缩放学习率和 warmup）；3）累积次数是连接两者的桥梁，也是唯一可以在运行时调整的旋钮。
+
+> **【拓展：线性缩放规则与大批次训练】** Goyal et al. (2017) 提出的线性缩放规则：当批次大小增加 k 倍时，学习率也应增加 k 倍。这在 LLaMA 和 GPT 训练中被广泛使用，但需要配合更长的 warmup。违反此规则是训练发散的常见原因。
 
 In production training, gradient accumulation lives behind one knob. PyTorch's pattern is `accumulation_steps = effective_batch // (micro_batch * world_size)`. Frameworks that you are not allowed to use here wrap the same loop, but the steps are the same: scale the loss, skip sync on non-final micros, accumulate, step once.
 

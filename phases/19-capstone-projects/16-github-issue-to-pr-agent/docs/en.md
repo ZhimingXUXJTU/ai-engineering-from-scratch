@@ -78,6 +78,10 @@ GitHub issue labeled `@agent fix` or PR comment
 
 ## Build It | 动手构建
 
+> **【中文解读】** 构建 GitHub Issue 到 PR 的自动化 Agent：GitHub App 权限管理（细粒度安装 token）、Issue 分类器（bug/feature/refactor 分类）、实现 Agent（SWE-bench 级别的问题解决）、PR 创建和审查。安全设计强调：不允许直接推送到 main、不允许 force-push、不允许修改 .github/workflows。
+
+> **【拓展：GitHub Copilot Autofix 和 SWE-Agent 的自动化 PR 实践】** GitHub 的 Copilot Autofix（2024 年 GA）自动为安全漏洞生成修复 PR。SWE-Agent（Princeton）在 SWE-bench 上达到 50%+ 通过率。OpenHands（原 OpenDevin）的 CodeAct Agent 将 Issue 到 PR 的流程完全自动化。关键挑战是分支策略和 CI 集成——Agent 创建的 PR 必须通过项目的 CI 检查，但 CI 本身可能依赖 Agent 修改的代码。本课的分支保护和工作流限制设计解决了这个自举问题。
+
 1. **GitHub App.** Fine-grained installation token: issues read+write, pull_requests write, contents read+write, workflows read. Branch protection (the only surface that can do this) enforces "no direct push to `main`" and "no force-push"; the app is not in the bypass list. The worker enforces "no writes under `.github/workflows`" as an allow-list check on the proposed diff, since GitHub App permissions are not path-scoped.
 
 2. **Webhook receiver.** Lambda function accepts issue label / PR comment webhooks. Filters by label `@agent fix this`. Enqueues to SQS.

@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 训练初期的更新最为剧烈——模型权重接近初始化值，优化器的二阶矩估计尚未稳定，梯度范数大且噪声高。如果学习率在此阶段处于峰值，模型要么直接发散，要么陷入无法逃脱的损失平台。余弦预热调度有三个区域：线性预热（0 到 warmup_steps）、余弦衰减（warmup_steps 到 total_steps）、以及底部夹持（total_steps 之后固定在 lr_min）。
+
+> **【拓展：学习率调度在 GPT-4 和 LLaMA 训练中的应用】** GPT-4 的训练使用了 cosine decay with linear warmup，预热步数约为总步数的 2%。LLaMA 2 使用了 cosine schedule 并设置 lr_min 为 lr_max 的 10%，避免学习率归零导致训练停滞。GPT-3 的论文指出学习率是训练稳定性最敏感的超参数——甚至比模型架构更重要。
+
 The first thousand training updates are the loudest. The model's weights are still close to initialization. The optimizer's running second-moment estimate has not stabilised. The gradient norm is large and noisy. If the learning rate is at its peak during these updates the model either diverges outright or settles into a loss plateau it never escapes. The two well-known fixes are gradient clipping, which is the subject of Phase 19 lesson 45, and a learning-rate schedule that starts small and ramps up.
 
 The cosine-with-warmup schedule has three regions. From step zero to step `warmup_steps` the learning rate scales linearly from zero to the configured peak `lr_max`. From step `warmup_steps` to step `total_steps` the learning rate follows the upper half of a cosine curve, decaying from `lr_max` to `lr_min`. After `total_steps` the learning rate is pinned at `lr_min` so a misconfigured trainer that overshoots does not silently exit the schedule.
@@ -43,9 +47,13 @@ flowchart TD
 
 ### Warmup formula
 
+> **【中文解读】** 预热公式：当 `step` 在 `[0, warmup_steps]` 范围内时，学习率为 `lr_max * step / warmup_steps`。退化的 `warmup_steps = 0` 情况被视为"无预热"——调度从 step 0 直接以 lr_max 开始并立即进入余弦衰减。预热使优化器在最脆弱的初期使用小步长，逐步过渡到峰值。
+
 For `step` in `[0, warmup_steps]` with `warmup_steps > 0`, the learning rate is `lr_max * step / warmup_steps`. The degenerate `warmup_steps = 0` case is treated as "no warmup": the schedule starts directly at `lr_max` at step zero and immediately enters cosine decay. Some test harnesses pass `warmup_steps = 0` to check the schedule still produces a usable curve.
 
 ### Cosine formula
+
+> **【中文解读】** 余弦公式：当 `step` 在 `(warmup_steps, total_steps]` 范围内时，学习率为 `lr_min + 0.5 * (lr_max - lr_min) * (1 + cos(pi * progress))`。在 warmup_steps 处 cos(0) = 1，给出 lr_max；在 total_steps 处 cos(pi) = -1，给出 lr_min。两端连续性不是偶然——这是为什么调度实现为单个函数而非三个函数拼接的原因。
 
 For `step` in `(warmup_steps, total_steps]` the learning rate is `lr_min + 0.5 * (lr_max - lr_min) * (1 + cos(pi * progress))` where `progress = (step - warmup_steps) / max(1, total_steps - warmup_steps)`. At `step = warmup_steps` the cosine evaluates to `cos(0) = 1`, which gives `lr_max`, matching the warmup endpoint exactly. At `step = total_steps` the cosine evaluates to `cos(pi) = -1`, which gives `lr_min`, matching the decay endpoint exactly.
 
@@ -56,6 +64,10 @@ The continuity at both endpoints is not an accident. It is the reason the schedu
 For `step > total_steps` the learning rate stays at `lr_min`. The contract is explicit: the schedule does not error out and does not extrapolate; it pins at the floor and lets the trainer log a warning. Trainers that need to extend training change the schedule's `total_steps`, not the loop.
 
 ### Gradient norm logging alongside the rate
+
+> **【中文解读】** 调度是训练健康的一半，梯度范数是另一半。训练循环每步记录学习率和梯度 L2 范数。发散的训练在损失曲线显示异常之前，梯度范数就会飙升；良好的预热表现为范数随学习率线性增长；过于激进的峰值表现为预热后范数持续偏高。日志格式 `step, lr, grad_l2_norm, loss` 是唯一的持久化记录。
+
+> **【拓展：训练监控在工业界的实践】** Weights & Biases 和 TensorBoard 都将学习率曲线和梯度范数并排展示。DeepMind 的 Chinchilla 论文通过监控梯度范数发现了训练不稳定的根因。Meta 的 LLaMA 训练日志显示，梯度裁剪触发率是判断 warmup 是否充分的关键指标。
 
 The schedule is half of training health. The gradient norm is the other half. The training loop logs both per step. A divergent training run shows the gradient norm spike before the loss does; a well-tuned warmup keeps the norm rising linearly with the rate; a too-aggressive peak shows up as a norm that stays high after warmup. The dataset on disk is `step, lr, grad_l2_norm, loss`. The CSV is the only durable record.
 
@@ -81,6 +93,8 @@ The script exits zero and prints a per-step training log plus the schedule plot.
 
 ## Production Patterns
 
+> **【中文解读】** 四个生产模式：1）调度参数来自配置文件而非代码，确保可复现和可审计；2）步数计数器是单调递增且与 epoch 解耦的，从检查点恢复后继续正确位置；3）每次训练运行在输出目录写入调度图，PR 审查时无需重新运行；4）日志行 schema 固定（step, lr, grad_l2_norm, loss），下游 notebook 或仪表板依赖此 schema。
+
 Four patterns elevate the schedule to a production artifact.
 
 **Schedule lives in a config, not in code.** The trainer reads `warmup_steps`, `total_steps`, `lr_max`, `lr_min` from a YAML or JSON config that is committed to git. The schedule is reproducible because the config is content-addressed; the schedule is auditable because the config is part of the PR diff.
@@ -92,6 +106,8 @@ Four patterns elevate the schedule to a production artifact.
 **Log row schema is fixed.** `step, lr, grad_l2_norm, loss` in that order. A downstream notebook or dashboard reads the schema; renaming a column without bumping a version invalidates every existing dashboard.
 
 ## Use It | 使用方法
+
+> **【拓展：学习率调度的替代方案】** 除余弦衰减外，常见的调度策略包括：1）线性衰减（GPT-3 使用）；2）多项式衰减（更平滑的过渡）；3）Warm Restarts / SGDR（周期性重启，Loshchilov & Hutter 2017）；4）Inverse Square Root（Transformer 原论文使用）；5）Constant with Warmup（LLaMA 2 的消融实验显示在短训练中与 cosine 持平）。选择策略时考虑训练长度：短训练对调度敏感，长训练（>1T tokens）各种策略趋于收敛。
 
 Production patterns:
 

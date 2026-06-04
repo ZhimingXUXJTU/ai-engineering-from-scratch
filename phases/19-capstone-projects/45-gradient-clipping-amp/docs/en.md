@@ -19,6 +19,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 训练中单批次梯度范数可能暴涨三个数量级。混合精度训练（FP16）加剧了这个问题——FP16 的指数范围窄，梯度溢出变为 Inf，传播为 NaN，最终导致所有权重变为 NaN。解决方案是两个安全带：全局 L2 范数裁剪和 GradScaler 自动缩放。正确的操作顺序是：scale loss -> backward -> unscale -> clip -> step -> update，任何其他顺序都会导致静默错误的循环。
+
+> **【拓展：混合精度训练在 LLM 中的标准实践】** GPT-3 和 GPT-4 的训练全程使用 FP16/BF16 混合精度，吞吐量提升 2-3 倍。NVIDIA 的 Megatron-LM 框架中，GradScaler 的缩放因子通常从 2^16 开始，在训练过程中动态调整。LLaMA 2 使用 BF16 而非 FP16，因为 BF16 的指数范围与 FP32 相同，几乎不需要 loss scaling。
+
 A training run that ran clean yesterday produces a loss curve that goes vertical at step 8,217. The culprit is a single batch whose gradient norm is 4,200, twenty times the previous peak. Without clipping the optimizer applies a step that resets every learning the model had done in the previous hour. With a global L2 clip at norm 1.0, the same batch contributes a unit-norm update; the loss stays on its trend line; the run survives.
 
 Mixed-precision training pushes throughput by 2-3x by computing the forward pass and most of the backward pass in FP16. The cost is that FP16 has a narrow exponent range. A typical gradient that overflows in FP16 evaluates to Inf, which propagates through subsequent layers as NaN, which sets every weight to NaN at the next optimizer step. PyTorch's GradScaler solves this by multiplying the loss by a large scaling factor before the backward pass and dividing the gradients by the same factor before the optimizer step. If any gradient is Inf or NaN at unscale time, the scaler skips the step and halves the scaling factor; if the previous N steps were clean, the scaler doubles the factor. Over the course of training the factor finds the highest value the FP16 range allows.
@@ -45,6 +49,8 @@ flowchart TD
 
 ### Global L2 norm
 
+> **【中文解读】** 全局 L2 范数是所有参数梯度拼接后的欧几里得范数，而非单参数范数。PyTorch 的 `clip_grad_norm_` 返回裁剪前的范数，用于诊断"我们是否在每步都裁剪"。训练语言模型时，裁剪阈值 `max_norm = 1.0` 是现代默认值——过大允许危险批次通过，过小导致噪声损失曲线。
+
 The global L2 norm is the Euclidean norm of the concatenated gradient vector, not the per-parameter norm. PyTorch implements this as `torch.nn.utils.clip_grad_norm_(parameters, max_norm)`. The function returns the pre-clip norm so the lesson can log both the natural and the clipped value, which is necessary for the "we are clipping at every step" diagnosis.
 
 ### autocast and GradScaler
@@ -55,9 +61,15 @@ The lesson uses CPU autocast because that is what runs in CI; the same pattern t
 
 ### NaN and Inf detection
 
+> **【中文解读】** NaN/Inf 检测在两个位置进行：1）损失本身在 backward 前用 `torch.isfinite` 检查——Inf/NaN 损失不产生有效梯度，直接跳过；2）`scaler.unscale_` 后扫描非缩放梯度中的 Inf/NaN。两次检查覆盖了前向传播和反向传播两种失败模式。
+
 The detection happens in two places. First, the loss itself is checked with `torch.isfinite` before backward; an Inf or NaN loss does not produce useful gradients and is skipped without entering the optimizer. Second, after `scaler.unscale_(optimizer)` the lesson scans the unscaled gradients with `has_non_finite_grad(...)` and treats any Inf or NaN as a skip. The two checks together cover both the forward-pass and the backward-pass failure modes.
 
 ### Scaling factor diagnostics
+
+> **【中文解读】** 缩放因子是 GradScaler 的内部状态。健康训练中因子以 2 的幂次上升直到饱和（约 2^17 或 2^18）。异常训练中因子在高/低值间振荡，表明模型的梯度有时在范围内、有时溢出。不记录这个诊断信息，问题将完全不可见。
+
+> **【拓展：梯度裁剪与缩放因子的协同调试】** 在 GPT-3 规模的训练中，Meta 和 OpenAI 的工程师通过监控 GradScaler 缩放因子的变化率来检测训练不稳定。如果缩放因子在一个 epoch 内下降超过 8 倍，通常意味着学习率过高或数据中存在异常批次。这种诊断方法比监控损失曲线更早发现问题。
 
 The scaling factor is the GradScaler's internal state. Every step the lesson reads `scaler.get_scale()` and logs it next to the learning rate and gradient norm. A healthy run shows the scaling factor climbing in powers of two until it saturates near `2^17` or `2^18`. A misbehaving run shows the factor oscillating between high and low values, which is the signal that the model's gradients are sometimes in range and sometimes not. The diagnostic is invisible without logging.
 
@@ -80,6 +92,8 @@ python3 code/main.py
 The script exits zero and prints a per-step log with each row tagged `STEP` or `SKIP`; at least one row is a `SKIP`.
 
 ## Production Patterns
+
+> **【拓展：BF16 vs FP16 混合精度的选择】** 2024 年后发布的 GPU（H100、B200、RTX 4090）原生支持 BF16，FP16 的 loss scaling 逐渐被淘汰。BF16 的指数范围与 FP32 相同（8 bit exponent），不需要 GradScaler。LLaMA 2 和 Mistral 的训练使用 BF16。但 FP16 仍然在旧硬件（V100、A100 的某些配置）上使用，且在某些场景下 FP16 的精度更高（BF16 尾数只有 7 bit vs FP16 的 10 bit）。本课的 AMP 模式同时支持两种格式。
 
 Four patterns elevate the loop to a production training step.
 

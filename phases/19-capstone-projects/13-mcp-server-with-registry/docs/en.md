@@ -79,6 +79,10 @@ Postgres    S3 listing  Jira       Linear     Datadog
 
 ## Build It | 动手构建
 
+> **【中文解读】** 构建带注册中心的 MCP 服务器：暴露 10 个内部工具（Postgres 只读查询、S3 列表、Jira/Linear 搜索、Datadog 指标查询、PagerDuty 值班查询、GitHub 只读、Notion/Slack 搜索、Salesforce 读取），每个工具带类型化 schema 和范围标签。租户隔离通过范围标签实现——每个租户只能看到授权范围内的工具。
+
+> **【拓展：MCP 注册中心在企业级部署中的角色】** Model Context Protocol 的注册中心是企业 AI 治理的核心组件。它解决三个问题：1）工具发现（Agent 知道有哪些工具可用）；2）权限控制（基于角色的工具访问）；3）版本管理（工具 schema 变更的向后兼容性）。Anthropic 的 Claude Enterprise 和 Microsoft 的 Copilot Studio 都实现了类似的工具注册中心。本课的 10 工具面是企业级 MCP 部署的标准起点。
+
 1. **Tool surface.** Expose 10 internal tools: Postgres read-only query, S3 list objects, Jira search/fetch, Linear search/fetch, Datadog metric query, PagerDuty on-call lookup, GitHub read-only, Notion search, Slack search, Salesforce read. Each tool has a typed schema and a scope label.
 
 2. **FastMCP server.** Mount the tools. Configure StreamableHTTP transport. Add a middleware for OAuth token introspection and scope enforcement.

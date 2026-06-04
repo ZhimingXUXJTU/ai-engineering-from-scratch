@@ -19,11 +19,17 @@
 
 ## Why a subprocess
 
+> **【中文解读】** 研究循环运行不受信任的代码——假设来自采样器，实验脚本也来自同一路径。将它们视为进程内安全的是在邀请崩溃。子进程是最简单的隔离：独立地址空间，父进程有信号句柄。本课的运行器不实现完整沙盒（无 cgroup、seccomp、namespace），但有墙钟超时、内存轮询和终止路径——这是所有更复杂沙盒扩展的运行时契约。
+
+> **【拓展：实验隔离在 AI 科研平台中的实践】** Google 的 Vertex AI Experiments 和 Weights & Biases 的 Sweeps 都使用容器化隔离运行实验脚本。Meta 的 ADBench 使用 Kubernetes Job 运行对比实验。子进程 + 超时 + 内存限制是这些工业方案的核心简化版本。关键设计原则：运行器从不因非零退出码抛异常——而是记录在结果的 `terminal` 字段中，让评估器决定如何处理。
+
 A research loop runs untrusted code. The hypothesis came from a sampler, the experiment script came from the same path; treating either as safe in-process is asking for a crash that takes the orchestrator down. Subprocesses are the simplest isolation the language ships: a separate process, an independent address space, a signal handle on the parent side.
 
 The runner here does not implement full sandboxing. There is no cgroup, no seccomp filter, no namespace remapping. What it does have is a wall clock timeout, a polling loop for memory growth, and a kill path that terminates the process on either limit. That is the runtime contract every more elaborate sandbox extends. The lesson keeps the contract small enough to read in one sitting.
 
 ## The ExperimentSpec shape
+
+> **【拓展：实验规格在 MLOps 中的标准化】** 本课的 ExperimentSpec 映射到 MLOps 中的实验追踪标准。MLflow 的 Experiment + Run、Weights & Biases 的 Sweep Config、Determined AI 的 Experiment Config 都采用类似的声明式规格。关键字段：hypothesis_id（关联研究问题）、config（可复现的参数）、seed（确定性保证）、metric_keys（评估器需要读的字段）。标准化实验规格使得实验可复现、可比较、可审计。
 
 ```text
 ExperimentSpec
@@ -66,11 +72,17 @@ On systems without process inspection support, the poller logs a one time warnin
 
 ## Capturing stdout and stderr
 
+> **【中文解读】** 运行器读取 stdout 和 stderr 管道。Stdout 逐行扫描——最后一个解析为 JSON 且包含所有必需 `metric_keys` 的行作为度量数据块。先前的 JSON 行保留在 `intermediate_metrics` 中，评估器可用于学习曲线。Stderr 原样捕获。非零退出码记录但不抛异常，标记为 `"crash"`。
+
 The runner reads both pipes drained on completion. Stdout is scanned line by line; the last line that parses as json with all required `metric_keys` is taken as the metrics blob. Earlier json lines are kept in the result as `intermediate_metrics`; the evaluator can use these for learning curves.
 
 Stderr is captured verbatim into the result. The runner never raises on a non zero exit code; instead it records the code in the result. Any non zero exit is labelled `"crash"` even when the script printed metrics, so the evaluator treats partial runs as failures by default.
 
 ## Ablation table
+
+> **【中文解读】** 消融表（Ablation Table）一次只变一个参数。完整因子设计指数爆炸且评估器无法解释。单参数消融产生评估器可以绘图的干净坐标轴。本课支持多参数扫描，但作为重复的单参数消融由调用者组合。每个 spec 从基础 spec 派生，获得 `spec_id = "{base}_{knob}_{value}"` 格式的标识符。
+
+> **【拓展：消融实验在 LLM 论文中的标准地位】** GPT-4、LLaMA、Mistral 等论文都包含大量消融实验：模型大小消融（7B vs 13B vs 34B vs 70B）、训练数据消融（1T vs 2T tokens）、注意力机制消融（MHA vs GQA vs MQA）。消融表是 AI 论文中验证"哪个组件贡献了什么"的核心工具。
 
 ```python
 def ablate(base: ExperimentSpec, knob: str, values: list[Any]) -> list[ExperimentSpec]:
@@ -82,6 +94,8 @@ Given a base spec and a knob name, the helper returns one spec per value with `c
 Why one knob at a time. Full factorial sweeps blow up exponentially and produce results the evaluator cannot interpret. One knob at a time produces a clean axis the evaluator can plot. The lesson supports multi knob sweeps only as repeated single knob ablations, composed by the caller.
 
 ## Determinism
+
+> **【中文解读】** 每个 spec 携带种子，运行器通过 `config["__seed"]` 传递给脚本。模拟实验脚本使用 numpy random pass 生成确定性度量。评估器依赖此特性——没有确定性，一次"回归"可能只是不同的随机初始化。本课消融表中的两次运行断言产生相同的度量值。
 
 Every spec carries a seed. The runner forwards the seed to the script via the config dict (`config["__seed"] = spec.seed`). The mock experiment scripts in `code/experiments/` honour the seed and produce identical metrics across runs. The evaluator in lesson fifty-three depends on this; without determinism a "regression" might be a different random initialisation.
 

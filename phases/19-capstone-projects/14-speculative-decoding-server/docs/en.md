@@ -72,6 +72,10 @@ HPA on queue-wait metric
 
 ## Build It | 动手构建
 
+> **【中文解读】** 构建投机解码推理服务器：目标模型（Llama 3.3 70B FP8 量化）部署在 vLLM 上，草稿模型（Llama 3.3 8B 或 EAGLE-3 draft heads）并行预测后续 token，投机调度器验证草稿并接受/拒绝。关键度量是接受率（acceptance rate）——典型值 60-80%，直接决定加速比。
+
+> **【拓展：投机解码在 2026 年推理优化中的地位】** 投机解码（Speculative Decoding）是 LLM 推理延迟优化的核心技术。vLLM 0.7+、TensorRT-LLM、Anthropic 的推理服务都采用此技术。原理：小模型快速生成 K 个候选 token，大模型一次前向传播验证所有候选——接受的 token 免费（无额外延迟），拒绝的 token 被丢弃。EAGLE-3（Red Hat）使用特征级预测而非 token 级，接受率提升到 85%+。实测在 H100 上，70B 模型的 TTFT（首 token 延迟）降低 40-60%。
+
 1. **Target model prep.** Pick Llama 3.3 70B. Quantize to FP8 via Marlin. Deploy under vLLM 0.7 on 1xH100 (or 2x tensor-parallel).
 
 2. **Draft source.** Pull an aligned EAGLE-3 draft head from Red Hat Speculators (or train one via SpecForge). Load into vLLM's speculative-decoding config.

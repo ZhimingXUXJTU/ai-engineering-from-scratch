@@ -102,6 +102,8 @@ where `z` is the argument to the sigmoid. This is negative for all `z`, which me
 
 ## The Data
 
+> **【拓展：偏好数据收集与 DPO 变体】** 本课的 12 个偏好三元组是教育性简化。生产级 DPO 需要数万到数十万偏好对。数据来源：1）人类标注（Anthropic 的 HH-RLHF 数据集）；2）AI 反馈（RLAIF，用 GPT-4 标注）；3）隐式反馈（KTO 只需 binary good/bad 标签，不需要成对比较）。UltraFeedback (Cui et al., 2024) 提供了 64K 指令的偏好数据，是开源社区最常用的 DPO 训练数据。
+
 Twelve preference triples ship with the lesson. Each is `(prompt, chosen, rejected)`. The chosen completion is short and precise. The rejected is wordy, off-topic, or wrong. The pairs cover the same task families as lesson 39 (capital, arithmetic, list) so a policy that started from an SFT base has a reasonable starting point.
 
 The fixture is intentionally small. DPO works on tens of thousands of pairs in production; here, the point is that the loss math and the loop run end-to-end on a tiny dataset and the chosen-versus-rejected log-prob gap visibly grows.
