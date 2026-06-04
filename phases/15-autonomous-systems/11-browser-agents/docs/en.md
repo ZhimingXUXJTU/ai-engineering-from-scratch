@@ -9,6 +9,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 浏览器 Agent 通过操作 Web 浏览器完成任务——导航、点击、输入、阅读。核心价值是通用性：任何有 Web 界面的服务都可以被操作，无需 API。代表性系统包括 Anthropic 的 Computer Use 和 Browser Use（开源）。挑战包括页面加载延迟、动态内容处理和 CAPTCHA 绕过。
+
+> **【拓展：browser agents】** 浏览器 Agent 是 2025-2026 年的重要突破。与 API-first Agent 相比，浏览器 Agent 的优势是不需要服务提供商的支持——只要有网页就能操作。劣势是速度慢（每步需要渲染和截屏）和脆弱性（页面布局变化会破坏 Agent 的操作）。主要应用包括 Web 测试、数据采集和自动化工作流。
+
 A browser agent is a long-horizon agent that reads untrusted content and takes consequential actions. Every page the agent visits is an input the user did not write. Every form on every page is a potential command channel. The 2025–2026 attack corpus shows this is not hypothetical: Tainted Memories lets an attacker bind malicious instructions to the agent's memory via a crafted page; HashJack hides commands in URL fragments the agent visits; Perplexity Comet hijacks hit in a single click.
 
 The defensive picture is uncomfortable. OpenAI's head of preparedness said the quiet part loud: indirect prompt injection "is not a bug that can be fully patched." This is because the attack lives in the agent's reading-vs-acting boundary, which is architecturally fuzzy — every token the model reads could, in principle, be read as an instruction.

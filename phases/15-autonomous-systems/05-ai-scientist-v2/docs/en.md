@@ -14,7 +14,7 @@ Research is an open-ended task. Unlike AlphaEvolve's algorithmic search or DGM's
 AI Scientist v1 (Sakana, 2024) closed the loop by starting from human-authored templates. The LLM filled in experiments within a fixed scaffolding. AI Scientist v2 (Yamada et al., 2025) removes the template requirement by using agentic tree search with a vision-language model critique loop. The system generates ideas, implements experiments, produces figures, writes a paper, and iterates on reviewer feedback.
 
 
-> **【中文解读】** 本节介绍了 Agent 评估基准——如何衡量 Agent 在各类任务上的表现。
+> **【中文解读】** AI Scientist v2 (Sakana, 2025) 运行完整的研究循环：假设、编码、实验、图表、论文撰写和提交。它是第一个有生成论文通过 ICLR 2025 工作坊同行评审的系统。但独立评估发现 42% 的实验因编码错误失败，文献综述经常将已建立的概念标记为新颖。两面都是事实。
 
 Peer review verdict: one v2-generated paper was accepted at an ICLR 2025 workshop (with disclosure). Independent evaluation verdict: the system is far from reliable. Both are true.
 

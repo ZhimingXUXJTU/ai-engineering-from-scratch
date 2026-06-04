@@ -9,6 +9,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 递归自我改进是指 AI 系统通过改进自身代码变得更智能，更智能的版本又能更好地改进自己，形成正反馈循环。这是 AI 安全领域的核心关切之一——如果改进速度加速，可能很快达到超级智能。2026年的共识是：当前 LLM 还不具备有意义的递归自我改进能力，但 DGM 等系统已展示了初步形态。
+
+> **【拓展：recursive self improvement】** 递归自我改进从理论到实践：(1) 理论上，I.J. Good 的'智能爆炸'假说预测自我改进会导致快速超人类智能；(2) 实践中，DGM 和 AlphaEvolve 展示了受限的自我改进——在特定基准上的渐进式提升；(3) 关键区别在于——当前的改进是任务特定的（SWE-bench 分数），不是通用智能的提升。
+
 A system that improves itself generates a curve. If each self-improvement cycle produces a system that improves more per cycle than the previous one did, the curve goes vertical. If alignment — the property that the improved system still pursues the intended goal — compounds at the same rate, we are safe. If alignment compounds slower, we are not.
 
 The RSI debate through 2024 was mostly philosophical. The 2025-2026 shift is concrete. AlphaEvolve (Lesson 3) improved algorithms. Darwin Godel Machine (Lesson 4) improved agent scaffolding. Anthropic's AAR (Lesson 6) improved alignment research. Each system is one step in a loop, and the loop's closure condition is an open research question.

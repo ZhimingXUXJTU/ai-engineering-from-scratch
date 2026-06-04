@@ -14,7 +14,7 @@ Large language models can write code. Evolutionary algorithms can search over co
 AlphaEvolve (Novikov et al., DeepMind, arXiv:2506.13131, June 2025) combines them. The LLM proposes targeted edits to a program database; an automatic evaluator scores each variant; high-scoring variants become parents for future generations. The LLM handles the expensive step of writing plausible code; the evaluator catches the confabulations. The loop runs for hours to weeks.
 
 
-> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
+> **【中文解读】** AlphaEvolve（Google DeepMind, 2025）将进化算法应用于代码优化。它维护一个程序种群，通过变异、交叉和选择迭代优化。关键创新是将 LLM 作为变异算子——用 LLM 生成和修改代码，而不是随机变异。在数学发现和算法优化上取得了突破性成果。
 
 Results reported: 48-scalar-multiplication 4x4 complex matrix multiplication (Strassen's 1969 bound was 49), a Borg scheduling heuristic in Google production, a 32.5% FlashAttention kernel speedup, Gemini training throughput improvements.
 

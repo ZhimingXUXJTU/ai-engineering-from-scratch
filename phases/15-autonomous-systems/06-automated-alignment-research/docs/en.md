@@ -9,6 +9,10 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 自动化对齐研究探索 AI 系统是否能自主发现和修复自身的安全问题。核心问题是：AI 能否成为自己安全研究的助手？Anthropic 和 Redwood Research 的实验表明，LLM 可以生成对齐研究人员认为有用的安全洞见，但还不具备独立完成端到端安全研究的能力。
+
+> **【拓展：automated alignment research】** 自动化对齐研究是 2025-2026 年 AI 安全领域的热点。Anthropic 的论文探讨了用 AI 辅助监督更强大的 AI 的可行性。关键挑战是'监督挤压'——较弱模型的监督是否能捕捉到更强模型的所有危险行为？当前证据表明，LLM 可以帮助人类研究者加速安全分析，但完全自动化的安全保证仍需要人类参与。
+
 Alignment research is expensive in human-researcher time. Problems like scalable oversight, reward specification, or weak-to-strong training require experiments that take weeks per iteration. As frontier capabilities advance, the alignment workload grows faster than the supply of qualified researchers.
 
 Automated Alignment Research (AAR) asks whether the same frontier models whose capability is outrunning alignment can contribute to closing the gap. Anthropic's 2026 report on an AAR-run weak-to-strong-training study (alignment.anthropic.com/2026/automated-w2s-researcher/) is one of the first public results from a deployed system of this class.
