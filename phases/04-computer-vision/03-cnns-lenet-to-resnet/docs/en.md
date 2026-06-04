@@ -16,7 +16,10 @@
 - Explain why residual connections turn a 1,000-layer network from untrainable into state-of-the-art
 - Read a modern backbone (ResNet-18, ResNet-50) and predict its output shape, receptive field, and parameter count before looking at the source
 
-## The Problem
+> **【中文解读】** 学习目标列出了完成本课后应该掌握的核心能力。建议在开始学习前先浏览目标，学完后对照检查是否达成。
+
+
+## The Problem | 问题引入
 
 In 2011, the best ImageNet classifier scored around 74% top-5 accuracy. In 2012 AlexNet scored 85%. In 2015 ResNet scored 96%. No new data. No new GPU generation. The gains came from architecture ideas. A working vision engineer has to know which idea came from which paper because every production backbone you ship in 2026 is a recombination of those same pieces — and because the ideas keep transferring: grouped convs went from CNNs to transformers, residual connections went from ResNet to every LLM in existence, batch normalisation lives in diffusion models.
 
@@ -160,6 +163,9 @@ When the skip has to cross a downsample (stride=2), the identity path is replace
 The idea was not really about image classification. It was about turning deep networks from "cross-your-fingers and hope gradients survive" into a reliable, scalable engineering tool. Every transformer you will read about next phase has the exact same skip connection in every block. Without ResNet, there is no GPT.
 
 > **【拓展：残差连接与 Transformer】** 残差连接不仅改变了视觉，它让深度网络从 "祈祷梯度能存活" 变成了可靠的工程工具。每个 Transformer 块（包括 GPT、BERT、Claude 背后的模型）都使用完全相同的跳跃连接。没有 ResNet，就没有 GPT。ResNet 的核心公式 `y = F(x) + x` 可以说是深度学习最重要的方程之一。
+
+> **【拓展：工业部署中的视觉系统】** 在实际工业部署中，视觉模型需要考虑推理延迟、模型大小、边缘设备适配等问题。TensorRT、ONNX Runtime、OpenVINO 是常用的推理加速工具。自动驾驶系统（如 Tesla FSD）通常在车载芯片上实时运行多个视觉模型。
+
 
 ## Build It | 动手实践
 
@@ -334,6 +340,8 @@ summary("TinyResNet", TinyResNet(),   x)
 
 Three models, three eras, three orders of magnitude in parameter count. For CIFAR-10 accuracy, you need roughly: LeNet 60%, MiniVGG 89%, TinyResNet 93% after a few epochs of training.
 
+
+
 ## Use It | 实际应用
 
 `torchvision.models` gives you pretrained versions of all of the above. The call signature is identical across families, which is exactly the point of the backbone abstraction.
@@ -367,6 +375,9 @@ r18.fc = nn.Linear(r18.fc.in_features, 10)
 
 Three lines. You now have a 10-class CIFAR classifier that inherits the representations ImageNet paid for.
 
+
+> **【拓展：数据标注与质量】** 视觉任务的效果高度依赖标注数据质量。Label Studio、CVAT 是主流标注工具。在工业场景中，主动学习（Active Learning）可以减少标注成本：模型对不确定的样本请求人工标注，确定性的样本自动标注。
+
 ## Ship It | 交付产出
 
 This lesson produces:
@@ -375,6 +386,9 @@ This lesson produces:
 - `outputs/skill-residual-block-reviewer.md` — a skill that reads a PyTorch module and flags skip-connection mistakes (missing shortcut on stride change, shortcut activation order, BN placement relative to addition).
 
 ## Exercises | 练习题
+
+> **【中文解读】** 练习题按照 Easy/Medium/Hard 三个难度递进。建议至少完成 Medium 级别的题目，Hard 级别适合深入研究或面试准备。
+
 
 1. **(Easy | 简单)** Count parameters by hand for `TinyResNet` layer by layer. Compare against `sum(p.numel() for p in net.parameters())`. Where does the majority of the parameter budget go — convs, BN, or the classifier head?
    逐层手算 TinyResNet 的参数量，找出参数主要花在哪里。
@@ -399,6 +413,9 @@ This lesson produces:
 | Transfer learning | "Pretrained weights" | Loading a backbone trained on ImageNet and fine-tuning only the head on your task | 迁移学习：加载预训练权重，只微调头部 |
 
 ## Further Reading | 延伸阅读
+
+> **【中文解读】** 延伸阅读提供了深入学习的高质量资源。这些论文和教程是该领域的经典参考文献，适合需要深入理解的读者。
+
 
 - [Deep Residual Learning for Image Recognition (He et al., 2015)](https://arxiv.org/abs/1512.03385) — the ResNet paper; every figure is worth studying
 - [Very Deep Convolutional Networks (Simonyan & Zisserman, 2014)](https://arxiv.org/abs/1409.1556) — the VGG paper; still the best reference for "why 3x3"

@@ -20,7 +20,10 @@
 - Apply pixel-level preprocessing (normalize, standardize, resize, channel-first) exactly as torchvision expects it
   精确按照 torchvision 的期望进行像素级预处理（归一化、标准化、缩放、通道前置）
 
-## The Problem
+> **【中文解读】** 学习目标列出了完成本课后应该掌握的核心能力。建议在开始学习前先浏览目标，学完后对照检查是否达成。
+
+
+## The Problem | 问题引入
 
 Every paper you will read, every pretrained weight you will download, every vision API you will call assumes a specific encoding of the input. Pass a `uint8` image where the model wants `float32` and it will still run — and silently produce garbage. Feed BGR to a network trained on RGB and accuracy collapses by ten points. Hand a model channels-last input when it expects channels-first and the first conv layer treats height as a feature channel. None of this throws an error. It just ruins your metrics and you spend a week hunting for a bug that lives in how you loaded the file.
 
@@ -29,6 +32,9 @@ Every paper you will read, every pretrained weight you will download, every visi
 A convolution is not complicated once you know what it is sliding over. The hard part is that "an image" means different things to a camera, a JPEG decoder, PIL, OpenCV, torchvision, and a CUDA kernel. Each stack has its own axis order, byte range, and channel convention. A vision engineer who cannot keep these straight ships broken pipelines.
 
 This lesson fixes the foundation so the rest of the phase can build on it. By the end you will know what a pixel is, why there are three numbers per pixel instead of one, what "normalize with ImageNet stats" actually does, and how to move between the two or three layouts that every other lesson in this phase will assume.
+
+
+> **【拓展：数据标注与质量】** 视觉任务的效果高度依赖标注数据质量。Label Studio、CVAT 是主流标注工具。在工业场景中，主动学习（Active Learning）可以减少标注成本：模型对不确定的样本请求人工标注，确定性的样本自动标注。
 
 ## The Concept | 核心概念
 
@@ -216,6 +222,9 @@ Rule of thumb: bilinear for training, bicubic or lanczos for assets you will loo
 
 > **【中文解读】** 缩放时的插值方法选择：最近邻（nearest）速度最快但会产生锯齿，只用于掩码/标签图；双线性（bilinear）又快又平滑，是训练时的默认选择；双三次（bicubic）更慢但放大时更清晰；Lanczos 最慢但质量最好。经验法则：训练用 bilinear，展示用 bicubic/lanczos，标签用 nearest。
 
+> **【拓展：工业部署中的视觉系统】** 在实际工业部署中，视觉模型需要考虑推理延迟、模型大小、边缘设备适配等问题。TensorRT、ONNX Runtime、OpenVINO 是常用的推理加速工具。自动驾驶系统（如 Tesla FSD）通常在车载芯片上实时运行多个视觉模型。
+
+
 ## Build It | 动手实践
 
 ### Step 1: Load an image and inspect its shape | 加载图像并检查其形状
@@ -363,6 +372,8 @@ for name, out in [("nearest", nearest), ("bilinear", bilinear), ("bicubic", bicu
 
 Nearest scores highest on roughness because it keeps hard edges. Bilinear is the smoothest. Bicubic sits in between, preserving perceived sharpness without the stair-step artifacts.
 
+
+
 ## Use It | 实际应用
 
 `torchvision.transforms` bundles everything above into a single composable pipeline. The code below reproduces exactly what `preprocess_imagenet` does, plus resize and crop.
@@ -405,6 +416,9 @@ This lesson produces:
 
 ## Exercises | 练习题
 
+> **【中文解读】** 练习题按照 Easy/Medium/Hard 三个难度递进。建议至少完成 Medium 级别的题目，Hard 级别适合深入研究或面试准备。
+
+
 1. **(Easy | 简单)** Load a JPEG with OpenCV (`cv2.imread`) and with Pillow. Print both shapes and the pixel at `(0, 0)`. Explain the channel-order difference, then write a one-line conversion that makes the OpenCV array identical to the Pillow one.
    用 OpenCV 和 Pillow 分别加载同一张 JPEG，打印形状和 (0,0) 像素值。解释通道顺序差异，写一行代码使两者一致。
 
@@ -426,6 +440,9 @@ This lesson produces:
 | Grayscale conversion | "Average the channels" | A weighted sum with coefficients 0.299/0.587/0.114 that matches human luminance perception | 灰度转换：按人眼亮度感知加权的通道求和 |
 | Interpolation | "How resize picks pixels" | The rule that decides output values when the new grid does not align with the old one — nearest for labels, bilinear for training, bicubic for display | 插值：缩放时计算新像素值的规则 |
 | Aspect ratio | "Width over height" | The ratio that distinguishes "resize and pad" from "resize and stretch" | 宽高比：区分 "缩放+填充" 与 "缩放+拉伸" 的关键比例 |
+
+> **【中文解读】** 延伸阅读提供了深入学习的高质量资源。这些论文和教程是该领域的经典参考文献，适合需要深入理解的读者。
+
 
 ## Further Reading | 延伸阅读
 
