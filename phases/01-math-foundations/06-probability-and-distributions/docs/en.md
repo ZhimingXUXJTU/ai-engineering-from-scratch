@@ -22,13 +22,13 @@
 > - **交叉熵损失**: 分类任务的标准损失函数，等于负对数似然。
 > - **高斯分布**: 中心极限定理解释了为什么高斯分布在自然界和 AI 中如此常见。
 
-## The Problem
+## The Problem | 问题引入
 
 A classifier outputs `[0.03, 0.91, 0.06]`. A language model picks the next word from 50,000 candidates. A diffusion model generates images by sampling from learned distributions. All of these are probability in action.
 
 Every prediction a model makes is a probability distribution. Every loss function measures how far the predicted distribution is from the true one. Every training step adjusts parameters to make one distribution look more like another. Without probability, you cannot read a single ML paper, debug a single model, or understand why your training loss is NaN.
 
-## The Concept
+## The Concept | 核心概念
 
 ### Events, Sample Spaces, and Probability
 
@@ -262,7 +262,7 @@ Sampling means drawing random values from a distribution. In ML:
 
 Sampling from arbitrary distributions requires techniques like inverse transform sampling, rejection sampling, or the reparameterization trick (used in VAEs).
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Probability basics
 
@@ -401,7 +401,7 @@ plt.plot(xs, ys)
 
 Full implementations with all visualizations are in `code/probability.py`.
 
-## Use It
+## Use It | 用框架实现
 
 With NumPy and SciPy, everything above is one-liners:
 
@@ -424,7 +424,7 @@ print(f"Log-softmax: {log_probs}")
 
 You built these from scratch. Now you know what the library calls are doing.
 
-## Exercises
+## Exercises | 练习题
 
 1. Implement inverse transform sampling for the exponential distribution. Verify by sampling 10,000 values and comparing the histogram to the true PDF.
 
@@ -434,7 +434,7 @@ You built these from scratch. Now you know what the library calls are doing.
 
 4. Write a function that takes a list of log probabilities and returns the most likely sequence, the total log probability, and the equivalent raw probability. Test it with a sentence of 50 words where each word has probability 0.01.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -455,7 +455,7 @@ You built these from scratch. Now you know what the library calls are doing.
 | Logits | "Raw model outputs" | Unnormalized scores before softmax. Named after the logistic function |
 | Sampling | "Drawing random values" | Generating values according to a probability distribution. How models generate output |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [3Blue1Brown: But what is the Central Limit Theorem?](https://www.youtube.com/watch?v=zeJD6dqJ5lo) - visual proof of why averages become normal
 - [Stanford CS229 Probability Review](https://cs229.stanford.edu/section/cs229-prob.pdf) - concise reference covering everything here and more

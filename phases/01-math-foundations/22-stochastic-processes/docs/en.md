@@ -18,7 +18,7 @@
 > **【中文解读】**
 > 随机过程是有结构的随机性。马尔可夫链（当前状态只依赖前一步）是 PageRank 的基础。扩散模型的前向过程是布朗运动（加噪），反向过程是去噪生成。MCMC 是贝叶斯统计的基石。
 
-## The Problem
+## The Problem | 问题引入
 
 Many AI systems involve randomness that evolves over time. Not static randomness -- structured, sequential randomness where each step depends on what came before.
 
@@ -36,7 +36,7 @@ All of these build on four foundational ideas:
 3. Langevin dynamics -- gradient descent with noise
 4. Metropolis-Hastings -- sampling from any distribution
 
-## The Concept
+## The Concept | 核心概念
 
 ### Random Walks
 
@@ -232,7 +232,7 @@ The chain is guaranteed to converge to p(x) under mild conditions. But convergen
 | Markov decision process | Reinforcement learning |
 | Metropolis-Hastings | Bayesian inference, posterior sampling |
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Random walk simulator
 
@@ -333,7 +333,7 @@ def metropolis_hastings(target_log_prob, proposal_std, x0, n_samples, seed=None)
 
 The algorithm proposes a new point, checks if it has higher probability (or accepts with probability proportional to the ratio), and repeats. The acceptance rate should be around 23-50% for good mixing.
 
-## Use It
+## Use It | 用框架实现
 
 In practice, you use established libraries for these algorithms. But understanding the mechanics matters for debugging and tuning.
 
@@ -387,12 +387,12 @@ print(f"Approximate mixing time: {1/spectral_gap:.1f} steps")
 
 The spectral gap tells you how fast the chain forgets its initial state. A gap of 0.2 means roughly 5 steps to mix. A gap of 0.01 means roughly 100 steps. Always check this before running long simulations -- a slowly mixing chain wastes compute.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-stochastic-process-advisor.md` -- a prompt that helps identify which stochastic process framework applies to a given problem
 
-## Connections
+## Connections | 概念关联地图
 
 | Concept | Where it shows up |
 |---------|------------------|
@@ -425,7 +425,7 @@ SGLD (Stochastic Gradient Langevin Dynamics) combines mini-batch gradient descen
 
 The key insight across all these connections: stochastic processes are not just theoretical tools. They are the computational mechanisms inside modern AI systems. When you tune the temperature of an LLM, you are adjusting a Markov chain. When you train a diffusion model, you are learning to reverse a Brownian-motion-like process. When you run Bayesian inference, you are constructing a chain that converges to the posterior.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Simulate 1000 random walks of 10000 steps.** Plot the distribution of final positions. Verify it is approximately Gaussian with mean 0 and standard deviation sqrt(10000) = 100.
 
@@ -437,7 +437,7 @@ The key insight across all these connections: stochastic processes are not just 
 
 5. **Implement the forward diffusion process.** Start with a 1D signal (e.g., a sine wave). Add noise progressively over 100 steps with a linear noise schedule. Show how the signal degrades to pure noise. Then implement a simple denoiser that reverses the process (even a naive one that just subtracts the estimated noise).
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -452,7 +452,7 @@ The key insight across all these connections: stochastic processes are not just 
 | Temperature | "The randomness knob" | Parameter controlling the tradeoff between exploration and exploitation |
 | Diffusion process | "Noise in, noise out" | Forward: gradually add noise. Reverse: gradually remove it. Generates data. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - **Ho, Jain, Abbeel (2020)** -- "Denoising Diffusion Probabilistic Models." The DDPM paper that launched the diffusion model revolution. Clear derivation of the forward and reverse Markov chains.
 - **Song & Ermon (2019)** -- "Generative Modeling by Estimating Gradients of the Data Distribution." Score-based approach using Langevin dynamics for sampling.

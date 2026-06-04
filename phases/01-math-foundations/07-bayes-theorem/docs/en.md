@@ -22,7 +22,7 @@
 > - **贝叶斯优化**: 用于超参数调优（如 Optuna），比网格搜索高效得多。
 > - **MAP 与正则化**: 最大后验估计(MAP)等价于 L2 正则化——这是贝叶斯视角下的"防止过拟合"。
 
-## The Problem
+## The Problem | 问题引入
 
 A medical test is 99% accurate. You test positive. What are the chances you actually have the disease?
 
@@ -32,7 +32,7 @@ This is not a trick question. It is Bayes' theorem. Every spam filter, every med
 
 If you build ML systems without understanding this, you will misinterpret model outputs, set bad thresholds, and ship overconfident predictions.
 
-## The Concept
+## The Concept | 核心概念
 
 ### From joint probability to Bayes
 
@@ -203,7 +203,7 @@ The connection is deeper than analogy:
 
 **Model comparison is Bayesian.** Bayesian information criterion (BIC), marginal likelihood, and Bayes factors all use Bayesian reasoning to choose between models without overfitting.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Bayes theorem function
 
@@ -317,7 +317,7 @@ print("\nTop ham words:")
 show_top_words(classifier, "ham")
 ```
 
-## Use It
+## Use It | 用框架实现
 
 Scikit-learn ships production-ready naive Bayes implementations:
 
@@ -339,7 +339,7 @@ for msg, pred in zip(test_messages, predictions):
 
 Same algorithm. CountVectorizer handles tokenization and vocabulary building. MultinomialNB handles smoothing and log-probabilities internally. Your from-scratch version does the same thing in 40 lines.
 
-## Ship It
+## Ship It | 产出物
 
 The NaiveBayes class built here demonstrates the full pipeline: tokenization, probability estimation with Laplace smoothing, log-space prediction. The code in `code/bayes.py` runs end-to-end with no dependencies beyond Python's standard library.
 
@@ -445,7 +445,7 @@ Advantages over frequentist A/B testing:
 | Prior knowledge | Not used | Encoded as Beta prior |
 | Decision rule | p < 0.05 | P(B > A) > threshold |
 
-## Exercises
+## Exercises | 练习题
 
 1. **Multiple tests.** A patient tests positive twice on independent tests (both 99% accurate, disease prevalence 1 in 10,000). What is P(sick) after both tests? Use the posterior from the first test as the prior for the second.
 
@@ -455,7 +455,7 @@ Advantages over frequentist A/B testing:
 
 4. **MAP by hand.** Given observed data (7 heads in 10 coin flips), compute the MAP estimate of the bias using a Beta(2,2) prior. Compare it to the MLE estimate (7/10).
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -470,7 +470,7 @@ Advantages over frequentist A/B testing:
 | Log-probability | "Work in log space" | Using log(P) instead of P to avoid floating-point underflow when multiplying many small numbers. |
 | False positive | "A wrong alarm" | The test says positive, but the true state is negative. Drives the base rate fallacy. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [3Blue1Brown: Bayes' theorem](https://www.youtube.com/watch?v=HZGCoVF3YvM) - visual explanation with the medical test example
 - [Stanford CS229: Generative Learning Algorithms](https://cs229.stanford.edu/notes2022fall/cs229-notes2.pdf) - naive Bayes and its connection to discriminative models

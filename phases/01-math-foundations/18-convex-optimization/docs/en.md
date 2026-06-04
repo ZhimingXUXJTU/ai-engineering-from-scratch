@@ -18,7 +18,7 @@
 > **【中文解读】**
 > 凸函数只有一个山谷（全局最优），线性回归是凸的所以一定有全局最优。神经网络是非凸的但有无数个山谷，SGD 在实践中仍能找到好的解。牛顿法利用二阶信息实现二次收敛。
 
-## The Problem
+## The Problem | 问题引入
 
 Lesson 08 taught you gradient descent, momentum, and Adam. Those optimizers walk downhill on any surface. But they come with no guarantees. Gradient descent on a non-convex landscape might land in a bad local minimum, get stuck on a saddle point, or oscillate forever. You used it anyway because neural networks are non-convex and there is no alternative.
 
@@ -26,7 +26,13 @@ But many problems in machine learning are convex. Linear regression, logistic re
 
 Understanding convexity does three things. First, it tells you when your problem is easy (convex) versus hard (non-convex). Second, it gives you faster tools like Newton's method for convex problems. Third, it explains concepts that appear throughout ML: regularization as a constraint, duality in SVMs, and why deep learning works despite violating every nice property convexity gives you.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】**
+> 凸函数的形状像一个碗——只有一个最低点（全局最优）。线性回归、逻辑回归、SVM 的损失函数都是凸的，所以训练一定收敛到全局最优。神经网络是非凸的，像连绵山脉，但 SGD 在实践中仍能找到好解。理解凸优化就是理解"什么时候可以放心"。
+
+> **【拓展：凸优化在工业中的实际规模】**
+> Google 的广告排序系统使用大规模逻辑回归（凸优化），每天处理数十亿次请求。SVM 在人脸检测（Viola-Jones）和文本分类中被广泛使用。现代 LP 求解器（Gurobi、CPLEX）可以在几分钟内求解百万变量的线性规划问题。凸优化是少数能给出"最优解保证"的数学工具之一。
 
 ### Convex sets
 
@@ -96,6 +102,9 @@ The central theorem of convex optimization:
 **For a convex function, every local minimum is a global minimum.**
 
 This means gradient descent cannot get trapped. Any downhill path leads to the same answer. The algorithm is guaranteed to converge to the optimal solution.
+
+> **【中文解读】**
+> 这是凸优化的核心定理：凸函数的每个局部最小值都是全局最小值。这意味着梯度下降永远不会卡在"差"的局部最优。线性回归的 MSE 损失就是一个完美的碗，随便从哪开始走，都能走到碗底。
 
 ```mermaid
 graph LR
@@ -170,6 +179,9 @@ Compare to gradient descent:
 ```
 
 Newton's method replaces the scalar learning rate with the inverse Hessian. This automatically adjusts the step size and direction based on local curvature.
+
+> **【拓展：牛顿法在现代 ML 中的实际使用】**
+> 虽然牛顿法在深度学习中不实用（Hessian 太大），但在经典 ML 中仍是主力。XGBoost 和 LightGBM 在构建每棵树时，对损失函数做二阶泰勒展开（本质上是牛顿步）。scikit-learn 的 LogisticRegression 默认使用 L-BFGS 优化。对于小于 1 万个参数的问题，牛顿法往往比 SGD 快 10-100 倍。
 
 ```mermaid
 graph TD
@@ -278,6 +290,9 @@ Complementary slackness is the key insight: either the constraint is active (g_i
 
 KKT conditions are central to SVMs. The support vectors are the data points where the constraint is active (lambda > 0). All other data points have lambda = 0 and do not affect the decision boundary.
 
+> **【中文解读】**
+> KKT 条件是拉格朗日乘子的推广版，处理不等式约束。互补松弛性是最精妙的洞察：对于每个约束，要么它是"活跃的"（刚好触碰边界），要么它对解没有影响（乘子为零）。SVM 的支持向量就是约束活跃的那些数据点。
+
 ### Regularization as constrained optimization
 
 L1 and L2 regularization are not arbitrary tricks. They are constrained optimization problems in disguise.
@@ -312,6 +327,9 @@ The constraint ||w||_1 <= t defines a diamond (rotated square in 2D).
 | **Result** | Weight shrinkage | Feature selection |
 
 This explains why L1 produces sparse models (feature selection) while L2 only shrinks weights. The diamond has corners aligned with axes. Loss contours are more likely to touch a corner, setting one or more weights exactly to zero.
+
+> **【拓展：L1 正则化与 L2 正则化的几何直觉】**
+> L1 约束的形状是菱形（在 2D 中是旋转的正方形），L2 约束的形状是圆形。菱形的角恰好落在坐标轴上，所以等高线更容易碰到角——这意味着某些权重被精确地设为零（特征选择）。这就是 LASSO 能自动做特征选择的几何原因。在基因表达数据分析中，LASSO 常从数万个基因中筛选出几十个关键基因。
 
 ### Duality
 
@@ -365,6 +383,9 @@ Neural network loss functions are wildly non-convex. By every classical measure,
 
 **Stochastic noise acts as implicit regularization.** Mini-batch SGD adds noise that prevents settling into sharp minima. Sharp minima overfit; flat minima generalize. The noise biases optimization toward flat regions of the loss landscape.
 
+> **【中文解读】**
+> 深度学习的成功看起来违反了凸优化的理论：非凸函数应该很难优化，但 SGD 却工作得很好。原因有三：第一，高维空间中几乎所有临界点都是鞍点而非局部最小值；第二，过参数化让损失面变得更平滑；第三，SGD 的噪声充当隐式正则化，帮助逃离尖锐极小值，找到更平坦、泛化更好的解。
+
 ### Second-order methods in practice
 
 Pure Newton's method is impractical for large models. Several approximations make second-order information usable.
@@ -385,7 +406,7 @@ Pure Newton's method is impractical for large models. Several approximations mak
 | Adam | O(n) | O(n) | Deep learning default |
 | K-FAC | O(n) | O(n) per layer | Research, large-batch training |
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Convexity checker
 
@@ -398,13 +419,13 @@ import math
 def check_convexity(f, dim, bounds=(-5, 5), samples=1000):
     violations = 0
     for _ in range(samples):
-        x = [random.uniform(*bounds) for _ in range(dim)]
-        y = [random.uniform(*bounds) for _ in range(dim)]
-        t = random.uniform(0, 1)
-        mid = [t * xi + (1 - t) * yi for xi, yi in zip(x, y)]
-        lhs = f(mid)
-        rhs = t * f(x) + (1 - t) * f(y)
-        if lhs > rhs + 1e-10:
+        x = [random.uniform(*bounds) for _ in range(dim)]  # 随机采样点 x
+        y = [random.uniform(*bounds) for _ in range(dim)]  # 随机采样点 y
+        t = random.uniform(0, 1)                            # 随机混合系数
+        mid = [t * xi + (1 - t) * yi for xi, yi in zip(x, y)]  # 凸组合 tx + (1-t)y
+        lhs = f(mid)                                        # f(凸组合)
+        rhs = t * f(x) + (1 - t) * f(y)                    # tf(x) + (1-t)f(y)
+        if lhs > rhs + 1e-10:                               # 违反凸性不等式
             violations += 1
     return violations == 0, violations
 ```
@@ -478,7 +499,7 @@ def quadratic_hessian(x):
 
 Newton's method will converge in 1 step (it is exact for quadratics). Gradient descent will take hundreds of steps because the eigenvalues of the Hessian differ by a factor of 5, creating an elongated valley.
 
-## Use It
+## Use It | 用框架实现
 
 Convexity analysis applies directly when choosing ML models and solvers.
 
@@ -514,7 +535,7 @@ svm.fit(X_train, y_train)
 print(f"Support vectors: {svm.n_support_}")
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Convexity gallery.** Test these functions for convexity using the checker: f(x) = x^4, f(x) = sin(x), f(x,y) = x^2 + y^2, f(x,y) = x*y, f(x) = max(x, 0). Explain why each result makes sense.
 
@@ -526,7 +547,7 @@ print(f"Support vectors: {svm.n_support_}")
 
 5. **Hessian eigenvalue analysis.** Compute the Hessian of the Rosenbrock function at (1,1) and at (-1,1). Compute eigenvalues at both points. What do the eigenvalues tell you about the curvature at the minimum versus far from it?
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What it means |
 |------|---------------|
@@ -547,7 +568,7 @@ print(f"Support vectors: {svm.n_support_}")
 | Saddle point | A point where the gradient is zero but it is a minimum in some directions and a maximum in others |
 | Overparameterization | Using more parameters than training examples. Smooths the loss landscape and reduces bad local minima |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Boyd & Vandenberghe: Convex Optimization](https://web.stanford.edu/~boyd/cvxbook/) - the standard textbook, freely available online
 - [Bottou, Curtis, Nocedal: Optimization Methods for Large-Scale Machine Learning (2018)](https://arxiv.org/abs/1606.04838) - bridges convex optimization theory and deep learning practice

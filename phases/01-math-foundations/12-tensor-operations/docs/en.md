@@ -18,7 +18,7 @@
 > **【中文解读】**
 > 张量是数据和深度学习的通用语言。向量是一维张量，矩阵是二维张量，RGB 图像是三维张量。本章从零实现张量类，理解形状、步长、广播和 einsum。Transformer 多头注意力中 Q/K/V 都是四维张量，理解张量形状是调试的关键。
 
-## The Problem
+## The Problem | 问题引入
 
 You build a transformer. The forward pass looks clean. You run it and get: `RuntimeError: mat1 and mat2 shapes cannot be multiplied (32x768 and 512x768)`. You stare at the shapes. You try a transpose. Now it says `Expected 4D input (got 3D input)`. You add an unsqueeze. Something else breaks.
 
@@ -26,7 +26,7 @@ Shape errors are the most common bug in deep learning code. They are not hard co
 
 Matrices handle pairwise relationships between two sets of things. Real data does not fit into two dimensions. A batch of 32 RGB images at 224x224 is a 4D tensor: `(32, 3, 224, 224)`. Self-attention with 12 heads is also 4D: `(batch, heads, seq_len, head_dim)`. You need a data structure that generalizes to any number of dimensions, with operations that compose cleanly across all of them. That structure is the tensor. Master its operations and shape errors become trivially debuggable.
 
-## The Concept
+## The Concept | 核心概念
 
 ### What a tensor is
 
@@ -105,7 +105,7 @@ graph LR
 
 Key patterns: `i,i->` (dot product), `i,j->ij` (outer product), `ii->` (trace), `ij->ji` (transpose), `bij,bjk->bik` (batch matmul), `bhtd,bhsd->bhts` (attention scores).
 
-## Build It
+## Build It | 动手实现
 
 The code lives in `code/tensors.py`. Each step references the implementation there.
 
@@ -258,7 +258,7 @@ output = np.einsum("bte,ek->btk", concat, W_o)
 
 Every step is a tensor operation: projection (matmul via einsum), head splitting (reshape + transpose), attention scores (batch matmul via einsum), weighted sum (batch matmul via einsum), head merging (transpose + reshape), output projection (matmul via einsum).
 
-## Use It
+## Use It | 用框架实现
 
 ### Scratch vs NumPy
 
@@ -302,7 +302,7 @@ PyTorch adds autograd, GPU support, and optimized BLAS kernels. The shape semant
 | Batch norm | `(X - mu) / sigma * gamma` | element-wise + broadcast |
 | Softmax | `exp(x) / sum(exp(x))` | element-wise + reduction |
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces two reusable prompts:
 
@@ -310,7 +310,7 @@ This lesson produces two reusable prompts:
 
 2. **`outputs/prompt-tensor-debugger.md`** -- A step-by-step debugging prompt you paste into any AI assistant when a shape error is blocking you. Feed it the error message and your tensor shapes, get back the exact fix.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy -- Reshape round-trip.** Take a tensor of shape `(2, 3, 4)`. Reshape it to `(6, 4)`, then to `(24,)`, then back to `(2, 3, 4)`. Verify element order is preserved at each step by printing the flat data.
 
@@ -320,7 +320,7 @@ This lesson produces two reusable prompts:
 
 4. **Hard -- Attention shape tracker.** Write a function that takes `batch_size`, `seq_len`, `embed_dim`, and `num_heads` as inputs and prints the exact shape at every step of multi-head attention: input, Q/K/V projection, head split, attention scores, softmax weights, weighted sum, head merge, output projection. Verify against the `demo_attention_einsum()` output.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |---|---|---|
@@ -335,7 +335,7 @@ This lesson produces two reusable prompts:
 | Contraction | "Summing over an index" | The general operation where a shared index between tensors is multiplied and summed, producing a lower-rank result |
 | NCHW / NHWC | "PyTorch vs TensorFlow format" | Memory layout conventions for image tensors. NCHW puts channels before spatial dims, NHWC puts them after |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [NumPy Broadcasting](https://numpy.org/doc/stable/user/basics.broadcasting.html) -- The canonical rules with visual examples
 - [PyTorch Tensor Views](https://pytorch.org/docs/stable/tensor_view.html) -- When views work and when they copy

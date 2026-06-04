@@ -18,7 +18,7 @@
 > **【中文解读】**
 > 采样是 AI 探索可能性的方式。LLM 用 temperature/top-k/top-p 控制文本生成多样性。VAE 用重参数化技巧让采样可微。扩散模型的前向过程是采样（加噪），反向过程是去噪（生成）。
 
-## The Problem
+## The Problem | 问题引入
 
 A language model finishes processing your prompt and produces a vector of 50,000 logits. One for every token in its vocabulary. Now it has to pick one. How?
 
@@ -28,7 +28,10 @@ Sampling is not limited to text generation. Reinforcement learning estimates pol
 
 Every generative AI system is a sampling system. The sampling strategy determines the quality, diversity, and controllability of the output. This lesson builds every major sampling method from scratch, starting from uniform random numbers and ending with the techniques that power modern LLMs and generative models.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】**
+> 采样问题无处不在：语言模型要从 5 万个 token 中选一个，VAE 要从隐空间采样，扩散模型要从噪声逐步去噪。核心挑战是你只能直接从简单分布（均匀分布、正态分布）采样，必须通过巧妙变换才能得到复杂目标分布的样本。
 
 ### Why Sampling Matters
 
@@ -43,6 +46,9 @@ Sampling appears in four fundamental roles across AI and machine learning:
 **Exploration.** MCMC algorithms explore posterior distributions in Bayesian inference. Evolutionary strategies sample parameter perturbations. Thompson sampling balances exploration and exploitation in bandits.
 
 The core challenge: you can only sample directly from simple distributions (uniform, normal). For everything else, you need a method to convert simple samples into samples from your target distribution.
+
+> **【拓展：LLM 采样策略的工程实践】**
+> GPT-4 等模型推理时，temperature 通常设为 0.0-1.0，top-p 设为 0.9-1.0。OpenAI API 默认 temperature=1.0、top_p=1.0。研究表明 top-p (nucleus) 采样在大多数任务上优于 top-k，因为它能根据模型置信度自适应调整候选集大小。对于代码生成，temperature=0.2 + top_p=0.95 是常见配置。
 
 ### Uniform Random Sampling
 
@@ -61,6 +67,9 @@ Properties:
 To sample uniformly from a discrete set of n items, generate U and return floor(n * U). To sample from a continuous range [a, b], compute a + (b - a) * U.
 
 The key insight: a single uniform random number contains exactly the right amount of randomness to produce one sample from any distribution. The trick is finding the right transformation.
+
+> **【中文解读】**
+> 均匀分布是所有采样的基石。计算机中的伪随机数生成器（如 Mersenne Twister）产生的就是 [0,1) 上的均匀分布。采样方法本质上是把均匀随机数"变换"成目标分布的样本，就像用一把万能钥匙打开不同锁。
 
 ### Inverse CDF Method (Inverse Transform Sampling)
 
@@ -106,6 +115,9 @@ This works perfectly when you can write down F_inverse in closed form. For the n
 
 **Discrete version:** For discrete distributions, build the CDF as a cumulative sum, generate U, and find the first index where the cumulative sum exceeds U. This is how `sample_categorical` works in Lesson 06.
 
+> **【中文解读】**
+> 逆 CDF 方法的核心思想：CDF 函数 F(x) 把随机变量的值映射到 [0,1] 上的概率，而它的逆函数 F_inverse 正好反过来——把 [0,1] 上的均匀随机数映射回目标分布的值。这个方法精确、高效，但前提是你能写出逆函数的解析表达式。
+
 ### Rejection Sampling
 
 When you cannot invert the CDF but can evaluate the target PDF up to a constant, rejection sampling works.
@@ -130,6 +142,9 @@ The tighter the bound M, the higher the acceptance rate. In low dimensions (1-3)
 
 **Example: sampling from a semicircle.** Propose uniformly in the bounding rectangle. Accept if the point falls inside the semicircle. This is how Monte Carlo computes pi: the acceptance rate equals the area ratio pi/4.
 
+> **【拓展：拒绝采样在粒子滤波中的应用】**
+> 粒子滤波（Particle Filter）是目标跟踪和机器人定位的核心算法。它本质上就是一种拒绝采样——用一组"粒子"近似后验分布，根据观测结果对粒子加权重采样。自动驾驶公司如 Waymo 在实时定位中使用了数万个粒子的粒子滤波器，每秒更新数十次。
+
 ### Importance Sampling
 
 Sometimes you do not need samples from the target distribution p(x). You need to estimate an expectation under p(x), and you have samples from a different distribution q(x).
@@ -148,6 +163,9 @@ Estimator:
 ```
 
 This is critical in reinforcement learning. In PPO (Proximal Policy Optimization), you collect trajectories under an old policy pi_old but want to optimize a new policy pi_new. The importance weight is pi_new(a|s) / pi_old(a|s). PPO clips these weights to prevent the new policy from diverging too far from the old one.
+
+> **【拓展：PPO 中的重要性采样】**
+> PPO 是 ChatGPT RLHF 训练的核心算法。它用重要性采样修正新旧策略之间的分布差异。PPO 的关键创新是裁剪（clipping）：当重要性权重 ratio = pi_new/pi_old 超出 [1-epsilon, 1+epsilon] 范围时（epsilon 通常为 0.2），截断梯度防止策略更新过大。这使得训练比 TRPO 更稳定高效。
 
 The variance of the importance sampling estimator depends on how similar q is to p. If q is very different from p, a few samples get enormous weights and dominate the estimate. Self-normalized importance sampling divides by the sum of weights to reduce this problem:
 
@@ -170,6 +188,9 @@ Error: O(1 / sqrt(N))   regardless of dimension
 ```
 
 The error rate is dimension-independent. This is why Monte Carlo methods dominate in high dimensions where grid-based integration is impossible.
+
+> **【中文解读】**
+> 蒙特卡洛方法的精髓：用随机样本的平均值来近似期望。大数定律保证了收敛，而且误差率 O(1/sqrt(N)) 与维度无关。这在高维问题中极为重要——100 维的积分用网格法需要 2^100 个点，而蒙特卡洛只需几万个样本就能得到不错的估计。
 
 **Estimating pi:**
 
@@ -213,6 +234,9 @@ For symmetric proposals (q(x'|x) = q(x|x')), the ratio simplifies to p(x')/p(x).
 
 **Why it works.** The acceptance rule ensures detailed balance: the probability of being at x and moving to x' equals the probability of being at x' and moving to x. Detailed balance implies that p(x) is the stationary distribution of the chain.
 
+> **【拓展：MCMC 在贝叶斯深度学习中的应用】**
+> PyMC、NumPyro 等 Bayesian 推理框架的核心就是 MCMC。NUTS (No-U-Turn Sampler) 是最先进的 MCMC 变体，它自动调节步长和方向。在药物发现中，研究人员用 MCMC 采样分子构型的后验分布，处理数千维参数空间。Stan 语言（以统计学家 Stanislaw Ulam 命名）让研究人员无需手写 MCMC 就能进行贝叶斯推理。
+
 **Practical considerations:**
 - Burn-in: discard early samples before the chain reaches equilibrium
 - Thinning: keep every k-th sample to reduce autocorrelation
@@ -243,6 +267,9 @@ The acceptance rate is always 1 (every proposal is accepted) because sampling fr
 
 **Limitation.** When variables are highly correlated, Gibbs sampling mixes slowly because updating one variable at a time cannot make large diagonal moves through the distribution.
 
+> **【中文解读】**
+> Gibbs 采样是 MCMC 的特例：每次只更新一个变量，从条件分布中采样。因为每次采样都来自精确的条件分布，所以接受率永远是 100%。但缺点也很明显——当变量之间高度相关时，每次只能"小步挪"，收敛非常慢。
+
 ### Temperature Sampling (Used in LLMs)
 
 Language models output logits z_1, ..., z_V for each token in the vocabulary. Softmax converts these to probabilities. Temperature rescales the logits before softmax:
@@ -267,6 +294,9 @@ T > 1.0: flattens the distribution (less confident, more diverse)
 - T > 1.5: increasingly random, rarely useful
 
 Temperature does not change which tokens are possible. It changes the probability mass allocated to each token.
+
+> **【中文解读】**
+> Temperature 是 LLM 输出多样性的"旋钮"。T < 1 让分布更尖锐（更像贪心），T > 1 让分布更平坦（更随机）。T → 0 退化为 argmax，T → ∞ 退化为均匀分布。实际中 T=0.7 是最常用的平衡点。注意：温度不改变哪些 token 有可能被选中，只改变概率分配。
 
 ### Top-k Sampling
 
@@ -349,6 +379,9 @@ This works because N(mu, sigma^2) has the same distribution as mu + sigma * N(0,
 5. Backpropagate through steps 4, 3, 2, 1 (possible because step 3 is differentiable)
 
 Without the reparameterization trick, VAEs cannot be trained with standard backpropagation. This single insight made VAEs practical.
+
+> **【拓展：重参数化技巧的广泛应用】**
+> 重参数化技巧不限于 VAE。扩散模型（Stable Diffusion、DALL-E）的每一步去噪都用了重参数化：z = mu + sigma * epsilon。强化学习中，SAC (Soft Actor-Critic) 用重参数化计算策略梯度。可以说，只要涉及"从可学习分布中采样+反向传播"，就离不开这个技巧。
 
 ### Gumbel-Softmax (Differentiable Categorical Sampling)
 
@@ -441,7 +474,7 @@ The connection to the methods in this lesson:
 
 The entire image generation process is iterative sampling: start from noise, and at each step, sample a slightly less noisy version conditioned on the learned denoising model.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Uniform and inverse CDF sampling
 
@@ -450,11 +483,11 @@ import math
 import random
 
 def sample_uniform(a, b):
-    return a + (b - a) * random.random()
+    return a + (b - a) * random.random()  # 线性变换：把 [0,1) 映射到 [a,b)
 
 def sample_exponential_inverse_cdf(lam):
-    u = random.random()
-    return -math.log(u) / lam
+    u = random.random()                   # 生成均匀随机数
+    return -math.log(u) / lam             # 逆 CDF：x = -ln(u) / lambda
 ```
 
 Generate 10,000 exponential samples and verify the mean is 1/lambda.
@@ -463,10 +496,10 @@ Generate 10,000 exponential samples and verify the mean is 1/lambda.
 
 ```python
 def rejection_sample(target_pdf, proposal_sample, proposal_pdf, M):
-    while True:
-        x = proposal_sample()
-        u = random.random()
-        if u < target_pdf(x) / (M * proposal_pdf(x)):
+    while True:                           # 持续采样直到被接受
+        x = proposal_sample()             # 从提议分布采样
+        u = random.random()               # 均匀随机数用于决定接受/拒绝
+        if u < target_pdf(x) / (M * proposal_pdf(x)):  # 接受条件
             return x
 ```
 
@@ -504,14 +537,14 @@ def monte_carlo_pi(n):
 ```python
 def metropolis_hastings(target_log_pdf, proposal_sample, proposal_log_pdf, x0, n_samples, burn_in):
     samples = []
-    x = x0
+    x = x0                                # 初始状态
     for i in range(n_samples + burn_in):
-        x_new = proposal_sample(x)
-        log_alpha = (target_log_pdf(x_new) + proposal_log_pdf(x, x_new)
+        x_new = proposal_sample(x)        # 从提议分布生成新候选
+        log_alpha = (target_log_pdf(x_new) + proposal_log_pdf(x, x_new)  # 计算接受比的对数
                      - target_log_pdf(x) - proposal_log_pdf(x_new, x))
-        if math.log(random.random()) < log_alpha:
+        if math.log(random.random()) < log_alpha:  # 以 min(1, alpha) 的概率接受
             x = x_new
-        if i >= burn_in:
+        if i >= burn_in:                  # 丢弃 burn-in 阶段的样本
             samples.append(x)
     return samples
 ```
@@ -542,8 +575,8 @@ def softmax(logits):
     return [e / total for e in exps]
 
 def temperature_sample(logits, temperature):
-    scaled = [z / temperature for z in logits]
-    probs = softmax(scaled)
+    scaled = [z / temperature for z in logits]  # 温度缩放：除以 T
+    probs = softmax(scaled)                      # 计算缩放后的概率分布
     return sample_from_probs(probs)
 ```
 
@@ -581,12 +614,12 @@ def top_p_sample(logits, p):
 
 ```python
 def reparam_sample(mu, sigma):
-    epsilon = random.gauss(0, 1)
-    return mu + sigma * epsilon
+    epsilon = random.gauss(0, 1)          # 标准正态噪声，不含可学习参数
+    return mu + sigma * epsilon            # 确定性变换，梯度可流过
 
 def reparam_gradient(mu, sigma, epsilon):
-    dz_dmu = 1.0
-    dz_dsigma = epsilon
+    dz_dmu = 1.0                          # z 对 mu 的梯度恒为 1
+    dz_dsigma = epsilon                   # z 对 sigma 的梯度是 epsilon
     return dz_dmu, dz_dsigma
 ```
 
@@ -608,7 +641,10 @@ Show how decreasing temperature makes the output approach a one-hot vector.
 
 Full implementations with all visualizations are in `code/sampling.py`.
 
-## Use It
+## Use It | 用框架实现
+
+> **【拓展：扩散模型中的采样工程】**
+> Stable Diffusion 从 2022 年发布以来，采样方法从 DDPM 的 1000 步迭代进化到 DDIM、DPM-Solver++ 等只需 20-50 步的方法。核心思想是把扩散 ODE 离散化，用高阶数值方法（如 Runge-Kutta）加速采样。LCM (Latent Consistency Models) 更是将采样压缩到 4-8 步，单张图片生成仅需 0.1 秒。
 
 With NumPy and SciPy, the production versions:
 
@@ -640,7 +676,7 @@ For MCMC at scale, use dedicated libraries:
 
 You built these from scratch. Now you know what the library calls are doing.
 
-## Exercises
+## Exercises | 练习题
 
 1. Implement inverse CDF sampling for the Cauchy distribution. The CDF is F(x) = 0.5 + arctan(x)/pi. Generate 10,000 samples and plot the histogram against the true PDF. Notice the heavy tails (extreme values far from center).
 
@@ -652,7 +688,7 @@ You built these from scratch. Now you know what the library calls are doing.
 
 5. Build a complete text generation demo: given a vocabulary of 10 words with logits, generate sequences of 20 tokens using (a) greedy, (b) temperature=0.7, (c) top-k=3, (d) top-p=0.9. Compare the diversity of outputs across 5 runs.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -675,7 +711,7 @@ You built these from scratch. Now you know what the library calls are doing.
 | Detailed balance | "Reversibility condition" | p(x) * T(x->y) = p(y) * T(y->x). Sufficient condition for p to be the stationary distribution of a Markov chain |
 | Diffusion sampling | "Iterative denoising" | Generate data by starting from noise and applying learned denoising steps. Each step is a conditional sampling operation |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Holbrook (2023): The Metropolis-Hastings Algorithm](https://arxiv.org/abs/2304.07010) - detailed tutorial on MCMC foundations
 - [Jang, Gu, Poole (2017): Categorical Reparameterization with Gumbel-Softmax](https://arxiv.org/abs/1611.01144) - original Gumbel-Softmax paper

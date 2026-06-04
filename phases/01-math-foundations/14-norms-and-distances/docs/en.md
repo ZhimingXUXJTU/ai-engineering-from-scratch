@@ -18,7 +18,7 @@
 > **【中文解读】**
 > 距离函数定义了相似的含义。L1 对应 LASSO（特征选择），L2 对应 Ridge（防止过拟合），余弦距离适合词嵌入，编辑距离适合字符串。梯度裁剪用 L2 范数限制梯度大小。
 
-## The Problem
+## The Problem | 问题引入
 
 You have two vectors. Maybe they are word embeddings. Maybe they are user profiles. Maybe they are pixel arrays. You need to know: how close are they?
 
@@ -28,7 +28,7 @@ There is no universal best distance. L2 works for spatial data. Cosine similarit
 
 This lesson builds every major distance function from scratch, shows you when each one is the right tool, and demonstrates how the same data produces completely different nearest neighbors depending on which metric you use.
 
-## The Concept
+## The Concept | 核心概念
 
 ### Norms: measuring vector magnitude
 
@@ -427,7 +427,7 @@ Product quant.    Compress vectors, search       FAISS (memory-constrained)
 
 HNSW (Hierarchical Navigable Small World) is the dominant algorithm in modern vector databases. It builds a multi-layer graph where each node connects to its approximate nearest neighbors. Search starts at the top layer (sparse, long jumps) and descends to the bottom layer (dense, short jumps).
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: All norm and distance functions
 
@@ -441,7 +441,7 @@ The demo in `distances.py` creates a dataset, picks a query point, and shows how
 
 The code includes a mock embedding similarity search that finds the most similar "documents" to a query using cosine similarity vs L2 distance, showing that the rankings can differ.
 
-## Use It
+## Use It | 用框架实现
 
 The most common practical use: finding similar items in a vector database.
 
@@ -467,7 +467,7 @@ print(f"Similarities: {similarities[top_k]}")
 
 When you call `model.encode(text)` and then search a vector database, this is what happens under the hood. The embedding model maps text to vectors. The vector database computes cosine similarity (or dot product) between your query vector and every stored vector, using ANN algorithms to avoid checking all of them.
 
-## Exercises
+## Exercises | 练习题
 
 1. Compute L1, L2, and L-infinity distances between (1, 2, 3) and (4, 0, 6). Verify that L-inf <= L2 <= L1 always holds for any pair of points. Prove why this ordering is guaranteed.
 
@@ -479,7 +479,7 @@ When you call `model.encode(text)` and then search a vector database, this is wh
 
 5. Implement MinHash for approximate Jaccard similarity. Generate 100 random sets, compute exact Jaccard for all pairs, and compare with MinHash approximation using 50, 100, and 200 hash functions. Plot the approximation error.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -502,7 +502,7 @@ When you call `model.encode(text)` and then search a vector database, this is wh
 | L2 regularization | "Ridge" or "weight decay" | Adding the squared L2 norm of weights to the loss. Shrinks weights toward zero without sparsity |
 | Elastic Net | "L1 + L2" | Combines L1 and L2 regularization. Handles correlated feature groups better than either alone |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [FAISS: A Library for Efficient Similarity Search](https://github.com/facebookresearch/faiss) - Meta's library for billion-scale ANN search
 - [Wasserstein GAN (Arjovsky et al., 2017)](https://arxiv.org/abs/1701.07875) - the paper that introduced Earth Mover's distance to GANs

@@ -22,7 +22,7 @@
 > - **t-SNE/UMAP**: 高维数据 2D 可视化的标准工具，论文中几乎每个嵌入可视化都用它们。
 > - **推荐系统**: 协同过滤本质上就是对用户-物品矩阵做降维，发现隐因子。
 
-## The Problem
+## The Problem | 问题引入
 
 You have a dataset with 784 features per sample. Maybe it is pixel values of handwritten digits. Maybe it is gene expression levels. Maybe it is user behavior signals. You cannot visualize 784 dimensions. You cannot plot them. You cannot even think about them.
 
@@ -30,7 +30,7 @@ But most of those 784 features are redundant. The actual information lives on a 
 
 Dimensionality reduction finds that smaller surface. It takes your 784-dimensional data and compresses it to 2, 10, or 50 dimensions while keeping the structure that matters.
 
-## The Concept
+## The Concept | 核心概念
 
 ### The curse of dimensionality
 
@@ -198,7 +198,7 @@ Plotting cumulative explained variance against number of components gives you th
 
 Reconstruction error is useful beyond choosing k. You can use it for anomaly detection: samples with high reconstruction error are outliers that do not fit the learned subspace. This is the basis of PCA-based anomaly detection in production systems.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: PCA from scratch
 
@@ -314,7 +314,7 @@ except ImportError:
     print("Install umap-learn: pip install umap-learn")
 ```
 
-## Use It
+## Use It | 用框架实现
 
 PCA as preprocessing before a classifier:
 
@@ -344,12 +344,12 @@ for k in [10, 30, 50, 100, 200]:
 
 Performance plateaus well before 784 dimensions. That plateau is your operating point.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/skill-dimensionality-reduction.md` - a skill for choosing the right dimensionality reduction technique for a given task
 
-## Exercises
+## Exercises | 练习题
 
 1. Modify the PCA class to support `inverse_transform`. Reconstruct MNIST digits from 10, 50, and 200 components. Print the reconstruction error (mean squared difference from the original) for each.
 
@@ -357,7 +357,7 @@ This lesson produces:
 
 3. Take a dataset with 50 features where only 5 are informative (generate one with `sklearn.datasets.make_classification`). Apply PCA and check whether the explained variance curve correctly identifies that the data is effectively 5-dimensional.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -371,7 +371,7 @@ This lesson produces:
 | Perplexity | "A t-SNE knob" | Controls the effective number of neighbors each point considers. Low perplexity focuses on very local structure. High perplexity captures broader patterns. |
 | Manifold | "The surface the data lives on" | A lower-dimensional surface embedded in a higher-dimensional space. A sheet of paper crumpled in 3D is a 2D manifold. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [A Tutorial on Principal Component Analysis](https://arxiv.org/abs/1404.1100) (Shlens) - clear derivation of PCA from the ground up
 - [How to Use t-SNE Effectively](https://distill.pub/2016/misread-tsne/) (Wattenberg et al.) - interactive guide to t-SNE pitfalls and parameter choices

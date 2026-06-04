@@ -18,7 +18,7 @@
 > **【中文解读】**
 > 浮点数是漏水的抽象。训练 3 小时后 loss 变 NaN 是最常见的崩溃。本章实现数值稳定的 Softmax（减最大值技巧），解释为什么 bfloat16 比 float16 更适合训练。混合精度训练中用 loss scaling 防止小梯度下溢。
 
-## The Problem
+## The Problem | 问题引入
 
 Your model trains for three hours, then the loss becomes NaN. You add a print statement. The logits are fine at step 9,000. At step 9,001 they are `inf`. By step 9,002 every gradient is `nan` and training is dead.
 
@@ -28,7 +28,7 @@ Or: you implement cross-entropy loss from scratch. It works on small logits. Whe
 
 Numerical stability is not a theoretical concern. It is the difference between a training run that succeeds and one that silently fails. Every serious ML bug you will debug eventually comes down to floating point.
 
-## The Concept
+## The Concept | 核心概念
 
 ### IEEE 754: How Computers Store Real Numbers
 
@@ -392,7 +392,7 @@ Fix: use `torch.nn.functional.log_softmax()` which implements log-sum-exp intern
 Cause: float16 cannot represent gradient magnitudes below 6e-8 or activations above 65,504.
 Fix: use mixed precision with loss scaling (AMP), or use bfloat16 instead.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Demonstrate floating point precision limits
 
@@ -502,7 +502,7 @@ numerical = numerical_gradient(f, point)
 check_gradient(analytical, numerical)
 ```
 
-## Use It
+## Use It | 用框架实现
 
 ### Mixed precision simulation
 
@@ -558,7 +558,7 @@ check_tensor("ugly", [1.0, float('inf'), 3.0])
 
 See `code/numerical.py` for complete implementations with all edge cases demonstrated.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces:
 - `code/numerical.py` with stable softmax, log-sum-exp, cross-entropy, gradient checking, and mixed precision simulation
@@ -566,7 +566,7 @@ This lesson produces:
 
 These stable implementations reappear in Phase 3 when building the training loop and in Phase 4 when implementing attention mechanisms.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Catastrophic cancellation.** Compute the variance of [1000000.0, 1000001.0, 1000002.0] using the naive formula `E[x^2] - E[x]^2` in float32. Then compute it using Welford's online algorithm. Compare the errors against the true variance (0.6667).
 
@@ -578,7 +578,7 @@ These stable implementations reappear in Phase 3 when building the training loop
 
 5. **Loss scaling experiment.** Simulate training with float16: create random gradients in the range [1e-9, 1e-3], convert to float16, and measure what fraction become zero. Then apply loss scaling (multiply by 1024), convert to float16, scale back, and measure the zero fraction again.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -598,7 +598,7 @@ These stable implementations reappear in Phase 3 when building the training loop
 | Inf | "Infinity" | Special float value from overflow or division by zero. Can combine to produce NaN (inf - inf, inf * 0). |
 | Numerical gradient | "Brute force derivative" | Approximating a derivative by evaluating f(x+h) and f(x-h) and dividing by 2h. Slow but reliable for verification. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [What Every Computer Scientist Should Know About Floating-Point Arithmetic (Goldberg 1991)](https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html) -- the definitive reference, dense but complete
 - [Mixed Precision Training (Micikevicius et al., 2018)](https://arxiv.org/abs/1710.03740) -- the NVIDIA paper that introduced loss scaling for float16 training

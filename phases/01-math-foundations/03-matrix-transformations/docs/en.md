@@ -22,13 +22,13 @@
 > - **RNN 稳定性**: 如果权重矩阵的特征值绝对值大于 1，梯度会指数增长（梯度爆炸）；小于 1 则会衰减到零（梯度消失）。
 > - **谱聚类**: 用图拉普拉斯矩阵的特征向量进行聚类，比 K-Means 更适合非球形数据。
 
-## The Problem
+## The Problem | 问题引入
 
 You read about PCA and see "find the eigenvectors of the covariance matrix." You read about model stability and see "check if all eigenvalues have magnitude less than 1." You read about data augmentation and see "apply a random rotation." None of this makes sense until you understand what matrices do to space geometrically.
 
 Matrices are not just grids of numbers. They are spatial machines. A rotation matrix spins points. A scaling matrix stretches them. A shearing matrix tilts them. Every transformation a neural network applies to data is one of these operations or a composition of them. This lesson makes those operations concrete.
 
-## The Concept
+## The Concept | 核心概念
 
 ### Transformations as matrices
 
@@ -240,7 +240,7 @@ det = -1:  area preserved but orientation flipped (reflection)
 | det(Reflection) | = -1     (orientation flipped)
 ```
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Transformation matrices from scratch (Python)
 
@@ -374,7 +374,7 @@ print(f"det(singular)     = {det_2x2(singular):.1f}")
 print("Singular: columns are proportional, space collapses to a line.")
 ```
 
-## Use It
+## Use It | 用框架实现
 
 NumPy handles all of this with optimized routines.
 
@@ -435,11 +435,11 @@ print(f"Rotate 90 around z: {np.round(rotated_z, 4)}")
 print(f"Rotate 90 around x: {np.round(rotated_x, 4)}")
 ```
 
-## Ship It
+## Ship It | 产出物
 
 This lesson builds the geometric foundation for PCA (Phase 2) and neural network weight analysis. The eigenvalue/eigenvector code built here is the same algorithm that powers dimensionality reduction, spectral clustering, and stability analysis in production ML systems.
 
-## Exercises
+## Exercises | 练习题
 
 1. Apply rotation, scaling, and shearing to a unit square (corners at [0,0], [1,0], [1,1], [0,1]). Print the transformed corners for each. Verify that rotation preserves distances between corners.
 
@@ -447,7 +447,7 @@ This lesson builds the geometric foundation for PCA (Phase 2) and neural network
 
 3. Create a composition of three transformations (rotate 30 degrees, scale by [1.5, 0.8], shear with kx=0.3) and apply it to 8 points arranged in a circle. Print before and after coordinates. Compute the determinant of the composed matrix and verify it equals the product of the individual determinants.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -462,7 +462,7 @@ This lesson builds the geometric foundation for PCA (Phase 2) and neural network
 | Determinant | "A single number from a matrix" | The factor by which the transformation scales area (2D) or volume (3D). Zero means the transformation is irreversible. |
 | Characteristic equation | "Where eigenvalues come from" | det(A - lambda * I) = 0. The polynomial whose roots are the eigenvalues. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [3Blue1Brown: Linear Transformations](https://www.3blue1brown.com/lessons/linear-transformations) -- visual intuition for how matrices reshape space
 - [3Blue1Brown: Eigenvectors and Eigenvalues](https://www.3blue1brown.com/lessons/eigenvalues) -- the best visual explanation of what eigenvectors mean geometrically

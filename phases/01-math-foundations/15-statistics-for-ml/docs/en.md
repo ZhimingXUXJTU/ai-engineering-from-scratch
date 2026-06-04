@@ -18,7 +18,7 @@
 > **【中文解读】**
 > 统计学告诉你模型是真的有效还是运气好。A/B 测试评估新模型、Bootstrap 构建置信区间、假设检验判断差异显著性——这些是 ML 实验评估的基础。
 
-## The Problem
+## The Problem | 问题引入
 
 You trained two models. Model A scores 0.87 on your test set. Model B scores 0.89. You deploy Model B. Three weeks later, production metrics are worse than before. What happened?
 
@@ -28,7 +28,7 @@ This happens constantly. Kaggle leaderboard shakeups. Papers that fail to reprod
 
 Statistics gives you the tools to distinguish signal from noise. It tells you when a difference is real, how confident you should be, and how much data you need before you can trust a result. Every ML pipeline, every model comparison, every experiment needs statistics. Without it, you are guessing.
 
-## The Concept
+## The Concept | 核心概念
 
 ### Descriptive Statistics: Summarizing Your Data
 
@@ -492,7 +492,7 @@ You will implement:
 
 All from scratch, using only `math` and `random`. No numpy, no scipy.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | Definition |
 |---|---|

@@ -22,13 +22,13 @@
 > - **SGD/Adam**: 都是梯度下降的变体，Adam 加入了动量和自适应学习率。
 > - **学习率**: 梯度下降的步长。太大则跳过最小值，太小则收敛太慢。
 
-## The Problem
+## The Problem | 问题引入
 
 You have a neural network with millions of weights. Each weight is a knob. You need to figure out which direction to turn every single knob to make the model slightly less wrong. Calculus gives you that direction.
 
 Without calculus, training a neural network would mean trying random changes and hoping for the best. With derivatives, you know exactly how each weight affects the error. You turn every knob the right way, every time.
 
-## The Concept
+## The Concept | 核心概念
 
 ### What is a derivative?
 
@@ -396,7 +396,7 @@ Each weight update:
 
 The forward pass computes the prediction and loss. The backward pass computes the gradient of the loss with respect to every weight. Then every weight takes a small step downhill. Repeat for millions of steps. That is deep learning.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Numerical derivative from scratch
 
@@ -575,7 +575,7 @@ print(f"Actual:  y = 2x + 1")
 
 Every gradient-based training loop follows this pattern: predict, compute loss, compute gradients, update weights.
 
-## Use It
+## Use It | 用框架实现
 
 With NumPy, the same operations are faster and more concise:
 
@@ -602,13 +602,13 @@ print(f"Learned: y = {w:.2f}x + {b:.2f}")
 
 You just built gradient descent from scratch. PyTorch automates the gradient computation, but the update loop is identical.
 
-## Exercises
+## Exercises | 练习题
 
 1. Implement `numerical_second_derivative(f, x)` using `numerical_derivative` called twice. Verify that the second derivative of x^3 at x=2 is 12.
 2. Use gradient descent to find the minimum of f(x, y) = (x - 3)^2 + (y + 1)^2. Start from (0, 0). The answer should converge to (3, -1).
 3. Add momentum to the gradient descent loop: maintain a velocity vector that accumulates past gradients. Compare convergence speed with and without momentum on f(x) = x^4 - 3x^2.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -625,7 +625,7 @@ You just built gradient descent from scratch. PyTorch automates the gradient com
 | Taylor series | "Polynomial approximation" | Approximating a function near a point using its derivatives: f(x+h) ~ f(x) + f'(x)h + (1/2)f''(x)h^2 + ... The basis for understanding why gradient descent and Newton's method work. |
 | Integral | "Area under the curve" | The accumulation of a quantity over a range. In ML, integrals define probabilities, expected values, and KL divergence. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [3Blue1Brown: Essence of Calculus](https://www.3blue1brown.com/topics/calculus) - visual intuition for derivatives, integrals, and the chain rule
 - [Stanford CS231n: Backpropagation](https://cs231n.github.io/optimization-2/) - how gradients flow through neural network layers

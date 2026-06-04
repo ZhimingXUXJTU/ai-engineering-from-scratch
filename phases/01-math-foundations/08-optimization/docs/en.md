@@ -22,7 +22,9 @@
 > - **Adam**: 目前最流行的优化器，自适应学习率 + 动量，几乎成了默认选择。
 > - **学习率调度**: 训练初期用大步长快速接近最优，后期用小步长精细调整。Cosine Annealing 和 Warmup 是 Transformer 训练的标准配置。
 
-## The Problem
+## The Problem | 问题引入
+
+> **【中文解读】** 你有损失函数（告诉你有多错）和梯度（告诉你哪个方向能让误差更小）。现在需要一个策略"走到山谷最低点"。朴素方法：沿梯度反方向走。学习率太大→跳过最低点来回震荡；太小→走几千步才到。鞍点→停下来但没到最低。所有优化器都在回答同一个问题：怎么更快更稳地走到谷底？
 
 You have a loss function. It tells you how wrong your model is. You have gradients. They tell you which direction makes the loss worse. Now you need a strategy for walking downhill.
 
@@ -30,9 +32,11 @@ The naive approach is simple: move opposite the gradient. Scale the step by some
 
 Every optimizer in deep learning is an answer to the same question: how do you get to the bottom of the valley faster and more reliably?
 
-## The Concept
+## The Concept | 核心概念
 
-### What optimization means
+### What optimization means | 什么是优化
+
+> **【拓展：优化是机器学习的引擎】** 训练 = 优化。GPT-4 的训练过程就是：用 1.8 万亿参数的损失函数，通过 Adam 优化器迭代调整参数，使预测越来越准确。训练一个大型 Transformer 可能需要 10^20 次 FLOPS 的计算，但核心操作就是反复执行 `w = w - lr * gradient`。
 
 Optimization is finding the input values that minimize (or maximize) a function. In machine learning, the function is the loss. The inputs are the model's weights. Training is optimization.
 
@@ -42,7 +46,9 @@ minimize L(w) where:
   w = model weights (could be millions of parameters)
 ```
 
-### Gradient descent (vanilla)
+### Gradient descent (vanilla) | 梯度下降（原始版）
+
+> **【中文解读】** 梯度下降：计算损失对每个权重的梯度，沿反方向走一步，步长由学习率控制。`w = w - lr * gradient`，一行的完整算法。直觉：蒙着眼下山，每一步都朝最陡的下坡方向走。
 
 The simplest optimizer. Compute the gradient of the loss with respect to every weight. Move each weight in the opposite direction of its gradient. Scale the step by the learning rate.
 
@@ -59,7 +65,9 @@ graph TD
     C --> D["o Minimum (low loss)"]
 ```
 
-### Learning rate: the most important hyperparameter
+### Learning rate: the most important hyperparameter | 学习率：最重要的超参数
+
+> **【拓展：学习率选择的实践指南】** 学习率是最难调的超参数。经验法则：从 0.001 开始（Adam 的默认值），观察训练曲线。损失不降→学习率太小；损失震荡→学习率太大。Transformer 训练标准配置：warmup（前 N 步从 0 线性增到 0.001）+ cosine decay（之后余弦衰减到 0）。GPT-3 使用了 0.6 的峰值学习率配合 warmup。
 
 The learning rate controls step size. It determines everything about convergence.
 
@@ -82,7 +90,9 @@ graph LR
 
 There is no formula for the right learning rate. You find it by experiment. Common starting points: 0.001 for Adam, 0.01 for SGD with momentum.
 
-### SGD vs batch vs mini-batch
+### SGD vs batch vs mini-batch | SGD vs 全批量 vs 小批量
+
+> **【中文解读】** 三种梯度计算方式：(1) 全批量——用全部数据算一次梯度，准但慢；(2) 随机 SGD——用一条数据算梯度，快但噪声大；(3) 小批量——折中方案，用 32/64/256 条数据。实际 AI 训练中几乎都用小批量，batch size 是另一个关键超参数。
 
 Vanilla gradient descent computes the gradient over the entire dataset before taking one step. This is called batch gradient descent. It is stable but slow.
 
@@ -98,7 +108,9 @@ Mini-batch gradient descent splits the difference. Compute the gradient over a s
 
 The noise in SGD and mini-batch is not a bug. It helps escape shallow local minima and saddle points.
 
-### Momentum: the ball rolling downhill
+### Momentum: the ball rolling downhill | 动量法：球从山坡滚下
+
+> **【拓展：动量在深度学习中的效果】** 动量法让优化"记住"之前的方向，像球滚下山坡一样积累动能。好处：(1) 加速通过平坦区域；(2) 抑制震荡（在窄谷中来回弹的问题）。PyTorch 中 `torch.optim.SGD(lr=0.1, momentum=0.9)` 的 momentum=0.9 是常用配置。
 
 Vanilla gradient descent only looks at the current gradient. If the gradient zigzags (common in narrow valleys), progress is slow. Momentum fixes this by accumulating past gradients into a velocity term.
 
@@ -126,7 +138,9 @@ graph TD
 
 `beta` (typically 0.9) controls how much history to keep. Higher beta means more momentum, smoother paths, but slower response to direction changes.
 
-### Adam: adaptive learning rates
+### Adam: adaptive learning rates | Adam：自适应学习率
+
+> **【中文解读】** Adam = Momentum + 自适应学习率。它为每个参数维护独立的"速度"，根据梯度历史自动调整步长。梯度大的参数走小步，梯度小的参数走大步。Adam 是目前最常用的优化器，PyTorch 中 `torch.optim.Adam(lr=0.001)` 几乎是默认选择。
 
 Different weights need different learning rates. A weight that rarely gets large gradients should take bigger steps when it finally does. A weight that gets huge gradients constantly should take smaller steps.
 
@@ -162,7 +176,9 @@ Common schedules:
 | Cosine annealing | lr = lr_min + 0.5 * (lr_max - lr_min) * (1 + cos(pi * t / T)) | Transformers, modern training |
 | Warmup + decay | Linear ramp up, then decay | Large models, prevents early instability |
 
-### Convex vs non-convex
+### Convex vs non-convex | 凸优化 vs 非凸优化
+
+> **【拓展：神经网络的损失曲面为什么是非凸的】** 线性回归的损失函数是凸的（只有一个最低点，一定能找到），但神经网络的损失曲面有无数个局部最低点和鞍点。在 100 万维的参数空间中，鞍点（某些维度上升、某些维度下降的点）比局部最低点多得多。好消息：Adam 等自适应优化器能有效逃离鞍点。这也是为什么深度学习需要好的优化器——而不仅仅靠梯度下降。
 
 A convex function has one minimum. Gradient descent always finds it. A quadratic like `f(x) = x^2` is convex.
 
@@ -203,7 +219,7 @@ graph TD
 
 Sharp minima generalize poorly. Flat minima generalize well. This is one reason SGD with momentum often outperforms Adam on final test accuracy: its noise prevents settling into sharp minima.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Define a test function
 
@@ -319,7 +335,9 @@ for name, history in [("GD", gd_history), ("SGD+M", sgd_history), ("Adam", adam_
 
 Expected output: Adam converges fastest. SGD with momentum follows a smoother path. Vanilla GD makes slow progress along the narrow valley.
 
-## Use It
+## Use It | 用框架实现
+
+> **【中文解读】** PyTorch 中优化器的标准用法：`optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`，然后在训练循环中 `optimizer.zero_grad()` → `loss.backward()` → `optimizer.step()`。这三行代码就是深度学习训练的核心循环。
 
 In practice, use PyTorch or JAX optimizers. They handle parameter groups, weight decay, gradient clipping, and GPU acceleration.
 
@@ -343,13 +361,13 @@ Rules of thumb:
 - Always use a learning rate schedule for training runs longer than a few epochs.
 - If training is unstable, reduce the learning rate. If training is too slow, increase it.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces a prompt for choosing the right optimizer. See `outputs/prompt-optimizer-guide.md`.
 
 The optimizer classes built here reappear in Phase 3 when we train a neural network from scratch.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Learning rate sweep.** Run vanilla gradient descent on the Rosenbrock function with learning rates [0.0001, 0.0005, 0.001, 0.005, 0.01]. Plot or print the final loss after 5000 steps for each. Find the largest learning rate that still converges.
 
@@ -359,7 +377,7 @@ The optimizer classes built here reappear in Phase 3 when we train a neural netw
 
 4. **Implement learning rate decay.** Add an exponential decay schedule to the GradientDescent class: `lr = lr_0 * 0.999^step`. Compare convergence with and without decay on the Rosenbrock function.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -376,7 +394,7 @@ The optimizer classes built here reappear in Phase 3 when we train a neural netw
 | Loss landscape | "The terrain" | The loss function plotted over weight space. Visualized by slicing along two random directions. |
 | Convergence | "Getting there" | The optimizer has reached a point where further steps do not meaningfully reduce the loss. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Sebastian Ruder: An overview of gradient descent optimization algorithms](https://ruder.io/optimizing-gradient-descent/) - comprehensive survey of all major optimizers
 - [Why Momentum Really Works (Distill)](https://distill.pub/2017/momentum/) - interactive visualization of momentum dynamics

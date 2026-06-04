@@ -22,15 +22,13 @@
 > - **KL 散度**: VAE 的损失函数之一、知识蒸馏的核心、RLHF 中奖励模型的训练目标。
 > - **困惑度(Perplexity)**: 语言模型的评价标准，越低越好，表示模型对下一个词的预测越确定。
 
-## The Problem
+## The Problem | 问题引入
 
-You call `CrossEntropyLoss()` in every classification model you train. You see "perplexity" in every language model paper. You read about KL divergence in VAEs, distillation, and RLHF. These are not disconnected concepts. They are all the same idea wearing different hats.
+> **【中文解读】** 你在训练分类模型时调用 `CrossEntropyLoss()`，在语言模型论文中看到"perplexity"，在 VAE、蒸馏、RLHF 中遇到 KL 散度。这些不是独立的概念——它们都是信息论的同源概念，只是换了不同的帽子。理解信息论，就能看穿这些概念的本质联系。
 
-Information theory gives you the language to reason about uncertainty, compression, and prediction. Claude Shannon invented it in 1948 to solve communication problems. Turns out, training a neural network is a communication problem: the model is trying to transmit the correct label through a noisy channel of learned weights.
+## The Concept | 核心概念
 
-This lesson builds every formula from scratch so you see where they come from and why they work.
-
-## The Concept
+> **【拓展：Shannon 与信息论的诞生】** 1948 年 Claude Shannon 发表《通信的数学理论》，提出了用比特衡量信息量的框架。80 年后，这个框架成了 AI 的基石：交叉熵是所有分类和语言模型的损失函数，KL 散度是生成模型（VAE、扩散模型）的训练目标，互信息是特征选择的工具。信息论是从通信工程到 AI 的桥梁。
 
 ### Information Content (Surprise)
 
@@ -281,7 +279,7 @@ A language model with perplexity 50 is, on average, as confused as if it had to 
 
 GPT-2 achieved perplexity ~30 on common benchmarks. Modern models are in the single digits for well-represented domains.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Information content and entropy
 
@@ -412,7 +410,7 @@ print(f"MI (independent): {mutual_information(independent):.4f} bits")
 print(f"MI (dependent):   {mutual_information(dependent):.4f} bits")
 ```
 
-## Use It
+## Use It | 用框架实现
 
 The same concepts using NumPy, the way you will use them in practice:
 
@@ -443,7 +441,7 @@ print(f"KL div:     {np_kl_divergence(true, pred):.4f} nats")
 
 You built from scratch what `torch.nn.CrossEntropyLoss()` does internally. Now you know why the loss goes down during training: your model's predicted distribution is getting closer to the true distribution, measured in nats of wasted information.
 
-## Exercises
+## Exercises | 练习题
 
 1. Compute the entropy of the English alphabet assuming uniform distribution (26 letters). Then estimate it using actual letter frequencies. Which is higher and why?
 
@@ -453,7 +451,7 @@ You built from scratch what `torch.nn.CrossEntropyLoss()` does internally. Now y
 
 4. Build a function that computes perplexity for a sequence of token predictions. Given a list of (true_token_index, predicted_logits) pairs, return the perplexity of the sequence.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -468,7 +466,7 @@ You built from scratch what `torch.nn.CrossEntropyLoss()` does internally. Now y
 | Nats | "ML's unit" | Information measured with natural log. Used by PyTorch and TensorFlow by default. |
 | Negative log-likelihood | "NLL loss" | Identical to cross-entropy loss for one-hot labels. Minimizing it maximizes the probability of correct predictions. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Shannon 1948: A Mathematical Theory of Communication](https://people.math.harvard.edu/~ctm/home/text/others/shannon/entropy/entropy.pdf) - the original paper, still readable
 - [Visual Information Theory (Chris Olah)](https://colah.github.io/posts/2015-09-Visual-Information/) - best visual explanation of entropy and KL divergence
