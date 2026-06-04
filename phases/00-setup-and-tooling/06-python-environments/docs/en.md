@@ -33,7 +33,9 @@ The fix: every project gets its own isolated environment with its own packages.
 > **【中文解读】**
 > "依赖地狱"在 AI 项目中特别常见，因为 PyTorch/JAX/TensorFlow 各自带 CUDA 绑定，版本之间互不兼容。解决方案：每个项目一个隔离的虚拟环境。
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 下图展示了有/无虚拟环境的区别：没有虚拟环境时，系统 Python 只能安装一个版本的 PyTorch，项目间互相冲突；有了虚拟环境，每个项目拥有独立的依赖，互不干扰。
 
 ```mermaid
 graph TD
@@ -51,7 +53,9 @@ graph TD
     end
 ```
 
-## Build It
+## Build It | 动手实现
+
+> **【拓展：uv vs pip vs conda — 该选哪个？】** (1) **uv**（推荐）：Rust 写的，比 pip 快 10-100 倍，自动管理虚拟环境，一行命令搞定 `uv venv && uv pip install`。(2) **venv**：Python 内置，无需安装，但速度慢且功能少。(3) **conda**：适合需要非 Python 依赖（如 CUDA 库）的场景，但环境体积巨大。2026 年的 AI 项目推荐 uv 作为默认选择。
 
 ### Option 1: uv venv (Recommended)
 
@@ -81,7 +85,9 @@ cd my-ai-project
 uv add torch numpy matplotlib
 ```
 
-### Option 2: venv (Built-in)
+### Option 2: venv (Built-in) | 选项2：venv（Python 内置）
+
+> **【中文解读】** venv 是 Python 自带的虚拟环境工具，不需要额外安装。但相比 uv，它不会自动管理 Python 版本，也不会生成 lockfile。适合简单的、不需要复杂依赖管理的项目。
 
 If you can't install `uv`, Python ships with `venv`:
 
@@ -138,7 +144,9 @@ ai-engineering-from-scratch/
 
 The script in `code/env_setup.sh` creates the base environment for this course.
 
-## pyproject.toml Basics
+## pyproject.toml Basics | pyproject.toml 基础
+
+> **【拓展：pyproject.toml 是现代 Python 项目的标准配置】** 它替代了传统的 `setup.py` 和 `requirements.txt`。一个文件定义项目元数据、依赖、开发工具配置。AI 项目推荐使用 optional dependency groups 来区分训练依赖（`[train]`）和推理依赖（`[serve]`），避免在生产环境安装不必要的 GPU 库。
 
 Every Python project should have a `pyproject.toml`. It replaces `setup.py`, `setup.cfg`, and `requirements.txt` in one file.
 
@@ -182,7 +190,9 @@ uv pip install -r requirements.lock
 
 Commit your lockfile to git. When someone clones the repo, they install from the lockfile and get identical versions.
 
-## Common Mistakes
+## Common Mistakes | 常见错误
+
+> **【中文解读】** Python 环境管理中最常见的 5 个错误：(1) 全局安装（用 `pip install` 不在虚拟环境中）；(2) 混用 pip 和 conda；(3) 忘记激活虚拟环境；(4) 把 `.venv` 目录提交到 git；(5) CUDA 版本不匹配。以下逐个讲解和修复方法。
 
 ### 1. Installing globally
 
@@ -234,7 +244,9 @@ echo ".venv/" >> .gitignore
 
 Virtual environments are 200MB-2GB. They're local, not portable between machines. Commit `pyproject.toml` and the lockfile instead.
 
-### 5. CUDA version mismatch
+### 5. CUDA version mismatch | 第5个：CUDA 版本不匹配
+
+> **【拓展：CUDA 版本地狱】** PyTorch 每个版本绑定特定 CUDA 版本（如 PyTorch 2.4 → CUDA 12.4）。装错版本会出现"找不到 GPU"或诡异的运行时错误。解决方案：先 `nvidia-smi` 确认驱动版本，再去 [pytorch.org](https://pytorch.org) 查对应的安装命令。用 `uv pip install torch --index-url URL` 指定 CUDA 版本。
 
 ```bash
 nvidia-smi                # shows driver CUDA version (e.g., 12.4)
@@ -244,7 +256,9 @@ python -c "import torch; print(torch.version.cuda)"  # shows PyTorch CUDA versio
 # PyTorch CUDA version must be <= driver CUDA version.
 ```
 
-## Use It
+## Use It | 使用指南
+
+> **【中文解读】** 本课程的推荐策略：每个 Phase 创建一个虚拟环境（如 `.venv-phase04`），这样可以避免不同阶段的依赖冲突。AI 工程中，版本不兼容是踩坑的第一大原因，做好环境隔离能省去大量调试时间。
 
 Run the setup script to create your course environment:
 

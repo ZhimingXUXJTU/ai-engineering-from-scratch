@@ -42,9 +42,11 @@ graph TD
 > **【中文解读】**
 > AI 开发编辑器需要五层配置：基础编辑器 → 扩展插件 → AI 专用设置 → 终端集成 → 远程开发。其中远程 SSH 开发是最重要的——你需要在本地编辑器中直接操作远程 GPU 服务器。
 
-## Build It
+## Build It | 动手实现
 
-### Step 1: Install VS Code
+> **【拓展：VS Code 为什么是 AI 开发的首选编辑器】** VS Code 在 AI 开发中占据统治地位的原因：(1) 免费且轻量；(2) Jupyter Notebook 原生支持；(3) Remote SSH 直接连接 GPU 服务器编辑代码；(4) Python/Jupyter/Python Debugger 扩展生态完善；(5) AI 辅助编程扩展（Copilot、Cline、Continue）开箱即用。Cursor 和 Windsurf 是基于 VS Code 的 AI 增强版本，也值得尝试。
+
+### Step 1: Install VS Code | 第1步：安装 VS Code
 
 VS Code is the recommended editor. It is free, runs on every OS, has first-class Jupyter notebook support, and the extension ecosystem covers everything you need for AI work.
 
@@ -58,7 +60,9 @@ code --version
 
 If `code` is not found on macOS, open VS Code, press `Cmd+Shift+P`, type "Shell Command", and select "Install 'code' command in PATH".
 
-### Step 2: Install Essential Extensions
+### Step 2: Install Essential Extensions | 第2步：安装必备扩展
+
+> **【中文解读】** AI 开发必备的 VS Code 扩展：Python（调试+Lint）、Jupyter（在编辑器中运行 Notebook）、Pylance（智能补全和类型检查）、GitLens（查看代码历史）。安装后在设置中开启"保存时格式化"，从此不用手动整理代码。
 
 Open the integrated terminal in VS Code (`Ctrl+`` ` or `` Cmd+` ``) and install the extensions that matter for AI work:
 
@@ -137,7 +141,9 @@ Useful shortcuts:
 
 Split terminals are useful: one for running your script, one for monitoring GPU with `nvidia-smi -l 1` or `watch -n 1 nvidia-smi`.
 
-### Step 5: Remote Development (SSH into GPU Boxes)
+### Step 5: Remote Development (SSH into GPU Boxes) | 第5步：远程开发（SSH 连接 GPU 服务器）
+
+> **【拓展：Remote SSH 是 AI 开发的杀手级功能】** 大多数人没有本地 GPU，需要 SSH 到远程 GPU 服务器训练模型。VS Code 的 Remote SSH 扩展让你像编辑本地文件一样编辑远程代码——自动补全、调试、终端全都可用。这意味着你可以在轻薄本上开发，在远端 A100 上训练。
 
 This is the most important extension for AI work. You will run training on remote machines (cloud VMs, lab servers, Lambda, Vast.ai). Remote SSH lets you open the remote filesystem, edit files, run terminals, and debug as if everything were local.
 
@@ -167,7 +173,9 @@ Host gpu-box
 
 Now `Remote-SSH: Connect to Host > gpu-box` connects instantly.
 
-## Alternatives
+## Alternatives | 替代方案
+
+> **【拓展：AI 增强编辑器对比】** Cursor（基于 VS Code，内置 AI 编程助手，$20/月）和 Windsurf（Codeium 出品，免费层可用）都是 2024-2026 年兴起的 AI-native 编辑器。它们的核心优势：用自然语言描述需求，AI 自动生成代码。如果你已经在用 VS Code 扩展（如 Cline、Continue），迁移成本很低。
 
 ### Cursor
 
@@ -189,7 +197,9 @@ If you already use Vim or Neovim and are productive in it, stay there. The minim
 
 If you do not already use Vim, do not start now. The learning curve will compete with learning AI engineering. Use VS Code.
 
-## Use It
+## Use It | 使用指南
+
+> **【中文解读】** 推荐配置：VS Code + Python + Jupyter + Remote SSH。如果用远程 GPU 服务器，Remote SSH 是必须的。调试训练循环时，Jupyter 扩展让你在编辑器内直接查看张量形状和损失曲线。
 
 With this setup, your daily workflow looks like:
 

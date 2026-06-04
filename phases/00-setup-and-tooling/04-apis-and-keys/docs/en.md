@@ -46,7 +46,9 @@ Every API call has:
 > **【拓展：API 在 AI Agent 中的角色】**
 > AI Agent 的核心循环就是：构造提示词 → 调用 LLM API → 解析响应 → 执行动作 → 再次调用 API。掌握 API 调用是构建 Agent 的第一步。
 
-## Build It
+## Build It | 动手实现
+
+> **【拓展：API 密钥安全的铁律】** 绝不把 API key 硬编码在代码里。一旦推到 GitHub，爬虫会在几秒内发现并滥用你的密钥（真实案例：有人在代码里写了 OpenAI key，几小时内被刷了上千美元）。使用 `.env` 文件 + `python-dotenv` 或操作系统环境变量。
 
 ### Step 1: Store API keys safely | 安全存储 API 密钥
 
@@ -80,7 +82,9 @@ response = client.messages.create(
 print(response.content[0].text)  # 打印模型回复
 ```
 
-### Step 3: First API call (TypeScript)
+### Step 3: First API call (TypeScript) | 第3步：TypeScript 调用
+
+> **【拓展：Token 计费机制】** LLM API 按token计费：Claude Sonnet 约 $3/百万输入 token、$15/百万输出 token。一个英文单词约 1.3 个 token，一个中文字约 2-3 个 token。`max_tokens=256` 意味着模型最多输出 256 个 token（约 200 个英文单词）。控制 `max_tokens` 是节省成本的关键手段。
 
 ```typescript
 import Anthropic from "@anthropic-ai/sdk";
@@ -128,6 +132,8 @@ This is what the SDKs do under the hood. Understanding the raw HTTP call helps w
 
 ## Use It | 使用指南
 
+> **【中文解读】** 现在不需要注册所有 API。Phase 4-10 用 Hugging Face（免费），Phase 11-16 需要 Anthropic 或 OpenAI。等课程用到时再注册即可。
+
 For this course:
 
 | API | When you need it | Free tier |
@@ -144,7 +150,9 @@ For this course:
 
 You don't need all of them right now. Set them up when the lesson requires it.
 
-## Ship It
+## Ship It | 产出物
+
+> **【拓展：429 限流处理】** 调用 LLM API 时最常见的错误是 429 Rate Limit。处理方式：指数退避重试（等 1s → 2s → 4s → 8s）。Anthropic SDK 内置了自动重试，但理解原理很重要——在实际的 Agent 系统中，你可能需要自己实现限流逻辑来控制成本和避免被封。
 
 This lesson produces:
 - `outputs/prompt-api-troubleshooter.md` - diagnose common API errors
