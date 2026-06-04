@@ -11,13 +11,17 @@
 **Prerequisites:** Phase 3 · 02 (Backprop), Phase 8 · 02 (VAE)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 You want a sampler for `p_data(x)`. GANs play a minimax game that often diverges. VAEs produce blurry samples from a Gaussian decoder. What you really want is a training objective that is (a) a single stable loss (no saddle point, no minimax), (b) a lower bound on `log p(x)` (so you have likelihoods), and (c) samples that match SOTA quality.
 
 Sohl-Dickstein et al. (2015) had a theoretical answer: define a Markov chain `q(x_t | x_{t-1})` that gradually adds Gaussian noise, and train a reverse chain `p_θ(x_{t-1} | x_t)` to denoise. Ho, Jain, Abbeel (2020) showed the loss could be simplified to one line — predict the noise — and cleaned up the math. In 2020 this was a curiosity. In 2021 it produced state-of-the-art samples. In 2022 it became Stable Diffusion. In 2026 it is the substrate.
 
-## The Concept
+> **【中文解读】** DDPM 的三步流程：(1) 前向过程——逐步加高斯噪声直到数据变为纯噪声；(2) 训练——学习一个网络预测每一步添加的噪声；(3) 反向过程——从纯噪声开始逐步去噪，恢复出逼真数据。损失函数简化为"预测噪声"这一个目标——训练稳定，无需对抗博弈。
+
+> **【拓展：从 DDPM 到实用扩散模型】** DDPM 原始论文在像素空间操作，速度慢（需要 1000 步去噪）。三个关键改进使其成为实用工具：(1) DDIM（2020）将采样步数从 1000 降到 20-50；(2) 潜在扩散（2021，Rombach）在 VAE 潜在空间中操作，大幅降低计算量；(3) CFG（Classifier-Free Guidance，2022）通过条件/无条件预测的差值提升生成质量。
+
+## The Concept | 核心概念
 
 ![DDPM: forward noise, reverse denoise](../assets/ddpm.svg)
 
@@ -57,7 +61,7 @@ Three intuitions:
 
 3. **The ELBO reduces to simple MSE.** The full variational lower bound has a KL term per timestep. With DDPM's parameterization those KL terms simplify to MSE on noise prediction with specific coefficients; Ho dropped the coefficients (calling it "simple" loss) and quality *improved*.
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` implements a 1-D DDPM. Data is a two-mode mixture. The "net" is a tiny MLP that takes `(x_t, t)` and outputs predicted noise. Training is the one-line loss. Sampling iterates the reverse chain.
 
@@ -127,7 +131,7 @@ Our toy code uses sinusoidal → concat. Production U-Nets use FiLM.
 - **Classifier-free guidance.** At inference, compute both conditional and unconditional `ε`, then `ε_cfg = (1 + w) · ε_cond - w · ε_uncond` with `w ≈ 3-7`. Covered in Lesson 08.
 - **1000 steps is a lot.** Production uses DDIM (20-50 steps), DPM-Solver (10-20 steps), or distillation (1-4 steps). See Lesson 12.
 
-## Use It
+## Use It | 用框架实现
 
 | Role | Typical stack in 2026 |
 |------|-----------------------|
@@ -139,17 +143,17 @@ Our toy code uses sinusoidal → concat. Production U-Nets use FiLM.
 
 Diffusion is the universal generative backbone. Flow matching (Lesson 13) is the 2024-2026 competitor that usually wins on inference speed for the same quality.
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-diffusion-trainer.md`. Skill takes a dataset + compute budget and outputs: schedule (linear/cosine/sigmoid), prediction target (ε/v/x), number of steps, guidance scale, sampler family, and an eval protocol.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Change T from 40 to 10 in `code/main.py`. How does sample quality (visual histogram of outputs) degrade? At what T does the two-mode structure collapse?
 2. **Medium.** Switch from ε-prediction to v-prediction. Re-derive the reverse step. Compare final sample quality.
 3. **Hard.** Add classifier-free guidance. Condition on a class label `c ∈ {0, 1}`, drop it 10% of the time during training, and at sampling time use `ε = (1+w)·ε_cond - w·ε_uncond`. Measure the conditional-mode-hit rate at `w = 0, 1, 3, 7`.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -174,7 +178,7 @@ The DDPM paper runs T=1000 reverse steps. Nobody ships that in production. Every
 
 For a production diffusion server the budget conversation is the same as production literature describes for LLMs: latency is `num_steps × step_cost + VAE_decode`, throughput is `batch_size × (num_steps × step_cost)^-1`. TTFT is small (one step); TPOT-equivalent is the full response time because image generation is "all-at-once" from the user's perspective.
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Sohl-Dickstein et al. (2015). Deep Unsupervised Learning using Nonequilibrium Thermodynamics](https://arxiv.org/abs/1503.03585) — the diffusion paper, ahead of its time.
 - [Ho, Jain, Abbeel (2020). Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239) — DDPM.

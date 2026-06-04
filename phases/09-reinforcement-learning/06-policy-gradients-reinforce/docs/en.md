@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 3 · 03 (Backpropagation), Phase 9 · 03 (Monte Carlo), Phase 9 · 04 (TD Learning)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Q-learning and DQN parameterize the *value* function. You pick actions by `argmax Q`. That is fine for discrete actions and discrete states. It breaks when actions are continuous (which `argmax` over a 10-dimensional torque?) or when you want a stochastic policy (`argmax` is deterministic by construction).
 
@@ -23,7 +23,7 @@ Every LLM-RL algorithm in 2026 — PPO, DPO, GRPO — is a refinement of REINFOR
 
 > **【拓展：PPO→ChatGPT对齐】** ChatGPT 的 RLHF 训练使用的 PPO 算法，本质上就是 REINFORCE + critic 基线 + 信赖域裁剪。`loss = -advantage * log_prob` 这一行代码，出现在几乎所有 2026 年的大模型 RL 训练脚本中。DeepSeek-R1 的 GRPO 则是用组均值替代 critic 基线的 REINFORCE。
 
-## The Concept
+## The Concept | 核心概念
 
 ![Policy gradient: softmax policy, log-π gradient, return-weighted update](../assets/policy-gradient.svg)
 
@@ -58,7 +58,7 @@ i.e., score of the taken action minus its expected value under the policy.
 
 **Gaussian policy for continuous actions.** `π_θ(a | s) = N(μ_θ(s), σ_θ(s))`. `∇ log N(a; μ, σ)` has a closed form. That is all Phase 9 · 07's SAC needs.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: softmax policy network
 
@@ -136,7 +136,7 @@ A running mean of `G` over recent episodes is enough variance reduction to get a
 - **Non-stationary gradients.** The same gradient from 100 episodes ago uses old `π`. On-policy methods update every few rollouts for this reason.
 - **Credit assignment.** Without reward-to-go, past rewards contribute noise. Always use reward-to-go.
 
-## Use It
+## Use It | 用框架实现
 
 In 2026, REINFORCE is rarely run directly but its gradient formula is everywhere:
 
@@ -151,7 +151,7 @@ In 2026, REINFORCE is rarely run directly but its gradient formula is everywhere
 
 When you read `loss = -advantage * log_prob` in a 2026 training script, that is REINFORCE with a baseline. Entire papers (DPO, GRPO, RLOO) are variance-reduction tricks on top of this one line.
 
-## Ship It
+## Ship It | 产出物
 
 Save as `outputs/skill-policy-gradient-trainer.md`:
 
@@ -176,13 +176,13 @@ Given an environment (discrete / continuous actions, horizon, reward stats), out
 Refuse REINFORCE-no-baseline on horizons > 500 steps. Refuse continuous-action control with a softmax head. Flag any run with `β = 0` and observed policy entropy < 0.1 as entropy-collapsed.
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Implement REINFORCE on 4×4 GridWorld with a linear softmax policy. Train for 1,000 episodes without a baseline. Plot the learning curve; measure variance (std of returns).
 2. **Medium.** Add a running-mean baseline. Train again. Compare sample efficiency and variance to the vanilla run. By how much does the baseline reduce steps to convergence?
 3. **Hard.** Add an entropy bonus `β · H(π)`. Sweep `β ∈ {0, 0.01, 0.1, 1.0}`. Plot final return and policy entropy. Where is the sweet spot on this task?
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -195,7 +195,7 @@ Refuse REINFORCE-no-baseline on horizons > 500 steps. Refuse continuous-action c
 | On-policy | "Train on what you just saw" / 在线策略 | Gradient expectation is w.r.t. the current policy — cannot reuse old data directly. |
 | Advantage | "How much better than average" / 优势函数 | `A(s, a) = G(s, a) - V(s)`; the signed quantity REINFORCE-with-baseline multiplies. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Williams (1992). Simple Statistical Gradient-Following Algorithms for Connectionist Reinforcement Learning](https://link.springer.com/article/10.1007/BF00992696) — the original REINFORCE paper.
 - [Sutton et al. (2000). Policy Gradient Methods for Reinforcement Learning with Function Approximation](https://papers.nips.cc/paper_files/paper/1999/hash/464d828b85b0bed98e80ade0a5c43b0f-Abstract.html) — the modern policy-gradient theorem with function approximation.

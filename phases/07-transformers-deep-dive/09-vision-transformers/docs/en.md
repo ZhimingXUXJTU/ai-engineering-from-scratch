@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 7 · 05 (Full Transformer), Phase 4 · 03 (CNNs), Phase 4 · 14 (Vision Transformers intro)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Before 2020, computer vision meant convolutions. Every SOTA on ImageNet, COCO, and detection benchmarks used a CNN backbone. Transformers were for language.
 
@@ -19,7 +19,9 @@ ViT was the start of a broader pattern in 2026: one architecture, many modalitie
 
 By 2026, ViT and its descendants (DeiT, Swin, DINOv2, ViT-22B, SAM 3) own most of vision. CNNs still win on edge devices and latency-sensitive tasks. Everything else has a ViT somewhere in the stack.
 
-## The Concept
+> **【中文解读】** ViT 的核心洞察：图像可以像文本一样被切成"token"序列。将 224x224 图像切成 14x14 个 16x16 patch，每个 patch 展平后线性投影为嵌入向量，然后送入标准 Transformer 编码器。这证明了 Transformer 的通用性——不限于 NLP，任何可以"分块序列化"的数据都适用。
+
+## The Concept | 核心概念
 
 ![Image → patches → tokens → transformer](../assets/vit.svg)
 
@@ -36,6 +38,8 @@ Patch size is the lever. Smaller patches = more tokens, better resolution, quadr
 ### Step 2 — linear embedding
 
 A single learned matrix projects each flat patch to `d_model`. Equivalent to a convolution of kernel size `P` and stride `P`. In PyTorch this is literally `nn.Conv2d(C, d_model, kernel_size=P, stride=P)` — a 2-line implementation.
+
+> **【拓展：Swin Transformer 的层级设计】** 标准 ViT 使用固定 patch 大小和全局注意力，计算量 O(N^2)。Swin Transformer 引入层级结构：在小 patch 上做局部窗口注意力，逐层合并 patch 扩大感受野。这使得计算复杂度变为 O(N)，同时保留了层级特征提取的能力。Swin 在检测和分割任务上仍优于标准 ViT。
 
 ### Step 3 — prepend `[CLS]` token, add positional embeddings
 
@@ -67,7 +71,11 @@ For classification: take `[CLS]` hidden state → linear → softmax. For DINOv2
 
 ViT needs *a lot* of data to match CNNs because it has none of the CNN inductive biases (translation invariance, locality). Without >100M labeled images or strong self-supervised pretraining, CNNs still win at matched compute. DeiT fixed this in 2021 with distillation tricks; DINOv2 fixed it permanently in 2023 with self-supervision.
 
-## Build It
+> **【中文解读】** ViT 的弱归纳偏好是双刃剑：需要更多数据才能匹配 CNN 的性能，因为 CNN 天生具有平移不变性和局部性的归纳偏好。但当数据量足够大时，ViT 的扩展性远超 CNN。DINOv2 通过自监督学习解决了数据需求问题。
+
+> **【拓展：ViT 在多模态系统中的角色】** CLIP 使用 ViT 编码图像、Transformer 编码文本，通过对比学习对齐两个模态。DALL-E 和 Sora 使用 ViT 理解图像/视频，再生成新内容。SAM（Segment Anything）使用 ViT 作为主干网络实现通用图像分割。ViT 已成为多模态 AI 的视觉基础模块。
+
+## Build It | 动手实现
 
 See `code/main.py`. Pure-stdlib patchify + linear embedding + sanity checks. No training — ViT at any realistic scale needs PyTorch and hours of GPU time.
 
@@ -102,7 +110,7 @@ Multiply each flat patch by a random `(patch_flat_size, d_model)` matrix. Verify
 
 Print the param count for ViT-Base: 12 layers, 12 heads, d=768, patch=16. Compare to ResNet-50 (~25M). ViT-Base lands at ~86M. ViT-Large ~307M. ViT-Huge ~632M.
 
-## Use It
+## Use It | 用框架实现
 
 ```python
 from transformers import ViTImageProcessor, ViTModel
@@ -122,17 +130,17 @@ cls_emb = out[:, 0]                       # image representation
 
 **Patch-size picking.** Small models use 16×16 (ViT-B/16). Dense prediction (segmentation) uses 8×8 or 14×14 (SAM, DINOv2). Very large models use 14×14.
 
-## Ship It
+## Ship It | 产出物
 
 See `outputs/skill-vit-configurator.md`. The skill picks a ViT variant and patch size for a new vision task given dataset size, resolution, and compute budget.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py`. Verify the number of patches equals `(H/P) * (W/P)` and the flat patch dimension equals `P*P*C`.
 2. **Medium.** Implement 2D sinusoidal positional embeddings — two independent sinusoidal codes for `row` and `col` of each patch, concatenated. Feed them into a tiny PyTorch ViT and compare accuracy vs learnable positional embeddings on CIFAR-10.
 3. **Hard.** Build a 3-layer ViT (PyTorch), train on 1,000 MNIST images with 4×4 patches. Measure test accuracy. Now add DINOv2 pretraining on the same 1,000 images (simplified: just train the encoder to predict patch embeddings from masked patches). Does accuracy improve?
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -145,7 +153,7 @@ See `outputs/skill-vit-configurator.md`. The skill picks a ViT variant and patch
 | Swin | "Windowed ViT" | Hierarchical ViT with local attention + shifted windows; sub-quadratic. |
 | Register tokens | "2023 trick" | A few extra learnable tokens that soak up attention sinks; improves DINOv2 features. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Dosovitskiy et al. (2020). An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929) — the ViT paper.
 - [Touvron et al. (2021). Training data-efficient image transformers & distillation through attention](https://arxiv.org/abs/2012.12877) — DeiT.

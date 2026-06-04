@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 3 · 03 (Backpropagation), Phase 9 · 04 (Q-learning, SARSA)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Tabular Q-learning needs a separate Q-value for every (state, action) pair. A chess board has ~10⁴³ states. An Atari frame is 210×160×3 = 100,800 features. Tabular RL dies at thousands of states, let alone billions.
 
@@ -25,7 +25,7 @@ DQN on Atari was the first time a single architecture with a single hyperparamet
 
 > **【拓展：经验回放→RLHF】** 经验回放 (Experience Replay) 的思想在 LLM 训练中无处不在：PPO 训练时的 buffer、RLHF 中的偏好数据集、DPO 的离线数据——本质上都是"打破数据相关性、反复利用经验"。
 
-## The Concept
+## The Concept | 核心概念
 
 ![DQN training loop: env, replay buffer, online net, target net, Bellman TD loss](../assets/dqn.svg)
 
@@ -51,7 +51,9 @@ Drop-in replacement, consistently better. Use it by default.
 
 **Other improvements (Rainbow, 2017):** prioritized replay (sample high-TD-error transitions more), dueling architecture (separate `V(s)` and advantage heads), noisy networks (learned exploration), n-step returns, distributional Q (C51/QR-DQN), multi-step bootstrapping. Each adds a few percent; the gains are roughly additive.
 
-## Build It
+> **【拓展：Rainbow DQN 与集成改进】** Rainbow DQN（2017）将 6 种 DQN 改进集成在一起：优先经验回放、Dueling 架构、噪声网络探索、n 步回报、分布式 Q 学习、多步自举。每种改进贡献几个百分点的性能提升，组合起来效果显著。这种"增量集成"思路在 LLM 训练中也有体现——数据质量、训练策略、架构改进的效果通常是叠加的。
+
+## Build It | 动手实现
 
 The code here is stdlib-only numpy-free — we use a hand-rolled single-hidden-layer MLP on a tiny continuous GridWorld, so every training step runs in microseconds. The algorithm is identical to Atari DQN at scale.
 
@@ -138,7 +140,7 @@ On our tiny GridWorld with a 16-dim one-hot state, the agent learns a near-optim
 - **Target sync frequency.** Too frequent ≈ no target net; too infrequent ≈ stale targets. Atari DQN uses 10,000 env steps. Rule of thumb: sync every ~1/100 of training horizon.
 - **Observation preprocessing.** Atari DQN stacks 4 frames to make state Markov. Any env with velocity info needs frame-stacking or recurrent state.
 
-## Use It
+## Use It | 用框架实现
 
 In 2026, DQN is rarely state-of-the-art but remains the reference off-policy algorithm:
 
@@ -153,7 +155,7 @@ In 2026, DQN is rarely state-of-the-art but remains the reference off-policy alg
 
 The lessons still travel. Replay and target networks appear in SAC, TD3, DDPG, SAC-X, AlphaZero's self-play buffer, and every offline RL method. Reward clipping lives on as advantage normalization in PPO. The architecture is the blueprint.
 
-## Ship It
+## Ship It | 产出物
 
 Save as `outputs/skill-dqn-trainer.md`:
 
@@ -179,13 +181,13 @@ Given a discrete-action environment (observation shape, action count, horizon, r
 Refuse to ship a DQN with no target network, no replay buffer, or ε held at 1. Refuse continuous-action tasks (route to SAC / TD3). Flag any reward range > 10× per-step mean as needing clipping or scale normalization.
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py`. Plot the per-episode return curve. How many episodes until the running mean exceeds -10?
 2. **Medium.** Disable the target network (use the online net for both sides of the Bellman target). Measure training instability — does return oscillate or diverge?
 3. **Hard.** Add Double DQN: use the online net to pick `argmax a'`, target net to evaluate. Compare bias of `Q(s_0, best_a)` vs true `V*(s_0)` after 1,000 episodes with vs without Double DQN on a noisy-reward GridWorld.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -198,7 +200,7 @@ Refuse to ship a DQN with no target network, no replay buffer, or ε held at 1. 
 | Rainbow | "All the tricks" / Rainbow | DDQN + PER + dueling + n-step + noisy + distributional in one. |
 | PER | "Prioritized Replay" / 优先经验回放 | Sample transitions proportional to TD-error magnitude. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Mnih et al. (2013). Playing Atari with Deep Reinforcement Learning](https://arxiv.org/abs/1312.5602) — the 2013 NeurIPS workshop paper that kicked off deep RL.
 - [Mnih et al. (2015). Human-level control through deep reinforcement learning](https://www.nature.com/articles/nature14236) — the Nature paper, 49-game DQN.

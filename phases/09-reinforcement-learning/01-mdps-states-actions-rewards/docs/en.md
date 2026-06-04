@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 1 · 06 (Probability & Distributions), Phase 2 · 01 (ML Taxonomy)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 You are writing a chess bot. Or an inventory planner. Or a trading agent. Or the PPO loop that trains a reasoning model. Four different domains, one surprising fact: all four collapse to the same mathematical object.
 
@@ -19,7 +19,7 @@ Supervised learning gives you `(x, y)` pairs and asks you to fit a function. Rei
 
 You cannot learn from this stream until you formalize it. "What I saw," "what I did," "what happened next," "how good that was" — each has to become an object you can reason about. That formalization is a Markov Decision Process. Every RL algorithm in this phase, including the RLHF and GRPO loops at the end, optimizes over this shape.
 
-## The Concept
+## The Concept | 核心概念
 
 ![Markov decision process: states, actions, transitions, rewards, discount](../assets/mdp.svg)
 
@@ -38,11 +38,15 @@ You cannot learn from this stream until you formalize it. "What I saw," "what I 
 **The Bellman equations.** The fixed-point equations that everything in this phase uses:
 
 `V^π(s) = Σ_a π(a|s) Σ_{s', r} P(s', r | s, a) [r + γ V^π(s')]`
+
+> **【中文解读】** Bellman 方程是 RL 的核心递推关系：当前状态的价值 = 即时奖励 + 折扣后的下一状态价值。它是动态规划、Q-learning、TD 学习的共同基础。在 LLM 的 RLHF 训练中，这对应于"当前 token 的贡献 = 人类偏好分数 + 未来 token 的期望贡献"。
+
+> **【拓展：从 MDP 到 POMDP】** 现实中很多问题不满足马尔可夫性（当前状态不能完全决定未来），需要用 POMDP（部分可观察 MDP）建模。对话系统就是 POMDP——模型只能看到上下文窗口内的内容，而非完整的用户意图。LLM 的长上下文能力本质上是在缓解 POMDP 的信息不完整问题。
 `Q^π(s, a) = Σ_{s', r} P(s', r | s, a) [r + γ Σ_{a'} π(a'|s') Q^π(s', a')]`
 
 These split expected return into "this step's reward" plus "discounted value of where you land." Recursive. Every algorithm in Phase 9 either iterates this equation to convergence (dynamic programming), samples from it (Monte Carlo), or bootstraps it one step (temporal difference).
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: a tiny deterministic MDP
 
@@ -125,7 +129,7 @@ Too low and the agent acts myopically. Too high and credit assignment becomes no
 - **Discount mis-spec.** `γ = 1` on an infinite-horizon task makes every value infinite. Always cap with either a finite horizon or `γ < 1`.
 - **Reward scale.** Rewards of {+100, -100} vs {+1, -1} give identical optimal policies but vastly different gradient magnitudes. Normalize to `[-1, 1]`-ish before plugging into PPO/DQN.
 
-## Use It
+## Use It | 用框架实现
 
 The 2026 stack reduces every RL pipeline to an MDP before touching code:
 
@@ -139,7 +143,7 @@ The 2026 stack reduces every RL pipeline to an MDP before touching code:
 
 Write the five tuples before writing any training loop. Most "RL does not work" bug reports trace back to an MDP formulation that was broken on paper.
 
-## Ship It
+## Ship It | 产出物
 
 Save as `outputs/skill-mdp-modeler.md`:
 
@@ -164,13 +168,13 @@ Given a task (control / game / recommendation / LLM fine-tuning), output:
 Refuse to ship any MDP where the state is non-Markovian without explicit mention of frame-stacking or recurrent state. Refuse any reward that was not defined in terms of the target outcome. Flag any `γ ≥ 1.0` on an infinite-horizon task. Flag any reward range >100x the typical step reward as a likely gradient-explosion source.
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Implement the 4×4 GridWorld and random-policy rollout in `code/main.py`. Run 10,000 episodes. Report mean and std of return. Compare to the optimal return (-6).
 2. **Medium.** Run `policy_evaluation` with `γ ∈ {0.5, 0.9, 0.99}` for the uniform-random policy. Print `V` as a 4×4 grid for each. Explain why the state values near the terminal grow faster with larger `γ`.
 3. **Hard.** Turn the GridWorld stochastic: each action slips to an adjacent direction with probability `p = 0.1`. Re-evaluate the uniform policy. Does `V[start]` get better or worse? Why?
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -183,7 +187,7 @@ Refuse to ship any MDP where the state is non-Markovian without explicit mention
 | Bellman equation | "Dynamic programming recursion" | Fixed-point decomposition of value / Q into one-step reward plus discounted successor value. |
 | Discount `γ` | "Future vs present" | Geometric weight on far-future reward; effective horizon `~1/(1-γ)`. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Sutton & Barto (2018). Reinforcement Learning: An Introduction, 2nd ed.](http://incompleteideas.net/book/RLbook2020.pdf) — the textbook. Ch. 3 covers MDPs and Bellman equations; Ch. 1 motivates the reward hypothesis that underlies every subsequent lesson.
 - [Bellman (1957). Dynamic Programming](https://press.princeton.edu/books/paperback/9780691146683/dynamic-programming) — the origin of the Bellman equation.

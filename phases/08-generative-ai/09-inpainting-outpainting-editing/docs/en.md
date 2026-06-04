@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 8 · 07 (Latent Diffusion), Phase 8 · 08 (ControlNet & LoRA)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 A client sends a perfect product photo with a distracting sign in the background. You want to erase the sign and leave everything else pixel-identical. You cannot run text-to-image from scratch — the result will have a different color, different lighting, different product angle. You want to regenerate *only* the masked region, and you want the regeneration to respect the surrounding context.
 
@@ -23,7 +23,11 @@ That is inpainting. Variants:
 
 Every diffusion pipeline in 2026 ships an inpainting mode. Flux.1-Fill, Stable Diffusion Inpaint, SDXL-Inpaint, DALL-E 3 Edit. They work on the same principle.
 
-## The Concept
+> **【中文解读】** Inpainting（图像修复）是生产环境中最常见的图像编辑需求。核心挑战：只重新生成被遮蔽的区域，同时保持与周围上下文的一致性。正确的做法是训练修改过的 U-Net，接受 9 通道输入（4 通道噪声潜在 + 4 通道编码图像 + 1 通道遮罩），让模型"看到"遮蔽区域周围的上下文。
+
+> **【拓展：Photoshop 生成式填充与商业 Inpainting】** Adobe Photoshop 的生成式填充是 inpainting 技术的里程碑式应用。它结合了扩散模型和边缘融合技术，让用户可以通过自然语言指令移除/替换图像中的任何内容。类似的商业应用还包括 Canva 的 Magic Edit、Figma 的 AI 图像编辑等。
+
+## The Concept | 核心概念
 
 ![Inpainting: mask-aware denoising with context-preserving reinjection](../assets/inpainting.svg)
 
@@ -59,7 +63,7 @@ Fine-tune a diffusion model on `(input_image, instruction, output_image)` triple
 
 Keep a standard unconditional diffusion model. At each reverse step, resample — jump back to a noisier state occasionally and regenerate. Avoids boundary artifacts. Used when you don't have a trained inpainting model.
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` implements a toy 1-D inpainting scheme on 5-dimensional data. We train a DDPM on 5-D mixture data where each sample is 5 floats from one of two clusters. At inference, we "mask" 2 of the 5 dimensions, inject the noisy-forward version of the unmasked three at each step, and regenerate only the masked dimensions.
 
@@ -102,7 +106,7 @@ Outpainting is inpainting with the mask inverted: mask the new (previously non-e
 - **SDEdit fidelity cliff.** Going from `t/T = 0.5` to `t/T = 0.6` can lose the subject's identity. Sweep and checkpoint.
 - **Prompt mismatch.** The prompt should describe the *whole* image, not just the new content. "A cat sitting on a chair" not "a cat".
 
-## Use It
+## Use It | 用框架实现
 
 | Task | Pipeline |
 |------|----------|
@@ -117,17 +121,17 @@ Outpainting is inpainting with the mask inverted: mask the new (previously non-e
 
 SAM (Meta's Segment Anything, 2023) + diffusion inpaint is the 2026 background-removal pipeline. SAM 2 (2024) works on video.
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-editing-pipeline.md`. Skill takes an original image + edit description + optional mask (or SAM prompt) and outputs: mask-generation approach, base model, CFG scales (image + text), SDEdit-t or inpainting mode, and QA checklist.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** In `code/main.py`, vary the fraction of dimensions masked from 0.2 to 0.8. At what fraction does the inpaint quality (residual in masked dims) equal unconditional generation?
 2. **Medium.** Implement RePaint: at every 10th reverse step, jump back 5 steps (add noise) and re-denoise. Measure whether it reduces boundary residual at the mask edge.
 3. **Hard.** Use Hugging Face diffusers to compare: SD 1.5 Inpaint + ControlNet-Openpose vs Flux.1-Fill on 20 face-regeneration tasks. Score pose adherence and identity preservation separately.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -149,7 +153,7 @@ Users editing an image expect sub-5-second round trips. A 30-step SDXL-Inpaint a
 - **Mask dilation matters for throughput too.** A small mask means most of the U-Net forward pass is wasted (the unmasked pixels are clamped anyway). `diffusers`' `StableDiffusionInpaintPipeline` runs the full U-Net regardless; only the 9-channel proper-inpaint variants exploit masked compute.
 - **Flux-Kontext is the 2025 answer.** Single forward pass over `(source_image, instruction)` — no separate mask, no SDEdit noise sweep. On an H100 it ships an edit in ~1.5 s. The architectural lesson: collapse the stages.
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Lugmayr et al. (2022). RePaint: Inpainting using Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2201.09865) — training-free inpainting.
 - [Meng et al. (2022). SDEdit: Guided Image Synthesis and Editing with Stochastic Differential Equations](https://arxiv.org/abs/2108.01073) — SDEdit.

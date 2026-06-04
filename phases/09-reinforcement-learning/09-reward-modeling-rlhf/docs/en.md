@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 5 · 05 (Sentiment), Phase 9 · 08 (PPO)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 You trained a language model on the next-token-prediction objective. It writes grammatical English. It also lies, rambles, and refuses to refuse. You cannot fix this with more pretraining — web text is the problem, not the cure.
 
@@ -21,7 +21,11 @@ RLHF (Christiano et al. 2017; Ouyang et al. 2022) converts preferences into a re
 
 In 2026 the PPO step is mostly replaced by DPO (Phase 10 · 08) because it is cheaper and nearly as good for alignment tuning. But the *reward model* piece still underlies every Best-of-N sampler, every RL-from-verifiable-rewards pipeline, and every reasoning model using a process reward model. Understand RLHF and you understand the entire alignment stack.
 
-## The Concept
+> **【中文解读】** RLHF 三阶段流程：(1) SFT——在人类示范数据上监督微调基础模型；(2) RM——用人类偏好对训练 Bradley-Terry 奖励模型；(3) PPO——用奖励模型的信号优化语言模型，同时加 KL 惩罚防止偏离 SFT 太远。虽然 2026 年 PPO 步骤多被 DPO 替代，但奖励模型仍在 Best-of-N 采样、可验证奖励 RL、过程奖励模型等场景中广泛使用。
+
+> **【拓展：DPO 与 RLHF 的对比】** DPO（Direct Preference Optimization）将 RLHF 的 RM+PPO 两步合并为一步——直接从偏好对训练策略，无需显式训练奖励模型。数学上等价于在 Bradley-Terry 模型下优化策略。DPO 更简单、更稳定，但在需要"可验证奖励"（如数学题对错）的场景中，显式奖励模型仍有优势。DeepSeek-R1 使用 GRPO 是另一个有趣的替代方案。
+
+## The Concept | 核心概念
 
 ![Three-stage RLHF: SFT, RM training on pairwise prefs, PPO with KL penalty](../assets/rlhf.svg)
 
@@ -58,7 +62,7 @@ In 2026 the PPO step is mostly replaced by DPO (Phase 10 · 08) because it is ch
 - **Process reward models (PRMs):** score partial solutions (each reasoning step), used in both RLHF and GRPO variants for reasoning.
 - **Constitutional AI / RLAIF:** use an aligned LLM to generate preferences instead of humans. Scales the preference budget.
 
-## Build It
+## Build It | 动手实现
 
 This lesson uses tiny synthetic "prompts" and "responses" represented as strings. The RM is a linear scorer over a bag-of-tokens representation. No real LLM — the *shape* of the pipeline matters, not the scale. See `code/main.py`.
 
@@ -170,7 +174,7 @@ Three things the library does for you. `adap_kl_ctrl=True` implements the adapti
 - **Preference-data noise.** ~30% of human labels are noisy or ambiguous. Calibrate by training the RM on agreement-filtered data or use a temperature on BT.
 - **Off-policy problems.** PPO data is slightly off-policy after the first epoch. Monitor clip fraction as in Lesson 08.
 
-## Use It
+## Use It | 用框架实现
 
 RLHF in 2026 is layered:
 
@@ -185,7 +189,7 @@ RLHF in 2026 is layered:
 
 RLHF was *the* method in 2022–2024. In 2026, production alignment pipelines are DPO-first, PPO-only for the RM-intensive or safety-critical steps.
 
-## Ship It
+## Ship It | 产出物
 
 Save as `outputs/skill-rlhf-architect.md`:
 
@@ -210,13 +214,13 @@ Given a base LM, a target behavior (alignment / reasoning / refusal / agent), an
 Refuse to ship RLHF-PPO without a KL monitor. Refuse to use an RM smaller than the target policy. Refuse length-only rewards. Flag any pipeline that does not hold back a blind human-eval set as lacking over-optimization protection.
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Train the Bradley-Terry reward model in `code/main.py` on 500 synthetic preference pairs. Measure pairwise accuracy on a held-out 100 pairs. Should exceed 90%.
 2. **Medium.** Run the toy PPO-RLHF loop with `β ∈ {0.0, 0.1, 1.0}`. For each, plot RM score vs KL-to-reference over updates. Which runs reward-hack?
 3. **Hard.** Implement DPO (closed-form preference-likelihood loss) on the same preference data and compare to the RLHF-PPO pipeline in compute used and final RM score achieved.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -229,7 +233,7 @@ Refuse to ship RLHF-PPO without a KL monitor. Refuse to use an RM smaller than t
 | PRM | "Process Reward Model" | Scores partial reasoning steps; used in reasoning pipelines. |
 | Constitutional AI | "Anthropic's method" | AI-generated preferences guided by explicit rules. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Christiano et al. (2017). Deep Reinforcement Learning from Human Preferences](https://arxiv.org/abs/1706.03741) — the paper that started RLHF.
 - [Ouyang et al. (2022). InstructGPT — Training language models to follow instructions with human feedback](https://arxiv.org/abs/2203.02155) — the recipe behind ChatGPT.

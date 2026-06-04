@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 9 · 08 (PPO), Phase 2 · 10 (Bias/Variance)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Training a real robot is slow, dangerous, and expensive. A biped takes millions of training episodes to learn to walk; a real biped that falls over even once breaks hardware. Simulation gives you unlimited resets, deterministic reproducibility, parallel environments, and no physical damage.
 
@@ -21,7 +21,7 @@ You need a policy that is *robust to sim-to-real distribution shift*. Three hist
 
 > **【拓展：域随机化→大模型泛化】** 域随机化的思想在 LLM 训练中也有对应：数据增强（同义改写、噪声注入）就是"随机化训练分布"以提高泛化能力。RLHF 中的 KL 惩罚防止策略偏离太远，类似于防止"过拟合仿真器"。
 
-## The Concept
+## The Concept | 核心概念
 
 ![Three sim-to-real regimes: domain randomization, adaptation, system identification](../assets/sim-to-real.svg)
 
@@ -52,7 +52,7 @@ You need a policy that is *robust to sim-to-real distribution shift*. Three hist
 4. Optional observation adaptation via autoencoder on real IMU.
 5. Deploy. Zero-shot on 10+ environments. If it fails, do minutes of real-world fine-tuning with safety-constrained PPO.
 
-## Build It
+## Build It | 动手实现
 
 This lesson's code is a tiny demonstration of domain randomization on a GridWorld with *noisy* transitions. We train a policy that experiences randomized slip probabilities in "sim" and evaluate on "real" with a slip level it never saw during training. The shape maps directly to MuJoCo-to-hardware transfer.
 
@@ -88,7 +88,7 @@ Train a second policy with `slip = 0.0` only. Evaluate on the same `slip` sweep.
 - **Sim-to-sim transfer failure.** If your policy is not robust to a harder sim variant, it will not be robust to the real world either. Always test on a held-out sim variant before deploying.
 - **No real-world safety envelope.** A policy that works in sim and "works in real" without a low-level safety shield can still break hardware. Add rate limits, torque limits, joint limits in a non-learned controller.
 
-## Use It
+## Use It | 用框架实现
 
 The 2026 sim-to-real stack:
 
@@ -103,7 +103,7 @@ The 2026 sim-to-real stack:
 
 For control at all scales, the workflow is consistent: fit the sim as best you can, randomize what you can't fit, train enormous policies, distill, deploy with a safety shield.
 
-## Ship It
+## Ship It | 产出物
 
 Save as `outputs/skill-sim2real-planner.md`:
 
@@ -128,13 +128,13 @@ Given a robot platform, a task, and access to real hardware time, output:
 Refuse to deploy without (a) a zero-shot sim-variant test, (b) a safety shield, (c) a rollback plan. Flag any DR range wider than 3× measured real variability as likely over-randomized.
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Train a Q-learning agent on the fixed-slip GridWorld (slip=0.0). Evaluate on slip ∈ {0.0, 0.1, 0.3, 0.5}. Plot return vs slip.
 2. **Medium.** Train a DR Q-learning agent sampling `slip ~ Uniform[0, 0.3]`. Evaluate the same sweep. How much does DR buy at slip=0.5 (out-of-distribution)?
 3. **Hard.** Implement a curriculum: start with slip=0.0, widen the DR range every time the policy hits 90% of optimal. Measure total environment steps to reach slip=0.3 zero-shot vs. a fixed DR baseline.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -147,7 +147,7 @@ Refuse to deploy without (a) a zero-shot sim-variant test, (b) a safety shield, 
 | ADR | "Automatic Domain Randomization" / 自动域随机化 | Curriculum that widens DR ranges as the policy improves. |
 | Real2Sim | "Close the gap with real data" / 现实到仿真 | Learn a residual to make the sim mimic real rollouts. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Tobin et al. (2017). Domain Randomization for Transferring Deep Neural Networks from Simulation to the Real World](https://arxiv.org/abs/1703.06907) — the original DR paper (vision for robotics).
 - [Peng et al. (2018). Sim-to-Real Transfer of Robotic Control with Dynamics Randomization](https://arxiv.org/abs/1710.06537) — DR for dynamics, quadruped locomotion.

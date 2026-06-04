@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 8 · 06 (DDPM), Phase 1 · Calculus
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 DDPM's reverse process is a 1000-step stochastic walk from `N(0, I)` back to the data distribution. DDIM collapsed it to 20-50 deterministic steps. You want fewer steps — ideally one. The blocker is that the ODE solving the reverse process is stiff; the path is curved.
 
@@ -19,7 +19,11 @@ If you could train the model such that the path from noise to data was a *straig
 
 Rectified flow (Liu 2022) goes further: iteratively straighten the paths with a reflow procedure that produces a progressively closer-to-linear ODE. After two reflow iterations, a 2-step sampler matches 50-step DDPM quality.
 
-## The Concept
+> **【中文解读】** Flow Matching 的核心思想：DDPM 的噪声到数据路径是弯曲的，需要 20-50 步采样。如果能训练直线路径，一步就能从噪声到数据。Flow Matching 定义 x_1（噪声）到 x_0（数据）的直线插值，训练向量场 v_theta(x,t) 匹配时间导数。Rectified Flow 进一步通过 reflow 迭代拉直路径，2 步采样即可匹配 50 步 DDPM 的质量。
+
+> **【拓展：FLUX.1 的 Flow Matching 实现】** Black Forest Labs 的 FLUX.1（由 Stable Diffusion 原作者创建）使用 Flow Matching 替代传统扩散调度，配合 MMDiT（多模态 DiT）架构，在图像质量和生成速度上都显著优于 SDXL。FLUX.1-schnell 版本仅需 4 步采样即可生成高质量图像，验证了 Flow Matching 的实际优势。
+
+## The Concept | 核心概念
 
 ![Flow matching: straight-line interpolation between noise and data](../assets/flow-matching.svg)
 
@@ -80,7 +84,7 @@ Flow matching with a Gaussian-conditional path is diffusion *with a specific noi
 
 What flow matching added: the *clarity* of the target (a plain velocity), a cleaner loss, and the license to experiment with non-Gaussian interpolants.
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` implements 1-D flow matching on a two-mode Gaussian mixture. The vector field `v_θ(x, t)` is a tiny MLP trained with the straight-line target. At inference, integrate 1, 2, 4, and 20 Euler steps and compare sample quality.
 
@@ -120,7 +124,7 @@ Expect the 4-step sampler to already match the 20-step quality — a big deal fo
 - **Reflow cost.** Generating the paired dataset for reflow is a full inference pass per sample. Only do reflow when you really need 1-2 step inference.
 - **Classifier-free guidance still applies.** Just swap ε for v in the linear combination: `v_cfg = (1+w) v_cond - w v_uncond`.
 
-## Use It
+## Use It | 用框架实现
 
 | Use case | 2026 stack |
 |----------|-----------|
@@ -133,17 +137,17 @@ Expect the 4-step sampler to already match the 20-step quality — a big deal fo
 
 Whenever a paper says "faster than diffusion" in 2025-2026, it is almost always flow matching + distillation.
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-fm-tuner.md`. Skill takes a diffusion-style model spec and converts it to a flow-matching training config: schedule choice, time sampling distribution (uniform / logit-normal), optimizer, reflow plan, target step count, eval protocol.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py` and compare 1-step vs 20-step MSE vs the true data distribution.
 2. **Medium.** Switch from uniform `t` sampling to logit-normal (concentrates sampling at mid-t). Does the model quality improve?
 3. **Hard.** Implement one reflow iteration: generate paired (x_0, x_1) by integrating the first model, train a second model on the pairs, and compare 1-step sample quality.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -169,7 +173,7 @@ Flow matching's production win is Flux.1-schnell — a flow-matched DiT distille
 
 The production rule: **flow-matched base + distillation = the 2026 default for fast text-to-image.** Every major vendor ships this combo: SD3-Turbo (SD3 + flow + distillation), Flux-schnell (Flux-dev + rectified-flow straightening), CogView-4-Flash. Pure diffusion bases exist only for legacy checkpoints.
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Liu, Gong, Liu (2022). Flow Straight and Fast: Learning to Generate and Transfer Data with Rectified Flow](https://arxiv.org/abs/2209.03003) — rectified flow.
 - [Lipman et al. (2023). Flow Matching for Generative Modeling](https://arxiv.org/abs/2210.02747) — flow matching.

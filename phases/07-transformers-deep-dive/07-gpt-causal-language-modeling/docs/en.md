@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 7 · 02 (Self-Attention), Phase 7 · 05 (Full Transformer), Phase 7 · 06 (BERT)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 A language model answers one question: given the first `t-1` tokens, what is the probability distribution over token `t`? Train on that signal — next-token prediction — and you get a model that can generate arbitrary text one token at a time.
 
@@ -19,7 +19,9 @@ The causal mask does this. It is a single upper-triangular matrix of `-inf` valu
 
 GPT-1 (2018), GPT-2 (2019), GPT-3 (2020), GPT-4 (2023), GPT-5 (2024), Claude, Llama, Qwen, Mistral, DeepSeek, Kimi — they are all decoder-only causal transformers with the same core loop. Just bigger, better data, and better RLHF.
 
-## The Concept
+> **【中文解读】** 因果掩码是现代 AI 中最重要的一行代码。一个上三角矩阵（-inf 值），加到注意力分数上，经 softmax 后被遮蔽位置变为 0。每个位置只能关注自身及之前的 token。训练时并行计算 N 个下一个 token 预测，推理时逐个生成。
+
+## The Concept | 核心概念
 
 ![Causal mask creates a triangular attention matrix](../assets/causal-attention.svg)
 
@@ -53,6 +55,8 @@ For every position `i`, compute `-log P(target_i | inputs[:i+1])`. Sum. This is 
 
 Every transformer LM you've heard of trains on this loss. Pre-training, fine-tuning, SFT — same loss, different data.
 
+> **【拓展：Teacher Forcing 与暴露偏差】** GPT 训练使用 teacher forcing——每步输入真实前一个 token 而非模型自己的预测。这导致"暴露偏差"（exposure bias）：训练时模型从未见过自己的错误输出，推理时却必须从自己的输出继续生成。Scheduled sampling 和 RLHF 是缓解这一问题的两种方法。
+
 ### Decoding strategies
 
 After training, sampling choices matter more than people think.
@@ -68,6 +72,10 @@ After training, sampling choices matter more than people think.
 
 In 2026, min-p + temperature 0.7 is a reasonable default for open-weights models. Speculative decoding is table stakes for any production inference stack.
 
+> **【中文解读】** 解码策略的选择直接影响生成质量。贪心搜索（argmax）适合确定性任务，温度采样增加多样性，top-p/min-p 截断低概率尾部。2026 年的推荐默认：min-p + temperature 0.7，比传统的 top-p 能更好地处理分布的锐度变化。
+
+> **【拓展：从 GPT-2 到 GPT-4 的规模跳跃】** GPT-2（1.5B 参数）→ GPT-3（175B）→ GPT-4（估计 1.8T MoE）的规模跳跃中，架构变化很小，但数据和训练方法的改进巨大。GPT-4 使用了 MoE（混合专家）架构和更高质量的数据配比，加上 RLHF 对齐训练。这验证了"规模即一切"的假设，但也表明数据质量和后训练同样关键。
+
 ### What made the "GPT recipe" work
 
 1. **Decoder-only.** No encoder overhead. One pass of attention + FFN per layer.
@@ -78,7 +86,11 @@ In 2026, min-p + temperature 0.7 is a reasonable default for open-weights models
 
 The core architecture hasn't changed much since GPT-2. Everything interesting has happened in data, scale, and post-training.
 
-## Build It
+> **【中文解读】** GPT 的成功要素：Decoder-only 架构的简洁性、规模扩展（从 124M 到万亿参数）、上下文学习能力（约 6B 参数开始涌现）、RLHF 后训练（将预训练文本转化为对话助手）、以及现代块设计（Pre-norm + RoPE + SwiGLU）。核心架构自 GPT-2 以来变化不大，创新主要在数据、规模和后训练。
+
+> **【拓展：自回归生成的推理瓶颈】** GPT 的核心矛盾：训练时并行计算整个序列（高效），推理时必须逐 token 生成（串行）。KV 缓存（Lesson 12）和推测解码（Lesson 16）是缓解推理延迟的两个关键技术。在生产系统中，推理延迟通常是最大的工程挑战，直接决定了用户体验和成本。
+
+## Build It | 动手实现
 
 ### Step 1: the causal mask
 
@@ -103,7 +115,7 @@ On a 20-token toy vocab, produce logits at every position. Compute cross-entropy
 
 Implement greedy, temperature, top-k, top-p, min-p. Run each on a fixed prompt and compare outputs. A sampling function is 10 lines.
 
-## Use It
+## Use It | 用框架实现
 
 PyTorch, 2026 idiom:
 
@@ -128,17 +140,17 @@ Under the hood, `generate()` runs the forward pass, pulls the final-position log
 
 **GPT vs BERT, one line each:** GPT predicts `P(x_t | x_{<t})`. BERT predicts `P(x_masked | x_unmasked)`. The loss determines whether the model can generate.
 
-## Ship It
+## Ship It | 产出物
 
 See `outputs/skill-sampling-tuner.md`. The skill picks sampling parameters for a new generation task and flags when deterministic decoding is required.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py` and verify the causal attention matrix is lower-triangular after softmax. Spot-check: row 3 should have weights only in columns 0–3.
 2. **Medium.** Implement beam search for width 4. Compare perplexity of beam-4 vs greedy on 10 short prompts. Does beam always win? (Hint: usually for translation, not for open-ended chat.)
 3. **Hard.** Implement speculative decoding: use a tiny 2-layer model as the draft and a 6-layer model as the verifier. Measure wall-clock speedup on 100 completions of length 64. Confirm outputs match greedy of the verifier.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -152,7 +164,7 @@ See `outputs/skill-sampling-tuner.md`. The skill picks sampling parameters for a
 | Speculative decoding | "Draft + verify" | Cheap model proposes N tokens; big model verifies in parallel. |
 | Teacher forcing | "Training trick" | During training, feed the true previous token, not the model's prediction. Standard for every seq2seq LM. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Radford et al. (2018). Improving Language Understanding by Generative Pre-Training](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf) — GPT-1.
 - [Radford et al. (2019). Language Models are Unsupervised Multitask Learners](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) — GPT-2.

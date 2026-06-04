@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 9 · 04 (Q-learning), Phase 9 · 06 (REINFORCE), Phase 9 · 07 (Actor-Critic)
 **Time:** ~45 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 A robot learning to navigate a room is a single-agent RL problem. A soccer team is not. AlphaStar vs StarCraft opponents is not. A marketplace of bidding agents is not. Two cars negotiating a four-way stop is not. Many-on-many real-world problems are not.
 
@@ -23,7 +23,7 @@ This breaks tabular convergence proofs (Q-learning's guarantee assumes a station
 
 > **【拓展：多智能体→LLM Agent系统】** 2026 年最热门的 MARL 应用是多智能体 LLM 系统：多个大模型 Agent 协作完成复杂任务。Claude Code 的 multi-agent 模式、AutoGen、CrewAI 等框架本质上都是 MARL 思想在语言 Agent 领域的延伸。
 
-## The Concept
+## The Concept | 核心概念
 
 ![Four MARL regimes: indep, centralized critic, self-play, league](../assets/marl.svg)
 
@@ -53,7 +53,7 @@ This breaks tabular convergence proofs (Q-learning's guarantee assumes a station
 
 **Communication.** Allow agents to send learned messages `m_i` to each other. Works in cooperative settings. Foerster et al. (2016) showed that differentiable inter-agent communication can be trained end-to-end. Today's LLM-based multi-agent systems (Phase 16) essentially communicate in natural language.
 
-## Build It
+## Build It | 动手实现
 
 This lesson uses a 6×6 GridWorld with two cooperative agents. They start in opposite corners and must reach a shared goal. Shared reward: `-1` per step while either agent is still moving, `+10` when both arrive. See `code/main.py`.
 
@@ -119,7 +119,7 @@ Same agent, two roles. Train agent A against agent B; after `K` episodes, copy A
 - **League cycles.** Pure self-play can get stuck in a dominance cycle. Fix: league play with diverse opponents.
 - **Sample explosion.** `n` agents × state space × joint actions. Approximate with function approximation; factored action spaces (one policy output head per agent).
 
-## Use It
+## Use It | 用框架实现
 
 The 2026 MARL application map:
 
@@ -134,7 +134,7 @@ The 2026 MARL application map:
 
 In 2026, MARL's biggest growth area is LLM-based: swarms of language-model agents negotiating, debating, building software. The RL shows up as preference optimization on *trajectory-level* outputs, not token-level (Phase 16 · 03).
 
-## Ship It
+## Ship It | 产出物
 
 Save as `outputs/skill-marl-architect.md`:
 
@@ -159,13 +159,13 @@ Given a task with `n` agents, output:
 Refuse independent Q-learning on tightly-coupled cooperative tasks. Refuse to recommend self-play for general-sum with cycle risks. Flag any MARL pipeline without a fixed-opponent eval (cherry-picked self-play numbers are common).
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Train independent Q-learning on the 2-agent cooperative GridWorld. How many episodes until mean return > 0? Plot the joint learning curve.
 2. **Medium.** Add a "coordination" task: the goal is reached only when both agents step onto it on the same turn. Does independent Q still converge? What breaks?
 3. **Hard.** Implement a centralized critic for MAPPO-style training and compare convergence speed to independent PPO on the coordination task.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -178,7 +178,7 @@ Refuse independent Q-learning on tightly-coupled cooperative tasks. Refuse to re
 | Self-play | "Agent vs past self" / 自我博弈 | Single agent, two roles; standard for zero-sum games. |
 | League play | "Population training" / 联盟训练 | Cache past policies, sample opponents from the pool; handles strategy cycles. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Lowe et al. (2017). Multi-Agent Actor-Critic for Mixed Cooperative-Competitive Environments (MADDPG)](https://arxiv.org/abs/1706.02275) — CTDE with a centralized critic.
 - [Foerster et al. (2017). Counterfactual Multi-Agent Policy Gradients (COMA)](https://arxiv.org/abs/1705.08926) — counterfactual baselines for credit assignment.

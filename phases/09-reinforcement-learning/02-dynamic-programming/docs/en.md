@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 9 · 01 (MDPs)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 You have an MDP with a known model: you can query `P(s' | s, a)` and `R(s, a, s')` for any state-action pair. An inventory manager knows the demand distribution. A board game has deterministic transitions. A gridworld is four lines of Python. You have a *model*.
 
@@ -21,7 +21,7 @@ Model-free RL (Q-learning, PPO, REINFORCE) was invented for the case where you d
 
 You need them in 2026 for three reasons. First, every tabular environment in RL research (GridWorld, FrozenLake, CliffWalking) is solved with DP to produce the gold-standard policy. Second, exact values let you *debug* sampling methods: if Q-learning's estimate for `V*(s_0)` disagrees with the DP answer by 30%, your Q-learning has a bug. Third, modern offline RL and planning methods (MCTS, AlphaZero's search, model-based RL in Phase 9 · 10) all iterate a Bellman backup over a learned or given model.
 
-## The Concept
+## The Concept | 核心概念
 
 ![Policy iteration and value iteration, side by side](../assets/dp.svg)
 
@@ -48,7 +48,7 @@ Repeat until `max_s |V_{new}(s) - V(s)| < ε`. Extract the policy at the end by 
 
 **Why `γ < 1` matters.** The Bellman operator is a `γ`-contraction in the sup-norm: `||T V - T V'||_∞ ≤ γ ||V - V'||_∞`. Contraction implies unique fixed point and geometric convergence. Drop `γ < 1` and you lose the guarantee — you need a finite horizon or an absorbing terminal state.
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: build the GridWorld MDP model
 
@@ -148,7 +148,7 @@ Same fixed point, fewer lines of code.
 - **Policy ties.** If two actions have equal Q-value, `argmax` may break ties differently each iteration, causing the "policy stable" check to oscillate. Use a stable tie-break (first action in fixed order).
 - **State-space explosion.** DP is `O(|S| · |A|)` per sweep. Works up to ~10⁷ states. Beyond that, you need function approximation (Phase 9 · 05 onwards).
 
-## Use It
+## Use It | 用框架实现
 
 In 2026, DP is the correctness baseline and the inner loop of planners:
 
@@ -162,7 +162,7 @@ In 2026, DP is the correctness baseline and the inner loop of planners:
 
 Every time someone says "the optimal value function," they mean "the DP fixed point." When you see `V*` or `Q*` in a paper, picture this loop.
 
-## Ship It
+## Ship It | 产出物
 
 Save as `outputs/skill-dp-solver.md`:
 
@@ -187,7 +187,7 @@ Given an MDP with a known model, output:
 Refuse to run DP on state spaces > 10⁷. Refuse to claim convergence without a sup-norm check. Flag any γ ≥ 1 on an infinite-horizon task as a guarantee violation.
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run value iteration on the 4×4 GridWorld with `γ ∈ {0.9, 0.99}`. How many sweeps until `max |ΔV| < 1e-6`? Print `V*` as a 4×4 grid.
    > **练习1：** 用不同的折扣因子 γ 运行值迭代，观察收敛速度如何随 γ 变化。
@@ -196,7 +196,7 @@ Refuse to run DP on state spaces > 10⁷. Refuse to claim convergence without a 
 3. **Hard.** Build modified policy iteration: in the evaluation step, run only `k` sweeps instead of to convergence. Plot `V*(0,0)` error vs `k` for `k ∈ {1, 2, 5, 10, 50}`. What does the curve tell you about the evaluation/improvement tradeoff?
    > **练习3：** 实现修正策略迭代（评估步只迭代 k 次），探究评估精度与改进效率的权衡。
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -208,7 +208,7 @@ Refuse to run DP on state spaces > 10⁷. Refuse to claim convergence without a 
 | Synchronous update | "Jacobi-style" / 同步更新 | Use old `V` throughout a sweep; cleanly analyzable but slower. |
 | In-place update | "Gauss-Seidel-style" / 原地更新 | Use `V` as it's being updated; converges faster in practice. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Sutton & Barto (2018). Ch. 4 — Dynamic Programming](http://incompleteideas.net/book/RLbook2020.pdf) — the canonical presentation of policy iteration and value iteration.
 - [Bertsekas (2019). Reinforcement Learning and Optimal Control](http://www.athenasc.com/rlbook.html) — rigorous treatment of contraction-mapping arguments.

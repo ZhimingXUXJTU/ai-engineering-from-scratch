@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 9 · 01 (MDPs), Phase 9 · 02 (Dynamic Programming)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 Dynamic programming is elegant, but it assumes you can query `P(s' | s, a)` for every state and action. Almost nothing in the real world works that way. A robot cannot analytically compute the distribution over camera pixels after a joint torque. A pricing algorithm cannot integrate over every possible customer reaction. An LLM cannot enumerate all possible continuations after a token.
 
@@ -21,7 +21,7 @@ The shift from DP to MC is philosophically important: we move from *known model 
 
 > **【拓展：LLM中的MC】** ChatGPT 的 RLHF 训练中，对每个 prompt 采样多个回答、计算平均奖励——这就是 MC 思想在大模型训练中的直接应用。DeepSeek-R1 的 GRPO 也是基于组内采样的 MC 估计。
 
-## The Concept
+## The Concept | 核心概念
 
 ![Monte Carlo: rollout, compute returns, average; first-visit vs every-visit](../assets/monte-carlo.svg)
 
@@ -54,7 +54,7 @@ Reorganize: `V_new = V_old + α · (target - V_old)` with `α = 1/n`. Swap `1/n`
 
 Converges to `Q*` and `π*` with probability 1 under mild conditions (every pair visited infinitely often, `α` satisfies Robbins-Monro).
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: rollout → list of (s, a, r)
 
@@ -146,7 +146,7 @@ Your MC estimate of `V^π` should agree with the DP result from Lesson 02 as epi
 - **Non-stationary policies.** If `π` changes (as in MC control), old returns are from a different policy. Constant-α MC handles this; sample-average MC does not.
 - **Off-policy importance sampling.** The weights `π(a|s)/μ(a|s)` multiply across a trajectory. Variance explodes with horizon. Cap with per-decision weighted IS or switch to TD.
 
-## Use It
+## Use It | 用框架实现
 
 The 2026 role of Monte Carlo methods:
 
@@ -161,7 +161,7 @@ The 2026 role of Monte Carlo methods:
 
 Modern deep-RL algorithms (PPO, SAC) interpolate between pure MC (full returns) and pure TD (one-step bootstrap) via `n`-step returns or GAE. Both endpoints are instances of the same estimator.
 
-## Ship It
+## Ship It | 产出物
 
 Save as `outputs/skill-mc-evaluator.md`:
 
@@ -186,7 +186,7 @@ Given an environment (episodic, with reset+step API) and a policy, output:
 Refuse to run MC on non-episodic tasks without a finite horizon cap. Refuse to report V^π estimates from fewer than 100 episodes per state for tabular tasks. Flag any policy with zero-variance actions as an exploration risk.
 ```
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Implement first-visit MC evaluation of the uniform-random policy on 4×4 GridWorld. Run 10,000 episodes. Plot `V(0,0)` as a function of episode count against the DP answer.
    > **练习1：** 实现 MC 评估，将 V(0,0) 随回合数的收敛曲线与 DP 基准对比。
@@ -195,7 +195,7 @@ Refuse to run MC on non-episodic tasks without a finite horizon cap. Refuse to r
 3. **Hard.** Implement *off-policy* MC with importance sampling: collect data under uniform-random policy `μ`, estimate `V^π` for the deterministic optimal policy `π`. Compare plain IS vs per-decision IS vs weighted IS. Which has lowest variance?
    > **练习3：** 实现离策略 MC（重要性采样），比较不同 IS 方差的差异。
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -208,7 +208,7 @@ Refuse to run MC on non-episodic tasks without a finite horizon cap. Refuse to r
 | On-policy | "Learn from my own data" / 在线策略 | Target policy = behavior policy. Vanilla MC, PPO, SARSA. |
 | Off-policy | "Learn from someone else's data" / 离线策略 | Target policy ≠ behavior policy. Importance-sampled MC, Q-learning, DQN. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Sutton & Barto (2018). Ch. 5 — Monte Carlo Methods](http://incompleteideas.net/book/RLbook2020.pdf) — the canonical treatment.
 - [Singh & Sutton (1996). Reinforcement Learning with Replacing Eligibility Traces](https://link.springer.com/article/10.1007/BF00114726) — first-visit vs every-visit analysis.

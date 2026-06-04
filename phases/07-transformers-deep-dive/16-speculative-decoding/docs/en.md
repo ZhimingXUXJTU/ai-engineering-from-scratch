@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 7 · 07 (GPT Causal LM), Phase 7 · 12 (KV Cache & Flash Attention)
 **Time:** ~60 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 A 70B LLM sampling one token takes ~30 ms on an H100. A 3B draft model takes ~3 ms. If we let the 3B draft 5 tokens ahead, then run the 70B *once* to verify all 5, the total is `5×3 + 30 = 45 ms` for up to 5 accepted tokens — versus `5×30 = 150 ms` for straight-line generation. That is the full speculative-decoding pitch: trade a small amount of extra GPU memory (draft model) for 2–4× lower decode latency.
 
@@ -24,7 +24,11 @@ Four families of draft-verifier pairs dominate 2026 inference:
 
 Every production inference stack in 2026 ships speculative decoding by default. vLLM, TensorRT-LLM, SGLang, and llama.cpp all support at least vanilla + EAGLE-2.
 
-## The Concept
+> **【中文解读】** 推测解码的核心洞察：自回归生成是串行的瓶颈。用小模型（3B）快速生成 N 个候选 token，大模型（70B）一次前向传播验证所有 N 个。总时间从 N×30ms 降到 5×3+30=45ms，加速 2-4 倍。关键：推测采样保证输出分布与大模型完全一致，无质量损失。
+
+> **【拓展：EAGLE 与 Medusa 的自推测策略】** EAGLE（2024）复用大模型的隐藏状态来生成草案，接受率比独立小模型更高，典型加速 3-4 倍。Medusa 在大模型上添加多个解码头，并行预测多个未来位置，无需额外模型。这两种"自推测"策略避免了维护独立草案模型的开销，成为 2026 年的主流选择。
+
+## The Concept | 核心概念
 
 ### The core algorithm
 
@@ -48,6 +52,8 @@ Let `α` = expected acceptance rate per draft token. Let `c` = draft-to-verifier
 
 Typical rule of thumb at `α = 0.75` and `N = 5`: 3× fewer big-model calls. Draft cost is 5× cheap. Total wall-clock drops ~2.5×.
 
+> **【中文解读】** 加速效果取决于接受率 alpha。当 alpha=0.75、草案长度 N=5 时，大约 3 倍减少大模型调用。残差分布（residual distribution）是保持分布一致性的数学关键——拒绝时从 (q-p)+ 归一化分布中采样，确保最终输出与大模型直接采样的分布完全一致。
+
 **α depends on:**
 
 - How well the draft approximates the verifier. Same family / same training data boosts α significantly.
@@ -70,6 +76,8 @@ Each head outputs its own logits. At inference you sample from each head to get 
 
 Pros: no second model. Cons: adds trainable parameters; needs a supervised fine-tuning stage (~1B tokens); acceptance rate is a bit lower than vanilla speculative with a good draft.
 
+> **【拓展：推测解码在 vLLM 中的实现】** vLLM 是 2026 年最流行的 LLM 推理框架，原生支持推测解码。它使用 continuous批处理（continuous batching）+ PagedAttention + 推测解码的组合优化。在生产部署中，推测解码通常带来 2-3 倍的延迟降低，对于聊天场景（用户感知延迟敏感）尤为关键。结合量化（AWQ/GPTQ），可以在单张 GPU 上实现高性能推理。
+
 ### EAGLE — better draft by reusing hidden states
 
 EAGLE-1/2/3 (Li et al., 2024–2025) makes the draft model a tiny transformer (typically 1 layer) that ingests the verifier's last-layer hidden states. Because the draft sees the verifier's feature representation, its predictions correlate strongly with the verifier's output distribution. Acceptance rates climb from ~0.6 (vanilla) to 0.85+.
@@ -82,7 +90,7 @@ Verification feeds `N` draft tokens into the verifier in one forward pass. This 
 
 Production implementations (vLLM's `--speculative-model`, TensorRT-LLM's LookaheadDecoder) handle this with scratch KV buffers. Write first, commit on acceptance. It's not conceptually hard, but it is fiddly.
 
-## Build It
+## Build It | 动手实现
 
 See `code/main.py`. We implement the core speculative-sampling algorithm (rejection step + residual distribution) with:
 
@@ -151,7 +159,7 @@ Run 10,000 speculative steps at varying draft-quality levels. Plot acceptance ra
 
 Empirically: the histogram of tokens produced by the speculative loop should match the histogram produced by sampling directly from the verifier. This is the Leviathan theorem in practice. A chi-square test confirms within sampling error.
 
-## Use It
+## Use It | 用框架实现
 
 Production:
 
@@ -185,18 +193,18 @@ TensorRT-LLM has the fastest Medusa path as of mid-2026. `faster-whisper` wraps 
 - Wildly creative / high-temperature sampling (α drops).
 - Memory-constrained deployments (draft model adds VRAM).
 
-## Ship It
+## Ship It | 产出物
 
 See `outputs/skill-spec-decode-picker.md`. The skill picks a speculative decoding strategy (vanilla / Medusa / EAGLE / lookahead) and tuning parameters (N, draft temperature) for a new inference workload.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py`. Confirm the speculative token distribution matches the verifier's direct-sample distribution on 50,000 tokens within chi-square p > 0.05.
 2. **Medium.** Plot speedup (tokens per big-model forward) as a function of `N` for `α = 0.5, 0.7, 0.85`. Identify the optimal `N` for each α. (Hint: expected tokens per verify call = `(1 - α^{N+1}) / (1 - α)`.)
 3. **Hard.** Implement a tiny Medusa: take the capstone GPT from Lesson 14, add 3 extra LM heads that predict positions t+2, t+3, t+4. Train on tinyshakespeare with a joint multi-head loss. Compare acceptance rates vs a vanilla draft made by truncating the same model.
 4. **Hard.** Implement rollback: start with a 10-token prefix KV cache, feed 5 draft tokens, simulate a rejection at position 3. Verify your cache reads correctly match "prefix + first 2 accepted drafts" at the next iteration.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -211,7 +219,7 @@ See `outputs/skill-spec-decode-picker.md`. The skill picks a speculative decodin
 | Tree attention | "Verify many candidates at once" | Branching verification that considers several draft continuations simultaneously. |
 | KV rollback | "Undo rejected drafts" | Scratch KV buffer; commit on acceptance, discard on reject. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Leviathan, Kalman, Matias (2023). Fast Inference from Transformers via Speculative Decoding](https://arxiv.org/abs/2211.17192) — the core algorithm and the equivalence theorem.
 - [Chen et al. (2023). Accelerating Large Language Model Decoding with Speculative Sampling](https://arxiv.org/abs/2302.01318) — concurrent introduction; clean Bernoulli-rejection proof.

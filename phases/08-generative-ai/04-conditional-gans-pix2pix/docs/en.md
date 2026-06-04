@@ -11,13 +11,17 @@
 **Prerequisites:** Phase 8 · 03 (GANs), Phase 4 · 06 (U-Net), Phase 3 · 07 (CNNs)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 An unconditional GAN samples arbitrary faces. Useful for a demo, useless in production. You want: *map a sketch to a photo*, *map a map to an aerial photo*, *map a daytime scene to nighttime*, *colorize a grayscale image*. In all of these, you are given an input image `x` and must output `y` with some semantic correspondence. There are many plausible `y`s per `x`. Mean-squared error flattens them into mush. An adversarial loss doesn't, because "looks real" is sharp.
 
 Conditional GAN (Mirza & Osindero, 2014) adds a condition `c` as an input to both `G` and `D`. Pix2Pix (Isola et al., 2017) specialized this: condition is a full input image, generator is a U-Net, discriminator is a *patch-based* classifier (PatchGAN), and loss is adversarial + L1. That recipe outperforms from-scratch text-to-image models on narrow image-to-image domains even in 2026 because it is trained on *paired data* — you have exactly the signal you need.
 
-## The Concept
+> **【中文解读】** 条件 GAN 的核心改进：给生成器和判别器都添加条件输入 c。Pix2Pix 的条件是完整输入图像，生成器用 U-Net（保留空间细节），判别器用 PatchGAN（对局部图像块分类）。损失 = 对抗损失 + L1 损失。这种配对数据训练方式在窄域图像翻译任务上至今仍优于通用文本生成图像模型。
+
+> **【拓展：从 Pix2Pix 到 ControlNet 的演进】** Pix2Pix 的"图像条件生成"思想被 ControlNet（2023）继承和发展。ControlNet 将条件控制（边缘、深度图、姿态等）注入预训练的 Stable Diffusion 模型，实现了更通用的可控生成。从 Pix2Pix 到 CycleGAN 再到 ControlNet，这是一条清晰的"可控生成"技术演进路径。
+
+## The Concept | 核心概念
 
 ![Pix2Pix: U-Net generator, PatchGAN discriminator](../assets/pix2pix.svg)
 
@@ -44,7 +48,7 @@ Pix2Pix needs paired `(x, y)` data. CycleGAN (Zhu et al., 2017) drops this requi
 
 In 2026, unpaired image-to-image is mostly done via diffusion (ControlNet, IP-Adapter) rather than CycleGAN, but the cycle-consistency idea survives in almost every unpaired domain adaptation paper.
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` implements a tiny conditional GAN on 1-D data. The condition `c` is a class label (0 or 1). The task: produce a sample from the conditional distribution for the given class.
 
@@ -89,7 +93,7 @@ for c in [0, 1]:
 - **Ground-truth leakage in D.** Concatenate `(x, y)` as D input, not just `y`. Without this D cannot check consistency.
 - **Mode collapse per class.** Each class can collapse independently. Run class-conditional diversity checks.
 
-## Use It
+## Use It | 用框架实现
 
 2026 state of image-to-image tasks:
 
@@ -106,17 +110,17 @@ for c in [0, 1]:
 
 Pix2Pix remains the right tool when (a) you have thousands of paired examples, (b) the task is narrow and repeatable, and (c) you need fast inference. On generic open-domain tasks, diffusion wins.
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-img2img-chooser.md`. Skill takes a task description, data availability (paired vs unpaired, N samples), and latency/quality budget, then outputs: approach (Pix2Pix, CycleGAN, ControlNet variant, SDXL + IP-Adapter), training data requirements, inference cost, and eval protocol (LPIPS, FID, task-specific).
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Modify `code/main.py` to add a third class. Confirm G still maps each class's noise to the correct mode.
 2. **Medium.** Replace L1 with a perceptual-style loss in the 1-D setting (e.g. a small frozen D acting as feature extractor). Does it change sharpness of the conditional distribution?
 3. **Hard.** Sketch a CycleGAN in the 1-D setting: two distributions, two generators, cycle loss. Show that it learns to map between them with no paired data.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -141,7 +145,7 @@ When you have paired data and a narrow task (sketch → render, semantic map →
 
 Pix2Pix wins on throughput in static batches (every request is the same FLOPs). Diffusion wins on quality and generalization. The modern play is often to ship a Pix2Pix-style distilled model for the narrow task and a diffusion fallback for tail inputs.
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Mirza & Osindero (2014). Conditional Generative Adversarial Nets](https://arxiv.org/abs/1411.1784) — the cGAN paper.
 - [Isola et al. (2017). Image-to-Image Translation with Conditional Adversarial Networks](https://arxiv.org/abs/1611.07004) — Pix2Pix.

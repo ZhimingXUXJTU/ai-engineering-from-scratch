@@ -9,7 +9,7 @@
 **Prerequisites:** Phase 7 · 02 (Self-Attention), Phase 7 · 05 (Full Transformer), Phase 7 · 07 (GPT)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 A naive autoregressive decoder does `O(N²)` work to generate `N` tokens: at each step it recomputes attention over the full prefix. For a 4K-token response that is 16M attention operations, most of them redundant. Every hidden state of a prefix token is deterministic once computed — you only need to run the new token's query against the cached keys and values of everything before.
 
@@ -22,7 +22,9 @@ Two optimizations, both from Dao et al., pushed frontier inference from "slow" t
 
 By 2026 both are universal. Every production inference stack (vLLM, TensorRT-LLM, SGLang, llama.cpp) assumes them. Every frontier model ships with Flash Attention enabled.
 
-## The Concept
+> **【中文解读】** 推理优化的两大核心技术：KV Cache 存储已计算的 Key/Value 向量，避免重复计算，将每步推理从 O(N^2) 降到 O(N)；Flash Attention 通过分块计算避免 N×N 矩阵写入 HBM，在 SRAM 中完成所有计算，速度提升 2-10 倍。
+
+## The Concept | 核心概念
 
 ![KV cache growth and Flash Attention tiling](../assets/kv-cache-flash-attn.svg)
 
@@ -43,6 +45,8 @@ per token per layer = 2 * 128 * 2 = 512 bytes
 per token (32 layers) = 16 KB
 per 32K context = 512 MB
 ```
+
+> **【拓展：GQA 对 KV 缓存的影响】** GQA（Grouped-Query Attention）将 KV 头从 n_heads 减少到 n_kv_heads，直接等比例缩小 KV 缓存。例如 Llama 3 70B 的 64 查询头 / 8 KV 头配置，将 KV 缓存压缩了 8 倍。在 128K 上下文中，这意味着从约 4 GB 降到 0.5 GB 的 KV 缓存，是长上下文推理的关键优化。
 
 For Llama 3 70B (80 layers, d_head=128, GQA with 8 KV heads):
 
@@ -84,6 +88,10 @@ One HBM trip per tile. Total memory footprint drops from `O(N²)` to `O(N)`. Bac
 
 **Numerical trick.** Running softmax maintains `(max, sum)` across tiles so the final normalization is exact. Not an approximation — Flash Attention computes bit-identical output to standard attention (modulo fp16 non-associativity).
 
+> **【中文解读】** Flash Attention 的核心技巧：将注意力计算分块（tiling），在 GPU 的快速 SRAM 中完成 softmax 和矩阵乘法，避免将 N×N 的中间矩阵写入慢速 HBM。关键数值技巧是"运行时 softmax"——跨 tile 维护 (max, sum) 对，确保最终结果与标准注意力数学上完全一致，不是近似。
+
+> **【拓展：vLLM 的 PagedAttention】** PagedAttention（vLLM）将 KV 缓存组织为固定大小的"页"，类似操作系统的虚拟内存。这消除了内存碎片问题，使得多个并发请求可以高效共享 GPU 显存。配合连续批处理（continuous batching），vLLM 将 LLM 推理吞吐量提升了 2-4 倍，成为 2024-2026 年最流行的推理框架。
+
 **Version evolution:**
 
 | Version | Year | Key change | Speedup on reference hardware |
@@ -114,7 +122,7 @@ Continuous batching (first shipped in Orca, now in vLLM, TensorRT-LLM, SGLang): 
 
 vLLM's headline feature. KV cache is allocated in 16-token blocks; a page table maps logical positions to physical blocks. Lets you share KV across parallel samples (beam search, parallel sampling), hot-swap prefixes for prompt caching, and defragment memory. 4× throughput improvement over naive contiguous allocation.
 
-## Build It
+## Build It | 动手实现
 
 See `code/main.py`. We implement:
 
@@ -168,7 +176,7 @@ Bit-identical output to `softmax(qK) V` in one shot, but at any time the working
 
 Count attention operations. Naive: `O(N²)` = 5050. Cached: `O(N)` = 100. The code prints both.
 
-## Use It
+## Use It | 用框架实现
 
 ```python
 # HuggingFace transformers auto-enables KV cache on decoder-only generate().
@@ -194,17 +202,17 @@ vllm serve meta-llama/Llama-3.1-70B-Instruct \
 
 Prefix caching across requests is a big 2026 win — the same system prompt, few-shot examples, or long context document reuses KV across calls. For agent workloads with repeated tool prompts, prefix caching is routinely 5× throughput gain.
 
-## Ship It
+## Ship It | 产出物
 
 See `outputs/skill-inference-optimizer.md`. The skill picks attention implementation, KV cache strategy, quantization, and speculative decoding for a new inference deployment.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py`. Confirm the naive and cached decoders produce the same output; note the op-count difference.
 2. **Medium.** Implement prefix caching: given a prompt P and several completions, run one forward pass over P to fill the KV cache, then branch per-completion. Measure speedup vs re-encoding P for each.
 3. **Hard.** Implement a toy PagedAttention: KV cache in fixed 16-token blocks with a free-list. When a sequence finishes, return its blocks to the pool. Simulate 1,000 chat completions with varying lengths. Compare memory fragmentation vs contiguous allocation.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -217,7 +225,7 @@ See `outputs/skill-inference-optimizer.md`. The skill picks attention implementa
 | Prefix caching | "Reuse long prompts" | Cache KV for a shared prefix across requests; major cost cut for agents. |
 | Speculative decoding | "Draft + verify" | Cheap draft model proposes tokens; big model verifies k in one pass. |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Dao et al. (2022). FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135) — Flash 1.
 - [Dao (2023). FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning](https://arxiv.org/abs/2307.08691) — Flash 2.

@@ -11,7 +11,7 @@
 **Prerequisites:** Phase 3 · 02 (Backprop), Phase 3 · 08 (Optimizers), Phase 8 · 02 (VAE)
 **Time:** ~75 minutes
 
-## The Problem
+## The Problem | 问题引入
 
 VAEs produce blurry samples because their MSE decoder loss is Bayes-optimal for the *mean* image — and the mean of many plausible digits is a fuzzy digit. You want a loss that rewards *plausibility*, not pixel-wise proximity to any one target. There is no closed-form for plausibility. You have to learn it.
 
@@ -25,7 +25,11 @@ min_G max_D  E_real[log D(x)] + E_fake[log(1 - D(G(z)))]
 
 In 2026 GANs are no longer the SOTA generator (diffusion and flow matching ate that crown). But StyleGAN 2/3 remain the sharpest face models ever shipped, GAN discriminators are used as *perceptual losses* in diffusion training, and adversarial training powers the fast 1-step distillations (SDXL-Turbo, SD3-Turbo, LCM) that let you ship real-time diffusion.
 
-## The Concept
+> **【中文解读】** GAN 的核心思想：不建模密度，通过对抗训练学习生成。生成器 G(z) 尝试生成逼真图像，判别器 D(x) 尝试区分真假。两者在 minimax 博弈中共同进化。VAE 的 MSE 损失导致模糊（因为它最优化的是均值图像），而 GAN 的对抗损失奖励"逼真度"。GAN 生成速度快（单次前向传播），但训练不稳定。
+
+> **【拓展：GAN 在扩散模型蒸馏中的新角色】** 虽然 GAN 不再是主流生成方法，但对抗训练思想在扩散模型蒸馏中焕发新生。SDXL-Turbo、SD3-Turbo、LCM 等快速模型使用对抗损失将多步扩散蒸馏为 1-4 步，实现实时生成。GAN 的判别器作为可学习的"质量评估器"，比固定的感知损失更有效。
+
+## The Concept | 核心概念
 
 ![GAN training: generator and discriminator in minimax](../assets/gan.svg)
 
@@ -57,7 +61,7 @@ In 2026 GANs are no longer the SOTA generator (diffusion and flow matching ate t
 | 2022 | StyleGAN-XL | Conditional, class-aware, larger scale. |
 | 2024 | R3GAN | Rebrands with stronger regularization; works on 1024² without tricks. |
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` trains a tiny GAN on 1-D data: a mixture of two Gaussians. Generator and discriminator are single-hidden-layer MLPs. We implement forward, backward, and the minimax loop by hand. The goal is to see the two key failure modes (mode collapse + vanishing gradient) as they happen.
 
@@ -108,7 +112,7 @@ The canonical symptom: one of the two real modes stops being generated. The disc
 - **Inception-score gaming.** FID and IS are noisy at low sample counts. Use ≥10k samples at eval.
 - **One-shot sampling is a lie for conditional tasks.** You still need CFG scales, truncation tricks, and re-sampling to get usable outputs.
 
-## Use It
+## Use It | 用框架实现
 
 The 2026 GAN stack:
 
@@ -123,17 +127,17 @@ The 2026 GAN stack:
 
 GANs are sharp but narrow. Once your domain opens up — photos, arbitrary text prompts, video — switch to diffusion. The adversarial trick lives on as a component (perceptual losses, distillation), not a standalone generator.
 
-## Ship It
+## Ship It | 产出物
 
 Save `outputs/skill-gan-debugger.md`. Skill takes a failing GAN run (loss curves, sample grid, dataset size) and outputs a ranked list of likely causes, one-line fixes, and a rerun protocol.
 
-## Exercises
+## Exercises | 练习题
 
 1. **Easy.** Run `code/main.py` with the stock settings. Then set `D_LR = 5 * G_LR` and rerun. How fast does G's loss collapse to a constant?
 2. **Medium.** Replace the Goodfellow BCE loss with the WGAN loss: `loss_D = E[D(fake)] - E[D(real)]`, `loss_G = -E[D(fake)]`, and clip D's weights to `[-0.01, 0.01]`. Is training more stable? Compare wall-clock convergence.
 3. **Hard.** Extend the 1-D example to 2-D data (mixture of 8 Gaussians on a ring). Track how many of the 8 modes the generator captures at steps 1k, 5k, 10k. Implement minibatch discrimination and re-measure.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
@@ -156,7 +160,7 @@ GANs no longer win on sample quality for open-domain generation, but they still 
 
 This is why GAN distillation (SDXL-Turbo, SD3-Turbo, ADD, LCM) is the dominant technique for fast text-to-image in 2026: it collapses a 20-50-step diffusion pipeline into 1-4 GAN-style forward passes while keeping the distribution of a diffusion base. The adversarial loss survives as a training-time knob for turning slow generators into fast ones.
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Goodfellow et al. (2014). Generative Adversarial Nets](https://arxiv.org/abs/1406.2661) — the original GAN paper.
 - [Radford et al. (2015). Unsupervised Representation Learning with DCGAN](https://arxiv.org/abs/1511.06434) — the first stable architecture.

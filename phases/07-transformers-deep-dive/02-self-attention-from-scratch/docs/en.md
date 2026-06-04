@@ -16,7 +16,7 @@
 - Trace how the attention matrix captures token relationships and explain why scaling by sqrt(d_k) prevents softmax saturation
 - Apply causal masking to convert bidirectional attention into autoregressive (decoder-style) attention
 
-## The Problem
+## The Problem | 问题引入
 
 RNNs process sequences one token at a time. By the time you reach token 50, the information from token 1 has been squeezed through 50 compression steps. Long-range dependencies get crushed into a fixed-size hidden state - a bottleneck that no amount of LSTM gating fully solves.
 
@@ -24,7 +24,9 @@ The 2014 Bahdanau attention paper showed the fix: let the decoder look back at e
 
 Self-attention lets every position in a sequence attend to every other position in a single parallel step. That is what makes transformers fast, scalable, and dominant.
 
-## The Concept
+> **【中文解读】** RNN 的信息传递像传话游戏——经过多步后信息严重失真。Bahdanau 注意力让解码器"回头看"编码器的每个位置，但仍依赖 RNN。Transformer 的革命性在于：完全抛弃循环，只用注意力一个机制。自注意力让序列中每个位置都能直接关注所有其他位置，一步到位。
+
+## The Concept | 核心概念
 
 ### The Database Lookup Analogy
 
@@ -44,6 +46,10 @@ Every token generates three vectors:
 - **Value (V)**: "What information do I provide if selected?"
 
 The dot product between a query and all keys produces attention scores. High score means "this key matches my query." Those scores weight the values. The output is a weighted sum of values.
+
+> **【中文解读】** 注意力的数据库类比是理解 Q/K/V 的最佳方式。Q 是"我在找什么"，K 是"我有什么"，V 是"我的实际内容"。Q 和 K 的点积衡量匹配程度，softmax 归一化后作为权重，对 V 做加权求和。整个过程就是一个可微的"软查找"操作。
+
+> **【拓展：注意力机制在真实系统中的应用】** GPT 系列使用因果自注意力（每个 token 只能看到之前的 token）；BERT 使用双向自注意力（每个 token 能看到所有 token）；交叉注意力（Cross-Attention）则在 T5、Stable Diffusion 等模型中连接编码器和解码器。理解 Q/K/V 是理解所有这些变体的基础。
 
 ### Q, K, V Computation
 
@@ -113,6 +119,8 @@ Scaled scores = (Q @ K^T) / sqrt(dk)
 
 This keeps values in a range where softmax produces useful gradients.
 
+> **【中文解读】** 缩放因子 1/sqrt(dk) 是一个关键但容易被忽视的细节。当维度 dk 较大时，点积的值会变得很大，导致 softmax 进入饱和区（输出接近 one-hot），梯度几乎为零。除以 sqrt(dk) 将值拉回有效范围，保证训练稳定。
+
 ### Softmax Turns Scores into Weights
 
 Softmax converts raw scores into a probability distribution across each row:
@@ -126,6 +134,8 @@ Attention weights:   [0.52, 0.09, 0.07, 0.14, 0.08]   (sums to ~1.0)
 ```
 
 Now each token has a set of weights saying how much to attend to every other token.
+
+> **【拓展：注意力矩阵的可解释性】** 注意力矩阵（N×N）是 Transformer 可解释性研究的重要工具。通过可视化注意力权重，可以发现模型学到的语言模式：哪些 token 之间有强关联。例如，代词 "it" 通常会高度关注其指代的名词。BERT 的注意力可视化（如 bertviz 工具）已成为 NLP 可解释性研究的标准方法。
 
 ### Weighted Sum of Values
 
@@ -166,7 +176,7 @@ Formula in one line:
 Attention(Q, K, V) = softmax( Q @ K^T / sqrt(dk) ) @ V
 ```
 
-## Build It
+## Build It | 动手实现
 
 ### Step 1: Softmax from scratch
 
@@ -276,7 +286,7 @@ def ascii_heatmap(weights, tokens, chars=" ░▒▓█"):
 ascii_heatmap(weights, sentence)
 ```
 
-## Use It
+## Use It | 用框架实现
 
 PyTorch's `nn.MultiheadAttention` does exactly what we built, plus multi-head splitting and output projection:
 
@@ -303,18 +313,22 @@ print(attn_weights[0].detach().numpy().round(3))
 
 The key difference: multi-head attention runs multiple attention functions in parallel, each with its own Q, K, V projections of size dk = d_model / n_heads, then concatenates results. This lets the model attend to different relationship types simultaneously.
 
-## Ship It
+> **【中文解读】** PyTorch 的 `nn.MultiheadAttention` 封装了我们从零实现的所有逻辑，加上多头拆分和输出投影。多头注意力的优势在于让模型同时关注不同类型的关系——一个头可能关注语法关系，另一个关注语义关系，还有一个关注位置关系。
+
+> **【拓展：多头注意力的生物学类比】** 多头注意力可以类比视觉皮层的多个特征检测器。就像 V1 区域的不同神经元分别检测边缘、方向、颜色一样，不同的注意力头学习捕捉不同类型的 token 间关系。研究表明，Transformer 的不同头确实学到了不同的语言模式：有的关注相邻词，有的关注句法依赖，有的关注指代关系。
+
+## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-attention-explainer.md` - a prompt for explaining attention through the database lookup analogy
 
-## Exercises
+## Exercises | 练习题
 
 1. Modify `scaled_dot_product_attention` to accept an optional mask matrix that sets certain positions to negative infinity before softmax (this is how causal/decoder masking works)
 2. Implement multi-head attention from scratch: split Q, K, V into `n_heads` chunks, run attention on each, concatenate, and project through a final weight matrix Wo
 3. Take two different sentences of the same length, feed them through the same SelfAttention instance, and compare their attention patterns. What changes? What stays the same?
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
@@ -326,8 +340,10 @@ This lesson produces:
 | Attention weights | "How much focus" | A probability distribution over positions, produced by softmax over scaled dot products |
 | Multi-head attention | "Parallel attention" | Running multiple attention functions with different projections, then concatenating results for richer representations |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Attention Is All You Need (Vaswani et al., 2017)](https://arxiv.org/abs/1706.03762) - the original transformer paper
 - [The Illustrated Transformer (Jay Alammar)](https://jalammar.github.io/illustrated-transformer/) - best visual walkthrough of the full architecture
 - [The Annotated Transformer (Harvard NLP)](https://nlp.seas.harvard.edu/annotated-transformer/) - line-by-line PyTorch implementation with explanations
+
+> **【拓展：Flash Attention 与注意力优化】** 标准 self-attention 的 O(N^2) 内存开销是长序列处理的瓶颈。Flash Attention（2022）通过分块计算和重计算策略，在不改变数学结果的情况下将内存复杂度降至 O(N)。这在 GPT-4 的 128K 上下文窗口等实际应用中至关重要。
