@@ -21,7 +21,7 @@ Most teams reach for a workbench by writing a 3000-line `AGENTS.md` and calling 
 You need the opposite. A tiny root file that routes the agent into deeper files only when relevant. Durable state the agent reads before acting and writes after. A task board that says what is in flight, what is blocked, and what is up next.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 最小化 Agent 工作台是理解编码 Agent 内部机制的起点。它包含五个核心组件：(1) 文件读写工具；(2) 代码执行沙盒；(3) 简单的 ReAct 循环；(4) 消息缓冲区；(5) 停止条件。目标是让学习者从头理解每个组件的作用和交互。
 
 Three files. Each one with a job. Each one machine-readable enough to evolve into a real system later.
 
@@ -37,7 +37,7 @@ flowchart LR
 ```
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 最小化 Agent 工作台是理解编码 Agent 内部机制的起点。它包含五个核心组件：(1) 文件读写工具；(2) 代码执行沙盒；(3) 简单的 ReAct 循环；(4) 消息缓冲区；(5) 停止条件。目标是让学习者从头理解每个组件的作用和交互。
 
 ### AGENTS.md is a router, not a manual
 

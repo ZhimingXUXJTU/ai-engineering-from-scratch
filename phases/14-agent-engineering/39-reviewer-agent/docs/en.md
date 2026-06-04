@@ -21,7 +21,7 @@ You ask the agent to fix a bug. It edits four files, runs the tests, and reports
 Acceptance is necessary, not sufficient. The reviewer asks the questions acceptance cannot ask: did this solve the right problem? Did it expand scope without flagging it? Did it document assumptions that should have been questioned? Did it leave the workbench in a state the next session can pick up?
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 审查者 Agent 是专门用于审查其他 Agent 工作的独立 Agent。它检查：(1) 代码质量——可读性、可维护性、性能；(2) 正确性——逻辑错误、边界条件、错误处理；(3) 安全性——注入漏洞、敏感数据泄露。独立的审查者提供第二双眼睛。
 
 ## The Concept | 概念
 
@@ -35,7 +35,7 @@ flowchart LR
 ```
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 审查者 Agent 是专门用于审查其他 Agent 工作的独立 Agent。它检查：(1) 代码质量——可读性、可维护性、性能；(2) 正确性——逻辑错误、边界条件、错误处理；(3) 安全性——注入漏洞、敏感数据泄露。独立的审查者提供第二双眼睛。
 
 ### Reviewer rubric
 

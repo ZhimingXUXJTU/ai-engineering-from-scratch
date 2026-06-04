@@ -21,7 +21,7 @@ The agent says "running tests now." The next message says "all tests pass." The 
 A feedback runner removes that gap. Every command goes through the runner. Every record carries the command, the captured stdout and stderr, the exit code, the wall-clock duration, and a one-line agent note. The agent reads the record at the next turn. The verification gate reads the records at the end of the task.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 运行时反馈循环让 Agent 在执行过程中持续获取反馈。三种反馈类型：(1) 工具反馈——命令输出、编译结果、测试结果；(2) 用户反馈——中途中断和纠正；(3) 系统反馈——资源使用、错误率、超时。反馈循环是 Agent 自适应调整的基础。
 
 ## The Concept | 概念
 
@@ -36,7 +36,7 @@ flowchart LR
 ```
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 运行时反馈循环让 Agent 在执行过程中持续获取反馈。三种反馈类型：(1) 工具反馈——命令输出、编译结果、测试结果；(2) 用户反馈——中途中断和纠正；(3) 系统反馈——资源使用、错误率、超时。反馈循环是 Agent 自适应调整的基础。
 
 ### What goes in a feedback record
 

@@ -23,8 +23,9 @@ Agents that rebuild every capability from scratch in every session do three thin
 3. **Fail on long-horizon composition.** Complex tasks need capability hierarchies; one-shot prompts cannot express them.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 技能库（Skill Libraries）源自 Voyager (Wang et al., 2023)——一个在 Minecraft 中自主探索和学习的 Agent。Voyager 的核心创新是自动技能发现和存储：Agent 在执行任务时发现有效的操作序列，将其编码为可复用的技能函数存入技能库。
 
+> **{【拓展：Voyager 的技能库概念已被 2026 年的编码 Agent 普遍采用。Claude Code ...】}** Voyager 的技能库概念已被 2026 年的编码 Agent 普遍采用。Claude Code 的 CLAUDE.md、Cursor 的 .cursorrules 和 Codex 的技能系统都是这一思想的变体——将有效的操作模式编码为可复用的技能。Voyager 在 Minecraft 中用 160 个自动发现的技能完成了需要人类玩家数小时才能完成的任务。
 Voyager's answer: treat each reusable capability as a named chunk of code stored in a library, retrievable by similarity, composable with other skills, and refined by execution feedback.
 
 ## The Concept | 概念

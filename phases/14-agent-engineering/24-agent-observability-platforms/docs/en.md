@@ -19,7 +19,7 @@
 OTel GenAI (Lesson 23) gives you the schema. You still need the platform that ingests spans, runs evaluations, stores prompt versions, and surfaces regressions. The three contenders each emphasize different parts of the lifecycle.
 
 
-> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
+> **【中文解读】** Agent 可观测性平台提供对 Agent 执行的端到端可见性——从用户请求到最终响应的每一步。核心能力：追踪（每步执行记录）、指标（延迟/成本/成功率）、日志（详细执行过程）。主要平台包括 LangSmith、AgentOps、Braintrust 和 Phoenix。
 
 ## The Concept | 概念
 

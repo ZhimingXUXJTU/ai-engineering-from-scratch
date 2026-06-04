@@ -28,7 +28,7 @@ Together these two papers define the 2026 default for iterative improvement: gen
 
 > **【中文解读】** Self-Refine 的核心思路：一个模型扮演生成者、批评者、精炼者三重角色。但 LLM 在硬事实上自我验证不可靠——CRITIC 的修复方案是通过外部工具进行验证。两者共同定义了 2026 年的迭代改进标准：生成→外部验证→精炼→验证通过则停止。
 
-## The Concept
+## The Concept | 核心概念
 
 ### Self-Refine (Madaan et al., NeurIPS 2023)
 
@@ -89,7 +89,7 @@ OpenAI Agents SDK ships this pattern as "output guardrails." A guardrail is a va
 - **Over-refinement.** Each refine pass adds latency and tokens. Budget 1-3 passes; after that, escalate to human review.
 - **CRITIC on trivial tasks.** If there is no external verifier, CRITIC degenerates to Self-Refine; do not pay the latency for a stub verifier.
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` implements Self-Refine and CRITIC on a toy task: produce a short bullet list given a topic. The verifier checks format (3 bullets, each under 60 chars). CRITIC adds an external "fact verifier" that penalizes known hallucinations.
 
@@ -109,11 +109,11 @@ python3 code/main.py
 
 Compare the Self-Refine vs CRITIC runs. CRITIC catches a factual error Self-Refine missed because the external verifier has grounding the self-critic does not.
 
-## Use It
+## Use It | 用框架实现
 
 Anthropic's evaluator-optimizer is this pattern in Claude-friendly language. OpenAI Agents SDK's output guardrails are CRITIC-shaped (guardrails can call tools). LangGraph ships a reflection node that reads like Self-Refine. Google's Gemini 2.5 Computer Use adds a per-step safety evaluator that is a CRITIC variant: every action is verified before commit.
 
-## Ship It
+## Ship It | 产出物
 
 `outputs/skill-refine-loop.md` configures an evaluator-optimizer loop given task shape, verifier availability, and iteration budget. Emits prompts for generator, evaluator/verifier, and optimizer, plus a stop policy.
 
@@ -143,7 +143,7 @@ Anthropic's evaluator-optimizer is this pattern in Claude-friendly language. Ope
 | Rubber-stamp loop | "Self-agreement failure" | Same-prompt critique returns "looks good"; fix with structurally different prompts | 橡皮图章循环——自我认同导致无法发现问题 |
 | Stop condition | "Convergence test" | Verifier passes OR no feedback AND iteration cap; never single-condition | 停止条件——验证通过或达到迭代上限 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Madaan et al., Self-Refine (arXiv:2303.17651)](https://arxiv.org/abs/2303.17651) — the canonical paper
 - [Gou et al., CRITIC (arXiv:2305.11738)](https://arxiv.org/abs/2305.11738) — tool-grounded verification

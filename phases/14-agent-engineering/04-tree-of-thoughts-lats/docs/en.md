@@ -26,7 +26,7 @@ What reasoning needs is the ability to propose multiple candidates, evaluate the
 
 > **【中文解读】** 思维链是线性推进的——如果第一步错了，后面每一步都基于错误前提。Game of 24 上 GPT-4 CoT 只有 4% 准确率。推理需要的是：提出多个候选方案、评估它们、选择有前景的、在死胡同时回溯。这就是搜索。
 
-## The Concept
+## The Concept | 核心概念
 
 ### Tree of Thoughts (Yao et al., NeurIPS 2023)
 
@@ -85,7 +85,7 @@ Most production agents do not run LATS. They run ReAct with tool-grounded verifi
 
 AlphaEvolve (Lesson 11) is the 2025 extreme: evolutionary search over code, machine-checkable fitness, frontier gains (first 4x4 matmul improvement in 56 years).
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` implements:
 
@@ -101,11 +101,11 @@ python3 code/main.py
 
 The trace shows ToT expanding three candidates per node with BFS, compared to LATS converging on the best rollout via MCTS. Token counts printed for both.
 
-## Use It
+## Use It | 用框架实现
 
 LangGraph ships ToT-style exploration as subgraph patterns; the LangChain team's blog on LATS (May 2024) is the reference tutorial. LlamaIndex ships a `TreeOfThoughts` agent. For most 2026 production agents this pattern lives behind an `if task_complexity > threshold: use_search()` gate — see the evaluator-optimizer pattern in Lesson 05.
 
-## Ship It
+## Ship It | 产出物
 
 `outputs/skill-search-policy.md` selects between linear ReAct, ToT, LATS, and evolutionary search given task shape, budget, and evaluator fidelity.
 
@@ -135,7 +135,7 @@ LangGraph ships ToT-style exploration as subgraph patterns; the LangChain team's
 | Backpropagate | "Update ancestors" | Push the leaf's reward up the path, updating visit counts and Q | 反向传播——更新祖先节点的访问计数和价值 |
 | Search cost | "Token explosion" | 100-1000x CoT on Game of 24; budget before you adopt | 搜索成本——Token 消耗是 CoT 的 100-1000 倍 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Yao et al., Tree of Thoughts (arXiv:2305.10601)](https://arxiv.org/abs/2305.10601) — the canonical paper
 - [Zhou et al., LATS (arXiv:2310.04406)](https://arxiv.org/abs/2310.04406) — MCTS with Reflexion feedback

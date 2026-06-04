@@ -19,8 +19,9 @@
 Agents that cannot delegate cleanly end up stuffing everything into one prompt. Agents without guardrails ship PII, policy-violating output, or loop forever. OpenAI's SDK codifies the three primitives that make multi-agent work tractable.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** OpenAI Agents SDK（原 Swarm）是 OpenAI 官方的 Agent 开发框架。三大核心概念：(1) Handoffs——Agent 之间的任务转移；(2) Guardrails——输入/输出安全护栏；(3) Tracing——内置 OpenTelemetry 追踪。SDK 的设计哲学是'简洁至上'——用最少的抽象实现最常见的 Agent 模式。
 
+> **{【拓展：OpenAI Agents SDK 是 2025-2026 年最流行的轻量级 Agent 框架。其 ...】}** OpenAI Agents SDK 是 2025-2026 年最流行的轻量级 Agent 框架。其 Handoffs 模式将多 Agent 协作建模为'接力赛'——一个 Agent 完成自己的部分后将控制权移交给下一个。这与 AutoGen 的 Actor 模型形成对比。SDK 内置的 Tracing 能力使其特别适合需要可观测性的生产环境。
 ## The Concept | 概念
 
 ### Five primitives

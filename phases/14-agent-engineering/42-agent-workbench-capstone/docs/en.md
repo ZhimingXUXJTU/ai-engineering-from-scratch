@@ -21,7 +21,7 @@ A workbench that lives in a Google Doc, a chat history, and three half-remembere
 You will end this lesson with `outputs/agent-workbench-pack/` shipped on disk and a `bin/install.sh` that drops it into any target repo.
 
 
-> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
+> **【中文解读】** Agent Workbench 顶点项目：将前面 11 课的所有概念整合到一个完整的编码 Agent 中。该 Agent 能够：(1) 理解项目结构和约定；(2) 执行范围受限的修改；(3) 运行验证门检查；(4) 通过审查者 Agent 质检；(5) 跨会话保持状态。这是最小可行生产 Agent 的设计。
 
 ## The Concept | 概念
 

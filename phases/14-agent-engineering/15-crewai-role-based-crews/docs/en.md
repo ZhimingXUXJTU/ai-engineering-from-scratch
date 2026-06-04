@@ -24,8 +24,9 @@ Teams adopting multi-agent frameworks hit the same wall. "Autonomous collaborati
 Free-form LLM-routed crews answer none of those cleanly. Pure DAGs answer them all but lose the exploratory shape a brainstorming agent needs.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** CrewAI 采用角色模板模型——每个 Agent 有角色（Role）、目标（Goal）和背景故事（Backstory）。Agent 组成 Crew 协作完成任务。CrewAI 的独特之处是将组织管理理论（角色定义、团队协作）映射到 Agent 设计中，使得非技术用户也能定义 Agent 团队。
 
+> **{【拓展：CrewAI 是 2024-2025 年增长最快的 Agent 框架之一（GitHub 20k+ s...】}** CrewAI 是 2024-2025 年增长最快的 Agent 框架之一（GitHub 20k+ stars）。其核心卖点是低代码 Agent 协作——通过 YAML 配置文件定义 Agent 角色和任务流。CrewAI 支持两种模式：Crew（预定义角色团队）和 Flow（动态工作流）。企业用户（尤其是非技术团队）特别青睐其直观的角色定义方式。
 CrewAI's split is honest about the trade. Crews for collaborative, role-based, exploratory work. Flows for event-driven, code-owned, auditable production. Same framework, two shapes, pick per surface.
 
 ## The Concept | 概念

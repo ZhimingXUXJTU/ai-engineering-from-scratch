@@ -21,7 +21,7 @@ Agents creep. The task is "fix the login bug." The diff touches the login route,
 Scope creep is the most under-monitored failure mode in agent work because the agent narrates each step in good faith. The fix is not a stricter prompt. The fix is a contract on disk that says what was promised and a check that compares the result against the promise.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 范围契约定义 Agent 可以做什么和不能做什么。显式的范围契约包括：(1) 文件范围——Agent 可以修改哪些文件和目录；(2) 操作范围——可以执行哪些命令；(3) 依赖范围——可以安装哪些包。范围越明确，Agent 的可预测性越高。
 
 ## The Concept | 概念
 
@@ -38,7 +38,7 @@ flowchart LR
 ```
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 范围契约定义 Agent 可以做什么和不能做什么。显式的范围契约包括：(1) 文件范围——Agent 可以修改哪些文件和目录；(2) 操作范围——可以执行哪些命令；(3) 依赖范围——可以安装哪些包。范围越明确，Agent 的可预测性越高。
 
 ### What goes in a scope contract
 

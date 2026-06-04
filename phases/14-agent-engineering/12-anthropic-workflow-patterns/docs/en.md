@@ -19,8 +19,9 @@
 Teams reach for multi-agent frameworks for problems that want a single function call. The cost is real: frameworks add layers that obscure prompts, hide control flow, and invite premature complexity. Schluntz and Zhang's Dec 2024 post is the most-cited industry pushback: start simple, add complexity only when it earns its cost.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** Anthropic 在 2024 年 12 月发布的《Building Effective Agents》定义了四种工作流模式：(1) Prompt Chaining——串行步骤链；(2) Routing——条件分支；(3) Parallelization——并行扇出扇入；(4) Orchestrator-Workers——编排器分配子任务。这些模式是构建生产 Agent 系统的基础构建块。
 
+> **{【拓展：Anthropic 的工作流模式分类已成为 Agent 工程的事实标准。LangGraph 用状态图...】}** Anthropic 的工作流模式分类已成为 Agent 工程的事实标准。LangGraph 用状态图实现这些模式，OpenAI Agents SDK 用 Handoffs 实现路由和编排，CrewAI 用 Crews 实现并行化。关键洞察是：不是每个任务都需要 Agent——对于确定性的多步骤流程，工作流比自主 Agent 更可靠、更便宜。
 ## The Concept | 概念
 
 ### Workflows vs agents

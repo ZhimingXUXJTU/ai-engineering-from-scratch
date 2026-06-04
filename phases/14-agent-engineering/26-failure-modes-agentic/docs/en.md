@@ -19,8 +19,9 @@
 Teams ship agents that work on 90% of traces. The 10% failures are not random noise — they fall into a small number of recurring categories. Once you can name them, you can monitor for them and fix them.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** Agent 系统的失败模式与普通软件不同：(1) 级联失败——一个错误决策触发后续一系列错误；(2) 目标漂移——Agent 在长链执行中偏离原始目标；(3) 过度自信——Agent 在错误结果上编造成功叙事。理解这些模式是构建可靠 Agent 的前提。
 
+> **{【拓展：2025-2026 年的 Agent 事故报告揭示了系统性失败模式。典型案例如下：(1) 编码 Ag...】}** 2025-2026 年的 Agent 事故报告揭示了系统性失败模式。典型案例如下：(1) 编码 Agent 修改了无关文件导致系统崩溃（级联失败）；(2) 研究 Agent 在第 15 步开始讨论哲学问题（目标漂移）；(3) 客服 Agent 告诉用户'操作成功'但实际未执行（过度自信）。解决这些需要熔断器、意图验证和结果检查。
 ## The Concept | 概念
 
 ### MASFT (Berkeley, arXiv:2503.13657)

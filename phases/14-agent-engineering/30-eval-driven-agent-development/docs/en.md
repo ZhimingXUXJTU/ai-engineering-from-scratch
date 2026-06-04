@@ -19,8 +19,9 @@
 Agents pass demos. They fail in production in ways demos cannot predict. Benchmarks answer "is this model broadly capable?" not "is this agent shipping the right patches for my product?" The answer: evaluation at three layers, running continuously, with every guardrail and learned rule mapped to an eval case.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 评估驱动的 Agent 开发（Eval-Driven Development）将传统软件工程中的 TDD 应用于 Agent：先定义评估标准，再实现 Agent。核心挑战是 Agent 的非确定性——同样的输入可能产生不同的执行路径和输出，需要基于轨迹的评估而非基于快照的评估。
 
+> **{【拓展：Eval-Driven Agent Development 是 2025-2026 年的最佳实践。核...】}** Eval-Driven Agent Development 是 2025-2026 年的最佳实践。核心工具：(1) AgentOps——Agent 追踪和评估平台；(2) LangSmith——LangChain 的评估套件；(3) Braintrust——AI 评估框架。关键洞察：Agent 评估应该基于完整轨迹（trajectory）而非最终输出——两个 Agent 可能得到相同结果，但一个走了 5 步，另一个走了 50 步，质量和成本差异巨大。
 ## The Concept | 概念
 
 ### Three evaluation layers

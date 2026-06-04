@@ -19,8 +19,9 @@
 LangGraph, AutoGen, CrewAI are framework-heavy. Teams that want "just the agent loop, fast, in my runtime" reach for Agno (Python) or Mastra (TypeScript). Both trade some of the framework-owned primitives for raw speed and a tighter fit to the surrounding stack.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** Agno 和 Mastra 代表了 2026 年的两种 Agent 运行时设计哲学。Agno（原 PhiData）追求极简——用最少的代码构建 Agent。Mastra（TypeScript）追求全功能——提供完整的 Agent 生命周期管理。选择取决于团队的技术栈和复杂度需求。
 
+> **{【拓展：Agno (GitHub 15k+ stars) 和 Mastra 是 2026 年 Agent 运...】}** Agno (GitHub 15k+ stars) 和 Mastra 是 2026 年 Agent 运行时的新秀。Agno 的哲学是'Agent 即函数'——每个 Agent 是一个带有工具集的异步函数。Mastra 基于 TypeScript，面向全栈开发者，提供完整的 Agent 生命周期管理（部署、监控、扩展）。两者都支持多模型后端和 MCP 集成。
 ## The Concept | 概念
 
 ### Agno

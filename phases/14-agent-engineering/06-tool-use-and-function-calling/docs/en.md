@@ -16,16 +16,19 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 早期工具使用的问题是：模型能否预测正确的函数调用？现代工具使用的问题是：模型能否在 40 步内链式调用工具、拥有记忆、处理部分可观察性、从工具失败中恢复、且不幻觉出不存在的工具？单轮函数调用已接近解决，但记忆、动态决策和长链工具编排仍是 2026 年的开放问题。
+
 Early tool use asked: can the model predict a correct function call? Modern tool use asks: can the model chain tools across 40 steps, with memory, with partial observability, with recovery from tool failures, without hallucinating tools that do not exist?
 
 Toolformer established the baseline: models can learn when to call tools with self-supervision. BFCL V4 defines the 2026 evaluation target. The gap between them is the space production agents live in.
 
-
-> **【中文解读】** 本节介绍了 Agent 的记忆机制，包括短期工作记忆和长期情景记忆的管理策略。
+> **【拓展：BFCL V4 评估体系的演进】** Berkeley Function Calling Leaderboard V4 是 2026 年事实上的评估标准。V3 引入了基于状态的评估（检查 API 实际状态而非匹配 AST），V4 添加了 Web 搜索、记忆和格式敏感性类别。关键发现：单轮函数调用已接近解决，失败集中在记忆（跨轮次上下文传递）、动态决策（基于先前结果选择工具）和长链漂移（20+ 步后偏离任务）。
 
 ## The Concept | 概念
 
 ### Toolformer (Schick et al., NeurIPS 2023)
+
+> **【中文解读】** Toolformer 的核心思想：让模型用自己的预训练语料标注候选 API 调用。对每个候选，执行它。只有当包含工具结果能减少下一个 token 的损失时才保留标注。然后在过滤后的语料上微调。规模效应显著：工具使用在大模型上涌现，小模型反而被工具标注损害。这也是 2026 年前沿模型有强大工具使用能力而大多数 7B 模型需要显式工具使用微调的原因。
 
 Idea: let the model annotate its own pretraining corpus with candidate API calls. For each candidate, execute it. Keep the annotation only if including the tool result reduces loss on the next token. Fine-tune on the filtered corpus.
 

@@ -19,8 +19,9 @@
 Self-Refine (Lesson 05) is one model critiquing itself — risks groupthink. CRITIC (Lesson 05) grounds critique in external tools — not always available. Debate introduces a third mode: multiple instances, cross-critique, convergence by disagreement.
 
 
-> **【中文解读】** 本节介绍了 Self-Refine 和 CRITIC 模式——通过迭代式生成、验证、精炼来改进 Agent 输出质量。
+> **【中文解读】** 多 Agent 辩论通过让多个 LLM 实例从不同角度讨论同一问题来提高推理质量。核心洞察：单个 LLM 可能自信地给出错误答案，但多个 LLM 辩论时，错误更容易被识别和纠正。这与人类专家小组讨论的原理相似。
 
+> **{【拓展：多 Agent 辩论是 2023-2025 年的研究热点。Du et al. (2023) 证明两个...】}** 多 Agent 辩论是 2023-2025 年的研究热点。Du et al. (2023) 证明两个 ChatGPT 实例辩论可以显著提高推理准确率。2026 年的实践表明，3-5 个 Agent 的辩论效果最好——太少缺乏多样性，太多导致协调成本过高。OpenAI 的 Council 模式和 Anthropic 的多模型验证都采用了这一思想。
 ## The Concept | 概念
 
 ### Society of Minds (Du et al., ICML 2024)

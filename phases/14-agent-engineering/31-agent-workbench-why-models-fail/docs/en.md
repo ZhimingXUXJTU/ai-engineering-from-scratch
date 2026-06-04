@@ -21,7 +21,7 @@ You drop a frontier model into a real repo and ask it to add input validation. I
 The model was not wrong about Python. It was wrong about the work. It had no idea what counted as done, where it was allowed to write, what tests were authoritative, or how the next session was supposed to pick up.
 
 
-> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
+> **【中文解读】** Agent 在真实仓库中失败的原因分析：(1) 指令遵循失败——忽略约束或编造不存在的能力；(2) 上下文窗口耗尽——长代码库超出窗口导致关键信息丢失；(3) 错误累积——小错误在多步执行中雪崩式放大；(4) 缺乏项目记忆——不知道代码库的约定和架构。
 
 This is not a model bug. It is a workbench bug. The surface around the agent is missing the parts that turn a one-shot generation into reliable, resumable engineering.
 
@@ -40,7 +40,7 @@ A workbench is the operating environment that wraps the model during a task. It 
 | Handoff | What changed, why, what is left | Next session re-discovers everything |
 
 
-> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
+> **【中文解读】** Agent 在真实仓库中失败的原因分析：(1) 指令遵循失败——忽略约束或编造不存在的能力；(2) 上下文窗口耗尽——长代码库超出窗口导致关键信息丢失；(3) 错误累积——小错误在多步执行中雪崩式放大；(4) 缺乏项目记忆——不知道代码库的约定和架构。
 
 The workbench is independent of the model. You can swap the model and keep the surfaces. You cannot swap the surfaces and keep reliability.
 

@@ -16,10 +16,11 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 每个供应商都发明自己的 span 名称，运维团队最终需要为每个框架构建独立的仪表盘。OpenTelemetry 的 GenAI SIG 通过定义一个全生态系统的标准来解决这个问题。
+
 Every vendor invents their own span names. Ops teams end up building per-framework dashboards. OpenTelemetry's GenAI SIG fixes this by defining one standard the whole ecosystem targets.
 
-
-> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
+> **【拓展：OTel GenAI 规范的跨平台统一】** OpenTelemetry GenAI 语义约定 (2024年4月启动) 定义了 Agent 遥测的标准 Schema：span 名称、属性和内容捕获规则跨供应商统一，使 Agent 追踪在 Datadog、Grafana、Jaeger 和 Honeycomb 中具有相同语义。一次埋点，多后端通用。
 
 ## The Concept | 概念
 

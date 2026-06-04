@@ -26,7 +26,7 @@ ReWOO (Xu et al., arXiv:2305.18323, May 2023) noticed this and made a bet: plan 
 
 > **【中文解读】** ReAct 的交替循环虽然简单灵活，但每次工具调用都需要携带完整的历史上下文，Token 用量随深度二次增长。ReWOO 的方案是：先一次性规划，然后并行获取证据，最后组合答案。代价是灵活性降低（计划是静态的），但换来更好的 Token 效率和更清晰的失败模式。
 
-## The Concept
+## The Concept | 核心概念
 
 ### The three roles
 
@@ -76,7 +76,7 @@ Plan-and-Act scales the pattern to long-horizon web and mobile agents. The key c
 
 Anthropic's Dec 2024 guidance: start with the simplest. If the task is one tool call plus a summary, do not build ReWOO. If the task is a 40-step research assignment, do not do ReAct alone.
 
-## Build It
+## Build It | 动手实现
 
 `code/main.py` implements a toy ReWOO:
 
@@ -95,11 +95,11 @@ python3 code/main.py
 
 The trace shows the full plan first, then worker results, then solver composition. Compare the token count (we print a rough character count) to a ReAct-style interleaved run — ReWOO wins on this kind of structured task.
 
-## Use It
+## Use It | 用框架实现
 
 LangGraph ships Plan-and-Execute as a recipe (`create_react_agent` for ReAct, custom graphs for plan-execute). CrewAI's Flows encode the pattern directly: you define tasks up front and the Flow DAG executes them. Plan-and-Act's synthetic data approach is still mostly research; the runtime pattern (explicit plan DAG) ships in production through LangGraph and CrewAI Flows.
 
-## Ship It
+## Ship It | 产出物
 
 `outputs/skill-rewoo-planner.md` generates a ReWOO plan DAG from a user request, given a tool catalog. It validates the plan (acyclic, every reference resolved, every tool exists) before handing off to an executor.
 
@@ -128,7 +128,7 @@ LangGraph ships Plan-and-Execute as a recipe (`create_react_agent` for ReAct, cu
 | Token efficiency | "Fewer round trips" | 5x fewer tokens on HotpotQA vs ReAct in the paper | Token 效率——比 ReAct 减少 5 倍 Token |
 | DAG executor | "Topological dispatcher" | Runs plan nodes in dependency order; parallel at each level | DAG 执行器——按依赖顺序运行计划节点 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Xu et al., ReWOO: Decoupling Reasoning from Observations (arXiv:2305.18323)](https://arxiv.org/abs/2305.18323) — the canonical paper
 - [Erdogan et al., Plan-and-Act (arXiv:2503.09572)](https://arxiv.org/abs/2503.09572) — scaled planner-executor with synthetic plans

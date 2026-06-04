@@ -16,6 +16,8 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** Agent 和工作流共享一个问题：当 40 步运行在第 38 步失败时，你想从第 38 步恢复而不是从头开始。LangGraph 的设计答案：状态是一等公民的带类型对象，变更操作是显式的，检查点在每个节点执行后持久化。恢复只需调用 `load_state(session_id)`。
+
 Agents and workflows share a problem: when a 40-step run fails at step 38, you want to resume from step 38, not start over. Second-class state models leave operators hacking retries around a library that assumes fresh runs.
 
 LangGraph's design answer: state is a first-class typed object, mutations are explicit, and checkpoints persist after every node. Resume is a `load_state(session_id)` call.
@@ -28,9 +30,9 @@ LangGraph's design answer: state is a first-class typed object, mutations are ex
 
 ### The graph
 
-A graph is defined by:
+> **【中文解读】** LangGraph 的图由三个要素定义：(1) 状态类型——每个节点读写的带类型 dict 或 Pydantic 模型；(2) 节点——纯函数 `(state) -> state_update`，返回值合并到状态中；(3) 边——节点之间的条件或直接转换。
 
-- **State type.** A typed dict (or Pydantic model) that every node reads and mutates.
+A graph is defined by: A typed dict (or Pydantic model) that every node reads and mutates.
 - **Nodes.** Pure functions `(state) -> state_update`. Updates are merged into state after return.
 - **Edges.** Conditional or direct transitions between nodes.
 - **Entry and exit.** `START` and `END` sentinel nodes mark the boundary.

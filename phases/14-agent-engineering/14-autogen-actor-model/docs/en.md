@@ -21,8 +21,9 @@ Most agent frameworks are synchronous: one agent produces, one agent consumes, i
 AutoGen v0.4's answer: the actor model. Each agent is an actor with a private inbox. Messages are the only interaction. The runtime decouples delivery from handling. Failures isolate to one actor. Concurrency is native. Distribution is just different transport.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** AutoGen v0.4 采用 Actor 模型——每个 Agent 是一个独立的异步 Actor，通过消息传递通信。这不同于 LangGraph 的图模型或 CrewAI 的角色模型。Actor 模型的优势是天然支持并发和分布式执行，劣势是调试和可观测性更复杂。
 
+> **{【拓展：AutoGen 由微软研究院开发，v0.4 (2025) 是一次重大重构。从 v0.3 的对话模式转...】}** AutoGen 由微软研究院开发，v0.4 (2025) 是一次重大重构。从 v0.3 的对话模式转向 Actor 模型，灵感来自 Erlang/Akka 的并发模型。核心概念：每个 Agent 是一个 Actor，有独立的状态和消息队列，通过异步消息传递协作。这使得 AutoGen 特别适合多 Agent 分布式场景。
 ## The Concept | 概念
 
 ### Actors

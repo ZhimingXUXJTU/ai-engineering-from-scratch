@@ -16,20 +16,23 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 上下文窗口看似能解决记忆问题，但实际上不能。生产环境中的三个失败模式：(1) 溢出——多轮对话或长文档跨越窗口限制，截断之外的一切都丢失了；(2) 稀释——窗口内填充不相关上下文稀释了注意力；(3) 持久化——新会话从空窗口开始，Agent 无法跨会话记忆。
+
 Context windows look like they should solve memory. They do not. Three failure modes recur in production:
 
 1. **Overflow.** Multi-turn conversations, long documents, or tool-call-heavy trajectories cross the window. Everything past the cutoff is gone.
 2. **Dilution.** Even within the window, stuffing irrelevant context dilutes attention over what matters. Frontier models still degrade on long inputs.
 3. **Persistence.** A new session starts with an empty window. Agents without external memory cannot say "remember when you asked me to..." across sessions.
 
-
-> **【中文解读】** 本节介绍了 Agent 的记忆机制，包括短期工作记忆和长期情景记忆的管理策略。
+> **【拓展：MemGPT → 现代 Agent 记忆系统】** MemGPT (Packer et al., 2023) 将上下文管理类比为操作系统虚拟内存：主上下文=RAM，外部存储=磁盘，记忆工具=页面换入换出。这是 2026 年所有记忆系统的基本模式。Mem0 的 2025 年论文测量发现，128k 窗口的基线仍然会遗漏 4k 窗口 + 外部记忆 Agent 能捕获的长程事实。
 
 Bigger windows help but do not fix this. Mem0's 2025 paper measured that 128k-window baselines still miss long-horizon facts that a 4k-window agent with external memory catches.
 
 ## The Concept | 概念
 
 ### MemGPT: the OS analogy
+
+> **【中文解读】** MemGPT 将上下文管理映射到操作系统虚拟内存：RAM=主上下文（当前 prompt），磁盘=外部上下文（向量数据库/KV/图存储），页面错误=记忆工具调用（`memory.search`/`memory.read`/`memory.write`），OS 内核=Agent 控制循环。Agent 运行普通的 ReAct 循环，额外增加一类工具用于在主上下文和外部存储之间换入换出数据。
 
 Packer et al. (arXiv:2310.08560, v2 Feb 2024) map context management to operating-system virtual memory:
 

@@ -19,8 +19,9 @@
 A raw LLM API gets you one round-trip. A production agent needs tool execution, MCP servers, lifecycle hooks, subagent spawning, session persistence, trace propagation. Claude Agent SDK ships this shape as a library — the same harness Claude Code uses, exposed for custom agents.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** Claude Agent SDK 是 Anthropic 官方的 Agent 开发框架。核心特性：(1) 内置工具（文件读写、代码执行等）；(2) 子 Agent 支持——Agent 可以生成子 Agent 处理子任务；(3) 生命周期钩子——在 Agent 执行的关键节点插入自定义逻辑。SDK 深度集成 Claude 的 Extended Thinking 能力。
 
+> **{【拓展：Claude Agent SDK 是 2026 年 Claude 生态的核心开发工具。与 OpenA...】}** Claude Agent SDK 是 2026 年 Claude 生态的核心开发工具。与 OpenAI Agents SDK 相比，它更注重深度集成 Claude 的独特能力（如 Extended Thinking、Computer Use）。SDK 的子 Agent 模式允许 Agent 将复杂任务分解为子任务，每个子任务由专门的子 Agent 处理，类似于组织中的部门分工。
 ## The Concept | 概念
 
 ### Client SDK vs Agent SDK

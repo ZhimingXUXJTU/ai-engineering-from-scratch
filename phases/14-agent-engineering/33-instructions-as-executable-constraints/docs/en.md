@@ -21,7 +21,7 @@ A typical `AGENTS.md` reads like onboarding documentation. It tells the agent to
 Instructions are powerful when they are operational and weak when they are aspirational. The fix is to write rules the workbench can interpret and the reviewer can score.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 将指令视为可执行约束——不仅要告诉 Agent 做什么，还要将约束编码为可验证的规则。例如'使用 TypeScript strict 模式'不仅是提示词，还应通过 TypeScript 编译器验证。AGENTS.md 和 lint 规则是实现这一理念的工具。
 
 ## The Concept | 概念
 
@@ -36,7 +36,7 @@ flowchart LR
 ```
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 将指令视为可执行约束——不仅要告诉 Agent 做什么，还要将约束编码为可验证的规则。例如'使用 TypeScript strict 模式'不仅是提示词，还应通过 TypeScript 编译器验证。AGENTS.md 和 lint 规则是实现这一理念的工具。
 
 ### Five categories that cover most rules
 

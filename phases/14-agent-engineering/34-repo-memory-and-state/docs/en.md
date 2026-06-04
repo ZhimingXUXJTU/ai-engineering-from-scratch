@@ -21,7 +21,7 @@ The agent finishes a session. The chat closes. The next session opens and asks w
 The workbench fix is repo memory: state lives in JSON files in the repo, written under a schema, persisted atomically, diff-friendly in code review. Chat is a transient feed; the repo is the system of record.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 仓库记忆与状态管理——让 Agent 维护对代码库的理解。两种记忆：(1) 结构性记忆——文件树、依赖关系、API 接口；(2) 语义性记忆——代码意图、设计决策、变更历史。状态管理确保 Agent 在多轮交互中保持一致的代码库理解。
 
 ## The Concept | 概念
 
@@ -36,7 +36,7 @@ flowchart LR
 ```
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 仓库记忆与状态管理——让 Agent 维护对代码库的理解。两种记忆：(1) 结构性记忆——文件树、依赖关系、API 接口；(2) 语义性记忆——代码意图、设计决策、变更历史。状态管理确保 Agent 在多轮交互中保持一致的代码库理解。
 
 ### What belongs in repo memory
 

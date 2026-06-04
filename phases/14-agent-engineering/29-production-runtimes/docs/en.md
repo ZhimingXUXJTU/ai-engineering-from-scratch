@@ -19,8 +19,9 @@
 Production agents fail in ways a Jupyter notebook doesn't surface: network timeouts at step 37, user hangs up mid-voice call, cron job dies on machine reboot, background worker runs out of memory. The runtime shape determines which failures are survivable.
 
 
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
+> **【中文解读】** 生产环境 Agent 运行时需要处理开发环境不需要的问题：持久化状态、容错恢复、水平扩展、速率限制、成本控制和可观测性。选择运行时（LangGraph、Temporal、自建）取决于任务的关键性和预算。
 
+> **{【拓展：2026年生产 Agent 运行时的选择：(1) LangGraph Cloud——LangGrap...】}** 2026年生产 Agent 运行时的选择：(1) LangGraph Cloud——LangGraph 的托管服务，内置状态检查点和重放；(2) Temporal——通用工作流引擎，配合 AI SDK 可构建持久化 Agent；(3) 自建——基于 Redis/Kafka 的消息队列 + 自定义 Agent 循环。关键决策因素是是否需要持久化执行——如果 Agent 可能运行数小时甚至数天，Temporal 或 LangGraph 是更安全的选择。
 ## The Concept | 概念
 
 ### Request-response
