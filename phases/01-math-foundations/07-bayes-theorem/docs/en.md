@@ -24,7 +24,11 @@
 
 ## The Problem | 问题引入
 
-A medical test is 99% accurate. You test positive. What are the chances you actually have the disease?
+> **【中文解读】** 一个医学检测准确率 99%，你测出阳性，实际患病概率是多少？直觉说 99%，但用贝叶斯定理算可能只有 50%——因为要先考虑"先验概率"（发病率有多低）。贝叶斯定理教会我们：看到新证据后如何更新信念。
+
+## The Concept | 核心概念
+
+> **【拓展：贝叶斯思维是 AI 的核心范式】** 贝叶斯定理 `P(假设|证据) = P(证据|假设) × P(假设) / P(证据)` 在 AI 中无处不在：(1) **朴素贝叶斯分类器**：垃圾邮件过滤的经典方法；(2) **贝叶斯优化**：调超参数的高效方法（比网格搜索快 10 倍）；(3) **MAP = L2 正则化**：最大后验估计等价于加 L2 惩罚项，从贝叶斯角度解释了为什么正则化能防过拟合；(4) **贝叶斯神经网络**：输出不确定性估计，知道"我不知道"。
 
 Most people say 99%. The real answer depends on how rare the disease is. If 1 in 10,000 people have it, a positive result only gives you about a 1% chance of being sick. The other 99% of positive results are false alarms from healthy people.
 

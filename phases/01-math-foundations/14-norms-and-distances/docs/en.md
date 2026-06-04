@@ -20,9 +20,11 @@
 
 ## The Problem | 问题引入
 
-You have two vectors. Maybe they are word embeddings. Maybe they are user profiles. Maybe they are pixel arrays. You need to know: how close are they?
+> **【中文解读】** "这两个向量有多相似？"答案完全取决于你选什么距离函数。同一对数据在 L2 下是最近邻，在余弦距离下可能很远。KNN、推荐系统、向量数据库（RAG）、聚类算法——全都依赖距离函数的选择。选错了，模型优化的就是错误的目标。
 
-The answer depends entirely on which distance function you pick. Two data points can be nearest neighbors under one metric and far apart under another. Your KNN classifier, your recommendation engine, your vector database, your clustering algorithm, your loss function -- they all depend on this choice. Get it wrong and your model optimizes for the wrong thing.
+## The Concept | 核心概念
+
+> **【拓展：范数在 AI 中的四大应用】** (1) **L2 正则化**：`loss + lambda * ||w||_2^2`，防止权重过大，缓解过拟合；(2) **梯度裁剪**：`||grad|| > max_norm` 时缩放梯度，Transformer 训练的标配；(3) **余弦相似度**：RAG 检索和推荐系统的标准度量，只看方向不看大小；(4) **LayerNorm**：对每层输出做 L2 归一化，稳定训练过程。理解范数就是理解正则化和归一化的数学基础。
 
 There is no universal best distance. L2 works for spatial data. Cosine similarity dominates NLP. Jaccard handles sets. Edit distance handles strings. Mahalanobis accounts for correlations. Wasserstein moves probability mass. Each one encodes a different assumption about what "similar" means.
 

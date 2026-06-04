@@ -20,7 +20,11 @@
 
 ## The Problem | 问题引入
 
-Your model trains for three hours, then the loss becomes NaN. You add a print statement. The logits are fine at step 9,000. At step 9,001 they are `inf`. By step 9,002 every gradient is `nan` and training is dead.
+> **【中文解读】** 三种典型的数值稳定性灾难：(1) 训练 3 小时后 loss 变 NaN——某步计算溢出了；(2) 精度比论文差 2%——float16 的累积舍入误差吃掉了准确率；(3) 自己写的交叉熵在大 logits 时返回 inf——softmax 溢出。这些都是浮点数的"漏水抽象"，每种都有标准的修复技巧。
+
+## The Concept | 核心概念
+
+> **【拓展：Softmax 的数值稳定技巧是面试必考题】** 原始 Softmax：`softmax(x) = exp(x) / sum(exp(x))`，当 x 中有大值时 exp 溢出。解法：减去最大值 `softmax(x) = exp(x - max(x)) / sum(exp(x - max(x)))`，数学结果不变但数值稳定。PyTorch 的 `F.cross_entropy` 内部使用 log-softmax 而非分开计算，就是这个原因。这是 AI 面试中最高频的数值问题。 You add a print statement. The logits are fine at step 9,000. At step 9,001 they are `inf`. By step 9,002 every gradient is `nan` and training is dead.
 
 Or: your model trains to completion but accuracy is 2% worse than the paper claims. You check everything. Architecture matches. Hyperparameters match. Data matches. The problem is that the paper used float32 and you used float16 without the right scaling. Thirty-two bits of accumulated rounding error quietly ate your accuracy.
 

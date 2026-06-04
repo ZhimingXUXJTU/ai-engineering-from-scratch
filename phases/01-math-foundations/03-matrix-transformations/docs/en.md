@@ -24,11 +24,11 @@
 
 ## The Problem | 问题引入
 
-You read about PCA and see "find the eigenvectors of the covariance matrix." You read about model stability and see "check if all eigenvalues have magnitude less than 1." You read about data augmentation and see "apply a random rotation." None of this makes sense until you understand what matrices do to space geometrically.
-
-Matrices are not just grids of numbers. They are spatial machines. A rotation matrix spins points. A scaling matrix stretches them. A shearing matrix tilts them. Every transformation a neural network applies to data is one of these operations or a composition of them. This lesson makes those operations concrete.
+> **【中文解读】** PCA 说"找协方差矩阵的特征向量"，模型稳定性说"检查特征值是否小于 1"，数据增强说"随机旋转"——这些都需要理解矩阵对空间的几何变换。矩阵不是数字表格，而是"空间机器"：旋转、缩放、剪切。神经网络每一层都在对数据做这些变换。
 
 ## The Concept | 核心概念
+
+> **【拓展：Transformer 中的矩阵变换】** Transformer 的每个注意力头都在做矩阵变换：Q=W_q·x, K=W_k·x, V=W_v·x，其中 W_q/W_k/W_v 是可学习的变换矩阵。模型训练的过程就是自动学习"最优变换"的过程。理解矩阵的几何意义，就能理解 Transformer 如何把输入序列映射到语义空间。
 
 ### Transformations as matrices
 

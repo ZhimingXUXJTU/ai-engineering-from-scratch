@@ -30,7 +30,11 @@ The chain rule gives you the math. Automatic differentiation gives you the algor
 
 This is how PyTorch, TensorFlow, and JAX work. You will build a miniature version from scratch.
 
+> **【中文解读】** 神经网络 = 函数的函数的函数。链式法则让你逐层拆解复合函数的导数：dL/dw = dL/d_out × d_out/d_hidden × d_hidden/d_w。自动求导把这个过程自动化——PyTorch 的 `backward()` 一行代码搞定百万参数的梯度计算。
+
 ## The Concept | 核心概念
+
+> **【拓展：自动求导是深度学习的引擎】** PyTorch 的 `loss.backward()` 用反向模式自动求导：从输出往回，逐层应用链式法则。这比数值方法快百万倍。GPT-4 有 1.8 万亿参数，`backward()` 一次就能算出所有参数的梯度。没有自动求导，深度学习不可能处理如此巨大的模型。
 
 ### The Chain Rule
 
