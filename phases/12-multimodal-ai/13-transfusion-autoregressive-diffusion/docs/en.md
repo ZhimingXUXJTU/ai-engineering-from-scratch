@@ -30,6 +30,11 @@ Transfusion asks: can we have both? Keep images continuous, still train one mode
 
 ## The Concept  | 核心概念
 
+> **【中文解读】** TransFusion（Meta）将自回归文本生成和扩散模型图像生成融合在同一个 Transformer 中：文本 token 使用 next-token prediction loss，图像 token 使用扩散 loss。两种模态共享同一模型参数但使用不同训练目标。
+
+> **【拓展：多模态训练目标的融合】** TransFusion 证明自回归和扩散可以在同一模型中和谐共存。推理时文本部分自回归生成，遇到图像 token 时切换到扩散去噪过程。
+
+
 ### The two-loss architecture
 
 A single decoder-only transformer processes a sequence that contains:
@@ -103,6 +108,10 @@ Janus-Pro (Lesson 12.15) refines Transfusion's idea by decoupling the vision enc
 
 2026 production VLMs that emit images — Gemini 3 Pro, GPT-5, Claude Opus 4.7's image generation path — almost certainly use some descendant of this family. Details are proprietary.
 
+
+> **【拓展：TransFusion 的推理过程】** TransFusion 推理时的关键步骤：文本 token 自回归生成，遇到图像开始标记时切换到扩散模式。扩散过程在 token 空间而非像素空间进行，与文本生成共享同一个模型参数。
+
+
 ## Use It  | 动手实践
 
 `code/main.py` builds a toy Transfusion on a tiny MNIST-like problem:
@@ -133,14 +142,14 @@ This lesson produces `outputs/skill-two-loss-trainer-designer.md`. Given a new m
 
 ## Key Terms  | 关键术语
 
-| Term | What people say | What it actually means | 中文含义 |
-|------|-----------------|------------------------|
-| Two-loss training | "NTP + diffusion" | A single transformer optimizes both cross-entropy on text tokens and MSE on continuous image patches in the same gradient step |
-| Flow matching | "Rectified flow" | Diffusion variant that predicts a velocity field from noise to clean data; simpler math than DDPM |
-| MMDiT | "Multimodal DiT" | Stable Diffusion 3's architecture: joint attention, modality-specific MLPs and norms |
-| Block-triangular mask | "Causal text + bidirectional image" | Attention mask that is causal across text but bidirectional within image regions |
-| Continuous image representation | "No VQ" | Image patches as real-valued vectors, not integer codebook indices |
-| Velocity prediction | "v-parameterization" | Network output is the velocity field between noise and data, not the noise itself |
+| Term | What people say | What it actually means | 中文含义 | 中文释义 |
+|------|-----------------|------------------------|---------|
+| Two-loss training | "NTP + diffusion" | A single transformer optimizes both cross-entropy on text tokens and MSE on continuous image patches in the same gradient step | |
+| Flow matching | "Rectified flow" | Diffusion variant that predicts a velocity field from noise to clean data; simpler math than DDPM | |
+| MMDiT | "Multimodal DiT" | Stable Diffusion 3's architecture: joint attention, modality-specific MLPs and norms | |
+| Block-triangular mask | "Causal text + bidirectional image" | Attention mask that is causal across text but bidirectional within image regions | |
+| Continuous image representation | "No VQ" | Image patches as real-valued vectors, not integer codebook indices | |
+| Velocity prediction | "v-parameterization" | Network output is the velocity field between noise and data, not the noise itself | |
 
 ## Further Reading  | 延伸阅读
 

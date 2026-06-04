@@ -18,7 +18,7 @@
 - Compare Donut (OCR-free, image → markup), Nougat (scientific paper → LaTeX), DocLLM (layout-aware generative), PaliGemma 2 (VLM-native).
 - Pick a document model for a new task (invoices, scientific papers, handwritten forms, Chinese receipts).
 
-## The Problem
+## The Problem | 问题引入
 
 "Understand this PDF" is deceptively hard. The information sits in:
 
@@ -31,7 +31,15 @@
 
 Raw OCR dumps the text and loses the rest. A system that cares about invoices needs to know "Total: $1,245" came from the bottom-right, not from a footnote.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** 文档和图表理解是多模态 AI 的重要应用场景：OCR、表格提取、流程图解读、公式识别等。关键技术：高分辨率输入（保留文字清晰度）、版面分析（理解文档结构）、结构化输出（将视觉信息转为可处理的格式）。
+
+> **【拓展：文档 AI 的工业应用** 文档 AI 市场巨大：合同审核、发票处理、学术论文分析等。GPT-4o 在 DocVQA 上达到 92.8%，InternVL2-26B 达到 92.7%（开源最优）。MarkItDown （Microsoft）将文档转为 Markdown，ColPali 用视觉方法替代传统 OCR 管线。
+
+
+> **【拓展：文档理解的技术路线】** 文档理解有两条路线：(1) OCR-first（先用 OCR 提取文本，再用 LLM 处理）——适合纯文本文档；(2) Vision-first（直接用 VLM 处理文档图像）——适合包含图表、表格的复杂版面。GPT-4o 和 InternVL2 走 Vision-first 路线，在复杂文档理解上表现更好。
+
 
 ### Era 1 — OCR pipeline (pre-2021)
 
@@ -131,7 +139,7 @@ For a new document-AI project:
 - Full arXiv ingestion: Nougat for math, VLM for figures.
 - Regulatory: OCR pipeline + VLM validator for cross-check.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py`:
 
@@ -139,11 +147,11 @@ For a new document-AI project:
 - A Donut-style task schema generator: JSON template for forms.
 - A comparison of token budgets per page across OCR-pipeline, Donut, Nougat, and VLM-native.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-document-ai-stack-picker.md`. Given a document-AI project (domain, scale, quality, regulatory), picks between OCR pipeline, OCR-free specialist, and VLM-native.
 
-## Exercises
+## Exercises | 练习题
 
 1. Your project is 10M invoices per day. Which stack minimizes cost-per-page without losing accuracy? 你的项目每天处理 1000 万张发票。哪种方案能在不损失准确率的情况下最小化每页成本？
 
@@ -155,18 +163,18 @@ This lesson produces `outputs/skill-document-ai-stack-picker.md`. Given a docume
 
 5. Design a regulatory-safe hybrid: OCR pipeline as primary, VLM as secondary cross-check. How do you resolve disagreement? 设计一个监管安全的混合方案：OCR 管道为主，VLM 为辅交叉检查。如何处理不一致？
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|-----------------|------------------------|
-| OCR pipeline | "Tesseract-style" OCR 管道 | Stage-wise stack: detect -> OCR -> layout -> rules; deterministic, fragile 分阶段栈：检测→OCR→布局→规则；确定但脆弱 |
-| OCR-free | "Donut-style" 无 OCR | Image-to-output transformer that skips explicit OCR; single model 图像到输出的 Transformer，跳过显式 OCR；单一模型 |
-| Layout-aware | "LayoutLM" 布局感知 | Input includes per-token bbox coordinates; unified masking across modalities 输入包含逐 token 的 bbox 坐标；跨模态统一掩码 |
-| VLM-native | "Frontier VLM" VLM 原生 | Feed page image directly to Claude/GPT/Qwen VLM at high resolution; no pipeline 直接将页面图像输入高分辨率 VLM；无需管道 |
-| DocVQA | "Doc benchmark" 文档 VQA 基准 | Document VQA standard; most-cited score 文档 VQA 标准评测；被引用最多的评分 |
-| Markup output | "LaTeX / MD" 标记输出 | Structured output format instead of free-form text; enables downstream automation 结构化输出格式而非自由文本；支撑下游自动化 |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|------------------------|---------|
+| OCR pipeline | "Tesseract-style" OCR 管道 | Stage-wise stack: detect -> OCR -> layout -> rules; deterministic, fragile 分阶段栈：检测→OCR→布局→规则；确定但脆弱 | |
+| OCR-free | "Donut-style" 无 OCR | Image-to-output transformer that skips explicit OCR; single model 图像到输出的 Transformer，跳过显式 OCR；单一模型 | |
+| Layout-aware | "LayoutLM" 布局感知 | Input includes per-token bbox coordinates; unified masking across modalities 输入包含逐 token 的 bbox 坐标；跨模态统一掩码 | |
+| VLM-native | "Frontier VLM" VLM 原生 | Feed page image directly to Claude/GPT/Qwen VLM at high resolution; no pipeline 直接将页面图像输入高分辨率 VLM；无需管道 | |
+| DocVQA | "Doc benchmark" 文档 VQA 基准 | Document VQA standard; most-cited score 文档 VQA 标准评测；被引用最多的评分 | |
+| Markup output | "LaTeX / MD" 标记输出 | Structured output format instead of free-form text; enables downstream automation 结构化输出格式而非自由文本；支撑下游自动化 | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Li et al. — TrOCR (arXiv:2109.10282)](https://arxiv.org/abs/2109.10282)
 - [Blecher et al. — Nougat (arXiv:2308.13418)](https://arxiv.org/abs/2308.13418)

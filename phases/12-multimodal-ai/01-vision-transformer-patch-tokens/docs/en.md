@@ -18,7 +18,7 @@
 - Name the three upgrades that took ViT from 2020 research to 2026 production: self-supervised pretraining (DINO / MAE), register tokens, and native-resolution packing.
 - Pick between CLS pooling, mean pooling, and register tokens for a downstream task.
 
-## The Problem
+## The Problem | 问题引入
 
 Transformers operate on sequences of vectors. Text is already a sequence (bytes or tokens). An image is a 2D grid of pixels with three color channels — not a sequence. If you flatten every pixel, a 224x224 RGB image becomes 150,528 tokens, and self-attention at that length is a non-starter (quadratic in sequence length).
 
@@ -28,7 +28,15 @@ Dosovitskiy et al. (2020) asked the blunt question: what if we skip the CNN? Spl
 
 By 2026 the ViT primitive is the unquestioned foundation. Every open-weights VLM's vision tower is some descendant (DINOv2, SigLIP 2, CLIP, EVA, InternViT). The question is no longer "should we use patches?" but "what patch size, what resolution schedule, what pretraining objective, what positional encoding."
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** Vision Transformer (ViT) 将图像分割为固定大小的 patch（如 16x16 像素），每个 patch 展平后通过线性投影变成一个 token，然后像 NLP 中的 Transformer 一样处理。这是将 Transformer 架构引入计算机视觉的奠基性工作，取代了 CNN 成为视觉 backbone。
+
+> **【拓展：ViT 的影响】** Dosovitskiy 等人 2020 年提出的 ViT 证明 Transformer 在图像分类上可以超越 CNN。ViT-L/14 在 ImageNet 上达到 88.5% top-1 准确率。ViT 是 CLIP、GPT-4V、Gemini 等多模态模型的视觉编码器基础。Swin Transformer 通过层级化窗口注意力解决了 ViT 对高分辨率图像的计算瓶颈。
+
+
+> **【拓展：ViT 对 CNN 的优势】** ViT 的全局自注意力在数据量足够大时（如 JFT-300M 或 LAION-5B）显著优于 CNN 的局部感受野。ViT-H/14 在 ImageNet-21k 上预训练后，在多个下游任务上超越 EfficientNet 和 ResNet。ViT 也是 DINOv2（自监督视觉基础模型）的 backbone。
+
 
 ### Patches as tokens
 
@@ -104,7 +112,7 @@ The encoder most open VLMs ship with in 2026 is SigLIP 2 SO400m/14 at native res
 
 Every decision in that config traces back to a paper you can read.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py` is a patch tokenizer and geometry calculator. It takes (image H, W, patch P, hidden D, depth L) and reports:
 
@@ -116,11 +124,11 @@ Every decision in that config traces back to a paper you can read.
 
 Run it. Match the parameter counts to the published numbers. Play with patch size and resolution to feel the token-count cost.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-patch-geometry-reader.md`. Given a ViT config (patch size, resolution, hidden dim, depth), it produces a token-count, parameter-count, and VRAM estimate with justifications. Use this skill whenever you pick a vision backbone for a VLM — it prevents "the tokens exploded and my LLM context filled up" surprises.
 
-## Exercises
+## Exercises | 练习题
 
 1. Compute the patch-token sequence length for Qwen2.5-VL at native 1280x720 input with patch size 14. How does that compare to a CLS-only representation?
 
@@ -132,22 +140,22 @@ This lesson produces `outputs/skill-patch-geometry-reader.md`. Given a ViT confi
 
 5. Modify `code/main.py` to support patch-n'-pack: given a list of images of different resolutions, produce a single packed sequence and the block-diagonal attention mask. Verify against Lesson 12.06 when you reach it.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Patch | "16x16 pixel square" | A fixed-size non-overlapping region of the input image; becomes one token |
-| Patch embedding | "Linear projection" | A shared learned matrix (or Conv2d with stride=P) mapping flattened patch pixels to D-dim vectors |
-| CLS token | "Class token" | Prepended learnable vector whose final hidden state represents the whole image; optional in 2026 |
-| Register token | "Sink token" | Extra learnable tokens that absorb the high-norm attention artifacts ViTs develop during pretraining |
-| Position embedding | "Positional info" | Per-position vector or rotation making the sequence-order-aware; 2D-RoPE is the modern default |
-| Grid | "Patch grid" | The (H/P) x (W/P) 2D array of patches for a given resolution and patch size |
-| NaFlex | "Native flexible resolution" | SigLIP 2 feature: single model serves multiple aspect ratios and resolutions without retraining |
-| Backbone | "Vision tower" | The pretrained image encoder whose patch-token outputs feed the LLM in a VLM |
-| Pooling | "Image-level summary" | Strategy to turn patch tokens into one vector: CLS, mean, attention pool, or register-based |
-| Patch 14 vs 16 | "Finer vs coarser grid" | Patch 14 produces more tokens per image, better fidelity for OCR, slower; patch 16 is the classic default |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|---------|
+| Patch | "16x16 pixel square" | A fixed-size non-overlapping region of the input image; becomes one token | |
+| Patch embedding | "Linear projection" | A shared learned matrix (or Conv2d with stride=P) mapping flattened patch pixels to D-dim vectors | |
+| CLS token | "Class token" | Prepended learnable vector whose final hidden state represents the whole image; optional in 2026 | |
+| Register token | "Sink token" | Extra learnable tokens that absorb the high-norm attention artifacts ViTs develop during pretraining | |
+| Position embedding | "Positional info" | Per-position vector or rotation making the sequence-order-aware; 2D-RoPE is the modern default | |
+| Grid | "Patch grid" | The (H/P) x (W/P) 2D array of patches for a given resolution and patch size | |
+| NaFlex | "Native flexible resolution" | SigLIP 2 feature: single model serves multiple aspect ratios and resolutions without retraining | |
+| Backbone | "Vision tower" | The pretrained image encoder whose patch-token outputs feed the LLM in a VLM | |
+| Pooling | "Image-level summary" | Strategy to turn patch tokens into one vector: CLS, mean, attention pool, or register-based | |
+| Patch 14 vs 16 | "Finer vs coarser grid" | Patch 14 produces more tokens per image, better fidelity for OCR, slower; patch 16 is the classic default | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Dosovitskiy et al. — An Image is Worth 16x16 Words (arXiv:2010.11929)](https://arxiv.org/abs/2010.11929) — original ViT.
 - [He et al. — Masked Autoencoders Are Scalable Vision Learners (arXiv:2111.06377)](https://arxiv.org/abs/2111.06377) — MAE, self-supervised pretraining.

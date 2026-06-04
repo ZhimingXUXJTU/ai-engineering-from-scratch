@@ -32,6 +32,11 @@ Chameleon rejects the premise: images are just sequences of discrete tokens from
 
 ## The Concept  | 核心概念
 
+> **【中文解读】** Chameleon（Meta）采用早期融合策略：图像和文本都离散化为统一 token 序列，用同一个 Transformer 处理。图像通过 VQGAN 编码为离散 token，与文本 token 在同一词表中。这是统一多模态理解的极致实现。
+
+> **【拓展：早期融合 vs 晚期融合】** 早期融合（Chameleon）将多模态统一到同一 token 空间，理论上更优雅但训练成本高。晚期融合（LLaVA）保持视觉和语言模型独立性通过桥接层连接，训练更高效。
+
+
 ### VQ-VAE as image tokenizer
 
 The tokenizer is a vector-quantized variational autoencoder. The architecture:
@@ -102,6 +107,10 @@ Fuyu (Adept, 2023) is a related approach: skip the separate vision encoder entir
 
 AnyGPT (Zhan et al., 2024) extends Chameleon to four modalities: text, image, speech, music. Same VQ-VAE trick for each, shared transformer. Any-to-any generation. Covered more in Lesson 12.16.
 
+
+> **【拓展：早期融合的训练挑战】** 早期融合需要将图像和文本统一离散化，对图像 tokenizer 的质量要求极高。Meta 的 Chameleon 使用 8192 码本的 VQGAN，在 ImageNet 重建质量（rFID 约 5.0）和文本兼容性之间做了精心权衡。
+
+
 ## Use It  | 动手实践
 
 `code/main.py` builds a toy end-to-end early-fusion model:
@@ -131,15 +140,15 @@ This lesson produces `outputs/skill-tokenizer-vs-adapter-picker.md`. Given a pro
 
 ## Key Terms  | 关键术语
 
-| Term | What people say | What it actually means | 中文含义 |
-|------|-----------------|------------------------|
-| Early fusion | "Unified tokens" | Images converted to discrete tokens sharing the transformer's vocabulary from step one |
-| VQ-VAE | "Image tokenizer" | CNN + ViT + codebook that maps images to integer indices the transformer can predict |
-| Shared vocabulary | "One dictionary" | A single token ID space covering text + image + modality separators |
-| QK-Norm | "Attention stabilizer" | LayerNorm applied to query and key before their dot product, prevents norm blowup |
-| Mixed-modality generation | "Text + image output" | Inference that autonomously produces interleaved text and image tokens in one pass |
-| Codebook size | "K entries" | Number of discrete vectors the VQ-VAE can quantize to; trades compression for fidelity |
-| Tokenizer ceiling | "Reconstruction limit" | Best PSNR achievable by decoding VQ tokens; bounds the model's image quality |
+| Term | What people say | What it actually means | 中文含义 | 中文释义 |
+|------|-----------------|------------------------|---------|
+| Early fusion | "Unified tokens" | Images converted to discrete tokens sharing the transformer's vocabulary from step one | |
+| VQ-VAE | "Image tokenizer" | CNN + ViT + codebook that maps images to integer indices the transformer can predict | |
+| Shared vocabulary | "One dictionary" | A single token ID space covering text + image + modality separators | |
+| QK-Norm | "Attention stabilizer" | LayerNorm applied to query and key before their dot product, prevents norm blowup | |
+| Mixed-modality generation | "Text + image output" | Inference that autonomously produces interleaved text and image tokens in one pass | |
+| Codebook size | "K entries" | Number of discrete vectors the VQ-VAE can quantize to; trades compression for fidelity | |
+| Tokenizer ceiling | "Reconstruction limit" | Best PSNR achievable by decoding VQ tokens; bounds the model's image quality | |
 
 ## Further Reading  | 延伸阅读
 

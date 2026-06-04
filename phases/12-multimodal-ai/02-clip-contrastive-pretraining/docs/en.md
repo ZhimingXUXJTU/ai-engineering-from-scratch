@@ -18,7 +18,7 @@
 - Run zero-shot ImageNet classification by constructing text templates (`a photo of a {class}`) and taking argmax over cosine similarity.
 - Name the four levers CLIP / SigLIP pretraining gives you: batch size, temperature, prompt template, data quality.
 
-## The Problem
+## The Problem | 问题引入
 
 Pre-CLIP vision was supervised. Collect labeled datasets (ImageNet: 1.2M images, 1000 classes), train a CNN, ship it. Labels are expensive, labels bias to what labelers can agree on, and labels do not transfer to new tasks without finetuning.
 
@@ -28,7 +28,15 @@ CLIP's answer: treat image-caption pairs as a matching task. Given a batch of N 
 
 The resulting embedding space does more than CLIP was trained for. ImageNet zero-shot works because "a photo of a cat" embeds near pictures of cats that were never explicitly labeled cats. This is the bet that spawned every 2026 VLM.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** CLIP（Contrastive Language-Image Pre-training）通过对比学习将图像和文本映射到同一向量空间：匹配的图文对距离拉近，不匹配的推远。CLIP 在 4 亿图文对上训练后，无需微调即可实现 zero-shot 图像分类，是 OpenAI 多模态能力的基石。
+
+> **【拓展：CLIP 的应用生态】** CLIP 的对比学习范式催生了大量应用：DALL-E 2/3 用 CLIP 引导图像生成，Stable Diffusion 用 OpenCLIP 作为安全过滤器，LLaVA 用 CLIP 视觉编码器连接 LLM 和图像理解。CLIP 的 zero-shot 能力在 ImageNet 上达到 76.2% top-1 准确率，无需任何 ImageNet 训练数据。
+
+
+> **【拓展：CLIP 的 zero-shot 能力】** CLIP 最惊人的能力是 zero-shot 分类——不需要任何下游任务的训练数据，只需给出类别名称就能分类图像。在 ImageNet 上，CLIP ViT-L/14 的 zero-shot 准确率（76.2%）接近 ResNet-50 的全监督准确率（76.7%）。这种能力来自 4 亿图文对的对比学习。
+
 
 ### The dual encoder
 
@@ -109,7 +117,7 @@ ALIGN (Google, 2021): same idea as CLIP, 1.8B pair scale, 90% noisy. Proved nois
 
 CLIP-class models cap around 76% ImageNet zero-shot (CLIP-G, OpenCLIP-G). Beyond requires either much larger data (SigLIP 2 gets 80%+) or architecture changes (supervised heads, more parameters). The benchmark is saturating; the real value is the embedding space that downstream VLMs consume.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py` implements:
 
@@ -120,11 +128,11 @@ CLIP-class models cap around 76% ImageNet zero-shot (CLIP-G, OpenCLIP-G). Beyond
 
 Run it and watch the loss curve. The absolute numbers are toy; the shape matches what a real CLIP trainer emits.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-clip-zero-shot.md`. Given a set of images (via path) and a list of target classes, it builds text prompts with the CLIP template, embeds both sides with a stated checkpoint (e.g., `openai/clip-vit-large-patch14`), and returns top-1 / top-5 predictions with similarity scores. The skill refuses to make claims about classes not in the prompt list.
 
-## Exercises
+## Exercises | 练习题
 
 1. Implement InfoNCE for a batch of 4 pairs by hand. Construct the 4x4 similarity matrix, run softmax, pick out the diagonal, compute cross-entropy. Verify your Python implementation against this hand calculation.
 
@@ -136,22 +144,22 @@ This lesson produces `outputs/skill-clip-zero-shot.md`. Given a set of images (v
 
 5. Read the OpenCLIP scaling-laws paper (arXiv:2212.07143, Cherti et al.). Reproduce their conclusion for data scaling from the figures: at fixed model size, what is the log-linear relationship between ImageNet zero-shot accuracy and training data size?
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| InfoNCE | "Contrastive loss" | Cross-entropy over a batch's similarity matrix; each item's positive is its paired item, negatives are everything else |
-| Sigmoid loss | "SigLIP loss" | Per-pair binary cross-entropy; no softmax, no all-gather, scales cheaply in distributed training |
-| Temperature | "tau" | Scalar that scales logits before softmax/sigmoid; controls sharpness of the distribution |
-| Zero-shot | "no-finetune classification" | Use text prompts to construct class embeddings and classify by cosine similarity; no training on target classes |
-| Prompt template | "a photo of a ..." | Text scaffold around a class name; affects zero-shot accuracy by 1-5 points |
-| Dual encoder | "Two-tower" | One image encoder + one text encoder, outputs in shared D-dim space |
-| Hard negative | "Tough distractor" | A negative similar enough to the positive that the model has to work to separate them |
-| Linear probe | "Frozen + one layer" | Train only a linear classifier on top of frozen features; measures feature quality |
-| NaFlex | "Native flexible resolution" | SigLIP 2 capability to ingest images at any aspect ratio and resolution without resizing |
-| Temperature scaling | "log-parametrized tau" | CLIP parametrizes `log(1/tau)` so gradients behave; clips to prevent collapse to near-zero tau |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|---------|
+| InfoNCE | "Contrastive loss" | Cross-entropy over a batch's similarity matrix; each item's positive is its paired item, negatives are everything else | |
+| Sigmoid loss | "SigLIP loss" | Per-pair binary cross-entropy; no softmax, no all-gather, scales cheaply in distributed training | |
+| Temperature | "tau" | Scalar that scales logits before softmax/sigmoid; controls sharpness of the distribution | |
+| Zero-shot | "no-finetune classification" | Use text prompts to construct class embeddings and classify by cosine similarity; no training on target classes | |
+| Prompt template | "a photo of a ..." | Text scaffold around a class name; affects zero-shot accuracy by 1-5 points | |
+| Dual encoder | "Two-tower" | One image encoder + one text encoder, outputs in shared D-dim space | |
+| Hard negative | "Tough distractor" | A negative similar enough to the positive that the model has to work to separate them | |
+| Linear probe | "Frozen + one layer" | Train only a linear classifier on top of frozen features; measures feature quality | |
+| NaFlex | "Native flexible resolution" | SigLIP 2 capability to ingest images at any aspect ratio and resolution without resizing | |
+| Temperature scaling | "log-parametrized tau" | CLIP parametrizes `log(1/tau)` so gradients behave; clips to prevent collapse to near-zero tau | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Radford et al. — Learning Transferable Visual Models From Natural Language Supervision (arXiv:2103.00020)](https://arxiv.org/abs/2103.00020) — the CLIP paper.
 - [Zhai et al. — Sigmoid Loss for Language Image Pre-Training (arXiv:2303.15343)](https://arxiv.org/abs/2303.15343) — SigLIP.

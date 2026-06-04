@@ -18,7 +18,7 @@
 - Describe how Flamingo handles interleaved image-text sequences with causal masking that respects image placement.
 - Reproduce a few-shot multimodal prompt structure (3 image-caption examples then a query image).
 
-## The Problem
+## The Problem | 问题引入
 
 BLIP-2 feeds 32 visual tokens into a frozen LLM's input layer. Works for one image per prompt. But what if you want to feed *many* images interleaved with text, as in "here is image A, caption it; here is image B, caption it; now here is image C, caption it"? The LLM's self-attention would need to handle image tokens and text tokens in a single stream, and the question of which positions can attend to which images gets fussy.
 
@@ -26,7 +26,15 @@ Flamingo's answer: do not change the LLM's input stream at all. Insert extra cro
 
 The second question Flamingo answered: how do you handle a variable number of images (0, 1, or many) per prompt? A Perceiver resampler — a small cross-attention module that takes whatever number of patches you have and produces a fixed number of visual latent tokens. The LLM cross-attention layer sees the same shape regardless of how many images are in the prompt.
 
-## The Concept
+## The Concept | 核心概念
+
+> **【中文解读】** Flamingo（DeepMind）引入门控交叉注意力（Gated Cross-Attention），在冻结的 LLM 层之间插入可训练的交叉注意力层来注入视觉信息。门控机制控制视觉信息的流入量，初始化时门控值为 0（视觉信息不流入），训练过程中逐渐开放。
+
+> **【拓展：Flamingo 的高效适配】** Flamingo 仅训练约 1% 的参数（门控交叉注意力层），就能在 few-shot 视觉推理任务上达到 SOTA。这种"冻结预训练模型 + 轻量适配层"的范式后来被 LLaVA、Qwen-VL 等模型继承。Flamingo-80B 在 few-shot VQA 上超越了当时全量微调的方法。
+
+
+> **【拓展：门控机制的数学原理】** 门控交叉注意力的门控值初始化为 0，意味着训练开始时视觉信息完全不流入 LLM。随着训练进行，门控逐渐开放。这防止了训练初期视觉噪声干扰 LLM 的语言能力。这种零初始化门控技巧后来被 LLaVA 等模型借鉴用于投影层。
+
 
 ### The frozen LLM
 
@@ -112,7 +120,7 @@ Otter (2023) builds on OpenFlamingo with instruction tuning on MIMIC-IT (a datas
 
 Pick BLIP-2 for single-image VQA on a budget. Pick Flamingo/Idefics2 for interleaved, few-shot, or multi-image reasoning.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py` demonstrates:
 
@@ -120,11 +128,11 @@ Pick BLIP-2 for single-image VQA on a budget. Pick Flamingo/Idefics2 for interle
 2. A gated cross-attention step with `alpha = 0` → output equals input (LLM unchanged), then `alpha = 2.0` → visual contribution mixed in.
 3. An interleaved-mask builder that produces the 2D attention mask for a "(image 1) (text 1) (image 2) (text 2)" sequence.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-gated-bridge-diagnostic.md`. Given an open VLM's config (resampler Y/N, cross-attn frequency, gate scheme), it identifies the Flamingo lineage elements and explains the freezing strategy. Useful for debugging why a fine-tune degraded text performance (answer: the gate got too wide too fast).
 
-## Exercises
+## Exercises | 练习题
 
 1. Compute Flamingo-9B's visual parameter count: 9B LLM + 1.4B gated cross-attention layers + 64M resampler. What fraction of total params is trained?
 
@@ -136,22 +144,22 @@ This lesson produces `outputs/skill-gated-bridge-diagnostic.md`. Given an open V
 
 5. In-context few-shot: construct a prompt with 4 examples of "image → color of main object" for a new Flamingo variant. Describe the expected accuracy pattern as you vary the number of examples from 0 to 8.
 
-## Key Terms
+## Key Terms | 术语速查表
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Perceiver resampler | "Fixed-latent cross-attention" | Module that produces K fixed tokens from a variable number of input patches |
-| Gated cross-attention | "Tanh-gated bridge" | Residual layer `y = tanh(alpha)*cross + x`, learnable alpha, init 0 |
-| Interleaved input | "Mixed sequence" | Prompt format with images and text mixed freely in reading order |
-| Frozen LLM | "No LLM gradients" | The text LLM's weights do not update; only resampler + cross-attn layers train |
-| Few-shot | "In-context examples" | Give a few (image, answer) pairs in the prompt; model generalizes without finetuning |
-| OBELICS | "Interleaved web corpus" | Open dataset of 141M web pages with images and text in reading order |
-| Chinchilla | "70B frozen base" | Flamingo's frozen text LLM, from DeepMind's Chinchilla paper |
-| Gate schedule | "How alpha moves" | The rate at which the cross-attention gate opens during training |
-| Cross-attn frequency | "Every M layers" | How often a gated cross-attention block is inserted; Flamingo uses M=4 |
-| OpenFlamingo | "Open reproduction" | MosaicML/LAION open checkpoint at 3-9B; architecture-identical to Flamingo |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|---------|
+| Perceiver resampler | "Fixed-latent cross-attention" | Module that produces K fixed tokens from a variable number of input patches | |
+| Gated cross-attention | "Tanh-gated bridge" | Residual layer `y = tanh(alpha)*cross + x`, learnable alpha, init 0 | |
+| Interleaved input | "Mixed sequence" | Prompt format with images and text mixed freely in reading order | |
+| Frozen LLM | "No LLM gradients" | The text LLM's weights do not update; only resampler + cross-attn layers train | |
+| Few-shot | "In-context examples" | Give a few (image, answer) pairs in the prompt; model generalizes without finetuning | |
+| OBELICS | "Interleaved web corpus" | Open dataset of 141M web pages with images and text in reading order | |
+| Chinchilla | "70B frozen base" | Flamingo's frozen text LLM, from DeepMind's Chinchilla paper | |
+| Gate schedule | "How alpha moves" | The rate at which the cross-attention gate opens during training | |
+| Cross-attn frequency | "Every M layers" | How often a gated cross-attention block is inserted; Flamingo uses M=4 | |
+| OpenFlamingo | "Open reproduction" | MosaicML/LAION open checkpoint at 3-9B; architecture-identical to Flamingo | |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Alayrac et al. — Flamingo (arXiv:2204.14198)](https://arxiv.org/abs/2204.14198) — the original paper.
 - [Awadalla et al. — OpenFlamingo (arXiv:2308.01390)](https://arxiv.org/abs/2308.01390) — open reproduction.

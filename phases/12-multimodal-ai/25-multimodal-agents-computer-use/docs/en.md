@@ -39,6 +39,11 @@ Each step is a multimodal VLM call. The VLM output must be parseable JSON. Error
 
 ## The Concept | 核心概念
 
+> **【中文解读】** 多模态 Agent（如 Computer Use Agent）让 AI 直接操作计算机界面：截图理解屏幕内容，生成鼠标/键盘操作。这是多模态理解的终极应用——AI 不仅能看懂图像，还能在图形界面中执行任务。
+
+> **【拓展：Computer Use 的前沿** Anthropic 的 Computer Use 让 Claude 直接操作桌面应用，完成网页浏览、表单填写等任务。OpenAI 的 Operator 使用类似方法。关键技术挑战：精确定位（准确点击按钮）、状态跟踪（理解界面变化）、错误恢复（操作失败后重试）。当前模型在 OSWorld 基准上的成功率约 12.5%（人类约 72%），还有很大提升空间。
+
+
 ### GUI grounding — the primitive | GUI 定位——基础原语
 
 GUI grounding is: given a screenshot and a natural language instruction, output the (x, y) coordinate to click (or other action).
@@ -144,7 +149,7 @@ The capstone task: build a computer-use agent that:
 
 The lesson provides scaffold code that is easy to extend into a real browser.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py` is the capstone scaffold:
 
@@ -154,7 +159,7 @@ The lesson provides scaffold code that is easy to extend into a real browser.
 - 10-task mini-benchmark (synthetic pages) to measure end-to-end success rate.
 - Error-recovery hook for when an action fails.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-multimodal-agent-designer.md`. Given a computer-use product (domain, action set, evaluation target), designs the full agent loop, memory strategy, grounding mode, and expected benchmark score.
 
@@ -188,7 +193,7 @@ This lesson produces `outputs/skill-multimodal-agent-designer.md`. Given a compu
 | VisualWebArena | "E2E web bench" | 2024 benchmark for end-to-end web tasks | 端到端网页任务基准（2024） |
 | AgentVista | "2026 hard bench" | 12-domain realistic workflows; even Gemini 3 Pro scores ~30% | 12 领域真实工作流基准，前沿模型仅约 30% |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Cheng et al. — SeeClick (arXiv:2401.10935)](https://arxiv.org/abs/2401.10935)
 - [Hong et al. — CogAgent (arXiv:2312.08914)](https://arxiv.org/abs/2312.08914)

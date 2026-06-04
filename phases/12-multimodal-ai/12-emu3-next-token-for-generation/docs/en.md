@@ -28,6 +28,11 @@ The bet was controversial when it published. Two years on, the open-source unifi
 
 ## The Concept  | 核心概念
 
+> **【中文解读】** EMU3 使用纯自回归下一个 token 预测统一了多模态理解和生成。图像被离散化为 token 序列后，模型像预测文本一样预测下一个视觉 token。无需扩散模型——一切多模态任务都是 next-token prediction。
+
+> **【拓展：自回归图像生成的挑战】** EMU3 的纯自回归方法在图像生成上仍落后于扩散模型，因为视觉 token 的长程依赖比文本更难学习。但统一架构的优势在于同一个模型同时理解和生成图像/文本。
+
+
 ### The Emu3 tokenizer
 
 The key ingredient is the visual tokenizer. Emu3 trains a custom IBQ-class tokenizer (Inverse Bottleneck Quantizer, SBER-MoVQGAN family) at 8x8 resolution-reduction per token. A 512x512 image becomes 64x64 = 4096 tokens at codebook size 32768.
@@ -89,6 +94,10 @@ Emu3's deep contribution is conceptual. If next-token prediction scales to match
 
 Show-o, Janus-Pro, and InternVL-U all build on or challenge this thesis. Chinese labs (BAAI, DeepSeek) publish more aggressively in this direction than US labs through 2025.
 
+
+> **【拓展：EMU3 的统一训练策略】** EMU3 的核心贡献是证明纯自回归方法可以同时做理解和生成。在视觉理解任务上接近 LLaVA，在文生图上接近 SDXL。训练使用多模态混合数据，不同模态的 loss 按比例加权。
+
+
 ## Use It  | 动手实践
 
 `code/main.py` builds two toy pieces:
@@ -116,14 +125,14 @@ This lesson produces `outputs/skill-token-gen-cost-analyzer.md`. Given a generat
 
 ## Key Terms  | 关键术语
 
-| Term | What people say | What it actually means | 中文含义 |
-|------|-----------------|------------------------|
-| Next-token prediction | "NTP" | Standard autoregressive loss: predict token[i+1] given token[0..i]; works for every modality when tokenized |
-| IBQ tokenizer | "Inverse bottleneck quantizer" | A class of VQ-VAE with larger codebooks (32768+) and better reconstruction than Chameleon's |
-| 3D VQ | "Spatiotemporal quantizer" | Codebook indexed by (time, row, col); one token covers a 4x4x4 pixel cube |
-| Classifier-free guidance | "CFG" | Mix conditional and unconditional logits with weight gamma; boosts image quality at inference |
-| Unified vocabulary | "Shared tokens" | Text + image + video all draw from the same integer space; model predicts whichever modality comes next |
-| MJHQ-30K | "Image gen benchmark" | Midjourney-quality benchmark with 30k prompts; Emu3 reports FID here |
+| Term | What people say | What it actually means | 中文含义 | 中文释义 |
+|------|-----------------|------------------------|---------|
+| Next-token prediction | "NTP" | Standard autoregressive loss: predict token[i+1] given token[0..i]; works for every modality when tokenized | |
+| IBQ tokenizer | "Inverse bottleneck quantizer" | A class of VQ-VAE with larger codebooks (32768+) and better reconstruction than Chameleon's | |
+| 3D VQ | "Spatiotemporal quantizer" | Codebook indexed by (time, row, col); one token covers a 4x4x4 pixel cube | |
+| Classifier-free guidance | "CFG" | Mix conditional and unconditional logits with weight gamma; boosts image quality at inference | |
+| Unified vocabulary | "Shared tokens" | Text + image + video all draw from the same integer space; model predicts whichever modality comes next | |
+| MJHQ-30K | "Image gen benchmark" | Midjourney-quality benchmark with 30k prompts; Emu3 reports FID here | |
 
 ## Further Reading  | 延伸阅读
 
