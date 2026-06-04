@@ -20,7 +20,7 @@
 
 > **【中文解读】** 学习目标：理解网关在 MCP 客户端和多个后端 MCP 服务器之间的位置；实现五大网关职责（认证、RBAC、审计、限流、策略）；在网关层强制执行工具哈希锁定清单；区分官方 MCP 注册中心与元注册中心。
 
-## The Problem
+## The Problem | 问题引入
 
 > **【中文解读】** Fortune 500 企业有 30 个审批的 MCP 服务器、5000 名开发者、合规审计要求。网关模式：(1) 网关作为单一 Streamable HTTP 端点运行；(2) 持有每个后端 MCP 服务器的凭证；(3) 每个开发者请求通过网关自身的 OAuth 认证和范围限制；(4) 网关路由调用到后端服务器并应用策略；(5) 所有调用记录用于审计。
 
@@ -36,9 +36,11 @@ The gateway pattern:
 
 Cloudflare MCP Portals, Kong AI Gateway, IBM ContextForge, MintMCP, TrueFoundry, Envoy AI Gateway — all shipped gateways or gateway features in 2025-2026.
 
+> **【拓展：MCP 网关供应商格局】** 2025-2026年 MCP 网关领域的主要玩家：Cloudflare MCP Portals（边缘计算）、Kong AI Gateway（API 管理传统强者）、IBM ContextForge（企业级）、MintMCP（轻量开源）。同时，MCP 官方注册中心作为规范上游发布——经过策展、命名空间验证、反向 DNS 命名的服务器。元注册中心（Glama、MCPMarket、Smithery、LobeHub）聚合多个来源。
+
 Meanwhile, the Official MCP Registry launched as the canonical upstream: curated, namespace-verified, reverse-DNS-named servers the gateway can pull from. Metaregistries (Glama, MCPMarket, MCP.so, Smithery, LobeHub) aggregate servers across multiple sources.
 
-## The Concept
+## The Concept | 核心概念
 
 > **【中文解读】** 本节详解五大网关职责、网关作为单一端点、凭证保险库、工具哈希锁定、策略即代码、会话感知路由、命名空间合并、注册中心生态和供应商格局。
 
@@ -104,7 +106,7 @@ Official Registry mandates reverse-DNS names for public servers: `io.github.alic
 
 Phase 17 (production infrastructure) dives deeper on gateway operations.
 
-## Use It
+## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 实现约150行的最小网关：通过 Bearer token 认证用户、每用户 RBAC 策略、路由到两个后端 MCP 服务器、写入审计日志、令牌桶限流、拒绝描述哈希不匹配的后端工具。关注点：RBAC 字典按 user_id 索引、AUDIT_LOG 是追加事件列表、令牌桶限流每用户、锁定清单为 server::tool -> hash 映射。
 
@@ -117,13 +119,13 @@ What to look at:
 - Rate limit uses a token bucket per user.
 - Pinned manifest is a dict of `server::tool -> hash`.
 
-## Ship It
+## Ship It | 产出物
 
 > **【中文解读】** 本课产出 `outputs/skill-gateway-bootstrap.md`——给定企业 MCP 计划（用户、后端、合规要求），生成网关配置规格。
 
 This lesson produces `outputs/skill-gateway-bootstrap.md`. Given an enterprise MCP plan (users, backends, compliance), the skill produces a gateway configuration spec.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Make a call as an allowed user; then as a disallowed user; then a rate-limit-exceeded burst. Verify all three flows.
 
@@ -135,7 +137,7 @@ This lesson produces `outputs/skill-gateway-bootstrap.md`. Given an enterprise M
 
 5. Read the Cloudflare enterprise MCP post top to bottom. Identify one feature Cloudflare ships that this stdlib gateway does not.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文 |
 |------|----------------|------------------------|------|
@@ -150,7 +152,7 @@ This lesson produces `outputs/skill-gateway-bootstrap.md`. Given an enterprise M
 | Official MCP Registry | "Canonical upstream" | `registry.modelcontextprotocol.io`, namespace-verified | 官方 MCP 注册中心：命名空间验证的权威源 |
 | Reverse-DNS naming | "Registry namespace" | `io.github.user/server` convention | 反向 DNS 命名：注册中心命名空间约定 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [Official MCP Registry](https://registry.modelcontextprotocol.io/) — canonical upstream, namespace-verified
 - [Cloudflare — Enterprise MCP](https://blog.cloudflare.com/enterprise-mcp/) — gateway pattern with OAuth and policy

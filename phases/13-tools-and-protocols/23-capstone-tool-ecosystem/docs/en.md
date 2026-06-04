@@ -19,7 +19,7 @@
 - Delegate part of a workload to an A2A sub-agent; verify opacity is preserved.
 - Package the whole stack with AGENTS.md + SKILL.md so other agents can drive it.
 
-## The Problem
+## The Problem | 问题引入
 
 > **【中文解读】** 构建"研究和报告"系统：用户请求"总结2026年关于 agent 协议的被引用最多的三篇 arXiv 论文"。系统通过 MCP 搜索 arXiv，通过 A2A 将论文摘要委托给专门的写作 Agent，聚合结果，渲染交互式报告作为 MCP Apps `ui://` 资源，每步记录到 OTel。
 
@@ -30,7 +30,9 @@ Ship the "research and report" system:
 
 All the primitives from Phase 13 show up. This is not a toy — production research-assistant systems shipped in 2026 by Anthropic (the Claude Research product), OpenAI (GPTs with Apps SDK), and third parties have this exact shape.
 
-## The Concept
+> **【拓展：Capstone 的生产级原型】** 这个 Capstone 项目是生产级研究助手系统的原型。Anthropic 的 Claude Research 产品、OpenAI 的 GPTs with Apps SDK 都采用了相同的架构：MCP 搜索 -> A2A 委托 -> 聚合结果 -> MCP Apps UI 渲染 -> OTel 全链路追踪。Phase 13 的所有原语在此汇聚：tools、resources、prompts、tasks、sampling、A2A、OTel、OAuth 2.1 网关。
+
+## The Concept | 核心概念
 
 ### Architecture
 
@@ -112,7 +114,7 @@ Users deploy with `docker compose up`. Claude Code, Cursor, Codex, and opencode 
 | 20 | Routing gateway for the LLM layer |
 | 21 | SKILL.md + AGENTS.md packaging |
 
-## Use It
+## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 将前课模式缝合为一个可运行的端到端演示。全部标准库，全部进程内运行便于从头到尾阅读。完整流程：网关握手、模拟 OAuth 2.1、合并 tools/list、generate_report 作为任务、A2A 调用写作 Agent、返回 ui:// 资源、发射 OTel span。关注点：一个 trace id 贯穿每跳；网关策略阻止第二个用户写入；任务生命周期 working -> completed 返回文本和 ui:// 内容；A2A 调用内部状态对编排者不透明；AGENTS.md 和 SKILL.md 是其他 Agent 复现工作流所需的唯一文件。
 
@@ -126,13 +128,13 @@ What to look at:
 - A2A call's inner state is opaque to the orchestrator.
 - AGENTS.md and SKILL.md are the only files another agent needs to reproduce the workflow.
 
-## Ship It
+## Ship It | 产出物
 
 > **【中文解读】** 本课产出 `outputs/skill-ecosystem-blueprint.md`——给定产品需求（研究、摘要、自动化），生成完整架构：哪些 MCP 原语、哪些网关控制、哪些 A2A 调用、哪些遥测、哪些打包。
 
 This lesson produces `outputs/skill-ecosystem-blueprint.md`. Given a product need (research, summarization, automation), the skill produces the full architecture: which MCP primitives, which gateway controls, which A2A calls, which telemetry, which packaging.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Note the single trace id and how spans nest. Count how many primitives from Phase 13 the demo touches.
 
@@ -144,7 +146,7 @@ This lesson produces `outputs/skill-ecosystem-blueprint.md`. Given a product nee
 
 5. Write an AGENTS.md for a teammate who will maintain this system. It should take under five minutes to read and give them everything they need to drive the capstone in Cursor or Codex.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文 |
 |------|----------------|------------------------|------|
@@ -159,7 +161,7 @@ This lesson produces `outputs/skill-ecosystem-blueprint.md`. Given a product nee
 | Defense-in-depth | "Multiple security layers" | Pinned hashes, OAuth, RBAC, Rule of Two, audit log | 纵深防御：多层安全 |
 | Spec compliance matrix | "What we ship that the spec requires" | Checklist mapping deliverables to 2025-11-25 requirements | 规范合规矩阵 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [MCP — Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) — consolidated reference
 - [MCP blog — 2026 roadmap](https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/) — where the protocol is heading

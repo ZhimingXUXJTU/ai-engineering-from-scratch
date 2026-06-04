@@ -20,7 +20,7 @@
 - Wire every endpoint and background job as iii primitives — HTTP triggers, cron triggers, named functions, and `state::*` reads — so a single restart rebuilds the auth surface.
 - Read an IdP capability matrix and refuse to deploy when the IdP cannot satisfy MCP's auth profile.
 
-## The Problem
+## The Problem | 问题引入
 
 > **【中文解读】** 三个生产缺口：(1) 注册缺口——RFC 7591 动态客户端注册让客户端 `POST /register` 即可获得 client_id；(2) 密钥轮换缺口——JWKS 轮换时需要缓存刷新 + 回退获取，否则验证失败；(3) 受众绑定缺口——MCP 服务器在每个请求上比较 `token.aud` 与自身资源 URL，拒绝不匹配的请求（HTTP 401）。
 
@@ -30,11 +30,13 @@ The first gap is enrollment. A real org runs hundreds of MCP servers and thousan
 
 The second gap is key rotation. JWT validation depends on the authorization server's signing keys, published as a JSON Web Key Set (JWKS). The authorization server rotates these on a schedule (often hourly, sometimes faster under incident response). An MCP server that fetches JWKS once at boot validates fine until the rotation window — then every request fails until restart. Production wires JWKS as a cached value with a refresh job that overwrites the cache before the previous keys expire, plus a fall-back fetch on cache miss for the case where a token signed by a key newer than the cache arrives.
 
-The third gap is audience binding. Lesson 16 introduced RFC 8707 resource indicators. In production, that indicator becomes a hard claim check on every request. The MCP server compares `token.aud` against its own canonical resource URL and rejects mismatches with HTTP 401. This is the only defense against an upstream MCP server (or a malicious client holding a token meant for one server) replaying that token against another server in the same trust mesh.
+The third gap is audience binding. Lesson 16 introduced RFC 8707 resource indicators.
+
+> **【拓展：JWKS 密钥轮换在生产中的关键性】** JWT 验证依赖授权服务器的签名密钥（JWKS）。授权服务器按计划轮换这些密钥（通常每小时，事件响应时更快）。启动时只获取一次 JWKS 的 MCP 服务器在轮换窗口到来前验证正常——之后所有请求失败直到重启。生产环境需要：缓存 JWKS 并设置在过期前覆盖的刷新任务，加上缓存未命中时的回退获取。 In production, that indicator becomes a hard claim check on every request. The MCP server compares `token.aud` against its own canonical resource URL and rejects mismatches with HTTP 401. This is the only defense against an upstream MCP server (or a malicious client holding a token meant for one server) replaying that token against another server in the same trust mesh.
 
 This lesson treats every one of those gaps as an iii primitive. The metadata document is an HTTP trigger that returns a function's output. JWKS rotation is a cron trigger that calls `auth::rotate-jwks`, which writes to `state::set("auth/jwks/<issuer>", ...)`. JWT validation is a function others call via `iii.trigger("auth::validate-jwt", token)`. The MCP server itself is just another HTTP trigger that calls into validation before dispatching. Restart the engine: the trigger registry rebuilds; state survives; the auth surface is operational without manual reconciliation.
 
-## The Concept
+## The Concept | 核心概念
 
 > **【中文解读】** 本节详解六个核心概念：RFC 8414 授权服务器元数据、RFC 9728 受保护资源元数据（回顾）、RFC 7591 动态客户端注册、RFC 8707 资源指示器（回顾）、RFC 7636 PKCE（回顾）、MCP 规范 2025-11-25 认证配置。还包括 IdP 能力矩阵、JWKS 轮换模式、iii 原语连接、混淆代理演练和故障模式。
 
@@ -265,7 +267,7 @@ The audience claim is the only defense against this attack at the protocol layer
 - **Registration token theft.** A leaked `registration_access_token` lets the attacker rewrite redirect URIs. Hash these at rest; require the client to present the cleartext on every update; rotate on suspicion.
 - **`iss` not pinned.** A validator that accepts any `iss` lets an attacker stand up their own authorization server, register a client for the target audience, and issue tokens. The protected-resource metadata's `authorization_servers` list is the allow-list; enforce it.
 
-## Use It
+## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 用标准库 Python 和小型 iii_mock 注册表演示完整的生产流程：授权服务器发布 RFC 8414 元数据 -> 客户端发现注册端点 -> DCR 注册获得 client_id -> PKCE 授权码流程 -> Bearer token 调用工具 -> JWT 验证读取 JWKS 缓存 -> cron 触发 JWKS 轮换 -> 新密钥验证通过 -> 混淆代理尝试返回 401。
 
@@ -283,13 +285,13 @@ The audience claim is the only defense against this attack at the protocol layer
 
 The mock JWT here uses HS256 with a shared secret (so the lesson runs on stdlib only). Production uses RS256 or EdDSA with the JWKS pattern above; the validation logic is otherwise identical.
 
-## Ship It
+## Ship It | 产出物
 
 > **【中文解读】** 本课产出 `outputs/skill-mcp-auth-iii.md`——给定 MCP 服务器配置和 IdP 能力集，生成 iii 原语注册方案、JWKS 轮换计划、范围映射和 IdP 不满足 RFC 配置时的拒绝规则。
 
 This lesson produces `outputs/skill-mcp-auth-iii.md`. Given an MCP server config and an IdP capability set, the skill emits the iii primitives to register, the JWKS rotation schedule, the scope mapping, and the refusal rules to apply when the IdP does not support the full RFC profile.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Trace the 9-step flow. Note where `state::get` returns stale data immediately before `auth::rotate-jwks` overwrites it, and how the next request now validates against the new key.
 
@@ -301,7 +303,7 @@ This lesson produces `outputs/skill-mcp-auth-iii.md`. Given an MCP server config
 
 5. Read the MCP spec 2025-11-25 authorization section. Find the one normative requirement on `WWW-Authenticate` headers that the lesson's validator does not currently emit. Add it.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文 |
 |------|----------------|------------------------|------|
@@ -316,7 +318,7 @@ This lesson produces `outputs/skill-mcp-auth-iii.md`. Given an MCP server config
 | Public client | "Native or browser client" | OAuth client with no `client_secret`; PKCE compensates | 公共客户端：无 client_secret，PKCE 补偿 |
 | `WWW-Authenticate` | "401/403 response header" | Carries `Bearer error=...` directives that drive client recovery | 401/403 响应头，携带错误恢复指令 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [MCP — Authorization spec (2025-11-25)](https://modelcontextprotocol.io/specification/draft/basic/authorization) — the MCP auth profile this lesson implements
 - [RFC 8414 — OAuth 2.0 Authorization Server Metadata](https://datatracker.ietf.org/doc/html/rfc8414) — discovery contract

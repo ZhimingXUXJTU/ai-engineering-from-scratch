@@ -20,7 +20,7 @@
 
 > **【中文解读】** 学习目标：掌握 OTel GenAI 必需属性（LLM span 和工具执行 span）；构建覆盖 Agent 循环、LLM 调用、工具调用和 MCP 客户端分发的 trace 层次；决定捕获哪些内容（opt-in）vs 脱敏（默认）；发送 span 到本地收集器。
 
-## The Problem
+## The Problem | 问题引入
 
 > **【中文解读】** 调试场景：用户报告"Agent 有时30秒响应，有时3秒"。无追踪，日志只显示 LLM 调用，看不到工具分发、MCP 服务器往返、子 Agent。最终发现是一个 MCP 服务器冷启动偶尔卡住。没有端到端追踪就无法发现这类问题。
 
@@ -28,9 +28,11 @@ A debug from February 2026: user reports "my agent sometimes takes 30 seconds to
 
 Without end-to-end tracing, you cannot find this. OTel GenAI fixes it.
 
+> **【拓展：OTel GenAI 的可观测性生态】** OTel GenAI 规范在 2025-2026 年由 OpenTelemetry 语义约定组制定。它定义了稳定的属性名，使 Datadog、Langfuse、Phoenix、OpenLLMetry 和 AgentOps 都能解析相同的 span。一次埋点，导出到任意后端。这对多 Agent 系统特别重要——一个请求可能跨越多个 Agent、多个 MCP 服务器和多轮 LLM 调用。
+
 The conventions settled in 2025-2026 under the OpenTelemetry semantic-conventions group. They define stable attribute names so Datadog, Langfuse, Phoenix, OpenLLMetry, and AgentOps all parse the same spans. Instrument once; ship to any backend.
 
-## The Concept
+## The Concept | 核心概念
 
 > **【中文解读】** 本节详解 span 层次结构（agent.invoke_agent -> llm.chat -> tool.execute -> mcp.call）、必需属性（gen_ai.* 命名空间）、span 类型（CLIENT/INTERNAL）、opt-in 内容捕获、span 事件、导出器、跨 MCP 传播、指标和 AgentOps 层。
 
@@ -121,7 +123,7 @@ Use these for dashboards that do not need per-call detail.
 
 AgentOps (founded 2024) specializes in GenAI observability. It wraps popular frameworks (LangGraph, Pydantic AI, CrewAI) to emit OTel spans automatically. Useful if your stack uses a supported framework; use manual instrumentation otherwise.
 
-## Use It
+## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 向 stdout 发射 OTLP-JSON 格式的 span，覆盖一个 Agent 调用 LLM、分发两个工具、进行一次 MCP 往返。无真实导出器——课程聚焦 span 形状和属性集。关注点：trace id 跨所有 span 共享；父子链接通过 parentSpanId 编码；`gen_ai.*` 必需属性已填充；内容捕获默认关闭。
 
@@ -134,13 +136,13 @@ What to look at:
 - Required `gen_ai.*` attributes are populated.
 - Content capture is off by default; one scenario turns it on via env var.
 
-## Ship It
+## Ship It | 产出物
 
 > **【中文解读】** 本课产出 `outputs/skill-otel-genai-instrumentation.md`——给定 Agent 代码库，生成仪表化计划：在哪里添加 span、填充哪些属性、目标导出器。
 
 This lesson produces `outputs/skill-otel-genai-instrumentation.md`. Given an agent codebase, the skill produces an instrumentation plan: where to add spans, which attributes to populate, and which exporters to target.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Count the spans and identify which is CLIENT vs INTERNAL.
 
@@ -152,7 +154,7 @@ This lesson produces `outputs/skill-otel-genai-instrumentation.md`. Given an age
 
 5. Read the OTel GenAI semconv spec. Identify one attribute listed in the semconv that this lesson's code does NOT emit. Add it.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文 |
 |------|----------------|------------------------|------|
@@ -167,7 +169,7 @@ This lesson produces `outputs/skill-otel-genai-instrumentation.md`. Given an age
 | traceparent | "W3C header" | Propagates trace context across services | traceparent：跨服务追踪传播 |
 | Exporter | "Backend-specific shipper" | Component that sends spans to Jaeger / Datadog / etc. | 导出器：发送到后端 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [OpenTelemetry — GenAI semconv](https://opentelemetry.io/docs/specs/semconv/gen-ai/) — canonical conventions for GenAI spans, metrics, and events
 - [OpenTelemetry — GenAI spans](https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-spans/) — LLM and tool-execution span attribute list

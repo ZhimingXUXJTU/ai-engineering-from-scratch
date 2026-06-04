@@ -18,7 +18,9 @@
 - Implement `prompts/list` and `prompts/get` with argument templates.
 - Recognize when the host surfaces prompts as slash-commands vs auto-injected context.
 
-## The Problem
+## The Problem | 问题引入
+
+> **【中文解读】** 一个简单的笔记 MCP 服务器把所有功能都暴露为工具。但正确的拆分是：数据暴露为资源（resources）、变更/计算动作暴露为工具（tools）、可复用工作流暴露为提示模板（prompts）。每种原语有其特定的 UX 呈现和访问模式。资源可被订阅，客户端 UI（如 Claude Desktop 的资源面板）可以展示数据。
 
 A naive MCP server for a notes app exposes everything as tools: `notes_read`, `notes_list`, `notes_search`. This wraps every data access in a model-driven tool call. Consequences:
 
@@ -28,9 +30,11 @@ A naive MCP server for a notes app exposes everything as tools: `notes_read`, `n
 
 The right split: expose data as a resource, expose mutating or computed actions as tools, expose reusable multi-step workflows as prompts. Each primitive has its UX affordance and its access pattern.
 
-## The Concept
+## The Concept | 核心概念
 
 ### Tools vs resources vs prompts — the decision rule
+
+> **【中文解读】** 工具/资源/提示的决策规则：搜索/过滤/转换数据用工具；用户想附加到上下文的数据用资源；可复用的多步工作流用提示。判断标准：模型在每次相关查询时都要调用的是工具；用户想附加到对话中的是资源；用户想反复执行的完整工作流是提示。
 
 | Capability | Primitive |
 |------------|-----------|
@@ -65,6 +69,8 @@ Use case: a notes server whose resources are files on disk; a file watcher trigg
 
 ### Prompts
 
+> **【拓展：MCP Prompts 作为 Slash Commands】** MCP Prompts 在 Claude Desktop、VS Code 和 Cursor 中以斜杠命令的形式出现在聊天 UI 中。用户输入 `/code_review` 并从表单中选择参数。服务器的提示模板是"用户快捷方式"和"发送给模型的完整 prompt"之间的契约。这使得服务器可以定义结构化的工作流。
+
 `prompts/list` returns `{prompts: [{name, description, arguments?}]}`. `prompts/get` takes `{name, arguments}` and returns `{description, messages: [{role, content}]}`.
 
 A prompt is a template that fills to a list of messages the host feeds its model. For example, a `code_review` prompt takes a `file_path` argument and returns a three-message sequence: a system message, a user message with the file body, and an assistant kickoff with a reasoning template.
@@ -87,6 +93,8 @@ For MCP Apps (Lesson 14): `text/html;profile=mcp-app` in a `ui://` URI.
 
 ### Dynamic resources
 
+> **【拓展：动态资源与缓存策略】** 资源 URI 不必对应静态文件。`notes://recent` 可以每次读取时返回最新 5 条笔记，`db://query/users/active` 可以执行参数化查询。规则是：如果客户端可以按 URI 缓存，则 URI 必须稳定；如果是一次性计算，URI 应包含时间戳或随机数以避免缓存过期。
+
 A resource URI does not have to correspond to a static file. `notes://recent` can return the latest five notes on every read. `db://query/users/active` can execute a parameterized query. The server is free to compute content dynamically.
 
 Rule: if the client can cache by URI, the URI must be stable. If computation is one-shot, the URI should include a timestamp or nonce so the client cache does not stale out.
@@ -99,9 +107,11 @@ Cost of subscriptions: per-session state on the server (who is subscribed to wha
 
 ### Prompts vs system prompts
 
+> **【中文解读】** MCP 中的 Prompts 不是系统提示。宿主的系统提示（操作指令）和 MCP 提示（服务器提供的模板，由用户调用）并存。行为良好的客户端不会让服务器提示覆盖自己的系统提示，而是分层叠加。这是一个重要的安全边界。
+
 Prompts in MCP are not system prompts. The host's system prompt (its own operating instructions) and MCP prompts (server-supplied templates invoked by user) live side by side. A well-behaved client never lets a server prompt override its own system prompt; it layers them.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py` extends the notes server from Lesson 07 with:
 
@@ -112,11 +122,11 @@ Prompts in MCP are not system prompts. The host's system prompt (its own operati
 
 Run the demo to see the full flow.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-primitive-splitter.md`. Given a proposed MCP server, the skill categorizes each capability as tool / resource / prompt with a rationale.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Observe the initial resource list, then trigger a note edit and verify the `notifications/resources/updated` event fires.
 
@@ -128,7 +138,7 @@ This lesson produces `outputs/skill-primitive-splitter.md`. Given a proposed MCP
 
 5. Read the spec's `server/resources` and `server/prompts` sections. Identify the one field in `resources/read` that is rarely populated but spec-supported. Hint: look at `_meta` on resource content.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文术语 |
 |------|----------------|------------------------|----------|
@@ -143,7 +153,7 @@ This lesson produces `outputs/skill-primitive-splitter.md`. Given a proposed MCP
 | Content block | "Typed chunk" | `{type: text \| image \| resource \| ui_resource}` | 内容块 |
 | Slash-command UX | "User shortcut" | Host surfaces prompts as commands starting with `/` | 斜杠命令 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [MCP — Concepts: Resources](https://modelcontextprotocol.io/docs/concepts/resources) — resource URIs, subscriptions, and templates
 - [MCP — Concepts: Prompts](https://modelcontextprotocol.io/docs/concepts/prompts) — prompt templates and slash-command integration

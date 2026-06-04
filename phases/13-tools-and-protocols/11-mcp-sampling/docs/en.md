@@ -18,7 +18,9 @@
 - Use `modelPreferences` (cost / speed / intelligence priorities) to guide client model selection.
 - Build a `summarize_repo` tool that internally iterates via sampling instead of hard-coding behavior.
 
-## The Problem
+## The Problem | 问题引入
+
+> **【中文解读】** MCP Sampling 解决的核心问题是：服务器需要 LLM 推理能力，但不应自己持有 API key。Sampling 让服务器借用客户端的模型能力——服务器保留算法逻辑（哪些文件要读、做几轮），客户端保留计费和模型选择。服务器完全不需要凭证。
 
 A useful MCP server for a code-summarization workflow needs to: walk a file tree, pick which files to read, synthesize a summary, and return. Where does the LLM reasoning happen?
 
@@ -30,7 +32,7 @@ Option C: the server asks the client's LLM via `sampling/createMessage`. The ser
 
 Sampling is option C. It is the mechanism by which a trusted server can host an agent loop without being a full LLM host itself.
 
-## The Concept
+## The Concept | 核心概念
 
 ### `sampling/createMessage` request
 
@@ -110,6 +112,8 @@ The 2026 consensus: sampling without human confirmation is a red flag. Gateways 
 
 ### Server-hosted loops without API keys
 
+> **【拓展：Sampling 实现无密钥 Agent 循环】** 关键洞察：服务器可以通过 sampling 实现多轮 Agent 循环，完全不需要 API key。每个 `sampling/createMessage` 调用返回新的 LLM 响应，服务器解析后决定下一步动作。服务器运行编排逻辑，客户端的模型做推理。这是 MCP 协议设计中最优雅的特性之一。
+
 The canonical use case: a code-summarization MCP server with no LLM access of its own. It does:
 
 1. Walk the repo structure.
@@ -126,7 +130,7 @@ The server never touches an LLM API. The client's user pays for the completions 
 - **Resource theft via sampling.** Server asks client to summarize an attacker's payload, bills the user.
 - **Loop bombs.** Server calls sampling in a tight loop. Clients MUST enforce per-session rate limits.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py` ships a fake server-to-client sampling harness. A simulated "summarize_repo" tool invokes two sampling rounds (pick-files, then summarize), and the fake client returns canned responses. The harness shows:
 
@@ -142,11 +146,11 @@ What to look at:
 - The loop terminates on `stopReason: "endTurn"`.
 - The `max_samples_per_tool = 5` limit catches a runaway loop.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-sampling-loop-designer.md`. Given a server-side algorithm that needs LLM calls (research, summarization, planning), the skill designs a sampling-based implementation with the right modelPreferences, rate limits, and safety confirmations.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Change `max_samples_per_tool` to 2 and observe the rate-limit cut-off.
 
@@ -158,7 +162,7 @@ This lesson produces `outputs/skill-sampling-loop-designer.md`. Given a server-s
 
 5. Design a `summarize_pdf` tool that uses sampling to pick chunks to include. Sketch the messages sent. How does `modelPreferences.intelligencePriority` change the behavior at 0.1 vs 0.9?
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文术语 |
 |------|----------------|------------------------|----------|
@@ -173,7 +177,7 @@ This lesson produces `outputs/skill-sampling-loop-designer.md`. Given a server-s
 | Resource theft | "Using user's LLM budget" | Server forces client to spend on sampling it does not want | 资源盗用 |
 | `stopReason` | "Why generation halted" | `endTurn`, `stopSequence`, or `maxTokens` | 停止原因 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [MCP — Concepts: Sampling](https://modelcontextprotocol.io/docs/concepts/sampling) — high-level overview of sampling
 - [MCP — Client sampling spec 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling) — canonical `sampling/createMessage` shape

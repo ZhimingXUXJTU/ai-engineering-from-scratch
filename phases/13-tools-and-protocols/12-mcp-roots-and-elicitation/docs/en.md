@@ -18,7 +18,9 @@
 - Use `elicitation/create` to ask the user for a confirmation or structured input mid-tool-call.
 - Choose between form-mode and URL-mode elicitation (the latter is experimental; drift-risk noted).
 
-## The Problem
+## The Problem | 问题引入
+
+> **【中文解读】** Roots 解决路径假设问题：客户端在 `initialize` 时声明服务器可触碰的 URI 集合。Elicitation 解决参数缺失问题：服务器暂停工具调用，向用户请求结构化输入。例如"删除旧 TPS 报告笔记"时有三个匹配项，Elicitation 让用户选择具体哪一个。
 
 Two concrete failures a notes MCP server hits in production.
 
@@ -28,9 +30,11 @@ Two concrete failures a notes MCP server hits in production.
 
 Roots fix the first: the client declares at `initialize` the set of URIs the server may touch. Elicitation fixes the second: the server pauses the tool call and sends `elicitation/create` to ask the user to pick which one.
 
-## The Concept
+## The Concept | 核心概念
 
 ### Roots
+
+> **【拓展：Roots 作为安全边界】** Roots 是 MCP 的安全边界机制。客户端声明服务器可访问的目录/URI 集合，服务器必须在边界内操作——任何在根集外的文件读写都应被拒绝。这不是客户端强制执行的（服务器仍是用户信任的代码），而是规范合规的要求。当用户添加或删除根目录时，客户端发送 `notifications/roots/list_changed`。
 
 The client declares a root list at `initialize`:
 
@@ -55,6 +59,8 @@ When the user adds or removes a root, the client sends `notifications/roots/list
 Roots are declared by the client because they represent the user's consent model. The user told Claude Desktop "give this notes server access to these two directories". The server cannot widen that scope.
 
 ### Elicitation: the form-mode default
+
+> **【中文解读】** Elicitation 让服务器在工具执行过程中暂停，向用户请求结构化输入。`elicitation/create` 接受表单 Schema 和自然语言提示。用户填写后响应返回服务器，服务器继续执行。这是 MCP 的"人机协作"原语——让服务器在需要人类判断时优雅暂停。
 
 `elicitation/create` takes a form schema plus a natural-language prompt:
 
@@ -126,7 +132,7 @@ Drift-risk note: the SEP-1036 response shape is still settling; some SDKs return
 
 Elicitation plus sampling together enable MCP's "human-in-the-loop" model. A server's agent loop can pause for either user input (elicitation) or model reasoning (sampling). Phase 13 · 11 covered sampling; this lesson covers elicitation. Put them together for full mid-loop control.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py` extends the notes server with:
 
@@ -137,11 +143,11 @@ Elicitation plus sampling together enable MCP's "human-in-the-loop" model. A ser
 
 The demo runs three scenarios: happy path (one match), disambiguation (three matches, elicitation fires), out-of-root-write (rejected).
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-elicitation-form-designer.md`. Given a tool that might need user confirmation or disambiguation, the skill designs the elicitation form schema and the message template.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Trigger the disambiguation path; confirm the simulated user answer gets routed back to the tool.
 
@@ -153,7 +159,7 @@ This lesson produces `outputs/skill-elicitation-form-designer.md`. Given a tool 
 
 5. Read the SEP-1036 issue discussion thread on GitHub. Identify one open question that affects how servers should handle URL-mode callbacks.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文术语 |
 |------|----------------|------------------------|----------|
@@ -168,7 +174,7 @@ This lesson produces `outputs/skill-elicitation-form-designer.md`. Given a tool 
 | Disambiguation | "Pick one" | Common elicitation use case when a tool has N candidates | 消歧义 |
 | Flat form | "Top-level properties only" | Elicitation schemas cannot nest | 扁平表单 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [MCP — Client roots spec](https://modelcontextprotocol.io/specification/draft/client/roots) — canonical roots reference
 - [MCP — Client elicitation spec](https://modelcontextprotocol.io/specification/draft/client/elicitation) — canonical elicitation reference

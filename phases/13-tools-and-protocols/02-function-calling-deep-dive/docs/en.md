@@ -90,6 +90,8 @@ Plus one mode unique to each provider:
 
 ### Parallel calls
 
+> **【拓展：并行调用的生产实践】** 并行工具调用可以显著减少端到端延迟。例如一个旅行规划 Agent 需要同时查询航班、酒店、天气三个独立 API，串行需要 3 轮 LLM 调用（约 15 秒），并行只需 1 轮（约 5 秒）。但要注意：并行调用会增加 token 消耗和执行复杂度，且需要正确处理乱序结果。
+
 OpenAI's `parallel_tool_calls: true` (default) emits multiple calls in one assistant message. You run them all and reply with a batched tool-role message containing one entry per `tool_call_id`. Anthropic historically did single-call; `disable_parallel_tool_use: false` (default as of Claude 3.5) enables multi. Gemini 2 allowed parallel calls but did not give stable ids; Gemini 3 adds UUIDs so out-of-order responses correlate cleanly.
 
 ### Streaming
@@ -103,6 +105,8 @@ All three support streamed tool calls. The wire format differs:
 Phase 13 · 03 goes deep on parallel + streaming reassembly. This lesson focuses on the declaration and single-call shapes.
 
 ### Errors and repair
+
+> **【拓展：JSON Repair 的工业实践】** 生产环境中模型返回无效 JSON 是常见问题。开源库如 `json-repair`（GitHub 2k+ stars）专门处理这类问题。更现代的方案是使用结构化输出（structured output），通过约束解码在 token 生成阶段就保证格式正确，从根本上消除 JSON 解析失败的风险。
 
 Invalid-argument errors look different too.
 
@@ -130,7 +134,7 @@ Three tiny functions translate it to the three provider shapes. The harness in `
 
 Production teams wrap this translator in `AbstractToolset` (Pydantic AI), `UniversalToolNode` (LangGraph), or `BaseTool` (LlamaIndex). Phase 13 · 17 ships a gateway that exposes an OpenAI-shaped API in front of any of the three.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py` defines one canonical `Tool` dataclass and three translators that emit the OpenAI, Anthropic, and Gemini declaration JSON. It then parses a hand-crafted provider response of each shape into the same canonical call object, demonstrating that the semantics are identical under the skin. Run it and diff the three declarations side by side.
 
@@ -140,7 +144,7 @@ What to look at:
 - The three response blocks differ in where the call lives (top-level `tool_calls`, `content[]` block, `parts[]` entry).
 - One `canonical_call()` function extracts `{id, name, args}` from all three response shapes.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-provider-portability-audit.md`. Given a function-calling integration against one provider, the skill produces a portability audit: which provider limits it relies on, which fields need renaming, and what breaks when ported to each other provider.
 
@@ -176,7 +180,7 @@ This lesson produces `outputs/skill-provider-portability-audit.md`. Given a func
 | Refusal | "Model declines" | Strict-mode-only refusal block instead of a call |
 | OpenAPI 3.0 subset | "Gemini schema quirk" | Gemini uses a JSON-Schema-like dialect with minor differences |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [OpenAI — Function calling guide](https://platform.openai.com/docs/guides/function-calling) — canonical reference including strict mode and parallel calls
 - [Anthropic — Tool use overview](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview) — `tool_use` and `tool_result` block semantics

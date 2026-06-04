@@ -18,7 +18,7 @@
 - Reassemble partial `arguments` strings into complete JSON without parsing early.
 - Run a three-city weather benchmark that demonstrates sequential vs parallel latency.
 
-## The Problem
+## The Problem | 问题引入
 
 Without parallel calls, an agent answering "what is the weather in Bengaluru, Tokyo, and Zurich" does this:
 
@@ -52,9 +52,11 @@ The price is correlation complexity. When the three calls complete out of order,
 
 > **【中文解读】** 并行调用的代价是关联复杂性。当三个调用乱序完成时，结果必须携带匹配的 `tool_call_id`，以便模型对齐。流式场景下，必须将部分参数片段组装成完整 JSON 后才能执行。Gemini 3 增加唯一 id 正是为了解决两个同名工具的并行调用无法区分的问题。
 
-## The Concept
+## The Concept | 核心概念
 
 ### Enabling parallel
+
+> **【拓展：何时禁用并行调用】** 禁用并行调用的典型场景包括：(1) 工具有顺序依赖（如先创建文件再写入）；(2) 一个调用的输出是另一个的输入（如先查用户ID再查订单）；(3) 下游 API 有速率限制，10路扇出会导致 429 错误。在实际生产中，约 30% 的工具调用场景需要串行执行。
 
 - **OpenAI.** `parallel_tool_calls: true` on by default. Set `false` to force serial.
 - **Anthropic.** Parallel via `disable_parallel_tool_use: false` (default on Claude 3.5 and up). Set `true` for serial.
@@ -79,6 +81,8 @@ The host runs each call's executor on its own thread, coroutine, or remote worke
 One common bug: reply with results in call-list order instead of completion order. This usually works because the model only cares about `tool_call_id`, but if a result is dropped or duplicated, out-of-order submission makes debugging harder. Prefer to reply in completion order with explicit ids.
 
 ### Streaming tool calls
+
+> **【拓展：流式工具调用的用户体验】** 流式工具调用让用户能看到 Agent 正在"思考"和执行的过程，而非等待一个黑箱操作完成。这对长耗时工具特别有价值——用户可以看到参数逐步构建，提供心理预期。OpenAI 的 ChatGPT 和 Anthropic 的 Claude 都在 UI 中展示了工具调用的流式过程。
 
 When the model streams, `arguments` arrive in pieces. Three separate streams of chunks for three parallel calls interleave on the wire. You need one accumulator per id.
 
@@ -122,7 +126,7 @@ Real-world caveat: parallel calls stress downstream APIs. A 10-way fan-out to a 
 
 If the model itself streams, you can start executing as soon as one call's arguments are complete, rather than waiting for all calls to finalize. This is an optimization OpenAI documents but not all SDKs expose. The harness in this lesson does it: as soon as the simulated stream yields a complete argument object, the host kicks off that call.
 
-## Use It
+## Use It | 用框架实现
 
 `code/main.py` has two halves. The first runs three simulated weather calls sequentially and in parallel using `concurrent.futures.ThreadPoolExecutor` and prints wall-clock time. The second half replays a fake streaming response — chunks of `arguments` for three parallel calls interleaved on one stream — and reassembles them per-id with `StreamAccumulator`. No LLM, no network, just the reassembly logic.
 
@@ -132,11 +136,11 @@ What to look at:
 - The accumulator handles chunks arriving out of order by buffering per-id and parsing only when each call's JSON is complete.
 - The executor kicks off as soon as an id's arguments finalize, not after all streams end.
 
-## Ship It
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-parallel-call-safety-check.md`. Given a tool registry, the skill audits which tools are safe to parallelize, which have ordering dependencies, and which would overwhelm downstream rate limits — returning a revised registry with per-tool `parallel_safe` flags.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py` and vary the simulated latencies. Confirm that the parallel-to-sequential ratio is approximately `max/sum` (real runs deviate slightly from the ideal because of thread scheduling, serialization, and harness overhead). At what latency distribution does parallel stop mattering?
 
@@ -148,7 +152,7 @@ This lesson produces `outputs/skill-parallel-call-safety-check.md`. Given a tool
 
 5. Read OpenAI's parallel-function-calling section and Anthropic's `disable_parallel_tool_use` docs. Identify the one real-world tool type where Anthropic recommends disabling parallelism. (Hint: consequential mutations on the same resource.)
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文术语 |
 |------|----------------|------------------------|----------|
@@ -163,7 +167,7 @@ This lesson produces `outputs/skill-parallel-call-safety-check.md`. Given a tool
 | `streamFunctionCallArguments` | "Gemini 3 feature" | Streamed argument chunks with unique id per call | Gemini 3 流式参数 |
 | Completion-order reply | "Don't wait for all" | Reply with results as they arrive, keyed by id | 按完成顺序回复 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [OpenAI — Parallel function calling](https://platform.openai.com/docs/guides/function-calling#parallel-function-calling) — default behavior and the opt-out flag
 - [Anthropic — Tool use: implementing tool use](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/implementing-tool-use) — `disable_parallel_tool_use` and result batching

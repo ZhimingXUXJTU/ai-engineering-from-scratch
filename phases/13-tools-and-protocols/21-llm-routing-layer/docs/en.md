@@ -20,7 +20,7 @@
 
 > **【中文解读】** 学习目标：区分自托管、托管和生产级路由选项；实现供应商故障时的回退链；跨供应商追踪每请求成本和 token 使用量；根据生产约束选择 LiteLLM/OpenRouter/Portkey。
 
-## The Problem
+## The Problem | 问题引入
 
 > **【中文解读】** 路由重要的场景：(1) 成本——Claude Sonnet 费用是 Haiku 的3倍，分流任务用 Haiku 足够；(2) 故障转移——OpenAI 宕机时自动切换到 Anthropic；(3) 延迟——实时聊天需要快速首 token；(4) 合规——EU 用户留在 EU 区域；(5) 实验——A/B 两个模型。路由网关提供统一的 OpenAI 兼容 API 处理一切。
 
@@ -38,7 +38,9 @@ Scenarios where provider routing matters:
 
 Hand-coding all of this per integration is repetitive. A routing gateway gives one OpenAI-compatible API and handles the rest.
 
-## The Concept
+> **【拓展：LLM 路由网关的供应商格局】** 2025-2026年的主要 LLM 路由解决方案：LiteLLM（开源，GitHub 15k+ stars）、OpenRouter（托管服务）、Portkey（企业级）、Kong AI Gateway（API 管理传统强者）。核心价值是统一 API 表面——所有供应商都暴露 OpenAI 兼容的 `/v1/chat/completions`，客户端无需关心后端路由。
+
+## The Concept | 核心概念
 
 ### OpenAI-compatible proxy shape
 
@@ -106,7 +108,7 @@ A gateway can route both LLM calls AND MCP sampling requests. When a sampling re
 - **Latency-aware.** Pick the fastest model in the last N minutes.
 - **Task-aware.** Prompt classifier routes coding to one model, summarization to another.
 
-## Use It
+## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 实现约150行的路由网关：接受 OpenAI 格式请求，翻译到每供应商存根，运行优先级回退链，追踪每请求成本，应用 PII 脱敏。三个场景：正常请求、主供应商宕机触发故障转移、PII 泄露被脱敏拦截。
 
@@ -119,13 +121,13 @@ What to look at:
 - Cost tracker multiplies token usage by per-model rates.
 - PII redactor scrubs SSN-shaped patterns before forwarding.
 
-## Ship It
+## Ship It | 产出物
 
 > **【中文解读】** 本课产出 `outputs/skill-routing-config-designer.md`——给定工作负载配置（延迟、成本、合规），选择 LiteLLM/OpenRouter/Portkey 并生成路由配置。
 
 This lesson produces `outputs/skill-routing-config-designer.md`. Given a workload profile (latency, cost, compliance), the skill picks LiteLLM / OpenRouter / Portkey and produces a routing config.
 
-## Exercises
+## Exercises | 练习题
 
 1. Run `code/main.py`. Trigger the outage scenario; confirm fallback lands on the second provider and cost is attributed correctly.
 
@@ -137,7 +139,7 @@ This lesson produces `outputs/skill-routing-config-designer.md`. Given a workloa
 
 5. Read LiteLLM, OpenRouter, and Portkey docs side by side. Name the one feature each ships that the other two do not.
 
-## Key Terms
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means | 中文 |
 |------|----------------|------------------------|------|
@@ -153,7 +155,7 @@ This lesson produces `outputs/skill-routing-config-designer.md`. Given a workloa
 | OpenRouter | "The managed SaaS" | Hosted gateway with credit-based billing | OpenRouter：托管 SaaS 路由 |
 | Portkey | "The production option" | Open-source + managed with guardrails built in | Portkey：生产级路由+护栏 |
 
-## Further Reading
+## Further Reading | 延伸阅读
 
 - [LiteLLM — docs](https://docs.litellm.ai/) — self-hosted routing gateway
 - [OpenRouter — quickstart](https://openrouter.ai/docs/quickstart) — managed routing SaaS
