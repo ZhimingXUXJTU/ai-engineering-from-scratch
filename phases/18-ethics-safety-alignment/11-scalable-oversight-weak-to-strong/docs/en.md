@@ -2,8 +2,9 @@
 
 > Burns et al. (OpenAI Superalignment, "Weak-to-Strong Generalization", 2023) proposed a proxy for the superalignment problem: fine-tune a strong model using labels produced by a weaker model. If the strong model generalizes correctly from imperfect weak supervision, current human-scale alignment methods may extend to superhuman systems. Scalable oversight and W2SG are complementary. Scalable oversight (debate, recursive reward modeling, task decomposition) increases the overseer's effective capability so it can keep up with the model under oversight. W2SG ensures the strong model generalizes correctly from whatever imperfect supervision the overseer provides. Debate Helps W2SG (arXiv:2501.13124, January 2025) combines them.
 
-> **【中文解读】** 本节介绍了可扩展监督——从弱到强的 AI 安全评估方法。
+> **【中文解读】** 本节介绍了可扩展监督——从弱到强的 AI 安全评估方法。Burns 等人（OpenAI 超级对齐, 2023）提出超级对齐问题的代理：用弱模型产生的标签微调强模型。如果强模型从完美弱监督中正确泛化，当前人类规模的对齐方法可能扩展到超人系统。
 
+> **【拓展：弱到强泛化 → 超级对齐路径】** PGR（Performance Gap Recovered）= (微调后-弱)/(上限-弱)。PGR 为 1.0 意味着弱监督完全弥合了差距；PGR 为 0 意味着弱监督没有帮助。Burns 等人发现 PGR 在 NLP、国际象棋谜题和奖励建模任务上一致为正（约 20%-80%），强模型利用预训练先验"理解"了意图任务，超越了弱监督者的错误。
 
 **Type:** Learn
 **Languages:** Python (stdlib, W2SG gap simulator)
@@ -24,6 +25,8 @@ Every alignment technique so far in Phase 18 assumes the overseer can evaluate t
 Burns et al. reduce this to an operationalized empirical setup: supervise strong with weak, measure how much of the strong model's capability survives the weak supervision. This is not a solution to superalignment — it is a proxy that lets us measure progress.
 
 ## The Concept | 概念
+
+> **【中文解读】** Burns 等人实验设置：弱模型 GPT-2 级别，强模型 GPT-4 级别，目标是强模型在金标签上的上限。流程：获取弱模型零样本预测 → 在弱标签上微调强模型 → 测量强微调模型准确率。差距指标 PGR = (微调后-弱)/(上限-弱)，1.0 = 弱监督完全弥合差距，0 = 弱监督没有帮助。
 
 ### W2SG: the Burns et al. setup
 
@@ -49,6 +52,8 @@ Limitations Burns et al. note:
 - The strong model's generalization may be more about task priors than about recovering ground-truth intent.
 - Eliciting the strong model's latent knowledge is the real problem; PGR measures a specific operationalization.
 
+> **【拓展：三种可扩展监督机制 → 辩论/递归奖励建模/任务分解】** 辩论（Irving 等人 2018）：两个 U 实例争论相反立场，弱评判者决定。递归奖励建模（Leike 等人 2018）：U 帮助人类训练 U+1 的奖励模型，监督者的有效能力随模型增长。任务分解（Christiano 等人 2018）：将硬任务分解为人类可检查的子任务，递归执行。每种机制都假设了关于任务结构或中间组件对齐的某些东西。
+
 ### Scalable oversight: three mechanisms
 
 - **Debate (Irving et al. 2018).** Two instances of U argue opposite sides; the weak judge decides. The assumption: finding a convincing true answer is easier than finding a convincing false answer. Recent 2024-2025 work (Khan et al., Michael et al.) shows debate sometimes helps and sometimes does not, and whether it helps depends on task structure.
@@ -64,6 +69,8 @@ W2SG closes the gap from whatever imperfect signal the overseer can provide.
 
 Lang et al. — Debate Helps Weak-to-Strong Generalization (arXiv:2501.13124) combines them: a debate protocol provides better weak labels, and the strong model is trained on those labels. Reported PGR gains on NLP tasks.
 
+> **【中文解读】** 组织戏剧：OpenAI 的超级对齐团队在 2024 年 5 月 Jan Leike 离职加入 Anthropic 后解散。但研究议程（可扩展监督、弱到强泛化、自动化对齐研究）在 Anthropic 和学术实验室继续——MATS（Lesson 28）、Redwood（Lesson 10）、Apollo（Lesson 8）、METR（Lesson 28）。组织结构变了，研究问题没变。
+
 ### The organizational drama
 
 OpenAI's Superalignment team dissolved in May 2024 after Jan Leike's departure to Anthropic. The agenda (scalable oversight, W2SG, automated alignment research) continued at Anthropic and at academic labs — MATS (Lesson 28), Redwood (Lesson 10), Apollo (Lesson 8), METR (Lesson 28). The organizational structure changed; the research questions did not.
@@ -71,6 +78,8 @@ OpenAI's Superalignment team dissolved in May 2024 after Jan Leike's departure t
 ### Where this fits in Phase 18
 
 Lessons 6-10 describe the threat and the defensive paradigm under the assumption U is untrustworthy. Lesson 11 is the offensive paradigm: make the overseer strong enough to verify U's alignment. Lessons 12-16 then turn to the practical tooling of adversarial evaluation.
+
+> **【拓展：辩论帮助弱到强泛化 → 2025 组合】** Lang 等人（arXiv:2501.13124, 2025 年 1 月）将可扩展监督和弱到强泛化结合：辩论协议提供更好的弱标签，强模型在这些标签上训练。报告在 NLP 任务上的 PGR 提升。这验证了两种方法是互补的——可扩展监督增加监督者的有效信号质量，弱到强泛化闭合从任何信号中恢复的差距。
 
 ## Use It | 使用方法
 

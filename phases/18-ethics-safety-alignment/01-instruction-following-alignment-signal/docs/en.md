@@ -32,6 +32,8 @@ Collect prompt-response pairs where the response is what a well-intentioned huma
 
 What SFT gives you: the model now answers questions instead of continuing them. What it does not give you: any signal about which answer the rater prefers when multiple are plausible.
 
+> **【中文解读】** SFT 阶段使模型从"补全文本"转向"回答问题"，但无法提供关于多个合理答案中哪个更好的信号。RM 阶段使用 Bradley-Terry 成对偏好损失 L_RM = -log sigmoid(r(x,y_w) - r(x,y_l)) 在标注者排序的补全对上训练奖励模型。RM 通常从 SFT 模型初始化并替换 LM 头为标量头，6B 就足以指导 175B 模型。
+
 ### Stage 2: reward model (RM)
 
 For each prompt, sample K completions from the SFT model. A labeler ranks them. Train a reward model that scores any prompt-response pair so that, for pairs where `y_w` was preferred over `y_l`:
@@ -43,6 +45,8 @@ L_RM = -log sigmoid(r(x, y_w) - r(x, y_l))
 This is the Bradley-Terry pairwise preference loss. The RM is usually initialized from the SFT model with the LM head replaced by a scalar head.
 
 Reward models are small: 6B was enough for the 175B InstructGPT. They are also fragile — section 5 of the paper is mostly about reward-hacking behaviours that showed up at small scale.
+
+> **【拓展：PPO 阶段 → RLHF 的核心工程】** PPO 阶段的目标函数 J(pi) = E[r(x,y)] - beta * KL(pi || pi_SFT) 最大化奖励同时保持策略接近 SFT。KL 系数 beta 是最重要的 RLHF 超参数——太低导致奖励黑客，太高则 SFT 上无改进。没有 KL 项，优化器找到的是 RM 从未见过的对抗样本——分数高不是因为人类真正偏好，而是因为 RM 从未评估过这些输入。
 
 ### Stage 3: PPO with a KL penalty
 
@@ -56,6 +60,8 @@ Maximize with PPO. The KL term keeps `pi` from drifting far from the SFT policy.
 
 The KL coefficient `beta` is the single most important RLHF hyperparameter. Too low: reward hacking. Too high: no improvement over SFT.
 
+> **【中文解读】** 对齐税：RLHF 后模型在人类偏好上更好但在标准基准（SQuAD, HellaSwag, DROP）上退步。Ouyang 等人称之为"对齐税"并用 PPO-ptx 修复——将预训练梯度混入 RL 目标，使模型不忘记从未被奖励过的下游任务。PPO-ptx 成为标准——Anthropic、DeepMind 和 Meta 都使用某种变体。
+
 ### The alignment tax
 
 After RLHF, the model is preferred by humans but regresses on standard benchmarks (SQuAD, HellaSwag, DROP). Ouyang et al. call this the alignment tax and fix it with PPO-ptx: mix pre-training gradients into the RL objective so the model does not forget how to do downstream tasks it was never rewarded for.
@@ -66,12 +72,16 @@ J_ptx(pi) = J(pi) + gamma * E_{x~D_pretrain} [ log pi(x) ]
 
 PPO-ptx became standard. Anthropic, DeepMind, and Meta all use some variant.
 
+> **【拓展：1.3B vs 175B → 对齐独立于能力】** 1.3B InstructGPT 在标注者偏好上约 70% 的时间胜过 175B GPT-3。差距在生产流量隐藏测试提示上更大。两个要点：（1）对齐是与能力不同的轴——175B 有更多能力，1.3B 有更多对齐，标注者偏好对齐的；（2）能力下限由基础模型设定——你不能 RLHF 一个基础模型使其知道它从未见过的事实。
+
 ### The result
 
 A 1.3B InstructGPT (SFT + RM + PPO-ptx) is preferred by labelers over the 175B base GPT-3 about 70% of the time. The gap widens on hidden-test prompts from production traffic. Two things to read off this number:
 
 1. Alignment is a different axis from capability. The 175B model had more capability; the 1.3B model had more alignment; labelers preferred the aligned one.
 2. The capability floor is set by the base model. You cannot RLHF a base model into knowing facts it never saw.
+
+> **【拓展：Phase 18 后续课程 → 每个都在攻击此管线】** 后续课程的每个批评都在攻击此管线的某个部分：奖励黑客（Lesson 2）攻击阶段 2，DPO（Lesson 3）合并阶段 2 和 3，CAI（Lesson 5）替换人类标注者，谄媚（Lesson 4）展示标注者是有偏信号，对齐伪装（Lesson 9）展示策略可以完全绕过阶段 3。如果不先在脑中有这个管线，就无法理解这些批评。
 
 ### Why this is the reference point for Phase 18
 

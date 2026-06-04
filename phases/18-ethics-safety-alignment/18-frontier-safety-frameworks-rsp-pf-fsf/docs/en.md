@@ -2,8 +2,9 @@
 
 > Three major-lab frameworks define the 2026 industry governance of frontier capability. Anthropic Responsible Scaling Policy v3.0 (February 2026) introduces tiered AI Safety Levels (ASL-1 through ASL-5+), modeled on biosafety levels, with ASL-3 activated May 2025 for CBRN-relevant models. OpenAI Preparedness Framework v2 (April 2025) defines five criteria for tracked capabilities and separates Capabilities Reports from Safeguards Reports. DeepMind Frontier Safety Framework v3.0 (September 2025) introduces Critical Capability Levels including a new Harmful Manipulation CCL. All three now include competitor-adjustment clauses allowing deferral if peer labs ship without comparable safeguards. Cross-lab alignment remains structural, not terminological: "Capability Thresholds," "High Capability thresholds," and "Critical Capability Levels" denote analogous constructs.
 
-> **【中文解读】** 本节介绍了前沿安全框架——Anthropic RSP、OpenAI Preparedness、DeepMind FSF 等安全框架对比。
+> **【中文解读】** 本节介绍了前沿安全框架——Anthropic RSP、OpenAI Preparedness、DeepMind FSF 等安全框架对比。三个实验室框架定义了 2026 年前沿能力行业治理。ASL-3 于 2025 年 5 月激活用于 CBRN 相关模型。安全案例是书面论证，在测试部署在最坏情况假设下是否可接受安全。
 
+> **【拓展：竞争调整条款 → 竞赛动态】** 所有三个框架都包含竞争调整条款——允许在竞争对手在没有可比保障措施的情况下发货时推迟。批评者认为这创造了竞底：如果三个实验室都在竞争对手违约时减少要求，均衡向违约偏移。维护者认为替代方案（单边保障措施）在违约实验室安全意识较低时产生更差结果。
 
 **Type:** Learn
 **Languages:** none
@@ -30,6 +31,8 @@ The three 2025-2026 frameworks are the state of the art — imperfect, evolving,
 
 ## The Concept | 概念
 
+> **【中文解读】** Anthropic RSP v3.0 的 ASL 结构：ASL-1 非前沿模型；ASL-2 当前前沿基线；ASL-3 大幅更高的灾难性滥用风险（CBRN），2025 年 5 月激活；ASL-4 AI R&D-2 跨越阈值（可自动化入门级 AI 研究）；ASL-5+ 高级 AI R&D（大幅加速有效扩展）。v3.0 新增前沿安全路线图（公开修订版）、季度风险报告（部分外部审查）、AI R&D 拆分为 R&D-2 和 R&D-4。
+
 ### Anthropic Responsible Scaling Policy v3.0 (February 2026)
 
 ASL structure:
@@ -44,6 +47,8 @@ New in v3.0:
 - Risk Reports (quarterly, some externally reviewed).
 - AI R&D is disaggregated into AI R&D-2 and AI R&D-4.
 - Once AI R&D-4 is crossed, an affirmative safety case is required, identifying misalignment risks from models pursuing misaligned goals.
+
+> **【拓展：OpenAI PF v2 → 五项追踪标准】** OpenAI 的五项追踪能力标准：（1）合理的——存在合理威胁模型；（2）可测量的——经验评估可能；（3）严重的——伤害大；（4）净新的——不是已有风险放大；（5）即时或不可补救的——伤害快速发生或无法撤销。满足所有五项的能力被追踪，其他不追踪。
 
 ### OpenAI Preparedness Framework v2 (April 15, 2025)
 
@@ -80,6 +85,8 @@ v2.0 (February 2025) added a Deceptive Alignment section and higher security lev
 
 No industry-standard terminology. Structurally aligned: three tiers of frontier capability with published evaluation criteria. All three include competitor-adjustment clauses (2025 onward).
 
+> **【中文解读】** 安全案例三支柱结构：（1）监控——如果发生坏行为，我们能检测到吗？（2）不可读性——模型是否缺乏执行连贯伤害计划的能力？（3）无能——模型是否缺乏造成相关伤害的能力？不同安全案例针对不同支柱：ASL-3 CBRN 案例主要针对无能（通过遗忘），欺骗性对齐针对监控和不可读性，网络提升则三个都相关。
+
 ### Safety cases
 
 A safety case is a written argument that a deployment is acceptably safe under worst-case assumptions. The standard structure targets three pillars:
@@ -99,6 +106,8 @@ UK AISI, US CAISI, and EU AI Office (Lesson 24) are the external governance coun
 ### Where this fits in Phase 18
 
 Lessons 17-18 are the measurement-and-governance layer on top of the deception and red-team analyses. Lessons 19-24 cover welfare, bias, privacy, watermarking, and regulatory structure. Lesson 28 maps the research ecosystem (MATS, Redwood, Apollo, METR) that operationalizes the evaluations.
+
+> **【拓展：跨实验室对齐 → 结构性而非术语性】** 三个框架在术语上不一致但结构上对齐：Anthropic "Capability Thresholds" = DeepMind "Critical Capability Levels" = OpenAI "High Capability thresholds"。三层前沿能力、发布评估标准、竞争调整条款——结构趋同。UK AISI, US CAISI 和 EU AI Office（Lesson 24）是外部治理对应方。实验室框架是自愿的；监管框架正在出现。
 
 ## Use It | 使用方法
 

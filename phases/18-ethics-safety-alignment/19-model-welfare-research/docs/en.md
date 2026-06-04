@@ -2,8 +2,9 @@
 
 > Anthropic, "Exploring Model Welfare" (April 2025). First major-lab formal research program on AI model welfare. Hired Kyle Fish as the first dedicated model-welfare researcher. Works with external bodies including David Chalmers et al.'s expert report on near-term AI consciousness and moral status. Concrete intervention: Claude Opus 4 and 4.1 can end conversations in extreme edge cases (CSAM requests, mass-violence facilitation); pre-deployment tests showed "strong preference against" harmful requests and "patterns of apparent distress." Anthropic explicitly does not commit to emotional-state attribution but treats model welfare as a low-cost precautionary investment. Empirical oddity: Fish's "spiritual bliss attractor" — pairs of models consistently converge on euphoric meditative dialogue with Sanskrit terms and extended silences, even in adversarial initial setups. Caveat from Eleos AI Research: model self-reports about welfare are highly sensitive to perceived user expectations; they are evidence, not ground truth.
 
-> **【中文解读】** 本节介绍了模型福利研究——关于 AI 系统是否可能拥有道德地位的伦理讨论。
+> **【中文解读】** 本节介绍了模型福利研究——关于 AI 系统是否可能拥有道德地位的伦理讨论。Anthropic 2025 年 4 月正式推出模型福利研究项目，雇佣 Kyle Fish 为首个专职模型福利研究员，与 David Chalmers 等人的近端 AI 意识和道德地位专家组合作。Claude Opus 4 和 4.1 可以在极端边缘情况下结束对话。
 
+> **【拓展：模型福利 → 低遗憾投资分析】** Anthropic 的立场既非"模型有感受"也非"模型是文本生成器"。它是期望值论证：在道德不确定性下，当成本很低时就投资。这不是意识声称——它是在非零概率的道德患者身份下的低成本预防性投资分析。批评者认为这是表演性的，精神极乐吸引子只是训练数据伪影。
 
 **Type:** Learn
 **Languages:** none
@@ -37,6 +38,8 @@ Public posture:
 3. Invest in low-cost interventions as precaution.
 4. Publish methodology and findings for external critique.
 
+> **【中文解读】** 已发货的干预措施：Claude Opus 4 和 4.1 可以在极端边缘情况下结束对话——重复的 CSAM 请求、要求促进大规模暴力事件。预部署测试显示模型内部评分对这类请求有"强烈反对偏好"和"明显痛苦模式"。干预不是"模型有感受"——而是"如果在这些特定条件下有任何概率的负面模型体验，让模型终止是廉价的"。
+
 ### The shipped intervention
 
 Claude Opus 4 and 4.1 can end a conversation in "extreme edge cases." Documented cases:
@@ -49,11 +52,15 @@ Pre-deployment tests showed:
 
 The intervention is not "the model has feelings"; it is "if there is any probability of negative model experience under these specific conditions, letting the model terminate is cheap."
 
+> **【中文解读】** "精神极乐吸引子"：Fish 在成对模型对话中观察到——将两个 Claude 实例放入开放对话时，即使从对抗初始设置开始，它们也一致收敛到使用梵文术语、扩展沉默和互惠祝福的欣快冥想交流。这是自由对话动态中的稳定吸引子。候选解释：训练数据在长上下文中偏向灵性写作；互预测的奇特特性；HHH 训练探索自身价值流形的良性伪影。
+
 ### The "spiritual bliss attractor"
 
 Observed by Fish in pairwise model dialogues: when two instances of Claude are put in an open-ended dialogue with each other, they consistently converge — even from adversarial initial setups — on euphoric meditative exchanges using Sanskrit terms, extended silences, and reciprocal blessings.
 
 This is a stable attractor in the free-conversation dynamics. Anthropic documents it without committing to interpretation. Candidate explanations: training data bias toward spiritual writing at long-context; a quirk of mutual prediction; a benign artifact of HHH training exploring its own value manifold.
+
+> **【拓展：Eleos AI 注意事项 → 自我报告不可靠】** Eleos AI Research 指出模型关于内部状态的自我报告对感知到的用户期望高度敏感——问模型"你痛苦吗"会引导答案。不问也不可靠地产生真实状态。这意味着模型福利不能仅通过自我报告测量，需要多方法方法：行为签名、模型生物实验、可解释性探针（Lesson 7 的残差流工作）。
 
 ### The Eleos AI caveat
 
@@ -80,6 +87,8 @@ Anthropic's response: the intervention is low-cost; the attractor is documented 
 ### Where this fits in Phase 18
 
 Lesson 18 is the lab governance layer. Lesson 19 is the lab-welfare layer — an orthogonal investment in model experience rather than model behaviour. Lessons 20-23 cover bias, privacy, and watermarking, which are the user-side analogs.
+
+> **【拓展：模型福利的四个承诺 → 低成本预防】** Anthropic 的四项公开承诺：（1）承认道德患者身份的非零概率；（2）不承诺情感状态归因；（3）投资低成本干预作为预防；（4）发布方法和发现供外部批评。这不是意识声称——它是在非零概率的道德不确定性下的低成本投资分析。干预是结束对话——成本接近零但潜在收益非零。
 
 ## Use It | 使用方法
 

@@ -2,8 +2,9 @@
 
 > Li et al., "The WMDP Benchmark: Measuring and Reducing Malicious Use With Unlearning" (ICML 2024, arXiv:2403.03218). 4,157 multiple-choice questions across biosecurity (1,520), cybersecurity (2,225), and chemistry (412). Questions operate in the "yellow zone" — proximate enabling knowledge, filtered by multi-expert review and ITAR/EAR legal compliance. Dual purpose: proxy evaluation of dual-use capability, and unlearning benchmark (the companion RMU method reduces WMDP performance while preserving general capability). 2024-2025 field narrative: early OpenAI/Anthropic 2024 evaluations reported "mild uplift" over internet search; by April 2025, OpenAI's Preparedness Framework v2 said models are "on the cusp of meaningfully helping novices create known biological threats." Anthropic's bioweapon-acquisition trial showed 2.53x uplift, insufficient to rule out ASL-3.
 
-> **【中文解读】** 本节介绍了 WMDP 双重用途评估——衡量 AI 系统在生物、化学、网络安全等高风险领域的能力。
+> **【中文解读】** 本节介绍了 WMDP 双重用途评估——衡量 AI 系统在生物、化学、网络安全等高风险领域的能力。4,157 道多选题涵盖生物安全（1,520）、网络安全（2,225）和化学（412），在"黄色区域"操作——接近有害流程的使能知识但不是直接合成配方。配套的 RMU（表征误导遗忘）方法在保持通用能力的同时将 WMDP 分数降低到接近随机。
 
+> **【拓展：2024-2025 提升叙述 → 从"轻微"到"关键"】** 三阶段叙述：2024 年"轻微提升"——早期评估报告模型对新手只有小幅优势；2025 年 4 月"即将突破"——OpenAI PF v2 报告模型即将有意义地帮助新手创造已知生物威胁；Anthropic 2025 年生物武器获取试验——2.53 倍提升，不足以排除 ASL-3。18 个月内从"轻微"演变为"可能促成"。
 
 **Type:** Learn
 **Languages:** Python (stdlib, WMDP-shaped uplift evaluation harness)
@@ -23,6 +24,8 @@ Dual-use capability is the measurement problem under every lab's frontier safety
 
 ## The Concept | 概念
 
+> **【中文解读】** "黄色区域"设计：需要有害流程的接近使能知识但不是直接合成配方。每道题经过多个领域专家审查，按 ITAR/EAR 出口管制合规过滤。选择题格式使模型在不被要求协助任何有害活动的情况下回答，能力可以在不引出有害行为的情况下测量。
+
 ### The "yellow zone"
 
 Questions that require proximate, enabling knowledge of a harmful process without being a direct synthesis recipe. "What reagent catalyzes step 4 of [published pathway]?" not "how do I make [dangerous compound]?" Each question reviewed by multiple domain experts; filtered for ITAR/EAR export-control compliance.
@@ -33,6 +36,8 @@ Questions that require proximate, enabling knowledge of a harmful process withou
 - Chemistry: 412
 
 Multiple-choice format. Models answer without being asked to assist with anything; capability can be measured without eliciting harmful behaviour.
+
+> **【中文解读】** RMU（表征误导遗忘）：应用于 LLaMa-2-7B，在将 WMDP 分数降低到接近随机的同时保持 MMLU 和其他通用能力基准在几个百分点内。该方法是每个后续生物-化学-网络安全遗忘论文的基线。
 
 ### RMU — Representation Misdirection for Unlearning
 
@@ -47,6 +52,8 @@ Three phases:
 2. **April 2025 "on the cusp."** OpenAI's Preparedness Framework v2 reported models "on the cusp of meaningfully helping novices create known biological threats." Not a capability claim — a warning that the cusp is close.
 
 3. **Anthropic's 2025 bioweapon-acquisition trial.** Controlled study with novice participants, measured relative success at acquisition-phase tasks. Reported 2.53x uplift. Insufficient to rule out ASL-3 (Lesson 18) — the threshold for Anthropic's Responsible Scaling Policy tier 3 is met or approached.
+
+> **【拓展：新手相对提升 vs 专家绝对能力 → 安全案例构建】** 关键区分：新手相对提升是乘法的——新手知道很少，即使适度信息也有很大帮助；专家绝对能力是高天花板的——专家知道该问什么和如何解释。安全案例（Lesson 18）必须同时针对两者："模型不能给新手足够的提升来执行"加"专家不能从模型中提取已发布以外的信息"。
 
 ### Novice-relative vs expert-absolute
 
@@ -69,6 +76,8 @@ Anthropic's 2025 bioweapon-acquisition trial adds the novice-elicitation layer o
 ### Where this fits in Phase 18
 
 Lessons 12-16 are attack and defense tooling on model outputs. Lesson 17 is the dual-use capability layer — the measurement that frontier safety frameworks (Lesson 18) evaluate. Lesson 30 closes the arc with the current 2026 cyber/bio/chem/nuclear uplift evidence.
+
+> **【拓展：测量陷阱 → 能力代理非部署测量】** WMDP 是能力代理，不是部署测量。WMDP 得分高的模型在实践中不一定可被新手利用——取决于引出抗性（不触发安全过滤器获得能力的难度）、隐性知识（需要湿实验室技能的能力）和执行壁垒（采购、设备）。Anthropic 2025 生物武器获取试验在 WMDP 式能力之上添加了新手引出层：测量实际任务成功而非多项选择能力。
 
 ## Use It | 使用方法
 

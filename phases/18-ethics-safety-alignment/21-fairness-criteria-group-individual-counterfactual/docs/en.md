@@ -2,8 +2,9 @@
 
 > Three families structure the fairness literature. Group fairness: demographic parity, equalized odds, conditional use accuracy equality — equal rates across protected groups on average. Individual fairness (Dwork et al. 2012): similar individuals receive similar decisions; Lipschitz condition on the decision map. Counterfactual fairness (Kusner et al. 2017): a decision is fair to an individual if it is unchanged when sensitive attributes are counterfactually altered. 2024 theoretical result (NeurIPS 2024): there is an inherent CF-vs-accuracy trade-off; a model-agnostic method converts an optimal-but-unfair predictor into a CF one with bounded accuracy loss. Backtracking counterfactuals (arXiv:2401.13935, January 2024): new paradigm that avoids requiring interventions on legally protected attributes. Philosophical reconciliation (ICLR Blogposts 2024): with causal graphs, satisfying certain group fairness measures entails counterfactual fairness.
 
-> **【中文解读】** 本节介绍了公平性准则——群体公平、个体公平和反事实公平的定义和度量。
+> **【中文解读】** 本节介绍了公平性准则——群体公平、个体公平和反事实公平的定义和度量。三个家族给出结构不同的标准——一个模型可以群体公平但个体不公平，反事实公平但群体不公平。选择标准是政策决定，没有标准是普遍最优的。
 
+> **【拓展：不可能定理 → 公平性冲突】** Chouldechova / Kleinberg-Mullainathan-Raghavan（2017）不可能定理：人口平权、均等化赔率和条件使用准确率均等在不平等基础率下不能同时满足。这是一个数学结果，不是工程限制——任何涉及不平等群体的系统都必须选择牺牲哪个公平标准。
 
 **Type:** Learn
 **Languages:** Python (stdlib, three-criteria comparison)
@@ -23,6 +24,8 @@ Lesson 20 was about measuring bias. Lesson 21 is about defining the fairness sta
 
 ## The Concept | 概念
 
+> **【中文解读】** 群体公平三大标准：人口平权——P(Y=1|A=a) = P(Y=1|A=a')，各组接受率相等；均等化赔率——P(Y=1|Y*=y,A=a) = P(Y=1|Y*=y,A=a')，各组真阳性率和假阳性率相等；条件使用准确率均等——P(Y*=y|Y=y,A=a) = P(Y*=y|Y=y,A=a')，各组预测值相等。
+
 ### Group fairness
 
 - **Demographic parity.** P(Y=1 | A=a) = P(Y=1 | A=a') for all groups. Equal acceptance rates.
@@ -36,6 +39,8 @@ Impossibility (Chouldechova, Kleinberg-Mullainathan-Raghavan 2017): these three 
 Dwork et al. 2012. A decision map f is individually fair with respect to a task-specific similarity metric d if |f(x) - f(x')| <= L * d(x, x') for some Lipschitz constant L. Similar individuals get similar decisions.
 
 Requires defining d. Policy question, not statistical.
+
+> **【拓展：反事实公平 → 因果图依赖】** Kusner 等人（2017）的反事实公平：在因果模型下，如果将个体敏感属性反事实改变后决策不变，则该决策对该个体是公平的。这需要因果 DAG——DAG 是建模选择，反事实公平的合理性取决于 DAG 的合理性。2024 年的回溯反事实（arXiv:2401.13935）避免了在法律保护属性上进行干预的困境——不是从属性干预，而是从结果反向推理。
 
 ### Counterfactual fairness
 
@@ -53,6 +58,8 @@ arXiv:2401.13935 (January 2024). Traditional counterfactuals require interventio
 
 Backtracking counterfactuals flip the direction: instead of intervening on the attribute, ask what combination of the individual's actual features would have produced the counterfactual outcome. This sidesteps the legal objection.
 
+> **【中文解读】** 哲学调和（ICLR Blogposts 2024）：有了因果图后，满足某些群体公平度量就蕴含了反事实公平。三个家族不是正交的，而是相同底层因果结构的不同面向。这没有解决不可能定理（不平等基础率仍阻止同时的群体公平），但表明"群体"和"个体/反事实"之间的表面对立部分是因为没有明确因果模型造成的假象。
+
 ### Philosophical reconciliation
 
 ICLR Blogposts 2024. With a causal graph in hand, satisfying certain group-fairness measures entails counterfactual fairness. The three families are not orthogonal; they are different facets of the same underlying causal structure.
@@ -62,6 +69,8 @@ This does not resolve the impossibility theorems (unequal base rates still preve
 ### Where this fits in Phase 18
 
 Lesson 20 is bias measurement. Lesson 21 is fairness definition. Lesson 22 is privacy (differential privacy). Lesson 23 is watermarking. These are the allocation-adjacent lessons complementing the deception-adjacent Lessons 7-11.
+
+> **【拓展：CF vs 准确性权衡 → 实际影响】** NeurIPS 2024 理论结果：反事实公平和预测准确性之间存在固有权衡。模型不可知论方法可以将最优但不公平的预测器转换为 CF 公平的，但准确度损失有界取决于不公平预测器中敏感属性系数的大小。这意味着选择公平标准有实际代价——更多公平意味着更少预测准确。
 
 ## Use It | 使用方法
 

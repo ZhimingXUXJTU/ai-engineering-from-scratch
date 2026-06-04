@@ -2,8 +2,9 @@
 
 > Rafailov et al. (2023) showed RLHF's optimum has a closed form in terms of the preference data, so you can skip the explicit reward model and optimize the policy directly. That insight spawned a family — IPO, KTO, SimPO, ORPO, BPO — each fixing a failure mode of DPO. In 2026, direct alignment algorithms ship more frontier post-training runs than PPO. But the over-optimization curve from Lesson 2 still applies: DAAs do not escape Goodhart, they just move where it bites.
 
-> **【中文解读】** 本节介绍了直接偏好优化（DPO）家族——绕过奖励模型直接从偏好数据训练的 RLHF 替代方案。
+> **【中文解读】** 本节介绍了直接偏好优化（DPO）家族——绕过奖励模型直接从偏好数据训练的 RLHF 替代方案。Rafailov 等人（2023）证明 RLHF 最优解有关于偏好数据的闭式表达，因此可以跳过显式奖励模型。这个洞察催生了一个家族——IPO、KTO、SimPO、ORPO、BPO——每个都在修复 DPO 的某个失败模式。
 
+> **【拓展：DPO 家族 → 现代 AI 训练】** 2026 年，直接对齐算法（DAA）比 PPO 在更多前沿后训练中部署。但 Lesson 2 的过度优化曲线仍然适用——DPO 并未逃脱古德哈特定律，只是改变了它攻击的表面。从"奖励模型过度优化"变成"参考策略比率过度优化"。
 
 **Type:** Learn
 **Languages:** Python (stdlib, six-variant preference-loss comparator)
@@ -43,6 +44,8 @@ The wrinkle: the derivation assumes the optimum is reachable, the preference dat
 
 ## The Concept | 概念
 
+> **【中文解读】** DPO 的推导：RLHF 目标有已知最优解 pi*(y|x) = (1/Z(x)) * pi_ref(y|x) * exp(r(x,y)/beta)。将奖励表示为最优策略与参考策略比率的对数，代入 Bradley-Terry 偏好似然，配分函数 Z(x) 因只依赖 x 而抵消——剩下的是纯策略参数的损失函数，无需奖励模型。但推导假设最优可达、偏好数据分布内、参考策略是真正锚点——这些假设在实践中都不完全成立。
+
 ### DPO (Rafailov et al., 2023)
 
 ```
@@ -58,6 +61,8 @@ What can go wrong:
 - The loss drives chosen and rejected log-probs in opposite directions. It can push the chosen absolute log-prob down as long as the rejected falls faster. This is the Degraded Chosen Response phenomenon.
 - Out-of-distribution preferences (rare rare pair vs rare rare pair) produce arbitrary implicit rewards.
 
+> **【拓展：IPO → DPO 的边界控制】** IPO（Identity Preference Optimization）用恒等映射替换 log-sigmoid，偏好差距被 1/(2*beta) 封顶。这解决了 DPO 的核心问题：微小偏好差异可能产生任意大的隐式奖励差距。在偏好强度变化很大的数据集上，IPO 比 DPO 更稳定。
+
 ### IPO (Azar et al., 2024)
 
 Identity Preference Optimization replaces the log-sigmoid with an identity mapping on the preference probability. The loss becomes a squared-error on a bounded target:
@@ -68,6 +73,8 @@ L_IPO = (log(pi(y_w | x) / pi_ref(y_w | x)) - log(pi(y_l | x) / pi_ref(y_l | x))
 
 The margin is bounded by `1/(2 beta)`. Preference strength and implicit-reward gap are proportional. No blow-up.
 
+> **【拓展：KTO → 无配对数据训练】** KTO（Kahneman-Tversky Optimization）的关键创新是完全放弃配对结构，只需要单个标记为"理想"或"不理想"的输出。这大大扩展了可用训练数据的范围——二进制反馈信号（点赞/踩）比成对偏好排序更容易获取。KTO 利用前景理论的损失厌恶原理，对"不理想"输出给予更大惩罚。
+
 ### KTO (Ethayarajh et al., 2024)
 
 Kahneman-Tversky Optimization drops pairwise structure entirely. Given a single labeled output and a binary "desirable" or "undesirable" signal, it maps to a prospect-theory utility:
@@ -77,6 +84,8 @@ v(x, y) = sigma(beta * log(pi(y|x) / pi_ref(y|x)) - z_ref)
 ```
 
 with different weights for gains and losses (loss aversion). Benefit: you can use unpaired data, which is far more plentiful.
+
+> **【中文解读】** SimPO 移除了参考策略，用长度归一化的对数似然替代，加上边际 gamma 稳定训练。这直接解决了 DPO 的长度偏见失败模式——更长的 y_w 构造性地产生更大的对数概率差距。ORPO 更激进：将偏好项加到标准 SFT 的 NLL 损失上，单阶段从基础模型训练到对齐模型。BPO 则识别了"退化选择响应"问题——DPO 保留 y_w > y_l 排序但 y_w 的绝对对数概率可以下降。
 
 ### SimPO (Meng et al., 2024)
 
@@ -107,11 +116,15 @@ No reference policy — the SFT term is the regularizer. Train in a single stage
 
 Identifies the Degraded Chosen Responses problem: DPO preserves the ranking `y_w > y_l` but the absolute log-prob of `y_w` can drop. BPO adds a single-line correction that penalizes downward moves on the chosen response. Reported +10.1% accuracy on Llama-3.1-8B-Instruct on math reasoning over DPO.
 
+> **【拓展：DAA 过度优化 → 通用防御】** Rafailov 等人（NeurIPS 2024）在多个数据集和 KL 预算上训练 DPO、IPO、SLiC 策略。真实奖励与 KL 的曲线呈现出与 Gao 等人相同的先升后降形状。DAA 的隐式奖励在训练期间查询分布外样本，KL 正则化无法稳定这一点。通用修复——更好的数据、集成、早停——对 PPO 和 DPO 家族同样适用。
+
 ### The universal result: DAAs still over-optimize
 
 Rafailov et al. "Scaling Laws for Reward Model Overoptimization in Direct Alignment Algorithms" (NeurIPS 2024) trained policies with DPO, IPO, SLiC on multiple datasets across KL budgets. The gold-reward-vs-KL curves have the same Gao et al. peak-and-collapse shape. The implicit reward queries out-of-distribution samples during training; KL regularization does not stabilize this.
 
 DAAs do not escape Goodhart. They change the surface where it bites from "reward model over-optimized" to "reference policy ratio over-optimized." The universal fix — better data, ensembles, early stopping — applies to both.
+
+> **【中文解读】** 2026 年的方法选择指南：有大量配对偏好数据 → DPO（保守 beta）或 SimPO（如有长度偏见）；有非配对二元反馈 → KTO；想要单阶段管线 → ORPO；DPO 日志显示选择概率下降 → BPO；偏好强度变化大且 DPO 饱和 → IPO。每个实验室在所有方法上跑完再按任务选优——数学推理和安全的最优方法可能不同。
 
 ### Choosing among them (2026)
 
@@ -122,6 +135,8 @@ DAAs do not escape Goodhart. They change the surface where it bites from "reward
 - If preference strengths vary widely and DPO is saturating: IPO.
 
 Every lab runs all five on a battery and picks the winner per task. There is no reason the optimum is the same for math reasoning and safety.
+
+> **【拓展：DPO 家族实践 → 方法选择】** 2026 年每个前沿实验室在所有方法上跑完再按任务选优。没有理由认为数学推理和安全的最优方法是同一个。该 lesson 的 code/main.py 在偏好强度变化的玩具数据集上比较六种损失，绘制每种方法的最终胜率、选择概率漂移和隐式奖励分布。
 
 ## Use It | 使用方法
 

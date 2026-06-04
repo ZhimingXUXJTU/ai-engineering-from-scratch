@@ -2,8 +2,9 @@
 
 > Three technologies structure 2026 AI-generated-content provenance. SynthID (Google DeepMind) — image watermarking launched August 2023, text+video May 2024 (Gemini + Veo), text open-sourced October 2024 via Responsible GenAI Toolkit, unified multi-media detector November 2025 alongside Gemini 3 Pro. Text watermarking adjusts next-token sampling probabilities imperceptibly; image/video watermarks survive compression, cropping, filters, frame-rate changes. Stable Signature (Fernandez et al., ICCV 2023, arXiv:2303.15435) — fine-tunes the latent diffusion decoder so every output contains a fixed message; cropped (10% of content) generated images detected >90% at FPR<1e-6. Follow-up "Stable Signature is Unstable" (arXiv:2405.07145, May 2024) — fine-tuning removes the watermark while preserving quality. C2PA — cryptographically signed, tamper-evident metadata standard (C2PA 2.2 Explainer 2025). Watermarking and C2PA are complementary: metadata can be stripped but carries richer provenance; watermarks persist through transcoding but carry less information.
 
-> **【中文解读】** 本节介绍了 AI 水印技术——SynthID、C2PA 等标识 AI 生成内容的方法。
+> **【中文解读】** 本节介绍了 AI 水印技术——SynthID、C2PA 等标识 AI 生成内容的方法。SynthID（Google DeepMind）调整 next-token 采样概率使生成包含更多"绿色"令牌——不可察觉但可检测。Stable Signature 微调潜在扩散解码器使每个输出包含固定二进制消息。C2PA 是加密签名、防篡改的元数据标准。
 
+> **【拓展：水印 → Deepfake 检测】** 水印是 Deepfake 检测的核心技术路径。SynthID 的跨模态检测器（2025 年 11 月）可以从文本、图像、音频和视频中读取信号。但局限性明显：模型特定（无 SynthID 信号不等于真实）、不抗释义（文本水印在改写后消失）、微调可移除（"Stable Signature is Unstable"证明）。与 C2PA 元数据互补——元数据可剥离但信息丰富，水印持久但信息有限。
 
 **Type:** Build
 **Languages:** Python (stdlib, token-watermark embed + detect)
@@ -23,6 +24,8 @@
 
 ## The Concept | 概念
 
+> **【中文解读】** 文本水印机制（Kirchenbauer 等人 2023，由 Google 产品化）：每个解码步骤将前 K 个令牌哈希产生词汇表的伪随机"绿色"和"红色"分区，向绿色 logits 添加 delta 偏置采样。生成包含比随机更多的绿色令牌。检测：重新哈希每个前缀，计数生成中的绿色令牌，计算 z 分数。水印文本 z > 0，人类文本 z ~ 0。
+
 ### Text watermarking (SynthID-text style)
 
 The Kirchenbauer et al. 2023 mechanism, productionized by Google:
@@ -40,6 +43,8 @@ Properties:
 
 SynthID-text is open-sourced October 2024 via Google's Responsible GenAI Toolkit.
 
+> **【中文解读】** Stable Signature（Fernandez 等人, ICCV 2023）微调潜在扩散解码器使每个生成图像包含固定二进制消息。裁剪到原始内容 10% 的图像在 FPR<1e-6 下检测率 >90%。但 2024 年 5 月"Stable Signature is Unstable"证明微调解码器可以在保持图像质量的同时移除水印——对抗性生成后微调成本低。
+
 ### Stable Signature (image)
 
 Fernandez et al. ICCV 2023. Fine-tune the latent diffusion decoder so every generated image contains a fixed binary message embedded in the latent representation. Detection is decoded from the latent with a neural decoder. Cropped (to 10% of content) images detected >90% at FPR<1e-6.
@@ -49,6 +54,8 @@ May 2024 "Stable Signature is Unstable" (arXiv:2405.07145): fine-tuning the deco
 ### SynthID unified detector (November 2025)
 
 Alongside Gemini 3 Pro: a multi-media detector that reads SynthID signals from text, image, audio, and video in one API. Unifies the Google provenance stack.
+
+> **【拓展：C2PA + 水印互补 → EU AI Act Article 50】** C2PA 和水印互补：元数据可剥离但携带丰富来源链；水印通过转码持久但只携带少量比特。Google 在搜索、广告和"关于此图片"中集成两者。EU AI Act Article 50 的透明度代码要求 AI 生成内容标签（包括 Deepfake），这是需要 Lesson 23 水印技术的监管层。
 
 ### C2PA
 
@@ -60,6 +67,8 @@ Complementary to watermarking:
 - C2PA depends on platform adoption; watermarks embed automatically.
 
 Google integrates both in Search, Ads, and "About this image."
+
+> **【拓展：水印局限性 → 模型特定信号问题】** 关键局限性：SynthID 水印仅来自启用 SynthID 的模型。"无 SynthID 信号"不等于真实性证明——未启用 SynthID 的模型生成的任何内容都不会有水印。此外，arXiv:2508.20228（2025）展示了意义保持攻击可以同时破坏文本水印和多种图像水印。
 
 ### Limitations
 

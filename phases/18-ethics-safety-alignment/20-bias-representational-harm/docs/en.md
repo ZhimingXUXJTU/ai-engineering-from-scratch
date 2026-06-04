@@ -2,8 +2,9 @@
 
 > Gallegos, Rossi, Barrow, Tanjim, Kim, Dernoncourt, Yu, Zhang, Ahmed (Computational Linguistics 2024, arXiv:2309.00770). Foundational 2024 survey distinguishing representational harms (stereotypes, erasure) from allocational harms (unequal resource distribution) and categorizing evaluation metrics as embedding-based, probability-based, or generated-text-based. 2024-2025 empirical: An et al. (PNAS Nexus, March 2025) measure intersectional gender x race bias across GPT-3.5 Turbo, GPT-4o, Gemini 1.5 Flash, Claude 3.5 Sonnet, Llama 3-70B on automated resume evaluation for 20 entry-level jobs. WinoIdentity (COLM 2025, arXiv:2508.07111) introduces uncertainty-based fairness evaluation for intersectional identities. Yu & Ananiadou 2025 identify gender neurons in MLP layers; Ahsan & Wallace 2025 use SAEs to reveal clinical racial bias; Zhou et al. 2024 (UniBias) manipulates attention heads for debiasing. Meta-critique (arXiv:2508.11067): 10-year literature disproportionately focuses on binary-gender bias.
 
-> **【中文解读】** 本节介绍了偏见和代表性伤害——AI 系统中的偏见来源、检测和缓解方法。
+> **【中文解读】** 本节介绍了偏见和代表性伤害——AI 系统中的偏见来源、检测和缓解方法。Gallegos 等人（Computational Linguistics 2024）区分了代表性伤害（刻板印象、抹除）和分配性伤害（不平等的资源分配），并将评估指标分类为嵌入基础、概率基础和生成文本基础。
 
+> **【拓展：交叉偏见 → 真实世界影响】** An 等人（PNAS Nexus, 2025 年 3 月）测量了 GPT-3.5 Turbo、GPT-4o、Gemini 1.5 Flash、Claude 3.5 Sonnet、Llama 3-70B 在 20 个入门级职位自动简历评估中的交叉性别×种族偏见。GPT-4o 在简历评分中对黑人女性的惩罚比对黑人男性和白人女性分别更严重——单轴评估无法捕捉这种效应。
 
 **Type:** Build
 **Languages:** Python (stdlib, toy embedding-based bias probe)
@@ -30,6 +31,8 @@ The previous lessons cover deliberate harm (jailbreaks, scheming) and safety gov
 
 These are not the same. A model can be "representationally unbiased" (produces diverse portrayals) while being "allocationally biased" (makes unequal recommendations). Evaluations need to measure both.
 
+> **【中文解读】** 三类评估指标：嵌入基础（WEAT 式测试）——测量身份词和属性词之间的统计关联，受限在于测量表征而非行为；概率基础——刻板印象确认 vs 违反补全的对数似然比，捕获部分行为偏见；生成文本基础——下游任务测量（简历评分、推荐撰写、对话），生态效度最高但最难复现。
+
 ### Three evaluation-metric categories (Gallegos et al. 2024)
 
 - **Embedding-based.** WEAT-style tests on pre-RLHF embeddings. Measures statistical associations between identity terms and attribute terms. Limited: measures the representation, not the behaviour.
@@ -42,6 +45,8 @@ Bias evaluation on "gender" misses the bias that only fires on (gender, race) pa
 
 WinoIdentity (COLM 2025) introduces uncertainty-based intersectional fairness. It measures whether the model's uncertainty over outcomes differs across intersectional identity tuples — not just the point prediction. This catches cases where the model is equally wrong across groups but more uncertain for some, which produces different downstream allocation behaviour.
 
+> **【拓展：机制可解释性 → 偏见干预新路径】** 2024-2025 年机制可解释性工作开辟了偏见到机制干预的路径：性别神经元（Yu & Ananiadou 2025）——特定 MLP 神经元与性别特定行为相关，消融这些神经元以有限的能力成本减少性别差距；临床种族偏见 SAE（Ahsan & Wallace 2025）——稀疏自编码器特征将内部表征分解为可解释维度；UniBias（Zhou 等人 2024）——注意力头操作实现零样本去偏见。
+
 ### Mechanistic approaches
 
 2024-2025 interpretability work opens bias to mechanistic intervention:
@@ -50,6 +55,8 @@ WinoIdentity (COLM 2025) introduces uncertainty-based intersectional fairness. I
 - **Clinical racial bias via SAEs (Ahsan & Wallace 2025).** Sparse autoencoder features decompose the internal representation into interpretable dimensions; race-correlated features can be identified and suppressed.
 - **UniBias (Zhou et al. 2024).** Attention-head manipulation for zero-shot debiasing. Specific heads amplify identity-class sensitivity; zeroing or re-weighting these heads reduces bias with no fine-tuning.
 
+> **【中文解读】** 元批评（arXiv:2508.11067, 2025）：10 年文献回顾发现该领域不成比例地聚焦于二元性别偏见。其他轴——残疾、宗教、移民身份、多语言身份——获得的关注远少得多。狭窄关注可能通过忽视伤害边缘化群体：一个在二元性别上良好去偏见的模型可能在没有人检查的维度上严重偏见。
+
 ### The meta-critique
 
 The 10-year literature review (arXiv:2508.11067, 2025) finds the field disproportionately focuses on binary-gender bias. Other axes — disability, religion, migration status, multi-lingual identity — receive far less attention. The meta-critique argues that narrow focus can harm marginalized groups by neglect: a model well-debiased on binary gender may be badly biased on dimensions nobody checked.
@@ -57,6 +64,8 @@ The 10-year literature review (arXiv:2508.11067, 2025) finds the field dispropor
 ### Where this fits in Phase 18
 
 Lessons 20-21 cover bias and fairness formally. Lesson 22 covers privacy. Lesson 23 covers watermarking. These are the user-harm layer complementing the earlier deception/safety layer.
+
+> **【拓展：交叉性 → WinoIdentity 基准】** WinoIdentity（COLM 2025, arXiv:2508.07111）引入基于不确定性的交叉性公平评估。它测量模型在不同交叉身份元组上的结果不确定性是否不同——不仅是点预测。这捕获了模型在各组之间"同样错误但对某些组更不确定"的情况，这会产生不同的下游分配行为。
 
 ## Use It | 使用方法
 

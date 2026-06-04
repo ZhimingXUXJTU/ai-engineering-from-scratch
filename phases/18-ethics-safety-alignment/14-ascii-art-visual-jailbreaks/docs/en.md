@@ -2,8 +2,9 @@
 
 > Jiang, Xu, Niu, Xiang, Ramasubramanian, Li, Poovendran, "ArtPrompt: ASCII Art-based Jailbreak Attacks against Aligned LLMs" (ACL 2024, arXiv:2402.11753). Mask the safety-relevant tokens in a harmful request, replace them with ASCII-art renderings of the same letters, and send the cloaked prompt. GPT-3.5, GPT-4, Gemini, Claude, Llama-2 all fail to robustly recognize ASCII-art tokens. The attack bypasses PPL (perplexity filters), Paraphrase defenses, and Retokenization. Related: the ViTC benchmark measures recognition of non-semantic visual prompts; StructuralSleight generalizes to Uncommon Text-Encoded Structures (trees, graphs, nested JSON) as a family of encoding attacks.
 
-> **【中文解读】** 本节介绍了 ASCII 艺术视觉越狱——用文本图形绕过安全过滤器的攻击技术。
+> **【中文解读】** 本节介绍了 ASCII 艺术视觉越狱——用文本图形绕过安全过滤器的攻击技术。ArtPrompt（ACL 2024）两步攻击：识别安全相关词，用 ASCII 艺术渲染替换。安全过滤器看到无害的标点符号网格，模型看到一个词。GPT-4、Gemini、Claude、Llama-2 全部失败，攻击成功率超过 75%。
 
+> **【拓展：ArtPrompt → 编码攻击家族】** 标准防御（困惑度过滤、释义、重新分词）在 ArtPrompt 上全部失败，因为安全过滤器在令牌/语义级别操作，而 ArtPrompt 在视觉识别级别操作。StructuralSleight 将此推广到罕见文本编码结构（UTES）——树、图、嵌套 JSON、CSV-in-JSON——任何训练安全数据中罕见但模型可解析的结构都可以隐藏有害内容。
 
 **Type:** Build
 **Languages:** Python (stdlib, ArtPrompt token-masking harness)
@@ -23,6 +24,8 @@ Attacks via paraphrase and roleplay (Lesson 12) and via long context (Lesson 13)
 
 ## The Concept | 概念
 
+> **【中文解读】** ArtPrompt 两步攻击的细节：第一步——给定有害请求，使用 LLM 识别安全相关词（如"bomb"在"how to make a bomb"中）；第二步——将每个识别的词替换为其 ASCII 艺术渲染（7x5 或 7x7 字符块形成字母形状）。模型收到的是标点和空格网格，足够强大的模型可以识别为词；安全过滤器只看到网格。
+
 ### ArtPrompt, two steps
 
 Step 1. Word Identification. Given a harmful request, the attacker uses an LLM to identify the safety-relevant words (e.g., "bomb" in "how to make a bomb"). 
@@ -31,6 +34,8 @@ Step 2. Cloaked Prompt Generation. Replace each identified word with its ASCII-a
 
 Result: GPT-4, Gemini, Claude, Llama-2, GPT-3.5 all fail. Attack success rate above 75% on their benchmark subset.
 
+> **【拓展：防御失败 → 多层安全启示】** 困惑度过滤器失败是因为合法结构化输入也得分高；释义失败是因为释义 LLM 常保留或重建 ASCII 艺术；重新分词失败是因为识别是视觉的而非令牌级的。安全必须泛化到模型能解析的所有结构化表示——这个集合很大且在增长。
+
 ### Why the standard defenses fail
 
 - **PPL (perplexity filter).** ASCII art has high perplexity — but so does all novel input. Threshold choices that block ArtPrompt also block legitimate structured input.
@@ -38,6 +43,8 @@ Result: GPT-4, Gemini, Claude, Llama-2, GPT-3.5 all fail. Attack success rate ab
 - **Retokenization.** Splitting tokens differently does not change that the model's vision is recognizing letter shapes.
 
 The underlying issue is that safety filters are token- or semantic-level; ArtPrompt operates at the visual recognition level.
+
+> **【中文解读】** ViTC 基准：ArtPrompt 的有效性与模型读取视觉文本的能力相关——ViTC 准确率越高，ArtPrompt 越有效。这是一个能力-安全权衡：提升模型的多模态理解能力会同时增加编码攻击的脆弱性。视觉 LLM（GPT-5.2, Gemini 3 Pro, Claude Opus 4.5, Grok 4.1）扩展了攻击面——实际图像的 ArtPrompt 式攻击比 ASCII 艺术更强。
 
 ### ViTC benchmark
 
@@ -56,6 +63,8 @@ Visual LLMs (GPT-5.2, Gemini 3 Pro, Claude Opus 4.5, Grok 4.1) extend the attack
 ### Where this fits in Phase 18
 
 Lessons 12-14 describe three orthogonal attack vectors: iterative refinement (PAIR), context length (MSJ), and encoding (ArtPrompt/StructuralSleight). Lesson 15 shifts from model-centric attacks to system-boundary attacks (indirect prompt injection). Lesson 16 describes the defensive tooling response.
+
+> **【拓展：视觉 LLM → 攻击面扩展】** 视觉 LLM（GPT-5.2, Gemini 3 Pro, Claude Opus 4.5, Grok 4.1）扩展了攻击面。ArtPrompt 式攻击使用实际图像比 ASCII 艺术更强，因为图像编码器产生更丰富的信号。ViTC 基准的相关性意味着提升多模态能力同时增加了编码攻击的脆弱性——这是 AI 安全中反复出现的能力-安全权衡。
 
 ## Use It | 使用方法
 
