@@ -20,13 +20,17 @@
 
 ## The Problem | 问题
 
-You have an SFT model. It follows instructions, but its outputs are uneven; some completions are clear, some are wordy or wrong. You also have a small dataset of preference pairs: for the same prompt, a human marked one completion as chosen and the other as rejected.
+> **【中文解读】** SFT 模型能跟随指令，但输出质量参差不齐。你有一组偏好对：对于同一 prompt，人工标记了一个为 chosen、一个为 rejected。经典 RLHF 管线是两阶段（训练奖励模型 + PPO 优化策略），成本高且复杂。DPO 将两阶段折叠为单一监督损失：不需要显式奖励模型，不需要 PPO，KL 约束 baked into 闭式推导中。
+
+> **【拓展：DPO 在生产中的应用】** DPO (Rafailov et al., 2023) 已成为对齐训练的主流选择。Meta 的 LLaMA-2 Chat 使用 RLHF（PPO），但 LLaMA-3 转向 DPO。Mistral 的 Mixtral-8x7B-Instruct 使用 DPO。Zephyr (HuggingFace) 使用 DPO 在 Mistral-7B 上微调。与 RLHF 相比，DPO 的优势：(1) 不需要奖励模型（省一个完整训练管线）；(2) 训练更稳定（不依赖 on-policy 采样）；(3) 代码量大幅减少。IPO (Azar et al., 2024) 和 KTO (Ethayarajh et al., 2024) 是 DPO 的改进变体。 It follows instructions, but its outputs are uneven; some completions are clear, some are wordy or wrong. You also have a small dataset of preference pairs: for the same prompt, a human marked one completion as chosen and the other as rejected.
 
 The classical RLHF answer is a two-stage pipeline. Train a reward model on the preferences. Optimise the policy against the reward with PPO. This works but is expensive: two models in memory during PPO, KL control to keep the policy near the reference, reward hacking when the reward model is brittle.
 
 DPO replaces both stages with a single supervised loss. The reward model never exists explicitly. The policy is trained directly on the preference pairs, with an explicit KL penalty toward the SFT reference. Same optimal solution under the Bradley-Terry preference model, far less code.
 
 ## The Concept | 概念
+
+> **【中文解读】** DPO 损失从 Bradley-Terry 偏好模型推导而来。给定 prompt x 和两个完成 y_w（chosen）和 y_l（rejected），人类偏好概率为 sigmoid(r(x, y_w) - r(x, y_l))。通过 KL 约束下的最优策略闭式解，奖励 r 可以用策略与参考模型的 log-prob 差来表示。log Z(x) 项在 chosen 和 rejected 之间抵消。最终损失是四个 log-probability 的 sigmoid 组合，每个样本只需一个标量。
 
 Start from the Bradley-Terry model. Given a prompt `x` and two completions `y_w` (chosen) and `y_l` (rejected), the probability the human prefers `y_w` is
 
@@ -149,6 +153,8 @@ The implementation is one `main.py` plus tests.
 8. `run_demo`: builds reference and policy from a small warm-up pretrain, copies weights, trains for thirty steps, prints the per-step loss and margin, and exits zero on success.
 
 ## Why DPO works
+
+> **【中文解读】** DPO 在 Bradley-Terry 偏好模型下与 RLHF 数学等价。隐式奖励 r(x,y) = beta * (log pi(y|x) - log pi_ref(y|x)) 从偏好中可辨识到仅差一个 x 的函数，后者在差分中抵消。KL 约束是结构性强制的：策略偏离参考使 log-ratio 增大，sigmoid 饱和抑制梯度，防止策略跑太远。参考模型是安全网。
 
 DPO is mathematically equivalent to RLHF under the Bradley-Terry preference model, up to the parameterisation of the reward. The implicit reward `r(x, y) = beta * (log pi(y|x) - log pi_ref(y|x))` is identifiable from preferences up to a function of `x`, which cancels in the difference. The closed-form policy lets you skip the explicit reward model. The KL constraint is enforced structurally: any deviation of `pi` from `pi_ref` makes the log-ratio larger, and the sigmoid saturates, which damps the gradient when the policy moves too far. The reference is your safety net.
 

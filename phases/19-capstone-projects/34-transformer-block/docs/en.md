@@ -20,7 +20,9 @@
 
 ## The Problem | 问题
 
-A transformer is one block repeated. Get the block wrong once, repeat it twelve times, and you ship a model that diverges in the first epoch or that needs warmup hacks the rest of the way. The two failure modes you will see in this lesson are not exotic. They show up the first time a learner stacks blocks naively. One is the attention layer attending to the future. The other is the LayerNorm placed where it cannot tame the residual signal at depth.
+> **【中文解读】** Transformer 是一个块的重复。如果块本身有错，重复 12 次就会产生一个在第一个 epoch 就发散或需要 warmup 技巧的模型。两种常见故障模式：(1) 注意力层看到了未来（因果掩码遗漏）；(2) LayerNorm 放在无法控制深度处残差信号的位置。修复是机械性的——正确选择两个归一化位置即可。
+
+> **【拓展：Pre-LN vs Post-LN 的工程影响】** GPT-2（2019）使用 Post-LN，训练需要 warmup。GPT-3（2020）及之后所有主流 LLM（LLaMA、Mistral、Qwen）使用 Pre-LN。Pre-LN 的关键优势：残差路径上的梯度不被 LayerNorm 衰减，12 层甚至 96 层（GPT-3 175B）的堆叠中梯度传播更稳定。LLaMA 进一步将 LayerNorm 替换为 RMSNorm（参数更少，计算更快），配合 SiLU 激活函数。 Get the block wrong once, repeat it twelve times, and you ship a model that diverges in the first epoch or that needs warmup hacks the rest of the way. The two failure modes you will see in this lesson are not exotic. They show up the first time a learner stacks blocks naively. One is the attention layer attending to the future. The other is the LayerNorm placed where it cannot tame the residual signal at depth.
 
 The fix is mechanical once you see it. The block has exactly two residual paths and exactly two normalization positions. Choose the positions correctly and the rest of the stack is just bookkeeping.
 
@@ -62,6 +64,8 @@ Shape is identical. Training behavior is not. With post-LN, the gradient that fl
 
 ### Causal multi head attention
 
+> **【中文解读】** 注意力子层将输入投影为 Q、K、V 三个张量，每个从 `(B, T, D)` 重塑为 `(B, H, T, D/H)`。计算 `softmax(Q K^T / sqrt(d_k))` 并应用因果掩码（上三角设为负无穷），然后乘以 V。头拼接回 `(B, T, D)` 后再做一次输出投影。因果掩码是唯一使模型成为 decoder 的组件——忘记掩码等于训练一个作弊的模型。
+
 The attention sublayer projects the input three ways into query, key, value tensors. Each is reshaped from `(B, T, D)` to `(B, H, T, D/H)` where `H` is the head count. Scaled dot product attention computes `softmax(Q K^T / sqrt(d_k))` per head, masks the upper triangle to negative infinity, applies the mask via softmax, then multiplies by `V`. Heads are concatenated back into a single `(B, T, D)` tensor and projected once more. The mask is the only piece that makes the model causal. Forget the mask and you train a model that cheats.
 
 ### The MLP
@@ -69,6 +73,8 @@ The attention sublayer projects the input three ways into query, key, value tens
 The position wise MLP applies the same two layer network to every token independently. The hidden width is four times the embedding width, the activation is GELU, and a dropout follows the second linear. No tokens talk to each other inside the MLP. All token mixing happens in attention.
 
 ### Residual connections do two things
+
+> **【中文解读】** 残差连接做两件事：(1) 使梯度路径跨深度加法式累加，保持梯度范数在 12 层中稳定；(2) 让每个块学习对运行表征的加法更新而非完全替换。两个效应是 Transformer 可扩展到 100+ 层的关键。
 
 They make the gradient path additive across depth, which keeps the gradient norm in scale through twelve layers. They also let each block learn an additive update to the running representation rather than a full replacement. Both effects are why the block scales.
 
@@ -97,7 +103,7 @@ Output: shape check on both stacks, gradient norms side by side. The pre-LN stac
 
 ## Production patterns in the wild
 
-Three patterns turn the textbook block into something you can ship.
+> **【拓展：现代 Transformer 块的变体】** 除了本课的 GPT-2 风格块，主流变体包括：(1) LLaMA 块：RMSNorm + SwiGLU 激活（MLP 中 gate 分支）+ RoPE 旋转位置编码，无 bias；(2) Mistral 块：与 LLaMA 类似但使用 Sliding Window Attention（SWA，窗口大小 4096）降低长序列成本；(3) Mixtral 块：在 MLP 层使用稀疏混合专家（8 个专家中选 2 个），参数量增大但计算量不变。
 
 **Fused QKV projection.** Three separate linear layers cost three kernel launches and three matmuls. One linear layer of width `3 * d_model` does the same work in one launch, then splits the output along the last axis. The fused path is faster on every accelerator and matches what reference implementations of GPT-2, LLaMA, and Mistral all ship.
 

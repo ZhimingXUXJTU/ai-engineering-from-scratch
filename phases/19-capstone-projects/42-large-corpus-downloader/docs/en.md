@@ -19,7 +19,9 @@
 
 ## The Problem | 问题
 
-The first time you train on a 200 GB corpus the network drops at percent 41 and the script exits with a `urllib` exception. The second time it drops at percent 78. By percent 99 you have rewritten the loop three times. The two failures you have to design for from minute one are partial-download resume and duplicate document removal. Both have well-known solutions; both are routinely skipped because the pipeline begins as a one-line `requests.get` call that grew teeth.
+> **【中文解读】** 训练语言模型远在第一次前向传播之前就开始了。语料必须下载到磁盘、解压、去重、可寻址，且断点续传在网络 4% 时断开之前就已解决。两种必须从一开始就设计好的失败模式：部分下载续传和重复文档移除。断点续传是 HTTP Range 请求问题，去重是 MinHash + LSH 签名问题。
+
+> **【拓展：大规模语料下载实践】** Common Crawl 是最大的公开网络爬取数据集，每次爬取约 20-40TB 压缩数据。RedPajama-V2 (Together Computer) 从 Common Crawl 提取了超过 30 万亿 token，使用 CCNet 管线进行语言识别和质量过滤。The Pile (EleutherAI) 是 825GB 的精选语料，整合了 GitHub、ArXiv、Wikipedia 等来源。C4 (Colossal Clean Crawled Corpus) 是 T5 训练数据，约 750GB。下载这些数据集通常需要多线程、断点续传和分片验证。 The second time it drops at percent 78. By percent 99 you have rewritten the loop three times. The two failures you have to design for from minute one are partial-download resume and duplicate document removal. Both have well-known solutions; both are routinely skipped because the pipeline begins as a one-line `requests.get` call that grew teeth.
 
 Resume is an HTTP problem. The server has to honour `Range`, the client has to track verified offset against an on-disk record, and the verified offset has to survive process death. If the offset and the file diverge by even one byte the resumed download writes garbage and the corpus is corrupted in a way that only shows up during tokenization.
 
@@ -54,6 +56,8 @@ The downloader writes two files per shard: the shard itself and a `.partial.json
 
 ### MinHash plus LSH
 
+> **【中文解读】** MinHash 在固定空间内估计两个集合的 Jaccard 相似度。对文档来说，集合是文本的 shingle（重叠 n-gram）。签名是 k 个最小哈希值。LSH 将 k 个分量分为 b 个 band（每 band r 行），两个文档至少在一个 band 碰撞的概率为 `1 - (1 - s^r)^b`，形成围绕目标相似度 s 的尖锐阈值。典型语料去重使用 k=128, b=32, r=4，阈值约 s=0.8。
+
 MinHash estimates the Jaccard similarity of two sets in fixed space. For a document the set is the shingles (overlapping n-grams) of its text. The signature is `k` minimum hash values, one per independent hash function. Two documents with Jaccard similarity `s` have a probability `s` of agreeing on any single component of the signature.
 
 LSH then groups the `k` components into `b` bands of `r` rows each, where `k = b * r`. Two documents collide in at least one band with probability `1 - (1 - s^r)^b`, which is a sharp threshold around the value of `s` you tune `(b, r)` to. The threshold for typical corpus dedup is `s = 0.8`, which the LSH research literature reaches with `k = 128`, `b = 32`, `r = 4`.
@@ -86,7 +90,7 @@ The script exits zero and prints a manifest summary.
 
 ## Production Patterns
 
-Four patterns scale this lesson to real corpora.
+> **【拓展：语料去重对模型质量的影响】** Lee et al. (2022) 的研究表明，训练数据中的重复会导致模型记忆特定序列，降低泛化能力并增加隐私泄露风险。GPT-3 论文报告使用了近似精确去重。Chinchilla 训练数据经过严格的 MinHash 去重。RedPajama-V2 对每个文档计算了 200+ 质量信号，包括多个去重签名。去重通常在分词之前进行，因为分词成本高，重复计算不划算。
 
 **Checkpoint before write.** The `.partial.json` must be `fsync`-ed before the bytes are appended to the shard. Otherwise a power loss reverses the order: shard bytes on disk, checkpoint without them, next resume believes it has fewer verified bytes than it does, the duplicated suffix bytes corrupt the file. Checkpoint first, then write. This is the same discipline as a write-ahead log.
 

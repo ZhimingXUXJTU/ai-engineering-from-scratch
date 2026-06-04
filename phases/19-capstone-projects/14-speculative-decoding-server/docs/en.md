@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节描述推测解码服务器的工程挑战。2026 年推测解码已成为标配——EAGLE-3 草稿头在目标模型隐状态上训练，预测 N 个 token 前瞻，目标模型一次验证。60-80% 的接受率转化为 2-3 倍端到端吞吐提升。关键工艺在服务运维而非模型：接受率随流量分布漂移、拒绝时的尾延迟比无推测更差、$/1M tokens 对比 API 价格是可信度杠杆。
+
+> **【拓展：推测解码技术演进】** EAGLE-3 在 vLLM 0.7 中提供 2.5-3 倍吞吐提升。P-EAGLE（AWS 2026）将并行推测推向更深的草稿树。SGLang 的 SpecForge 提供大规模草稿头训练管道。Red Hat Speculators Hub 发布了 Llama 3.3 70B、Qwen3-Coder-30B MoE 等模型的预对齐草稿。部署使用 K8s HPA 按 queue-wait 而非 CPU 自动扩缩，FP8-Marlin 或 INT4-AWQ 量化控制 GPU 内存。
+
 Speculative decoding became a commodity in 2026. EAGLE-3 draft heads train on the target model's hidden states and predict N tokens ahead; the target model verifies in a single pass. Acceptance rates of 60-80% translate to 2-3x end-to-end throughput. vLLM 0.7 integrates this natively. SGLang + SpecForge gives you the training pipeline. Red Hat's Speculators publishes aligned drafts for Llama 3.3 70B, Qwen3-Coder-30B MoE, GPT-OSS-120B.
 
 The craft is in the serving operations, not the model. Acceptance rate drifts with the traffic distribution (ShareGPT vs code vs domain data). Tail latency under rejection is worse than without speculation — you must report p99 at multiple batch sizes, not just steady-state tokens/sec. Cost per 1M tokens vs Anthropic / OpenAI API is the credibility lever.
 
 ## Concept
+
+> **【中文解读】** 推测解码分两层：草稿模型（EAGLE-3 头/ngram/小型对齐模型）每步提出 k 个候选 token，目标模型一次验证全部 k 个——接受的前缀替换贪心路径。接受率取决于草稿-目标对齐度和输入分布。EAGLE-3 在大多数流量上优于 ngram，P-EAGLE 支持并行推测的更深层草稿树。部署使用 vLLM 0.7，每 GPU 一个副本，FP8/INT4 量化控制内存。
+
+> **【拓展：接受率与延迟权衡】** 接受率的分布特性直接影响尾延迟：在拒绝情况下，验证 pass 更大导致 p99 延迟高于无推测基线。因此服务配置必须按批次大小（1/8/32）分桶报告延迟。实测数据：代码领域接受率约 0.65-0.75，通用对话约 0.70-0.80，数学推理约 0.55-0.65。$/1M tokens 是与 Anthropic/OpenAI API 对比的基准——自托管推测解码通常在 8B 模型上实现 $0.10-0.30/1M tokens，70B 模型上 $1-3/1M tokens。
 
 Speculative decoding has two layers. A **draft** model (EAGLE-3 head, ngram, or smaller target-aligned model) proposes k candidate tokens per step. The **target** model verifies all k in one pass; any prefix accepted replaces the greedy path. Acceptance rate depends on draft-target alignment and the input distribution.
 

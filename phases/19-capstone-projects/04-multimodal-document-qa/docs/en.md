@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节阐述文档问答从"先 OCR 再文本"到"视觉优先"的范式转变。企业 PDF 中的旋转表格、公式、图表、手写批注是 OCR 管道的噩梦。2026 年的答案是 ColPali/ColQwen 系列的晚期交互多向量检索——将每页 PDF 当作图像，让查询直接关注到图像块（patch）。在图表、表格和手写内容上，视觉优先方案显著优于 OCR 文本方案。
+
+> **【拓展：视觉文档检索前沿】** ColPali 由 Illuin Tech 在 2024 年提出（arXiv:2407.01449），将文档检索从文本匹配推向视觉匹配。ColQwen2.5 和 ColQwen3-omni 进一步提升精度。在 ViDoRe v3 基准上，视觉优先检索 nDCG@5 比 OCR-then-text 高出显著幅度。代价是存储膨胀——每页约 2048 个 patch 向量，DocPruner 通过 50% 剪枝将存储减半，精度损失 < 0.5%。Vespa 和 Qdrant 都支持多向量字段和 MaxSim 检索。
+
 Enterprises sit on PDFs that OCR pipelines mangle: scanned 10-Ks with rotated tables, scientific papers dense with equations, charts that only make sense as images, handwritten annotations. Treating these as text-first means losing half the signal. The 2026 answer is late-interaction multi-vector retrieval on raw page images. ColPali (Illuin Tech) introduced it; ColQwen2.5-v0.2 and ColQwen3-omni pushed accuracy. On ViDoRe v3, vision-first retrieval scores above OCR-then-text by meaningful margins — and the gap widens on charts, tables, and handwriting.
 
 The trade-off is storage and latency. A ColQwen embedding is ~2048 patch vectors per page, not a single 1024-dim vector. Raw storage balloons. DocPruner (2026) brings 50% pruning without measurable accuracy loss. You will index 10k pages, measure ViDoRe v3 nDCG@5, serve answers under 2s, and compare directly against an OCR-then-text baseline.
 
 ## Concept
+
+> **【中文解读】** 晚期交互（Late Interaction）是指每个查询 token 与每个页面 patch token 独立计算相似度，取每个查询 token 的最大得分后求和。这比单池化向量匹配更精细。多向量索引（Vespa/Qdrant/AstraDB）存储每个页面的 patch 嵌入并在检索时执行 MaxSim。答案生成使用视觉语言模型（Qwen3-VL-30B/Gemini 2.5 Pro），带证据区域定位和页码引用。
+
+> **【拓展：多模态 VLM 选型】** 2026 年文档问答的主流 VLM 包括：Qwen3-VL-30B（自托管最优）、Gemini 2.5 Pro（API 调用最优）、InternVL3（开源备选）。对于公式密集页面，Nougat OCR 作为补充文本通道。评估采用二维矩阵：横轴内容类型（文本段落/密集表格/图表/手写/公式），纵轴检索方法（视觉优先/OCR-then-text/混合），每个单元格计算 nDCG@5 和答案准确率。
 
 Late interaction means every query token scores against every patch token, and the maximum score per query token is summed. You get fine-grained matching without needing a single pooled vector. A multi-vector index (Vespa, Qdrant multi-vector, or AstraDB) stores the per-patch embeddings and runs MaxSim at retrieval time.
 
@@ -63,6 +71,8 @@ query ----+----> retrieve top-k pages (MaxSim)
 - Viewer UI: Next.js 15 with canvas overlay for evidence regions
 
 ## Build It | 动手构建
+
+> **【中文解读】** 构建步骤分为 8 个阶段：摄取 10k 页 PDF 并渲染为 PNG、ColQwen2.5 嵌入（每页 ~2048 个 patch，dim 128）并应用 DocPruner 50% 压缩、MaxSim 检索 top-k 页面、VLM 答案合成带引用、证据区域提取与可视化、OCR 回退通道（公式密集页）、ViDoRe v3 + M3DocVQA 评估、Streamlit/Next.js 查看器。
 
 1. **Ingest.** Walk a corpus of 10k PDF pages across 10-Ks, scientific papers, and scanned documents. Render each page to a 1536x2048 PNG. Persist `{doc_id, page_num, image_path}`.
 

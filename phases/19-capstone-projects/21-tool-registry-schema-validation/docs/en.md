@@ -19,6 +19,10 @@
 
 ## Why the registry comes before the tool
 
+> **【中文解读】** 本节强调注册中心必须先于工具构建。2026 年编码 Agent 注册的工具数超过模型单次上下文窗口能容纳的范围——200 个工具中每轮只暴露 10-40 个。注册中心是"什么工具存在"、"参数是什么形状"、"调用什么处理器"的唯一事实来源。避免的错误是：发布处理器没有 Schema，或发布 Schema 没有验证——两者都会让调度器变成猜测游戏。
+
+> **【拓展：MCP 工具注册实践】** Model Context Protocol 中，每个 MCP 服务器通过 `tools/list` 方法暴露工具清单，每个工具包含 name、description、inputSchema（JSON Schema）。Claude Code 等客户端在会话开始时获取工具列表，按需选择暴露给模型的子集。JSON Schema 2020-12 子集覆盖 90% 实际使用的关键字：type、properties、required、enum、items、minimum/maximum、pattern。验证器必须纯净（无 I/O/时间/全局变量）以支持重放日志。
+
 A coding agent in 2026 has more registered tools than the model can fit in a single context window. A non-trivial harness will register two hundred tools and surface ten to forty at any given turn. The registry is the source of truth for "what tools exist," "what shape do their arguments take," and "what handler do I call." Once those three answers are pinned, the rest of the harness can stop guessing.
 
 The mistake we are avoiding is shipping handlers without schemas, or shipping schemas without validation. Both are common. Both turn the next layer (the dispatcher in lesson twenty-three) into a guessing game where the only failure mode is a stack trace from the handler.

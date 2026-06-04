@@ -20,7 +20,9 @@
 
 ## The Problem | 问题
 
-A single metric never describes a language model. Perplexity says how well the model fits the language distribution but says nothing about whether it answers questions. Exact-match says whether the model produces the gold string but punishes correct paraphrases. Token F1 forgives paraphrase but is fooled by lexical overlap with wrong content. LLM-as-judge captures qualitative dimensions but is expensive and stochastic.
+> **【中文解读】** 单一指标永远无法完整描述语言模型。困惑度衡量语言分布拟合但不回答问题能力。精确匹配要求完全相同的字符串但惩罚正确释义。Token F1 容忍释义但被词汇重叠欺骗。LLM-as-judge 捕捉定性维度但昂贵且随机。本课构建包含四种评估的统一管线，每种覆盖其他指标遗漏的维度。
+
+> **【拓展：LM 评估生态】** HuggingFace 的 `lm-eval-harness`（本课第 49 课的主题）是社区标准评估框架，支持 200+ 任务。EleutherAI 的 LM Evaluation Harness 使用类似的任务-指标-聚合架构。Open LLM Leaderboard 使用六项核心基准（ARC、HellaSwag、MMLU、TruthfulQA、Winogrande、GSM8K）排名模型。LLM-as-judge（如 GPT-4 judge）在 MT-Bench 和 Chatbot Arena 中广泛使用，但存在位置偏差和冗长偏差等已知问题。 Perplexity says how well the model fits the language distribution but says nothing about whether it answers questions. Exact-match says whether the model produces the gold string but punishes correct paraphrases. Token F1 forgives paraphrase but is fooled by lexical overlap with wrong content. LLM-as-judge captures qualitative dimensions but is expensive and stochastic.
 
 The pipeline you actually want has all four. Each eval covers a dimension the others miss. Each runs on a different subset of held-out data shaped for that metric. The final report shows the per-task numbers side by side and an aggregate, so a reviewer can see at a glance which trade-offs the model is making.
 
@@ -44,6 +46,8 @@ flowchart LR
 Each eval is a function from `(model, dataset) -> EvalResult`. The result carries the metric value, per-example details for inspection, and a name for the aggregate. The pipeline composes them with a config that says which evals to run and how to weight them.
 
 ## Perplexity, properly counted
+
+> **【中文解读】** 困惑度是 `exp(每个 token 平均负对数似然)`。两个陷阱：(1) 均值必须在实际 token 位置上计算（排除 padding token），否则困惑度看起来比实际好；(2) 模型在位置 i 预测位置 i+1 的 token，偏一错误虽然 loss 仍能训练但指标变得无意义。本评估按批次累加 `-log p(token)` 和 token 计数，最后除以总计数，比按批次平均困惑度更数值稳定。
 
 Perplexity is `exp(mean negative log-likelihood per token)`. The implementation has two traps:
 
@@ -75,6 +79,10 @@ Token F1 is the harmonic mean of precision and recall computed over the bag-of-t
 If both prediction and reference are empty, F1 is 1 (vacuous match). If only one is empty, F1 is 0. This pattern matches the SQuAD evaluation reference and produces stable numbers across paraphrases.
 
 ## Local Mock LLM-as-Judge
+
+> **【中文解读】** 真正的 judge 是 API 背后的前沿模型。本课的 mock judge 是确定性评分器：归一化预测等于归一化参考得 5 分，token F1 >= 0.8 得 4 分，以此类推。接口与真实 judge 相同，替换一个函数即可切换。管线不关心用哪个。
+
+> **【拓展：LLM-as-Judge 的实践与偏差】** LLM-as-judge 在 Chatbot Arena（LMSYS）中被用于人类偏好标注的替代。Zheng et al. (2023) 发现 LLM judge 存在位置偏差（偏好第一个答案）、冗长偏差（偏好更长的答案）和自我增强偏差（偏好自己风格的答案）。缓解方法包括：交换位置多次判断取平均、校准长度、使用多个 judge 投票。GPT-4 作为 judge 在 MT-Bench 上与人类判断的相关性达到 0.8+。
 
 A real judge is a frontier model behind an API. For this lesson the judge has to run offline. The mock judge is a deterministic scorer that takes an instruction, the model's prediction, and the reference, and returns a score in `{1, 2, 3, 4, 5}` plus a one-line rationale. The scoring rules are explicit:
 

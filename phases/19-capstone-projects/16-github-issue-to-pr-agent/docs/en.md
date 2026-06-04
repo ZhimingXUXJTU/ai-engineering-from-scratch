@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节描述异步云端编码 Agent 的核心挑战。与交互式编码 Agent（Capstone 01）不同，这里 UX 是一个 GitHub 标签——标注 `@agent fix this` 后，工作器在云沙箱中启动，克隆仓库、运行测试、编辑文件、验证并开 PR。工程挑战包括：环境复现（从零构建无缓存开发镜像）、测试抖动、凭据范围控制、每日每仓库预算强制和禁止 force-push。
+
+> **【拓展：异步编码 Agent 产品】** 2026 年异步云端编码 Agent 已成为独立品类。AWS Remote SWE Agents、Cursor Background Agents、OpenAI Codex Cloud、Google Jules、Factory Droids 都采用相同架构：标签触发 → 云沙箱 → 自动构建 → Agent 循环 → CI 验证 → PR 提交。关键安全措施：GitHub App 使用短期安装 token，分支保护禁止直写 main 和 force-push，每日每仓库预算上限（如 5 PR/天，$20/PR）。自托管版本与托管方案对比时，主要看 pass rate 和 $/PR。
+
 The async cloud coding agent is a separate product category from interactive coding agents (capstone 01). The UX is a GitHub label. You label an issue `@agent fix this`, a worker spins up in a cloud sandbox, clones the repo, runs tests, edits files, verifies, and opens a PR with the agent's rationale in the body. No interactive loop, no terminal. AWS Remote SWE Agents, Cursor Background Agents, OpenAI Codex cloud, Google Jules, and Factory Droids all converge on this.
 
 The engineering challenges are concrete: environment reproduction (the agent has to build the repo from scratch without a cached dev image), flaky tests (must be re-run or isolated), credential scoping (a GitHub App with minimal fine-grained permissions), budget enforcement per repo per day, and no-force-push policy. The capstone measures pass rate, cost, and safety vs the hosted alternatives.
 
 ## Concept
+
+> **【中文解读】** 触发通过 GitHub webhook（issue 标签或 PR 评论），调度器将任务入队到 ECS Fargate 或 Lambda。工作器将仓库拉入 Daytona/E2B 沙箱，使用从仓库推断的通用 Dockerfile。Agent 运行 mini-swe-agent 循环（读代码→提议修复→打补丁→运行测试）。完整 CI 通过后才开 PR，覆盖率下降超过阈值时标记 `needs-review`。安全通过 GitHub App 短期 token + 分支保护 + 工作器级文件编辑白名单实现。
+
+> **【拓展：沙箱环境复现】** 环境复现是异步 Agent 的核心难点——Agent 必须从零构建仓库的开发环境。自动推断策略包括：检测语言/框架（package.json/pom.xml/Cargo.toml/requirements.txt）、选择基础镜像、安装依赖。Daytona 和 E2B 都提供预构建的开发容器模板。测试抖动处理策略：失败测试重跑 3 次，一致失败才视为真失败。预算强制在调度器层面实现（每日/每仓库/每 PR 三层上限）。
 
 The trigger is a GitHub webhook (issue label or PR comment). A dispatcher enqueues work to ECS Fargate or Lambda. The worker pulls the repo into a Daytona or E2B sandbox with a generic Dockerfile inferred from the repo (language, framework). The agent runs a mini-swe-agent or SWE-agent v2 loop against Claude Opus 4.7 or GPT-5.4-Codex. It iterates: read code, propose fix, apply patch, run tests.
 

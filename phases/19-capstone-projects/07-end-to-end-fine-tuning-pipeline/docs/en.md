@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节描述端到端微调流水线的核心挑战。2026 年每个认真的 AI 团队都维护着一条微调流水线，不是为了训练前沿模型，而是为了下游适配——领域 SFT、DPO 偏好对齐、蒸馏草稿模型用于投机解码、EAGLE-3 推理加速。工具链已成熟（Axolotl v0.8 + TRL 0.15 + Unsloth + vLLM 0.7），真正的工艺在 YAML 配置、数据卫生和评估纪律。
+
+> **【拓展：微调工具链生态】** 2026 年微调工具栈：Axolotl v0.8（多 GPU SFT 配置驱动）、TRL 0.15（DPO/GRPO/RLHF）、Unsloth（单 GPU 快速迭代，2-5x 加速）。量化选择：GPTQ（Marlin 后端，推理最快）、AWQ（精度保持好）、GGUF（llama.cpp 兼容，CPU 推理友好）。服务端 vLLM 0.7 配合 EAGLE-3 投机解码可达 2-3x 吞吐提升，acceptance rate 通常在 0.65-0.80。8B 模型在 8xH100 上 SFT 约 6 小时，DPO 约 1.5 小时。
+
 Every serious AI team in 2026 keeps a fine-tuning pipeline on tap. Not because they ship a frontier base model, but because downstream adaptation — domain SFT, DPO against labeled preferences, distilled drafts for speculative decoding, serving with EAGLE-3 — is where the measurable wins live. Axolotl v0.8 handles multi-GPU SFT configs. TRL 0.15 handles DPO and GRPO. Unsloth gets you fast single-GPU iteration. vLLM 0.7 with EAGLE-3 pushes decode throughput 2-3x without quality loss. The tooling works; the craft is in the YAMLs, the data hygiene, and the eval discipline.
 
 You will run an 8B base (Llama 3.3, Qwen3, or Gemma 3) through SFT then DPO on task-specific data, quantize for serving, and measure gains against lm-evaluation-harness, RewardBench-2, MT-Bench-v2, and MMLU-Pro. You will produce a model card under the 2026 Model Openness Framework. The point is reproducibility — one command reruns the whole pipeline end to end.
 
 ## Concept
+
+> **【中文解读】** 流水线分五个阶段：数据（去重/质量过滤/PII 脱敏/污染检查）→ SFT（Axolotl YAML, ZeRO-3, 8xH100, 余弦调度, 2-3 轮）→ DPO/GRPO（TRL, 偏好对, beta 调参）→ 量化（GPTQ+AWQ+GGUF 三种格式）→ 服务（vLLM 0.7 + EAGLE-3, K8s 部署）。交付物是消融实验对比表：SFT-only vs SFT+DPO vs SFT+GRPO，以及服务指标和安全性评估。
+
+> **【拓展：GRPO 与 DPO 对比】** DPO（Direct Preference Optimization）直接在偏好对上训练，简单高效，但需要人工标注。GRPO（Group Relative Policy Optimization）来自 DeepSeek R1，使用可验证奖励（数学/代码的正确性）做 RL 训练，不需要人工偏好标注。实测中，DPO 在对话质量上略优，GRPO 在数学/代码推理上更强。beta 参数（KL 散度权重）是关键超参，通常 0.05-0.15 之间。
 
 The pipeline has five stages. **Data**: dedup (MinHash / Datatrove), quality filter (Nemotron-CC style classifier), PII scrub, split-hygiene check against public benchmark contamination. **SFT**: Axolotl YAML, ZeRO-3 on 8xH100, cosine schedule, packed sequences, 2-3 epochs. **DPO or GRPO**: TRL config, 1 epoch, preference pairs either human-labeled or model-judged, beta tuning. **Quantize**: GPTQ + AWQ + GGUF for deployment flexibility. **Serve**: vLLM 0.7 with EAGLE-3 speculative heads (or SGLang with SpecForge), K8s deployment, HPA on queue-wait.
 

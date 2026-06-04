@@ -19,7 +19,9 @@
 
 ## The frame
 
-A pretraining run reads one batch of token ids at a time and updates the model. The shape of each batch is fixed by the training contract. For a causal language model, the batch holds `(B, T)` input ids and `(B, T)` target ids where the target is the input shifted left by one. The job of the data pipeline is to produce that contract on demand, in a deterministic and reproducible way, from a corpus that may be several gigabytes of raw text.
+> **【中文解读】** 预训练运行每次读取一个 batch 的 token ID 并更新模型。Batch 的形状固定为 `(B, T)` 输入 ID 和 `(B, T)` 目标 ID（目标 = 输入左移一位）。本节构建数据管线：分词器将文本转为扁平 ID 列表，滑动窗口将其切为训练样本，Dataset 暴露为张量，DataLoader 负责批处理和确定性洗牌。
+
+> **【拓展：滑动窗口与上下文长度】** GPT-2 的上下文长度为 1024 token，GPT-3 增加到 2048，GPT-4 Turbo 达到 128K。滑动窗口的 stride 直接影响有效数据集大小：stride=T 时无重叠，stride=1 时数据集扩大 T 倍。实际预训练通常使用 stride 等于上下文长度，因为语料库已远超模型能在一个 epoch 中处理的量。RedPajama-V2 数据集包含超过 30 万亿 token，即使 stride=1 也无法在合理时间内遍历完。 The shape of each batch is fixed by the training contract. For a causal language model, the batch holds `(B, T)` input ids and `(B, T)` target ids where the target is the input shifted left by one. The job of the data pipeline is to produce that contract on demand, in a deterministic and reproducible way, from a corpus that may be several gigabytes of raw text.
 
 This lesson builds the pipeline. The tokenizer from the previous lesson turns text into a long flat list of ids. A sliding window slices that list into training examples. A custom Dataset exposes the examples as tensors. A DataLoader batches them and shuffles them with a known seed.
 
@@ -46,6 +48,8 @@ flowchart LR
 The slicer never overlaps with the boundary of the corpus. If the last window does not have enough ids to fill `T+1` positions, the slicer drops it. Padding the tail with `<|pad|>` is also a valid choice but it complicates the loss mask. For this lesson we drop.
 
 ## Why a sliding window
+
+> **【中文解读】** 如果模型只看到不重叠的窗口，每个训练样本都教它相同的 T 个边界位置。调整 stride 移动边界，让模型看到更多样化的"预测下一个 token"任务。stride=T 无重叠，stride=T/2 50% 重叠使有效数据集翻倍，stride=1 最大重叠使数据集扩大 T 倍。代价是每个 epoch 更多计算。
 
 A pretraining corpus is one long stream of ids. If the model only saw non-overlapping windows, every training example would teach it the same `T` boundaries. Adjusting the stride moves those boundaries around so the model sees more diverse predict-next-token tasks.
 
@@ -74,6 +78,10 @@ The shift-by-one happens inside `__getitem__`. The Dataset returns `(input, targ
 
 ## Deterministic shuffle
 
+> **【中文解读】** 通过向 DataLoader 传递显式的 `torch.Generator`（每个 epoch 的种子为 `base_seed + epoch_index`），确保每次运行时看到相同的数据顺序。这对比较两个仅有一个超参数差异的运行至关重要——没有种子，两次运行看到不同的数据顺序，损失曲线的分歧可能与模型改动无关。
+
+> **【拓展：大规模数据集的确定性训练】** LLM 预训练的复现性要求极高。Meta 在 LLaMA 训练中使用确定性的数据加载顺序和固定种子，使得消融实验具有可比性。PyTorch 的 DistributedSampler 通过 `set_epoch()` 同步各 rank 的随机状态。MosaicML 的 Composer 框架将种子管理提升为一等公民，支持跨 checkpoint 恢复的完全确定性复现。
+
 A DataLoader with `shuffle=True` reads from a PyTorch random generator. By passing an explicit `torch.Generator` seeded per epoch, we get the same shuffle every time the run is restarted. That property matters when you want to compare two runs that differ only in a single hyperparameter. Without a seed, two runs see the data in different orders and the loss curves diverge for reasons unrelated to the change.
 
 The seed contract in this lesson is simple. `epoch_seed = base_seed + epoch_index`. The base seed is passed at construction. The epoch index is incremented by the trainer at the top of each epoch. A re-run with the same base seed always sees the same order in every epoch.
@@ -89,6 +97,8 @@ The lesson keeps `num_workers=0` for simplicity. In a production run the workers
 For an id stream of length `N`, a context length `T`, and a stride `S`, the number of examples is `max(0, 1 + (N - (T + 1)) // S)`. The lesson exposes that calculation as a static method on the Dataset so the trainer can compute total steps per epoch without iterating.
 
 ## What this lesson does not do
+
+> **【中文解读】** 本课不处理磁盘流式读取——语料全部加载到内存。不处理多文档——语料被视为一条连续 ID 流，文档边界通过插入 `<|endoftext|>` ID 编码。这两种能力在大规模预训练中必不可少，但它们替换的是存储层，不影响 Dataset 的契约接口。
 
 It does not stream from disk. The corpus is encoded fully in memory and held as a single tensor. For a corpus of a few million ids that is well under a hundred megabytes and is the right shape for the lesson. Disk streaming is a separate concern that plugs in by replacing the storage but keeps the Dataset contract.
 

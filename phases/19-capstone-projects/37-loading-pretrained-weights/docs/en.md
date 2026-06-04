@@ -20,7 +20,9 @@
 
 ## The Problem | 问题
 
-Published weights are not packaged for your architecture. They carry the names the original implementation used. The pretrained file has `transformer.h.0.attn.c_attn.weight` of shape `(2304, 768)`; your model expects `blocks.0.attn.qkv.weight` of shape `(2304, 768)` (which is the same matrix in a different layout convention) or your model uses `nn.Linear` which stores the matrix transposed. The same parameter shows up with three subtly different identities (name, shape, byte layout) and the loader has to reconcile all three.
+> **【中文解读】** 发布的权重不是为你的架构打包的。它们使用原始实现的命名约定。同一参数以三种微妙不同的身份出现（名称、形状、字节布局），加载器必须协调三者。盲目复制会把正确的张量放到错误的位置，得到一个生成垃圾的模型。
+
+> **【拓展：HuggingFace 权重加载生态】** HuggingFace 的 `transformers` 库是权重加载的事实标准，支持 200+ 种模型架构。`from_pretrained()` 自动处理名称映射、形状检查、权重转置和 dtype 转换。`safetensors` 格式（本课使用）比传统 pickle 更安全（不执行任意代码）和更快（零拷贝加载）。GGUF 格式（用于 llama.cpp）支持量化权重，将 7B 模型的内存占用从 14GB 降到 4GB。AutoGPTQ 和 AutoAWQ 提供训练后量化方案。 They carry the names the original implementation used. The pretrained file has `transformer.h.0.attn.c_attn.weight` of shape `(2304, 768)`; your model expects `blocks.0.attn.qkv.weight` of shape `(2304, 768)` (which is the same matrix in a different layout convention) or your model uses `nn.Linear` which stores the matrix transposed. The same parameter shows up with three subtly different identities (name, shape, byte layout) and the loader has to reconcile all three.
 
 A loader that copies blindly puts the right tensor in the wrong place and you get a model that generates nonsense. A loader that refuses to copy when the shape differs but logs nothing leaves you guessing which tensor failed to land. The loader in this lesson is explicit: every assignment is logged, every shape is checked, and a `LoadReport` summarizes hits, misses, and shape mismatches so you can read what happened.
 
@@ -42,6 +44,8 @@ flowchart LR
 The name mapper is just a function from string to string. The shape check is one if. The assignment happens inside `torch.no_grad()` so autograd does not track the load. The report holds the outcome of every name.
 
 ### The GPT-2 naming convention
+
+> **【中文解读】** 发布的 GPT-2 权重使用 `wte`（token 嵌入）、`wpe`（位置嵌入）、`h.N.attn.c_attn`（融合 QKV 线性）等命名。两个关键注意点：(1) `c_attn`、`c_proj`、`c_fc` 等线性层以转置形式存储（相对于 `nn.Linear.weight` 的期望），加载时需要转置；(2) LM head 不在文件中——模型通过 `wte` 的权值绑定获取 head。
 
 Published GPT-2 weights live under names like:
 
@@ -121,7 +125,7 @@ Output: the fixture path, a per-name load log, a `LoadReport` summary, a continu
 
 ## Production patterns in the wild
 
-Three patterns make the loader survive contact with weights you did not create.
+> **【拓展：跨架构权重迁移】** 加载器的名称映射模式是跨架构迁移的基础。LLaMA 的命名约定（`model.layers.N.self_attn.q_proj.weight`，无 bias，RMSNorm）与 GPT-2 完全不同。Conv1D vs Linear 的转置差异在 GPT-J/GPT-NeoX 中也存在。bitsandbytes 的 8-bit/4-bit 量化加载需要在加载时插入量化包装器。DeepSpeed ZeRO-3 的分片权重需要先 all-gather 再加载。统一的加载模式是：验证 -> 映射 -> 转换 -> 分配。
 
 **Always validate the file before any assignment.** Open the file, list every tensor name with its dtype and shape, run the full mapping with shape checks, and only on success start assigning. Half-loaded models are silent failure machines.
 

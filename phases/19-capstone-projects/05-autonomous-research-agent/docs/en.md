@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节描述自主研究 Agent 的技术前沿。2026 年 Sakana AI 的 AI-Scientist-v2 在 Nature 发表了 AI 生成的论文，通过学术同行评审。核心不是模型魔法，而是"规划-执行-验证"循环在有界预算下搜索实验树。难点在于循环设计、预算控制和安全性——Sakana 团队记录了沙箱逃逸失败案例，你的 Agent 必须通过同样的红队测试。
+
+> **【拓展：AI-Scientist 系列】** Sakana AI 的 AI-Scientist-v1（2024）首次展示了端到端自动科研流程，v2 进一步引入 AB-MCTS 风格的树搜索。ShinkaEvolve（ICLR 2026）扩展到进化式假设生成。AMD 的 Agent Laboratory 提供可复现的实验追踪。成本方面，v2 单篇论文控制在 $15-30，核心是每步预算估计和硬性终止。评审采用 5 个 LLM 评委的 NeurIPS 风格评分（新颖性/严谨性/清晰度/可复现性/影响力）。
+
 Autonomous research agents crossed a threshold in 2026. Sakana AI's AI-Scientist-v2 was published in Nature with generated papers that cleared workshop peer review. ShinkaEvolve (ICLR 2026) extended the line to evolving hypotheses. AMD's Agent Laboratory shipped reproducible traces. The agents are not magic — they are a plan-execute-verify loop running over a tree of candidate experiments, with cost caps, seed-bound sandboxes, and automated review. The craft is in the loop, the budget, and the safety story.
 
 You learn the loop by implementing one against a seed idea in a narrow domain (for example, attention-sparsity ablations on a 100M-parameter transformer). The value is not in discovering something new on the first run. The value is in the infrastructure: the tree-search, the experiment sandbox, the writer-reviewer loop, the red-team report. The Sakana team documented sandbox-escape failures; your agent must pass the same red team.
 
 ## Concept
+
+> **【中文解读】** 自主研究 Agent 的核心是最佳优先树搜索。节点是实验规格（假设+配置+代码+预期结果），扩展步骤生成小改动的子节点（换优化器/调批次大小/消融组件）。每个子节点在带硬资源限制的沙箱中运行，结果反馈到评分函数（新颖性 x 质量 x 剩余预算）。论文写作是视觉反馈的：生成 LaTeX → 编译 → 渲染 PDF → 喂给 Opus 4.7 视觉模式评审布局和图表。安全方面，每个实验在无网络出口、固定种子的 E2B 沙箱中运行。
+
+> **【拓展：自动化论文评审】** 评审集成使用 5 个不同 LLM（Opus 4.7、GPT-5.4、Gemini 3 Pro、DeepSeek R1、Qwen3-Max），加权聚合打分，模拟 NeurIPS 评审流程。均值低于 4.0/5 则退回修改，最多 3 轮重写。视觉反馈循环是关键创新——编译 PDF 后将渲染结果喂给 VLM 检查图表清晰度、声明-证据对齐和版面布局，这一步骤将论文质量提升约 15-20%。
 
 The agent is a best-first tree search. Nodes are experiment specifications: (hypothesis, config, code, expected outcome). An expand step proposes children with small edits (swap optimizer, shift batch size, ablate a component). Each child runs in a fresh sandbox with a hard resource cap. Results feed back into a scoring function that ranks nodes by (novelty × quality × remaining budget). The tree grows until budget is exhausted, then the best branch is written up.
 

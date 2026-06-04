@@ -19,7 +19,9 @@
 
 ## The frame
 
-The model's first contact with a token id is a row lookup in the token-embedding matrix. The matrix has one row per vocabulary id and one column per model dimension. The lookup returns a vector that the rest of the model treats as the meaning of the id. Backprop updates the rows that were used in the forward pass. Over training the geometry of those rows learns to encode similarity in directions.
+> **【中文解读】** 模型与 token ID 的第一次接触是 token 嵌入矩阵的行查找。矩阵有 V 行（每行对应一个词汇 ID）和 D 列（模型维度）。Token ID 本身没有顺序信息，模型需要第二个信号区分位置 1 和位置 17。两种主流选择：学习型位置嵌入（第二个查找表）和固定正弦位置嵌入（数学公式，无参数）。
+
+> **【拓展：位置编码的演进】** 位置编码从 Transformer 原论文的正弦编码（2017）发展到 GPT-2 的学习型位置编码，再到 GPT-NeoX/GPT-3 的旋转位置编码（RoPE, 2021），以及 BLOOM 使用的 ALiBi（2022）。RoPE 通过在 Q/K 投影后施加位置相关的旋转矩阵实现相对位置编码，已成为 LLaMA、Mistral、Qwen 等主流 LLM 的标准选择。ALiBi 直接在注意力分数上加线性偏置，无需位置嵌入参数，支持训练长度之外的推理外推。 The matrix has one row per vocabulary id and one column per model dimension. The lookup returns a vector that the rest of the model treats as the meaning of the id. Backprop updates the rows that were used in the forward pass. Over training the geometry of those rows learns to encode similarity in directions.
 
 Token ids alone have no order. The model needs a second signal that tells it position one is different from position seventeen. The two dominant choices for that signal are a learned positional embedding (a second lookup table, one row per position) and a fixed sinusoidal positional embedding (a math formula with no parameters). The choice has consequences. A learned table is a parameter and is bounded by the maximum context length the model was trained on. A sinusoidal table is parameter-free in theory and the formula extends to any position, but this lesson's `SinusoidalPositionalEmbedding` precomputes a fixed table at `max_context_length` and its `forward` raises past that bound; both modules therefore enforce a maximum context length here. The model may still struggle past its training length even when the table is large enough to index.
 
@@ -45,6 +47,8 @@ The composition is a sum, not a concatenation. Summing keeps `D` constant throug
 
 ## The token embedding matrix
 
+> **【中文解读】** Token 嵌入是形状为 `(V, D)` 的参数张量。前向传播是单次索引操作：PyTorch 将 `(B, T)` 的 int64 ID 映射为 `(B, T, D)` 的浮点向量。反向传播只为前向传播中触及的行累积梯度。一个重要细节：token 嵌入和模型末端的输出投影经常共享权重（weight tying），这节省约 V*D 个参数。
+
 The token embedding is a parameter tensor of shape `(V, D)` where `V` is the vocabulary size. PyTorch exposes it as `nn.Embedding(V, D)`. At init the entries are drawn from a small Gaussian, traditionally with mean zero and standard deviation around `0.02` for transformer-scale models. The exact init matters less than that it stays consistent across runs.
 
 The forward pass is a single indexing operation. PyTorch maps `(B, T)` int64 ids to `(B, T, D)` floats by gathering rows. The backward pass accumulates gradients only into the rows that were touched in the forward pass. Two rows that never appeared in the batch receive zero gradient on that step.
@@ -58,6 +62,10 @@ The learned positional embedding is a second `nn.Embedding` of shape `(max_conte
 The downside of the learned table is that it cannot be queried at position `T` if the model was only trained up to position `T-1`. The row does not exist. Production decoder-only models that use this scheme bake the maximum context length into the architecture and refuse to process longer inputs.
 
 ## The sinusoidal positional embedding
+
+> **【中文解读】** 正弦位置嵌入是位置到向量的函数，无参数。其关键性质：位置 p+k 的向量是位置 p 向量的线性函数，这给注意力层提供了一条学习相对位置偏移的捷径。低维度编码粗粒度位置，高维度编码细粒度位置。波长在特征维度上几何级数变化。
+
+> **【拓展：RoPE 与 ALiBi 的实际效果】** RoPE（Su et al., 2021）在 LLaMA-1/2/3、Mistral、Qwen 中使用。它通过旋转矩阵编码相对位置，支持通过 NTK-aware scaling 扩展上下文窗口（如 Code Llama 从 16K 扩展到 100K）。ALiBi（Press et al., 2022）在 BLOOM-176B 中使用，直接在注意力分数上加线性偏置，训练时无需位置编码参数，推理时可外推到训练长度的 2-5 倍。
 
 The sinusoidal positional embedding is a function from position to vector. Position `p` and feature `i` produce
 
@@ -93,6 +101,8 @@ sequenceDiagram
 The broadcasting in the sum step replicates the `(T, D)` positional tensor along the batch dimension. PyTorch handles that automatically because the positional tensor has shape `(1, T, D)` after unsqueeze.
 
 ## Contrastive analysis
+
+> **【中文解读】** 学习型变体增加 `max_context_length * D` 个参数，正弦变体增加零。相邻位置嵌入间的余弦相似度：正弦变体平滑衰减（函数连续），学习型变体在初始化时接近随机（各行独立抽取），训练后通常发展出类似的平滑结构，但必须从数据中学习。
 
 The lesson runs both variants on the same inputs and prints two diagnostics.
 

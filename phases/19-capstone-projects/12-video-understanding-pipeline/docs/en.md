@@ -13,11 +13,19 @@
 
 ## Problem
 
+> **【中文解读】** 本节描述视频理解管道的核心挑战。长视频 QA 是 2026 年带宽需求最大的多模态问题。虽然 Gemini 2.5 Pro 可以原生读取 2 小时视频，但将 100 小时视频索引为可查询语料库仍需要场景级索引。生产级管道结合场景分割（TransNetV2/PySceneDetect）、每场景 VLM 描述、ASR 转录对齐和多向量索引。已知难题是计数和动作类问题的幻觉——本课程专门测量这类失败。
+
+> **【拓展：视频 AI 产品生态】** 2026 年视频理解主要产品：Twelve Labs（Marengo + Pegasus 商业化）、VideoDB（CRUD-for-video API）、AI2 Molmo 2（开源 VLM）。Gemini 长上下文模型原生支持小时级视频。TimeLens-100K 定义了大规模时间定位基准。评估使用 ActivityNet-QA 和 NeXT-GQA 公开基准。场景分割通常产出 60-80 场景/小时视频，每场景三种向量（描述/关键帧/转录），存储在 Qdrant 多向量集合中。
+
 Long-form video QA is the most bandwidth-hungry multimodal problem at 2026 scale. Gemini 2.5 Pro can read a 2-hour video natively, but ingesting 100 hours of video into a queryable corpus still requires a scene-level index. The production shape combines scene segmentation (TransNetV2 or PySceneDetect), per-scene captioning with a VLM (Gemini 2.5, Qwen3-VL-Max, or Molmo 2), transcript alignment (Whisper-v3-turbo with word timestamps), and a multi-vector index that stores caption, frame embedding, and transcript side by side. The query pipeline answers with (start, end) timestamps plus frame previews.
 
 Benchmarks are public (ActivityNet-QA, NeXT-GQA) plus your own 100-query custom set. Hallucination on counting and action-type questions is the known-hard failure class; the capstone explicitly measures it.
 
 ## Concept
+
+> **【中文解读】** 摄取时三条管道并行运行：场景分割（切分为场景）、VLM 描述（每场景生成描述+关键帧嵌入）、ASR 对齐（Whisper-v3-turbo 词级时间戳）。三条流按场景 ID 和时间范围合并，每场景三种向量存入 Qdrant 多向量索引。查询时自然语言问题同时检索三种向量，RRF 合并后用 TimeLens 时间定位适配器精炼窗口，VLM 合成器生成带时间戳引用的答案。
+
+> **【拓展：视频 VLM 幻觉问题】** VLM 在计数问题（"有多少人进入房间？"）和动作顺序问题（"厨师是在搅拌前倒的吗？"）上幻觉率极高，这是已知的硬性限制。评估时需要将这些问题单独统计准确率。TimeLens 风格的时间定位适配器可以将场景级窗口精炼到秒级，IoU（交并比）是衡量定位精度的标准指标。生产系统建议在答案中附带帧预览和时间戳，支持用户点击验证。
 
 Three pipelines run in parallel at ingest. **Scene segmentation** cuts the video into scenes. **VLM captioning** generates a caption per scene and a frame embedding from a keyframe. **ASR alignment** produces word-level timestamps. The three streams are joined by (scene_id, time range). Each scene gets three vector types in a multi-vector index (Qdrant): caption embedding, keyframe embedding, transcript embedding.
 

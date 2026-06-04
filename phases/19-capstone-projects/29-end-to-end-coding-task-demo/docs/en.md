@@ -20,6 +20,8 @@
 
 ## The Problem | 问题
 
+> **【中文解读】** 大多数 Agent 演示都是孤立运行的：沙箱单独演示、评估线束单独演示、Span 发射器单独演示。看起来都没问题，但一旦组合起来，接口缝隙就暴露了。本节将这些组件集成到一个完整的编码 Agent 中，验证系统级集成是否正确。
+
 Most agent demos work in isolation: a sandbox by itself, an eval harness by itself, a span emitter by itself. They look fine. Compose them and the seams show.
 
 The gate chain says ALLOW but the sandbox refuses for a reason the chain did not anticipate. The eval harness records a pass but the OTel spans say the gate refused a tool the agent claims it used. The Prometheus counter is incremented twice when it should be incremented once. The observation budget is exceeded but the agent kept going because the budget was tracked in the chain and the sandbox didn't know.
@@ -27,6 +29,10 @@ The gate chain says ALLOW but the sandbox refuses for a reason the chain did not
 This lesson is the integration test for the whole track. The agent has to do four things in order: read the project, run the tests, identify the bug from the test failure, write the fix, rerun the tests, and stop. Every operation goes through the gate chain. Every tool execution goes through the sandbox. Every step is wrapped in a span. The eval harness scores the whole thing at the end.
 
 ## The Concept | 概念
+
+> **【中文解读】** Agent 的策略被建模为五状态有限状态机：SURVEY（浏览项目）、RUN_TESTS（运行测试）、INSPECT（检查失败文件）、FIX（写入修复）、VERIFY（验证修复）。每个状态对应一次工具调用，每次调用都经过 Gate Chain 审查。这种确定性设计使得结果可复现，便于测试验证。
+
+> **【拓展：端到端 Agent 系统】** 现代编码 Agent 如 SWE-Agent (Princeton, 2024) 和 OpenDevin 采用类似架构：工具调用链 + 门控 + 沙箱执行。SWE-Agent 在 SWE-Bench 上解决了约 12% 的真实 GitHub issue，其核心循环与本节相同：读取 -> 定位 -> 编辑 -> 验证。区别在于用 LLM 替换了确定性策略。
 
 ```mermaid
 flowchart TD
@@ -85,11 +91,15 @@ The bundled fixture is the same shape as lesson 27's task structure: a buggy fil
 
 ## Why the policy is not an LLM
 
+> **【中文解读】** 使用确定性策略替代 LLM 的原因有三：(1) 无需 API 密钥和网络调用；(2) 消除随机性，测试可以断言精确的步骤数；(3) 本课关注的是线束（harness）本身而非策略。LLM 通过相同的接口（policy seam）插入，不改变任何线束契约。
+
 A real LLM requires an API key, a network call, and unverifiable stochasticity. The harness is the part the lesson cares about. Subbing in a deterministic policy lets the lesson run on any developer laptop with zero external dependencies and lets the test suite assert exact-step counts.
 
 The lesson's policy is a strict subset of what an LLM agent does. The policy reads the repo, sees the failing test, identifies the line, and emits a fix. An LLM goes through the same loop with the same harness contract; the bookkeeping is identical.
 
 ## What the demo asserts
+
+> **【拓展：Agent 评估方法论】** 端到端 Agent 评估的核心挑战在于定义"成功"。OpenAI 的 SWE-Bench 使用真实 GitHub PR 作为基准，要求 Agent 在多文件项目中生成能通过现有测试的补丁。本节的五个断言（步骤预算、观察预算、零门控拒绝、每步都有 Span、Prometheus 指标完整）是 Agent 可观测性的最小验证集，对应生产环境中的 SLO（Service Level Objective）。
 
 The end-to-end demo asserts five things at exit time, and the test suite reasserts them programmatically.
 
@@ -104,6 +114,8 @@ Every step has a corresponding span in the traces.jsonl.
 The Prometheus exposition contains a `tools_called_total{tool="read_file"}` entry and a `tool_latency_ms` histogram.
 
 ## How this composes with the rest of Track A
+
+> **【中文解读】** 本课是 Track A 的集成测试。Lesson 25 编写了 Gate Chain，Lesson 26 编写了沙箱，Lesson 27 编写了评估线束，Lesson 28 编写了可观测性，Lesson 29 证明它们作为系统协同工作。替换确定性策略为真实模型、替换夹具为真实仓库、替换 JSONL 为 OTLP，即构成生产级 Agent 线束。
 
 This lesson is the integration. Lesson 25 wrote the gate chain. Lesson 26 wrote the sandbox. Lesson 27 wrote the eval harness. Lesson 28 wrote the observability. Lesson 29 proves they work as a system. A real agent harness extends from here: swap the deterministic policy for a model, swap the bundled fixture for a real-repo task, swap the JSONL exporter for OTLP.
 
