@@ -33,11 +33,19 @@
 
 You build a fraud detection model. It gets 99.9% accuracy. You celebrate. Then you realize it predicts "not fraud" for every single transaction.
 
+> 你构建了一个欺诈检测模型。它获得 99.9% 的准确率。你庆祝。然后你意识到它对每笔交易都预测"非欺诈"。
+
 This is not a bug. It is the rational thing to do when only 0.1% of transactions are fraudulent. The model learns that always guessing the majority class minimizes overall error. It is technically correct and completely useless.
+
+> 这不是 bug。当只有 0.1% 的交易是欺诈时，这是合理的行为。模型学到始终猜测多数类能最小化整体误差。它在技术上正确但完全无用。
 
 This happens everywhere real classification matters. Disease diagnosis: 1% positive rate. Network intrusion: 0.01% attacks. Manufacturing defects: 0.5% defective. Spam filtering: 20% spam. Churn prediction: 5% churners. The more consequential the minority class, the rarer it tends to be.
 
+> 这在真正需要分类的地方都会发生。疾病诊断：1% 阳性率。网络入侵：0.01% 攻击。制造缺陷：0.5% 缺陷。垃圾邮件过滤：20% 垃圾邮件。客户流失预测：5% 流失者。少数类越重要，它就越稀有。
+
 Accuracy fails because it treats all correct predictions equally. Correctly labeling a legitimate transaction and correctly catching fraud both count as one point of accuracy. But catching fraud is the entire reason the model exists. We need metrics, techniques, and training strategies that force the model to pay attention to the rare but important class.
+
+> 准确率失败因为它同等对待所有正确预测。正确标记合法交易和正确捕获欺诈都算准确率的一分。但捕获欺诈是模型存在的全部原因。我们需要迫使模型关注稀有但重要类别的指标、技术和训练策略。
 
 > **【中文解读】**
 > 不平衡数据的核心问题：准确率是"谎言"。99.9% 准确率可能只是全猜多数类。正确做法：(1) 换指标——用 F1、AUPRC、MCC 替代准确率；(2) 重采样——SMOTE 过采样少数类或欠采样多数类；(3) 代价敏感学习——给少数类更大的损失权重；(4) 调整阈值——降低分类阈值来提高召回率。通常组合使用多种策略效果最好。
@@ -48,6 +56,8 @@ Accuracy fails because it treats all correct predictions equally. Correctly labe
 
 Consider a dataset with 1000 samples: 990 negative, 10 positive. A model that always predicts negative:
 
+> 考虑一个 1000 个样本的数据集：990 个负样本，10 个正样本。一个始终预测负类的模型：
+
 |  | Predicted Positive | Predicted Negative |
 |--|---|---|
 | Actually Positive | 0 (TP) | 10 (FN) |
@@ -57,21 +67,37 @@ Accuracy = (0 + 990) / 1000 = 99.0%
 
 The model catches zero fraud. Zero disease. Zero defects. But accuracy says 99%. This is why accuracy is dangerous for imbalanced problems.
 
+> 模型捕获了零个欺诈。零个疾病。零个缺陷。但准确率显示 99%。这就是为什么准确率在不平衡问题中是危险的。
+
 ### Better Metrics
 
 **Precision** = TP / (TP + FP). Of everything flagged as positive, how many actually are? High precision means few false alarms.
 
+> **精确率** = TP / (TP + FP)。在所有标记为正的样本中，有多少确实是正的？高精确率意味着少假阳性。
+
 **Recall** = TP / (TP + FN). Of everything actually positive, how many did we catch? High recall means few missed positives.
+
+> **召回率** = TP / (TP + FN)。在所有实际为正的样本中，我们捕获了多少？高召回率意味着少漏检。
 
 **F1 Score** = 2 * precision * recall / (precision + recall). The harmonic mean. Penalizes extreme imbalance between precision and recall more than the arithmetic mean would.
 
+> **F1 分数** = 2 * 精确率 * 召回率 / (精确率 + 召回率)。调和平均值。比算术平均值更严厉地惩罚精确率和召回率之间的极端不平衡。
+
 **F-beta Score** = (1 + beta^2) * precision * recall / (beta^2 * precision + recall). When beta > 1, recall matters more. When beta < 1, precision matters more. F2 is common in fraud detection (missing fraud is worse than a false alarm).
+
+> **F-beta 分数** = (1 + beta^2) * 精确率 * 召回率 / (beta^2 * 精确率 + 召回率)。当 beta > 1 时，召回率更重要。当 beta < 1 时，精确率更重要。F2 在欺诈检测中常用（漏检欺诈比误报更糟糕）。
 
 **AUPRC** (Area Under Precision-Recall Curve). Like AUC-ROC but more informative for imbalanced data. A random classifier has AUPRC equal to the positive class rate (not 0.5 like ROC). This makes improvements easier to see.
 
+> **AUPRC**（精确率-召回率曲线下面积）。类似于 AUC-ROC 但对不平衡数据更有信息量。随机分类器的 AUPRC 等于正类比例（不像 ROC 的 0.5）。这使得改进更容易看到。
+
 **Matthews Correlation Coefficient** = (TP * TN - FP * FN) / sqrt((TP+FP)(TP+FN)(TN+FP)(TN+FN)). Ranges from -1 to +1. Only gives a high score when the model does well on both classes. Balanced even when classes are very different sizes.
 
+> **马修斯相关系数 (MCC)** = (TP * TN - FP * FN) / sqrt((TP+FP)(TP+FN)(TN+FP)(TN+FN))。范围从 -1 到 +1。只有在两个类别上都表现良好时才给高分。即使类别大小差异很大也保持平衡。
+
 For the "always predict negative" model above: precision = 0/0 (undefined, often set to 0), recall = 0/10 = 0, F1 = 0, MCC = 0. These metrics correctly identify the model as worthless.
+
+> 对于上面的"始终预测负类"模型：精确率 = 0/0（未定义，通常设为 0），召回率 = 0/10 = 0，F1 = 0，MCC = 0。这些指标正确地将模型识别为无用。
 
 ### The Imbalanced Data Pipeline
 
@@ -95,15 +121,26 @@ flowchart TD
 
 Random oversampling duplicates existing minority samples. This works but risks overfitting because the model sees identical points repeatedly.
 
+> 随机过采样复制现有少数类样本。这有效但有过拟合风险，因为模型会重复看到相同的点。
+
 SMOTE creates new synthetic minority samples that are plausible but not copies. The algorithm:
 
+> SMOTE 创建新的合成少数类样本，它们合理但不是副本。算法如下：
+
 1. For each minority sample x, find its k nearest neighbors among other minority samples
+   对于每个少数类样本 x，在其他少数类样本中找到其 k 个最近邻
 2. Pick one neighbor at random
+   随机选择一个邻居
 3. Create a new sample on the line segment between x and that neighbor
+   在 x 和该邻居之间的线段上创建一个新样本
 
 The formula: `new_sample = x + random(0, 1) * (neighbor - x)`
 
+> 公式：`new_sample = x + random(0, 1) * (neighbor - x)`
+
 This interpolates between real minority points, creating samples in the same region of feature space without just copying existing data.
+
+> 这在真实少数类点之间插值，在特征空间的同一区域创建样本，而不仅仅是复制现有数据。
 
 ```mermaid
 flowchart LR
@@ -134,15 +171,21 @@ flowchart LR
 
 **Random Oversampling**: duplicate minority samples to match majority count.
 - Pros: simple, no information loss
+  优点：简单，无信息损失
 - Cons: exact duplicates cause overfitting, increases training time
+  缺点：完全相同的副本导致过拟合，增加训练时间
 
 **Random Undersampling**: remove majority samples to match minority count.
 - Pros: fast training, simple
+  优点：训练快，简单
 - Cons: throws away potentially useful majority data, higher variance
+  缺点：丢弃可能有用的多数类数据，方差更高
 
 **SMOTE**: create synthetic minority samples via interpolation.
 - Pros: generates new data points, reduces overfitting compared to random oversampling
+  优点：生成新数据点，比随机过采样减少过拟合
 - Cons: can create noisy samples near the decision boundary, does not account for majority class distribution
+  缺点：可能在决策边界附近创建噪声样本，不考虑多数类分布
 
 | Strategy | Data Changed | Risk | When to Use |
 |----------|-------------|------|-------------|
@@ -154,11 +197,17 @@ flowchart LR
 
 Instead of changing the data, change how the model treats errors. Assign higher weight to misclassifying the minority class.
 
+> 不改变数据，而是改变模型对待错误的方式。给少数类的误分类分配更高的权重。
+
 For a binary problem with 950 negative and 50 positive samples:
 - Weight for negative class = n_samples / (2 * n_negative) = 1000 / (2 * 950) = 0.526
+  负类权重 = n_samples / (2 * n_negative) = 1000 / (2 * 950) = 0.526
 - Weight for positive class = n_samples / (2 * n_positive) = 1000 / (2 * 50) = 10.0
+  正类权重 = n_samples / (2 * n_positive) = 1000 / (2 * 50) = 10.0
 
 The positive class gets 19x the weight. Misclassifying one positive sample costs as much as misclassifying 19 negative samples. The model is forced to pay attention to the minority class.
+
+> 正类获得了 19 倍的权重。误分类一个正样本的代价等同于误分类 19 个负样本。模型被迫关注少数类。
 
 In logistic regression, this modifies the loss function:
 
@@ -170,16 +219,25 @@ where w_i depends on the class of sample i.
 
 Class weights are mathematically equivalent to oversampling in expectation, but without creating new data points. This makes them faster and avoids the overfitting risk of duplicated samples.
 
+> 类权重在期望上与过采样数学等价，但不创建新数据点。这使得它们更快，并避免了复制样本的过拟合风险。
+
 ### Threshold Tuning
 
 Most classifiers output a probability. The default threshold is 0.5: if P(positive) >= 0.5, predict positive. But 0.5 is arbitrary. When classes are imbalanced, the optimal threshold is usually much lower.
 
+> 大多数分类器输出概率。默认阈值为 0.5：如果 P(positive) >= 0.5，预测为正。但 0.5 是任意的。当类别不平衡时，最优阈值通常低得多。
+
 The process:
 1. Train a model
+   训练一个模型
 2. Get predicted probabilities on the validation set
+   在验证集上获取预测概率
 3. Sweep thresholds from 0.0 to 1.0
+   从 0.0 到 1.0 扫描阈值
 4. Compute F1 (or your chosen metric) at each threshold
+   在每个阈值下计算 F1（或你选择的指标）
 5. Pick the threshold that maximizes your metric
+   选择最大化你的指标的阈值
 
 ```mermaid
 flowchart LR
@@ -192,9 +250,13 @@ flowchart LR
 
 A model might output P(fraud) = 0.15 for a fraudulent transaction. At threshold 0.5, this is classified as not fraud. At threshold 0.10, it is correctly caught. The probability calibration matters less than the ranking -- as long as fraud gets higher probabilities than non-fraud, there exists a threshold that separates them.
 
+> 模型可能对一笔欺诈交易输出 P(fraud) = 0.15。在阈值 0.5 下，这被分类为非欺诈。在阈值 0.10 下，它被正确捕获。概率校准不如排名重要——只要欺诈获得比非欺诈更高的概率，就存在一个能分离它们的阈值。
+
 ### Cost-Sensitive Learning
 
 Generalization of class weights. Instead of uniform costs, assign specific misclassification costs:
+
+> 类权重的推广。不使用统一代价，而是分配特定的误分类代价：
 
 | | Predict Positive | Predict Negative |
 |--|---|---|
@@ -203,7 +265,11 @@ Generalization of class weights. Instead of uniform costs, assign specific miscl
 
 Missing a fraudulent transaction (FN) costs 100x more than a false alarm (FP). The model optimizes for total cost, not total error count.
 
+> 漏检一笔欺诈交易（FN）的代价是误报（FP）的 100 倍。模型优化总代价，而非总错误数。
+
 This is the most principled approach when you can estimate real-world costs. A missed cancer diagnosis has a very different cost than a false alarm that leads to an extra biopsy. Making these costs explicit forces the right tradeoffs.
+
+> 这是当你能估计真实世界成本时最有原则的方法。漏诊癌症的代价与导致额外活检的误报截然不同。明确这些代价可以促成正确的权衡。
 
 ### Decision Flowchart
 
@@ -481,9 +547,13 @@ preds_thresh = (probs_cw >= best_thresh).astype(int)
 
 The code file runs all of this in a single script and prints results.
 
+> 代码文件在单个脚本中运行所有这些并打印结果。
+
 ## Use It | 用框架实现
 
 With scikit-learn and imbalanced-learn, these techniques are one-liners:
+
+> 使用 scikit-learn 和 imbalanced-learn，这些技术只需一行代码：
 
 ```python
 from sklearn.linear_model import LogisticRegression
@@ -514,6 +584,8 @@ print(classification_report(y_test, pipeline.predict(X_test)))
 ```
 
 The from-scratch implementations show exactly what each technique does. SMOTE is just k-NN interpolation on the minority class. Class weights multiply the loss. Threshold tuning is a for-loop over cutoffs. No magic.
+
+> 从零实现准确展示了每种技术的作用。SMOTE 就是少数类上的 k-NN 插值。类权重乘以损失。阈值调优是对截断值的 for 循环。没有魔法。
 
 ## Ship It | 产出物
 
