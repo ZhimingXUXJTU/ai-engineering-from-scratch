@@ -4,30 +4,42 @@
 
 > **【中文解读】** GPT-4o 展示了一个令人震撼的产品形态：一个能听、能看、能实时语音回复的 Agent。开源社区直到 2024 年底才有了 MIO 这个可行方案。MIO 的核心思路是将文本、图像、语音、音乐全部 tokenize 成整数 token，用一个因果 Transformer 统一处理，实现任意模态到任意模态的生成。
 
-**Type:** Learn
-**Languages:** Python (stdlib, four-modality token allocator + streaming decode loop)
-**Prerequisites:** Phase 12 · 11 (Chameleon), Phase 6 (Speech and Audio)
-**Time:** ~120 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, four-modality token allocator + streaming decode loop) | **语言:** Python（标准库，四模态 token 分配器 + 流式解码循环）
+**Prerequisites:** Phase 12 · 11 (Chameleon), Phase 6 (Speech and Audio) | **前置知识:** Phase 12 · 11（Chameleon），Phase 6（语音与音频）
+**Time:** ~120 minutes | **时间:** ~120 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Design a shared vocabulary that hosts text, image, speech, and music tokens without collisions.
+  中文翻译：设计一个共享词汇表，容纳文本、图像、语音和音乐 token 而不冲突。
 - Compare SEED-Tokenizer (images) and SpeechTokenizer residual-VQ (speech) on compression + reconstruction trade-offs.
+  中文翻译：比较 SEED-Tokenizer（图像）和 SpeechTokenizer 残差 VQ（语音）在压缩+重建方面的权衡。
 - Explain the four-stage curriculum that builds up any-to-any generation.
+  中文翻译：解释构建任意到任意生成的四阶段课程学习。
 - Name the three open any-to-any recipes and their main trade-offs: MIO, AnyGPT, Unified-IO 2.
+  中文翻译：列举三个开放的任意到任意方案及其主要权衡：MIO、AnyGPT、Unified-IO 2。
 
 ## The Problem | 问题引入
 
 A unified multimodal model is easy to claim and hard to build at scale. Most "any-to-any" systems until 2024 were pipelined: vision model → text representation → speech model → audio. Each hop loses information, adds latency, and complicates training. GPT-4o's demo video showed a single-model alternative with subsecond response; open systems trailed by months.
 
+> 统一多模态模型容易声称但难以大规模构建。2024 年之前大多数"任意到任意"系统都是管道式的：视觉模型→文本表示→语音模型→音频。每跳都会丢失信息、增加延迟、复杂化训练。GPT-4o 的演示视频展示了单模型替代方案，响应时间在秒级以下；开放系统落后了数月。
+
 > **【中文解读】** "任意到任意"多模态系统最大的挑战是：不能再用级联管道（视觉→文本→语音→音频），因为每个阶段都会丢失信息并增加延迟。需要的是一个统一模型，像 GPT-4o 那样用单一 Transformer 直接处理所有模态。
 
 The engineering challenges:
 
+> 工程挑战：
+
 - Tokenizers must exist for every modality, compress losslessly-enough for reconstruction, and produce tokens at rates the transformer can consume.
+  中文翻译：每种模态都必须有分词器，压缩损失足够小以便重建，并以 Transformer 可消费的速率产生 token。
 - A single vocabulary must allocate space for text (32k+), image (16k+), speech (4k+), music (8k+). Forty-thousand-plus entries minimum.
+  中文翻译：单一词汇表必须为文本（32k+）、图像（16k+）、语音（4k+）、音乐（8k+）分配空间。至少四万条以上。
 - Training data must cover every input-output pair (text→image, image→speech, speech→image, etc.) or the model must compose.
+  中文翻译：训练数据必须覆盖每个输入-输出对（文本→图像、图像→语音、语音→图像等），或模型必须能组合。
 - Inference must stream output tokens fast enough for conversational latency (<500ms time-to-first-audio-byte).
+  中文翻译：推理必须以足够快的速度流式输出 token，以满足对话延迟（<500ms 首个音频字节时间）。
 
 ## The Concept | 核心概念
 
