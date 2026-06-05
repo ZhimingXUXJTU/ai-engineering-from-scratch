@@ -65,15 +65,23 @@ flowchart LR
 ```
 
 - **DiT** (Peebles & Xie, 2023) — replace the U-Net with a ViT-like transformer on latent patches. Conditioning via adaptive layer norm (AdaLN).
+  中文翻译：**DiT**（Peebles & Xie，2023）——用类 ViT 的 Transformer 替换 U-Net 处理潜变量补丁。通过自适应层归一化（AdaLN）进行条件化。
 - **MMDiT** (SD3, Esser et al., 2024) — two streams with separate weights for text and image tokens that share a joint attention.
+  中文翻译：**MMDiT**（SD3，Esser 等，2024）——两个流分别有权重处理文本和图像 token，共享联合注意力。
 - **FLUX** (Black Forest Labs, 2024) — first N blocks double-stream like SD3, later blocks concatenate and share weights (single-stream) for efficiency at higher depth.
+  中文翻译：**FLUX**（Black Forest Labs，2024）——前 N 个块像 SD3 一样双流，后续块拼接并共享权重（单流）以提高深层的效率。
 - **Z-Image** (2025) — an efficient single-stream DiT at 6B parameters that challenges "scale at all costs".
+  中文翻译：**Z-Image**（2025）——60 亿参数的高效单流 DiT，挑战"不计成本扩展"的思路。
 
 ### Rectified flow in one paragraph
 
 DDPM defines the forward process as a noisy SDE where `x_t` is increasingly corrupted. The learned reverse is a second SDE, solved by 1000 small steps.
 
+> DDPM 将前向过程定义为噪声随机微分方程（SDE），其中 `x_t` 逐渐被损坏。学习到的反向是第二个 SDE，通过 1000 个小步求解。
+
 Rectified flow defines a **straight-line** interpolation between clean data and pure noise:
+
+> 整流流定义了干净数据和纯噪声之间的**直线**插值：
 
 ```
 x_t = (1 - t) * x_0 + t * epsilon,     t in [0, 1]
@@ -81,11 +89,17 @@ x_t = (1 - t) * x_0 + t * epsilon,     t in [0, 1]
 
 Train a network to predict the velocity `v_theta(x_t, t) = epsilon - x_0` — the forward direction along the straight-line path from clean data to noise (`dx_t/dt`). During sampling, you integrate this velocity backward to step from noise toward data. The resulting ODE is much closer to a straight line, so far fewer integration steps are needed to sample.
 
+> 训练网络预测速度 `v_theta(x_t, t) = epsilon - x_0`——从干净数据到噪声的直线路径上的前向方向（`dx_t/dt`）。采样时，反向积分这个速度从噪声走向数据。得到的 ODE 更接近直线，因此采样所需积分步数大大减少。
+
 SD3 calls this **Rectified Flow Matching**. FLUX, Z-Image, and most 2026 models use the same objective. Typical inference: 20-30 Euler steps (deterministic) vs 50+ DDIM steps in the old DDPM regime. Distilled / turbo / schnell / LCM variants take it down to 1-4 steps.
+
+> SD3 将此称为**整流流匹配**。FLUX、Z-Image 和大多数 2026 年模型使用相同目标。典型推理：20-30 步 Euler（确定性）vs 旧 DDPM 方案的 50+ 步 DDIM。蒸馏/turbo/schnell/LCM 变体降至 1-4 步。
 
 ### AdaLN conditioning
 
 DiTs condition on timestep and class/text via **adaptive layer norm**: predict `scale` and `shift` from the conditioning vector and apply them after LayerNorm. Much cleaner than FiLM-style modulation in U-Nets and the default in every modern DiT.
+
+> DiT 通过**自适应层归一化**对时间步和类别/文本进行条件化：从条件向量预测 `scale` 和 `shift`，在 LayerNorm 后应用。比 U-Net 中的 FiLM 风格调制更干净，是每个现代 DiT 的默认方案。
 
 ```
 cond -> MLP -> (scale, shift, gate)
@@ -133,6 +147,8 @@ FLUX.1-schnell is the 2026 open-source default. Z-Image is the efficiency leader
 ### Why this phase shift matters
 
 DDPM + U-Net worked. DiT + rectified flow works **better, faster, and scales more cleanly**. The transition parallels the one from RNNs to transformers in NLP: both architectures solved the same problem, but transformers scaled and now dominate. Every 2026 paper on image, video, or 3D generation uses a DiT-shaped denoiser and usually a rectified flow objective. U-Net DDPM is now primarily pedagogical (Lesson 10).
+
+> DDPM + U-Net 可行。DiT + 整流流**更好、更快、扩展更干净**。这个转变类似于 NLP 中从 RNN 到 Transformer 的过渡：两种架构都解决了同样的问题，但 Transformer 更具可扩展性并最终主导。2026 年每篇关于图像、视频或 3D 生成的论文都使用 DiT 形状的去噪器，通常还使用整流流目标。U-Net DDPM 现在主要用于教学（第 10 课）。
 
 > **【拓展：工业部署中的视觉系统】** 在实际工业部署中，视觉模型需要考虑推理延迟、模型大小、边缘设备适配等问题。TensorRT、ONNX Runtime、OpenVINO 是常用的推理加速工具。自动驾驶系统（如 Tesla FSD）通常在车载芯片上实时运行多个视觉模型。
 

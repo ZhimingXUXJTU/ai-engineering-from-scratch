@@ -58,13 +58,19 @@ flowchart LR
 ```
 
 - **Top-down** — detect people first, then run a per-person keypoint model on each crop. Highest accuracy; scales linearly with number of people.
+  中文翻译：**自顶向下**——先检测人体框，然后对每个裁剪区域运行单人关键点模型。精度最高；随人数线性扩展。
 - **Bottom-up** — one forward pass predicts all keypoints plus an association field; group them. Constant time regardless of crowd size.
+  中文翻译：**自底向上**——一次前向传播预测所有关键点加关联场；然后分组。无论人群大小都是常数时间。
 
 Top-down (HRNet, ViTPose) is the accuracy leader; bottom-up (OpenPose, HigherHRNet) is the throughput leader for crowded scenes.
+
+> 自顶向下（HRNet、ViTPose）是精度领导者；自底向上（OpenPose、HigherHRNet）是拥挤场景的吞吐量领导者。
 
 ### Heatmap regression
 
 Instead of regressing `(x, y)` directly, predict an `H x W` heatmap per keypoint with a Gaussian blob centred at the true location.
+
+> 不直接回归 `(x, y)`，而是为每个关键点预测一张 `H x W` 热力图，在真实位置中心放置高斯斑点。
 
 ```
 target[k, y, x] = exp(-((x - cx_k)^2 + (y - cy_k)^2) / (2 sigma^2))
@@ -74,9 +80,13 @@ At inference, the argmax of each heatmap is the predicted keypoint location.
 
 Why heatmaps work better than direct regression: the network's spatial structure (conv feature map) aligns naturally with spatial output. Gaussian targets also regularise — a small localisation error produces a small loss, not zero.
 
+> 为什么热力图比直接回归更好：网络的空间结构（卷积特征图）与空间输出自然对齐。高斯目标也有正则化效果——小的定位误差产生小的损失，而不是零。
+
 ### Sub-pixel localisation
 
 Argmax gives integer coordinates. For sub-pixel precision, refine by fitting a parabola to the argmax and its neighbours, or use the well-known offset `(dx, dy) = 0.25 * (heatmap[y, x+1] - heatmap[y, x-1], ...)` direction.
+
+> Argmax 给出整数坐标。要获得亚像素精度，可以通过对 argmax 及其邻域拟合抛物线来精修。
 
 ### Part Affinity Fields (PAFs)
 
@@ -94,6 +104,8 @@ Elegant and scales to arbitrary crowd sizes without per-person crops.
 ### COCO keypoints
 
 The standard body-pose dataset: 17 keypoints per person, PCK (Percentage of Correct Keypoints) and OKS (Object Keypoint Similarity) as metrics. OKS is the keypoint analogue of IoU and is what COCO mAP@OKS reports.
+
+> 标准人体姿态数据集：每人 17 个关键点，PCK（正确关键点百分比）和 OKS（目标关键点相似度）作为度量。OKS 是关键点版的 IoU，是 COCO mAP@OKS 报告的内容。
 
 ### 2D vs 3D
 
@@ -130,9 +142,13 @@ print(f"peak: {hm.max():.3f} at ({hm.argmax() % 64}, {hm.argmax() // 64})")
 
 Per-keypoint heatmaps stacked along a channel axis give the full target tensor.
 
+> 每个关键点的热力图沿通道轴堆叠，形成完整的目标张量。
+
 ### Step 2: Tiny keypoint head
 
 A U-Net-style model that outputs K heatmap channels.
+
+> 一个 U-Net 风格的模型，输出 K 个热力图通道。
 
 ```python
 import torch.nn as nn

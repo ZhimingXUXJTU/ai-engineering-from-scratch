@@ -57,6 +57,8 @@ flowchart LR
 
 Take one image, apply two random augmentations, get two views. Feed both through the same encoder plus a projection head. Minimise a loss that says "these two embeddings should be close" and "this embedding should be far from every other image's embeddings in the batch."
 
+> 取一张图像，施加两种随机增强，得到两个视图。将两者通过同一编码器加投影头。最小化一个损失函数："这两个嵌入应该接近"且"这个嵌入应该远离批次中所有其他图像的嵌入"。
+
 ```
 Loss for positive pair (z_i, z_j) among 2N views per batch:
 
@@ -68,9 +70,13 @@ tau = temperature (0.1 standard)
 
 This is the InfoNCE loss. It requires many negatives per positive, so batch size matters — SimCLR needs 512-8192. MoCo introduced a momentum queue of past batches to decouple negative count from batch size.
 
+> 这就是 InfoNCE 损失。它需要每个正样本对应很多负样本，所以批量大小很关键——SimCLR 需要 512-8192。MoCo 引入了过去批次的动量队列来解耦负样本数与批量大小。
+
 ### Teacher-student (DINO)
 
 Two networks with the same architecture: student and teacher. The teacher is an exponential moving average (EMA) of the student's weights. Both see augmented views of the image. The student's output is trained to match the teacher's — no explicit negatives.
+
+> 两个相同架构的网络：学生和教师。教师权重的指数移动平均（EMA）来自学生权重。两者都看到图像的增强视图。学生的输出被训练来匹配教师的——没有显式负样本。
 
 ```
 loss = CE( student_output(view_1),  teacher_output(view_2) )
@@ -81,11 +87,17 @@ teacher_weights = m * teacher_weights + (1 - m) * student_weights   (m ≈ 0.996
 
 Why it does not collapse to "predict a constant": the teacher's output is centred (subtract per-dimension mean) and sharpened (divide by small temperature). Centering prevents one dimension from dominating; sharpening prevents output collapse to uniform.
 
+> 为什么不会坍塌为"预测常数"：教师的输出经过居中（减去每维均值）和锐化（除以小温度）。居中防止某个维度主导；锐化防止输出坍塌为均匀分布。
+
 DINO is what DINOv2 scales up, on 142M curated images. The resulting features are the current SOTA for zero-shot visual retrieval and dense prediction.
+
+> DINO 是 DINOv2 的基础，在 1.42 亿张精选图像上扩展。产生的特征是零样本视觉检索和密集预测的当前 SOTA。
 
 ### Masked reconstruction (MAE)
 
 Mask 75% of patches of a ViT input. Pass only the visible 25% through the encoder. A small decoder receives the encoder's output plus mask tokens at masked positions, and is trained to reconstruct the pixels of the masked patches.
+
+> 掩蔽 ViT 输入的 75% 补丁。只将可见的 25% 通过编码器。一个小解码器接收编码器输出加上掩码位置的掩码 token，训练重建被掩蔽补丁的像素。
 
 ```
 Encoder:  visible 25% of patches -> features
@@ -95,24 +107,39 @@ Loss:     MSE between reconstructed and original pixels on masked patches only
 
 Key design choices that make MAE work:
 
+> 使 MAE 生效的关键设计选择：
+
 - **75% mask ratio** — high. Forces the encoder to learn semantic features; reconstructing 25% would be near-trivial (neighbouring pixels are so correlated that a CNN could nail it).
+  中文翻译：**75% 掩码率**——很高。迫使编码器学习语义特征；重建 25% 几乎是平凡的（相邻像素高度相关，一个 CNN 就能做到）。
 - **Asymmetric encoder/decoder** — the big ViT encoder only sees visible patches; a small decoder (8-layer, 512-dim) handles reconstruction. 3x faster pretraining than naive BEiT.
+  中文翻译：**非对称编码器/解码器**——大型 ViT 编码器只看可见补丁；小型解码器（8 层，512 维）处理重建。比朴素 BEiT 预训练快 3 倍。
 - **Pixel-space reconstruction target** — simpler than BEiT's tokenised target and works better on ViT.
+  中文翻译：**像素空间重建目标**——比 BEiT 的 token 化目标更简单，在 ViT 上效果更好。
 
 After pretraining, discard the decoder. The encoder is the feature extractor.
+
+> 预训练后丢弃解码器。编码器就是特征提取器。
 
 ### Why 75% and not 15%
 
 BERT masks 15% of tokens. MAE masks 75%. The difference is information density.
 
+> BERT 掩蔽 15% 的 token。MAE 掩蔽 75%。差异在于信息密度。
+
 - Natural language has high entropy per token. Predicting 15% of tokens is still hard because each masked position has many plausible completions.
+  中文翻译：自然语言每个 token 的熵很高。预测 15% 的 token 仍然困难，因为每个被掩蔽的位置有很多合理的补全。
 - Image patches have low entropy — an unmasked neighbourhood often determines the masked patch's pixels almost exactly. To make prediction require semantic understanding, you have to mask aggressively.
+  中文翻译：图像补丁的熵低——未掩蔽的邻域通常几乎完全决定了被掩蔽补丁的像素。要使预测需要语义理解，必须激进地掩蔽。
 
 75% is high enough that simple spatial extrapolation cannot solve the task; the encoder must represent the image content.
+
+> 75% 高到简单的空间外推无法解决任务；编码器必须表示图像内容。
 
 ### Linear-probe evaluation
 
 After self-supervised pretraining, the standard evaluation is a **linear probe**: freeze the encoder, train a single linear classifier on top on ImageNet labels. Reports top-1 accuracy.
+
+> 自监督预训练后，标准评估是**线性探测**：冻结编码器，在 ImageNet 标签上训练单个线性分类器。报告 top-1 准确率。
 
 - SimCLR ResNet-50: ~71% (2020)
 - DINO ViT-S/16: ~77% (2021)
@@ -120,6 +147,8 @@ After self-supervised pretraining, the standard evaluation is a **linear probe**
 - DINOv2 ViT-g/14: ~86% (2023)
 
 Linear probe is a pure measure of feature quality; fine-tuning typically adds 2-5 points but also mixes in the effect of head retraining.
+
+> 线性探测是特征质量的纯度量；微调通常增加 2-5 个百分点，但也混合了头部重训练的效果。
 
 > **【拓展：工业部署中的视觉系统】** 在实际工业部署中，视觉模型需要考虑推理延迟、模型大小、边缘设备适配等问题。TensorRT、ONNX Runtime、OpenVINO 是常用的推理加速工具。自动驾驶系统（如 Tesla FSD）通常在车载芯片上实时运行多个视觉模型。
 
@@ -164,6 +193,8 @@ class TwoViewDataset(torch.utils.data.Dataset):
 
 Each __getitem__ returns two augmented views of the same image; labels are not needed.
 
+> 每次 `__getitem__` 返回同一图像的两个增强视图；不需要标签。
+
 ### Step 2: InfoNCE loss
 
 ```python
@@ -186,6 +217,8 @@ def info_nce(z1, z2, tau=0.1):
 
 L2-normalise embeddings before calling. `tau=0.1` is the SimCLR default; lower makes the loss sharper and requires more negatives.
 
+> 调用前对嵌入做 L2 归一化。`tau=0.1` 是 SimCLR 默认值；越低损失越尖锐，需要更多负样本。
+
 ### Step 3: Sanity check InfoNCE
 
 ```python
@@ -199,6 +232,8 @@ print(f"InfoNCE with random pairs:     {loss_random:.3f}")
 ```
 
 Identical pairs should give a low loss (close to 0 for a large batch and cold temperature). Random pairs should give log(2N-1) = ~log(31) = ~3.4 with a 16-pair batch.
+
+> 相同对应给出低损失（大批量和冷温度下接近 0）。随机对应对应给出 log(2N-1) = ~log(31) = ~3.4（16 对批量）。
 
 ### Step 4: MAE-style masking
 
@@ -222,6 +257,8 @@ print(f"masked:  {len(masked)} / {num_patches}")
 
 
 Simple, fast, and deterministic for a given seed. Real MAE implementations batch this and keep per-sample masks.
+
+> 简单、快速、对给定种子确定性。实际 MAE 实现会批量处理并保留每个样本的掩码。
 
 
 

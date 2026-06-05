@@ -43,9 +43,13 @@ Depth is also the bridge between 2D detection and 3D understanding: multiply a d
 ### Relative vs metric depth
 
 - **Relative depth** — ordered `z` values without a real-world unit. "Pixel A is closer than pixel B, but the ratio of distances is not anchored to metres."
+  中文翻译：**相对深度**——有序的 `z` 值，没有真实世界单位。"像素 A 比像素 B 近，但距离比率不锚定到米。"
 - **Metric depth** — absolute distance in metres from the camera. Requires the model to have learnt the statistical relationship between image cues and real distance.
+  中文翻译：**度量深度**——从相机出发的绝对距离（米）。需要模型学到图像线索与真实距离之间的统计关系。
 
 MiDaS and Depth Anything V3 produce relative depth. Marigold produces relative depth. ZoeDepth, UniDepth, and Metric3D produce metric depth. Metric models are sensitive to camera intrinsics; relative models are not.
+
+> MiDaS 和 Depth Anything V3 产生相对深度。Marigold 产生相对深度。ZoeDepth、UniDepth 和 Metric3D 产生度量深度。度量模型对相机内参敏感；相对模型则不敏感。
 
 ### The encoder-decoder pattern
 
@@ -63,17 +67,28 @@ flowchart LR
 
 Depth Anything V3 freezes the encoder and trains only the DPT-style decoder. The encoder provides rich features; the decoder interpolates them back to image resolution and regresses depth.
 
+> Depth Anything V3 冻结编码器，只训练 DPT 风格的解码器。编码器提供丰富特征；解码器将它们插值回图像分辨率并回归深度。
+
 ### Why a single image produces depth at all
 
 A 2D image contains many monocular cues that correlate with depth:
 
+> 一张 2D 图像包含许多与深度相关的单目线索：
+
 - **Perspective** — parallel lines in 3D converge in 2D.
+  中文翻译：**透视**——3D 中的平行线在 2D 中汇聚。
 - **Texture gradient** — surfaces far away have smaller, denser texture.
+  中文翻译：**纹理梯度**——远处的表面纹理更小更密。
 - **Occlusion order** — nearer objects occlude farther ones.
+  中文翻译：**遮挡顺序**——近处物体遮挡远处物体。
 - **Size constancy** — known objects (cars, humans) give approximate scale.
+  中文翻译：**大小恒常性**——已知物体（车、人）给出近似尺度。
 - **Atmospheric perspective** — distant objects appear hazier and bluer in outdoor scenes.
+  中文翻译：**大气透视**——远处物体在户外场景中显得更朦胧更蓝。
 
 A ViT trained on billions of images internalises these cues. With enough data and a strong backbone, monocular depth hits reasonable accuracy without any explicit 3D supervision.
+
+> 在数十亿图像上训练的 ViT 将这些线索内化。有了足够的数据和强骨干，单目深度无需任何显式 3D 监督就能达到合理精度。
 
 ### What monocular depth cannot do
 
@@ -91,9 +106,13 @@ A ViT trained on billions of images internalises these cues. With enough data an
 
 This is the drop-in model to call when you need depth in 2026.
 
+> 这是 2026 年你需要深度时直接调用的模型。
+
 ### Marigold — diffusion for depth
 
 Marigold (Ke et al., CVPR 2024) reframes depth estimation as conditional image-to-image diffusion. Conditioning: RGB. Target: depth map. Uses a pretrained Stable Diffusion 2 U-Net as backbone. Output depth maps are exceptionally sharp at object boundaries. Trade-off: slower inference than feed-forward models (10-50 denoising steps).
+
+> Marigold（Ke 等，CVPR 2024）将深度估计重新框架为条件图像到图像的扩散。条件：RGB。目标：深度图。使用预训练的 Stable Diffusion 2 U-Net 作为骨干。输出深度图在物体边界处异常清晰。代价：推理比前馈模型慢（10-50 个去噪步骤）。
 
 ### Intrinsics and the pinhole camera
 

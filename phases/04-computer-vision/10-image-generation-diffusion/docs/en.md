@@ -44,15 +44,21 @@ This lesson builds the minimal DDPM: forward noising, backward denoising, traini
 
 Take an image `x_0`. Add a tiny amount of Gaussian noise to get `x_1`. Add a tiny amount more to get `x_2`. Keep going for T steps until `x_T` is nearly indistinguishable from pure Gaussian noise.
 
+> 取一张图像 `x_0`，加一点高斯噪声得到 `x_1`，再加一点得到 `x_2`，持续 T 步直到 `x_T` 与纯高斯噪声几乎无法区分。
+
 ```
 q(x_t | x_{t-1}) = N(x_t; sqrt(1 - beta_t) * x_{t-1},  beta_t * I)
 ```
 
 `beta_t` is a small variance schedule, typically linear from 0.0001 to 0.02 over T=1000 steps. Each step slightly shrinks the signal and injects fresh noise.
 
+> `beta_t` 是一个小的方差调度，通常在 T=1000 步内从 0.0001 线性增长到 0.02。每一步略微缩小信号并注入新噪声。
+
 ### The closed-form jump
 
 Adding noise one step at a time is a Markov chain, but the math folds: you can sample `x_t` directly from `x_0` in one step.
+
+> 一步一步加噪是一个马尔可夫链，但数学上可以折叠：你可以一步直接从 `x_0` 采样 `x_t`。
 
 ```
 Define alpha_t = 1 - beta_t
@@ -68,9 +74,13 @@ Equivalently:
 
 This single equation is the whole reason diffusion is practical. During training you pick a random `t`, sample `x_t` directly from `x_0`, and train in one step — no simulation of the full Markov chain needed.
 
+> 这一个方程就是扩散模型实用的全部原因。训练时你随机选一个 `t`，直接从 `x_0` 采样 `x_t`，一步完成训练——无需模拟完整的马尔可夫链。
+
 ### The reverse process
 
 The forward process is fixed. The reverse process `p(x_{t-1} | x_t)` is what the neural network learns. Diffusion models do not predict `x_{t-1}` directly; they predict the noise `epsilon` added at step t, and the math derives `x_{t-1}` from it.
+
+> 前向过程是固定的。反向过程 `p(x_{t-1} | x_t)` 是神经网络要学习的。扩散模型不直接预测 `x_{t-1}`；它们预测第 t 步添加的噪声 `epsilon`，然后通过数学推导得到 `x_{t-1}`。
 
 ```mermaid
 flowchart LR
@@ -94,14 +104,24 @@ flowchart LR
 
 For every training step:
 
+> 每个训练步骤：
+
 1. Sample a real image `x_0`.
+   中文翻译：采样一张真实图像 `x_0`。
 2. Sample a timestep `t` uniformly from [1, T].
+   中文翻译：从 [1, T] 中均匀采样一个时间步 `t`。
 3. Sample noise `epsilon ~ N(0, I)`.
+   中文翻译：采样噪声 `epsilon ~ N(0, I)`。
 4. Compute `x_t = sqrt(alpha_bar_t) * x_0 + sqrt(1 - alpha_bar_t) * epsilon`.
+   中文翻译：计算 `x_t = sqrt(alpha_bar_t) * x_0 + sqrt(1 - alpha_bar_t) * epsilon`。
 5. Predict `epsilon_theta(x_t, t)` with the network.
+   中文翻译：用网络预测 `epsilon_theta(x_t, t)`。
 6. Minimise `|| epsilon - epsilon_theta(x_t, t) ||^2`.
+   中文翻译：最小化 `|| epsilon - epsilon_theta(x_t, t) ||^2`。
 
 That is it. The neural network learns to predict the noise at any timestep. The loss is MSE. There is no adversarial game, no collapse, no oscillation.
+
+> 就是这样。神经网络学习预测任意时间步的噪声。损失函数是 MSE。没有对抗博弈，没有模式坍塌，没有振荡。
 
 ### The sampler (DDPM)
 
@@ -117,17 +137,25 @@ return x_0
 
 The key is that even though the reverse conditional is not known in closed form in general, for this specific Gaussian forward process it is. The ugly-looking coefficients are what Bayes' rule gives you.
 
+> 关键在于，虽然一般情况下反向条件概率没有闭合形式的解，但对于这个特定的高斯前向过程是有的。那些看起来丑陋的系数正是贝叶斯法则给出的结果。
+
 ### Why 1000 steps
 
 The forward noise schedule is chosen so each step adds just enough noise that the reverse step is nearly Gaussian. Too few steps and the reverse step is far from Gaussian, the network cannot model it well. Too many steps and sampling becomes expensive with diminishing gain. T=1000 with a linear schedule is the DDPM default.
+
+> 前向噪声调度的设计使得每一步只加足够少的噪声，从而反向步骤近似高斯的。步数太少则反向步骤远离高斯分布，网络无法很好地建模；步数太多则采样变得昂贵且收益递减。T=1000 配合线性调度是 DDPM 的默认设置。
 
 ### DDIM: 20x faster sampling
 
 Training is the same. Sampling changes. DDIM (Song et al., 2020) defines a deterministic reverse process that skips timesteps without retraining. Sampling in 50 steps with DDIM gives near-1000-step DDPM quality. Every production system uses DDIM or an even faster variant (DPM-Solver, Euler ancestral).
 
+> 训练方式不变，采样方式改变。DDIM（Song 等，2020）定义了一个确定性的反向过程，可以跳过时间步而无需重新训练。用 DDIM 50 步采样能达到接近 1000 步 DDPM 的质量。每个生产系统都使用 DDIM 或更快的变体（DPM-Solver、Euler ancestral）。
+
 ### Time conditioning
 
 The network `epsilon_theta(x_t, t)` needs to know which timestep it is denoising. Modern diffusion models inject `t` via sinusoidal time embeddings (same idea as positional encoding in transformers) that get added to feature maps at every U-Net level.
+
+> 网络 `epsilon_theta(x_t, t)` 需要知道它在去噪哪个时间步。现代扩散模型通过正弦时间嵌入（与 Transformer 中的位置编码思路相同）注入 `t`，在每个 U-Net 层级的特征图上相加。
 
 ```
 t_embedding = sinusoidal(t)
@@ -135,6 +163,8 @@ feature_map += MLP(t_embedding)
 ```
 
 Without time conditioning the network has to guess the noise level from the image itself, which works but is much less sample-efficient.
+
+> 没有时间条件化，网络必须从图像本身猜测噪声水平，这样虽然能工作但样本效率低得多。
 
 > **【拓展：工业部署中的视觉系统】** 在实际工业部署中，视觉模型需要考虑推理延迟、模型大小、边缘设备适配等问题。TensorRT、ONNX Runtime、OpenVINO 是常用的推理加速工具。自动驾驶系统（如 Tesla FSD）通常在车载芯片上实时运行多个视觉模型。
 
@@ -173,6 +203,8 @@ schedule = precompute_schedule(linear_beta_schedule(T=1000))
 
 Precompute once, gather by index during training and sampling.
 
+> 预计算一次，训练和采样时通过索引取用。
+
 ### Step 2: Forward diffusion (q_sample)
 
 ```python
@@ -183,6 +215,8 @@ def q_sample(x0, t, noise, schedule):
 ```
 
 One-line closed form. `t` is a batch of timesteps, one per image in the batch.
+
+> 一行闭合形式。`t` 是一批时间步，每张图像一个。
 
 ### Step 3: A tiny time-conditioned U-Net
 
@@ -230,6 +264,8 @@ class TinyUNet(nn.Module):
 
 Two-level U-Net with time conditioning injected at the bottleneck. Scale up the depth and width for real images.
 
+> 两层 U-Net，在瓶颈层注入时间条件化。对于真实图像，可以增加深度和宽度。
+
 ### Step 4: Training loop
 
 ```python
@@ -249,6 +285,8 @@ def train_step(model, x0, schedule, optimizer, device, T=1000):
 ```
 
 That is the entire training loop. No GAN game, no specialised loss, one MSE call.
+
+> 这就是整个训练循环。没有 GAN 对抗博弈，没有特殊损失函数，只需要一个 MSE 调用。
 
 ### Step 5: Sampler (DDPM)
 
@@ -274,6 +312,8 @@ def sample(model, schedule, shape, T=1000, device="cpu"):
 ```
 
 1000 forward passes to produce one batch of samples. In real code you would swap this for a DDIM 50-step sampler.
+
+> 1000 次前向传播才能生成一批样本。在实际代码中，你会换成 DDIM 50 步采样器。
 
 ### Step 6: DDIM sampler (deterministic, ~20x faster)
 
@@ -304,6 +344,8 @@ def sample_ddim(model, schedule, shape, steps=50, T=1000, device="cpu", eta=0.0)
 
 
 `eta=0` is fully deterministic (same noise input always produces the same output). `eta=1` recovers DDPM.
+
+> `eta=0` 是完全确定性的（相同噪声输入始终产生相同输出）。`eta=1` 则退化为 DDPM。
 
 
 

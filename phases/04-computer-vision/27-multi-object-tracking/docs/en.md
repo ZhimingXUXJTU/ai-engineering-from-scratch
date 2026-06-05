@@ -63,25 +63,40 @@ flowchart LR
 
 Every tracker you will encounter in 2026 is a variation on this loop. The differences:
 
+> 2026 年你遇到的每个跟踪器都是这个循环的变体。区别在于：
+
 - **SORT** (2016): Kalman filter + IoU Hungarian. Simple, fast, no appearance model.
+  中文翻译：**SORT**（2016）：卡尔曼滤波器 + IoU 匈牙利算法。简单、快速、无外观模型。
 - **DeepSORT** (2017): SORT + a CNN-based appearance feature per track (ReID embedding). Handles crossings better.
+  中文翻译：**DeepSORT**（2017）：SORT + 每个轨迹的 CNN 外观特征（ReID 嵌入）。更好地处理交叉。
 - **ByteTrack** (2021): associates low-confidence detections as a second stage; no appearance features needed but top performer on MOT17.
+  中文翻译：**ByteTrack**（2021）：将低置信度检测作为第二阶段关联；无需外观特征但在 MOT17 上表现最佳。
 - **BoT-SORT** (2022): Byte + camera motion compensation + ReID.
+  中文翻译：**BoT-SORT**（2022）：Byte + 相机运动补偿 + ReID。
 - **StrongSORT / OC-SORT** — ByteTrack descendants with better motion and appearance.
+  中文翻译：**StrongSORT / OC-SORT**——ByteTrack 后代，改进了运动和外观模型。
 
 ### Kalman filter in one paragraph
 
 A Kalman filter maintains a per-track state `(x, y, w, h, dx, dy, dw, dh)` with a covariance. At each frame, **predict** the state using a constant-velocity model, then **update** with the matched detection. The update trusts the detection more when the predict uncertainty is high. This gives smooth trajectories and the ability to continue a track through a short occlusion (1-5 frames).
 
+> 卡尔曼滤波器维护每个轨迹的状态 `(x, y, w, h, dx, dy, dw, dh)` 和协方差。每帧先用恒速模型**预测**状态，再用匹配的检测**更新**。预测不确定性高时更新更信任检测。这产生平滑的轨迹，并能穿过短暂遮挡（1-5 帧）继续跟踪。
+
 Every classical tracker uses a Kalman filter in the motion-prediction step.
+
+> 每个经典跟踪器在运动预测步骤中都使用卡尔曼滤波器。
 
 ### The Hungarian algorithm
 
 Given a `M x N` cost matrix (tracks x detections), find the one-to-one assignment that minimises total cost. Cost is usually `1 - IoU(track_bbox, detection_bbox)` or negative cosine similarity of appearance features. Runtime is O((M+N)^3); for M, N up to ~1000 it is fast enough in Python via `scipy.optimize.linear_sum_assignment`.
 
+> 给定 `M x N` 的代价矩阵（轨迹 x 检测），找到最小化总代价的一对一分配。代价通常是 `1 - IoU(轨迹框, 检测框)` 或外观特征的负余弦相似度。运行时间为 O((M+N)^3)；M、N 约 1000 以内在 Python 中通过 `scipy.optimize.linear_sum_assignment` 足够快。
+
 ### ByteTrack's key idea
 
 Standard trackers drop low-confidence detections (< 0.5). ByteTrack keeps them around as **second-stage candidates**: after matching tracks to high-confidence detections, unmatched tracks try to match low-confidence detections with a slightly looser IoU threshold. Recovers short occlusions, ID switches near crowds.
+
+> 标准跟踪器丢弃低置信度检测（< 0.5）。ByteTrack 将它们保留为**第二阶段候选**：将轨迹匹配到高置信度检测后，未匹配的轨迹尝试以稍宽松的 IoU 阈值匹配低置信度检测。恢复短遮挡和拥挤场景中的 ID 切换。
 
 ### SAM 2 memory-based tracking
 
@@ -107,10 +122,15 @@ Multiplex is the new default for crowd tracking in 2026: concert crowds, warehou
 ### Three metrics to know
 
 - **MOTA (Multi-Object Tracking Accuracy)** — 1 - (FN + FP + ID switches) / GT. Weighted by error type; a single metric that conflates detection and association failures.
+  中文翻译：**MOTA（多目标跟踪精度）**——1 - (FN + FP + ID 切换) / GT。按错误类型加权；将检测和关联失败混在一起的单一指标。
 - **IDF1 (ID F1)** — harmonic mean of ID precision and recall. Focuses specifically on how well each ground-truth track keeps its ID over time. Better than MOTA for ID-switch-sensitive tasks.
+  中文翻译：**IDF1（ID F1）**——ID 精确率和召回率的调和平均。专注衡量每个真实轨迹随时间保持 ID 的一致性。对 ID 切换敏感的任务优于 MOTA。
 - **HOTA (Higher Order Tracking Accuracy)** — decomposes into detection accuracy (DetA) and association accuracy (AssA). The community standard since 2020; most comprehensive.
+  中文翻译：**HOTA（高阶跟踪精度）**——分解为检测精度（DetA）和关联精度（AssA）。2020 年以来的社区标准；最全面。
 
 For surveillance (who is who): IDF1 is what you report. For sports analytics (counting passes): HOTA. For general academic comparison: HOTA.
+
+> 监控（谁是谁）：报告 IDF1。运动分析（计数传球）：HOTA。一般学术比较：HOTA。
 
 > **【拓展：工业部署中的视觉系统】** 在实际工业部署中，视觉模型需要考虑推理延迟、模型大小、边缘设备适配等问题。TensorRT、ONNX Runtime、OpenVINO 是常用的推理加速工具。自动驾驶系统（如 Tesla FSD）通常在车载芯片上实时运行多个视觉模型。
 
