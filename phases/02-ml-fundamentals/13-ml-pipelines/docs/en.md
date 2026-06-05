@@ -33,9 +33,15 @@
 
 You have a notebook that loads data, fills missing values with the median, scales features, trains a model, and prints accuracy. It works. You ship it.
 
+> 你有一个 notebook，加载数据、用中位数填充缺失值、缩放特征、训练模型、打印准确率。它有效。你上线了。
+
 A month later, someone retrains the model and gets different results. The median was computed on the full dataset including test data (data leakage). The scaling parameters were not saved, so inference uses different statistics. The feature engineering code was copy-pasted between training and serving, and the copies diverged. A categorical column gained a new value in production that the encoder has never seen.
 
+> 一个月后，有人重新训练模型并得到不同结果。中位数是在包含测试数据的全量数据集上计算的（数据泄漏）。缩放参数没有保存，推理时使用了不同的统计量。特征工程代码在训练和服务之间复制粘贴，副本已经分叉。一个类别列在生产中出现编码器从未见过的新值。
+
 These are not hypothetical. They are the most common reasons ML systems fail in production. Pipelines solve all of them by packaging every transformation step into a single, ordered, reproducible object.
+
+> 这些不是假设。它们是 ML 系统在生产中失败的最常见原因。管线通过将每个变换步骤打包为一个有序、可复现的对象来解决所有这些问题。
 
 > **【中文解读】**
 > ML 管线解决的核心问题：训练和推理的数据处理必须完全一致。最常见的失败模式——在训练时用全量数据计算均值做标准化（包含了测试集），推理时用新数据计算均值——这就是数据泄漏。Pipeline 通过"只在训练集上 fit，在测试集/推理时只 transform"来保证一致性。
@@ -45,6 +51,8 @@ These are not hypothetical. They are the most common reasons ML systems fail in 
 ### What a Pipeline Is
 
 A pipeline is an ordered sequence of data transformations followed by a model. Each step takes the output of the previous step as input. The entire pipeline is fitted once on training data. At inference time, the same fitted pipeline transforms new data and produces predictions.
+
+> 管线是一个有序的数据变换序列，最后跟一个模型。每一步将上一步的输出作为输入。整个管线在训练数据上拟合一次。推理时，同一个拟合好的管线变换新数据并产生预测。
 
 ```mermaid
 flowchart LR
@@ -57,13 +65,19 @@ flowchart LR
 
 The pipeline guarantees:
 - Transformations are fitted only on training data (no leakage)
+  变换只在训练数据上拟合（无泄漏）
 - The same transformations are applied at inference time
+  推理时应用相同的变换
 - The entire object can be serialized and deployed as one artifact
+  整个对象可以序列化并作为一个构件部署
 - Cross-validation applies the pipeline per fold, preventing subtle leakage
+  交叉验证在每个折中应用管线，防止微妙的泄漏
 
 ### Data Leakage: The Silent Killer
 
 Data leakage happens when information from the test set or future data contaminates training. Pipelines prevent the most common forms.
+
+> 数据泄漏在测试集或未来数据的信息污染训练时发生。管线防止了最常见的泄漏形式。
 
 **Leaky (wrong):**
 ```python
@@ -79,6 +93,8 @@ y_train, y_test = y[:800], y[800:]
 
 The scaler saw test data. The mean and standard deviation include test samples. This inflates accuracy estimates.
 
+> 缩放器看到了测试数据。均值和标准差包含测试样本。这会夸大准确率估计。
+
 **Correct:**
 ```python
 X_train, X_test = X[:800], X[800:]
@@ -90,9 +106,13 @@ X_test_scaled = scaler.transform(X_test)
 
 With a pipeline, you do not need to think about this. The pipeline handles it automatically.
 
+> 使用管线，你不需要考虑这些。管线自动处理。
+
 ### sklearn Pipeline
 
 sklearn's `Pipeline` chains transformers and an estimator. It exposes `.fit()`, `.predict()`, and `.score()` that apply all steps in order.
+
+> sklearn 的 `Pipeline` 将变换器和估计器链接起来。它暴露 `.fit()`、`.predict()` 和 `.score()`，按顺序应用所有步骤。
 
 ```python
 from sklearn.pipeline import Pipeline

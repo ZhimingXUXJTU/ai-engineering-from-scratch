@@ -33,7 +33,11 @@
 
 Your gradient boosting model has a learning rate, number of trees, max depth, min samples per leaf, subsample ratio, and column sample ratio. That is six hyperparameters. If each has 5 reasonable values, the grid has 5^6 = 15,625 combinations. Training each takes 10 seconds. That is 43 hours of compute to try them all.
 
+> 你的梯度提升模型有学习率、树的数量、最大深度、叶节点最小样本数、子采样率和列采样率。共六个超参数。如果每个有 5 个合理值，网格有 5^6 = 15,625 种组合。每次训练 10 秒。尝试所有组合需要 43 小时。
+
 Grid search is the obvious approach and the worst one at scale. Random search does better with less compute. Bayesian optimization does even better by learning from past evaluations. Knowing which strategy to use, and which hyperparameters actually matter, saves days of wasted GPU time.
+
+> 网格搜索是显而易见的方法，也是大规模下最差的方法。随机搜索用更少计算做得更好。贝叶斯优化通过从过去的评估中学习做得更好。知道使用哪种策略以及哪些超参数真正重要，可以节省数天浪费的 GPU 时间。
 
 > **【中文解读】**
 > 超参数调优的核心矛盾：搜索空间大但每次评估成本高。网格搜索穷举所有组合，成本指数增长；随机搜索随机采样，在同样预算下探索更多区域；贝叶斯优化用概率模型（高斯过程）预测哪些区域可能更好，智能地选择下一个评估点。实践中，先用随机搜索快速缩小范围，再用贝叶斯优化精细搜索。
@@ -44,6 +48,8 @@ Grid search is the obvious approach and the worst one at scale. Random search do
 
 Parameters are learned during training (weights, biases, split thresholds). Hyperparameters are set before training starts and control how learning happens.
 
+> 参数在训练中学习（权重、偏置、分裂阈值）。超参数在训练开始前设定，控制学习如何发生。
+
 | Hyperparameter | What it controls | Typical range |
 |---------------|-----------------|---------------|
 | Learning rate | Step size per update | 0.001 to 1.0 |
@@ -53,9 +59,20 @@ Parameters are learned during training (weights, biases, split thresholds). Hype
 | Batch size | Gradient estimation noise | 16 to 512 |
 | Dropout rate | Fraction of neurons dropped | 0.0 to 0.5 |
 
+| 超参数 | 控制什么 | 典型范围 |
+|--------|---------|---------|
+| 学习率 | 每次更新的步长 | 0.001 到 1.0 |
+| 树的数量/epoch 数 | 训练多久 | 10 到 10,000 |
+| 最大深度 | 模型复杂度 | 1 到 30 |
+| 正则化 (lambda) | 防止过拟合 | 0.0001 到 100 |
+| 批量大小 | 梯度估计噪声 | 16 到 512 |
+| Dropout 率 | 丢弃的神经元比例 | 0.0 到 0.5 |
+
 ### Grid Search
 
 Grid search evaluates every combination of specified values. It is exhaustive and easy to understand, but scales exponentially with the number of hyperparameters.
+
+> 网格搜索评估指定值的每个组合。它穷尽且易于理解，但随超参数数量指数级增长。
 
 ```
 Grid for 2 hyperparameters:
@@ -72,9 +89,13 @@ Grid for 2 hyperparameters:
 
 Grid search has a fundamental flaw: if one hyperparameter matters and the other does not, most evaluations are wasted. You get only 3 unique values of the important parameter from 9 evaluations.
 
+> 网格搜索有一个根本缺陷：如果一个超参数重要而另一个不重要，大多数评估被浪费了。从 9 次评估中你只得到重要参数的 3 个唯一值。
+
 ### Random Search
 
 Random search samples hyperparameters from distributions instead of a grid. With the same budget of 9 evaluations, you get 9 unique values of each hyperparameter.
+
+> 随机搜索从分布中采样超参数而非使用网格。在同样 9 次评估的预算下，你得到每个超参数的 9 个唯一值。
 
 ```mermaid
 flowchart LR
@@ -93,14 +114,22 @@ flowchart LR
 
 Why random beats grid (Bergstra & Bengio, 2012):
 
+> 为什么随机优于网格（Bergstra & Bengio, 2012）：
+
 - Most hyperparameters have low effective dimensionality. Only 1-2 of 6 hyperparameters usually matter for a given problem.
+  大多数超参数的有效维度低。6 个超参数中通常只有 1-2 个对给定问题重要。
 - Grid search wastes evaluations on unimportant dimensions.
+  网格搜索在不重要的维度上浪费评估。
 - Random search covers the important dimensions more densely for the same budget.
+  随机搜索在同样预算下更密集地覆盖重要维度。
 - At 60 random trials, you have a 95% chance of finding a point within 5% of the optimum (if one exists in the search space).
+  在 60 次随机试验中，你有 95% 的概率找到距最优点 5% 以内的值（如果搜索空间中存在最优点）。
 
 ### Bayesian Optimization
 
 Random search ignores results. It does not learn that high learning rates cause divergence or that depth 3 consistently outperforms depth 10. Bayesian optimization uses past evaluations to decide where to search next.
+
+> 随机搜索忽略结果。它不会学到高学习率导致发散或深度 3 始终优于深度 10。贝叶斯优化利用过去的评估来决定下一步搜索哪里。
 
 ```mermaid
 flowchart TD
@@ -117,13 +146,22 @@ The two key components:
 
 **Surrogate model:** A cheap-to-evaluate model (usually a Gaussian process) that approximates the expensive objective function. It gives both a prediction and an uncertainty estimate at any point in the search space.
 
+> **代理模型：** 一个廉价评估的模型（通常是高斯过程），近似昂贵的目标函数。它在搜索空间中任何一点都给出预测和不确定性估计。
+
 **Acquisition function:** Decides where to evaluate next by balancing exploitation (search near known good points) and exploration (search where uncertainty is high). Common choices:
 
+> **采集函数：** 通过平衡开发（搜索已知好点附近）和探索（搜索不确定性高的区域）来决定下一步评估哪里。常见选择：
+
 - **Expected Improvement (EI):** How much improvement over the current best do we expect at this point?
+  **期望改进 (EI)：** 在这一点上我们期望比当前最好结果改进多少？
 - **Upper Confidence Bound (UCB):** Prediction plus a multiple of uncertainty. Higher UCB means either promising or unexplored.
+  **上置信界 (UCB)：** 预测加上不确定性的倍数。更高的 UCB 意味着有前景或未探索。
 - **Probability of Improvement (PI):** What is the probability this point beats the current best?
+  **改进概率 (PI)：** 这一点超过当前最好结果的概率是多少？
 
 Bayesian optimization typically finds better hyperparameters than random search with 2-5x fewer evaluations. The overhead of fitting the surrogate model is negligible compared to training the actual model.
+
+> 贝叶斯优化通常用少 2-5 倍的评估次数找到比随机搜索更好的超参数。拟合代理模型的开销与训练实际模型相比可以忽略。
 
 > **【中文解读】**
 > 贝叶斯优化是最智能的调参方法。核心组件：代理模型（通常用高斯过程拟合目标函数）和采集函数（平衡"探索未知区域"和"利用已知好区域"）。每次评估后更新代理模型，采集函数决定下一个评估点。相比随机搜索，贝叶斯优化用 2-5 倍少的评估次数就能找到更好的超参数，对于训练成本高的模型特别有价值。
@@ -135,16 +173,25 @@ Bayesian optimization typically finds better hyperparameters than random search 
 
 Not every training run needs to finish. If a configuration is clearly bad after 10 epochs, stop it and move on. This is early stopping in the context of hyperparameter search.
 
+> 不是每次训练都需要跑完。如果一个配置在 10 个 epoch 后明显不好，就停掉它继续下一个。这就是超参数搜索中的早停。
+
 Strategies:
 - **Patience-based:** Stop if validation loss has not improved for N consecutive epochs
+  **基于耐心：** 如果验证损失连续 N 个 epoch 没有改善就停止
 - **Median pruning:** Stop if the trial's intermediate result is worse than the median of completed trials at the same step
+  **中位数剪枝：** 如果试验的中间结果比同步骤已完成试验的中位数差就停止
 - **Hyperband:** Allocate small budgets to many configurations, then progressively increase budget for the best ones
+  **Hyperband：** 给许多配置分配小预算，然后逐步增加最佳配置的预算
 
 Hyperband is particularly effective. It starts 81 configurations with 1 epoch each, keeps the top third, gives them 3 epochs, keeps the top third, and so on. This finds good configurations 10-50x faster than evaluating all configs for the full budget.
+
+> Hyperband 特别有效。它从 81 个配置各 1 个 epoch 开始，保留前三分之一，给它们 3 个 epoch，再保留前三分之一，以此类推。这比用完整预算评估所有配置快 10-50 倍找到好的配置。
 
 ### Learning Rate Schedulers
 
 The learning rate is almost always the most important hyperparameter. Rather than keeping it fixed, schedulers adjust it during training.
+
+> 学习率几乎总是最重要的超参数。与其保持固定，调度器在训练过程中调整它。
 
 | Scheduler | Formula | When to use |
 |-----------|---------|-------------|
@@ -154,26 +201,47 @@ The learning rate is almost always the most important hyperparameter. Rather tha
 | One-cycle | Increase then decrease over one cycle | Fast convergence |
 | Reduce on plateau | Reduce by factor when metric stalls | Safe default |
 
+| 调度器 | 公式 | 何时使用 |
+|--------|------|---------|
+| 阶梯衰减 | 每 N 个 epoch 乘以 0.1 | 经典 CNN 训练 |
+| 余弦退火 | lr * 0.5 * (1 + cos(pi * t / T)) | 现代默认 |
+| 预热+衰减 | 线性增加后余弦衰减 | Transformer |
+| 单周期 | 一个周期内先增后减 | 快速收敛 |
+| 平台期衰减 | 指标停滞时按因子减小 | 安全默认 |
+
 ### Hyperparameter Importance
 
 Not all hyperparameters matter equally. Research on random forests (Probst et al., 2019) and gradient boosting shows consistent patterns:
 
+> 不是所有超参数都同等重要。关于随机森林（Probst 等，2019）和梯度提升的研究显示了一致的模式：
+
 **High importance:**
 - Learning rate (always tune first)
+  学习率（始终首先调优）
 - Number of estimators / epochs (use early stopping instead of tuning)
+  估计器数量 / epoch 数（用早停代替调优）
 - Regularization strength
+  正则化强度
 
 **Medium importance:**
 - Max depth / number of layers
+  最大深度 / 层数
 - Min samples per leaf / weight decay
+  叶节点最小样本数 / 权重衰减
 - Subsample ratio
+  子采样率
 
 **Low importance:**
 - Max features (for random forests)
+  最大特征数（随机森林）
 - Specific activation function choice
+  具体激活函数选择
 - Batch size (within reasonable range)
+  批量大小（在合理范围内）
 
 Tune the important ones first, leave the rest at defaults.
+
+> 先调重要的，其余保持默认。
 
 ### Practical Strategy
 
@@ -188,18 +256,29 @@ flowchart TD
 
 The concrete workflow:
 
+> 具体工作流：
+
 1. **Start with library defaults.** They are chosen by experienced practitioners and are often 80% of the way there.
+   **从库默认值开始。** 它们由经验丰富的从业者选择，通常已经达到 80% 的效果。
 2. **Coarse random search.** Wide ranges, 20-50 trials. Use early stopping to kill bad runs fast.
+   **粗粒度随机搜索。** 宽范围，20-50 次试验。用早停快速终止差的运行。
 3. **Analyze results.** Which hyperparameters correlate with performance? Narrow the search space.
+   **分析结果。** 哪些超参数与性能相关？缩小搜索空间。
 4. **Fine search.** Bayesian optimization or focused random search in the narrowed space. 50-100 trials.
+   **精细搜索。** 在缩小空间内用贝叶斯优化或聚焦随机搜索。50-100 次试验。
 5. **Retrain on all training data** with the best hyperparameters found.
+   用找到的最佳超参数在**所有训练数据上重新训练**。
 
 ### Cross-Validation Integration
 
 Tuning hyperparameters on a single validation split is risky. The best hyperparameters might overfit to the specific validation fold. Nested cross-validation solves this by using two loops:
 
+> 在单个验证划分上调优超参数有风险。最佳超参数可能对特定验证折过拟合。嵌套交叉验证通过使用两个循环解决这个问题：
+
 - **Outer loop** (evaluation): splits data into train+val and test. Reports unbiased performance.
+  **外循环**（评估）：将数据分为训练+验证和测试。报告无偏性能。
 - **Inner loop** (tuning): splits train+val into train and val. Finds best hyperparameters.
+  **内循环**（调优）：将训练+验证分为训练和验证。找到最佳超参数。
 
 ```mermaid
 flowchart TD
@@ -219,6 +298,8 @@ flowchart TD
 ```
 
 Each outer fold finds its own best hyperparameters independently. The outer scores are an unbiased estimate of generalization performance.
+
+> 每个外折独立找到自己的最佳超参数。外折分数是泛化性能的无偏估计。
 
 With sklearn:
 
@@ -246,17 +327,29 @@ print(f"Nested CV MSE: {-outer_scores.mean():.4f} +/- {outer_scores.std():.4f}")
 
 This is expensive (5 outer folds x 5 inner folds x 27 grid points = 675 model fits), but it gives you a trustworthy performance estimate. Use it when reporting final results in papers or when the stake of the decision is high.
 
+> 这很昂贵（5 个外折 x 5 个内折 x 27 个网格点 = 675 次模型拟合），但它给你可信赖的性能估计。在论文中报告最终结果或决策利害关系大时使用它。
+
 ### Practical Tips
 
 **Start with the learning rate.** It is always the most important hyperparameter for gradient-based methods. A bad learning rate makes everything else irrelevant. Fix other hyperparameters at defaults and sweep learning rate first.
 
+> **从学习率开始。** 对于基于梯度的方法，它始终是最重要的超参数。糟糕的学习率会让其他一切都无关紧要。先把其他超参数固定在默认值，先扫学习率。
+
 **Use log-uniform distributions for learning rate and regularization.** The difference between 0.001 and 0.01 matters as much as the difference between 0.1 and 1.0. Searching linearly wastes budget on the large end.
+
+> **对学习率和正则化使用对数均匀分布。** 0.001 和 0.01 之间的差异与 0.1 和 1.0 之间的差异同样重要。线性搜索在大端浪费预算。
 
 **Use early stopping instead of tuning n_estimators.** For boosting and neural networks, set n_estimators or epochs high and let early stopping decide when to stop. This removes one hyperparameter from the search.
 
+> **用早停代替调优 n_estimators。** 对于提升和神经网络，将 n_estimators 或 epoch 数设高，让早停决定何时停止。这从搜索中移除了一个超参数。
+
 **Budget allocation.** Spend 60% of your tuning budget on the top 2 most important hyperparameters. Spend the remaining 40% on everything else. The top 2 account for most of the performance variation.
 
+> **预算分配。** 将调优预算的 60% 花在前 2 个最重要的超参数上。其余 40% 花在所有其他参数上。前 2 个参数占了大部分性能变化。
+
 **Scale matters.** Never search batch size on a log scale (16, 32, 64 are fine). Always search learning rate on a log scale. Match the search distribution to how the hyperparameter affects the model.
+
+> **尺度很重要。** 永远不要在对数尺度上搜索批量大小（16、32、64 就行）。始终在对数尺度上搜索学习率。将搜索分布与超参数影响模型的方式匹配。
 
 | Model Type | Top Hyperparameters | Recommended Search | Budget |
 |-----------|--------------------|--------------------|--------|
@@ -269,6 +362,8 @@ This is expensive (5 outer folds x 5 inner folds x 27 grid points = 675 model fi
 
 **When in doubt:** random search with 2x the number of hyperparameters as trials (e.g., 6 hyperparameters = 12+ trials minimum). You will be surprised how often random search with 50 trials beats carefully designed grid search.
 
+> **拿不准时：** 随机搜索，试验数为超参数数的 2 倍（如 6 个超参数 = 至少 12 次试验）。你会惊讶于 50 次试验的随机搜索多经常击败精心设计的网格搜索。
+
 ## Build It | 动手实现
 
 > **【中文解读】**
@@ -280,6 +375,8 @@ This is expensive (5 outer folds x 5 inner folds x 27 grid points = 675 model fi
 ### Step 1: Grid Search from Scratch
 
 The code in `code/tuning.py` implements grid search, random search, and a simple Bayesian optimizer from scratch.
+
+> `code/tuning.py` 中的代码从零实现了网格搜索、随机搜索和简单的贝叶斯优化器。
 
 ```python
 def grid_search(model_fn, param_grid, X_train, y_train, X_val, y_val):
@@ -328,6 +425,8 @@ def random_search(model_fn, param_distributions, X_train, y_train,
 ### Step 3: Bayesian Optimization (Simplified)
 
 The core idea: fit a Gaussian process to observed (hyperparameter, score) pairs, then use an acquisition function to decide where to look next.
+
+> 核心思想：将高斯过程拟合到观察到的（超参数，分数）对，然后用采集函数决定下一步看哪里。
 
 ```python
 class SimpleBayesianOptimizer:
@@ -383,9 +482,13 @@ class SimpleBayesianOptimizer:
 
 The GP surrogate gives two things at each candidate point: a predicted score (mu) and an uncertainty (var). Expected Improvement balances these: it favors points where the model predicts high scores OR where uncertainty is high. Early on, most points have high uncertainty so the optimizer explores. Later, it focuses on the most promising region.
 
+> GP 代理在每个候选点给出两样东西：预测分数（mu）和不确定性（var）。期望改进平衡这两者：它偏好模型预测高分的点或不确定性高的点。早期，大多数点不确定性高所以优化器探索。后期，它聚焦于最有前景的区域。
+
 ### Step 4: Compare All Methods
 
 Run all three methods on the same synthetic objective and compare. This comparison uses a simplified wrapper that calls each optimizer with a direct objective function (no model training), so the API differs from the model-based implementations above:
+
+> 在相同的合成目标上运行所有三种方法并比较。这个比较使用简化的包装器，直接用目标函数调用每个优化器（无模型训练），因此 API 与上面的基于模型的实现不同：
 
 ```python
 def synthetic_objective(params):
@@ -444,11 +547,15 @@ print(f"{'Bayesian Opt':<20} {bayes_score:>12.4f} {len(bayes_history):>12}")
 
 With the same budget, Bayesian optimization usually finds the best score fastest because it does not waste evaluations in clearly bad regions. Random search covers more ground than grid search. Grid search only wins when you have very few hyperparameters and can afford to be exhaustive.
 
+> 在相同预算下，贝叶斯优化通常最快找到最佳分数，因为它不在明显差的区域浪费评估。随机搜索比网格搜索覆盖更多范围。网格搜索只在超参数很少且能承受穷举时才赢。
+
 ## Use It | 用框架实现
 
 ### Optuna in Practice
 
 Optuna is the recommended library for serious hyperparameter tuning. It supports pruning, distributed search, and visualization out of the box.
+
+> Optuna 是严肃超参数调优的推荐库。它开箱即支持剪枝、分布式搜索和可视化。
 
 ```python
 import optuna
@@ -484,6 +591,8 @@ Key Optuna features:
 
 Pruning stops unpromising trials early, saving massive compute. Here is the pattern:
 
+> 剪枝及早停止无前景的试验，节省大量计算。以下是模式：
+
 ```python
 import optuna
 from sklearn.model_selection import cross_val_score
@@ -514,9 +623,13 @@ study.optimize(objective, n_trials=200)
 
 The `MedianPruner` stops a trial if its intermediate value is worse than the median of all completed trials at the same step. Pruning requires calling `trial.report()` to report intermediate metrics and `trial.should_prune()` to check whether the trial should be stopped. The `n_startup_trials=10` ensures at least 10 trials complete fully before pruning kicks in. This typically saves 40-60% of total compute.
 
+> `MedianPruner` 在试验的中间值比同步骤已完成试验的中位数差时停止试验。剪枝需要调用 `trial.report()` 报告中间指标，`trial.should_prune()` 检查是否应停止。`n_startup_trials=10` 确保至少 10 个试验在剪枝生效前完全完成。这通常节省 40-60% 的总计算量。
+
 ### sklearn's Built-in Tuners
 
 For quick experiments, sklearn provides `GridSearchCV`, `RandomizedSearchCV`, and `HalvingRandomSearchCV`:
+
+> 对于快速实验，sklearn 提供 `GridSearchCV`、`RandomizedSearchCV` 和 `HalvingRandomSearchCV`：
 
 ```python
 from sklearn.model_selection import RandomizedSearchCV
@@ -544,17 +657,29 @@ print(f"Best CV MSE: {-search.best_score_:.4f}")
 
 Use `loguniform` from scipy for learning rate and regularization. Use `randint` for integer hyperparameters. The `n_jobs=-1` flag parallelizes across all CPU cores.
 
+> 对学习率和正则化使用 scipy 的 `loguniform`。对整数超参数使用 `randint`。`n_jobs=-1` 标志跨所有 CPU 核心并行。
+
 ### Common Mistakes in Hyperparameter Tuning
 
 **Data leakage through preprocessing.** If you fit a scaler on the full dataset before cross-validation, information from the validation fold leaks into training. Always put preprocessing inside a `Pipeline` so it is fit only on the training fold.
 
+> **通过预处理的数据泄漏。** 如果你在交叉验证前对全量数据拟合缩放器，验证折的信息泄漏到训练中。始终将预处理放在 `Pipeline` 内，使其只对训练折拟合。
+
 **Overfitting to the validation set.** Running thousands of trials effectively trains on the validation set. Use nested cross-validation for final performance estimates, or hold out a separate test set that you never touch during tuning.
+
+> **对验证集过拟合。** 运行数千次试验实际上是在验证集上训练。使用嵌套交叉验证进行最终性能估计，或保留一个调优时永远不碰的独立测试集。
 
 **Searching too narrow a range.** If your best value is at the boundary of your search space, you have not searched widely enough. The optimal value might be outside your range. Always check if the best parameters are at the edges.
 
+> **搜索范围太窄。** 如果最佳值在搜索空间的边界上，你搜索得不够广。最优值可能在范围之外。始终检查最佳参数是否在边缘。
+
 **Ignoring interaction effects.** Learning rate and number of estimators interact strongly in boosting. A low learning rate needs more estimators. Tuning them independently gives worse results than tuning them together.
 
+> **忽略交互效应。** 学习率和估计器数量在提升中强烈交互。低学习率需要更多估计器。独立调优它们比一起调优效果差。
+
 **Not using early stopping for iterative models.** For gradient boosting and neural networks, set n_estimators or epochs to a high value and use early stopping. This is strictly better than tuning the number of iterations as a hyperparameter.
+
+> **不对迭代模型使用早停。** 对于梯度提升和神经网络，将 n_estimators 或 epoch 数设高并用早停。这严格优于将迭代次数作为超参数调优。
 
 ## Exercises | 练习题
 

@@ -33,9 +33,15 @@
 
 You trained a model. It gets 95% accuracy on your data. Is it good?
 
+> 你训练了一个模型。它在你的数据上获得 95% 准确率。这好吗？
+
 Maybe. Maybe not. If 95% of your data belongs to one class, a model that always predicts that class gets 95% accuracy while being completely useless. If you evaluated on the same data you trained on, the 95% number is meaningless because the model just memorized the answers. If your dataset has a time component and you randomly shuffled before splitting, your model might be using future data to predict the past.
 
+> 也许好，也许不好。如果 95% 的数据属于一个类别，始终预测该类别的模型获得 95% 准确率但完全无用。如果你在训练过的数据上评估，95% 这个数字毫无意义，因为模型只是记住了答案。如果你的数据集有时间成分而你在划分前随机打乱，你的模型可能用未来数据预测过去。
+
 Model evaluation is where most ML projects go wrong. The wrong metric makes a bad model look good. The wrong split lets a model cheat. The wrong comparison makes you pick the worse model. Getting evaluation right is not optional. It is the difference between a model that works in production and one that fails the moment it sees real data.
+
+> 模型评估是大多数 ML 项目出错的地方。错误的指标让坏模型看起来好。错误的划分让模型作弊。错误的比较让你选择更差的模型。正确评估不是可选项——它是生产中有效的模型与一遇到真实数据就失败的模型之间的区别。
 
 > **【中文解读】**
 > 模型评估最容易犯三个错误：(1) 在训练数据上评估（模型只是记住了答案）；(2) 用错误的指标（如不平衡数据用准确率）；(3) 数据泄漏（测试集信息泄露到训练过程）。正确的评估需要独立的数据划分、匹配业务目标的指标、交叉验证来获得可靠估计。
@@ -60,15 +66,24 @@ flowchart LR
 
 Three splits, three purposes:
 
+> 三种划分，三种用途：
+
 - **Training set**: the model learns from this data. It sees these examples during training.
+  **训练集**：模型从中学习。训练时看到这些样本。
 - **Validation set**: used to tune hyperparameters and select between models. The model never trains on this data, but your decisions are influenced by it.
+  **验证集**：用于调节超参数和在模型间选择。模型从不在此数据上训练，但你的决策受其影响。
 - **Test set**: touched exactly once, at the very end, to report final performance. If you look at test performance and then go back to change your model, it is no longer a test set. It has become a second validation set.
+  **测试集**：在最后只触碰一次，报告最终性能。如果你查看测试性能后回去修改模型，它就不再是测试集了。
 
 The test set is your hold-out guarantee that the reported performance reflects how the model will do on truly unseen data.
+
+> 测试集是你的保留保证，确保报告的性能反映模型在真正未见数据上的表现。
 
 ### K-Fold Cross-Validation
 
 With small datasets, a single train/validation split wastes data and gives noisy estimates. K-fold cross-validation uses all the data for both training and validation:
+
+> 对于小数据集，单次训练/验证划分浪费数据并给出噪声估计。K 折交叉验证将所有数据同时用于训练和验证：
 
 ```mermaid
 flowchart TB
@@ -100,16 +115,31 @@ flowchart TB
 ```
 
 1. Split data into K equal-sized folds
+   将数据划分为 K 个大小相等的折
 2. For each fold, train on K-1 folds and validate on the remaining fold
+   对每一折，在 K-1 折上训练，在剩余一折上验证
 3. Average the K validation scores
+   对 K 个验证分数取平均
 
 K=5 or K=10 are standard choices. Every data point gets used for validation exactly once. The average score is a more stable estimate than any single split.
 
+> K=5 或 K=10 是标准选择。每个数据点恰好被用于验证一次。平均分数比任何单次划分都更稳定。
+
+> K=5 或 K=10 是标准选择。每个数据点恰好被用于验证一次。平均分数比任何单次划分都更稳定。
+
 **Stratified K-fold**: preserves the class distribution in each fold. If your dataset is 70% class A and 30% class B, each fold will have roughly the same ratio. This is important for imbalanced datasets where a random split might put all minority samples in one fold.
+
+> **分层 K 折**：保持每折中的类别分布。如果你的数据集是 70% A 类和 30% B 类，每折将有大致相同的比例。这对不平衡数据集很重要——随机划分可能将所有少数类样本放入一折。
+
+> **分层 K 折**：保持每折中的类别分布。如果数据集是 70% 类别 A 和 30% 类别 B，每折将有大致相同的比例。这对不平衡数据集很重要，因为随机划分可能将所有少数类样本放入同一折。
 
 ### Classification Metrics
 
 **Confusion matrix**: the foundation. For binary classification:
+
+> **混淆矩阵**：基础。对于二分类：
+
+> **混淆矩阵**：基础。对于二分类：
 
 |  | Predicted Positive | Predicted Negative |
 |--|---|---|
@@ -118,47 +148,87 @@ K=5 or K=10 are standard choices. Every data point gets used for validation exac
 
 From this matrix, all other metrics follow:
 
+> 从这个矩阵推导出所有其他指标：
+
+> 从这个矩阵中，所有其他指标由此推导：
+
 - **Accuracy** = (TP + TN) / (TP + TN + FP + FN). Fraction of correct predictions. Misleading when classes are imbalanced.
+  **准确率** = (TP + TN) / (TP + TN + FP + FN)。正确预测的比例。类别不平衡时具有误导性。
 - **Precision** = TP / (TP + FP). Of all things predicted positive, how many actually were? Use when false positives are costly (e.g., spam filter marking real email as spam).
+  **精确率** = TP / (TP + FP)。所有预测为正的样本中，有多少实际为正？当假正代价高时使用（如垃圾邮件过滤器将真实邮件标记为垃圾邮件）。
 - **Recall** (sensitivity) = TP / (TP + FN). Of all actual positives, how many did we catch? Use when false negatives are costly (e.g., cancer screening missing a tumor).
+  **召回率**（敏感度）= TP / (TP + FN)。所有实际为正的样本中，我们捕获了多少？当假负代价高时使用（如癌症筛查漏掉肿瘤）。
 - **F1 score** = 2 * precision * recall / (precision + recall). Harmonic mean of precision and recall. Balances both when neither clearly dominates.
+  **F1 分数** = 2 * 精确率 * 召回率 / (精确率 + 召回率)。精确率和召回率的调和平均。在两者都不明显占优时平衡两者。
 - **AUC-ROC**: Area Under the Receiver Operating Characteristic curve. Plots true positive rate vs false positive rate at various classification thresholds. AUC = 0.5 means random guessing, AUC = 1.0 means perfect separation. Threshold-independent: it measures how well the model ranks positives above negatives, regardless of the cutoff you pick.
+  **AUC-ROC**：ROC 曲线下面积。在不同分类阈值下绘制真正率与假正率。AUC = 0.5 表示随机猜测，AUC = 1.0 表示完美区分。与阈值无关：它衡量模型将正样本排在负样本前面的能力，无论你选择什么截断值。
 
 ### Regression Metrics
 
 - **MSE** (Mean Squared Error) = mean((y_true - y_pred)^2). Penalizes large errors quadratically. Sensitive to outliers.
+  **均方误差 (MSE)** = mean((y_true - y_pred)^2)。二次惩罚大误差。对异常值敏感。
 - **RMSE** (Root Mean Squared Error) = sqrt(MSE). Same units as the target variable. Easier to interpret than MSE.
+  **均方根误差 (RMSE)** = sqrt(MSE)。与目标变量单位相同。比 MSE 更易解释。
 - **MAE** (Mean Absolute Error) = mean(|y_true - y_pred|). Treats all errors linearly. More robust to outliers than MSE.
+  **平均绝对误差 (MAE)** = mean(|y_true - y_pred|)。线性处理所有误差。比 MSE 更鲁棒于异常值。
 - **R-squared** = 1 - SS_res / SS_tot, where SS_res = sum((y_true - y_pred)^2) and SS_tot = sum((y_true - y_mean)^2). Fraction of variance explained by the model. R^2 = 1.0 is perfect. R^2 = 0.0 means the model is no better than always predicting the mean. R^2 can be negative if the model is worse than the mean.
+  **决定系数 (R-squared)** = 1 - SS_res / SS_tot，其中 SS_res = sum((y_true - y_pred)^2)，SS_tot = sum((y_true - y_mean)^2)。模型解释的方差比例。R^2 = 1.0 完美。R^2 = 0.0 表示模型不比始终预测均值好。R^2 可以为负，如果模型比预测均值还差。
 
 ### Learning Curves
 
 Plot training and validation scores as a function of training set size:
 
+> 绘制训练分数和验证分数随训练集大小变化的曲线：
+
+> 将训练分数和验证分数作为训练集大小的函数绘制：
+
 - **High bias (underfitting)**: both curves converge to a low score. Adding more data will not help. You need a more complex model.
+  **高偏差（欠拟合）**：两条曲线收敛到低分。增加更多数据不会有帮助。你需要更复杂的模型。
 - **High variance (overfitting)**: training score is high but validation score is much lower. The gap between them is large. Adding more data should help.
+  **高方差（过拟合）**：训练分数高但验证分数低得多。它们之间的差距大。增加更多数据应该有帮助。
 
 ### Validation Curves
 
 Plot training and validation scores as a function of a hyperparameter:
 
+> 绘制训练分数和验证分数随超参数变化的曲线：
+
+> 将训练分数和验证分数作为超参数的函数绘制：
+
 - At low complexity: both scores are low (underfitting)
+  复杂度低时：两个分数都低（欠拟合）
 - At the right complexity: both scores are high and close together
+  复杂度合适时：两个分数都高且接近
 - At high complexity: training score stays high but validation score drops (overfitting)
+  复杂度高时：训练分数保持高但验证分数下降（过拟合）
 
 The optimal hyperparameter value is where the validation score peaks.
+
+> 最优超参数值是验证分数达到峰值的位置。
+
+> 最优超参数值是验证分数达到峰值的位置。
 
 ### Common Evaluation Mistakes
 
 **Data leakage**: information from the test set leaks into training. Examples: fitting a scaler on the full dataset before splitting, including future data in time series prediction, using a feature that is derived from the target. Always split first, then preprocess.
 
+> **数据泄漏**：测试集信息泄漏到训练中。示例：在划分前对全量数据拟合缩放器、在时间序列预测中包含未来数据、使用从目标派生的特征。始终先划分，再预处理。
+
 **Class imbalance**: 99% of transactions are legitimate, 1% are fraud. A model that always predicts "legitimate" gets 99% accuracy. Use precision, recall, F1, or AUC-ROC instead.
+
+> **类别不平衡**：99% 的交易是合法的，1% 是欺诈。始终预测"合法"的模型获得 99% 准确率。应使用精确率、召回率、F1 或 AUC-ROC。
 
 **Wrong metric**: optimizing accuracy when you should optimize recall (medical diagnosis), or optimizing RMSE when your data has heavy outliers (use MAE instead).
 
+> **错误指标**：该优化召回率时优化准确率（医疗诊断），或数据有重尾异常值时优化 RMSE（应使用 MAE）。
+
 **Not using stratified splits**: with imbalanced data, a random split might put very few minority samples in the validation fold, giving unstable estimates.
 
+> **不使用分层划分**：对不平衡数据，随机划分可能将极少数少数类样本放入验证折，给出不稳定的估计。
+
 **Testing too often**: every time you look at test performance and adjust, you overfit to the test set. The test set is single-use.
+
+> **测试过于频繁**：每次查看测试性能并调整，你就对测试集过拟合了。测试集是一次性的。
 
 ## Build It | 动手实现
 
@@ -653,6 +723,8 @@ if __name__ == "__main__":
 
 With scikit-learn, evaluation is built into the workflow:
 
+> 使用 scikit-learn，评估内置于工作流中：
+
 ```python
 from sklearn.model_selection import cross_val_score, StratifiedKFold, learning_curve
 from sklearn.metrics import (
@@ -667,10 +739,15 @@ scores = cross_val_score(model, X, y, cv=StratifiedKFold(5), scoring="f1")
 
 The from-scratch versions show exactly what cross-validation does (no magic, just for-loops and index tracking), how each metric is computed (just counting TP/FP/TN/FN), and why stratification matters (preserving class ratios in each fold). The library versions add parallelism, more scoring options, and integration with pipelines.
 
+> 从零版本准确展示了交叉验证做了什么（没有魔法，只是循环和索引追踪）、每个指标如何计算（只是计数 TP/FP/TN/FN）、以及分层为什么重要（保持每折中的类别比例）。库版本增加了并行性、更多评分选项和管线集成。
+
 ## Ship It | 产出物
 
 This lesson produces:
 - `outputs/skill-evaluation.md` - a skill covering evaluation strategy for classification and regression models
+
+> 本课产出：
+> - `outputs/skill-evaluation.md` - 涵盖分类和回归模型评估策略的技能
 
 > **【拓展：A/B 测试——模型评估的终极标准】**
 > 在工业界，离线评估指标（准确率、AUC 等）只是参考，真正的评估是在线 A/B 测试。Google 每年运行超过 10,000 次 A/B 测试来评估搜索算法改进；Netflix 用 A/B 测试决定推荐算法是否上线；Uber 用 A/B 测试评估动态定价策略。A/B 测试的核心是随机分流和统计显著性检验——确保观测到的差异不是随机波动。
