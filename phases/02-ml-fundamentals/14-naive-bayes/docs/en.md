@@ -1,18 +1,26 @@
-# Naive Bayes | 朴素贝叶斯
+# Naive Bayes
+# 朴素贝叶斯
+
 
 > The "naive" assumption is wrong, and it works anyway. That's the beauty of it.
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 2, Lessons 01-07 (classification, Bayes' theorem)
-**Time:** ~75 minutes
+> "朴素"的假设是错的，但它还是能用。这就是它的美妙之处。
+
+**Type:** Build | **类型：** 构建
+**Language:** Python | **语言：** Python
+**Prerequisites:** Phase 2, Lessons 01-07 (classification, Bayes' theorem) | **前置知识：** Phase 2 第 1-7 课（分类、贝叶斯定理）
+**Time:** ~75 minutes | **时间：** 约 75 分钟
 
 ## Learning Objectives | 学习目标
 
 - Implement Multinomial Naive Bayes from scratch with Laplace smoothing for text classification
+  从零实现带 Laplace 平滑的多项式朴素贝叶斯用于文本分类
 - Explain why the naive independence assumption is mathematically wrong but produces correct class rankings in practice
+  解释为什么朴素独立性假设在数学上错误但在实践中产生正确的类别排名
 - Compare Multinomial, Bernoulli, and Gaussian Naive Bayes variants and select the right one for a given feature type
+  比较多项式、伯努利和高斯朴素贝叶斯变体，为给定特征类型选择正确的变体
 - Evaluate Naive Bayes against logistic regression on high-dimensional sparse data and explain the bias-variance tradeoff at work
+  在高维稀疏数据上评估朴素贝叶斯与逻辑回归，解释偏差-方差权衡
 
 
 > **【中文解读】**
@@ -442,14 +450,19 @@ In practice, these failure modes are rare for text classification. Text features
 ## Exercises | 练习题
 
 1. **Smoothing experiment.** Train MultinomialNB on text data with alpha values of 0.01, 0.1, 1.0, 10.0, and 100.0. Plot accuracy vs alpha. Where does performance peak? Why does very high alpha hurt?
+   1. **平滑实验。** 用 alpha 值 0.01、0.1、1.0、10.0、100.0 在文本数据上训练 MultinomialNB。绘制准确率 vs alpha。性能峰值在哪？为什么非常高的 alpha 有害？
 
 2. **Feature independence test.** Take a real text dataset. Pick two words that are obviously correlated ("machine" and "learning"). Compute P(word1 | class) * P(word2 | class) and compare to P(word1 AND word2 | class). How wrong is the independence assumption? Does it affect classification accuracy?
+   2. **特征独立性测试。** 取一个真实文本数据集。选两个明显相关的词（如"机器"和"学习"）。计算 P(word1 | class) * P(word2 | class) 并与 P(word1 AND word2 | class) 比较。独立性假设错多少？它影响分类准确率吗？
 
 3. **Bernoulli implementation.** Extend the code with a BernoulliNB class. Convert bag-of-words to binary (present/absent) and compare accuracy against MultinomialNB on text data. When does Bernoulli win?
+   3. **伯努利实现。** 扩展代码添加 BernoulliNB 类。将词袋转为二值（存在/不存在）并与 MultinomialNB 在文本数据上比较准确率。伯努利何时赢？
 
 4. **NB vs Logistic Regression.** Train both on text data. Start with 100 training samples and increase to 10,000. Plot accuracy vs training set size for both. At what point does Logistic Regression overtake Naive Bayes?
+   4. **NB vs 逻辑回归。** 在文本数据上训练两者。从 100 个训练样本开始增加到 10,000。绘制两者的准确率 vs 训练集大小。逻辑回归在什么点超越朴素贝叶斯？
 
 5. **Spam filter.** Build a complete spam classifier: tokenize raw email text, build vocabulary, create bag-of-words features, train MultinomialNB, evaluate with precision and recall (not just accuracy -- why?).
+   5. **垃圾邮件过滤器。** 构建完整的垃圾邮件分类器：分词原始邮件文本、构建词汇表、创建词袋特征、训练 MultinomialNB、用精确率和召回率评估。
 
 > **【中文解读】**
 > 朴素贝叶斯的三种变体：(1) 多项式朴素贝叶斯（MultinomialNB）——适用于词频/TF-IDF 特征的文本分类；(2) 伯努利朴素贝叶斯（BernoulliNB）——适用于二值特征（词是否出现）；(3) 高斯朴素贝叶斯（GaussianNB）——适用于连续特征，假设每类内特征服从正态分布。Laplace 平滑（加 alpha）防止零概率问题——遇到训练集中没见过的词时，概率不会为零。
@@ -471,6 +484,9 @@ In practice, these failure modes are rare for text classification. Text features
 ## Further Reading | 延伸阅读
 
 - [scikit-learn Naive Bayes docs](https://scikit-learn.org/stable/modules/naive_bayes.html) -- all three variants with mathematical details
+  [scikit-learn 朴素贝叶斯文档](https://scikit-learn.org/stable/modules/naive_bayes.html) - 三种变体及数学细节
 - [McCallum and Nigam, A Comparison of Event Models for Naive Bayes Text Classification (1998)](https://www.cs.cmu.edu/~knigam/papers/multinomial-aaaiws98.pdf) -- the classic comparison of Multinomial vs Bernoulli for text
+  [McCallum and Nigam (1998)](https://www.cs.cmu.edu/~knigam/papers/multinomial-aaaiws98.pdf) - 多项式 vs 伯努利文本分类的经典比较
 - [Rennie et al., Tackling the Poor Assumptions of Naive Bayes Text Classifiers (2003)](https://people.csail.mit.edu/jrennie/papers/icml03-nb.pdf) -- improvements to NB for text
+  [Ng and Jordan (2001)](https://ai.stanford.edu/~ang/papers/nips01-discriminativegenerative.pdf) - 证明 NB 在少数据时收敛快于 LR
 - [Ng and Jordan, On Discriminative vs. Generative Classifiers (2001)](https://ai.stanford.edu/~ang/papers/nips01-discriminativegenerative.pdf) -- proves NB converges faster than LR with less data

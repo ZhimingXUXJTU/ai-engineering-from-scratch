@@ -159,6 +159,7 @@ def make_continuous_data(n_samples=300, seed=42):
 
 
 def train_test_split(X, y, test_ratio=0.2, seed=42):
+    """将数据集随机划分为训练集和测试集。"""
     rng = np.random.RandomState(seed)
     n = len(y)
     idx = rng.permutation(n)
@@ -168,10 +169,12 @@ def train_test_split(X, y, test_ratio=0.2, seed=42):
 
 
 def accuracy(y_true, y_pred):
+    """计算准确率：正确预测的比例。"""
     return np.mean(y_true == y_pred)
 
 
 def print_separator(title):
+    """打印分隔符：美化控制台输出。"""
     print(f"\n{'=' * 60}")
     print(f"  {title}")
     print(f"{'=' * 60}\n")
@@ -248,6 +251,7 @@ def demo_gaussian():
 
 
 def demo_comparison():
+    """演示：多种异常检测方法对比。"""
     print_separator("COMPARISON: MULTINOMIAL vs GAUSSIAN")
 
     print("Task 1: Text data (bag-of-words counts)")

@@ -125,6 +125,7 @@ def neg_mse(model, X, y):
 
 
 def grid_search(param_grid, X_train, y_train, X_val, y_val):
+    """网格搜索：穷举所有参数组合，找到最优。"""
     keys = list(param_grid.keys())
     values = list(param_grid.values())
     best_score = -float("inf")
@@ -160,6 +161,7 @@ def sample_param(spec, rng):
 
 def random_search(param_distributions, X_train, y_train, X_val, y_val,
                   n_iter=50, seed=42):
+    """随机搜索：随机采样参数组合，效率高于网格搜索。"""
     rng = np.random.RandomState(seed)
     best_score = -float("inf")
     best_params = None

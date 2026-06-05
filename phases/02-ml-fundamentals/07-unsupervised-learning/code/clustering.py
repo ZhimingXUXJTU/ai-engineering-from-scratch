@@ -7,10 +7,12 @@ import random
 
 
 def euclidean_distance(a, b):
+    """欧氏距离：sqrt(sum((a-b)^2))，最常用的距离度量。"""
     return math.sqrt(sum((ai - bi) ** 2 for ai, bi in zip(a, b)))
 
 
 def kmeans(data, k, max_iterations=100, seed=42):
+    """K-Means 聚类：反复更新质心和分配，直到收敛。"""
     random.seed(seed)
     n_features = len(data[0])
 
@@ -57,6 +59,7 @@ def compute_inertia(data, assignments, centroids):
 
 
 def silhouette_score(data, assignments):
+    """轮廓系数：衡量聚类的紧密度和分离度。"""
     n = len(data)
     if n < 2:
         return 0.0
@@ -113,6 +116,7 @@ def find_best_k(data, max_k=10):
 
 
 def dbscan(data, eps, min_samples):
+    """DBSCAN 聚类：基于密度的聚类，能发现任意形状的簇。"""
     n = len(data)
     labels = [-1] * n
     cluster_id = 0

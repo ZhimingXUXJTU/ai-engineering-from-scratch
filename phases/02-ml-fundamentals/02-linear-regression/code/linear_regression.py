@@ -1,6 +1,8 @@
 """
-线性回归从零实现：梯度下降优化、正则化(Ridge/Lasso)。
+线性回归从零实现：梯度下降优化、正规方程、多元回归、多项式回归、Ridge 正则化。
 AI 对应: 线性回归是最简单的神经网络（无隐藏层），sklearn 的 LinearRegression/Ridge/Lasso。
+金融应用: Fama-French 因子模型、需求预测基线、A/B 测试因果分析。
+训练流程: 定义模型 → 定义损失函数 (MSE) → 梯度下降优化参数 → 评估 (R²)。
 """
 import random
 import math
@@ -20,22 +22,33 @@ print(f"First 5 points: {[(round(X[i], 2), round(y[i], 2)) for i in range(5)]}")
 
 
 class LinearRegression:
+    """
+    一元线性回归：使用梯度下降优化 MSE 损失函数。
+    模型: y = wx + b，其中 w 是权重（斜率），b 是偏置（截距）。
+    """
     def __init__(self, learning_rate=0.01):
-        self.w = 0.0
-        self.b = 0.0
-        self.lr = learning_rate
-        self.cost_history = []
+        self.w = 0.0  # 权重（斜率）初始化为 0
+        self.b = 0.0  # 偏置（截距）初始化为 0
+        self.lr = learning_rate  # 学习率控制梯度下降步长
+        self.cost_history = []  # 记录每轮的损失值，用于监控收敛
 
     def predict(self, X):
+        """预测: y_hat = wx + b"""
         return [self.w * x + self.b for x in X]
 
     def compute_cost(self, X, y):
+        """计算均方误差 (MSE): (1/n) * sum((y_hat - y)²)"""
         predictions = self.predict(X)
         n = len(y)
         cost = sum((pred - actual) ** 2 for pred, actual in zip(predictions, y)) / n
         return cost
 
     def compute_gradients(self, X, y):
+        """
+        计算 MSE 对 w 和 b 的偏导数（梯度）。
+        dMSE/dw = (2/n) * sum((y_hat - y) * x)
+        dMSE/db = (2/n) * sum(y_hat - y)
+        """
         predictions = self.predict(X)
         n = len(y)
         dw = (2 / n) * sum((pred - actual) * x for pred, actual, x in zip(predictions, y, X))
@@ -43,10 +56,14 @@ class LinearRegression:
         return dw, db
 
     def fit(self, X, y, epochs=1000, print_every=200):
+        """
+        训练：反复计算梯度并更新参数。
+        每步: w = w - lr * dMSE/dw, b = b - lr * dMSE/db
+        """
         for epoch in range(epochs):
-            dw, db = self.compute_gradients(X, y)
-            self.w -= self.lr * dw
-            self.b -= self.lr * db
+            dw, db = self.compute_gradients(X, y)  # 计算梯度
+            self.w -= self.lr * dw  # 沿梯度反方向更新权重
+            self.b -= self.lr * db  # 沿梯度反方向更新偏置
             cost = self.compute_cost(X, y)
             self.cost_history.append(cost)
             if epoch % print_every == 0:
@@ -54,6 +71,7 @@ class LinearRegression:
         return self
 
     def r_squared(self, X, y):
+        """计算 R² 分数: 1 - SS_res/SS_tot（模型解释的方差比例）"""
         predictions = self.predict(X)
         y_mean = sum(y) / len(y)
         ss_res = sum((actual - pred) ** 2 for actual, pred in zip(y, predictions))
@@ -70,9 +88,14 @@ print(f"R-squared: {model.r_squared(X, y):.4f}")
 
 
 class LinearRegressionNormal:
+    """
+    正规方程（闭式解）线性回归。
+    直接通过公式 w = Cov(x,y) / Var(x) 计算最优权重，无需迭代。
+    适用于小数据集（特征数 < 1000）。
+    """
     def __init__(self):
-        self.w = 0.0
-        self.b = 0.0
+        self.w = 0.0  # 斜率
+        self.b = 0.0  # 截距
 
     def fit(self, X, y):
         n = len(X)
@@ -103,6 +126,11 @@ print(f"R-squared: {model_normal.r_squared(X, y):.4f}")
 
 
 class MultipleLinearRegression:
+    """
+    多元线性回归：y = w1*x1 + w2*x2 + ... + wn*xn + b。
+    使用梯度下降优化，支持任意数量的特征。
+    注意：特征需要先标准化，否则梯度下降收敛缓慢。
+    """
     def __init__(self, n_features, learning_rate=0.01):
         self.weights = [0.0] * n_features
         self.bias = 0.0
@@ -146,6 +174,10 @@ class MultipleLinearRegression:
 
 
 def standardize(X):
+    """
+    特征标准化（Z-score）：将每个特征转换为零均值单位方差。
+    这对梯度下降至关重要——量级差异大的特征会导致收敛困难。
+    """
     n_features = len(X[0])
     n_samples = len(X)
     means = [sum(X[i][j] for i in range(n_samples)) / n_samples for j in range(n_features)]
@@ -188,6 +220,11 @@ print(f"R-squared: {multi_model.r_squared(X_scaled, y_scaled):.4f}")
 
 
 class PolynomialRegression:
+    """
+    多项式回归：将 x 转换为 [x, x², x³, ...] 特征后做线性回归。
+    模型在权重上仍是线性的，但可以拟合非线性关系。
+    警告：次数过高会导致过拟合。
+    """
     def __init__(self, degree, learning_rate=0.01):
         self.degree = degree
         self.weights = [0.0] * degree
@@ -250,6 +287,11 @@ print(f"  R-squared: {poly5.r_squared(X_poly_norm, y_poly_norm):.4f}")
 
 
 class RidgeRegression:
+    """
+    Ridge 回归（L2 正则化）：Cost = MSE + alpha * sum(w_i²)。
+    通过惩罚大权重防止过拟合，alpha 控制正则化强度。
+    深度学习中的权重衰减 (weight decay) 就是这个原理。
+    """
     def __init__(self, n_features, learning_rate=0.01, alpha=1.0):
         self.weights = [0.0] * n_features
         self.bias = 0.0

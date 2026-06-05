@@ -1,18 +1,26 @@
-# Bias-Variance Tradeoff | 偏差-方差权衡
+# Bias-Variance Tradeoff
+# 偏差-方差权衡
+
 
 > Every model error comes from one of three sources: bias, variance, or noise. You can only control the first two.
 
-**Type:** Learn
-**Language:** Python
-**Prerequisites:** Phase 2, Lessons 01-09 (ML basics, regression, classification, evaluation)
-**Time:** ~75 minutes
+> 每个模型误差来自三个来源之一：偏差、方差或噪声。你只能控制前两个。
+
+**Type:** Learn | **类型：** 学习
+**Language:** Python | **语言：** Python
+**Prerequisites:** Phase 2, Lessons 01-09 (ML basics, regression, classification, evaluation) | **前置知识：** Phase 2 第 1-9 课（ML 基础、回归、分类、评估）
+**Time:** ~75 minutes | **时间：** 约 75 分钟
 
 ## Learning Objectives | 学习目标
 
 - Derive the bias-variance decomposition of expected prediction error and explain the role of irreducible noise
+  推导期望预测误差的偏差-方差分解，解释不可约噪声的角色
 - Diagnose whether a model suffers from high bias or high variance using training and test error patterns
+  使用训练误差和测试误差模式诊断模型是否存在高偏差或高方差
 - Explain how regularization techniques (L1, L2, dropout, early stopping) trade bias for variance
+  解释正则化技术（L1、L2、Dropout、早停）如何在偏差和方差之间权衡
 - Implement experiments that visualize the bias-variance tradeoff across models of increasing complexity
+  实现可视化模型复杂度增加时偏差-方差权衡的实验
 
 
 > **【中文解读】**
@@ -446,14 +454,19 @@ This lesson produces: `outputs/prompt-model-diagnostics.md`
 ## Exercises | 练习题
 
 1. Run the decomposition with `noise_std=0` (no noise). What happens to the irreducible error term? Does the optimal complexity change?
+   1. 用 `noise_std=0`（无噪声）运行分解。不可约误差项发生了什么？最优复杂度变化了吗？
 
 2. Increase the training set size from 30 to 300. How does this affect the variance component? Does the optimal polynomial degree shift?
+   2. 将训练集大小从 30 增加到 300。这如何影响方差分量？最优多项式次数移动了吗？
 
 3. Add L2 regularization (Ridge regression) to the experiment. For a fixed high-degree polynomial (degree 15), sweep lambda from 0 to 100. Plot bias^2 and variance as functions of lambda.
+   3. 在实验中添加 L2 正则化（Ridge 回归）。对固定的高次多项式（degree 15），从 0 到 100 扫描 lambda。绘制偏差^2 和方差作为 lambda 的函数。
 
 4. Modify the true function from a polynomial to `sin(x)`. How does the bias-variance decomposition change? Is there still a clear optimal degree?
+   4. 将真实函数从多项式改为 `sin(x)`。偏差-方差分解如何变化？是否还有清晰的最优次数？
 
 5. Implement a simple bootstrap aggregating (bagging) wrapper: train 10 models on bootstrap samples and average predictions. Show that this reduces variance without increasing bias much.
+   5. 实现简单的 Bootstrap 聚合（Bagging）包装器：在 Bootstrap 样本上训练 10 个模型并平均预测。展示这减少了方差而不显著增加偏差。
 
 > **【中文解读】**
 > 偏差-方差分解的数学表达：E[(y - f_hat)^2] = Bias^2 + Variance + sigma^2。其中 Bias^2 是模型系统性错误的平方，Variance 是模型对训练数据波动的敏感度，sigma^2 是数据本身的不可约噪声。降低偏差的方法：更复杂的模型、更好的特征。降低方差的方法：正则化、增加数据、集成方法（Bagging）。
@@ -477,6 +490,10 @@ This lesson produces: `outputs/prompt-model-diagnostics.md`
 ## Further Reading | 延伸阅读
 
 - [Hastie, Tibshirani, Friedman: Elements of Statistical Learning, Ch. 7](https://hastie.su.domains/ElemStatLearn/) -- the definitive treatment of bias-variance decomposition
+  [Hastie, Tibshirani, Friedman: Elements of Statistical Learning, Ch. 7](https://hastie.su.domains/ElemStatLearn/) - 偏差-方差分解的权威论述
 - [Belkin et al., Reconciling modern machine learning practice and the bias-variance trade-off (2019)](https://arxiv.org/abs/1812.11118) -- the double descent paper
+  [Belkin et al., Reconciling modern machine learning practice and the bias-variance trade-off (2019)](https://arxiv.org/abs/1812.11118) - 双重下降论文
 - [Nakkiran et al., Deep Double Descent (2019)](https://arxiv.org/abs/1912.02292) -- epoch-wise and sample-wise double descent
+  [Nakkiran et al., Deep Double Descent (2019)](https://arxiv.org/abs/1912.02292) - epoch-wise 和 sample-wise 双重下降
 - [Scott Fortmann-Roe: Understanding the Bias-Variance Tradeoff](http://scott.fortmann-roe.com/docs/BiasVariance.html) -- clear visual explanation
+  [Scott Fortmann-Roe: Understanding the Bias-Variance Tradeoff](http://scott.fortmann-roe.com/docs/BiasVariance.html) - 清晰的可视化解释

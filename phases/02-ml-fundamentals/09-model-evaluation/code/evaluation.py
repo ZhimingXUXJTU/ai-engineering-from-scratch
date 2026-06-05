@@ -73,6 +73,7 @@ def stratified_kfold_split(y, k=5, seed=42):
 
 
 def cross_validate(X, y, model_fn, k=5, metric_fn=None, stratified=False):
+    """交叉验证：将数据分为 K 折，轮流做训练和验证。"""
     n = len(X)
 
     if stratified:
@@ -101,6 +102,7 @@ def cross_validate(X, y, model_fn, k=5, metric_fn=None, stratified=False):
 
 
 def confusion_matrix(y_true, y_pred):
+    """计算混淆矩阵：统计 TP/TN/FP/FN。"""
     tp = sum(1 for yt, yp in zip(y_true, y_pred) if yt == 1 and yp == 1)
     tn = sum(1 for yt, yp in zip(y_true, y_pred) if yt == 0 and yp == 0)
     fp = sum(1 for yt, yp in zip(y_true, y_pred) if yt == 0 and yp == 1)
@@ -109,6 +111,7 @@ def confusion_matrix(y_true, y_pred):
 
 
 def accuracy(y_true, y_pred):
+    """计算准确率：正确预测的比例。"""
     tp, tn, fp, fn = confusion_matrix(y_true, y_pred)
     total = tp + tn + fp + fn
     return (tp + tn) / total if total > 0 else 0.0
@@ -125,6 +128,7 @@ def recall(y_true, y_pred):
 
 
 def f1_score(y_true, y_pred):
+    """F1 分数：精确率和召回率的调和平均。"""
     p = precision(y_true, y_pred)
     r = recall(y_true, y_pred)
     return 2 * p * r / (p + r) if (p + r) > 0 else 0.0
@@ -192,6 +196,7 @@ def r_squared(y_true, y_pred):
 
 
 def learning_curve(X, y, model_fn, metric_fn, train_sizes=None, val_ratio=0.2, seed=42):
+    """学习曲线：不同训练量下的训练/验证误差。"""
     random.seed(seed)
     n = len(X)
     indices = list(range(n))
@@ -235,6 +240,7 @@ class SimpleLogistic:
         self.bias = 0.0
 
     def sigmoid(self, z):
+        """Sigmoid 激活函数：将任意实数映射到 (0,1) 区间。"""
         z = max(-500, min(500, z))
         return 1.0 / (1.0 + math.exp(-z))
 
@@ -286,6 +292,7 @@ class SimpleLinearRegression:
 
 
 def standardize(values):
+    """标准化（Z-score）：转换为零均值单位方差。"""
     n = len(values)
     mean = sum(values) / n
     var = sum((v - mean) ** 2 for v in values) / n

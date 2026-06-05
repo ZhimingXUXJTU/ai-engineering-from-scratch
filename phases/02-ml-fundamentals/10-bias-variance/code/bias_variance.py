@@ -43,6 +43,7 @@ def bias_variance_decomposition(
     n_test=100,
     lam=0.0,
 ):
+    """偏差-方差分解：将期望误差分解为偏差^2+方差+噪声。"""
     rng = np.random.RandomState(42)
     x_test = np.linspace(-2.5, 2.5, n_test)
     y_true = true_function(x_test)

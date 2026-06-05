@@ -6,6 +6,7 @@ import numpy as np
 
 
 def zscore_detect(X, threshold=3.0):
+    """Z-score 异常检测：标记超出阈值个标准差的点。"""
     mean = X.mean(axis=0)
     std = X.std(axis=0)
     std[std == 0] = 1.0
@@ -16,6 +17,7 @@ def zscore_detect(X, threshold=3.0):
 
 
 def iqr_detect(X, factor=1.5):
+    """IQR 异常检测：标记超出四分位距范围的点。"""
     q1 = np.percentile(X, 25, axis=0)
     q3 = np.percentile(X, 75, axis=0)
     iqr = q3 - q1
@@ -30,6 +32,7 @@ def iqr_detect(X, factor=1.5):
 
 
 def _c_factor(n):
+    """孤立树的归一化因子：用于计算异常分数。"""
     if n <= 1:
         return 0.0
     if n == 2:
@@ -137,6 +140,7 @@ class IsolationForest:
 
 
 def make_anomaly_data(n_normal=500, n_anomaly=25, n_features=2, seed=42):
+    """生成含异常的数据：正常数据 + 离群点。"""
     rng = np.random.RandomState(seed)
 
     center = rng.uniform(-2, 2, n_features)
@@ -167,6 +171,7 @@ def make_anomaly_data(n_normal=500, n_anomaly=25, n_features=2, seed=42):
 
 
 def make_multimodal_data(n_per_cluster=200, n_anomaly=20, seed=42):
+    """生成多模态数据：多个簇 + 异常点。"""
     rng = np.random.RandomState(seed)
 
     c1 = rng.multivariate_normal([0, 0], [[0.3, 0], [0, 0.3]], n_per_cluster)
@@ -183,6 +188,7 @@ def make_multimodal_data(n_per_cluster=200, n_anomaly=20, seed=42):
 
 
 def precision_recall(y_true, y_pred):
+    """计算精确率和召回率。"""
     tp = np.sum((y_true == 1) & (y_pred == 1))
     fp = np.sum((y_true == 0) & (y_pred == 1))
     fn = np.sum((y_true == 1) & (y_pred == 0))
@@ -195,17 +201,20 @@ def precision_recall(y_true, y_pred):
 
 
 def precision_at_k(y_true, scores, k):
+    """计算前 k 个预测中的精确率。"""
     top_k_idx = np.argsort(scores)[-k:]
     return np.mean(y_true[top_k_idx] == 1)
 
 
 def print_separator(title):
+    """打印分隔符：美化控制台输出。"""
     print(f"\n{'=' * 60}")
     print(f"  {title}")
     print(f"{'=' * 60}\n")
 
 
 def demo_zscore():
+    """演示：Z-score 异常检测。"""
     print_separator("Z-SCORE ANOMALY DETECTION")
 
     X, y_true = make_anomaly_data(n_normal=500, n_anomaly=25, seed=42)
@@ -223,6 +232,7 @@ def demo_zscore():
 
 
 def demo_iqr():
+    """演示：IQR 异常检测。"""
     print_separator("IQR ANOMALY DETECTION")
 
     X, y_true = make_anomaly_data(n_normal=500, n_anomaly=25, seed=42)
@@ -240,6 +250,7 @@ def demo_iqr():
 
 
 def demo_isolation_forest():
+    """演示：孤立森林异常检测。"""
     print_separator("ISOLATION FOREST (FROM SCRATCH)")
 
     X, y_true = make_anomaly_data(n_normal=500, n_anomaly=25, seed=42)
@@ -270,6 +281,7 @@ def demo_isolation_forest():
 
 
 def demo_comparison():
+    """演示：多种异常检测方法对比。"""
     print_separator("METHOD COMPARISON")
 
     X, y_true = make_anomaly_data(n_normal=500, n_anomaly=25, seed=42)
@@ -303,6 +315,7 @@ def demo_comparison():
 
 
 def demo_multimodal():
+    """演示：多模态数据的异常检测。"""
     print_separator("MULTIMODAL DATA (WHERE SIMPLE METHODS STRUGGLE)")
 
     X, y_true = make_multimodal_data(n_per_cluster=200, n_anomaly=20, seed=42)

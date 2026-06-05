@@ -1,18 +1,26 @@
-# Feature Engineering & Selection | 特征工程与选择
+# Feature Engineering & Selection
+# 特征工程与选择
+
 
 > A good feature is worth a thousand data points.
 
-**Type:** Build
+> 一个好的特征顶一千个数据点。
+
+**Type:** Build | **类型：** 构建
 **Languages:** Python
-**Prerequisites:** Phase 1 (Statistics for ML, Linear Algebra), Phase 2 Lessons 1-7
-**Time:** ~90 minutes
+**Prerequisites:** Phase 1 (Statistics for ML, Linear Algebra), Phase 2 Lessons 1-7 | **前置知识：** Phase 1（统计学、线性代数），Phase 2 第 1-7 课
+**Time:** ~90 minutes | **时间：** 约 90 分钟
 
 ## Learning Objectives | 学习目标
 
 - Implement numerical transforms (standardization, min-max scaling, log transform, binning) and explain when each is appropriate
+  实现数值变换（标准化、Min-Max 缩放、对数变换、分箱）并解释各自的适用场景
 - Build one-hot, label, and target encoding for categorical features and identify the data leakage risk in target encoding
+  构建独热编码、标签编码和目标编码，识别目标编码的数据泄漏风险
 - Construct a TF-IDF vectorizer from scratch and explain why it outperforms raw word counts for text classification
+  从零构建 TF-IDF 向量化器，解释它为什么优于原始词频计数
 - Apply filter-based feature selection (variance threshold, correlation, mutual information) to reduce dimensionality
+  应用基于过滤的特征选择（方差阈值、相关性、互信息）降低维度
 
 
 > **【中文解读】**
@@ -578,8 +586,11 @@ This lesson produces:
 ## Exercises | 练习题
 
 1. Add robust scaling (using median and interquartile range instead of mean and standard deviation) to the numerical transforms. Compare it to standard scaling on data with extreme outliers.
+   1. 在数值变换中添加鲁棒缩放（使用中位数和四分位距代替均值和标准差）。在有极端离群值的数据上与标准缩放比较。
 2. Implement leave-one-out target encoding: for each row, compute the target mean excluding that row's own target value. Show how this reduces overfitting compared to naive target encoding.
+   2. 实现留一法目标编码：对每行，计算排除该行自身目标值的目标均值。展示这如何减少过拟合，与朴素目标编码比较。
 3. Build an automated feature selection pipeline that combines variance threshold, correlation filtering, and mutual information ranking. Apply it to the housing dataset and compare model performance (use a simple linear regression) with all features vs selected features.
+   3. 构建自动化特征选择管线，结合方差阈值、相关性过滤和互信息排序。应用到住房数据集，比较使用所有特征和选定特征的模型性能（使用简单线性回归）。
 
 ## Key Terms | 术语速查表
 
@@ -598,5 +609,8 @@ This lesson produces:
 ## Further Reading | 延伸阅读
 
 - [Feature Engineering and Selection (Max Kuhn & Kjell Johnson)](http://www.feat.engineering/) - free online book covering the full landscape of feature engineering
+  [Feature Engineering and Selection (Max Kuhn & Kjell Johnson)](http://www.feat.engineering/) - 涵盖特征工程全景的免费在线书籍
 - [scikit-learn Preprocessing Guide](https://scikit-learn.org/stable/modules/preprocessing.html) - practical reference for all standard transforms
+  [scikit-learn 预处理指南](https://scikit-learn.org/stable/modules/preprocessing.html) - 所有标准变换的实用参考
 - [Target Encoding Done Right (Micci-Barreca, 2001)](https://dl.acm.org/doi/10.1145/507533.507538) - the original paper on target encoding with smoothing
+  [Target Encoding Done Right (Micci-Barreca, 2001)](https://dl.acm.org/doi/10.1145/507533.507538) - 带平滑的目标编码原始论文

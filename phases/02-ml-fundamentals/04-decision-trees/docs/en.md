@@ -1,18 +1,26 @@
-# Decision Trees and Random Forests | 决策树与随机森林
+# Decision Trees and Random Forests
+# 决策树与随机森林
+
 
 > A decision tree is just a flowchart. But a forest of them is one of the most powerful tools in ML.
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 1 (Lessons 09 Information Theory, 06 Probability)
-**Time:** ~90 minutes
+> 一棵决策树就是一张流程图。但一片由它们组成的森林，是机器学习中最强大的工具之一。
+
+**Type:** Build | **类型：** 构建
+**Language:** Python | **语言：** Python
+**Prerequisites:** Phase 1 (Lessons 09 Information Theory, 06 Probability) | **前置知识：** Phase 1（第 9 课信息论、第 6 课概率论）
+**Time:** ~90 minutes | **时间：** 约 90 分钟
 
 ## Learning Objectives | 学习目标
 
 - Implement Gini impurity, entropy, and information gain calculations to find optimal decision tree splits
+  实现 Gini 不纯度、熵和信息增益计算，找到最优决策树分裂点
 - Build a decision tree classifier from scratch with pre-pruning controls (max depth, min samples)
+  从零构建带有预剪枝控制（最大深度、最小样本数）的决策树分类器
 - Construct a random forest using bootstrap sampling and feature randomization, and explain why it reduces variance
+  使用 Bootstrap 采样和特征随机化构建随机森林，并解释它为什么能降低方差
 - Compare MDI feature importance with permutation importance and identify when MDI is biased
+  比较 MDI 特征重要性和置换重要性，识别 MDI 的偏差问题
 
 
 > **【中文解读】**
@@ -375,14 +383,19 @@ This lesson produces `outputs/prompt-tree-interpreter.md` -- a prompt that inter
 ## Exercises | 练习题
 
 1. Train a single decision tree on a 2D dataset with 3 classes. Manually trace the splits and draw the rectangular decision boundaries. Compare the boundaries at max_depth=2 vs max_depth=10.
+   1. 在 3 类 2D 数据集上训练单棵决策树。手动追踪分裂并绘制矩形决策边界。比较 max_depth=2 和 max_depth=10 的边界。
 
 2. Implement variance reduction splitting for regression trees. Generate y = sin(x) + noise for 200 points and fit your regression tree. Plot the tree's piecewise-constant predictions against the true curve.
+   2. 实现回归树的方差减少分裂。为 200 个点生成 y = sin(x) + noise，拟合回归树。绘制树的分段常数预测与真实曲线。
 
 3. Build a random forest with 1, 5, 10, 50, and 200 trees. Plot training accuracy and test accuracy vs number of trees. Observe that test accuracy plateaus but does not decrease (forests resist overfitting).
+   3. 分别用 1、5、10、50 和 200 棵树构建随机森林。绘制训练准确率和测试准确率随树数量的变化。观察测试准确率趋于平稳但不会下降（森林抗过拟合）。
 
 4. Compare Gini impurity vs entropy as split criteria on 5 different datasets. Measure accuracy and tree depth. In most cases, they produce nearly identical results. Explain why.
+   4. 在 5 个不同数据集上比较 Gini 不纯度和熵作为分裂标准。测量准确率和树深度。大多数情况下它们产生几乎相同的结果。解释原因。
 
 5. Implement permutation importance. Compare it with MDI importance on a dataset where one feature is random noise but has high cardinality. MDI will rank the noise feature highly. Permutation importance will not.
+   5. 实现置换重要性。在一个包含随机噪声但高基数特征的数据集上，将其与 MDI 重要性比较。MDI 会将噪声特征排在前列。置换重要性不会。
 
 ## Key Terms | 术语速查表
 
@@ -404,6 +417,10 @@ This lesson produces `outputs/prompt-tree-interpreter.md` -- a prompt that inter
 ## Further Reading | 延伸阅读
 
 - [Breiman: Random Forests (2001)](https://link.springer.com/article/10.1023/A:1010933404324) - the original random forest paper
+  [Breiman: Random Forests (2001)](https://link.springer.com/article/10.1023/A:1010933404324) - 随机森林原始论文
 - [Grinsztajn et al.: Why do tree-based models still outperform deep learning on tabular data? (2022)](https://arxiv.org/abs/2207.08815) - rigorous comparison of trees vs neural networks on tabular tasks
+  [Grinsztajn et al.: Why do tree-based models still outperform deep learning on tabular data? (2022)](https://arxiv.org/abs/2207.08815) - 树模型与神经网络在表格数据上的严格比较
 - [scikit-learn Decision Trees documentation](https://scikit-learn.org/stable/modules/tree.html) - practical guide with visualization tools
+  [scikit-learn 决策树文档](https://scikit-learn.org/stable/modules/tree.html) - 实用指南及可视化工具
 - [XGBoost: A Scalable Tree Boosting System (Chen & Guestrin, 2016)](https://arxiv.org/abs/1603.02754) - the gradient boosting paper that dominates Kaggle
+  [XGBoost: A Scalable Tree Boosting System (Chen & Guestrin, 2016)](https://arxiv.org/abs/1603.02754) - 统治 Kaggle 的梯度提升论文

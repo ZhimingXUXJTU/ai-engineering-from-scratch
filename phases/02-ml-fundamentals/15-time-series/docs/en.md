@@ -1,18 +1,26 @@
-# Time Series Fundamentals | 时间序列基础
+# Time Series Fundamentals
+# 时间序列基础
+
 
 > Past performance does predict future results -- if you check for stationarity first.
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 2, Lessons 01-09
-**Time:** ~90 minutes
+> 过去的表现确实能预测未来——前提是你先检查了平稳性。
+
+**Type:** Build | **类型：** 构建
+**Language:** Python | **语言：** Python
+**Prerequisites:** Phase 2, Lessons 01-09 | **前置知识：** Phase 2 第 1-9 课
+**Time:** ~90 minutes | **时间：** 约 90 分钟
 
 ## Learning Objectives | 学习目标
 
 - Decompose a time series into trend, seasonality, and residual components and test for stationarity
+  将时间序列分解为趋势、季节性和残差分量，并检验平稳性
 - Implement lag features and rolling statistics to convert a time series into a supervised learning problem
+  实现滞后特征和滚动统计将时间序列转换为监督学习问题
 - Build a walk-forward validation framework that prevents future data from leaking into training
+  构建前向滚动验证框架，防止未来数据泄漏到训练中
 - Explain why random train/test splits are invalid for time series and demonstrate the performance gap versus proper temporal splits
+  解释为什么随机训练/测试分割对时间序列无效，并用正确的时间分割展示性能差距
 
 
 > **【中文解读】**
@@ -442,12 +450,16 @@ If your fancy ML model loses to the seasonal naive baseline, you have a bug. Mos
 ## Exercises | 练习题
 
 1. **Stationarity experiment.** Generate a series with a linear trend. Check stationarity with rolling statistics. Apply first differencing. Check again. How many rounds of differencing does it take for a quadratic trend?
+   1. 生成一个带趋势和季节性的合成时间序列。用移动平均和差分去除趋势。ADF 检验确认平稳性。
 
 2. **Lag selection.** Compute ACF on a seasonal series (period=7). Which lags have the highest autocorrelation? Create lag features using only those lags (not consecutive lags). Does accuracy improve compared to using lags 1 through 7?
+   2. 构建滞后特征（lag 1-7）和滚动统计（窗口 3、7、14）。用梯度提升树预测。比较不同特征组合的准确率。
 
 3. **Walk-forward vs random split.** Train a Ridge regression on lag features. Evaluate with random 80/20 split and with walk-forward validation. How much does the random split overestimate performance?
+   3. 在同一数据集上比较随机交叉验证和前向滚动验证。展示随机分割导致过度乐观的估计。
 
 4. **Feature engineering.** Add rolling mean (window=7), rolling std (window=7), and day-of-week features to the lag features. Compare accuracy with and without these extras using walk-forward validation.
+   4. 实现 ARIMA(p, d, q) 从零。网格搜索最优参数，用 AIC 选择最佳模型。
 
 5. **Multi-step forecasting.** Modify the AR model to predict 5 steps ahead instead of 1. Compare two strategies: (a) predict one step, use the prediction as input for the next step (recursive), and (b) train separate models for each horizon (direct). Which is more accurate?
 
@@ -473,6 +485,9 @@ If your fancy ML model loses to the seasonal naive baseline, you have a bug. Mos
 ## Further Reading | 延伸阅读
 
 - [Hyndman and Athanasopoulos, Forecasting: Principles and Practice (3rd ed.)](https://otexts.com/fpp3/) -- the best free textbook on time series forecasting
+  [Hyndman & Athanasopoulos: Forecasting: Principles and Practice](https://otexts.com/fpp3/) - 免费在线教材
 - [scikit-learn Time Series Split](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html) -- sklearn's walk-forward splitter
+  [statsmodels 时间序列文档](https://www.statsmodels.org/stable/tsa.html) - Python 时间序列分析库
 - [statsmodels ARIMA docs](https://www.statsmodels.org/stable/generated/statsmodels.tsa.arima.model.ARIMA.html) -- ARIMA implementation with diagnostics
+  [sklearn TimeSeriesSplit](https://scikit-learn.org/stable/modules/cross_validation.html#time-series-cross-validation)
 - [Makridakis et al., The M5 Competition (2022)](https://www.sciencedirect.com/science/article/pii/S0169207021001874) -- large-scale forecasting competition showing ML methods vs statistical methods

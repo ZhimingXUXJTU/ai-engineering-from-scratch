@@ -1,18 +1,26 @@
-# ML Pipelines | ML 管线
+# ML Pipelines
+# ML 管线
+
 
 > A model is not a product. A pipeline is. The pipeline is everything from raw data to deployed prediction, and every step must be reproducible.
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 2, Lesson 12 (Hyperparameter Tuning)
-**Time:** ~120 minutes
+> 模型不是产品，管线才是。管线是从原始数据到部署预测的一切，每一步都必须可复现。
+
+**Type:** Build | **类型：** 构建
+**Language:** Python | **语言：** Python
+**Prerequisites:** Phase 2, Lesson 12 (Hyperparameter Tuning) | **前置知识：** Phase 2 第 12 课（超参数调优）
+**Time:** ~120 minutes | **时间：** 约 120 分钟
 
 ## Learning Objectives | 学习目标
 
 - Build an ML pipeline from scratch that chains imputation, scaling, encoding, and model training into a single reproducible object
+  从零构建 ML 管线，将填充、缩放、编码和模型训练链接为单个可复现对象
 - Identify data leakage scenarios and explain how pipelines prevent them by fitting transformers only on training data
+  识别数据泄漏场景，解释管线如何通过只在训练数据上拟合变换器来防止泄漏
 - Construct a ColumnTransformer that applies different preprocessing to numeric and categorical features
+  构建 ColumnTransformer，对数值和类别特征应用不同预处理
 - Implement pipeline serialization and demonstrate that the same fitted pipeline produces identical results in training and production
+  实现管线序列化，展示同一拟合管线在训练和生产中产生相同结果
 
 
 > **【中文解读】**
@@ -339,14 +347,19 @@ This lesson produces:
 ## Exercises | 练习题
 
 1. Build a pipeline that handles a dataset with 3 numeric columns and 2 categorical columns. Use `ColumnTransformer` to apply median imputation + scaling to numerics and most-frequent imputation + one-hot encoding to categoricals. Train with 5-fold cross-validation.
+   1. 构建处理 3 个数值列和 2 个类别列的数据集的管线。用 `ColumnTransformer` 对数值列应用中位数填充+缩放，对类别列应用众数填充+独热编码。用 5 折交叉验证训练。
 
 2. Deliberately introduce data leakage: fit the scaler on the full dataset before splitting. Compare the cross-validation score (leaky) to the pipeline cross-validation score (clean). How large is the difference?
+   2. 故意引入数据泄漏：在划分前对全量数据 fit scaler。比较泄漏的交叉验证分数和管线的交叉验证分数。差异多大？
 
 3. Serialize your pipeline with `joblib.dump`. Load it in a separate script and run predictions. Verify the predictions are identical.
+   3. 用 `joblib.dump` 序列化你的管线。在另一个脚本中加载并运行预测。验证预测完全相同。
 
 4. Add a custom transformer to the pipeline that creates polynomial features (degree 2) for the two most important numeric columns. Where should it go in the pipeline?
+   4. 在管线中添加一个自定义变换器，为最重要的两个数值列创建多项式特征（degree 2）。它应该放在管线的什么位置？
 
 5. Set up MLflow tracking for the pipeline. Run 5 experiments with different hyperparameters. Use the MLflow UI (`mlflow ui`) to compare runs and pick the best model.
+   5. 为管线设置 MLflow 追踪。用不同超参数运行 5 个实验。用 MLflow UI（`mlflow ui`）比较运行并挑选最佳模型。
 
 > **【中文解读】**
 > ML 管线的关键设计原则：(1) 所有变换必须可序列化——用 joblib/pickle 保存完整的 fitted pipeline，部署时直接加载；(2) ColumnTransformer 处理混合类型——数值特征和类别特征分别变换后合并；(3) 管线内不能有任何全局状态——每个 transformer 的 fit 只依赖传入的训练数据。这些原则确保了训练-推理一致性。
@@ -371,7 +384,12 @@ This lesson produces:
 ## Further Reading | 延伸阅读
 
 - [scikit-learn Pipeline docs](https://scikit-learn.org/stable/modules/compose.html) -- the official pipeline reference
+  [scikit-learn Pipeline 文档](https://scikit-learn.org/stable/modules/compose.html) - 官方管线参考
 - [MLflow documentation](https://mlflow.org/docs/latest/index.html) -- experiment tracking and model registry
+  [MLflow 文档](https://mlflow.org/docs/latest/index.html) - 实验追踪和模型注册
 - [DVC documentation](https://dvc.org/doc) -- data versioning
+  [DVC 文档](https://dvc.org/doc) - 数据版本管理
 - [Sculley et al., Hidden Technical Debt in Machine Learning Systems (2015)](https://papers.nips.cc/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html) -- the seminal paper on ML systems complexity
+  [Sculley et al., Hidden Technical Debt in ML Systems (2015)](https://papers.nips.cc/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html) - ML 系统复杂性的奠基论文
 - [Google ML Best Practices: Rules of ML](https://developers.google.com/machine-learning/guides/rules-of-ml) -- practical production ML advice
+  [Google ML Best Practices](https://developers.google.com/machine-learning/guides/rules-of-ml) - 实用生产 ML 建议

@@ -22,6 +22,7 @@ def make_regression_data(n_samples=300, n_features=5, noise=0.3, seed=42):
 
 
 def train_test_split(X, y, test_ratio=0.2, seed=42):
+    """将数据集随机划分为训练集和测试集。"""
     rng = np.random.RandomState(seed)
     idx = rng.permutation(len(y))
     split = int(len(y) * (1 - test_ratio))
@@ -91,6 +92,7 @@ class AdaBoostScratch:
         return np.sign(total)
 
     def accuracy(self, X, y):
+        """计算准确率：正确预测的比例。"""
         return np.mean(self.predict(X) == y)
 
 

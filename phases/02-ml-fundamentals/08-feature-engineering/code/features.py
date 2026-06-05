@@ -15,6 +15,7 @@ def min_max_scale(values):
 
 
 def standardize(values):
+    """标准化（Z-score）：转换为零均值单位方差。"""
     n = len(values)
     mean = sum(values) / n
     variance = sum((v - mean) ** 2 for v in values) / n
@@ -53,6 +54,7 @@ def polynomial_features(row, degree=2):
 
 
 def one_hot_encode(values):
+    """独热编码：将类别变量转换为二进制列。"""
     categories = sorted(set(values))
     cat_to_idx = {cat: i for i, cat in enumerate(categories)}
     n_cats = len(categories)
@@ -67,6 +69,7 @@ def one_hot_encode(values):
 
 
 def label_encode(values):
+    """标签编码：将类别映射为整数。"""
     categories = sorted(set(values))
     cat_to_int = {cat: i for i, cat in enumerate(categories)}
     return [cat_to_int[v] for v in values], cat_to_int
@@ -195,6 +198,7 @@ def correlation(x, y):
 
 
 def mutual_information(feature, target, n_bins=10):
+    """互信息：衡量特征与目标之间的信息依赖。"""
     feat_min = min(feature)
     feat_max = max(feature)
     bin_width = (feat_max - feat_min) / n_bins if feat_max != feat_min else 1.0
@@ -228,6 +232,7 @@ def mutual_information(feature, target, n_bins=10):
 
 
 def variance_threshold(features, threshold=0.01):
+    """方差阈值过滤：删除方差过小的特征（几乎不变的特征无用）。"""
     n_features = len(features[0])
     n_samples = len(features)
     selected = []

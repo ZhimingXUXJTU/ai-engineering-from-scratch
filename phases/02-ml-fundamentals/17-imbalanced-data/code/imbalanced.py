@@ -16,6 +16,7 @@ def make_imbalanced_data(n_majority=950, n_minority=50, seed=42):
 
 
 def euclidean_distance(a, b):
+    """欧氏距离：sqrt(sum((a-b)^2))，最常用的距离度量。"""
     return np.sqrt(np.sum((a - b) ** 2))
 
 
@@ -31,6 +32,7 @@ def find_k_neighbors(X, idx, k):
 
 
 def smote(X_minority, k=5, n_synthetic=100, seed=42):
+    """SMOTE 过采样：在少数类样本之间插值生成新样本。"""
     rng = np.random.RandomState(seed)
     n_samples = len(X_minority)
     k = min(k, n_samples - 1)
@@ -92,6 +94,7 @@ def random_undersample(X, y, seed=42):
 
 
 def sigmoid(z):
+    """Sigmoid 激活函数：将任意实数映射到 (0,1) 区间。"""
     return 1.0 / (1.0 + np.exp(-np.clip(z, -500, 500)))
 
 
@@ -116,6 +119,7 @@ def logistic_regression_weighted(X, y, weights, lr=0.01, epochs=200):
 
 
 def compute_class_weights(y):
+    """计算类权重： inversely proportional to class frequency。"""
     classes, counts = np.unique(y, return_counts=True)
     n_samples = len(y)
     n_classes = len(classes)

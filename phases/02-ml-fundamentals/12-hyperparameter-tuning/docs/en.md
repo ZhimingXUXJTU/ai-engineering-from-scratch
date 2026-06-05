@@ -1,18 +1,26 @@
-# Hyperparameter Tuning | 超参数调优
+# Hyperparameter Tuning
+# 超参数调优
+
 
 > Hyperparameters are the knobs you turn before training starts. Turning them well is the difference between a mediocre model and a great one.
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 2, Lesson 11 (Ensemble Methods)
-**Time:** ~90 minutes
+> 超参数是训练开始前你拧的旋钮。拧好了，平庸模型变优秀。
+
+**Type:** Build | **类型：** 构建
+**Language:** Python | **语言：** Python
+**Prerequisites:** Phase 2, Lesson 11 (Ensemble Methods) | **前置知识：** Phase 2 第 11 课（集成方法）
+**Time:** ~90 minutes | **时间：** 约 90 分钟
 
 ## Learning Objectives | 学习目标
 
 - Implement grid search, random search, and Bayesian optimization from scratch and compare their sample efficiency
+  从零实现网格搜索、随机搜索和贝叶斯优化，比较它们的样本效率
 - Explain why random search outperforms grid search when most hyperparameters have low effective dimensionality
+  解释为什么随机搜索在大多数超参数有效维度低时优于网格搜索
 - Build a Bayesian optimization loop using a surrogate model and acquisition function to guide the search
+  使用代理模型和采集函数构建贝叶斯优化循环来引导搜索
 - Design a hyperparameter tuning strategy that avoids overfitting the validation set through proper cross-validation
+  设计通过适当交叉验证避免对验证集过拟合的超参数调优策略
 
 
 > **【中文解读】**
@@ -551,14 +559,19 @@ Use `loguniform` from scipy for learning rate and regularization. Use `randint` 
 ## Exercises | 练习题
 
 1. Run grid search and random search with the same total budget (e.g., 50 evaluations). Compare the best scores found. Run the experiment 10 times with different seeds. How often does random search win?
+   1. 在相同的总预算下（如 50 次评估）运行网格搜索和随机搜索。比较找到的最佳分数。用不同种子运行 10 次。随机搜索赢多少次？
 
 2. Implement Hyperband from scratch. Start with 81 configurations, each trained for 1 epoch. Keep the top 1/3 at each round and triple their budget. Compare total compute (sum of all epochs across all configs) to running 81 configs for the full budget.
+   2. 从零实现 Hyperband。启动 81 个配置，各训练 1 个 epoch。每轮保留前 1/3 并三倍其预算。比较总计算量（所有配置的所有 epoch 之和）与全预算运行 81 个配置。
 
 3. Add a learning rate scheduler (cosine annealing) to the gradient boosting implementation from Lesson 11. Does it help compared to a fixed learning rate?
+   3. 在第 11 课的梯度提升实现中添加学习率调度器（余弦退火）。与固定学习率比较有帮助吗？
 
 4. Use Optuna to tune a RandomForestClassifier on a real dataset (e.g., sklearn's breast cancer dataset). Use `optuna.visualization.plot_param_importances(study)` to see which hyperparameters matter most. Does it match the importance ranking from this lesson?
+   4. 用 Optuna 在真实数据集（如 sklearn 的乳腺癌数据集）上调优 RandomForestClassifier。用 `optuna.visualization.plot_param_importances(study)` 看哪些超参数最重要。
 
 5. Implement a simple acquisition function (Expected Improvement) and demonstrate exploration vs exploitation. Plot the surrogate model's mean and uncertainty, and show where EI chooses to evaluate next.
+   5. 实现一个简单的采集函数（期望改进），展示探索 vs 开发。绘制代理模型的均值和不确定性，展示 EI 选择在哪里评估。
 
 > **【中文解读】**
 > 学习率几乎总是最重要的超参数。调度策略比固定学习率更有效：Warmup（从 0 线性增加到目标值）+ Cosine Decay（余弦退火下降）是 Transformer 训练的标准配置。早停（Early Stopping）是最简单但最有效的正则化手段——当验证损失不再下降时就停止训练。Hyperband 算法通过先给大量配置少量资源再逐步淘汰来加速搜索。
@@ -580,7 +593,12 @@ Use `loguniform` from scipy for learning rate and regularization. Use `randint` 
 ## Further Reading | 延伸阅读
 
 - [Bergstra & Bengio: Random Search for Hyper-Parameter Optimization (2012)](https://jmlr.org/papers/v13/bergstra12a.html) -- the paper that showed random beats grid
+  [Bergstra & Bengio: Random Search for Hyper-Parameter Optimization (2012)](https://jmlr.org/papers/v13/bergstra12a.html) - 证明随机优于网格的论文
 - [Snoek et al., Practical Bayesian Optimization of Machine Learning Algorithms (2012)](https://arxiv.org/abs/1206.2944) -- Bayesian optimization for ML
+  [Snoek et al., Practical Bayesian Optimization of Machine Learning Algorithms (2012)](https://arxiv.org/abs/1206.2944) - ML 的贝叶斯优化
 - [Li et al., Hyperband: A Novel Bandit-Based Approach (2018)](https://jmlr.org/papers/v18/16-558.html) -- the Hyperband paper
+  [Li et al., Hyperband (2018)](https://jmlr.org/papers/v18/16-558.html) - Hyperband 论文
 - [Optuna: A Next-generation Hyperparameter Optimization Framework](https://arxiv.org/abs/1907.10902) -- the Optuna paper
+  [Optuna](https://arxiv.org/abs/1907.10902) - Optuna 论文
 - [Probst et al., Tunability: Importance of Hyperparameters (2019)](https://jmlr.org/papers/v20/18-444.html) -- which hyperparameters matter
+  [Probst et al., Tunability (2019)](https://jmlr.org/papers/v20/18-444.html) - 哪些超参数重要

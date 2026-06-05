@@ -1,18 +1,26 @@
-# Feature Selection | 特征选择
+# Feature Selection
+# 特征选择
+
 
 > More features is not better. The right features is better.
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 2, Lessons 01-09, 08 (feature engineering)
-**Time:** ~75 minutes
+> 特征不是越多越好。对的才好。
+
+**Type:** Build | **类型：** 构建
+**Language:** Python | **语言：** Python
+**Prerequisites:** Phase 2, Lessons 01-09, 08 (feature engineering) | **前置知识：** Phase 2 第 1-9 课、第 8 课（特征工程）
+**Time:** ~75 minutes | **时间：** 约 75 分钟
 
 ## Learning Objectives | 学习目标
 
 - Implement filter methods (variance threshold, mutual information, chi-squared) and wrapper methods (RFE, forward selection) from scratch
+  从零实现过滤法（方差阈值、互信息、卡方检验）和包装法（RFE、前向选择）
 - Explain why mutual information captures nonlinear feature-target relationships that correlation misses
+  解释为什么互信息能捕获相关性错过的非线性特征-目标关系
 - Compare L1 regularization (embedded selection) with RFE (wrapper selection) and evaluate their computational tradeoffs
+  比较 L1 正则化（嵌入选择）与 RFE（包装选择），评估它们的计算权衡
 - Build a feature selection pipeline that combines multiple methods and demonstrate improved generalization on held-out data
+  构建结合多种方法的特征选择管线，展示在留出数据上的泛化改进
 
 
 > **【中文解读】**
@@ -520,12 +528,16 @@ This lesson produces:
 ## Exercises | 练习题
 
 1. **Forward selection**: implement the opposite of RFE. Start with zero features. At each step, add the feature that improves model performance the most. Stop when adding features no longer helps. Compare the selected features against RFE results. Which is faster? Which gives better results?
+   1. 生成 100 个特征的数据集（其中 10 个与目标相关，90 个是噪声）。比较方差阈值、互信息和 L1 正则化在识别正确特征方面的效果。
 
 2. **Stability selection**: run L1 feature selection 50 times, each time on a random 80% subsample of the data, with slightly different alpha values. Count how often each feature is selected. Features selected in > 80% of runs are "stable." Compare stable features against single-run L1 selection. Which is more reliable?
+   2. 实现后向消除（从所有特征开始，逐个移除）。与前向选择比较效率和结果。
 
 3. **Multicollinearity detection**: compute the correlation matrix for all features. Implement a function that, given a correlation threshold (e.g., 0.9), removes one feature from each highly-correlated pair (keeping the one with higher mutual information with the target). Test on the synthetic dataset and verify it removes the redundant correlated features.
+   3. 在同一个数据集上比较 L1 正则化和 RFE 的选择结果。它们选出相同的特征吗？何时会不同？
 
 4. **Feature selection pipeline**: chain variance threshold, mutual information filter, and RFE into a single pipeline. First remove near-zero-variance features, then keep the top 50% by mutual information, then run RFE on the survivors. Compare this pipeline against running RFE alone on all features. Is the pipeline faster? Is it equally accurate?
+   4. 构建完整的特征选择管线：方差阈值 -> 相关性过滤 -> 互信息 -> L1。展示每步移除多少特征以及模型性能的变化。
 
 5. **Permutation importance from scratch**: implement permutation importance. For each feature, shuffle its values 10 times, measure the average drop in F1 score. Compare the ranking against tree-based importance. Find cases where they disagree and explain why (hint: correlated features).
 
@@ -553,6 +565,9 @@ This lesson produces:
 ## Further Reading | 延伸阅读
 
 - [An Introduction to Variable and Feature Selection (Guyon & Elisseeff, 2003)](https://jmlr.org/papers/v3/guyon03a.html) -- the foundational survey on feature selection methods, still widely referenced
+  [Guyon & Elisseeff: An Introduction to Variable and Feature Selection (2003)](https://jmlr.org/papers/v3/guyon03a.html) - 特征选择综述
 - [scikit-learn Feature Selection Guide](https://scikit-learn.org/stable/modules/feature_selection.html) -- practical reference for filter, wrapper, and embedded methods with code examples
+  [scikit-learn 特征选择文档](https://scikit-learn.org/stable/modules/feature_selection.html)
 - [Stability Selection (Meinshausen & Buhlmann, 2010)](https://arxiv.org/abs/0809.2932) -- combines subsampling with feature selection for robust, reproducible results
+  [Feature Engineering and Selection](http://www.feat.engineering/) - 免费在线书籍
 - [Beware Default Random Forest Importances (Strobl et al., 2007)](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-8-25) -- demonstrates the cardinality bias in tree-based importance and proposes conditional importance as an alternative

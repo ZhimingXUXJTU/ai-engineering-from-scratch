@@ -6,6 +6,7 @@ import numpy as np
 
 
 def make_synthetic_series(n=500, seed=42):
+    """生成合成时间序列：趋势 + 噪声。"""
     rng = np.random.RandomState(seed)
     t = np.arange(n, dtype=float)
 
@@ -18,6 +19,7 @@ def make_synthetic_series(n=500, seed=42):
 
 
 def make_seasonal_series(n=365, period=7, seed=42):
+    """生成季节性时间序列：趋势 + 季节 + 噪声。"""
     rng = np.random.RandomState(seed)
     t = np.arange(n, dtype=float)
 
@@ -31,6 +33,7 @@ def make_seasonal_series(n=365, period=7, seed=42):
 
 
 def difference(series, order=1):
+    """差分操作：计算序列的差分以消除趋势，使其平稳。"""
     result = series.copy()
     for _ in range(order):
         result = result[1:] - result[:-1]
@@ -38,6 +41,7 @@ def difference(series, order=1):
 
 
 def check_stationarity(series, window=50):
+    """平稳性检验：通过滚动统计量目测序列是否平稳。"""
     n = len(series)
     rolling_mean = np.zeros(n)
     rolling_std = np.zeros(n)
@@ -62,6 +66,7 @@ def check_stationarity(series, window=50):
 
 
 def autocorrelation(series, max_lag=20):
+    """自相关：计算序列与自身滞后版本的相关系数。"""
     n = len(series)
     mean = series.mean()
     var = series.var()
@@ -77,6 +82,7 @@ def autocorrelation(series, max_lag=20):
 
 
 def make_lag_features(series, n_lags):
+    """创建滞后特征：将过去的值作为特征。"""
     n = len(series)
     X = np.full((n, n_lags), np.nan)
 
@@ -91,6 +97,7 @@ def make_lag_features(series, n_lags):
 
 
 def walk_forward_split(n_samples, n_splits=5, min_train=50):
+    """滚动前向划分：时间序列专用的交叉验证方法。"""
     if n_samples <= min_train:
         return
 
@@ -145,25 +152,30 @@ class SimpleAR:
 
 
 def mse(y_true, y_pred):
+    """均方误差 (MSE)：衡量预测偏差的常用指标。"""
     return np.mean((y_true - y_pred) ** 2)
 
 
 def mae(y_true, y_pred):
+    """平均绝对误差 (MAE)：对异常值更鲁棒的误差指标。"""
     return np.mean(np.abs(y_true - y_pred))
 
 
 def mape(y_true, y_pred):
+    """平均绝对百分比误差 (MAPE)：相对误差指标。"""
     mask = y_true != 0
     return np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])) * 100
 
 
 def print_separator(title):
+    """打印分隔符：美化控制台输出。"""
     print(f"\n{'=' * 60}")
     print(f"  {title}")
     print(f"{'=' * 60}\n")
 
 
 def demo_stationarity():
+    """演示：平稳性检验和差分操作。"""
     print_separator("STATIONARITY CHECK")
 
     series = make_synthetic_series(n=300, seed=42)
@@ -180,6 +192,7 @@ def demo_stationarity():
 
 
 def demo_autocorrelation():
+    """演示：自相关分析。"""
     print_separator("AUTOCORRELATION ANALYSIS")
 
     series = make_seasonal_series(n=365, period=7, seed=42)
@@ -200,6 +213,7 @@ def demo_autocorrelation():
 
 
 def demo_lag_features():
+    """演示：滞后特征的创建和使用。"""
     print_separator("LAG FEATURES AND AR MODEL")
 
     series = make_synthetic_series(n=400, seed=42)
@@ -225,6 +239,7 @@ def demo_lag_features():
 
 
 def demo_walk_forward():
+    """演示：滚动前向验证。"""
     print_separator("WALK-FORWARD VALIDATION")
 
     series = make_synthetic_series(n=400, seed=42)
@@ -257,6 +272,7 @@ def demo_walk_forward():
 
 
 def demo_random_vs_walk_forward():
+    """演示：随机划分 vs 滚动前向划分的对比。"""
     print_separator("RANDOM SPLIT vs WALK-FORWARD")
 
     series = make_synthetic_series(n=500, seed=42)
@@ -294,6 +310,7 @@ def demo_random_vs_walk_forward():
 
 
 def demo_lag_comparison():
+    """演示：不同滞后阶数对预测性能的影响。"""
     print_separator("LAG COUNT COMPARISON")
 
     series = make_seasonal_series(n=365, period=7, seed=42)
@@ -319,6 +336,7 @@ def demo_lag_comparison():
 
 
 def demo_forecasting():
+    """演示：完整的时间序列预测流程。"""
     print_separator("MULTI-STEP FORECASTING")
 
     series = make_synthetic_series(n=300, seed=42)

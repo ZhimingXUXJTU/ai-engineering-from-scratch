@@ -1,18 +1,26 @@
-# Anomaly Detection | 异常检测
+# Anomaly Detection
+# 异常检测
+
 
 > Normal is easy to define. Abnormal is whatever doesn't fit.
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 2, Lessons 01-09
-**Time:** ~75 minutes
+> 正常容易定义。不正常的就是不拟合的。
+
+**Type:** Build | **类型：** 构建
+**Language:** Python | **语言：** Python
+**Prerequisites:** Phase 2, Lessons 01-09 | **前置知识：** Phase 2 第 1-9 课
+**Time:** ~75 minutes | **时间：** 约 75 分钟
 
 ## Learning Objectives | 学习目标
 
 - Implement Z-score, IQR, and Isolation Forest anomaly detection methods from scratch
+  从零实现 Z-score、IQR 和 Isolation Forest 异常检测方法
 - Distinguish between point, contextual, and collective anomalies and select the appropriate detection method for each
+  区分点异常、上下文异常和集合异常，为每种选择合适的检测方法
 - Explain why anomaly detection is framed as modeling normal data rather than classifying anomalies
+  解释为什么异常检测被框架为建模正常数据而非分类异常
 - Compare unsupervised anomaly detection with supervised classification and evaluate the tradeoff between novel anomaly coverage and precision
+  比较无监督异常检测与监督分类，评估新异常覆盖率和精确率之间的权衡
 
 
 > **【中文解读】**
@@ -442,12 +450,16 @@ For real-time anomaly detection in production:
 ## Exercises | 练习题
 
 1. **Threshold tuning.** Run the Z-score detector with thresholds from 1.0 to 5.0 in steps of 0.5. Plot precision and recall at each threshold. Where is the sweet spot for your data?
+   1. 在正态数据中注入不同比例的异常（1%、5%、10%）。比较 Z-score、IQR 和 Isolation Forest 的精确率和召回率。
 
 2. **Multivariate anomalies.** Create 2D data where each feature individually looks normal, but the combination is anomalous (e.g., points far from the main cluster diagonal). Show that Z-score per feature misses these but Isolation Forest catches them.
+   2. 生成一个上下文异常数据集（正常值在冬季和夏季不同）。展示简单的 Z-score 在冬天把夏天的正常值标为异常。添加上下文特征后重新检测。
 
 3. **LOF from scratch.** Implement Local Outlier Factor using k-nearest neighbors. Compare against sklearn's LocalOutlierFactor on the same data. Use k=10 and k=50 -- how does the choice of k affect results?
+   3. 构建 Isolation Forest 的集成：训练 10 棵 Isolation Tree，取平均路径长度。比较单棵树与集成的稳定性。
 
 4. **Streaming anomaly detection.** Modify the Z-score detector to work in a streaming setting: update the running mean and variance as new points arrive (Welford's online algorithm). Compare to batch Z-score on the same data.
+   4. 用 Autoencoder 思路实现异常检测：训练一个简单的重构模型，标记重构误差高的点为异常。
 
 5. **Real-world evaluation.** Take a dataset with known anomalies (credit card fraud from Kaggle, for example). Evaluate all four methods using precision@100, precision@500, and AUPRC. Which method works best? Why?
 
@@ -472,7 +484,10 @@ For real-time anomaly detection in production:
 ## Further Reading | 延伸阅读
 
 - [Liu et al., Isolation Forest (2008)](https://cs.nju.edu.cn/zhouzh/zhouzh.files/publication/icdm08b.pdf) -- the original Isolation Forest paper
+  [Liu et al.: Isolation Forest (2008)](https://ieeexplore.ieee.org/document/4781136) - Isolation Forest 原始论文
 - [Breunig et al., LOF: Identifying Density-Based Local Outliers (2000)](https://dl.acm.org/doi/10.1145/342009.335388) -- the original LOF paper
+  [Chandola et al.: Anomaly Detection: A Survey (2009)](https://dl.acm.org/doi/10.1145/1541880.1541882) - 异常检测综述
 - [scikit-learn Outlier Detection docs](https://scikit-learn.org/stable/modules/outlier_detection.html) -- overview of all sklearn anomaly detectors
+  [scikit-learn 异常检测](https://scikit-learn.org/stable/modules/outlier_detection.html)
 - [Chandola et al., Anomaly Detection: A Survey (2009)](https://dl.acm.org/doi/10.1145/1541880.1541882) -- comprehensive survey of anomaly detection methods
 - [Goldstein and Uchida, A Comparative Evaluation of Unsupervised Anomaly Detection Algorithms (2016)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0152173) -- empirical comparison of 10 methods on real datasets

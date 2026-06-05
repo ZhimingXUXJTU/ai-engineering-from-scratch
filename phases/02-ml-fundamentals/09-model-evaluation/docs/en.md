@@ -1,18 +1,26 @@
-# Model Evaluation | 模型评估
+# Model Evaluation
+# 模型评估
+
 
 > A model is only as good as the way you measure it.
 
-**Type:** Build
+> 模型的好坏取决于你如何衡量它。
+
+**Type:** Build | **类型：** 构建
 **Languages:** Python
-**Prerequisites:** Phase 1 (Probability & Distributions, Statistics for ML), Phase 2 Lessons 1-8
-**Time:** ~90 minutes
+**Prerequisites:** Phase 1 (Probability & Distributions, Statistics for ML), Phase 2 Lessons 1-8 | **前置知识：** Phase 1（概率与分布、统计学），Phase 2 第 1-8 课
+**Time:** ~90 minutes | **时间：** 约 90 分钟
 
 ## Learning Objectives | 学习目标
 
 - Implement K-fold and stratified K-fold cross-validation from scratch and explain why stratification matters for imbalanced data
+  从零实现 K 折和分层 K 折交叉验证，解释为什么分层对不平衡数据很重要
 - Compute precision, recall, F1, AUC-ROC, and regression metrics (MSE, RMSE, MAE, R-squared) from scratch
+  从零计算精确率、召回率、F1、AUC-ROC 和回归指标（MSE、RMSE、MAE、R-squared）
 - Interpret learning curves to diagnose whether a model suffers from high bias or high variance
+  解释学习曲线以诊断模型是否存在高偏差或高方差
 - Identify common evaluation mistakes including data leakage, wrong metric selection, and test set contamination
+  识别常见评估错误，包括数据泄漏、错误指标选择和测试集污染
 
 
 > **【中文解读】**
@@ -673,8 +681,11 @@ This lesson produces:
 ## Exercises | 练习题
 
 1. Implement precision-recall curves: plot precision vs recall at different thresholds. Compute the average precision (area under the PR curve). Compare the PR curve to the ROC curve on an imbalanced dataset and explain when each is more informative.
+   1. 实现精确率-召回率曲线：在不同阈值下绘制精确率 vs 召回率。计算平均精确率（PR 曲线下面积）。在不平衡数据集上将 PR 曲线与 ROC 曲线比较，解释各自何时更有信息量。
 2. Build a nested cross-validation loop: the outer loop evaluates model performance, the inner loop tunes hyperparameters. Use it to compare two models fairly without leaking validation data into the evaluation.
+   2. 构建嵌套交叉验证循环：外循环评估模型性能，内循环调优超参数。用它公平比较两个模型，不将验证数据泄漏到评估中。
 3. Implement a permutation test for model comparison: shuffle the labels, retrain, and measure performance. Repeat 100 times to build a null distribution. Compute the p-value for the observed model performance against this distribution.
+   3. 实现模型比较的置换检验：打乱标签，重新训练，测量性能。重复 100 次建立零分布。计算观测模型性能对这个分布的 p 值。
 
 ## Key Terms | 术语速查表
 
@@ -693,5 +704,8 @@ This lesson produces:
 ## Further Reading | 延伸阅读
 
 - [scikit-learn Model Selection Guide](https://scikit-learn.org/stable/model_selection.html) - comprehensive reference on cross-validation, metrics, and hyperparameter tuning
+  [scikit-learn 模型选择指南](https://scikit-learn.org/stable/model_selection.html) - 交叉验证、指标和超参数调优的全面参考
 - [Beyond Accuracy: Precision and Recall (Google ML Crash Course)](https://developers.google.com/machine-learning/crash-course/classification/precision-and-recall) - clear explanation with interactive examples
+  [Beyond Accuracy: Precision and Recall (Google ML Crash Course)](https://developers.google.com/machine-learning/crash-course/classification/precision-and-recall) - 带交互示例的清晰解释
 - [A Survey of Cross-Validation Procedures (Arlot & Celisse, 2010)](https://projecteuclid.org/journals/statistics-surveys/volume-4/issue-none/A-survey-of-cross-validation-procedures-for-model-selection/10.1214/09-SS054.full) - rigorous treatment of when and why different CV strategies work
+  [A Survey of Cross-Validation Procedures (Arlot & Celisse, 2010)](https://projecteuclid.org/journals/statistics-surveys/volume-4/issue-none/A-survey-of-cross-validation-procedures-for-model-selection/10.1214/09-SS054.full) - 不同交叉验证策略何时有效的严格分析

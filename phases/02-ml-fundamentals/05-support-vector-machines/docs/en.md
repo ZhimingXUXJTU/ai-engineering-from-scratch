@@ -1,18 +1,26 @@
-# Support Vector Machines | 支持向量机 (SVM)
+# Support Vector Machines
+# 支持向量机 (SVM)
+
 
 > Find the widest street between two classes. That is the entire idea.
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 1 (Lessons 08 Optimization, 14 Norms and Distances, 18 Convex Optimization)
-**Time:** ~90 minutes
+> 找到两类之间最宽的街道。这就是全部思想。
+
+**Type:** Build | **类型：** 构建
+**Language:** Python | **语言：** Python
+**Prerequisites:** Phase 1 (Lessons 08 Optimization, 14 Norms and Distances, 18 Convex Optimization) | **前置知识：** Phase 1（第 8 课优化、第 14 课范数与距离、第 18 课凸优化）
+**Time:** ~90 minutes | **时间：** 约 90 分钟
 
 ## Learning Objectives | 学习目标
 
 - Implement a linear SVM from scratch using hinge loss and gradient descent on the primal formulation
+  在原始形式上使用合页损失和梯度下降从零实现线性 SVM
 - Explain the maximum margin principle and identify support vectors from a trained model
+  解释最大间隔原理，并从训练好的模型中识别支持向量
 - Compare linear, polynomial, and RBF kernels and explain how the kernel trick avoids explicit high-dimensional mapping
+  比较线性核、多项式核和 RBF 核，解释核技巧如何避免显式高维映射
 - Evaluate the tradeoff controlled by the C parameter between margin width and classification errors
+  评估 C 参数控制的间隔宽度与分类错误之间的权衡
 
 
 > **【中文解读】**
@@ -361,14 +369,19 @@ clf = Pipeline([
 ## Exercises | 练习题
 
 1. Generate a 2D linearly separable dataset. Train your LinearSVM and identify the support vectors. Verify that the support vectors are the points closest to the decision boundary.
+   1. 生成一个 2D 线性可分数据集。训练你的 LinearSVM 并识别支持向量。验证支持向量是离决策边界最近的点。
 
 2. Vary C from 0.001 to 1000 on a noisy dataset. Plot the decision boundary for each C value. Observe the transition from wide margin (underfitting) to narrow margin (overfitting).
+   2. 在有噪声的数据集上，将 C 从 0.001 变化到 1000。为每个 C 值绘制决策边界。观察从宽间隔（欠拟合）到窄间隔（过拟合）的转变。
 
 3. Create a dataset where class boundaries are circular (not linear). Show that a linear SVM fails. Compute the RBF kernel matrix and show that the classes become separable in the kernel-induced feature space.
+   3. 创建一个类别边界为圆形（非线形）的数据集。展示线性 SVM 失败。计算 RBF 核矩阵，展示在核诱导的特征空间中类别变得可分。
 
 4. Compare hinge loss vs logistic loss on the same dataset. Train a linear SVM and logistic regression. Count how many training points contribute to each model's decision boundary (support vectors vs all points).
+   4. 在同一数据集上比较合页损失和逻辑损失。训练线性 SVM 和逻辑回归。统计每个模型的决策边界贡献了多少训练点（支持向量 vs 所有点）。
 
 5. Implement SVR (epsilon-insensitive loss). Fit it to y = sin(x) + noise. Plot the epsilon tube around the predictions and highlight the support vectors (points outside the tube).
+   5. 实现 SVR（epsilon 不敏感损失）。拟合 y = sin(x) + noise。绘制预测周围的 epsilon 管道并标记支持向量（管道外的点）。
 
 ## Key Terms | 术语速查表
 
@@ -391,7 +404,12 @@ clf = Pipeline([
 ## Further Reading | 延伸阅读
 
 - [Vapnik: The Nature of Statistical Learning Theory (1995)](https://link.springer.com/book/10.1007/978-1-4757-3264-1) - the foundational text on SVMs and statistical learning
+  [Vapnik: The Nature of Statistical Learning Theory (1995)](https://link.springer.com/book/10.1007/978-1-4757-3264-1) - SVM 和统计学习理论的奠基性著作
 - [Cortes & Vapnik: Support-vector networks (1995)](https://link.springer.com/article/10.1007/BF00994018) - the original SVM paper
+  [Cortes & Vapnik: Support-vector networks (1995)](https://link.springer.com/article/10.1007/BF00994018) - SVM 原始论文
 - [Platt: Sequential Minimal Optimization (1998)](https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/) - the SMO algorithm that made SVM training practical
+  [Platt: Sequential Minimal Optimization (1998)](https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/) - 使 SVM 训练变得实用的 SMO 算法
 - [scikit-learn SVM documentation](https://scikit-learn.org/stable/modules/svm.html) - practical guide with implementation details
+  [scikit-learn SVM 文档](https://scikit-learn.org/stable/modules/svm.html) - 实用指南及实现细节
 - [LIBSVM: A Library for Support Vector Machines](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) - the C++ library behind most SVM implementations
+  [LIBSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) - 大多数 SVM 实现背后的 C++ 库

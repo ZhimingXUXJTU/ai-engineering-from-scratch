@@ -7,6 +7,7 @@ import math
 
 
 def sigmoid(z):
+    """Sigmoid 激活函数：将任意实数映射到 (0,1) 区间。"""
     z = max(-500, min(500, z))
     return 1.0 / (1.0 + math.exp(-z))
 
@@ -82,6 +83,7 @@ class LogisticRegression:
         return self
 
     def accuracy(self, X, y):
+        """计算准确率：正确预测的比例。"""
         correct = sum(1 for i in range(len(y)) if self.predict(X[i]) == y[i])
         return correct / len(y)
 
@@ -175,6 +177,7 @@ class SoftmaxRegression:
         self.biases = [0.0] * n_classes
 
     def softmax(self, scores):
+        """Softmax 函数：将向量转换为概率分布（各项之和为 1）。"""
         max_score = max(scores)
         exp_scores = [math.exp(s - max_score) for s in scores]
         total = sum(exp_scores)

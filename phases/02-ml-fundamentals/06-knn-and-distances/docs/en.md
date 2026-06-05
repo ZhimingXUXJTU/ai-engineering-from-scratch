@@ -1,18 +1,26 @@
-# K-Nearest Neighbors and Distances | K 近邻与距离
+# K-Nearest Neighbors and Distances
+# K 近邻与距离
+
 
 > Store everything. Predict by looking at your neighbors. The simplest algorithm that actually works.
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 1 (Lesson 14 Norms and Distances)
-**Time:** ~90 minutes
+> 存储一切。预测时看看邻居。最简单但确实有效的算法。
+
+**Type:** Build | **类型：** 构建
+**Language:** Python | **语言：** Python
+**Prerequisites:** Phase 1 (Lesson 14 Norms and Distances) | **前置知识：** Phase 1（第 14 课范数与距离）
+**Time:** ~90 minutes | **时间：** 约 90 分钟
 
 ## Learning Objectives | 学习目标
 
 - Implement KNN classification and regression from scratch with configurable K and distance-weighted voting
+  从零实现可配置 K 值和距离加权投票的 KNN 分类和回归
 - Compare L1, L2, cosine, and Minkowski distance metrics and select the appropriate one for a given data type
+  比较 L1、L2、余弦和闵可夫斯基距离度量，为给定数据类型选择合适的度量
 - Explain the curse of dimensionality and demonstrate why KNN degrades in high-dimensional spaces
+  解释维度灾难，演示为什么 KNN 在高维空间中性能下降
 - Build a KD-tree for efficient nearest neighbor search and analyze when it outperforms brute-force
+  构建 KD 树进行高效最近邻搜索，分析它何时优于暴力搜索
 
 
 > **【中文解读】**
@@ -361,14 +369,19 @@ distances, indices = index.search(query_vectors, k=5)
 ## Exercises | 练习题
 
 1. Implement KNN classification on a 2D dataset with 3 classes. Plot the decision boundary for K=1, K=5, K=15, and K=N. Observe the transition from overfitting to underfitting.
+   1. 在 3 类 2D 数据集上实现 KNN 分类。绘制 K=1、K=5、K=15 和 K=N 的决策边界。观察从过拟合到欠拟合的转变。
 
 2. Generate 1000 random points in 2, 5, 10, 50, 100, and 500 dimensions. For each dimensionality, compute the ratio of the maximum pairwise distance to the minimum pairwise distance. Plot the ratio vs dimensionality to visualize the curse of dimensionality.
+   2. 在 2、5、10、50、100 和 500 维中各生成 1000 个随机点。对于每个维度，计算最大成对距离与最小成对距离的比值。绘制比值与维度的关系图，可视化维度灾难。
 
 3. Compare L1, L2, and cosine distance for KNN on a text classification problem (use TF-IDF vectors). Which metric gives the best accuracy? Why does cosine tend to win for text?
+   3. 在文本分类问题（使用 TF-IDF 向量）上比较 L1、L2 和余弦距离。哪个度量准确率最高？为什么余弦在文本上通常最好？
 
 4. Implement a KD-tree and measure query time vs brute force for datasets of 1k, 10k, and 100k points in 2D, 10D, and 50D. At what dimensionality does the KD-tree stop being faster than brute force?
+   4. 实现 KD 树，测量 1k、10k 和 100k 点在 2D、10D 和 50D 中的查询时间与暴力搜索的对比。在什么维度下 KD 树不再比暴力搜索快？
 
 5. Build a weighted KNN regressor for y = sin(x) + noise. Compare it with unweighted KNN for K=3, 10, 30. Show that weighting produces smoother predictions, especially for large K.
+   5. 为 y = sin(x) + noise 构建加权 KNN 回归器。在 K=3、10、30 时与未加权 KNN 比较。展示加权产生更光滑的预测，尤其在大 K 时。
 
 ## Key Terms | 术语速查表
 
@@ -390,7 +403,12 @@ distances, indices = index.search(query_vectors, k=5)
 ## Further Reading | 延伸阅读
 
 - [Cover & Hart: Nearest Neighbor Pattern Classification (1967)](https://ieeexplore.ieee.org/document/1053964) - the foundational KNN paper proving it has error rate at most twice the Bayes optimal
+  [Cover & Hart: Nearest Neighbor Pattern Classification (1967)](https://ieeexplore.ieee.org/document/1053964) - 证明 KNN 错误率最多是贝叶斯最优两倍的奠基论文
 - [Friedman, Bentley, Finkel: An Algorithm for Finding Best Matches in Logarithmic Expected Time (1977)](https://dl.acm.org/doi/10.1145/355744.355745) - the original KD-tree paper
+  [Friedman, Bentley, Finkel: An Algorithm for Finding Best Matches in Logarithmic Expected Time (1977)](https://dl.acm.org/doi/10.1145/355744.355745) - KD 树原始论文
 - [Beyer et al.: When Is "Nearest Neighbor" Meaningful? (1999)](https://link.springer.com/chapter/10.1007/3-540-49257-7_15) - formal analysis of the curse of dimensionality for nearest neighbor
+  [Beyer et al.: When Is "Nearest Neighbor" Meaningful? (1999)](https://link.springer.com/chapter/10.1007/3-540-49257-7_15) - 最近邻维度灾难的正式分析
 - [scikit-learn Nearest Neighbors documentation](https://scikit-learn.org/stable/modules/neighbors.html) - practical guide with algorithm selection
+  [scikit-learn 最近邻文档](https://scikit-learn.org/stable/modules/neighbors.html) - 实用指南及算法选择
 - [FAISS: A Library for Efficient Similarity Search](https://github.com/facebookresearch/faiss) - Meta's library for billion-scale approximate nearest neighbor search
+  [FAISS](https://github.com/facebookresearch/faiss) - Meta 的十亿级近似最近邻搜索库
