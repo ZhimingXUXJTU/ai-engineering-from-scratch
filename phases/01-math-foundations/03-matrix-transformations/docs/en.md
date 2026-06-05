@@ -2,10 +2,10 @@
 
 > A matrix is a machine that reshapes space. Learn what it does to every point, and you understand the whole transformation.
 
-**Type:** Build
-**Languages:** Python, Julia
-**Prerequisites:** Phase 1, Lessons 01-02 (Linear Algebra Intuition, Vectors & Matrices Operations)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python, Julia | **语言:** Python, Julia
+**Prerequisites:** Phase 1, Lessons 01-02 (Linear Algebra Intuition, Vectors & Matrices Operations) | **前置知识:** Phase 1, Lessons 01-02（线性代数直觉、向量与矩阵运算）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 
@@ -34,6 +34,8 @@
 
 Every linear transformation in 2D can be written as a 2x2 matrix. The matrix tells you exactly where the basis vectors [1, 0] and [0, 1] end up. Everything else follows.
 
+> 二维空间中的每个线性变换都可以写成一个 2x2 矩阵。矩阵告诉你基向量 [1, 0] 和 [0, 1] 变到了哪里，其余一切由此决定。
+
 ```mermaid
 graph LR
     subgraph Before["Standard Basis"]
@@ -55,6 +57,8 @@ graph LR
 
 A 2D rotation by angle theta keeps distances and angles intact. It moves every point along a circular arc.
 
+> 二维旋转保持距离和角度不变，将每个点沿圆弧移动。
+
 ```mermaid
 graph LR
     subgraph Before["Before Rotation"]
@@ -74,6 +78,8 @@ graph LR
 
 In 3D, you rotate around an axis. Each axis has its own rotation matrix:
 
+> 在三维空间中，你围绕某个轴旋转。每个轴有自己的旋转矩阵：
+
 ```
 Rz(theta) = | cos  -sin  0 |     Rotate around z-axis
             | sin   cos  0 |     (x-y plane spins, z stays)
@@ -91,6 +97,8 @@ Ry(theta) = |  cos  0  sin |     Rotate around y-axis
 ### Scaling
 
 Scaling stretches or compresses along each axis independently.
+
+> 缩放沿每个轴独立地拉伸或压缩。
 
 ```mermaid
 graph LR
@@ -112,6 +120,8 @@ graph LR
 ### Shearing
 
 Shearing tilts one axis while keeping the other fixed. It turns rectangles into parallelograms.
+
+> 剪切使一个轴倾斜而保持另一个轴固定，将矩形变成平行四边形。
 
 ```mermaid
 graph LR
@@ -138,6 +148,8 @@ Shear matrices:
 
 Reflection mirrors points across an axis or line.
 
+> 反射将点关于某条轴或线做镜像。
+
 ```mermaid
 graph LR
     subgraph Before["Before Reflection"]
@@ -160,6 +172,8 @@ Reflection matrices:
 
 Applying transformation A then B is the same as multiplying their matrices: `result = B @ A @ point`. Order matters. Rotate then scale gives different results than scale then rotate.
 
+> 先做变换 A 再做变换 B 等于乘以它们的矩阵：`result = B @ A @ point`。顺序很重要——先旋转再缩放与先缩放再旋转结果不同。
+
 ```mermaid
 graph LR
     subgraph Path1["Rotate 90 then Scale (2, 0.5)"]
@@ -180,9 +194,13 @@ Composed: `R @ S = [[0, -0.5], [2, 0]]`
 
 Different results. Matrix multiplication is not commutative.
 
+> 结果不同。矩阵乘法不满足交换律。
+
 ### Eigenvalues and eigenvectors
 
 Most vectors change direction when a matrix hits them. Eigenvectors are special: the matrix only scales them, never rotates them. The scaling factor is the eigenvalue.
+
+> 大多数向量被矩阵变换后会改变方向。特征向量是特殊的：矩阵只对它做缩放，不旋转。缩放倍数就是特征值。
 
 ```
 A @ v = lambda * v
@@ -202,9 +220,13 @@ Eigenvector [1, -1] with eigenvalue 1:
 
 The matrix stretches space by 3x along [1, 1] and keeps [1, -1] unchanged. Every other direction is a mix of these two.
 
+> 该矩阵沿 [1, 1] 方向拉伸 3 倍，保持 [1, -1] 方向不变。其他所有方向都是这两个方向的组合。
+
 ### Eigendecomposition
 
 If a matrix has n linearly independent eigenvectors, it can be decomposed:
+
+> 如果矩阵有 n 个线性无关的特征向量，它可以分解为：
 
 ```
 A = V @ D @ V^(-1)
@@ -216,17 +238,27 @@ V^(-1) = inverse of V
 This says: rotate into eigenvector coordinates, scale along each axis, rotate back.
 ```
 
+> 这意味着：旋转到特征向量坐标系，沿每个轴缩放，再旋转回来。
+
 ### Why eigenvalues matter
 
 **PCA.** The eigenvectors of the covariance matrix are the principal components. The eigenvalues tell you how much variance each component captures. Sort by eigenvalue, keep the top k, and you have dimensionality reduction.
 
+> **PCA（主成分分析）。** 协方差矩阵的特征向量就是主成分，特征值告诉你每个主成分捕获了多少方差。按特征值排序，保留前 k 个，就完成了降维。
+
 **Stability.** In recurrent networks and dynamical systems, eigenvalues with magnitude > 1 cause outputs to explode. Magnitude < 1 causes them to vanish. This is the vanishing/exploding gradient problem stated in one sentence.
 
+> **稳定性。** 在循环网络和动力系统中，特征值绝对值 > 1 导致输出爆炸，< 1 导致消失。这就是梯度爆炸/消失问题。
+
 **Spectral methods.** Graph neural networks use eigenvalues of the adjacency matrix. Spectral clustering uses eigenvalues of the Laplacian. The eigenvectors reveal the structure of the graph.
+
+> **谱方法。** 图神经网络使用邻接矩阵的特征值，谱聚类使用拉普拉斯矩阵的特征值。特征向量揭示了图的结构。
 
 ### Determinant as volume scaling factor
 
 The determinant of a transformation matrix tells you how much it scales area (2D) or volume (3D).
+
+> 变换矩阵的行列式告诉你它缩放面积（2D）或体积（3D）的程度。
 
 ```
 det = 1:   area preserved (rotation)
@@ -243,6 +275,8 @@ det = -1:  area preserved but orientation flipped (reflection)
 ## Build It | 动手实现
 
 ### Step 1: Transformation matrices from scratch (Python)
+
+> 第1步：从零实现变换矩阵
 
 ```python
 import math
@@ -295,6 +329,8 @@ print(f"Reflect (2,1) across y: ({reflected[0]:.1f}, {reflected[1]:.1f})")
 
 ### Step 2: Composition of transformations
 
+> 第2步：变换的组合
+
 ```python
 R = rotation_2d(math.pi / 2)
 S = scaling_2d(2, 0.5)
@@ -312,6 +348,8 @@ print(f"Same? {result1 == result2}")
 ```
 
 ### Step 3: Eigenvalues from scratch (2x2)
+
+> 第3步：从零计算特征值
 
 For a 2x2 matrix `[[a, b], [c, d]]`, eigenvalues solve the characteristic equation: `lambda^2 - (a+d)*lambda + (ad - bc) = 0`.
 
@@ -360,6 +398,8 @@ for val in vals:
 
 ### Step 4: Determinant as volume scaling factor
 
+> 第4步：行列式作为体积缩放因子
+
 ```python
 def det_2x2(matrix):
     return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
@@ -377,6 +417,8 @@ print("Singular: columns are proportional, space collapses to a line.")
 ## Use It | 用框架实现
 
 NumPy handles all of this with optimized routines.
+
+> NumPy 用优化过的例程处理所有这些操作。
 
 ```python
 import numpy as np
@@ -438,6 +480,8 @@ print(f"Rotate 90 around x: {np.round(rotated_x, 4)}")
 ## Ship It | 产出物
 
 This lesson builds the geometric foundation for PCA (Phase 2) and neural network weight analysis. The eigenvalue/eigenvector code built here is the same algorithm that powers dimensionality reduction, spectral clustering, and stability analysis in production ML systems.
+
+> 本课构建了 PCA（Phase 2）和神经网络权重分析的几何基础。这里的特征值/特征向量代码与生产 ML 系统中的降维、谱聚类和稳定性分析使用相同的算法。
 
 ## Exercises | 练习题
 

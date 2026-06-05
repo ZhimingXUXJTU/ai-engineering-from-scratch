@@ -1,11 +1,12 @@
 # Stochastic Processes | 随机过程
 
 > Randomness with structure. The math behind random walks, Markov chains, and diffusion models.
+> 有结构的随机性。随机游走、马尔可夫链和扩散模型背后的数学。
 
-**Type:** Learn
-**Language:** Python
-**Prerequisites:** Phase 1, Lessons 06-07 (probability, Bayes)
-**Time:** ~75 minutes
+**Type:** Learn | **类型:** 学习
+**Language:** Python | **语言:** Python
+**Prerequisites:** Phase 1, Lessons 06-07 (probability, Bayes) | **前置知识:** Phase 1, 第 06-07 课（概率、贝叶斯）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 

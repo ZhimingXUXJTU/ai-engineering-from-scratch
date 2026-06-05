@@ -7,14 +7,23 @@ import random
 
 
 def information_content(p, base=2):
+    """计算事件的信息量（惊喜度）。
+
+    AI 应用：信息量衡量一个事件带来的"惊讶程度"，
+    越不可能发生的事件信息量越大。
+    """
     if p <= 0:
         return float('inf')
     if p >= 1:
         return 0.0
-    return -math.log(p) / math.log(base)
+    return -math.log(p) / math.log(base)  # I(x) = -log(p(x))
 
 
 def entropy(probs, base=2):
+    """计算概率分布的熵（平均信息量）。
+
+    AI 应用：熵衡量数据的不确定性。交叉熵损失函数的基础。
+    """
     return sum(
         p * information_content(p, base)
         for p in probs if p > 0
@@ -22,6 +31,11 @@ def entropy(probs, base=2):
 
 
 def cross_entropy(p, q, base=2):
+    """计算交叉熵 H(P, Q)。
+
+    AI 应用：所有分类模型和语言模型的标准损失函数。
+    当 Q 接近 P 时交叉熵最小。
+    """
     total = 0.0
     for pi, qi in zip(p, q):
         if pi > 0:
@@ -32,10 +46,19 @@ def cross_entropy(p, q, base=2):
 
 
 def kl_divergence(p, q, base=2):
+    """计算 KL 散度 D_KL(P || Q) = H(P, Q) - H(P)。
+
+    AI 应用：VAE 的损失函数、知识蒸馏的核心度量。
+    注意：KL 散度不对称，不是真正的距离。
+    """
     return cross_entropy(p, q, base) - entropy(p, base)
 
 
 def mutual_information(joint_probs, base=2):
+    """计算互信息 I(X; Y) = H(X) - H(X|Y)。
+
+    AI 应用：特征选择——高互信息意味着特征对目标变量有信息量。
+    """
     rows = len(joint_probs)
     cols = len(joint_probs[0])
 
@@ -52,18 +75,24 @@ def mutual_information(joint_probs, base=2):
 
 
 def softmax(logits):
-    max_logit = max(logits)
+    """数值稳定的 softmax：减去最大值防止溢出。"""
+    max_logit = max(logits)  # 减最大值技巧，防止 exp 溢出
     exps = [math.exp(z - max_logit) for z in logits]
     total = sum(exps)
     return [e / total for e in exps]
 
 
 def cross_entropy_loss(true_class, logits):
+    """交叉熵分类损失 = -log(q(true_class))。
+
+    AI 应用：PyTorch 的 CrossEntropyLoss 内部实现就是这个。
+    """
     probs = softmax(logits)
-    return -math.log(probs[true_class])
+    return -math.log(probs[true_class])  # 负对数似然
 
 
 def negative_log_likelihood(labels, all_logits):
+    """计算平均负对数似然，等价于交叉熵损失。"""
     return sum(
         cross_entropy_loss(label, logits)
         for label, logits in zip(labels, all_logits)
@@ -71,12 +100,20 @@ def negative_log_likelihood(labels, all_logits):
 
 
 def perplexity(avg_cross_entropy, base="e"):
+    """计算困惑度 = exp(交叉熵)。
+
+    AI 应用：语言模型的评价标准。困惑度越低，模型越确定。
+    """
     if base == "e":
         return math.exp(avg_cross_entropy)
     return 2 ** avg_cross_entropy
 
 
 def conditional_entropy(joint_probs, base=2):
+    """计算条件熵 H(Y|X)：观察到 X 后关于 Y 的剩余不确定性。
+
+    AI 应用：决策树分裂时选择使条件熵最小的特征。
+    """
     rows = len(joint_probs)
     cols = len(joint_probs[0])
 
@@ -93,6 +130,7 @@ def conditional_entropy(joint_probs, base=2):
 
 
 def joint_entropy(joint_probs, base=2):
+    """计算联合熵 H(X, Y)：X 和 Y 联合分布的不确定性。"""
     total = 0.0
     for row in joint_probs:
         for pxy in row:

@@ -1,11 +1,12 @@
 # Graph Theory for Machine Learning | 图论与机器学习
 
 > Graphs are the data structure of relationships. If your data has connections, you need graph theory.
+> 图是关系的数据结构。如果你的数据有连接，你需要图论。
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 1, Lessons 01-03 (linear algebra, matrices)
-**Time:** ~90 minutes
+**Type:** Build | **类型:** 动手
+**Language:** Python | **语言:** Python
+**Prerequisites:** Phase 1, Lessons 01-03 (linear algebra, matrices) | **前置知识:** Phase 1, 第 01-03 课（线性代数、矩阵）
+**Time:** ~90 minutes | **时间:** ~90 分钟
 
 ## Learning Objectives | 学习目标
 

@@ -1,11 +1,12 @@
 # The Fourier Transform | 傅里叶变换
 
 > Every signal is a sum of sine waves. The Fourier transform tells you which ones.
+> 每个信号都是正弦波的叠加。傅里叶变换告诉你具体是哪些。
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 1, Lessons 01-04, 19 (complex numbers)
-**Time:** ~90 minutes
+**Type:** Build | **类型:** 动手
+**Language:** Python | **语言:** Python
+**Prerequisites:** Phase 1, Lessons 01-04, 19 (complex numbers) | **前置知识:** Phase 1, 第 01-04 课、第 19 课（复数）
+**Time:** ~90 minutes | **时间:** ~90 分钟
 
 ## Learning Objectives | 学习目标
 

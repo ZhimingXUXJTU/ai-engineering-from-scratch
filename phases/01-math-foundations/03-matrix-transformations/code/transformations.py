@@ -6,6 +6,7 @@ import math
 
 
 def rotation_2d(theta):
+    """二维旋转矩阵：保持距离和角度不变，行列式恒为 1。"""
     c, s = math.cos(theta), math.sin(theta)
     return [[c, -s], [s, c]]
 
@@ -26,6 +27,7 @@ def rotation_3d_y(theta):
 
 
 def scaling_2d(sx, sy):
+    """缩放矩阵：沿各轴独立拉伸或压缩，行列式 = sx * sy。"""
     return [[sx, 0], [0, sy]]
 
 
@@ -70,6 +72,10 @@ def det_3x3(m):
 
 
 def eigenvalues_2x2(matrix):
+    """计算 2x2 矩阵的特征值（解特征方程）。
+
+    AI 应用：PCA 找主成分、RNN 判断梯度稳定性。
+    """
     a, b = matrix[0]
     c, d = matrix[1]
     trace = a + d
@@ -84,6 +90,7 @@ def eigenvalues_2x2(matrix):
 
 
 def eigenvector_2x2(matrix, eigenvalue):
+    """计算给定特征值对应的特征向量（矩阵只缩放不旋转的方向）。"""
     a, b = matrix[0]
     c, d = matrix[1]
     if abs(b) > 1e-10:

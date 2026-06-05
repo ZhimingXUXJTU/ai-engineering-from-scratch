@@ -1,11 +1,12 @@
 # Sampling Methods | 采样方法
 
 > Sampling is how AI explores the space of possibilities.
+> 采样是 AI 探索可能性空间的方式。
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 1, Lessons 06-07 (Probability, Bayes' Theorem)
-**Time:** ~120 minutes
+**Type:** Build | **类型:** 动手
+**Language:** Python | **语言:** Python
+**Prerequisites:** Phase 1, Lessons 06-07 (Probability, Bayes' Theorem) | **前置知识:** Phase 1, 第 06-07 课（概率、贝叶斯定理）
+**Time:** ~120 minutes | **时间:** ~120 分钟
 
 ## Learning Objectives | 学习目标
 

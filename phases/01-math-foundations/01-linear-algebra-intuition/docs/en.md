@@ -4,7 +4,7 @@
 > Every AI model is just matrix math wearing a fancy hat.
 > 每个 AI 模型本质上就是矩阵运算穿了一件花哨的外衣。
 
-**Type:** Learn | **Languages:** Python, Julia | **Prerequisites:** Phase 0 | **Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习 | **Languages:** Python, Julia | **语言:** Python, Julia | **Prerequisites:** Phase 0 | **前置知识:** Phase 0 | **Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标
 

@@ -2,10 +2,10 @@
 
 > Probability is the language AI uses to express uncertainty.
 
-**Type:** Learn
-**Language:** Python
-**Prerequisites:** Phase 1, Lessons 01-04
-**Time:** ~75 minutes
+**Type:** Learn | **类型:** 学习
+**Language:** Python | **语言:** Python
+**Prerequisites:** Phase 1, Lessons 01-04 | **前置知识:** Phase 1, Lessons 01-04
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 
@@ -32,11 +32,15 @@
 
 Every prediction a model makes is a probability distribution. Every loss function measures how far the predicted distribution is from the true one. Every training step adjusts parameters to make one distribution look more like another. Without probability, you cannot read a single ML paper, debug a single model, or understand why your training loss is NaN.
 
+> 模型的每个预测都是一个概率分布。每个损失函数衡量预测分布与真实分布的差距。每步训练都在调整参数使一个分布更接近另一个。不理解概率，你就无法读论文、调试模型或理解为什么训练损失是 NaN。
+
 ## The Concept | 核心概念
 
 ### Events, Sample Spaces, and Probability
 
 The sample space S is the set of all possible outcomes. An event is a subset of the sample space. Probability maps events to numbers between 0 and 1.
+
+> 样本空间 S 是所有可能结果的集合。事件是样本空间的子集。概率将事件映射到 0 到 1 之间的数字。
 
 ```
 Coin flip:
@@ -54,6 +58,8 @@ Three axioms define all of probability:
 3. P(A or B) = P(A) + P(B) when A and B cannot both occur
 
 Everything else (Bayes' theorem, expectations, distributions) follows from these three rules.
+
+> 其他一切（贝叶斯定理、期望、分布）都由这三条规则推导出来。
 
 ### Conditional Probability and Independence
 
@@ -105,6 +111,8 @@ integral from -inf to +inf of f(x) dx = 1
 ```
 
 This distinction matters in ML. Classification outputs are PMFs (discrete choices). VAE latent spaces use PDFs (continuous).
+
+> 这个区别在 ML 中很重要。分类输出是 PMF（离散选择），VAE 隐空间使用 PDF（连续）。
 
 ### Common Distributions
 
@@ -166,6 +174,8 @@ Standard deviation = sqrt(Var(X))
 
 In ML, expected value appears as the loss function (average loss over the data distribution). Variance tells you about model stability. High variance in gradients means noisy training.
 
+> 在 ML 中，期望值表现为损失函数（数据分布上的平均损失），方差告诉你模型稳定性。梯度方差大意味着训练噪声大。
+
 ### Joint and Marginal Distributions
 
 A joint distribution P(X, Y) describes two random variables together.
@@ -190,6 +200,8 @@ The row and column totals in the table above are the marginals.
 
 The Central Limit Theorem: the sum (or average) of many independent random variables converges to a normal distribution, regardless of the original distribution.
 
+> 中心极限定理：许多独立随机变量的和（或平均）收敛到正态分布，无论原始分布是什么。
+
 ```
 Roll 1 die:  uniform distribution (flat)
 Average of 2 dice:  triangular (peaked)
@@ -208,6 +220,8 @@ This is why:
 
 Raw probabilities cause numerical problems. Multiplying many small probabilities together quickly underflows to zero.
 
+> 原始概率会导致数值问题。许多小概率相乘很快就会下溢为零。
+
 ```
 P(sentence) = P(word1) * P(word2) * ... * P(word_n)
             = 0.01 * 0.003 * 0.02 * ...
@@ -215,6 +229,8 @@ P(sentence) = P(word1) * P(word2) * ... * P(word_n)
 ```
 
 Log probabilities fix this. Multiplications become additions.
+
+> 对数概率解决了这个问题。乘法变成了加法。
 
 ```
 log P(sentence) = log P(word1) + log P(word2) + ... + log P(word_n)
@@ -231,6 +247,8 @@ Rules:
 ### Softmax as a Probability Distribution
 
 Neural networks output raw scores (logits). Softmax converts them into a valid probability distribution.
+
+> 神经网络输出原始分数（logits）。Softmax 将它们转换为有效的概率分布。
 
 ```
 softmax(z_i) = exp(z_i) / sum(exp(z_j) for all j)
@@ -427,6 +445,8 @@ print(f"Log-softmax: {log_probs}")
 ```
 
 You built these from scratch. Now you know what the library calls are doing.
+
+> 你从零构建了这些。现在你知道库函数在做什么了。
 
 ## Exercises | 练习题
 
