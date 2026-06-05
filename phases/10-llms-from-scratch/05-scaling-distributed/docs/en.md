@@ -28,21 +28,35 @@
 
 A 7B parameter model in FP16 needs 14GB just for the weights. Adam optimizer stores two additional copies of every parameter (first and second moment estimates). That is another 28GB. Gradients during backpropagation add 14GB more. You are at 56GB before a single activation is stored.
 
+> 7B 参数模型在 FP16 下仅权重就需要 14GB。Adam 优化器为每个参数额外存储两份副本（一阶和二阶矩估计），又需要 28GB。反向传播的梯度再加 14GB。在存储任何激活值之前，你已经到了 56GB。
+
 An NVIDIA A100 has 80GB of memory.
+
+> NVIDIA A100 有 80GB 显存。
 
 56GB out of 80GB consumed. That leaves 24GB for activations -- the intermediate values computed during the forward pass that must be kept alive for backpropagation. For a 2048-token sequence with a 4096-dimensional model, a single layer's activations use about 64MB. With 32 layers, you need 2GB per sample. A batch size of 8 requires 16GB. You have 24GB. A batch size of 12 blows up.
 
+> 80GB 中已消耗 56GB。剩下 24GB 用于激活值——前向传播中计算的中间值，必须为反向传播保留。对于 2048 token 序列和 4096 维模型，单层激活值约 64MB。32 层需要每样本 2GB。批量大小 8 需要 16GB。你有 24GB。批量大小 12 就会爆显存。
+
 Now try 70B parameters. Weights alone: 140GB in FP16. Does not fit on one GPU. You need at least 2 A100s (2 x 80GB = 160GB) just to hold the weights. Add optimizer states and gradients and you need far more: 3+ GPUs minimum, and realistically 8-16 depending on sharding strategy.
+
+> 现在试试 70B 参数。仅权重：FP16 下 140GB。放不进一张 GPU。至少需要 2 张 A100（2 x 80GB = 160GB）才能放下权重。加上优化器状态和梯度，需要更多：最少 3+ 张 GPU，实际需要 8-16 张，取决于分片策略。
 
 Llama 3 405B was trained on 16,384 NVIDIA H100 GPUs. The training run cost an estimated $100 million in compute. DeepSeek V3 trained a comparable model for roughly $5.6 million by being clever about architecture (Mixture of Experts means only a fraction of parameters activate per token) and training efficiency.
 
+> Llama 3 405B 在 16,384 张 NVIDIA H100 GPU 上训练，计算成本估计约 1 亿美元。DeepSeek V3 通过巧妙的架构设计（MoE 意味着每次只激活一部分参数）和训练效率，用约 560 万美元训练了同等能力的模型。
+
 This lesson covers the four strategies that make large-scale training possible: data parallelism, tensor parallelism, pipeline parallelism, and fully sharded data parallelism. You will simulate each one in pure Python to understand the mechanics before ever touching a distributed training framework.
+
+> 本课覆盖使大规模训练成为可能的四种策略：数据并行、张量并行、流水线并行和完全分片数据并行。你将用纯 Python 模拟每一种，在接触分布式训练框架之前理解其机制。
 
 ## The Concept | 核心概念
 
 ### Why Distribution is Required
 
 Here is the memory math for real models. Every number is calculated, not estimated.
+
+> 以下是真实模型的显存数学计算。每个数字都是计算得出的，不是估算。
 
 | Model | Params | Weights (FP16) | Adam States | Gradients (FP16) | Total (no activations) |
 |-------|--------|----------------|-------------|------------------|----------------------|
@@ -53,7 +67,11 @@ Here is the memory math for real models. Every number is calculated, not estimat
 
 The "Adam States" column is the killer. Adam stores a running mean (m) and a running variance (v) for every parameter, both in FP32. For a 70B model, that is 70B x 4 bytes x 2 = 560GB. The optimizer alone needs seven A100s.
 
+> "Adam 状态"列是致命的。Adam 为每个参数存储一个运行均值（m）和一个运行方差（v），都是 FP32。对于 70B 模型，即 70B x 4 字节 x 2 = 560GB。仅优化器就需要七张 A100。
+
 A single H100 has 80GB. Llama 3 405B needs at least 61 H100s to hold the weights, optimizer, and gradients. Add activations and the number grows further. Meta used 16,384 GPUs not because they wanted to -- because they had to.
+
+> 单张 H100 有 80GB。Llama 3 405B 至少需要 61 张 H100 来放置权重、优化器和梯度。加上激活值数字更大。Meta 使用 16,384 张 GPU 不是因为他们想——而是因为他们必须。
 
 > **【中文解读】** 显存预算是 LLM 训练的第一道关卡。以 Llama 3 70B 为例：FP16 权重 140GB + Adam 优化器状态 560GB + 梯度 140GB = 840GB（不含激活值）。单张 H100 只有 80GB，至少需要 11 张 GPU 才能放下这些状态。Llama 3 405B 的总需求高达 4,860GB。Adam 优化器是显存杀手——它为每个参数存储两个 FP32 的动量估计（m 和 v），参数量 x 8 字节 x 2。
 
@@ -63,11 +81,19 @@ A single H100 has 80GB. Llama 3 405B needs at least 61 H100s to hold the weights
 
 The simplest distributed strategy. Copy the entire model to N GPUs. Split each training batch into N equal parts. Each GPU runs a forward and backward pass on its shard of the data. After the backward pass, average the gradients across all GPUs. Every GPU updates its copy of the weights with the same averaged gradients, keeping all copies in sync.
 
+> 最简单的分布式策略。将整个模型复制到 N 张 GPU。将每个训练批次拆分为 N 等份。每张 GPU 对其数据分片运行前向和反向传播。反向传播后，在所有 GPU 间平均梯度。每张 GPU 用相同的平均梯度更新其权重副本，保持所有副本同步。
+
 **The good:** Linear throughput scaling. N GPUs process N times more data per step. Communication is limited to gradient averaging, which overlaps with computation.
+
+> **优点：** 吞吐量线性扩展。N 张 GPU 每步处理 N 倍的数据。通信仅限于梯度平均，可与计算重叠。
 
 **The bad:** Every GPU holds a complete copy of the model, optimizer states, and gradients. For a 70B model, each GPU needs 840GB. Data parallelism does nothing to reduce per-GPU memory. It only reduces training time.
 
+> **缺点：** 每张 GPU 持有模型、优化器状态和梯度的完整副本。对于 70B 模型，每张 GPU 需要 840GB。数据并行不减少每 GPU 显存。它只减少训练时间。
+
 **The math:** Effective batch size = per_gpu_batch_size x N. For N=64 GPUs with per-GPU batch of 16, the effective batch is 1,024. Llama 3 used an effective batch size of 16 million tokens per step.
+
+> **数学：** 有效批量大小 = 每GPU批量 x N。对于 N=64 张 GPU，每 GPU 批量 16，有效批量为 1,024。Llama 3 使用每步 1600 万 token 的有效批量。
 
 ```mermaid
 graph TD
@@ -97,13 +123,23 @@ graph TD
 
 Split individual layers across GPUs. A single matrix multiplication is divided among GPUs, each computing part of the result.
 
+> 将单个层拆分到多张 GPU。一次矩阵乘法被分配到多张 GPU，每张计算部分结果。
+
 Consider a weight matrix of shape (8192, 8192) in a feedforward layer. With 4-way tensor parallelism, each GPU holds a (8192, 2048) shard. Each GPU multiplies the input by its shard, producing a partial result. The partial results are combined (via all-reduce or all-gather) to produce the full output.
+
+> 考虑前馈层中形状为 (8192, 8192) 的权重矩阵。使用 4 路张量并行，每张 GPU 持有 (8192, 2048) 的分片。每张 GPU 将输入乘以其分片，产生部分结果。部分结果通过全归约或全收集组合为完整输出。
 
 **The good:** Reduces per-GPU memory for model weights. A 70B model split across 8 GPUs means each GPU holds ~8.75B parameters worth of weights.
 
+> **优点：** 减少模型权重的每 GPU 显存。70B 模型拆分到 8 张 GPU 意味着每张 GPU 持有约 8.75B 参数的权重。
+
 **The bad:** Requires fast inter-GPU communication after every layer. The all-reduce after each matmul adds latency. This works well with NVLink (900 GB/s between GPUs on the same node) but poorly across nodes connected by InfiniBand (400 Gb/s, about 50 GB/s). Tensor parallelism is almost always limited to within a single node (8 GPUs).
 
+> **缺点：** 每层之后需要快速 GPU 间通信。每次矩阵乘法后的全归约增加延迟。这在 NVLink（同节点 GPU 间 900 GB/s）上效果良好，但在 InfiniBand（400 Gb/s，约 50 GB/s）连接的跨节点上效果差。张量并行几乎总是限于单节点内（8 张 GPU）。
+
 **Real usage:** Megatron-LM pioneered tensor parallelism. Llama 3 405B uses 8-way tensor parallelism within each node.
+
+> **实际使用：** Megatron-LM 率先提出了张量并行。Llama 3 405B 在每个节点内使用 8 路张量并行。
 
 > **【中文解读】** 张量并行（Tensor Parallelism）将单个层的矩阵乘法拆分到多张 GPU 上。例如一个 (8192, 8192) 的权重矩阵在 4 路并行下，每张 GPU 只需存储 (8192, 2048) 的分片。但缺点是每层都需要全归约（all-reduce）通信，因此几乎只限于 NVLink 连接的单节点内（8 张 GPU）。Llama 3 405B 就使用 8 路张量并行。
 
@@ -113,17 +149,29 @@ Consider a weight matrix of shape (8192, 8192) in a feedforward layer. With 4-wa
 
 Split the model by layers. GPU 1 runs layers 1-8. GPU 2 runs layers 9-16. GPU 3 runs layers 17-24. GPU 4 runs layers 25-32. Data flows through the pipeline: GPU 1 computes its layers and sends activations to GPU 2, which computes its layers and sends to GPU 3, and so on.
 
+> 按层拆分模型。GPU 1 跑 1-8 层。GPU 2 跑 9-16 层。GPU 3 跑 17-24 层。GPU 4 跑 25-32 层。数据流过流水线：GPU 1 计算其层并将激活值发送给 GPU 2，GPU 2 计算其层并发送给 GPU 3，以此类推。
+
 **The good:** Minimal communication between GPUs -- just the activations at layer boundaries, which are small compared to gradients or weights. Works across nodes because bandwidth requirements are low.
+
+> **优点：** GPU 间通信最少——只有层边界的激活值，与梯度或权重相比很小。可跨节点工作，因为带宽需求低。
 
 **The bad:** Pipeline bubbles. When GPU 4 is computing the forward pass on micro-batch 1, GPUs 1, 2, and 3 are idle (they have already forwarded their portion). During backward pass, the pattern reverses. With naive pipelining, GPU utilization is only 1/N for N pipeline stages.
 
+> **缺点：** 流水线气泡。当 GPU 4 在计算微批次 1 的前向传播时，GPU 1、2、3 空闲（它们已经完成了自己的部分）。反向传播时模式相反。朴素流水线下，N 个阶段的 GPU 利用率仅为 1/N。
+
 **GPipe and PipeDream** solve the bubble problem by splitting the batch into micro-batches. GPU 1 starts on micro-batch 2 as soon as it finishes forwarding micro-batch 1. This overlaps computation across pipeline stages. With M micro-batches and N stages, the bubble fraction drops to (N-1)/M. Use M=16 micro-batches with N=4 stages and the bubble is 3/16 = 18.75% idle time.
+
+> **GPipe 和 PipeDream** 通过将批次拆分为微批次来解决气泡问题。GPU 1 一完成微批次 1 的前向传播就开始微批次 2。这在流水线阶段间重叠计算。M 个微批次和 N 个阶段，气泡比例降至 (N-1)/M。用 M=16 个微批次和 N=4 个阶段，气泡为 3/16 = 18.75% 空闲时间。
 
 ### FSDP: Fully Sharded Data Parallel
 
 FSDP combines the scalability of data parallelism with the memory efficiency of sharding. Instead of each GPU holding a complete copy of the model, each GPU holds only 1/N of the parameters, gradients, and optimizer states.
 
+> FSDP 结合了数据并行的可扩展性和分片的显存效率。每张 GPU 不持有完整模型副本，而是只持有 1/N 的参数、梯度和优化器状态。
+
 Before a layer's forward pass, FSDP runs an **all-gather** to collect the full parameters from all GPUs into each GPU's memory. After the forward pass, each GPU discards the non-local parameters. During backward, the all-gather runs again to reconstruct parameters for gradient computation. After the backward pass, a **reduce-scatter** distributes gradient shards so each GPU only stores 1/N of the gradients.
+
+> 在一层的前向传播之前，FSDP 运行全收集操作从所有 GPU 收集完整参数到每张 GPU 的显存中。前向传播后，每张 GPU 丢弃非本地参数。反向传播时，全收集再次运行以重建参数进行梯度计算。反向传播后，归约散射分发梯度分片，使每张 GPU 只存储 1/N 的梯度。
 
 **The math for a 70B model on 8 GPUs:**
 
@@ -136,7 +184,11 @@ Before a layer's forward pass, FSDP runs an **all-gather** to collect the full p
 
 Without FSDP, you cannot fit a 70B model on a single 80GB GPU. With FSDP on 8 GPUs, each GPU uses 105GB -- wait, that still does not fit. You need at least 16 GPUs to get under 80GB per GPU, or you combine FSDP with activation checkpointing (recompute activations during backward instead of storing them).
 
+> 没有 FSDP，70B 模型无法放入单张 80GB GPU。使用 FSDP 在 8 张 GPU 上，每张 GPU 用 105GB——等等，还是放不下。你需要至少 16 张 GPU 才能降到每卡 80GB 以下，或将 FSDP 与激活检查点结合（反向传播时重新计算激活值而不是存储它们）。
+
 The communication cost is higher than vanilla data parallelism because of the all-gather before each layer. But the memory savings make previously impossible training runs possible.
+
+> 通信成本高于普通数据并行，因为每层之前需要全收集。但显存节省使之前不可能的训练运行成为可能。
 
 > **【中文解读】** FSDP（完全分片数据并行）是数据并行和分片的结合。每个 GPU 只存储 1/N 的参数、梯度和优化器状态。前向传播前，通过 all-gather 从所有 GPU 收集完整参数；前向传播后，丢弃非本地参数；反向传播后再通过 reduce-scatter 分发梯度分片。70B 模型在 8 GPU 上用 FSDP 后每卡 105GB——还是超了，需要配合激活检查点（activation checkpointing）才能放下。
 
@@ -190,6 +242,8 @@ graph TD
 
 DeepSpeed's ZeRO (Zero Redundancy Optimizer) is conceptually identical to FSDP but was developed independently by Microsoft. It defines three stages, each sharding more aggressively:
 
+> DeepSpeed 的 ZeRO（零冗余优化器）在概念上与 FSDP 相同，但由微软独立开发。它定义了三个阶段，每个阶段更激进地分片：
+
 | Stage | Shards | Memory Savings | Communication |
 |-------|--------|---------------|---------------|
 | ZeRO-1 | Optimizer states only | ~4x reduction | Same as data parallel |
@@ -198,11 +252,17 @@ DeepSpeed's ZeRO (Zero Redundancy Optimizer) is conceptually identical to FSDP b
 
 ZeRO-3 is equivalent to FSDP. The naming is different, the mechanism is the same. PyTorch added FSDP as a native implementation after DeepSpeed proved the concept.
 
+> ZeRO-3 等同于 FSDP。名称不同，机制相同。PyTorch 在 DeepSpeed 验证了概念后将 FSDP 作为原生实现加入。
+
 DeepSpeed also introduced ZeRO-Offload (offload optimizer states to CPU RAM, which is cheaper and larger) and ZeRO-Infinity (offload to NVMe SSDs). These trade compute speed for memory capacity -- the offloaded operations are slower but free up GPU memory.
+
+> DeepSpeed 还引入了 ZeRO-Offload（将优化器状态卸载到 CPU 内存，更便宜且更大）和 ZeRO-Infinity（卸载到 NVMe SSD）。这些用计算速度换取内存容量——卸载的操作更慢但释放了 GPU 显存。
 
 ### Mixed Precision Training
 
 Modern training uses multiple floating-point formats simultaneously:
+
+> 现代训练同时使用多种浮点格式：
 
 - **Forward pass**: FP16 or BF16 (16-bit). Half the memory of FP32. Matmuls run 2x faster on tensor cores.
 - **Master weights**: FP32 (32-bit). Maintained by the optimizer for numerical precision during weight updates.
@@ -240,7 +300,11 @@ Llama 3 405B on 16,384 H100s:
 
 This 3D decomposition (8 x 16 x 128 = 16,384) is how you scale to thousands of GPUs. Each GPU sees a different data shard (data parallel), holds one slice of each layer (tensor parallel), and computes a different set of layers (pipeline parallel).
 
+> 这种 3D 分解（8 x 16 x 128 = 16,384）是你如何扩展到数千张 GPU 的方式。每张 GPU 看到不同的数据分片（数据并行）、持有每层的一个切片（张量并行）、并计算不同组的层（流水线并行）。
+
 DeepSeek V3 took a different approach. Their Mixture of Experts architecture activates only 37B out of 671B parameters per token. This means each GPU only needs to compute (and store activations for) the active parameters. They trained on 2,048 H800 GPUs -- less than 1/8 of Meta's GPU count -- for $5.6M vs Meta's estimated $100M.
+
+> DeepSeek V3 采用了不同方法。他们的混合专家架构每个 token 只激活 671B 参数中的 37B。这意味着每张 GPU 只需计算（并存储激活值）活跃参数。他们在 2,048 张 H800 GPU 上训练——不到 Meta GPU 数量的 1/8——成本 560 万美元 vs Meta 估计的 1 亿美元。
 
 ```mermaid
 graph TD
@@ -271,6 +335,8 @@ graph TD
 
 Split a batch across simulated GPUs. Each GPU computes a forward pass on its shard. Average the "gradients" (we simulate them as the loss values).
 
+> 将批次拆分到模拟的 GPU 上。每张 GPU 在其分片上计算前向传播。平均"梯度"（我们用损失值模拟）。
+
 ```python
 import numpy as np
 
@@ -300,9 +366,13 @@ def simulate_data_parallelism(data, num_gpus, model_fn):
 
 The all-reduce operation (averaging gradients) is the only communication in data parallelism. In practice, this uses the NCCL library on NVIDIA GPUs, which implements ring all-reduce: each GPU sends 1/N of its gradients to its neighbor, receives 1/N from the other neighbor, and after N-1 steps every GPU has the complete average. Total communication volume: 2 x gradient_size x (N-1)/N, approaching 2x the gradient size for large N.
 
+> 全归约操作（平均梯度）是数据并行中唯一的通信。实践中，这使用 NVIDIA GPU 上的 NCCL 库，实现了环形全归约：每张 GPU 将 1/N 的梯度发送给邻居，从另一个邻居接收 1/N，N-1 步后每张 GPU 都有完整的平均值。总通信量：2 x 梯度大小 x (N-1)/N，对于大 N 接近 2 倍梯度大小。
+
 ### Step 2: Simulate Tensor Parallelism
 
 Split a weight matrix across GPUs. Each GPU computes a partial matrix multiplication. Combine the results.
+
+> 将权重矩阵拆分到多张 GPU。每张 GPU 计算部分矩阵乘法。组合结果。
 
 ```python
 def simulate_tensor_parallelism(input_data, weight_matrix, num_gpus):
@@ -329,11 +399,17 @@ def simulate_tensor_parallelism(input_data, weight_matrix, num_gpus):
 
 The error should be exactly zero (or machine epsilon). Tensor parallelism is mathematically exact -- it produces the same result as computing the full matmul on one GPU. The split is along the output dimension, so each GPU produces a different chunk of columns, and concatenation reconstructs the full result.
 
+> 误差应该恰好为零（或机器 epsilon）。张量并行在数学上是精确的——它产生与在一张 GPU 上计算完整矩阵乘法相同的结果。拆分沿输出维度进行，每张 GPU 产生不同的列块，拼接重建完整结果。
+
 For column-parallel linear layers (splitting the output dimension), you concatenate. For row-parallel (splitting the input dimension), you sum. In a transformer FFN, the first linear (expand) uses column-parallel and the second linear (contract) uses row-parallel. This avoids an all-reduce between the two layers.
+
+> 对于列并行线性层（拆分输出维度），你拼接。对于行并行（拆分输入维度），你求和。在 transformer FFN 中，第一个线性（扩展）使用列并行，第二个线性（收缩）使用行并行。这避免了两个层之间的全归约。
 
 ### Step 3: Simulate Pipeline Parallelism
 
 Split a model's layers across virtual GPUs. Show the bubble problem where early stages sit idle while later stages compute.
+
+> 将模型的层拆分到虚拟 GPU 上。展示早期阶段空闲而后期阶段计算时的气泡问题。
 
 ```python
 def simulate_pipeline_parallelism(num_layers, num_stages, num_microbatches):
@@ -373,9 +449,13 @@ def simulate_pipeline_parallelism(num_layers, num_stages, num_microbatches):
 
 With 4 stages and 1 micro-batch, the bubble fraction is 75% -- three out of four GPUs idle at any time. With 16 micro-batches, it drops to about 19%. The cost of eliminating bubbles is memory: you must store activations for all in-flight micro-batches simultaneously.
 
+> 4 个阶段和 1 个微批次，气泡比例为 75%——四分之三的 GPU 任何时候都空闲。16 个微批次时降至约 19%。消除气泡的代价是显存：你必须同时存储所有进行中微批次的激活值。
+
 ### Step 4: Memory Calculator
 
 Compute the exact memory requirements for training any model size.
+
+> 计算训练任意模型大小的精确显存需求。
 
 ```python
 def memory_calculator(
@@ -440,6 +520,8 @@ def memory_calculator(
 
 This calculator answers the question every ML engineer asks: "How many GPUs do I need?" Feed it the model size and see whether it fits. Adjust sharding strategy until the per-GPU total drops below 80GB.
 
+> 这个计算器回答每个 ML 工程师问的问题："我需要多少张 GPU？"输入模型大小看是否放得下。调整分片策略直到每 GPU 总量降到 80GB 以下。
+
 ### Step 5: Mixed Precision Simulation
 
 Compare memory usage between FP32, FP16, and mixed precision training.
@@ -473,6 +555,8 @@ def mixed_precision_comparison(params_billions):
 ```
 
 The biggest surprise for most people: mixed precision does not halve the memory. The optimizer states (Adam's m and v) stay in FP32 regardless of precision. For a 7B model, FP32 training uses 112GB. Mixed precision uses 84GB. That is a 25% reduction, not 50%. The optimizer dominates.
+
+> 对大多数人来说最大的意外：混合精度不会减半显存。优化器状态（Adam 的 m 和 v）无论精度如何都保持 FP32。对于 7B 模型，FP32 训练用 112GB。混合精度用 84GB。这是 25% 的减少，不是 50%。优化器占主导。
 
 ## Use It | 用框架实现
 

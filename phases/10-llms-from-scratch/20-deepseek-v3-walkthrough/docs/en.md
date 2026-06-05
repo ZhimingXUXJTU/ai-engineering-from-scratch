@@ -26,7 +26,11 @@
 
 DeepSeek-V3 is the first frontier open model whose architecture is meaningfully different from the Llama family. Llama 3 405B is "GPT-2 with six knobs turned." DeepSeek-V3 is GPT-2 with all six knobs plus four more. Reading the Llama 3 config is a warmup for reading the DeepSeek config, but the deep structure — the shape of the attention block, the routing logic, the training-time objective — is different enough that you need a separate walkthrough.
 
+> DeepSeek-V3 是第一个架构与 Llama 家族有实质性差异的前沿开源模型。Llama 3 405B 是"GPT-2 调了六个旋钮"。DeepSeek-V3 是 GPT-2 六个旋钮全调了再加四个。读 Llama 3 的配置是读 DeepSeek 配置的热身，但深层结构——注意力块的形状、路由逻辑、训练时目标——差异足够大，需要单独的解读。
+
 The payoff of learning it: DeepSeek-V3's open-weights release shifted what "frontier capability" means in open models. The architecture is the blueprint many 2026 training runs are copying. Understanding it is table stakes for any role that touches frontier LLM training or inference.
+
+> 学习它的收益：DeepSeek-V3 的开放权重发布改变了开源模型"前沿能力"的含义。其架构是许多 2026 年训练运行正在复制的蓝图。理解它是在任何涉及前沿 LLM 训练或推理的角色中的基本要求。
 
 ## The Concept | 核心概念
 

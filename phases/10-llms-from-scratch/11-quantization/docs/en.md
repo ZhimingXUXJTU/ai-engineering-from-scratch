@@ -28,13 +28,23 @@
 
 Llama 3 70B has 70 billion parameters. Each parameter is a 16-bit floating point number. That is 140 billion bytes. 140GB. A single A100 has 80GB of VRAM. You cannot even load the weights, let alone run inference, on a single GPU. You need two A100s at $2/hour each just to serve one model.
 
+> Llama 3 70B 有 700 亿参数。每个参数是一个 16 位浮点数。即 1400 亿字节。140GB。单张 A100 有 80GB 显存。你甚至无法加载权重，更不用说运行推理。你需要两张 A100，每张 $2/小时，仅仅服务一个模型。
+
 But 16 bits per parameter is wasteful. Most weights in a neural network cluster near zero. The full dynamic range of FP16 (from 0.000000059 to 65,504) is almost entirely unused. If you measure the actual distribution of weights in Llama 3 70B, 95% of them fall between -0.1 and +0.1. You are burning 16 bits to represent values that could fit in 4.
+
+> 但每参数 16 位是浪费的。神经网络中的大多数权重聚集在零附近。FP16 的完整动态范围（从 0.000000059 到 65,504）几乎完全未使用。如果你测量 Llama 3 70B 中权重的实际分布，95% 落在 -0.1 到 +0.1 之间。你用 16 位来表示可以用 4 位表示的值。
 
 Quantization replaces high-precision numbers with lower-precision ones. FP16 to FP8 cuts memory in half. FP16 to INT4 cuts it to a quarter. That 140GB model becomes 35GB. It fits on a single consumer GPU. Push to 2-bit quantization (aggressive, lossy, but usable for some tasks) and the same model runs on a 16GB laptop.
 
+> 量化用低精度数字替换高精度数字。FP16 到 FP8 减半显存。FP16 到 INT4 减到四分之一。140GB 模型变成 35GB。可放入单张消费级 GPU。推到 2 位量化（激进的、有损的，但对某些任务可用），同一模型可在 16GB 笔记本上运行。
+
 The cost is accuracy. Every bit you remove destroys information. The question is how much accuracy you lose and where. A well-quantized INT4 model retains 95-99% of the original's quality on most benchmarks. A naive quantization to INT4 can destroy the model entirely. The difference is technique.
 
+> 代价是精度。每移除一位都破坏信息。问题在于你损失多少精度以及在哪里损失。良好量化的 INT4 模型在大多数基准上保留原始质量的 95-99%。朴素 INT4 量化可能完全摧毁模型。差异在于技术。
+
 Community quantizations of Llama 3 to INT4 with GPTQ show roughly 1-2 perplexity points lost on WikiText. Mistral released FP8 checkpoints of Mixtral 8x22B with zero measurable quality loss on MMLU. The GGUF format powers llama.cpp, running 70B models on MacBooks with M-series chips. Quantization is not a hack. It is the standard deployment path for every model larger than 7B.
+
+> 社区用 GPTQ 将 Llama 3 量化到 INT4，在 WikiText 上仅损失约 1-2 个困惑度点。Mistral 发布了 Mixtral 8x22B 的 FP8 检查点，MMLU 上几乎零质量损失。GGUF 格式驱动 llama.cpp，在 MacBook M 系列芯片上运行 70B 模型。量化不是 hack。它是每个超过 7B 的模型的标准部署路径。
 
 > **【中文解读】** FP16 每参数 16 位，70B 模型需要 140GB。但 95% 的权重集中在 -0.1 到 +0.1 之间——用 16 位表示这些值太浪费了。量化到 INT4 将显存需求降至 35GB，可在消费级 GPU 上运行。良好的 INT4 量化保留原始模型 95-99% 的质量。GPTQ 量化 Llama 3 到 INT4 仅损失 1-2 个困惑度点，Mistral 的 FP8 量化在 MMLU 上几乎零损失。
 

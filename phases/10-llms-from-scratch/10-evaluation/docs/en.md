@@ -28,11 +28,19 @@
 
 MMLU was published in 2020 with 15,908 questions across 57 subjects. Within three years, frontier models saturated it. GPT-4 scored 86.4%. Claude 3 Opus scored 86.8%. Llama 3 405B scored 88.6%. The leaderboard compressed into a 3-point range where differences are statistical noise, not real capability gaps.
 
+> MMLU 于 2020 年发布，包含 57 个学科的 15,908 个问题。三年内，前沿模型就饱和了它。GPT-4 得分 86.4%，Claude 3 Opus 得分 86.8%，Llama 3 405B 得分 88.6%。排行榜压缩到 3 分的范围内，差异是统计噪声，而非真正的能力差距。
+
 Meanwhile, those same models fail at tasks that a 10-year-old handles without thinking. Claude 3.5 Sonnet, scoring 88.7% on MMLU, initially could not count the letters in "strawberry" -- a task that requires zero world knowledge and zero reasoning, just character-level iteration. HumanEval tests code generation with 164 problems. Models score 90%+ on it while still producing code that crashes on edge cases any junior developer would catch.
+
+> 与此同时，这些模型在 10 岁孩子不假思索就能完成的任务上却失败了。Claude 3.5 Sonnet MMLU 得分 88.7%，但最初无法数出 "strawberry" 里有几个 r——这个任务不需要任何世界知识或推理，只需字符级迭代。HumanEval 用 164 个问题测试代码生成。模型得分 90%+，但仍然产出任何初级开发者都能捕获的边缘情况崩溃代码。
 
 The gap between benchmark performance and real-world reliability is the central problem of LLM evaluation. Benchmarks tell you how a model performs on the benchmark. They tell you almost nothing about how that model will perform on your specific task, with your specific data, under your specific failure modes. If you are building a customer support bot, MMLU is irrelevant. If you are building a code assistant, HumanEval only covers function-level generation -- it says nothing about debugging, refactoring, or explaining code across files.
 
+> 基准性能与真实世界可靠性之间的鸿沟是 LLM 评估的核心问题。基准告诉你模型在基准上的表现。它们几乎不说任何关于模型在你的具体任务、具体数据、具体失败模式下会如何表现的信息。如果你在构建客户支持机器人，MMLU 无关紧要。如果你在构建代码助手，HumanEval 只覆盖函数级生成——对调试、重构或跨文件代码解释一无所知。
+
 You need custom evals. Not because benchmarks are useless -- they are useful for rough model selection -- but because the final evaluation must match your deployment conditions exactly.
+
+> 你需要自定义评估。不是因为基准没用——它们对粗略模型选择有用——而是因为最终评估必须完全匹配你的部署条件。
 
 > **【中文解读】** 基准分数与真实世界可靠性之间的鸿沟是 LLM 评估的核心问题。GPT-4 MMLU 86.4%、Claude 3 Opus 86.8%、Llama 3 405B 88.6%——3 分的差距是统计噪声。但这些模型在"数 strawberry 里有几个 r"这样的简单任务上仍然失败。基准告诉你模型在基准上的表现，几乎不说任何关于它在你的具体任务上会如何表现的信息。
 
@@ -44,11 +52,19 @@ You need custom evals. Not because benchmarks are useless -- they are useful for
 
 There are three categories of evaluation, each with different cost and signal quality.
 
+> 有三类评估，各有不同的成本和信号质量。
+
 **Benchmarks** are standardized test suites. MMLU, HumanEval, SWE-bench, MATH, ARC, HellaSwag. You run a model against the benchmark and get a score. The advantage: everyone uses the same test, so you can compare models. The disadvantage: models and training data increasingly contaminate these benchmarks. Labs train on data that includes benchmark questions. Scores go up. Capability may not.
+
+> **基准**是标准化测试套件。MMLU、HumanEval、SWE-bench、MATH、ARC、HellaSwag。你对基准运行模型并获得分数。优点：每个人都使用相同的测试，所以你可以比较模型。缺点：模型和训练数据越来越多地污染这些基准。实验室在包含基准问题的数据上训练。分数上升。能力未必。
 
 **Custom evals** are test suites you build for your specific use case. You define the inputs, the expected outputs, and the scoring function. A legal document summarizer gets evaluated on legal documents. A SQL generator gets evaluated on your database schema. These are expensive to create but they are the only evaluation that predicts production performance.
 
+> **自定义评估**是你为特定用例构建的测试套件。你定义输入、期望输出和评分函数。法律文档摘要器用法律文档评估。SQL 生成器用你的数据库模式评估。这些创建成本高，但它们是唯一能预测生产性能的评估。
+
 **Human evals** use paid annotators to judge model outputs on criteria like helpfulness, correctness, fluency, and safety. The gold standard for open-ended tasks where automated scoring fails. Chatbot Arena has collected over 2 million human preference votes across 100+ models. The downside: cost ($0.10-$2.00 per judgment) and speed (hours to days).
+
+> **人工评估**使用付费标注者根据有用性、正确性、流畅性和安全性等标准评判模型输出。这是自动化评分失败的开放式任务的黄金标准。Chatbot Arena 收集了超过 200 万个人类偏好投票，涵盖 100+ 个模型。缺点：成本（每次判断 $0.10-$2.00）和速度（数小时到数天）。
 
 ```mermaid
 graph TD

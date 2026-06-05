@@ -28,11 +28,19 @@
 
 You deploy Llama 3 70B on 4xA100 GPUs. A single user gets ~50 tokens per second. Feels fast. Then 100 users hit the endpoint simultaneously. Throughput drops to 3 tokens/second/user. Your $25,000/month GPU bill is serving responses slower than a human types.
 
+> 你在 4xA100 GPU 上部署 Llama 3 70B。单个用户获得约 50 tokens/秒。感觉很流畅。然后 100 个用户同时访问端点。吞吐量降至每用户 3 tokens/秒。你每月 $25,000 的 GPU 账单提供比人类打字还慢的响应。
+
 The model itself does not change between 1 user and 100 users. Same weights, same architecture, same math. What changes is how you schedule the work. Naive inference wastes 90%+ of available GPU compute. A user waiting for token 47 holds an entire batch slot open while the GPU memory bus sits idle between matmuls. Meanwhile, a new user's 2,000-token prompt could fill that dead time with useful compute.
+
+> 模型本身在 1 个用户和 100 个用户之间没有变化。相同的权重、相同的架构、相同的数学。变化的是你如何调度工作。朴素推理浪费了 90%+ 的可用 GPU 计算。等待第 47 个 token 的用户占据整个批次槽位，而 GPU 显存总线在矩阵乘法之间闲置。与此同时，一个新用户的 2,000-token prompt 可以用有用计算填满那段死时间。
 
 This is not a scaling problem. It is a scheduling problem. The techniques in this lesson -- KV caching, continuous batching, PagedAttention, speculative decoding, prefix caching -- are what separate a $25k/month inference bill from a $5k/month one serving the same traffic.
 
+> 这不是扩展问题，而是调度问题。本课的技术——KV 缓存、连续批处理、PagedAttention、投机解码、前缀缓存——是将每月 $25k 推理账单降为服务相同流量的 $5k 账单的关键。
+
 vLLM serving Llama 3 70B on 4xA100-80GB achieves ~50 tokens/second/user at low concurrency, and sustains 15-25 TPS/user at 100 concurrent requests through continuous batching and PagedAttention. Without these optimizations, the same hardware serves 5 TPS/user at that concurrency. Same GPUs, same model, 4x the throughput.
+
+> vLLM 在 4xA100-80GB 上服务 Llama 3 70B，低并发时达到约 50 tokens/秒/用户，通过连续批处理和 PagedAttention 在 100 并发请求下维持 15-25 TPS/用户。没有这些优化，相同硬件在该并发下只服务 5 TPS/用户。相同 GPU、相同模型、4 倍吞吐量。
 
 ## The Concept | 核心概念
 

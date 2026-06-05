@@ -26,9 +26,15 @@
 
 Attention is quadratic in sequence length. State space models are linear. That difference compounds: at 256k tokens, a Transformer attention map is 65B entries per head; an SSM's recurrent state is fixed-size regardless of sequence length.
 
+> 注意力在序列长度上是二次的。状态空间模型是线性的。这个差异在累积后非常显著：256k token 时，Transformer 注意力图每头有 650 亿个条目；SSM 的循环状态无论序列多长都是固定大小。
+
 Pure-SSM models (Mamba, Mamba-2) match Transformer perplexity at small scales but lag on state-tracking tasks and fail on some categories of in-context retrieval. The intuition: SSMs compress history into a fixed state, and when history is long, information leaks. Attention remembers everything exactly but pays quadratic cost.
 
+> 纯 SSM 模型（Mamba、Mamba-2）在小规模上匹配 Transformer 困惑度，但在状态跟踪任务上落后，在某些上下文检索类别上失败。直觉：SSM 将历史压缩为固定状态，当历史很长时，信息会泄漏。注意力精确记住一切但付出二次代价。
+
 The obvious fix: use both. Put Transformer layers where exact recall matters. Use SSM layers elsewhere. Tune the ratio. Jamba is the first production-grade model to ship this hybrid recipe at scale (52B total, 12B active, 256k context, single 80GB GPU). Jamba 1.5 extends the family to 398B total / 94B active. Mamba-3 (ICLR 2026) is the current-best pure-SSM baseline that hybrids can be rebuilt around.
+
+> 显而易见的修复：两者都用。在需要精确回忆的地方放 Transformer 层。其他地方用 SSM 层。调整比例。Jamba 是首个大规模交付这种混合方案的生产级模型（52B 总参数，12B 活跃，256k 上下文，单张 80GB GPU）。Jamba 1.5 将家族扩展到 398B 总参数 / 94B 活跃参数。Mamba-3（ICLR 2026）是当前最佳的纯 SSM 基线，混合架构可以围绕它重建。
 
 This lesson reads all three papers and produces the mental model for "pick the right ratio."
 

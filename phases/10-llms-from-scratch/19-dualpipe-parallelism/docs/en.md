@@ -30,6 +30,15 @@ Training a 671B MoE model on 2k H800 GPUs runs into three compounding bottleneck
 2. **Pipeline bubbles.** Traditional pipeline parallelism (GPipe, 1F1B) leaves GPUs idle while they wait for their stage's input or gradient. At 8 stages, roughly 12% of GPU time can be bubble even with 1F1B scheduling.
 3. **Cross-node all-to-all.** MoE with expert parallelism scatters experts across nodes. Every forward pass triggers an all-to-all to dispatch tokens to their experts, and another to combine. At 2k GPUs this easily becomes a 1:1 compute-to-comm ratio.
 
+> 在 2k H800 GPU 上训练 671B MoE 模型会遇到三个复合瓶颈：
+
+1. **内存压力。** 每个 GPU 持有模型的一个切片。8k 序列长度、61 层、128 头的激活显存是巨大的。
+   中文翻译：每张 GPU 持有模型的一个切片。8k 序列长度、61 层、128 头的激活显存是巨大的。
+2. **流水线气泡。** 传统流水线并行（GPipe、1F1B）让 GPU 在等待其阶段的输入或梯度时空闲。8 个阶段时，即使使用 1F1B 调度，约 12% 的 GPU 时间可能是气泡。
+   中文翻译：传统流水线并行让 GPU 在等待时空闲。8 个阶段时，约 12% 的 GPU 时间是气泡。
+3. **跨节点全互联。** 带专家并行的 MoE 将专家分散到各节点。每次前向传播触发一次全互联将 token 分派到专家，另一次将结果合并。2k GPU 时这很容易变成 1:1 的计算通信比。
+   中文翻译：MoE 专家并行每次前向传播触发两次全互联通信，在 2k GPU 时计算通信比接近 1:1。
+
 Each of these has separate solutions: gradient checkpointing for memory, Zero Bubble (Sea AI Lab, 2023) for pipeline bubbles, expert-parallel comm kernels for all-to-all. What DualPipe does is make them play together. The schedule overlaps compute and comm within a single forward-backward chunk, injects micro-batches from both ends of the pipeline simultaneously, and uses the resulting schedule to hide all-to-all inside the compute windows.
 
 Reported result: near-elimination of pipeline bubbles, over 95% GPU utilization in DeepSeek-V3's 14.8T-token training run.

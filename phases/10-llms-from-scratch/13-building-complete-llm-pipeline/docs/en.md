@@ -26,9 +26,15 @@
 
 The previous lessons each work. Tokenizer trained. Tiny GPT pre-trained. SFT dataset assembled. Reward model trained. DPO run. Evals measured. Quantized weights exported. Inference server spun up. Each one is a notebook. Each one has its own conventions, its own output paths, its own seed.
 
+> 之前的课程各自都能工作。分词器训练了。迷你 GPT 预训练了。SFT 数据集组装了。奖励模型训练了。DPO 运行了。评估测量了。量化权重导出了。推理服务器启动了。每一个都是一个 notebook。每一个都有自己的约定、自己的输出路径、自己的种子。
+
 A frontier training run is not a notebook. Llama 3 405B took 30 million H100 hours over roughly 54 days. DeepSeek-V3 used around 2.8 million H800 hours. During that time, one corrupted checkpoint, one data contamination, one eval regression can cost a team a week of wall-clock and a month of GPU budget. The way teams survive this is through pipeline hygiene: every stage has a deterministic input, a deterministic output, a manifest, a hash, and a gate.
 
+> 前沿训练运行不是一个 notebook。Llama 3 405B 用了约 3000 万 H100 小时，大约 54 天。DeepSeek-V3 用了约 280 万 H800 小时。在此期间，一个损坏的检查点、一次数据污染、一次评估回归可能让团队损失一周的挂钟时间和一个月的 GPU 预算。团队存活的方式是管线卫生：每个阶段有确定性输入、确定性输出、清单、哈希和门控。
+
 This is the capstone. You will not run the pipeline end-to-end on a laptop. You will write the orchestrator that coordinates the stages, the manifest that describes the run, the verifier that gates ship decisions, and the replay plan that lets a third party re-run your work from a single file. The code is small; the discipline is large.
+
+> 这是顶点课程。你不会在笔记本上端到端运行管线。你将编写协调各阶段的编排器、描述运行的清单、门控发布决策的验证器，以及让第三方从单个文件重新运行你的工作的回放计划。代码很小；纪律很大。
 
 The pattern scales from 100M to 1T parameters unchanged. The same four components -- manifest, orchestrator, eval gate, artifact store -- run Llama 3 and also run your hobby GPT. The difference is the size of the numbers inside each stage's config, not the shape of the pipeline.
 

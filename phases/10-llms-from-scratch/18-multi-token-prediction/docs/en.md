@@ -26,7 +26,11 @@
 
 Next-token prediction is the standard LLM training objective. Every hidden state is supervised to predict exactly one thing: the immediately following token. That is a surprisingly weak signal. Most of the information in a sequence extends beyond one token — structure, coherence, factuality, arithmetic flow. The model has to learn those by accumulating many one-token signals over trillions of tokens.
 
+> 下一 token 预测是标准 LLM 训练目标。每个隐藏状态被监督预测恰好一件事：紧接着的下一个 token。这是一个令人惊讶的弱信号。序列中的大部分信息延伸到单个 token 之外——结构、连贯性、事实性、算术流程。模型必须通过在万亿 token 上累积许多单 token 信号来学习这些。
+
 MTP asks: what if every hidden state were supervised to predict multiple future tokens at once? Gloeckle et al. (Meta, 2024) showed this helps. Their implementation put several independent output heads on top of the backbone, each predicting a different offset. Parallel, simple, but the heads saw the same hidden state without any hierarchical refinement — and the predictions did not chain causally, so they could not be used for speculative decoding.
+
+> MTP 问：如果每个隐藏状态都被监督同时预测多个未来 token 会怎样？Gloeckle 等人（Meta，2024）表明这有帮助。他们的实现在骨干网络顶部放置了几个独立输出头，每个预测不同的偏移。并行、简单，但各头看到相同的隐藏状态而没有任何层次化改进——且预测不是因果链式的，所以不能用于投机解码。
 
 DeepSeek-V3 (December 2024) re-designed MTP as sequential modules that keep the causal chain at each prediction depth. The model predicts `t+1` from `h_i^(0)`, then predicts `t+2` from a new hidden state `h_i^(1)` that combined `h_i^(0)` with the `E(t+1)` embedding, and so on. Each depth is its own small transformer block. The shared embedding and shared output head keep parameter overhead modest. At DeepSeek-V3's scale, 14B extra parameters across MTP modules on top of 671B main-model weights. That 2% overhead bought denser training signals AND a ready-made speculative-decoding draft at inference.
 

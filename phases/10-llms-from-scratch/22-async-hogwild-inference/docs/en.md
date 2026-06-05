@@ -26,9 +26,15 @@
 
 Modern LLMs solve hard problems by producing long chains of reasoning — 5000 tokens of step-by-step logic is common, tens of thousands of tokens happens on deep math problems. At 35 tokens/sec decode on a 70B model, 50k tokens is 24 minutes. Interactive the model is not.
 
+> 现代 LLM 通过产生长推理链来解决难题——5000 token 的逐步逻辑很常见，深层数学问题上数万 token 也会发生。以 70B 模型 35 tokens/秒的解码速度，50k token 需要 24 分钟。这算不上交互式。
+
 Speculative decoding (Phase 10 · 15) gets you a 3-5x speedup by parallelizing within one sequence. Past that the sequential dependency of autoregressive decoding is the hard ceiling. Each new token depends on every prior token.
 
+> 投机解码（Phase 10 · 15）通过在单个序列内并行化给你 3-5 倍加速。在此之后，自回归解码的顺序依赖性是硬天花板。每个新 token 依赖所有之前的 token。
+
 The obvious question: can we parallelize across sequences? Run multiple copies of the same model on the same problem, let them cooperate, have them divide the work?
+
+> 显而易见的问题：我们可以跨序列并行化吗？在同一个问题上运行多个模型副本，让它们合作，让它们分担工作？
 
 Prior work: voting ensembles (run N models, pick the majority answer), tree-of-thought (branch reasoning paths and recombine), and multi-agent frameworks (assign each agent a sub-task, use a coordinator). These all help in specific task domains. They all also introduce explicit coordination machinery — voting rules, branch-and-prune logic, agent-to-agent messaging protocols.
 
