@@ -6,21 +6,29 @@
 
 > **【拓展：3D 生成的应用】** 3D 生成用于游戏资产创建、VR/AR 内容、建筑设计、电商产品展示。DreamGaussian、TripoSR 等模型能在秒级从文字/图片生成 3D 模型。
 
-**Type:** Learn
+**Type:** Learn / 学习型
 **Languages:** Python
-**Prerequisites:** Phase 4 (Vision), Phase 8 · 07 (Latent Diffusion)
+**Prerequisites:** Phase 4 (Vision / 视觉), Phase 8 · 07 (Latent Diffusion / 潜在扩散)
 **Time:** ~45 minutes
 
 ## The Problem | 问题引入
 
 3D content is painful:
 
+> 3D 内容很困难：
+
 - **Representation.** Meshes, point clouds, voxel grids, signed distance fields (SDFs), neural radiance fields (NeRFs), 3D Gaussians. Each has trade-offs.
+  **表示方式。** 网格、点云、体素、SDF、NeRF、3D 高斯。各有权衡。
 - **Data scarcity.** ImageNet has 14M images. The largest clean 3D dataset (Objaverse-XL, 2023) has ~10M objects, most low quality.
+  **数据稀缺。** ImageNet 有 1400 万图像。最大清洁 3D 数据集约 1000 万物体，多数低质量。
 - **Memory.** A 512³ voxel grid is 128M voxels; a useful scene NeRF needs 1M samples/ray. Generation is harder than reconstruction.
+  **内存。** 512³ 体素网格是 1.28 亿体素。生成比重建更难。
 - **Supervision.** For a 2D image you have the pixels. For 3D you usually have a handful of 2D views and have to lift to 3D.
+  **监督。** 2D 图像有像素。3D 通常只有少量 2D 视图。
 
 The 2026 stack separates the two problems. First, generate *2D multi-view images* with a diffusion model. Second, fit a *3D representation* (usually Gaussian splatting) to those images.
+
+> 2026 年的方案分两步：先用扩散模型生成*2D 多视角图像*，再用*3D 表示*（通常是高斯溅射）拟合。
 
 > **【中文解读】** 3D 生成的核心挑战：表示方式多样（网格、点云、体素、SDF、NeRF、3D 高斯）、数据稀缺（远少于 2D 图像）、内存需求巨大、监督信号弱（通常只有 2D 视图）。2026 年的主流方案是两阶段策略：先用扩散模型生成多视角 2D 图像，再用 3D 高斯溅射（Gaussian Splatting）拟合 3D 表示。
 
@@ -105,7 +113,7 @@ for step in range(steps):
     update(gaussians, gradients, lr)
 ```
 
-## Pitfalls
+## Pitfalls | 常见陷阱
 
 - **View inconsistency.** If you generate 4 views independently and they disagree about object structure, the 3D fit is blurry. Fix: multi-view diffusion with shared attention.
 - **Back-side hallucination.** Single-image → 3D has to invent the unseen side. Quality varies wildly.
@@ -115,17 +123,19 @@ for step in range(steps):
 
 ## Use It | 用框架实现
 
-| Task | 2026 pick |
+| Task / 任务 | 2026 pick / 2026 选择 |
 |------|-----------|
-| Scene reconstruction from photos | Gaussian splatting (3DGS, Gsplat, Scaniverse) |
-| Text-to-3D object for games | Meshy 4 or Rodin Gen-1.5 (PBR output) |
-| Image-to-3D | Hunyuan3D 2.0, TripoSR, InstantMesh |
-| Novel-view synthesis from few images | CAT3D, SV3D |
-| Dynamic scene reconstruction | 4D Gaussian Splatting |
-| Avatar / clothed human | Gaussian Avatar, HUGS |
-| Research / SOTA | Whatever dropped last week |
+| Scene reconstruction from photos / 照片场景重建 | Gaussian splatting (3DGS, Gsplat, Scaniverse) |
+| Text-to-3D object for games / 文本生成游戏 3D | Meshy 4 or Rodin Gen-1.5 (PBR output) |
+| Image-to-3D / 图像生成 3D | Hunyuan3D 2.0, TripoSR, InstantMesh |
+| Novel-view synthesis from few images / 少样本新视角 | CAT3D, SV3D |
+| Dynamic scene reconstruction / 动态场景重建 | 4D Gaussian Splatting |
+| Avatar / clothed human / 虚拟人/穿衣人体 | Gaussian Avatar, HUGS |
+| Research / SOTA / 研究 | Whatever dropped last week / 上周发布的任何模型 |
 
 For shipping production 3D in a game or e-commerce pipeline: Meshy 4 or Rodin Gen-1.5 output PBR meshes that go straight into Unity / Unreal.
+
+> 在游戏或电商流水线中部署 3D：Meshy 4 或 Rodin Gen-1.5 输出可直接用于 Unity/Unreal 的 PBR 网格。
 
 ## Ship It | 产出物
 
@@ -149,7 +159,7 @@ Save `outputs/skill-3d-pipeline.md`. Skill takes a 3D brief (input: text / one i
 | PBR | "Physically-based rendering" | Material with albedo, roughness, metallic, normal channels. |
 | Densification | "Grow splats" | 3DGS training heuristic: split / clone splats in high-gradient regions. |
 
-## Production note: 3D has no shared substrate yet
+## Production note: 3D has no shared substrate yet | 生产笔记：3D 还没有统一的运行时
 
 Unlike image (latent diffusion + DiT) and video (spatiotemporal DiT), 3D has no single dominant runtime in 2026. The production decision tree forks on the representation:
 

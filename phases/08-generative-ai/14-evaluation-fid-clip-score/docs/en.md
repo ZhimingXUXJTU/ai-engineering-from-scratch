@@ -6,20 +6,27 @@
 
 > **【拓展：FID 的局限性】** FID 衡量生成图像与真实图像的分布距离，但它可以被优化（如选择性地生成高分样本）。人类偏好评估（如 Chatbot Arena 模式）是更可靠但更昂贵的替代方案。
 
-**Type:** Build
+**Type:** Build / 构建型
 **Languages:** Python
-**Prerequisites:** Phase 8 · 01 (Taxonomy), Phase 2 · 04 (Evaluation Metrics)
+**Prerequisites:** Phase 8 · 01 (Taxonomy / 分类), Phase 2 · 04 (Evaluation Metrics / 评估指标)
 **Time:** ~45 minutes
 
 ## The Problem | 问题引入
 
 A generative model is judged on *sample quality* and *conditioning adherence*. Neither has a closed-form measure. Your model has to render 10,000 images; something has to assign them numbers; you have to trust the numbers across model families, across resolutions, across architectures. Three metrics survived the 2014-2026 gauntlet:
 
+> 生成模型以*样本质量*和*条件遵循度*评判。两者都没有闭式度量。你的模型必须渲染 10000 张图像；必须有东西给它们打分。三个指标经历了 2014-2026 的考验：
+
 - **FID (Fréchet Inception Distance).** A distance between two distributions — real and generated — in an Inception network's feature space. Lower is better.
+  **FID。** 真实和生成分布在 Inception 网络特征空间中的距离。越低越好。
 - **CLIP score.** Cosine similarity between a generated image's CLIP-image embedding and a prompt's CLIP-text embedding. Higher is better. Measures prompt adherence.
+  **CLIP Score。** 生成图像与文本 prompt 的 CLIP 嵌入余弦相似度。越高越好。
 - **Human preference.** Pit two models head-to-head on the same prompt, have humans (or a GPT-4-class model) pick the better one, aggregate to an Elo score.
+  **人类偏好。** 两个模型头对头对比，人类或 GPT-4 级模型选择更好的，聚合为 Elo 分数。
 
 You will also see: IS (inception score, largely retired), KID, CMMD, ImageReward, PickScore, HPSv2, MJHQ-30k. Each corrects for one failure of the previous.
+
+> 你还会看到：IS（已基本退役）、KID、CMMD、ImageReward、PickScore、HPSv2 等。每个都修正了前一个的某种缺陷。
 
 > **【中文解读】** 生成模型评估的三大指标：(1) FID——在 Inception 网络特征空间中衡量生成分布与真实分布的距离，越低越好；(2) CLIP Score——生成图像与文本 prompt 的语义匹配度，越高越好；(3) 人类偏好——两个模型对比选择更好的，聚合为 Elo 分数。每个指标都有已知漏洞，组合使用更可靠。
 
@@ -76,7 +83,7 @@ Failure modes:
 - **Prompt distribution.** Cherry-picked prompts favor one family. Always document.
 - **LLM-judge reward hacking.** GPT-4-judge gets fooled by pretty-but-wrong outputs. Triangulate with human.
 
-## Use together
+## Use together | 组合使用
 
 A production eval report should include:
 
@@ -126,7 +133,7 @@ def elo_update(r_a, r_b, winner, k=32):
     return r_a_new, r_b_new
 ```
 
-## Pitfalls
+## Pitfalls | 常见陷阱
 
 - **FID at N=1000.** Heuristic is unreliable under N=10k. Papers reporting low-N FID are gaming.
 - **Comparing FID across resolutions.** Inception's 299×299 resize changes the feature distribution. Compare at matched resolution only.
@@ -139,14 +146,16 @@ def elo_update(r_a, r_b, winner, k=32):
 
 Production eval protocol in 2026:
 
-| Pillar | Minimum | Recommended |
+| Pillar / 支柱 | Minimum / 最低要求 | Recommended / 推荐 |
 |--------|---------|-------------|
-| Sample quality | FID on 10k vs held-out real | + CMMD on 5k + FID on subset per category |
-| Prompt adherence | CLIP score on 30k | + HPSv2 + ImageReward + VQA-style question answering |
-| Preference | 200 blinded pairs vs baseline | + 2000 paired human + LLM-judge + Chatbot Arena |
-| Failure analysis | 50 hand-flagged | 500 hand-flagged + automated safety classifier |
+| Sample quality / 样本质量 | FID on 10k vs held-out real | + CMMD on 5k + FID on subset per category |
+| Prompt adherence / Prompt 遵循 | CLIP score on 30k | + HPSv2 + ImageReward + VQA-style question answering |
+| Preference / 偏好 | 200 blinded pairs vs baseline | + 2000 paired human + LLM-judge + Chatbot Arena |
+| Failure analysis / 失败分析 | 50 hand-flagged | 500 hand-flagged + automated safety classifier |
 
 All four pillars in one report = claim. Any one alone = marketing.
+
+> 四个支柱齐全才是一个声明。任何单独一个只是营销。
 
 ## Ship It | 产出物
 
@@ -171,7 +180,7 @@ Save `outputs/skill-eval-report.md`. Skill takes a new model checkpoint + baseli
 | PartiPrompts | "The benchmark prompt set" | 1,600 Google-curated prompts across 12 categories. |
 | FD-DINO | "Self-sup replacement" | FD using DINOv2 features; better for out-of-ImageNet domains. |
 
-## Production note: evaluation is an inference workload too
+## Production note: evaluation is an inference workload too | 生产笔记：评估也是推理工作负载
 
 Running FID on 10k samples means generating 10k images. For a 50-step SDXL base at 1024² on a single L4, that is ~11 hours of single-request inference. Evaluation budgets are real, and the framing is exactly the offline-inference scenario (maximize throughput, ignore TTFT):
 

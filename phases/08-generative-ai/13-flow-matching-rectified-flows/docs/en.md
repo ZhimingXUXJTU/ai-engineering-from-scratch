@@ -6,18 +6,24 @@
 
 > **【拓展：Flow Matching 是 2024-2026 的趋势】** Flow Matching 正在取代传统扩散调度成为新一代生成模型的标准。它数学上更优雅，实验上更高效。SD3 和 FLUX 的质量提升很大程度上归功于这个改进。
 
-**Type:** Build
+**Type:** Build / 构建型
 **Languages:** Python
-**Prerequisites:** Phase 8 · 06 (DDPM), Phase 1 · Calculus
+**Prerequisites:** Phase 8 · 06 (DDPM), Phase 1 · Calculus / 微积分
 **Time:** ~45 minutes
 
 ## The Problem | 问题引入
 
 DDPM's reverse process is a 1000-step stochastic walk from `N(0, I)` back to the data distribution. DDIM collapsed it to 20-50 deterministic steps. You want fewer steps — ideally one. The blocker is that the ODE solving the reverse process is stiff; the path is curved.
 
+> DDPM 的反向过程是从 `N(0, I)` 回到数据分布的 1000 步随机游走。DDIM 将其压缩到 20-50 步。你想要更少步数——理想情况下一步。障碍是反向过程的 ODE 是刚性的；路径是弯曲的。
+
 If you could train the model such that the path from noise to data was a *straight line*, a single Euler step from `t=1` to `t=0` would work. Flow matching builds this directly: define a straight-line interpolation from `x_1 ∼ N(0, I)` to `x_0 ∼ data`, train a vector field `v_θ(x, t)` to match its time derivative, integrate at inference.
 
+> 如果能训练模型使噪声到数据的路径是*直线*，一步 Euler 从 `t=1` 到 `t=0` 就够了。Flow Matching 直接构建这个：定义 `x_1 ∼ N(0, I)` 到 `x_0 ∼ data` 的直线插值，训练向量场 `v_θ(x, t)` 匹配时间导数。
+
 Rectified flow (Liu 2022) goes further: iteratively straighten the paths with a reflow procedure that produces a progressively closer-to-linear ODE. After two reflow iterations, a 2-step sampler matches 50-step DDPM quality.
+
+> Rectified Flow（2022）更进一步：通过 reflow 过程迭代拉直路径。两次 reflow 迭代后，2 步采样器匹配 50 步 DDPM 质量。
 
 > **【中文解读】** Flow Matching 的核心思想：DDPM 的噪声到数据路径是弯曲的，需要 20-50 步采样。如果能训练直线路径，一步就能从噪声到数据。Flow Matching 定义 x_1（噪声）到 x_0（数据）的直线插值，训练向量场 v_theta(x,t) 匹配时间导数。Rectified Flow 进一步通过 reflow 迭代拉直路径，2 步采样即可匹配 50 步 DDPM 的质量。
 
@@ -78,7 +84,7 @@ Three reasons:
 2. **Better loss geometry** — straight paths have consistent signal-to-noise, whereas DDPM ε-loss has bad SNR at edges of the schedule.
 3. **Faster inference** — 4-8 steps at SDXL-Turbo quality; 1 step with consistency distillation.
 
-## Flow matching vs DDPM — the exact connection
+## Flow matching vs DDPM — the exact connection | Flow Matching vs DDPM — 精确联系
 
 Flow matching with a Gaussian-conditional path is diffusion *with a specific noise schedule*. Pick the `x_t = α(t) x_0 + σ(t) x_1` schedule and flow matching recovers Stratonovich-reformulated diffusion with `v = α'·x_0 - σ'·x_1`. The two are algebraically equivalent for Gaussian paths.
 
@@ -117,7 +123,7 @@ def sample(net, num_steps):
 
 Expect the 4-step sampler to already match the 20-step quality — a big deal for latency.
 
-## Pitfalls
+## Pitfalls | 常见陷阱
 
 - **Time parameterization.** Flow matching uses `t ∈ [0, 1]` with `t=0` at data, `t=1` at noise. DDPM uses `t ∈ [0, T]` with `t=0` at data, `t=T` at noise. Same direction, different scale. Papers get this wrong constantly.
 - **Schedule choice.** Rectified flow's straight line is "the" flow-matching schedule, but you can use cosine or logit-normal t-sampling (SD3 does this) for better scale coverage.
@@ -126,16 +132,18 @@ Expect the 4-step sampler to already match the 20-step quality — a big deal fo
 
 ## Use It | 用框架实现
 
-| Use case | 2026 stack |
+| Use case / 用途 | 2026 stack / 2026 技术栈 |
 |----------|-----------|
-| Text-to-image, best quality | Flow matching: SD3, Flux.1-dev |
-| Text-to-image, 1-4 steps | Distilled flow matching: Flux.1-schnell, SD3-Turbo, SDXL-Turbo |
-| Real-time inference | Consistency distillation from a flow-matched base (LCM, PCM) |
-| Audio generation | Flow matching: Stable Audio 2.5, AudioCraft 2 |
-| Video generation | Flow matching mixed with diffusion (Sora, Veo, Stable Video) |
-| Science / physics (particle trajectories, molecules) | Flow matching + equivariant vector field |
+| Text-to-image, best quality / 最佳质量文生图 | Flow matching: SD3, Flux.1-dev |
+| Text-to-image, 1-4 steps / 1-4 步文生图 | Distilled flow matching: Flux.1-schnell, SD3-Turbo, SDXL-Turbo |
+| Real-time inference / 实时推理 | Consistency distillation from a flow-matched base (LCM, PCM) |
+| Audio generation / 音频生成 | Flow matching: Stable Audio 2.5, AudioCraft 2 |
+| Video generation / 视频生成 | Flow matching mixed with diffusion (Sora, Veo, Stable Video) |
+| Science / physics / 科学/物理 | Flow matching + equivariant vector field |
 
 Whenever a paper says "faster than diffusion" in 2025-2026, it is almost always flow matching + distillation.
+
+> 当论文说"比扩散更快"时，几乎总是 Flow Matching + 蒸馏。
 
 ## Ship It | 产出物
 
@@ -160,7 +168,7 @@ Save `outputs/skill-fm-tuner.md`. Skill takes a diffusion-style model spec and c
 | Consistency distillation | "1-step sampler" | Train a student to map any `x_t` directly to `x_0`. |
 | CFG with velocity | "v-CFG" | `v_cfg = (1+w) v_cond - w v_uncond`; same trick, new variable. |
 
-## Production note: Flux.1-schnell is flow matching at its fastest
+## Production note: Flux.1-schnell is flow matching at its fastest | 生产笔记：Flux.1-schnell 是 Flow Matching 的最快形态
 
 Flow matching's production win is Flux.1-schnell — a flow-matched DiT distilled to 1-4 inference steps while keeping Flux-dev-grade quality. Niels' "Run Flux on an 8GB machine" notebook is the reference deployment recipe: T5 + CLIP encode, quantized MMDiT denoise (in 4 steps for schnell vs 50 for dev), VAE decode. The cost accounting:
 
