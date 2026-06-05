@@ -15,9 +15,15 @@
 
 Training a transformer stores, for each layer, the inputs to every op that is differentiated in backward: the attention inputs, the Q/K/V projections, the softmax output, the FFN inputs, the norm outputs, and the residual stream. For a layer with hidden size `d`, sequence length `L`, batch `B`, this is on the order of `12 * B * L * d` floats per layer.
 
+> 训练 transformer 时，每层需要存储反向传播中每个可微操作的输入：注意力输入、Q/K/V 投影、softmax 输出、FFN 输入、归一化输出和残差流。对于隐藏大小 `d`、序列长度 `L`、批量 `B` 的层，这大约是每层 `12 * B * L * d` 个浮点数。
+
 For `d=8192, L=8192, B=1`, that's 800 MB/layer in BF16. A 64-layer model is 51 GB of activations — and that's before you multiply by microbatch size, before you add attention-softmax intermediates (`L^2` per head), and before you factor tensor-parallel partial copies.
 
+> 对于 `d=8192, L=8192, B=1`，BF16 下每层 800 MB。64 层模型的激活值为 51 GB——这还没乘以微批次大小，还没加注意力 softmax 中间值（每头 `L^2`），还没计入张量并行的部分副本。
+
 The two-sided bill: BF16 weights plus optimizer state might fit in 80GB, but activations push you past. Gradient checkpointing (aka activation recomputation) is the standard fix. Drop most activations; redo the forward during backward to get them back. Cost: extra FLOPs. Benefit: memory drops by the ratio of checkpoint segments to total layers.
+
+> 双面账单：BF16 权重加优化器状态可能放入 80GB，但激活值让你超出。梯度检查点（又称激活重计算）是标准修复方案。丢弃大部分激活值；在反向传播期间重做前向传播来恢复它们。代价：额外 FLOPs。收益：显存按检查点段数与总层数的比率下降。
 
 Done naively, checkpointing costs roughly 33% more forward-pass FLOPs per step. Done well — selective checkpointing per the "smart selection" of Korthikanti et al. — you save 5x memory for under 5% FLOP overhead. And with FP8 matmuls, FSDP offload, and expert-parallel MoE this really matters: you can't afford either the memory or the wasted compute.
 

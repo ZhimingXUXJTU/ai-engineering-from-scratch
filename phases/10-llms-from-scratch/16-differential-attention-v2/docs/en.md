@@ -26,7 +26,11 @@
 
 Standard softmax attention has a mathematical property that turns into an operational headache at scale. For a query `q`, the attention weights are `softmax(qK^T / sqrt(d))`. Softmax can never produce exact zeros — every non-matching token gets some positive mass. That residual mass is noise, and it scales with context length. At 128k tokens, even if each non-matching token gets only 0.001% of the probability, 127,999 of them combined contribute about 12% of the total. The model has to learn to route around a noise floor that grows with context.
 
+> 标准 softmax 注意力有一个数学特性，在规模上变成操作上的头痛。对于查询 `q`，注意力权重是 `softmax(qK^T / sqrt(d))`。Softmax 永远不能产生精确零——每个不匹配的 token 都获得一些正质量。那个残余质量是噪声，且随上下文长度增长。在 128k token 时，即使每个不匹配 token 只获得 0.001% 的概率，127,999 个加起来贡献了约 12%。模型必须学会绕过一个随上下文增长的噪声底。
+
 Empirically this shows up as attention-head interference: hallucinated citations in long-context RAG, lost-in-the-middle failures on 100k-token retrieval tasks, and subtle accuracy degradation on needle-in-haystack benchmarks past 32k. The Differential Transformer paper (arXiv:2410.05258, ICLR 2025) measured the gap: DIFF Transformers hit lower perplexity, higher long-context accuracy, and fewer hallucinations than same-size baselines.
+
+> 经验上这表现为注意力头干扰：长上下文 RAG 中的幻觉引用、100k token 检索任务的中间丢失失败，以及 32k 以上草堆找针基准测试中的微妙精度下降。Differential Transformer 论文（arXiv:2410.05258，ICLR 2025）测量了差距：DIFF Transformer 达到了更低的困惑度、更高的长上下文精度和更少的幻觉。
 
 DIFF V1 had three problems that kept it out of frontier pre-training pipelines. Its value cache had to be loaded twice per decode step, it required custom CUDA kernels that broke FlashAttention compatibility, and its per-head RMSNorm destabilized long-run training at 70B-plus scale. DIFF V2 (Microsoft unilm blog, January 20, 2026) fixed all three. This lesson walks both versions, builds the difference operator, and benchmarks noise cancellation on a toy query.
 

@@ -26,9 +26,15 @@
 
 In Lesson 04 you wrote 350 lines of numpy and had a GPT-2-shaped model. Llama 3 405B has a 200-page technical report. Your instinct is that these are different beasts. They are not. The 200 pages describe the same object with five or six well-motivated modifications, plus a thousand implementation details about scaling. The skeleton -- embedding, transformer blocks, attention, MLP, norm, head -- is unchanged.
 
+> 你在第四课写了 350 行 numpy 就有了 GPT-2 形状的模型。Llama 3 405B 有一份 200 页的技术报告。你的直觉告诉你它们是完全不同的东西。其实不是。200 页描述的是同一个对象，只有五六个有充分动机的修改，加上一千个关于扩展的实现细节。骨架——嵌入、transformer 块、注意力、MLP、归一化、输出头——没有变化。
+
 This lesson is a diff. For each major open model family, we list exactly what changed from GPT-2, why, and what it cost. When you are done you can read a fresh model card and mentally translate it back to the GPT-2 baseline.
 
+> 本课是一个 diff。对于每个主要开源模型家族，我们列出相比 GPT-2 到底改了什么、为什么改、代价是什么。完成后你可以阅读一张新的模型卡并在脑海中翻译回 GPT-2 基线。
+
 The practical payoff is that when Meta releases Llama 5 or DeepSeek releases V4, you will not need a new mental model. You will look at the config, see which of the well-known knobs moved, and know what the downstream implications are. The 2026 architectures are a finite toolbox. Each new model picks a different subset.
+
+> 实际收益是：当 Meta 发布 Llama 5 或 DeepSeek 发布 V4 时，你不需要新的心智模型。你看配置，看到哪些已知旋钮被调了，就知道下游影响是什么。2026 年的架构是一个有限的工具箱。每个新模型选择不同的子集。
 
 ## The Concept | 核心概念
 

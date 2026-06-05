@@ -26,9 +26,15 @@
 
 Autoregressive decoding on a 70B model runs at maybe 35 tokens per second on an H100. The GPU is nowhere near saturated. Memory bandwidth is the ceiling: every token loads 70B of weights from HBM, does one step of arithmetic, and produces one float. The compute units sit mostly idle.
 
+> 70B 模型的自回归解码在 H100 上大约每秒 35 个 token。GPU 远未饱和。显存带宽是上限：每个 token 从 HBM 加载 70B 权重，做一步运算，产出一个浮点数。计算单元大部分时间在闲置。
+
 Speculative decoding turns that into a throughput problem you can actually solve. A cheap draft proposes `N` tokens in `N` small forward passes. The verifier runs once on the prefix plus all `N` drafts. If the verifier's distribution at position `i` agrees with the draft (in a statistical sense we will make precise), we accept; if not, we reject and sample a correction from the residual distribution. A single big-model forward produces up to `N+1` accepted tokens instead of one.
 
+> 投机解码将其转化为你可以实际解决的吞吐量问题。一个廉价的草稿模型用 N 次小前向传播提出 N 个 token。验证器对前缀加上所有 N 个草稿运行一次。如果验证器在位置 i 的分布与草稿一致，我们接受；否则拒绝并从残差分布中采样一个修正。一次大模型前向传播产生最多 N+1 个被接受的 token，而不是一个。
+
 The theorem that matters is Leviathan, Kalman, Matias (ICML 2023): the output distribution is identical to what sampling from the verifier directly would have produced. Not approximately. Identically. This is the entire reason speculative decoding is acceptable in production — it is a pure latency optimization with no quality tradeoff.
+
+> 关键定理来自 Leviathan、Kalman、Matias（ICML 2023）：输出分布与直接从验证器采样产生的分布相同。不是近似。是相同。这就是投机解码在生产环境中可接受的全部原因——它是纯粹的延迟优化，没有质量折衷。
 
 What Phase 7 · Lesson 16 gave you was the math. What this lesson gives you is the training stack. A good draft is worth 2× more speedup than a cheap draft. EAGLE, EAGLE-2, and EAGLE-3 (Li et al., 2024–2025) turned "draft = smaller version of the same model" into a precise engineering discipline. 2026 production inference servers default to EAGLE-3.
 

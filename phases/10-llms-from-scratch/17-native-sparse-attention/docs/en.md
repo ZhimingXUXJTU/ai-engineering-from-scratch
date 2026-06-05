@@ -26,9 +26,15 @@
 
 Full attention at sequence length N costs `O(N^2)` time and `O(N)` KV cache per layer. At 64k tokens, the compute and memory bandwidth numbers are catastrophic. Measured theoretical estimate from the NSA paper: attention accounts for 70-80% of total decode latency at 64k. Everything downstream — TTFT, tokens/sec, cost per million tokens — is dominated by attention cost.
 
+> 序列长度 N 的全注意力成本为 `O(N^2)` 时间和每层 `O(N)` KV 缓存。在 64k token 时，计算和显存带宽的数字是灾难性的。NSA 论文的测量理论估计：64k 时注意力占总解码延迟的 70-80%。所有下游指标——TTFT、tokens/sec、每百万 token 成本——都被注意力成本主导。
+
 Sparse attention is the obvious answer. Prior attempts fall into two buckets. Fixed-pattern sparsity (sliding-window, strided, block-local) throws information away and fails on long-range recall tasks. Inference-time sparsity (KV cache pruning, H2O, StreamingLLM) is applied to a model pre-trained on dense attention and recovers only a fraction of the potential speedup because the model was never asked to route information through the sparse pattern.
 
+> 稀疏注意力是显而易见的答案。之前的尝试分为两类。固定模式稀疏性（滑动窗口、跨步、块局部）丢弃信息且在长程回忆任务上失败。推理时稀疏性（KV 缓存剪枝、H2O、StreamingLLM）应用于在密集注意力上预训练的模型，只能恢复潜在加速的一小部分，因为模型从未被要求通过稀疏模式路由信息。
+
 Native Sparse Attention (Yuan et al., DeepSeek + PKU + UW, ACL 2025 best paper, arXiv:2502.11089) does both: a sparsity pattern the model learns during pre-training, implemented as a kernel-aligned algorithm that actually delivers the compute savings at inference. Two years from now, NSA or a direct descendant is the default attention on every frontier long-context model.
+
+> 原生稀疏注意力（Yuan 等人，DeepSeek + PKU + UW，ACL 2025 最佳论文，arXiv:2502.11089）两者兼顾：一个模型在预训练中学习的稀疏模式，实现为内核对齐算法，在推理时真正交付计算节省。两年后，NSA 或其直接继承者将是每个前沿长上下文模型的默认注意力。
 
 ## The Concept | 核心概念
 

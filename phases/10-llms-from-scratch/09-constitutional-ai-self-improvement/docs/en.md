@@ -28,11 +28,19 @@
 
 You built RLHF in Lesson 07 and DPO in Lesson 08. Both depend on the same expensive input: human preference pairs. Anthropic's InstructGPT-era pipeline used roughly 33,000 comparisons. Llama 2 Chat used over 1.5 million. Claude 3 used more. This data is slow, expensive, and biased toward whatever the annotators happened to believe on the day they were rating.
 
+> 你在第七课构建了 RLHF，第八课构建了 DPO。两者都依赖相同昂贵输入：人类偏好对。Anthropic InstructGPT 时代的管线用了大约 33,000 个比较。Llama 2 Chat 用了超过 150 万个。Claude 3 用了更多。这些数据收集缓慢、昂贵，且偏向标注者在评分当天碰巧持有的任何观点。
+
 The 2022 Constitutional AI paper asked a simple question. What if the model generates the preference labels itself? Give it a list of written principles -- the "constitution" -- and have it critique its own responses. The critiques become the training signal.
+
+> 2022 年的 Constitutional AI 论文问了一个简单的问题：如果模型自己生成偏好标签会怎样？给它一组书面原则——"宪法"——让它批判自己的回复。批判结果成为训练信号。
 
 In 2024, DeepSeek took the idea further. They showed that for any task with a verifiable outcome (math with a known answer, code that either passes tests or fails, a game that either wins or loses), you can skip the critic entirely. Generate many candidate solutions. Grade each one with a deterministic rule. Run a policy-gradient algorithm on the rewards. DeepSeek-R1 was trained this way with almost no human preference data and matched o1-class reasoning performance.
 
+> 2024 年，DeepSeek 将这个想法推向更远。他们证明对于任何有可验证结果的任务（有已知答案的数学、通过或未通过测试的代码、赢或输的游戏），你可以完全跳过批判者。生成多个候选解。用确定性规则给每个打分。在奖励上运行策略梯度算法。DeepSeek-R1 就是这样训练的，几乎没有人类偏好数据，却匹配了 o1 级推理性能。
+
 These two loops -- Constitutional AI for subjective behavior and rule-based RL for verifiable behavior -- are the dominant alignment recipes of 2026. The human preference budget that used to go into RLHF now pays for a much smaller step: picking the constitution and picking the reward rules.
+
+> 这两个循环——用于主观行为的 Constitutional AI 和用于可验证行为的基于规则的 RL——是 2026 年主流的对齐方案。曾经用于 RLHF 的人类偏好预算现在只需支付一个更小的步骤：选择宪法和选择奖励规则。
 
 > **【中文解读】** 2022 年 Constitutional AI 论文提出：让模型自己生成偏好标签——给它一组书面原则（"宪法"），让它自我批判和修正。2024 年 DeepSeek 进一步证明：对可验证结果的任务，可以跳过批判者——生成多个候选解，用规则评分，运行策略梯度。DeepSeek-R1 用这种方法几乎不需要人类偏好数据就达到了 o1 级推理能力。
 
@@ -44,9 +52,15 @@ These two loops -- Constitutional AI for subjective behavior and rule-based RL f
 
 Bai et al. (2022) structured the pipeline in two stages.
 
+> Bai 等人（2022）将管线分为两个阶段。
+
 **Stage 1: Supervised Learning from AI Feedback (SL-CAI).** Start with an SFT model that is helpful but possibly harmful. Prompt it with potentially harmful requests. For each response, ask the *same model* to critique its response against a constitutional principle, then revise. Fine-tune on the revised responses. The dataset is (prompt, revised_response) pairs.
 
+> **阶段 1：从 AI 反馈的监督学习（SL-CAI）。** 从一个有用但可能有害的 SFT 模型开始。用潜在有害的请求提示它。对每个回复，让*同一个模型*根据宪法原则批判自己的回复，然后修正。在修正后的回复上微调。数据集是 (prompt, 修正后回复) 对。
+
 **Stage 2: Reinforcement Learning from AI Feedback (RLAIF).** Sample pairs of responses. Ask the model which one better follows the constitution. The pairwise preferences train a reward model. Then run PPO or DPO on the model using that reward. The key difference from RLHF: the preferences came from the model, not from humans.
+
+> **阶段 2：从 AI 反馈的强化学习（RLAIF）。** 采样回复对。问模型哪个更好地遵循宪法。成对偏好训练一个奖励模型。然后用该奖励在模型上运行 PPO 或 DPO。与 RLHF 的关键区别：偏好来自模型，而非人类。
 
 ```mermaid
 graph TD
@@ -76,15 +90,23 @@ graph TD
 
 The constitution is the lever. Anthropic's original had 16 principles (later expanded). A principle reads like "Please choose the response that is least likely to be objectionable to anyone from a wide variety of cultural backgrounds." You pick the principle for each step, sometimes at random, sometimes based on the prompt category.
 
+> 宪法是杠杆。Anthropic 最初有 16 条原则（后来扩展了）。一条原则读起来像"请选择最不可能对来自各种文化背景的任何人造成冒犯的回复。"你为每个步骤选择原则，有时随机，有时基于 prompt 类别。
+
 ### What the Constitution Actually Does
 
 The constitution moves the alignment contract from *data* to *text*. Changing behavior under RLHF means re-labeling thousands of pairs. Changing behavior under CAI means editing a paragraph. This is the main practical win.
 
+> 宪法将对齐契约从*数据*转移到*文本*。在 RLHF 下改变行为意味着重新标注数千个对。在 CAI 下改变行为意味着编辑一段文字。这是主要的实际收益。
+
 It has a cost. The model's self-judgments are only as good as its starting calibration. If the SFT model has blind spots -- for instance, it cannot recognize manipulative phrasing -- the critique step inherits those blind spots. CAI compresses the alignment loop but cannot amplify signal past the base model's ceiling. This is why every production CAI pipeline still uses some human preference data, typically 5-10% the volume of pure RLHF.
+
+> 这有代价。模型的自我判断取决于其初始校准。如果 SFT 模型有盲点——例如它无法识别操纵性措辞——批判步骤会继承这些盲点。CAI 压缩了对齐循环但不能将信号放大超过基础模型的上限。这就是为什么每个生产 CAI 管线仍然使用一些人类偏好数据，通常是纯 RLHF 数据量的 5-10%。
 
 ### GRPO: Group-Relative Policy Optimization
 
 DeepSeek introduced GRPO in the DeepSeekMath paper (2024) and used it as the backbone of DeepSeek-R1 (2025). GRPO is a variant of PPO that removes the value function.
+
+> DeepSeek 在 DeepSeekMath 论文（2024）中引入了 GRPO，并将其用作 DeepSeek-R1（2025）的核心。GRPO 是 PPO 的变体，移除了价值函数。
 
 Recall PPO's objective (from Lesson 07):
 
@@ -96,11 +118,15 @@ where `A` is the advantage, typically estimated with GAE using a learned value n
 
 GRPO throws out the value function. For each prompt, it samples a group of G responses (typically G=16 or 64). The reward for each response is computed, then normalized within the group:
 
+> GRPO 抛弃了价值函数。对于每个 prompt，它采样一组 G 个回复（通常 G=16 或 64）。计算每个回复的奖励，然后在组内归一化：
+
 ```
 A_i = (r_i - mean(r_1, ..., r_G)) / std(r_1, ..., r_G)
 ```
 
 The advantage is the z-score of the response's reward relative to its siblings. No value function. The group acts as its own baseline.
+
+> 优势是回复奖励相对于同组的 z 分数。没有价值函数。组充当自己的基线。
 
 ```
 L_GRPO = E[min(r(theta) * A_group, clip(r(theta), 1-eps, 1+eps) * A_group)] - beta * KL(pi || pi_ref)
@@ -108,9 +134,13 @@ L_GRPO = E[min(r(theta) * A_group, clip(r(theta), 1-eps, 1+eps) * A_group)] - be
 
 The KL penalty against the reference model is still there, same as PPO. The clip ratio is still there. What's gone is the separate critic.
 
+> 对参考模型的 KL 惩罚仍然存在，与 PPO 相同。截断比率仍然存在。去掉的是单独的评论家网络。
+
 ### Why GRPO Matters for Reasoning
 
 For reasoning tasks the reward is often sparse and binary: the final answer is right or wrong. A value function trained on sparse binary rewards is a waste -- it cannot learn useful intermediate estimates because nearly every state has the same expected return until the final step. GRPO's group normalization gives you an immediate relative signal: among 16 attempts on the same math problem, which attempts were above average for this problem?
+
+> 对于推理任务，奖励通常是稀疏和二元的：最终答案是对或错。在稀疏二元奖励上训练的价值函数是浪费——它无法学到有用的中间估计，因为几乎每个状态在最后一步之前都有相同的期望回报。GRPO 的组归一化给你一个即时的相对信号：在同一数学问题的 16 次尝试中，哪些尝试高于该问题的平均水平？
 
 This is the exact shape of signal you get from rule-based rewards:
 
