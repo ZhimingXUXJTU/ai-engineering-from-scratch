@@ -2,6 +2,8 @@
 
 > The perceptron is the atom of neural networks. Split it open and you find weights, a bias, and a decision.
 
+> 感知机是神经网络的"原子"——拆开来看，里面就是权重、偏置和一个决策。
+
 > **【中文解读】** 感知机是神经网络的"原子"——最小的学习单元。它做的事情极其简单：把输入乘上权重，加上偏置，然后做一个二选一的决策。理解感知机，就是理解"学习"在代码中到底意味着什么：不断调整数字，直到输出和现实吻合。
 
 **Type:** Build
@@ -12,9 +14,13 @@
 ## Learning Objectives | 学习目标
 
 - Implement a perceptron from scratch in Python, including the weight update rule and step activation function
+  从零用 Python 实现感知机，包括权重更新规则和阶跃激活函数
 - Explain why a single perceptron can only solve linearly separable problems and demonstrate the XOR failure case
+  解释为什么单个感知机只能解决线性可分问题，并演示 XOR 失败案例
 - Construct a multi-layer perceptron by composing OR, NAND, and AND gates to solve XOR
+  通过组合 OR、NAND 和 AND 门来构建多层感知机以解决 XOR
 - Train a two-layer network with sigmoid activation and backpropagation to learn XOR automatically
+  用 sigmoid 激活和反向传播训练两层网络自动学习 XOR
 
 > **【中文解读】** 本章目标：从零实现感知机，理解为什么单个感知机只能解决线性可分问题（XOR 就是一个反例），然后通过组合多个感知机来突破这个限制，最终用反向传播自动学习权重。
 
@@ -22,9 +28,15 @@
 
 You know vectors and dot products. You know that a matrix transforms inputs into outputs. But how does a machine *learn* which transformation to use?
 
+> 你已经知道向量和点积。你知道矩阵可以将输入转换为输出。但机器如何*学会*使用哪种变换呢？
+
 The perceptron answers this. It's the simplest possible learning machine: take some inputs, multiply by weights, add a bias, and make a binary decision. Then adjust. That's it. Every neural network ever built is layers of this idea stacked together.
 
+> 感知机回答了这个问题。它是最简单的学习机器：接收输入，乘以权重，加上偏置，做出二分类决策，然后调整。就是这样。有史以来构建的每一个神经网络都是这个想法的层层堆叠。
+
 Understanding the perceptron means understanding what "learning" actually means in code: adjusting numbers until the output matches reality.
+
+> 理解感知机意味着理解代码中"学习"的真正含义：不断调整数字，直到输出与现实吻合。
 
 > **【中文解读】** 你已经知道矩阵可以把输入变成输出。但机器怎么"学会"该用哪个变换？感知机给出了答案：输入乘权重、加偏置、做二分类决策、然后根据错误调整参数。所有神经网络——不管多复杂——都是这个简单想法的堆叠。
 
@@ -33,6 +45,8 @@ Understanding the perceptron means understanding what "learning" actually means 
 ### One Neuron, One Decision | 一个神经元，一个决策
 
 A perceptron takes n inputs, multiplies each by a weight, sums them up, adds a bias, and passes the result through an activation function.
+
+> 感知机接收 n 个输入，将每个输入乘以权重，求和，加上偏置，然后通过激活函数输出结果。
 
 ```mermaid
 graph LR
@@ -46,6 +60,8 @@ graph LR
 
 The step function is brutal: if the weighted sum plus bias is >= 0, output 1. Otherwise, output 0.
 
+> 阶跃函数很简单粗暴：如果加权和加偏置大于等于 0，输出 1；否则输出 0。
+
 ```
 step(z) = 1  if z >= 0
            0  if z < 0
@@ -53,11 +69,15 @@ step(z) = 1  if z >= 0
 
 This is a linear classifier. The weights and bias define a line (or hyperplane in higher dimensions) that splits the input space into two regions.
 
+> 这是一个线性分类器。权重和偏置定义了一条线（或高维空间中的超平面），将输入空间分成两个区域。
+
 > **【中文解读】** 感知机的计算流程：输入 x 乘以权重 w，求和后加上偏置 b，最后通过阶跃函数输出 0 或 1。本质上就是一个线性分类器——权重和偏置在空间中画一条线（或超平面），把输入空间分成两个区域。
 
 ### The Decision Boundary | 决策边界
 
 For two inputs, the perceptron draws a line through 2D space:
+
+> 对于两个输入，感知机在二维空间中画一条直线：
 
 ```
   x2
@@ -74,11 +94,15 @@ For two inputs, the perceptron draws a line through 2D space:
 
 Everything on one side of the line outputs 0. Everything on the other side outputs 1. Training moves this line until it correctly separates the classes.
 
+> 线的一侧全部输出 0，另一侧全部输出 1。训练的过程就是移动这条线，直到它正确地将不同类别分开。
+
 > **【中文解读】** 决策边界就是 w·x + b = 0 这条线。训练的过程就是不断移动这条线，直到它把不同类别的数据正确分开。在深度学习中，每一层都在创建新的特征空间和新的决策边界。
 
 ### The Learning Rule | 学习规则
 
 The perceptron learning rule is simple:
+
+> 感知机的学习规则非常简单：
 
 ```
 For each training example (x, y_true):     # 对每个训练样本
@@ -92,6 +116,8 @@ For each training example (x, y_true):     # 对每个训练样本
 
 If the prediction is correct, error = 0, nothing changes. If it predicts 0 but should be 1, weights increase. If it predicts 1 but should be 0, weights decrease. The learning rate controls how big each adjustment is.
 
+> 如果预测正确，误差为 0，不做任何调整。如果预测为 0 但应该是 1，权重增大。如果预测为 1 但应该是 0，权重减小。学习率控制每次调整的幅度。
+
 > **【中文解读】** 感知机的学习规则非常直觉：预测对了就不动，预测错了就根据误差方向调整权重。这个规则是所有梯度下降算法的鼻祖——PyTorch 里的 `optimizer.step()` 做的事情本质上是一样的，只是计算更复杂。
 
 > **【拓展：梯度下降的起源】** 感知机学习规则是最简单的梯度下降。现代深度学习中的 SGD（随机梯度下降）、Adam 优化器都是这个思想的延伸。区别在于：感知机用固定的学习率和手动计算梯度，而 Adam 会自适应调整学习率。
@@ -99,6 +125,8 @@ If the prediction is correct, error = 0, nothing changes. If it predicts 0 but s
 ### The XOR Problem | XOR 问题
 
 Here's where it breaks. Look at these logic gates:
+
+> 这就是感知机失效的地方。看看这些逻辑门：
 
 ```
 AND gate:           OR gate:            XOR gate:
@@ -110,6 +138,8 @@ x1  x2  out         x1  x2  out         x1  x2  out
 ```
 
 AND and OR are linearly separable: you can draw a single line to separate the 0s from the 1s. XOR is not. No single line can separate [0,1] and [1,0] from [0,0] and [1,1].
+
+> AND 和 OR 是线性可分的：你可以画一条直线将 0 和 1 分开。XOR 不是。没有一条直线能将 [0,1] 和 [1,0] 与 [0,0] 和 [1,1] 分开。
 
 ```
 AND (separable):        XOR (not separable):
@@ -124,7 +154,11 @@ AND (separable):        XOR (not separable):
 
 This is a fundamental limit. A single perceptron can only solve linearly separable problems. Minsky and Papert proved this in 1969 and it nearly killed neural network research for a decade.
 
+> 这是一个根本性的限制。单个感知机只能解决线性可分问题。Minsky 和 Papert 在 1969 年证明了这一点，这几乎让神经网络研究停滞了十年。
+
 The fix: stack perceptrons into layers. A multi-layer perceptron can solve XOR by combining two linear decisions into a nonlinear one.
+
+> 解决方案：将感知机堆叠成层。多层感知机可以通过将两个线性决策组合成一个非线性决策来解决 XOR。
 
 > **【中文解读】** XOR 问题是感知机的"阿喀琉斯之踵"：无论你怎么画直线，都无法把 XOR 的两类输出分开。1969 年 Minsky 和 Papert 证明了这一点，直接导致了神经网络研究的"第一个寒冬"。但解法也很优雅：把多个感知机叠成多层，用两条直线组合出非线性的决策边界。这就是多层感知机（MLP）的起源。
 
@@ -225,11 +259,15 @@ for inputs, expected in xor_data:
 
 It will never converge. This is the hard proof that a single perceptron cannot learn XOR.
 
+> 它永远不会收敛。这就是单个感知机无法学习 XOR 的铁证。
+
 > **【中文解读】** 单个感知机训练 XOR 永远不会收敛——不管训练多少轮。这是数学上的硬限制：一条直线无法把 XOR 的四个点正确分成两类。
 
 ### Step 4: Solve XOR with two layers | 用两层网络解决 XOR
 
 The trick: XOR = (x1 OR x2) AND NOT (x1 AND x2). Combine three perceptrons:
+
+> 技巧：XOR = (x1 OR x2) AND NOT (x1 AND x2)。组合三个感知机：
 
 ```mermaid
 graph LR
@@ -270,11 +308,15 @@ for inputs, expected in xor_data:
 
 All four cases correct. Stacking perceptrons into layers creates decision boundaries that no single perceptron can produce.
 
+> 四个案例全部正确。将感知机堆叠成层可以创建单个感知机无法产生的决策边界。
+
 > **【中文解读】** 关键洞察：XOR = (x1 OR x2) AND NOT(x1 AND x2)。第一层用两个感知机分别做 OR 和 NAND（两条直线），第二层用 AND 把两个结果组合起来。这就用两条直线拼出了非线性的决策边界。这也是现代神经网络的基本原理——每一层都在做特征的组合变换。
 
 ### Step 5: Train a Two-Layer Network | 训练一个两层网络
 
 Step 4 hand-wired the weights. That works for XOR, but not for real problems where you don't know the right weights in advance. The fix: replace the step function with sigmoid and learn the weights automatically through backpropagation.
+
+> Step 4 手动设置了权重。这对 XOR 有效，但无法用于不知道正确权重的实际问题。解决方案：用 sigmoid 替换阶跃函数，通过反向传播自动学习权重。
 
 ```python
 class TwoLayerNetwork:
@@ -342,7 +384,11 @@ for inputs, expected in xor_data:
 
 Two key differences from Step 4. First, sigmoid replaces the step function -- it's smooth, so gradients exist. Second, the `train` method propagates error backward from output to hidden layer, adjusting every weight proportionally to its contribution to the error. That's backpropagation in 20 lines.
 
+> 与 Step 4 有两个关键区别。首先，sigmoid 替换了阶跃函数——它是平滑的，所以梯度存在。其次，`train` 方法将误差从输出层向隐藏层反向传播，按每个权重对误差的贡献比例进行调整。这就是 20 行代码实现的反向传播。
+
 This is the bridge to Lesson 03. The math behind `d_output` and `hidden_deltas` is the chain rule applied to the network graph. We'll derive it properly there.
+
+> 这就是通向第 03 课的桥梁。`d_output` 和 `hidden_deltas` 背后的数学是链式法则在网络图上的应用。我们将在那里正式推导它。
 
 > **【中文解读】** Step 4 是手动设定权重，但真实问题中我们不知道正确的权重。这里的突破是：用 sigmoid 替代阶跃函数（因为它可导），然后用反向传播（backpropagation）自动学习权重。`d_output` 和 `hidden_deltas` 就是链式法则的应用——从输出层往回算梯度，逐层调整。这就是 PyTorch 的 `loss.backward()` 在做的事情。
 
@@ -351,6 +397,8 @@ This is the bridge to Lesson 03. The math behind `d_output` and `hidden_deltas` 
 ## Use It | 实际应用
 
 Everything you just built from scratch exists in one import:
+
+> 你刚才从零构建的所有功能都可以通过一个导入来实现：
 
 ```python
 from sklearn.linear_model import Perceptron as SkPerceptron   # sklearn 内置的感知机
@@ -366,14 +414,24 @@ print([clf.predict([x])[0] for x in X])     # 预测所有样本
 
 Five lines. Your 30-line `Perceptron` class does the same thing. The sklearn version adds convergence checks, multiple loss functions, and sparse input support -- but the core loop is identical: weighted sum, step function, weight update on error.
 
+> 五行代码。你 30 行的 `Perceptron` 类做的是同样的事情。sklearn 版本增加了收敛检查、多种损失函数和稀疏输入支持——但核心循环完全相同：加权和、阶跃函数、按误差更新权重。
+
 The real gap shows up at scale. What changes in production networks:
 
+> 真正的差距体现在规模上。生产环境中的网络有以下变化：
+
 - The step function becomes sigmoid, ReLU, or other smooth activations
+  阶跃函数变成 sigmoid、ReLU 或其他平滑激活函数
 - Weights are learned automatically via backpropagation (Lesson 03)
+  权重通过反向传播自动学习（第 03 课）
 - Layers get deeper: 3, 10, 100+ layers
+  层数变得更深：3 层、10 层、100+ 层
 - The same principle holds: each layer creates new features from the previous layer's outputs
+  基本原理不变：每一层从前一层的输出中创建新特征
 
 A single perceptron can only draw straight lines. Stack them, and you can draw any shape.
+
+> 单个感知机只能画直线。把它们堆叠起来，你就能画出任何形状。
 
 > **【中文解读】** sklearn 里的 Perceptron 五行代码就搞定了我们 30 行做的事情。核心逻辑完全相同：加权求和、阶跃函数、按误差更新权重。真正的差距在规模：现代网络用可导的激活函数（如 ReLU）、用反向传播自动学习、有几十到上百层。但基本原理永远是：每一层从上一层的输出中创建新特征。
 
@@ -381,6 +439,8 @@ A single perceptron can only draw straight lines. Stack them, and you can draw a
 
 This lesson produces:
 - `outputs/skill-perceptron.md` - a skill covering when single-layer vs multi-layer architectures are needed
+
+> 本课产出：`outputs/skill-perceptron.md` - 一个关于何时使用单层与多层架构的技能文档
 
 ## Exercises | 练习题
 
@@ -420,5 +480,8 @@ This lesson produces:
 ## Further Reading | 延伸阅读
 
 - Frank Rosenblatt, "The Perceptron: A Probabilistic Model for Information Storage and Organization in the Brain" (1958) -- the original paper that started it all
+  Frank Rosenblatt，《感知机：大脑信息存储和组织的概率模型》(1958)——开创这一切的原始论文
 - Minsky & Papert, "Perceptrons" (1969) -- the book that proved XOR was unsolvable by single-layer networks and killed perceptron research for a decade
+  Minsky 和 Papert，《感知机》(1969)——证明单层网络无法解决 XOR 并使感知机研究停滞十年的著作
 - Michael Nielsen, "Neural Networks and Deep Learning", Chapter 1 (http://neuralnetworksanddeeplearning.com/) -- free online, best visual explanation of how perceptrons compose into networks
+  Michael Nielsen，《神经网络与深度学习》第 1 章——免费在线，关于感知机如何组合成网络的最佳可视化解释

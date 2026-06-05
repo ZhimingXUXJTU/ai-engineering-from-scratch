@@ -22,9 +22,15 @@
 
 Stack two linear transformations: y = W2(W1x + b1) + b2. Expand it: y = W2W1x + W2b1 + b2. That's just y = Ax + c -- a single linear transformation. No matter how many linear layers you stack, the result collapses to one matrix multiply. Your 100-layer network has the same representational power as a single layer.
 
+> 堆叠两层线性变换：y = W2(W1x + b1) + b2。展开后：y = W2W1x + W2b1 + b2。这不过是 y = Ax + c——一个单独的线性变换。无论你堆叠多少线性层，结果都会坍缩为一次矩阵乘法。你的100层网络与单层网络具有相同的表示能力。
+
 This is not a theoretical curiosity. It means a deep linear network literally cannot learn XOR, cannot classify a spiral dataset, cannot recognize a face. Without activation functions, depth is an illusion.
 
+> 这不是理论上的好奇。这意味着深度线性网络实际上无法学习 XOR，无法分类螺旋数据集，无法识别人脸。没有激活函数，深度是一种幻觉。
+
 Activation functions break the linearity. They warp the output of each layer through a nonlinear function, giving the network the ability to bend decision boundaries, approximate arbitrary functions, and actually learn. But pick the wrong activation and your gradients vanish to zero (sigmoid in deep networks), explode to infinity (unbounded activations without careful initialization), or your neurons die permanently (ReLU with large negative biases). The choice of activation function directly determines whether your network learns at all.
+
+> 激活函数打破了线性。它们通过非线性函数扭曲每层的输出，赋予网络弯曲决策边界、逼近任意函数并真正学习的能力。但选错激活函数，梯度会消失为零（深层网络中的 sigmoid）、爆炸到无穷大（没有仔细初始化的无界激活），或神经元永久死亡（具有大负偏置的 ReLU）。激活函数的选择直接决定了你的网络是否能学习。
 
 > **【中文解读】** 堆叠两层线性变换 y = W2(W1x+b1)+b2 展开后就是一个线性变换 y = Ax+c。不管叠多少层，结果都等价于一个矩阵乘法——深度是假的。激活函数打破线性，让网络能弯曲决策边界、逼近任意函数。选错激活函数会导致梯度消失（sigmoid）、梯度爆炸或神经元死亡（ReLU）。
 
@@ -33,6 +39,8 @@ Activation functions break the linearity. They warp the output of each layer thr
 ### Why Nonlinearity Is Necessary | 为什么必须要有非线性
 
 Matrix multiplication is composable. Multiplying a vector by matrix A then matrix B is identical to multiplying by AB. This means stacking ten linear layers is mathematically equivalent to one linear layer with one big matrix. All those parameters, all that depth -- wasted. You need something to break the chain. That's what activation functions do.
+
+> 矩阵乘法是可组合的。先用矩阵 A 乘以向量，再用矩阵 B 乘，等同于用 AB 乘。这意味着堆叠十个线性层在数学上等价于一个具有一个大矩阵的线性层。所有那些参数、所有那些深度——都浪费了。你需要一些东西来打破这个链条。那就是激活函数的作用。
 
 Here is the proof. A linear layer computes f(x) = Wx + b. Stack two:
 
@@ -64,13 +72,19 @@ Now the substitution breaks. W2 * g(W1 * x + b1) + b2 cannot be reduced to a sin
 
 The original activation function for neural networks.
 
+> 神经网络最初的激活函数。
+
 ```
 sigmoid(x) = 1 / (1 + e^(-x))
 ```
 
 Output range: (0, 1). Smooth, differentiable, maps any real number to a probability-like value.
 
+> 输出范围：(0, 1)。平滑、可微，将任何实数映射为类似概率的值。
+
 The derivative:
+
+> 其导数为：
 
 ```
 sigmoid'(x) = sigmoid(x) * (1 - sigmoid(x))
@@ -78,13 +92,19 @@ sigmoid'(x) = sigmoid(x) * (1 - sigmoid(x))
 
 The maximum value of this derivative is 0.25, occurring at x = 0. In backpropagation, gradients multiply through layers. Ten layers of sigmoid means the gradient gets multiplied by at most 0.25 ten times:
 
+> 该导数的最大值为 0.25，出现在 x = 0 时。在反向传播中，梯度在层间相乘。十层 sigmoid 意味着梯度最多乘以 0.25 十次：
+
 ```
 0.25^10 = 0.000000953674     # 不到原始信号的百万分之一
 ```
 
 Less than one millionth of the original signal. This is the vanishing gradient problem. Gradients in early layers become so small that weights barely update. The network appears to learn -- loss decreases in later layers -- but the first layers are frozen. Deep sigmoid networks simply do not train.
 
+> 不到原始信号的百万分之一。这就是梯度消失问题。前层的梯度变得如此之小，权重几乎不更新。网络似乎在学习——后面层的损失在下降——但前面的层被冻结了。深度 sigmoid 网络根本无法训练。
+
 Additional problem: sigmoid outputs are always positive (0 to 1), which means gradients on weights are always the same sign. This causes zig-zagging during gradient descent.
+
+> 额外的问题：sigmoid 输出总是正数（0 到 1），这意味着权重的梯度总是同号。这导致梯度下降呈锯齿形路径。
 
 > **【中文解读】** Sigmoid 的导数最大只有 0.25，10 层后梯度只剩百万分之一。前面几层几乎收不到梯度，无法学习。另外 sigmoid 输出总是正数（0到1），导致权重梯度同号，优化路径呈锯齿形。
 
@@ -94,19 +114,27 @@ Additional problem: sigmoid outputs are always positive (0 to 1), which means gr
 
 The centered version of sigmoid.
 
+> Sigmoid 的零中心版本。
+
 ```
 tanh(x) = (e^x - e^(-x)) / (e^x + e^(-x))
 ```
 
 Output range: (-1, 1). Zero-centered, which eliminates the zig-zag problem.
 
+> 输出范围：(-1, 1)。零中心化，消除了锯齿形问题。
+
 The derivative:
+
+> 其导数为：
 
 ```
 tanh'(x) = 1 - tanh(x)^2
 ```
 
 Maximum derivative is 1.0 at x = 0 -- four times better than sigmoid. But the vanishing gradient problem still exists. For large positive or negative inputs, the derivative approaches zero. Ten layers still crush the gradient, just less aggressively.
+
+> 最大导数为 1.0（在 x = 0 时）——比 sigmoid 好 4 倍。但梯度消失问题仍然存在。对于大的正或负输入，导数趋近于零。十层仍然会压垮梯度，只是没那么严重。
 
 > **【中文解读】** Tanh 是 sigmoid 的零中心版本，输出范围 (-1, 1)，导数最大值 1.0（比 sigmoid 好 4 倍）。但大输入时导数仍趋近于零，梯度消失问题依然存在，只是没那么严重。
 
@@ -115,6 +143,8 @@ Maximum derivative is 1.0 at x = 0 -- four times better than sigmoid. But the va
 ### ReLU: The Breakthrough | ReLU：深度学习的突破
 
 Rectified Linear Unit. Popularized for deep learning by Nair and Hinton in 2010 (the function itself dates to Fukushima's 1969 work), it changed everything.
+
+> 修正线性单元。由 Nair 和 Hinton 在 2010 年推广用于深度学习（该函数本身可追溯到 Fukushima 1969 年的工作），它改变了一切。
 
 ```
 relu(x) = max(0, x)
@@ -129,7 +159,11 @@ relu'(x) = 1  if x > 0
 
 No vanishing gradient for positive inputs. The gradient is exactly 1, passed straight through. This is why deep networks became trainable -- ReLU preserves gradient magnitude across layers.
 
+> 正输入没有梯度消失问题。梯度正好是 1，直接传递。这就是深度网络变得可训练的原因——ReLU 在层间保持梯度幅度。
+
 But there is a failure mode: the dead neuron problem. If a neuron's weighted input is always negative (due to a large negative bias or unfortunate weight initialization), its output is always zero, its gradient is always zero, and it never updates. It is permanently dead. In practice, 10-40% of neurons in a ReLU network can die during training.
+
+> 但存在一个失败模式：死亡神经元问题。如果某个神经元的加权输入始终为负（由于大的负偏置或不幸运的权重初始化），其输出始终为零，梯度始终为零，永远不更新。它永久死亡了。在实践中，ReLU 网络中 10-40% 的神经元可能在训练期间死亡。
 
 > **【中文解读】** ReLU 对正输入的梯度恒为 1，完全不衰减——这就是深度网络变得可训练的原因。但它有"死亡神经元"问题：如果某个神经元的加权输入始终为负，它永远输出 0、梯度为 0，永远无法恢复。实践中 10-40% 的 ReLU 神经元可能死亡。
 
