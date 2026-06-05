@@ -23,9 +23,13 @@
 
 In 2011, the best ImageNet classifier scored around 74% top-5 accuracy. In 2012 AlexNet scored 85%. In 2015 ResNet scored 96%. No new data. No new GPU generation. The gains came from architecture ideas. A working vision engineer has to know which idea came from which paper because every production backbone you ship in 2026 is a recombination of those same pieces — and because the ideas keep transferring: grouped convs went from CNNs to transformers, residual connections went from ResNet to every LLM in existence, batch normalisation lives in diffusion models.
 
+> 2011 年，最好的 ImageNet 分类器 top-5 准确率约为 74%。2012 年 AlexNet 达到 85%。2015 年 ResNet 达到 96%。没有新数据。没有新 GPU 代际。这些增益来自架构思想。一个合格的视觉工程师必须知道哪个想法来自哪篇论文，因为你在 2026 年部署的每个生产骨干网络都是这些相同片段的重组——而且这些思想还在不断迁移：分组卷积从 CNN 转移到了 Transformer，残差连接从 ResNet 扩展到了现有的每个 LLM，批量归一化在扩散模型中生存。
+
 > **【中文解读】** 2011-2015 年间 ImageNet 准确率从 74% 跃升到 96%，靠的不是新数据或新 GPU，而是架构创新。这些创新至今仍在被复用：分组卷积从 CNN 转移到 Transformer，残差连接从 ResNet 扩展到所有 LLM，批量归一化用于扩散模型。理解每个想法的来源，是现代视觉工程师的基本功。
 
 Studying these networks in order also immunises you against a common mistake: reaching for the biggest available model when a LeNet-sized network would solve the problem. MNIST does not need a ResNet. Knowing the scaling curve of each family tells you where to sit on it.
+
+> 按顺序学习这些网络还能让你避免一个常见错误：当 LeNet 大小的网络就能解决问题时，却去使用最大的可用模型。MNIST 不需要 ResNet。了解每个家族的缩放曲线可以告诉你应该坐在哪个位置。
 
 ## The Concept | 核心概念
 
@@ -42,9 +46,13 @@ timeline
 
 Nothing else in classical vision mattered as much as these four jumps.
 
+> 经典视觉中没有其他东西比这四次跃迁更重要。
+
 ### LeNet-5 (1998) | 第一个实用 CNN
 
 Yann LeCun's digit recogniser. 60,000 parameters. Two conv-pool blocks, two fully connected layers, tanh activations. It defined the template every CNN inherits:
+
+> Yann LeCun 的数字识别器。6 万参数。两个卷积-池化块，两个全连接层，tanh 激活。它定义了每个 CNN 都继承的模板：
 
 ```
 input (1, 32, 32)
@@ -60,11 +68,15 @@ input (1, 32, 32)
 
 Everything the modern world calls a CNN — alternating convolutions and downsampling feeding a small classifier head — is LeNet with more layers, bigger channels, and better activations.
 
+> 现代世界称之为 CNN 的一切——交替的卷积和下采样馈入一个小的分类器头——就是有更多层、更大通道和更好激活的 LeNet。
+
 > **【中文解读】** LeNet-5 定义了所有 CNN 的基本模板：卷积 → 池化 → 卷积 → 池化 → 全连接。仅 6 万参数，但奠定了深度学习视觉系统的基本架构。
 
 ### AlexNet (2012) | 深度学习的引爆点
 
 Three changes that together broke ImageNet:
+
+> 三个改变共同打破了 ImageNet：
 
 1. **ReLU** instead of tanh. Gradients stop vanishing. Training speeds up by a factor of six.
 2. **Dropout** in the fully connected head. Regularisation becomes a layer, not a trick.
@@ -72,11 +84,15 @@ Three changes that together broke ImageNet:
 
 The paper's Figure 2 still shows the GPU split as two parallel streams. That parallelism was a hardware workaround, not an architectural insight — but the three ideas above are still in every model you use.
 
+> 论文的图 2 仍然显示 GPU 分割为两个并行流。那种并行性是硬件的权宜之计，不是架构洞见——但上面的三个思想仍然在你使用的每个模型中。
+
 > **【拓展：AlexNet 的遗产】** AlexNet 引入的三个创新至今无处不在：(1) ReLU 激活函数解决了梯度消失问题；(2) Dropout 正则化防止过拟合；(3) 深度+宽度的规模化思路。2012 年 ImageNet 竞赛的胜利被广泛视为 "深度学习革命" 的起点。
 
 ### VGG (2014) | 3x3 卷积的极致堆叠
 
 VGG asked: what happens if you only use 3x3 convolutions and you go deep?
+
+> VGG 问道：如果你只使用 3x3 卷积并且加深，会发生什么？
 
 ```
 stack:   conv 3x3 -> conv 3x3 -> pool 2x2
@@ -85,11 +101,17 @@ repeat:  16 or 19 conv layers
 
 Two 3x3 convs see the same 5x5 input area as one 5x5 conv but with fewer parameters (2*9*C^2 = 18C^2 vs 25*C^2) and an extra ReLU in between. VGG turned this observation into an entire architecture. The simplicity — one block type, repeated — made it the reference point for everything that came after.
 
+> 两个 3x3 卷积看到的 5x5 输入区域与一个 5x5 卷积相同，但参数更少（2*9*C^2 = 18C^2 vs 25*C^2），中间还有额外的 ReLU。VGG 将这个观察变成了一个完整的架构。简洁性——一种块类型，重复使用——使其成为之后一切的参考点。
+
 Cost: 138M parameters, slow to train, expensive at inference.
+
+> 代价：1.38 亿参数，训练慢，推理昂贵。
 
 ### Inception (2014, same year) | 多尺度并行滤波
 
 Google's answer to "what kernel size should I use?" was: all of them, in parallel.
+
+> Google 对"应该用什么核大小？"的回答是：全部，并行使用。
 
 ```mermaid
 flowchart LR
@@ -110,9 +132,13 @@ flowchart LR
 
 Each branch specialises — 1x1 for channel mixing, 3x3 for local texture, 5x5 for larger patterns, pooling for shift-invariant features — and the concat lets the next layer pick whichever branch is useful. Inception v1 used 1x1 convolutions inside each branch as a bottleneck to keep parameter counts sane.
 
+> 每个分支专精不同方面——1x1 用于通道混合，3x3 用于局部纹理，5x5 用于更大模式，池化用于平移不变特征——拼接让下一层可以选择有用的分支。Inception v1 在每个分支内部使用 1x1 卷积作为瓶颈以保持参数数量合理。
+
 ### The degradation problem | 退化问题：越深反而越差
 
 By 2015, VGG-19 worked and VGG-32 did not. Depth was supposed to help, but past ~20 layers both training and test loss got worse. That is not overfitting. That is the optimiser failing to find useful weights because gradients shrink multiplicatively through every layer.
+
+> 到 2015 年，VGG-19 能工作但 VGG-32 不行。深度本应该有帮助，但超过约 20 层后训练和测试损失都变得更差。那不是过拟合。那是优化器因为梯度在每层乘法性地缩小而无法找到有用的权重。
 
 ```
 Plain deep network:
@@ -127,9 +153,13 @@ Stack 100 of them with gains < 1 and the gradient is effectively zero.
 
 VGG worked at 19 layers because batch norm (published simultaneously) kept activations well-scaled. But even batch norm could not rescue depth beyond 30-ish layers.
 
+> VGG 在 19 层时能工作是因为批量归一化（同时发表）保持了激活的良好缩放。但即使批量归一化也无法挽救超过约 30 层的深度。
+
 ### ResNet (2015) | 残差连接——深度学习的突破
 
 He, Zhang, Ren, Sun proposed one change that fixed everything:
+
+> He、Zhang、Ren、Sun 提出了一个修复一切的改动：
 
 ```
 standard block:   y = F(x)
@@ -137,6 +167,8 @@ residual block:   y = F(x) + x
 ```
 
 The `+ x` means the layer can always choose to do nothing by driving `F(x)` to zero. A 1,000-layer ResNet is now at most as bad as a 1-layer network, because every extra block has a trivial escape hatch. With that guarantee, the optimiser is willing to make every block *slightly* useful — and slightly useful, stacked 100 times, is state-of-the-art.
+
+> `+ x` 意味着该层总是可以通过将 `F(x)` 趋向零来选择什么都不做。一个 1000 层的 ResNet 现在最多和一个 1 层网络一样差，因为每个额外的块都有一个简单的逃生通道。有了这个保证，优化器愿意让每个块*稍微*有用——稍微有用，堆叠 100 次，就是最先进的。
 
 ```mermaid
 flowchart LR
@@ -153,14 +185,22 @@ flowchart LR
 
 Two variants of the block show up everywhere:
 
+> 两种块变体无处不在：
+
 - **BasicBlock** (ResNet-18, ResNet-34): two 3x3 convs, skip around both.
+  中文翻译：基本块——两个 3x3 卷积，跨两者的跳跃。
 - **Bottleneck** (ResNet-50, -101, -152): 1x1 down, 3x3 middle, 1x1 up, skip around the trio. Cheaper when channel counts are high.
+  中文翻译：瓶颈块——1x1 降维、3x3 中间、1x1 升维，跨三者跳跃。通道数高时更便宜。
 
 When the skip has to cross a downsample (stride=2), the identity path is replaced with a 1x1 stride=2 conv to match shapes.
+
+> 当跳跃需要跨越下采样（stride=2）时，恒等路径被替换为 1x1 stride=2 的卷积以匹配形状。
 
 ### Why residuals matter beyond vision | 残差连接的深远影响
 
 The idea was not really about image classification. It was about turning deep networks from "cross-your-fingers and hope gradients survive" into a reliable, scalable engineering tool. Every transformer you will read about next phase has the exact same skip connection in every block. Without ResNet, there is no GPT.
+
+> 这个想法其实不是关于图像分类的。它是关于将深度网络从"祈祷梯度能存活"变成可靠的、可扩展的工程工具。你下一阶段将读到的每个 Transformer 在每个块中都有完全相同的跳跃连接。没有 ResNet，就没有 GPT。
 
 > **【拓展：残差连接与 Transformer】** 残差连接不仅改变了视觉，它让深度网络从 "祈祷梯度能存活" 变成了可靠的工程工具。每个 Transformer 块（包括 GPT、BERT、Claude 背后的模型）都使用完全相同的跳跃连接。没有 ResNet，就没有 GPT。ResNet 的核心公式 `y = F(x) + x` 可以说是深度学习最重要的方程之一。
 
@@ -172,6 +212,8 @@ The idea was not really about image classification. It was about turning deep ne
 ### Step 1: LeNet-5 | 实现 LeNet-5
 
 A minimal, faithful LeNet. Tanh activations, average pooling. The only concession to modernity is that we use `nn.CrossEntropyLoss` downstream instead of the original Gaussian connections.
+
+> 一个最小化的、忠实的 LeNet。Tanh 激活，平均池化。对现代的唯一让步是我们在下游使用 `nn.CrossEntropyLoss` 而不是原始的高斯连接。
 
 ```python
 import torch
@@ -204,9 +246,13 @@ print(f"params: {sum(p.numel() for p in net.parameters()):,}")
 
 Expected output: `output: torch.Size([1, 10])`, `params: 61,706`. That is the entire digit classifier that started modern vision.
 
+> 预期输出：`output: torch.Size([1, 10])`、`params: 61,706`。这就是开启现代视觉的完整数字分类器。
+
 ### Step 2: A VGG block | 实现 VGG 块
 
 One reusable block: two 3x3 convs, ReLU, batch norm, max pool.
+
+> 一个可复用块：两个 3x3 卷积、ReLU、批量归一化、最大池化。
 
 ```python
 class VGGBlock(nn.Module):
@@ -248,9 +294,13 @@ print(f"params: {sum(p.numel() for p in net.parameters()):,}")
 
 Three VGG blocks on CIFAR-sized input, an adaptive pool, one linear layer. ~290k parameters. Plenty for CIFAR-10.
 
+> CIFAR 尺寸输入上的三个 VGG 块、自适应池化、一个线性层。约 29 万参数。对 CIFAR-10 绰绰有余。
+
 ### Step 3: A ResNet BasicBlock | 实现 ResNet 基本块
 
 The core building block of ResNet-18 and ResNet-34.
+
+> ResNet-18 和 ResNet-34 的核心构建块。
 
 ```python
 class BasicBlock(nn.Module):
@@ -277,9 +327,13 @@ class BasicBlock(nn.Module):
 
 `bias=False` on conv layers is a batch-norm convention — BN's beta parameter already handles the bias, so carrying conv bias as well is a waste. The `shortcut` only needs a real conv when stride or channel count changes; otherwise it is a no-op identity.
 
+> 卷积层上 `bias=False` 是批量归一化的约定——BN 的 beta 参数已经处理了偏置，所以同时保留卷积偏置是浪费。`shortcut` 只在步幅或通道数变化时需要真正的卷积；否则它是无操作的恒等。
+
 ### Step 4: A tiny ResNet | 构建迷你 ResNet
 
 Stack four groups of BasicBlocks to get a working ResNet for CIFAR-sized inputs.
+
+> 堆叠四组 BasicBlock 以获得适用于 CIFAR 尺寸输入的工作 ResNet。
 
 ```python
 class TinyResNet(nn.Module):
@@ -322,9 +376,13 @@ print(f"params: {sum(p.numel() for p in net.parameters()):,}")
 
 Four groups of two blocks each. Stride 2 at the start of groups 2, 3, 4. Channel count doubles at every downsample. Roughly 2.8M parameters. That is the standard recipe that scales cleanly up to ResNet-152.
 
+> 四组每组两个块。第 2、3、4 组开始时步幅为 2。每次下采样通道数翻倍。约 280 万参数。这就是可以干净地扩展到 ResNet-152 的标准方案。
+
 ### Step 5: Compare parameter-to-feature efficiency | 参数效率对比
 
 Run the same input through all three networks and compare parameter counts.
+
+> 将相同输入通过所有三个网络并比较参数数量。
 
 ```python
 def summary(name, net, x):
@@ -340,11 +398,15 @@ summary("TinyResNet", TinyResNet(),   x)
 
 Three models, three eras, three orders of magnitude in parameter count. For CIFAR-10 accuracy, you need roughly: LeNet 60%, MiniVGG 89%, TinyResNet 93% after a few epochs of training.
 
+> 三个模型，三个时代，参数数量三个数量级。对于 CIFAR-10 准确率，训练几个 epoch 后大致需要：LeNet 60%、MiniVGG 89%、TinyResNet 93%。
+
 
 
 ## Use It | 实际应用
 
 `torchvision.models` gives you pretrained versions of all of the above. The call signature is identical across families, which is exactly the point of the backbone abstraction.
+
+> `torchvision.models` 给你上述所有模型的预训练版本。调用签名在各个家族间完全相同，这正是骨干网络抽象的意义所在。
 
 ```python
 from torchvision.models import resnet18, ResNet18_Weights, vgg16, VGG16_Weights
@@ -367,6 +429,8 @@ ResNet-18 has 11.7M parameters. VGG-16 has 138M. Similar ImageNet top-1 accuracy
 
 For transfer learning, the recipe is always the same: load pretrained, freeze the backbone, replace the classifier head.
 
+> 对于迁移学习，方案总是相同的：加载预训练权重，冻结骨干网络，替换分类器头。
+
 ```python
 for p in r18.parameters():
     p.requires_grad = False
@@ -375,6 +439,8 @@ r18.fc = nn.Linear(r18.fc.in_features, 10)
 
 Three lines. You now have a 10-class CIFAR classifier that inherits the representations ImageNet paid for.
 
+> 三行代码。你现在有了一个 10 类 CIFAR 分类器，它继承了 ImageNet 付费得到的表示。
+
 
 > **【拓展：数据标注与质量】** 视觉任务的效果高度依赖标注数据质量。Label Studio、CVAT 是主流标注工具。在工业场景中，主动学习（Active Learning）可以减少标注成本：模型对不确定的样本请求人工标注，确定性的样本自动标注。
 
@@ -382,8 +448,12 @@ Three lines. You now have a 10-class CIFAR classifier that inherits the represen
 
 This lesson produces:
 
+> 本课产出：
+
 - `outputs/prompt-backbone-selector.md` — a prompt that picks the right CNN family (LeNet/VGG/ResNet/MobileNet/ConvNeXt) given task, dataset size, and compute budget.
+  中文翻译：给定任务、数据集大小和计算预算，选择正确 CNN 家族的提示词。
 - `outputs/skill-residual-block-reviewer.md` — a skill that reads a PyTorch module and flags skip-connection mistakes (missing shortcut on stride change, shortcut activation order, BN placement relative to addition).
+  中文翻译：读取 PyTorch 模块并标记跳跃连接错误的技能。
 
 ## Exercises | 练习题
 

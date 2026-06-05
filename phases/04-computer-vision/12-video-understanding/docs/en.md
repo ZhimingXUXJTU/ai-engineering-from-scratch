@@ -25,9 +25,15 @@
 
 A 30-second video at 30 fps is 900 images. Naively, video classification is image classification run 900 times followed by some kind of aggregation. That works when the action is visible in almost every frame (sports, cooking, exercise videos) and fails badly when the action is defined by motion itself: "pushing something from left to right" looks like two still objects in every single frame.
 
+> 30 秒 30fps 的视频是 900 张图像。朴素地看，视频分类就是把图像分类运行 900 次然后聚合。当动作在几乎每帧都可见时（体育、烹饪、健身视频）这有效，但当动作由运动本身定义时则严重失败："把东西从左推到右"在每一帧看起来都是两个静止的物体。
+
 The core question for every video architecture is: when does temporal structure get modelled, and how? The answer drives everything else — compute cost, pretraining strategy, whether you can reuse ImageNet weights, what datasets the model trains on.
 
+> 每个视频架构的核心问题是：时序结构何时被建模，以及如何建模？答案驱动其他一切——计算成本、预训练策略、是否能复用 ImageNet 权重、模型在什么数据集上训练。
+
 This lesson is deliberately shorter than the static-image lessons. The core image machinery is already in place, and video understanding is mostly about the temporal story: sampling, modelling, and aggregating.
+
+> 本课有意比静态图像课程更短。核心图像机制已经就位，视频理解主要是关于时序的故事：采样、建模和聚合。
 
 ## The Concept | 核心概念
 

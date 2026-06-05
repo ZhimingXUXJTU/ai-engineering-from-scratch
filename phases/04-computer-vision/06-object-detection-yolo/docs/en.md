@@ -25,11 +25,17 @@
 
 Classification says "this image is a dog." Detection says "there is a dog at pixels (112, 40, 280, 210), there is a cat at (400, 180, 560, 310), and nothing else in the frame." That one structural change — predicting a variable number of labelled boxes instead of one label per image — is what every autonomous system, every surveillance product, every document layout parser, and every factory vision line depends on.
 
+> 分类说"这张图是一只狗"。检测说"在像素 (112, 40, 280, 210) 处有一只狗，在 (400, 180, 560, 310) 处有一只猫，画面中没有其他东西。"这一个结构性变化——预测可变数量的带标签框而非每张图像一个标签——是每个自动驾驶系统、每个监控产品、每个文档版面解析器和每条工厂视觉产线所依赖的。
+
 > **【中文解读】** 分类说"这张图是一只狗"，检测说"狗在 (112,40,280,210)，猫在 (400,180,560,310)"。这一个结构性变化——从预测一个标签变为预测不定数量的带标签框——是自动驾驶、安防监控、文档版面分析和工厂质检的核心能力。
 
 Detection is also where every engineering trade-off in vision shows up at once. You want boxes that are accurate (regression head), you want the right class for each box (classification head), you want the model to know when there is nothing to detect (objectness score), and you want exactly one prediction per real object (non-maximum suppression). Miss any of these and the pipeline either misses objects, reports hallucinated boxes, or predicts the same object fifteen times in slightly different positions.
 
+> 检测也是视觉中所有工程权衡同时出现的地方。你要框准确（回归头），你要每个框的类别正确（分类头），你要模型知道哪里没有东西要检测（目标性分数），你要每个真实物体恰好一个预测（非极大值抑制）。缺了任何一个，流水线要么漏检物体，要么报告幻觉框，要么把同一个物体在略微不同的位置预测十五次。
+
 YOLO (You Only Look Once, Redmon et al. 2016) was the design that made all of this run in real time by doing it with a single forward pass of a conv net, and the same structural decisions are still the backbone of modern detectors (YOLOv8, YOLOv9, YOLO-NAS, RT-DETR). Learn the core and every variant becomes a rearrangement of the same parts.
+
+> YOLO（You Only Look Once，Redmon 等 2016）是通过单次卷积网络前向传播使所有这些实时运行的设计，相同的结构决策仍然是现代检测器（YOLOv8、YOLOv9、YOLO-NAS、RT-DETR）的骨干。学习核心，每个变体都变成相同部件的重新排列。
 
 > **【中文解读】** 检测是视觉中所有工程权衡的交汇点：框要准确（回归头）、类别要正确（分类头）、要知道哪里没有物体（置信度）、每个物体只检测一次（NMS）。YOLO 用单次前向传播实现所有这些，同样的设计思想延续到 YOLOv8、RT-DETR 等现代检测器。
 

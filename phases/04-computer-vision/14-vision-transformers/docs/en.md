@@ -25,9 +25,15 @@
 
 For a decade, convolution was synonymous with computer vision. CNNs had strong inductive biases — locality, translation equivariance — that nobody thought you could replace. Then Dosovitskiy et al. (2020) showed that a plain transformer applied to flattened image patches, with no convolutional machinery at all, could match or beat the best CNNs at scale.
 
+> 十年来，卷积就是计算机视觉的代名词。CNN 有很强的归纳偏置——局部性、平移等变性——没人认为你可以替代。然后 Dosovitskiy 等（2020）展示了将普通 Transformer 应用于展平的图像块，完全不需要卷积机制，就能在大规模上匹配或击败最好的 CNN。
+
 The catch was "at scale." ViT on ImageNet-1k lost to ResNet. ViT pretrained on ImageNet-21k or JFT-300M then fine-tuned on ImageNet-1k beat it. The conclusion was that transformers lacked useful priors but could learn them from enough data. Subsequent work (DeiT, MAE, DINO) showed that with the right training recipes — strong augmentation, self-supervised pretraining, distillation — ViTs train fine on small data too.
 
+> 陷阱是"在大规模上"。ViT 在 ImageNet-1k 上输给了 ResNet。在 ImageNet-21k 或 JFT-300M 上预训练然后在 ImageNet-1k 上微调的 ViT 赢了。结论是 Transformer 缺乏有用的先验但可以从足够的数据中学到。后续工作（DeiT、MAE、DINO）表明，用正确的训练方案——强增强、自监督预训练、蒸馏——ViT 在小数据上也能训练得很好。
+
 By 2026, pure CNNs are still competitive on edge devices (ConvNeXt is the strongest), but transformers dominate everything else: segmentation (Mask2Former, SegFormer), detection (DETR, RT-DETR), multimodal (CLIP, SigLIP), video (VideoMAE, VJEPA). The ViT block structure is the one to know.
+
+> 到 2026 年，纯 CNN 在边缘设备上仍然有竞争力（ConvNeXt 最强），但 Transformer 统治了其他一切：分割（Mask2Former、SegFormer）、检测（DETR、RT-DETR）、多模态（CLIP、SigLIP）、视频（VideoMAE、VJEPA）。ViT 块结构是必须了解的。
 
 ## The Concept | 核心概念
 

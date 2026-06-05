@@ -25,9 +25,15 @@
 
 The 2023 SAM was a visual-prompt-only model: you click a point or draw a box and it returns a mask. For "give me all the oranges in this photo" you needed a detector (Grounding DINO) to produce boxes, then SAM to segment each. Grounded SAM turned this into a pipeline, but it was a cascade of two frozen models with inevitable error accumulation.
 
+> 2023 年的 SAM 是一个仅视觉提示的模型：你点击一个点或画一个框，它返回一个掩码。对于"给我这张照片里所有的橘子"，你需要一个检测器（Grounding DINO）来产生框，然后用 SAM 来分割每一个。Grounded SAM 把这变成了流水线，但它是两个冻结模型的级联，不可避免地存在误差累积。
+
 SAM 3 (Meta, Nov 2025, ICLR 2026) collapsed the cascade. It accepts a short noun phrase or an image exemplar as prompt and returns all matching masks and instance IDs in a single forward pass. That is **Promptable Concept Segmentation (PCS)**. Combined with the March 2026 Object Multiplex update (SAM 3.1), it tracks multiple instances of the same concept through video efficiently.
 
+> SAM 3（Meta，2025 年 11 月，ICLR 2026）折叠了级联。它接受一个短名词短语或图像示例作为提示，在单次前向传播中返回所有匹配的掩码和实例 ID。这就是**可提示概念分割（PCS）**。结合 2026 年 3 月的 Object Multiplex 更新（SAM 3.1），它能高效地在视频中跟踪同一概念的多个实例。
+
 This lesson is about the structural shift this represents. 2D seg, detection, and text-image grounding have merged into one model. The production question is no longer "which pipeline do I chain together" but "which promptable model handles my use case end-to-end."
+
+> 本课讲述这代表的结构性转变。2D 分割、检测和文本-图像基础已经合并为一个模型。生产问题不再是"我把哪些流水线链接在一起"，而是"哪个可提示模型能端到端处理我的用例"。
 
 ## The Concept | 核心概念
 

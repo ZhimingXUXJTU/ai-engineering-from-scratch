@@ -25,9 +25,15 @@
 
 A training-time vision model is a floating-point monster. 100M parameters, 10 GFLOPs per forward pass, 2 GB of VRAM. None of that fits on a phone, a car's infotainment unit, an industrial camera, or a drone. Shipping a vision system means fitting the same predictions into a budget that is 100x smaller.
 
+> 训练时的视觉模型是一个浮点数怪兽。1 亿参数、每次前向传播 10 GFLOPs、2 GB 显存。这些都无法装入手机、车载信息娱乐系统、工业摄像头或无人机。交付视觉系统意味着将相同的预测装入小 100 倍的预算。
+
 Three knobs do most of the work: model choice (a smaller architecture with the same recipe), quantisation (INT8 instead of FP32), and the inference runtime (ONNX Runtime, TensorRT, Core ML, TFLite). Getting them right is the difference between a demo that runs on a workstation and a product that ships on a $30 camera module.
 
+> 三个旋钮做了大部分工作：模型选择（相同方案的小架构）、量化（INT8 替代 FP32）和推理运行时（ONNX Runtime、TensorRT、Core ML、TFLite）。正确使用它们是在工作站上运行的演示和在 30 美元摄像头模块上交付的产品之间的区别。
+
 This lesson sets up the measurement discipline first (you cannot optimise what you cannot measure), then walks the three knobs. The goal is not to learn every edge runtime but to know what levers exist and how to verify each one does what you think.
+
+> 本课首先建立度量纪律（你无法优化你无法度量的东西），然后遍历三个旋钮。目标不是学习每个边缘运行时，而是知道有哪些杠杆以及如何验证每个杠杆做了你认为它做的事。
 
 ## The Concept | 核心概念
 

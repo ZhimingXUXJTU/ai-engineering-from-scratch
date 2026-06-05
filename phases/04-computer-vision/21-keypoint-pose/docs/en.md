@@ -25,9 +25,15 @@
 
 Keypoint tasks hide under many names: human pose (17 body joints), face landmarks (68 or 478 points), hand (21 points), animal pose, robotic object pose, medical anatomy landmarks. Every one of them shares the same structure: detect K discrete points on an object and output their (x, y) coordinates.
 
+> 关键点任务隐藏在许多名称下：人体姿态（17 个身体关节）、面部特征点（68 或 478 个点）、手部（21 个点）、动物姿态、机器人物体姿态、医学解剖标志。每一个都有相同的结构：检测物体上的 K 个离散点并输出它们的 (x, y) 坐标。
+
 Pose estimation is the foundation of motion capture, fitness apps, sports analytics, gesture control, animation, AR try-on, and robotic grasping. The 2D case is mature; 3D pose (estimating joint positions in world coordinates from a single camera) is the current research frontier.
 
+> 姿态估计是动作捕捉、健身应用、运动分析、手势控制、动画、AR 试穿和机器人抓取的基础。2D 情况已经成熟；3D 姿态（从单个相机估计世界坐标中的关节位置）是当前的研究前沿。
+
 The engineering question is scale. A single-image, single-person pose is a 20ms problem. Multi-person pose in a crowd at 30 fps is a different problem with different architectures.
+
+> 工程问题是规模。单图像、单人的姿态是一个 20ms 的问题。人群中 30fps 的多人姿态是一个有着不同架构的不同问题。
 
 ## The Concept | 核心概念
 

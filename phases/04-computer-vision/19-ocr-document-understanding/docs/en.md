@@ -25,13 +25,19 @@
 
 Images full of text are everywhere: receipts, invoices, IDs, scanned books, forms, whiteboards, signs, screenshots. Extracting structured data from them — not just the characters, but "this is the total amount" — is one of the highest-value applied-vision problems.
 
+> 充满文字的图像无处不在：收据、发票、身份证、扫描书籍、表格、白板、标志、截图。从中提取结构化数据——不仅是字符，而是"这是总金额"——是最高价值的应用视觉问题之一。
+
 The field splits into three skill layers:
+
+> 该领域分为三个技能层：
 
 1. **OCR proper**: turn pixels into text.
 2. **Layout parsing**: group OCR output into regions (title, body, table, header).
 3. **Document understanding**: extract structured fields ("invoice_total = $42.50") from layout.
 
 Each layer has classical and modern approaches, and the gap between "I want text from an image" and "I need the total amount from this receipt" is bigger than most teams realise.
+
+> 每层都有经典和现代方法，"我想从图像中获取文字"和"我需要这张收据的总金额"之间的差距比大多数团队意识到的更大。
 
 ## The Concept | 核心概念
 

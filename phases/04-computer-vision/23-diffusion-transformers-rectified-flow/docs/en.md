@@ -25,9 +25,15 @@
 
 Lesson 10 built a DDPM with a U-Net denoiser. That recipe dominated 2020-2023: U-Net + beta schedule + noise-prediction loss. It produced Stable Diffusion 1.5 and 2.1 and DALL-E 2.
 
+> 第 10 课用 U-Net 去噪器构建了 DDPM。那个方案在 2020-2023 年占主导：U-Net + beta 调度 + 噪声预测损失。它产生了 Stable Diffusion 1.5 和 2.1 以及 DALL-E 2。
+
 Every 2026 state-of-the-art text-to-image model has moved past it. Stable Diffusion 3, FLUX, SD4, Z-Image, Qwen-Image, Hunyuan-Image — none use a U-Net. They use Diffusion Transformers (DiT). SD3 and FLUX also swap the DDPM noise schedule for rectified flow, which straightens the path from noise to data and enables 1-4 step inference with consistency or distilled variants.
 
+> 每个 2026 年最先进的文本到图像模型都已经超越了它。Stable Diffusion 3、FLUX、SD4、Z-Image、Qwen-Image、Hunyuan-Image——没有一个使用 U-Net。它们使用扩散 Transformer（DiT）。SD3 和 FLUX 还用整流流替换了 DDPM 噪声调度，它将从噪声到数据的路径拉直，并通过一致性或蒸馏变体实现 1-4 步推理。
+
 The shift matters because it is the reason diffusion-based image generation became controllable, prompt-accurate (SD3/SD4 solved text rendering), and production-fast. Understanding DiT + rectified flow is understanding the 2026 generative-image stack.
+
+> 这个转变很重要，因为它是基于扩散的图像生成变得可控、提示精确（SD3/SD4 解决了文本渲染）和生产快速的原因。理解 DiT + 整流流就是理解 2026 年的生成图像技术栈。
 
 ## The Concept | 核心概念
 

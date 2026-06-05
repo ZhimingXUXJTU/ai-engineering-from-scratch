@@ -25,9 +25,15 @@
 
 Retrieval is everywhere in production vision: duplicate detection, reverse image search, visual search ("find similar products"), face re-identification, person re-ID for surveillance, instance-level matching for e-commerce. The product question is always the same: "given this query image, rank my catalogue."
 
+> 检索在生产视觉中无处不在：重复检测、反向图像搜索、视觉搜索（"找相似产品"）、人脸重识别、监控人员重识别、电商实例级匹配。产品问题总是一样的："给定这张查询图像，对我的目录排序。"
+
 Two design decisions shape the whole system. The embedding — what model produces the vectors. The index — how to find nearest neighbours at scale. Both are commodity in 2026 (DINOv2 for the embedding, FAISS for the index), which raises the bar: the hard part is defining *what counts as similar* for your application, then shaping the embedding space so the distances match.
 
+> 两个设计决策塑造整个系统。嵌入——什么模型产生向量。索引——如何大规模找到最近邻。两者在 2026 年都是商品（DINOv2 用于嵌入，FAISS 用于索引），这提高了标准：困难的部分是为你的应用定义*什么算相似*，然后塑造嵌入空间使距离匹配。
+
 That shaping is metric learning. It is a small but high-leverage discipline.
+
+> 那种塑造就是度量学习。它是一个小但高杠杆的学科。
 
 ## The Concept | 核心概念
 

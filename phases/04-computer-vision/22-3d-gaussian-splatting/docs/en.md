@@ -25,9 +25,15 @@
 
 A NeRF stores a scene as the weights of an MLP. Every rendered pixel is hundreds of MLP queries along a ray. Training takes hours, rendering takes seconds, and the weights cannot be edited — if you want to move a chair inside a scene, you have to retrain.
 
+> NeRF 将场景存储为 MLP 的权重。每个渲染像素是沿光线数百次 MLP 查询。训练需要数小时，渲染需要数秒，权重无法编辑——如果你想移动场景中的椅子，你必须重新训练。
+
 3D Gaussian Splatting (Kerbl, Kopanas, Leimkühler, Drettakis, SIGGRAPH 2023) replaced all of that. A scene is an explicit set of 3D Gaussians. Rendering is GPU rasterisation at 100+ fps. Training takes minutes. Editing is direct: translate a subset of Gaussians and you have moved the chair. By 2026 the Khronos Group has ratified a glTF extension for Gaussian splats, OpenUSD 26.03 ships a Gaussian splat schema, Zillow and Apartments.com render real estate with them, and most new research papers on 3D reconstruction are variants on the core 3DGS idea.
 
+> 3D 高斯泼溅（Kerbl、Kopanas、Leimkühler、Drettakis，SIGGRAPH 2023）取代了所有这些。场景是一组显式的 3D 高斯。渲染是 100+ fps 的 GPU 光栅化。训练只需几分钟。编辑是直接的：平移一部分高斯就移动了椅子。到 2026 年，Khronos Group 已经批准了高斯泼溅的 glTF 扩展，OpenUSD 26.03 附带高斯泼溅模式，Zillow 和 Apartments.com 用它们渲染房地产，大多数新的 3D 重建研究论文都是核心 3DGS 思想的变体。
+
 The mental model is simple, the math has enough moving parts that most introductions start at rasterisation and skip past the projections and spherical harmonics. This lesson builds the whole thing — a 2D version first, then the 3D extension.
+
+> 心智模型很简单，数学有足够多的部分，大多数介绍从光栅化开始而跳过投影和球谐函数。本课构建整个东西——先是 2D 版本，然后是 3D 扩展。
 
 ## The Concept | 核心概念
 

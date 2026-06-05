@@ -25,9 +25,15 @@
 
 CLIP (Phase 4 Lesson 18) gives you a shared embedding space for images and text, which is enough for zero-shot classification and retrieval. It cannot answer "how many red cars are in this image?" because CLIP does not generate text — it only scores similarities.
 
+> CLIP（第四阶段第 18 课）给你图像和文本的共享嵌入空间，足以做零样本分类和检索。它无法回答"这张图里有几辆红色的车？"因为 CLIP 不生成文本——它只评分相似性。
+
 Vision-Language Models (VLMs) — Qwen3-VL, InternVL3.5, LLaVA-Next, GLM-4.6V — bolt a CLIP-family image encoder to a full language model. The model sees an image plus a question and generates an answer. In 2026 open-source VLMs rival or beat GPT-5 and Gemini-2.5-Pro on multimodal benchmarks (MMMU, MMBench, DocVQA, ChartQA, MathVista, OSWorld).
 
+> 视觉语言模型（VLM）——Qwen3-VL、InternVL3.5、LLaVA-Next、GLM-4.6V——将 CLIP 家族的图像编码器连接到完整的语言模型。模型看到图像加问题并生成答案。在 2026 年，开源 VLM 在多模态基准上匹敌或击败 GPT-5 和 Gemini-2.5-Pro。
+
 The trio of pieces (ViT, projector, LLM) is the standard. The differences between models are in which ViT, which projector, which LLM, the training data, and the alignment recipe. Once you understand the pattern, swapping any component is mechanical.
+
+> 三个组件（ViT、投影器、LLM）是标准配置。模型之间的差异在于用哪个 ViT、哪个投影器、哪个 LLM、训练数据和对齐方案。一旦你理解了这个模式，替换任何组件都是机械操作。
 
 ## The Concept | 核心概念
 

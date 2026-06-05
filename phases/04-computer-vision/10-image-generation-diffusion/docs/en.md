@@ -25,9 +25,15 @@
 
 GANs generate one-shot: noise in, image out, one forward pass. They are fast and hard to train. Diffusion models generate iteratively: start from pure noise, denoise in small steps, image emerges. They are slow and easy to train. For the last five years the latter property has dominated: any small team can train a diffusion model and get reasonable samples; GAN training is a craft you learn over years of failed runs.
 
+> GAN 一次性生成：噪声输入、图像输出、一次前向传播。它们速度快但难以训练。扩散模型迭代生成：从纯噪声开始，小步去噪，图像逐渐显现。它们速度慢但容易训练。过去五年后者占据了主导地位：任何小团队都能训练扩散模型并获得合理样本；GAN 训练是需要多年失败运行才能掌握的工艺。
+
 Beyond training stability, diffusion's iterative structure is what unlocks everything modern image generation does: text conditioning, inpainting, image editing, super-resolution, controllable style. Each step of the sampling loop is a place to inject a new constraint. That hook is why Stable Diffusion, Imagen, DALL-E 3, Midjourney, and every controllable image model you will use are all diffusion-based.
 
+> 除了训练稳定性，扩散的迭代结构解锁了现代图像生成所做的一切：文本条件化、图像修复、图像编辑、超分辨率、可控风格。采样循环的每一步都是注入新约束的地方。这个钩子就是为什么 Stable Diffusion、Imagen、DALL-E 3、Midjourney 和你将使用的每个可控图像模型都是基于扩散的。
+
 This lesson builds the minimal DDPM: forward noising, backward denoising, training loop. The next lesson (Stable Diffusion) wires it into a production system with a VAE, a text encoder, and classifier-free guidance.
+
+> 本课构建最小 DDPM：前向加噪、后向去噪、训练循环。下一课（Stable Diffusion）将它接入生产系统，包含 VAE、文本编码器和无分类器引导。
 
 ## The Concept | 核心概念
 

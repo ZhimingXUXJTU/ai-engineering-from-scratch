@@ -23,9 +23,15 @@
 
 Individual vision models are useful; vision products are chains of them. A retail shelf audit is a detector plus a product classifier plus a price-OCR pipeline. Autonomous driving is a 2D detector plus a 3D detector plus a segmenter plus a tracker plus a planner. A medical pre-screen is a segmenter plus a region classifier plus a clinician UI.
 
+> 单个视觉模型有用；视觉产品是它们的链条。零售货架审计是检测器加产品分类器加价格 OCR 流水线。自动驾驶是 2D 检测器加 3D 检测器加分割器加跟踪器加规划器。医疗预筛是分割器加区域分类器加临床 UI。
+
 Wiring those chains is the part that separates a ML prototype from a product. Every interface between models is a new place for bugs. Every coordinate transform, every normalisation, every mask resize is a silent-failure candidate. A pipeline is as strong as its weakest interface.
 
+> 连接这些链条是将 ML 原型与产品区分开来的部分。模型之间的每个接口都是 bug 的新去处。每次坐标变换、每次归一化、每次掩码缩放都是静默失败的候选。流水线的强度取决于最弱的接口。
+
 This capstone sets up the minimum viable pipeline: detection + classification + structured output + a serving layer. Everything else in Phase 4 slots into this skeleton: swap Mask R-CNN for YOLOv8, add a OCR head, add a segmentation branch, add a tracker. The architecture is stable; the pieces are pluggable.
+
+> 这个毕业项目搭建最小可行流水线：检测 + 分类 + 结构化输出 + 服务层。第四阶段的其他一切都插入这个骨架：把 Mask R-CNN 换成 YOLOv8，添加 OCR 头，添加分割分支，添加跟踪器。架构是稳定的；组件是可插拔的。
 
 ## The Concept | 核心概念
 
