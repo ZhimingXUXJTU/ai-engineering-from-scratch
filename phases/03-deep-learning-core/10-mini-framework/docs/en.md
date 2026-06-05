@@ -184,6 +184,8 @@ classDiagram
 
 The abstract interface that every layer implements.
 
+> 每一层实现的抽象接口。
+
 ```python
 class Module:
     def __init__(self):
@@ -208,6 +210,8 @@ class Module:
 ### Step 2: Linear Layer | 第二步：Linear 层
 
 The fundamental building block. Stores weights and biases, computes Wx + b forward, and weight/input gradients backward.
+
+> 基本构建块。存储权重和偏置，前向计算 Wx + b，反向计算权重/输入梯度。
 
 ```python
 import math
@@ -258,6 +262,8 @@ class Linear(Module):
 
 ReLU, Sigmoid, and Tanh as Modules. Each caches what it needs for the backward pass.
 
+> ReLU、Sigmoid 和 Tanh 作为 Module。每个缓存反向传播所需的信息。
+
 ```python
 class ReLU(Module):
     def __init__(self):
@@ -305,6 +311,8 @@ class Tanh(Module):
 
 Randomly zeroes elements during training. Scales remaining elements by 1/(1-p) so expected values stay the same. Does nothing during eval.
 
+> 训练时随机将元素置零。按 1/(1-p) 缩放剩余元素，使期望值不变。评估时不做任何操作。
+
 ```python
 class Dropout(Module):
     def __init__(self, p=0.5):
@@ -327,6 +335,8 @@ class Dropout(Module):
 ### Step 5: BatchNorm Module | 第五步：BatchNorm Module
 
 Normalizes activations to zero mean and unit variance per feature across the batch. Maintains running statistics for eval mode.
+
+> 将激活值归一化为跨批量的零均值和单位方差。维护运行统计量用于评估模式。
 
 ```python
 class BatchNorm(Module):
@@ -408,6 +418,8 @@ class BatchNorm(Module):
 
 Chains modules. Forward goes left-to-right, backward goes right-to-left.
 
+> 串联模块。前向从左到右，反向从右到左。
+
 ```python
 class Sequential(Module):
     def __init__(self, *modules):
@@ -444,6 +456,8 @@ class Sequential(Module):
 ### Step 7: Loss Functions | 第七步：损失函数
 
 MSE and Binary Cross-Entropy. Each returns the loss value and provides a backward() that returns the gradient.
+
+> MSE 和二元交叉熵。每个返回损失值，并提供返回梯度的 backward() 方法。
 
 ```python
 class MSELoss:
@@ -485,6 +499,8 @@ class BCELoss:
 ### Step 8: SGD and Adam Optimizers | 第八步：SGD 和 Adam 优化器
 
 Both take a parameter list and update weights using gradients.
+
+> 两者都接收参数列表，使用梯度更新权重。
 
 ```python
 class SGD:
@@ -551,6 +567,8 @@ class Adam:
 
 Splits data into batches, optionally shuffles each epoch.
 
+> 将数据分成批次，可选地每个 epoch 打乱。
+
 ```python
 class DataLoader:
     def __init__(self, data, batch_size=32, shuffle=True):
@@ -576,6 +594,8 @@ class DataLoader:
 ### Step 10: Train a 4-Layer Network on Circle Classification | 第十步：4 层网络分类训练
 
 Wire everything together. Define a model, pick a loss, pick an optimizer, run the training loop.
+
+> 将一切组装在一起。定义模型，选择损失函数，选择优化器，运行训练循环。
 
 ```python
 def make_circle_data(n=500, seed=42):
@@ -664,6 +684,8 @@ def train():
 
 Here is the PyTorch equivalent of what you just built:
 
+> 下面是你刚才构建的框架的 PyTorch 等价实现：
+
 ```python
 import torch
 import torch.nn as nn
@@ -699,12 +721,18 @@ for epoch in range(100):
 
 The structure is identical. `Sequential`, `Linear`, `ReLU`, `Sigmoid`, `BCELoss`, `Adam`, `zero_grad`, `backward`, `step`, `train`, `eval`. Every concept maps one-to-one. The difference is that PyTorch handles autograd automatically (no need to implement backward() in each module), runs on GPU, and has been optimized for years. But the bones are the same.
 
+> 结构完全相同。`Sequential`、`Linear`、`ReLU`、`Sigmoid`、`BCELoss`、`Adam`、`zero_grad`、`backward`、`step`、`train`、`eval`。每个概念一一对应。区别在于 PyTorch 自动处理 autograd（不需要在每个模块中实现 backward()），在 GPU 上运行，并经过多年优化。但骨架是一样的。
+
 Now when you see PyTorch code, you know exactly what is happening at every line. That understanding is the whole point.
+
+> 现在当你看到 PyTorch 代码时，你确切地知道每一行发生了什么。这种理解就是全部意义所在。
 
 ## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-framework-architect.md` -- a prompt for designing neural network architectures using framework abstractions
+
+> 本课产出：`outputs/prompt-framework-architect.md` - 一个使用框架抽象设计神经网络架构的提示词
 
 ## Exercises | 练习题
 
@@ -736,5 +764,8 @@ This lesson produces:
 ## Further Reading | 延伸阅读
 
 - Paszke et al., "PyTorch: An Imperative Style, High-Performance Deep Learning Library" (2019) -- the paper describing PyTorch's design decisions
+  Paszke 等人，《PyTorch：一种命令式风格的高性能深度学习库》(2019)——描述 PyTorch 设计决策的论文
 - Chollet, "Deep Learning with Python, Second Edition" (2021) -- Chapter 3 covers Keras internals with the same module/layer abstraction
+  Chollet，《Python 深度学习》第二版 (2021)——第 3 章用相同的模块/层抽象讲解 Keras 内部机制
 - Johnson, "Tiny-DNN" (https://github.com/tiny-dnn/tiny-dnn) -- a header-only C++ deep learning framework for understanding framework internals
+  Johnson，《Tiny-DNN》——一个纯头文件 C++ 深度学习框架，用于理解框架内部机制

@@ -46,15 +46,21 @@ You need to understand schedules because the defaults will not work for your pro
 
 The simplest approach. Pick a number, use it for every step.
 
+> 最简单的方法。选一个数字，每一步都用它。
+
 ```
 lr(t) = lr_0
 ```
 
 Rarely optimal. It's either too high for the end of training (oscillation around the minimum) or too low for the beginning (wasted compute on tiny steps). Works fine for small models and debugging. A terrible choice for anything that trains for more than an hour.
 
+> 很少是最优的。要么对训练末期来说太高（在极小值附近振荡），要么对训练初期来说太低（微小步长浪费计算）。适用于小模型和调试。对于训练超过一小时的任务来说是糟糕的选择。
+
 ### Step Decay | 阶梯衰减
 
 The old-school approach from the ResNet era. Cut the learning rate by a factor (usually 10x) at fixed epochs.
+
+> ResNet 时代的老派方法。在固定的 epoch 将学习率降低一个因子（通常是 10 倍）。
 
 ```
 lr(t) = lr_0 * gamma^(floor(epoch / step_size))
@@ -62,11 +68,17 @@ lr(t) = lr_0 * gamma^(floor(epoch / step_size))
 
 Where gamma = 0.1 and step_size = 30 means: lr drops by 10x every 30 epochs. ResNet-50 used this -- lr=0.1, drop by 10x at epochs 30, 60, and 90.
 
+> gamma = 0.1 且 step_size = 30 意味着：每 30 个 epoch 学习率降低 10 倍。ResNet-50 使用了这个——lr=0.1，在 epoch 30、60 和 90 各降低 10 倍。
+
 The problem: the optimal decay points depend on the dataset and architecture. Move to a different problem and you need to re-tune when to drop. The transitions are abrupt -- loss can spike when the rate suddenly changes.
+
+> 问题：最优衰减点取决于数据集和架构。换一个问题就需要重新调整何时降低。过渡是突然的——学习率突然改变时损失可能飙升。
 
 ### Cosine Annealing | 余弦退火
 
 Smooth decay from the maximum learning rate to a minimum, following a cosine curve:
+
+> 从最大学习率到最小学习率的平滑衰减，遵循余弦曲线：
 
 ```
 lr(t) = lr_min + 0.5 * (lr_max - lr_min) * (1 + cos(pi * t / T))
@@ -74,9 +86,15 @@ lr(t) = lr_min + 0.5 * (lr_max - lr_min) * (1 + cos(pi * t / T))
 
 Where t is the current step and T is the total number of steps.
 
+> 其中 t 是当前步数，T 是总步数。
+
 At t=0, the cosine term is 1, so lr = lr_max. At t=T, the cosine term is -1, so lr = lr_min. The decay is gentle at first, accelerates in the middle, and becomes gentle again near the end.
 
+> t=0 时，余弦项为 1，所以 lr = lr_max。t=T 时，余弦项为 -1，所以 lr = lr_min。衰减开始平缓，中间加速，末期又变平缓。
+
 This is the default for most modern training runs. No hyperparameters to tune beyond lr_max and lr_min. The cosine shape matches the empirical observation that most learning happens in the middle of training -- you want reasonable step sizes during that critical period.
+
+> 这是大多数现代训练运行的默认选择。除了 lr_max 和 lr_min 外无需调优超参数。余弦形状符合经验观察——大部分学习发生在训练中期——你希望在那个关键时期有合理的步长。
 
 ### Warmup: Why You Start Small | Warmup：为什么要从小学习率开始
 
@@ -110,11 +128,17 @@ else:
 
 This is what Llama, GPT, PaLM, and most modern transformers use. The warmup prevents early instability. The cosine decay settles the model into a good minimum.
 
+> 这是 Llama、GPT、PaLM 和大多数现代 Transformer 使用的方法。warmup 防止早期不稳定。余弦衰减使模型稳定到一个好的极小值。
+
 ### 1cycle Policy | 1cycle 策略
 
 Leslie Smith's discovery (2018): ramp the learning rate up from a low value to a high value in the first half of training, then ramp it back down in the second half. Counterintuitive -- why would you *increase* the learning rate midway through?
 
+> Leslie Smith 的发现 (2018)：在训练前半段将学习率从低值升到高值，后半段再降回来。反直觉——为什么要在中途*增加*学习率？
+
 The theory: a high learning rate acts as regularization by adding noise to the optimization trajectory. The model explores more of the loss landscape during the ramp-up phase, finding better basins. The ramp-down phase then refines within the best basin found.
+
+> 理论：高学习率通过给优化轨迹添加噪声起到正则化作用。模型在升温阶段探索更多损失曲面，找到更好的盆地。降温阶段然后在找到的最佳盆地内精炼。
 
 ```
 Phase 1 (0 to T/2):    lr ramps from lr_max/25 to lr_max
@@ -122,6 +146,8 @@ Phase 2 (T/2 to T):    lr ramps from lr_max to lr_max/10000
 ```
 
 1cycle often trains faster than cosine annealing for a fixed compute budget. The tradeoff: you must know the total number of steps in advance.
+
+> 1cycle 在固定计算预算下通常比余弦退火训练更快。权衡：你必须提前知道总步数。
 
 > **【拓展：微调时的学习率策略】** 微调预训练模型（如 BERT、Llama）时，学习率通常比预训练小 10-100 倍。LoRA 微调 Llama：lr=2e-5~1e-4，warmup=总步数的 3%，cosine decay。关键技巧：对不同层使用不同学习率——底层（接近输入）用更小的 lr（因为通用特征已经学好），顶层（接近输出）用更大的 lr（因为需要适应新任务）。PyTorch 通过 parameter groups 实现。
 
@@ -184,6 +210,8 @@ graph TD
 
 Each function takes the current step and returns the learning rate at that step.
 
+> 每个函数接收当前步数，返回该步的学习率。
+
 ```python
 import math
 
@@ -224,6 +252,8 @@ def one_cycle_schedule(step, lr=0.01, total_steps=1000, **kwargs):
 
 Print a text-based plot showing how each schedule evolves over training.
 
+> 打印文本图表，展示每种调度在训练过程中的演变。
+
 ```python
 def visualize_schedule(name, schedule_fn, total_steps=500, **kwargs):
     steps = list(range(0, total_steps, total_steps // 20))
@@ -243,6 +273,8 @@ def visualize_schedule(name, schedule_fn, total_steps=500, **kwargs):
 ### Step 3: Training Network | 第三步：训练网络
 
 A simple two-layer network on the circle dataset, same as previous lessons, but now we vary the schedule.
+
+> 在圆形数据集上的简单两层网络，与前面课程相同，但现在我们变换调度方案。
 
 ```python
 import random
@@ -330,6 +362,8 @@ def train_with_schedule(schedule_fn, schedule_name, data, epochs=300, base_lr=0.
 
 Train the same network with each schedule and compare final loss and convergence behavior.
 
+> 用每种调度训练同一个网络，比较最终损失和收敛行为。
+
 ```python
 def compare_schedules(data):
     configs = [
@@ -353,6 +387,8 @@ def compare_schedules(data):
 ### Step 5: LR Too High vs Too Low | 第五步：学习率过高 vs 过低
 
 Demonstrate the three failure modes: too high (divergence), too low (crawling), and just right.
+
+> 展示三种失败模式：太高（发散）、太低（爬行）、刚好。
 
 ```python
 def lr_sensitivity(data):
@@ -403,6 +439,8 @@ for step in range(1000):
 
 For warmup + cosine, use a lambda scheduler or the `get_cosine_schedule_with_warmup` from HuggingFace:
 
+> 对于 warmup + 余弦，使用 lambda 调度器或 HuggingFace 的 `get_cosine_schedule_with_warmup`：
+
 ```python
 from transformers import get_cosine_schedule_with_warmup
 
@@ -415,10 +453,14 @@ scheduler = get_cosine_schedule_with_warmup(
 
 The HuggingFace function is what most Llama and GPT fine-tuning scripts use. When in doubt, use warmup + cosine with warmup = 3-5% of total steps. It works for almost everything.
 
+> HuggingFace 的函数是大多数 Llama 和 GPT 微调脚本使用的。不确定时，使用 warmup + 余弦，warmup 为总步数的 3-5%。它几乎适用于一切场景。
+
 ## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-lr-schedule-advisor.md` -- a prompt that recommends the right learning rate schedule and hyperparameters for your training setup
+
+> 本课产出：`outputs/prompt-lr-schedule-advisor.md` - 一个推荐正确学习率调度和超参数的提示词
 
 ## Exercises | 练习题
 
@@ -450,6 +492,10 @@ This lesson produces:
 ## Further Reading | 延伸阅读
 
 - Loshchilov & Hutter, "SGDR: Stochastic Gradient Descent with Warm Restarts" (2017) -- introduced cosine annealing and warm restarts
+  Loshchilov & Hutter，《SGDR：带热重启的随机梯度下降》(2017)——引入余弦退火和热重启
 - Smith, "Super-Convergence: Very Fast Training of Neural Networks Using Large Learning Rates" (2018) -- the 1cycle policy paper
+  Smith，《超收敛：使用大学习率快速训练神经网络》(2018)——1cycle 策略论文
 - Touvron et al., "Llama 2: Open Foundation and Fine-Tuned Chat Models" (2023) -- documents the warmup + cosine schedule used at scale
+  Touvron 等人，《Llama 2：开放基础和微调聊天模型》(2023)——记录了大规模使用的 warmup + 余弦调度
 - Goyal et al., "Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour" (2017) -- linear scaling rule and warmup for large batch training
+  Goyal 等人，《精确的大批量 SGD：1 小时训练 ImageNet》(2017)——线性缩放规则和大批量训练的 warmup
