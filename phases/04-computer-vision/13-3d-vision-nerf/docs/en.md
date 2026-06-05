@@ -25,9 +25,15 @@
 
 A camera produces a 2D image. A LIDAR produces a set of 3D points with no ordering. A structure-from-motion pipeline produces a sparse cloud of 3D keypoints. A NeRF reconstructs an entire 3D scene from a handful of posed images. All of these are "vision" but none of them look like the dense tensor a CNN wants.
 
+> 相机产生 2D 图像。LiDAR 产生一组无序的 3D 点。运动恢复结构流水线产生稀疏的 3D 关键点云。NeRF 从几张位姿图像重建整个 3D 场景。这些都是"视觉"，但没有一个看起来像 CNN 想要的密集张量。
+
 3D vision matters because almost every high-value robot task runs in 3D: grasping, obstacle avoidance, navigation, AR occlusion, 3D content capture. A vision engineer who only understands 2D images is locked out of the fastest-growing slice of the field (AR/VR content, robotics, autonomous driving stacks, NeRF-based 3D reconstruction for real-estate or construction).
 
+> 3D 视觉很重要，因为几乎每个高价值机器人任务都在 3D 中运行：抓取、避障、导航、AR 遮挡、3D 内容捕获。只理解 2D 图像的视觉工程师被锁在了该领域增长最快的部分之外（AR/VR 内容、机器人、自动驾驶栈、基于 NeRF 的房地产或建筑 3D 重建）。
+
 The two representations dominate for different reasons. Point clouds are what sensors give you for free. NeRFs and their successors (3D Gaussian splatting, neural SDFs) are what you get when you ask a neural network to learn a scene.
+
+> 两种表示因不同原因占据主导。点云是传感器免费给你的。NeRF 及其后继者（3D 高斯泼溅、神经 SDF）是当你让神经网络学习场景时得到的。
 
 ## The Concept | 核心概念
 

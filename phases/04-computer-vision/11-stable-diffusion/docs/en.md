@@ -25,9 +25,15 @@
 
 Training a DDPM directly on 512x512 RGB images is expensive. Every training step backprops through a U-Net that sees 3x512x512 = 786,432 input values, and sampling takes 50+ forward passes through that same U-Net. At the quality level of Stable Diffusion 1.5 (released 2022), pixel-space diffusion would need roughly 256 GPU-months of training and 10-30 seconds per image on a consumer GPU.
 
+> 直接在 512x512 RGB 图像上训练 DDPM 很昂贵。每个训练步骤都要通过一个看到 3x512x512 = 786,432 个输入值的 U-Net 反向传播，采样需要通过同一个 U-Net 进行 50+ 次前向传播。在 Stable Diffusion 1.5（2022 年发布）的质量水平上，像素空间扩散大约需要 256 个 GPU 月的训练时间，消费级 GPU 上每张图像需要 10-30 秒。
+
 The trick that made open-weight text-to-image practical was **latent diffusion** (Rombach et al., CVPR 2022). Train a VAE that maps a 3x512x512 image to a 4x64x64 latent tensor and back, then do the diffusion in that latent space. Compute drops by `(3*512*512)/(4*64*64) = 48x`. Sampling drops from tens of seconds to under two seconds on the same GPU.
 
+> 使开放权重文本到图像变得实用的技巧是**潜空间扩散**（Rombach 等，CVPR 2022）。训练一个 VAE 将 3x512x512 图像映射到 4x64x64 潜张量并还原，然后在那个潜空间中做扩散。计算量降低 `(3*512*512)/(4*64*64) = 48x`。在同一 GPU 上采样从几十秒降到两秒以内。
+
 Almost every modern image-generation model — SDXL, SD3, FLUX, HunyuanDiT, Wan-Video — is a latent diffusion model with variations on the autoencoder, the denoiser (U-Net or DiT), and the text conditioning. Learn Stable Diffusion and you have learnt the template.
+
+> 几乎每个现代图像生成模型——SDXL、SD3、FLUX、HunyuanDiT、Wan-Video——都是潜空间扩散模型，在自编码器、去噪器（U-Net 或 DiT）和文本条件化上有所不同。学会 Stable Diffusion 就学会了模板。
 
 ## The Concept | 核心概念
 

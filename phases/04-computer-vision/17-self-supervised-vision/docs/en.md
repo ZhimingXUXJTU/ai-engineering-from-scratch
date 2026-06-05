@@ -25,9 +25,15 @@
 
 Supervised ImageNet has 1.3M labelled images, which cost an estimated $10M to annotate. Medical and industrial datasets are smaller and even more expensive to label. Every vision team asks: can we pretrain on cheap unlabelled data — YouTube frames, web crawls, webcam footage, satellite sweeps — and then fine-tune on a small labelled set?
 
+> 监督式 ImageNet 有 130 万张标注图像，估计标注成本为 1000 万美元。医学和工业数据集更小，标注成本更高。每个视觉团队都在问：我们能否在廉价的未标注数据上预训练——YouTube 帧、网络爬取、网络摄像头录像、卫星扫描——然后在小的标注集上微调？
+
 Self-supervised learning is the answer. A modern self-supervised ViT trained on LAION or JFT reaches or beats supervised ImageNet accuracy when fine-tuned. It also transfers better to downstream tasks (detection, segmentation, depth) than supervised pretraining. DINOv2 (Meta, 2023) and MAE (Meta, 2022) are the current production defaults for transferable vision features.
 
+> 自监督学习就是答案。在 LAION 或 JFT 上训练的现代自监督 ViT 微调后达到或超过监督式 ImageNet 准确率。它也向下游任务（检测、分割、深度）的迁移优于监督预训练。DINOv2（Meta，2023）和 MAE（Meta，2022）是可迁移视觉特征的当前生产默认选择。
+
 The conceptual shift is that the pretext task — the thing the model is trained to do — does not have to be the downstream task. What matters is that it forces the model to learn useful features. Predict the colour of grayscale images, rotate images and ask the model to classify the rotation, mask patches and reconstruct them — all have worked. The three approaches that scale are contrastive learning, teacher-student distillation, and masked reconstruction.
+
+> 概念上的转变是前置任务——模型被训练做的事情——不必是下游任务。重要的是它迫使模型学习有用的特征。预测灰度图像的颜色、旋转图像并让模型分类旋转、掩蔽块并重建——所有这些都有效。三种可扩展的方法是对比学习、教师-学生蒸馏和掩蔽重建。
 
 ## The Concept | 核心概念
 

@@ -25,9 +25,15 @@
 
 Classification teaches a network to map images to labels. Generation inverts the problem: sample new images that look like they came from the same distribution. There is no "correct" output you can diff against; there is only a distribution you want to mimic.
 
+> 分类教网络将图像映射到标签。生成反转了这个问题：采样看起来来自相同分布的新图像。没有"正确"的输出可以对比；只有一个你想要模仿的分布。
+
 The standard loss functions (MSE, cross-entropy) cannot measure "did this sample come from the real distribution." Minimising per-pixel error produces blurry averages, not realistic samples. The breakthrough was to learn the loss: train a second network whose job is to tell real from fake, and use its judgement to push the generator.
 
+> 标准损失函数（MSE、交叉熵）无法衡量"这个样本是否来自真实分布"。最小化逐像素误差产生模糊的平均值，而不是逼真的样本。突破是学习损失：训练第二个网络，其工作是区分真假，并用它的判断来推动生成器。
+
 GANs (Goodfellow et al., 2014) defined that framework. By 2018 StyleGAN was producing 1024x1024 faces indistinguishable from photographs. Diffusion models have since taken the throne on quality and controllability, but every trick that makes diffusion practical — normalisation choices, latent spaces, feature losses — was first understood on GANs.
+
+> GAN（Goodfellow 等，2014）定义了那个框架。到 2018 年 StyleGAN 已经能产生与照片无法区分的 1024x1024 面部。扩散模型此后在质量和可控性上夺得了王位，但使扩散实用的每个技巧——归一化选择、潜空间、特征损失——都是首先在 GAN 上理解的。
 
 ## The Concept | 核心概念
 

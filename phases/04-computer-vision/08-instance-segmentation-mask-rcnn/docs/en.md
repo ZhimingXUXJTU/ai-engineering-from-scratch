@@ -25,9 +25,15 @@
 
 Semantic segmentation gives you one mask per class. Instance segmentation gives you one mask per object, even when two objects share a class. Counting individuals, tracking across frames, and measuring things (the bounding box of each brick in a wall, each cell in a microscope image) all demand instance segmentation.
 
+> 语义分割给你每个类别一个掩码。实例分割给你每个物体一个掩码，即使两个物体属于同一类别。计数个体、跨帧跟踪和测量东西（墙壁中每块砖的边界框、显微镜图像中每个细胞）都需要实例分割。
+
 Mask R-CNN (He et al., 2017) solved this by reframing instance segmentation as detection-plus-a-mask. The design was so clean that for the next five years almost every instance segmentation paper was a Mask R-CNN variant, and the torchvision implementation is still the production default for small to medium datasets.
 
+> Mask R-CNN（He 等，2017）通过将实例分割重新定义为检测加掩码来解决这个问题。设计如此干净，以至于接下来五年几乎每篇实例分割论文都是 Mask R-CNN 的变体，torchvision 实现仍然是中小型数据集的生产默认选择。
+
 The hard engineering problem is sampling: how do you crop a fixed-size feature region out of a proposal box whose corners do not align with pixel boundaries? Getting that wrong costs tenths of a mAP point everywhere. RoIAlign is the answer.
+
+> 困难的工程问题是采样：你如何从角点不与像素边界对齐的候选框中裁剪出固定大小的特征区域？弄错这个在所有地方都会损失零点几个 mAP。RoIAlign 就是答案。
 
 ## The Concept | 核心概念
 

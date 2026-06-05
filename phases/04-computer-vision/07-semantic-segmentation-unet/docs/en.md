@@ -25,11 +25,17 @@
 
 Classification outputs one label per image. Detection outputs a handful of boxes per image. Segmentation outputs one label per pixel. For an input of size `H x W`, the output is a tensor of shape `H x W` (semantic) or `H x W x N_instances` (instance). That is millions of predictions per image, not one.
 
+> 分类每张图像输出一个标签。检测每张图像输出几个框。分割每个像素输出一个标签。对于大小为 `H x W` 的输入，输出是形状为 `H x W`（语义）或 `H x W x N_instances`（实例）的张量。那是每张图像数百万个预测，而不是一个。
+
 > **【中文解读】** 分类输出一个标签，检测输出若干框，分割输出每个像素的标签。分割的核心难题是：既要看到全局上下文（这是哪种场景），又要保留局部像素细节（这个像素是路还是人行道）。标准 CNN 通过空间压缩获取上下文时会丢失细节，U-Net 通过跳跃连接同时解决了这两个需求。
 
 The structure of segmentation is why it powers almost every dense-prediction vision product: medical imaging (tumour masks), autonomous driving (road, lane, obstacle), satellite (building footprints, crop boundaries), document parsing (layout zones), robotics (graspable regions). None of those tasks can be solved by putting a box around the object; they need the exact silhouette.
 
+> 分割的结构就是它驱动几乎所有密集预测视觉产品的原因：医学成像（肿瘤掩码）、自动驾驶（道路、车道、障碍物）、卫星（建筑轮廓、作物边界）、文档解析（布局区域）、机器人（可抓取区域）。这些任务都不能通过在物体周围画框来解决；它们需要精确的轮廓。
+
 The architectural problem is simple to state and not simple to solve: you need the network to see the global context of an image (what kind of scene is this) and the local pixel detail (exactly which pixel is road vs pavement) simultaneously. A standard CNN compresses spatially to gain context, which throws away the detail. U-Net was the design that got both.
+
+> 架构问题说起来简单但解决起来不简单：你需要网络同时看到图像的全局上下文（这是什么类型的场景）和局部像素细节（具体哪个像素是路面还是人行道）。标准 CNN 通过空间压缩获得上下文，但这会丢弃细节。U-Net 是同时获得两者的设计。
 
 ## The Concept | 核心概念
 

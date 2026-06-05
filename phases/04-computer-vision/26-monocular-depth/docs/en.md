@@ -25,9 +25,15 @@
 
 Depth is the missing axis in 2D computer vision. Given RGB, you know where things appear in the image plane; you do not know how far they are. Depth sensors (stereo rigs, LiDAR, time-of-flight) solve this directly but are expensive, fragile, and limited in range.
 
+> 深度是 2D 计算机视觉中缺失的轴。给定 RGB，你知道物体在图像平面上的位置；你不知道它们有多远。深度传感器（立体相机、LiDAR、飞行时间）直接解决这个问题，但昂贵、脆弱且范围有限。
+
 Monocular depth estimation — predicting depth from a single RGB frame — used to produce blurry, unreliable output. By 2026 large pretrained encoders changed that: Depth Anything V3 uses a frozen DINOv2 backbone and produces depth maps that generalise across indoor, outdoor, medical, and satellite domains. Marigold reframes depth as a conditional diffusion problem. ZoeDepth regresses true metric distances.
 
+> 单目深度估计——从单个 RGB 帧预测深度——过去产生模糊、不可靠的输出。到 2026 年大型预训练编码器改变了这一点：Depth Anything V3 使用冻结的 DINOv2 骨干并产生跨室内、室外、医学和卫星领域泛化的深度图。Marigold 将深度重新定义为条件扩散问题。ZoeDepth 回归真实的公制距离。
+
 Depth is also the bridge between 2D detection and 3D understanding: multiply a detected box's pixels by depth and you lift the 2D object into a 3D point cloud. That is the core of every AR occlusion system, every obstacle-avoidance pipeline, and every "pick up the cup" robot.
+
+> 深度也是 2D 检测和 3D 理解之间的桥梁：将检测到的框的像素乘以深度，你就能将 2D 物体提升到 3D 点云。那是每个 AR 遮挡系统、每个避障流水线和每个"拿起杯子"的机器人的核心。
 
 ## The Concept | 核心概念
 

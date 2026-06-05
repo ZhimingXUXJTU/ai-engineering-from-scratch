@@ -25,11 +25,17 @@
 
 Training a ResNet-50 on ImageNet costs around 2,000 GPU-hours. Very few teams have that budget for every task they ship. What almost every team actually ships is a pretrained backbone with a new head trained on a few hundred or few thousand task-specific images.
 
+> 在 ImageNet 上训练 ResNet-50 大约需要 2000 个 GPU 小时。很少有团队有预算为每个交付的任务投入这么多。几乎所有团队实际交付的是一个预训练骨干网络加上一个在几百或几千张任务特定图像上训练的新头部。
+
 > **【中文解读】** 从零训练 ResNet-50 需要 ~2000 GPU 小时，但迁移学习只需几分钟。关键洞察是：CNN 的前几层学习的是通用特征（边缘、纹理），这些特征几乎对所有视觉任务都有用；只有最后几层才是任务特定的。
 
 This is not a shortcut. The first conv block of any ImageNet-trained CNN learns edges and Gabor-like filters. The next few blocks learn textures and simple motifs. The middle blocks learn object parts. The final blocks learn combinations that start to look like the 1,000 ImageNet categories. The first 90% of that hierarchy transfers almost unchanged to medical imaging, industrial inspection, satellite data, and every other vision task — because nature has a limited vocabulary of edges and textures. The last 10% is what you actually train.
 
+> 这不是捷径。任何在 ImageNet 上训练的 CNN 的第一个卷积块学习边缘和类 Gabor 滤波器。接下来几个块学习纹理和简单模式。中间块学习物体部件。最后几个块学习看起来像 1000 个 ImageNet 类别的组合。这个层次结构的前 90% 几乎不变地迁移到医学成像、工业检测、卫星数据和所有其他视觉任务——因为自然的边缘和纹理词汇是有限的。最后 10% 才是你实际训练的。
+
 Getting transfer right has three bugs waiting for you: destroying pretrained features with a too-high learning rate, starving the model of information by freezing too much, and letting BatchNorm's running statistics drift toward a tiny dataset that the rest of the network never learnt from. This lesson walks each of them on purpose.
+
+> 正确做迁移学习有三个 bug 在等着你：用过高的学习率破坏预训练特征，冻结太多导致模型信息匮乏，让 BatchNorm 的运行统计量漂移到一个网络其余部分从未学习过的微小数据集。本课特意逐一走过每个坑。
 
 > **【中文解读】** 迁移学习最常见的三个坑：(1) 学习率太高破坏了预训练特征；(2) 冻结太多层导致模型欠拟合；(3) BatchNorm 的统计量在小数据集上漂移。本课逐一踩坑并给出解决方案。
 
@@ -41,6 +47,8 @@ Getting transfer right has three bugs waiting for you: destroying pretrained fea
 ### Feature extraction vs fine-tuning
 
 Two regimes, picked by how much you trust the pretrained features and how much data you have.
+
+> 两种方案，取决于你有多信任预训练特征以及你有多少数据。
 
 ```mermaid
 flowchart TB
@@ -59,14 +67,18 @@ flowchart TB
 
 Rules of thumb:
 
-| Dataset size | Domain distance | Recipe |
+> 经验法则：
+
+| Dataset size / 数据量 | Domain distance / 领域距离 | Recipe / 方案 |
 |--------------|-----------------|--------|
-| < 1k images | close to ImageNet | Freeze backbone, train head only |
-| 1k-10k | close | Freeze first 2-3 stages, fine-tune the rest |
-| 10k-100k | any | Fine-tune end-to-end with discriminative LR |
-| 100k+ | far | Fine-tune everything; consider training from scratch if domain is far enough |
+| < 1k images | close to ImageNet / 接近 ImageNet | Freeze backbone, train head only / 冻结骨干，只训头部 |
+| 1k-10k | close / 接近 | Freeze first 2-3 stages, fine-tune the rest / 冻结前2-3阶段，微调其余 |
+| 10k-100k | any / 任意 | Fine-tune end-to-end with discriminative LR / 用判别性学习率端到端微调 |
+| 100k+ | far / 远 | Fine-tune everything; consider training from scratch if domain is far enough / 全量微调；领域足够远则考虑从头训练 |
 
 "Close to ImageNet" roughly means natural RGB photos with object-like content. Medical CT scans, overhead satellite imagery, and microscopy are far domains — the features still help, but you will need to let more layers adapt.
+
+> "接近 ImageNet" 大致意味着带有物体内容的自然 RGB 照片。医学 CT 扫描、俯视卫星图像和显微镜图像是远领域——特征仍然有帮助，但你需要让更多层去适应。
 
 > **【拓展：迁移学习策略选择】** 在工业实践中，数据集大小和领域距离决定了迁移策略：<1k 张且与 ImageNet 接近就冻结骨干只训头部；10k+ 张就全量微调。医疗影像、卫星图等远领域需要解冻更多层。Stable Diffusion 的 U-Net 和 CLIP 的视觉编码器都是经过大规模预训练后微调的典型案例。
 
@@ -74,9 +86,13 @@ Rules of thumb:
 
 The ImageNet features a CNN learns are not specialised to the 1,000 categories. They are specialised to the statistics of natural images: edges at specific orientations, textures, contrast patterns, shape primitives. Those statistics are stable across almost every visual domain a human can name. That is why a model trained on ImageNet and evaluated zero-shot on CIFAR-10 with just a new linear head (no fine-tuning of the backbone) reaches 80%+ accuracy. The head is learning which of the already-learnt features to weight for this task.
 
+> CNN 学到的 ImageNet 特征并不专用于 1000 个类别。它们专用于自然图像的统计特性：特定方向的边缘、纹理、对比度模式、形状基元。这些统计特性在几乎所有人类能命名的视觉领域中都是稳定的。这就是为什么一个在 ImageNet 上训练的模型，只用一个新的线性头部（不微调骨干网络）在 CIFAR-10 上零样本评估就能达到 80%+ 准确率。头部在学习为这个任务加权哪些已经学到的特征。
+
 ### Discriminative learning rates
 
 When you do unfreeze, early layers should train slower than late layers. Early layers encode generic features that you want to preserve; late layers encode task-specific structure that you need to move a lot.
+
+> 当你解冻时，早期层应该比晚期层训练得更慢。早期层编码你想保留的通用特征；晚期层编码你需要大幅调整的任务特定结构。
 
 ```
 Typical recipe:
@@ -90,9 +106,13 @@ Typical recipe:
 
 In PyTorch this is just a list of parameter groups passed to the optimizer. One model, five learning rates, zero extra code.
 
+> 在 PyTorch 中，这只是传递给优化器的参数组列表。一个模型，五个学习率，零额外代码。
+
 ### The BatchNorm problem
 
 BN layers hold `running_mean` and `running_var` buffers that were computed on ImageNet. If your task has a different pixel distribution — different lighting, different sensor, different colour space — those buffers are wrong. Three options in order of preference:
+
+> BN 层持有在 ImageNet 上计算的 `running_mean` 和 `running_var` 缓冲区。如果你的任务有不同的像素分布——不同的光照、不同的传感器、不同的色彩空间——那些缓冲区就是错的。按优先顺序有三种选择：
 
 1. **Fine-tune with BN in train mode.** Let BN update its running statistics along with everything else. Default choice when the task dataset is medium-sized (>= 5k examples).
 2. **Freeze BN in eval mode.** Keep the ImageNet statistics and train only the weights. Correct when your dataset is small enough that BN's moving average would be noisy.
@@ -100,9 +120,13 @@ BN layers hold `running_mean` and `running_var` buffers that were computed on Im
 
 Getting this wrong silently tanks accuracy by 5-15%.
 
+> 弄错这个会静默地降低 5-15% 的准确率。
+
 ### Head design
 
 The classifier head is 1-3 linear layers plus an optional dropout. Every torchvision backbone ships a default head that you replace:
+
+> 分类器头部是 1-3 个线性层加一个可选的 dropout。每个 torchvision 骨干网络都附带一个你替换的默认头部：
 
 ```
 backbone.fc = nn.Linear(backbone.fc.in_features, num_classes)          # ResNet
@@ -112,15 +136,21 @@ backbone.heads.head = nn.Linear(..., num_classes)                       # torchv
 
 For small datasets, a single linear layer is usually enough. Adding a hidden layer (Linear -> ReLU -> Dropout -> Linear) helps when the task distribution is farther from the backbone's training distribution.
 
+> 对于小数据集，单个线性层通常就够了。当任务分布与骨干网络的训练分布差距较大时，添加隐藏层（Linear -> ReLU -> Dropout -> Linear）会有帮助。
+
 ### Layer-wise LR decay
 
 A smoother version of discriminative LR used in modern fine-tuning (BEiT, DINOv2, ViT-B fine-tunes). Instead of grouping layers into stages, give every layer a slightly smaller LR than the one above it:
+
+> 现代微调（BEiT、DINOv2、ViT-B 微调）中使用的判别性学习率的更平滑版本。不将层分组为阶段，而是给每层一个比上层稍小的学习率：
 
 ```
 lr_layer_k = base_lr * decay^(L - k)
 ```
 
 With decay = 0.75 and L = 12 transformer blocks, the first block trains at `0.75^11 ≈ 0.04x` the head's LR. Matters more for transformer fine-tunes than for CNNs, where stage-grouped LRs are usually enough.
+
+> 当 decay = 0.75 且 L = 12 个 Transformer 块时，第一个块以头部学习率的 `0.75^11 ≈ 0.04x` 训练。对 Transformer 微调比对 CNN 更重要，CNN 中阶段分组的学习率通常就够了。
 
 ### What to evaluate
 

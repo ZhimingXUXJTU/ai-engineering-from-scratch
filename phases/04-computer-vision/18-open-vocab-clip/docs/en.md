@@ -25,9 +25,15 @@
 
 Traditional classifiers are closed-vocabulary: a 1000-class ImageNet model can only predict 1000 labels. Every new category requires labelled data and a retrained head.
 
+> 传统分类器是封闭词汇的：1000 类的 ImageNet 模型只能预测 1000 个标签。每个新类别都需要标注数据和重新训练的头部。
+
 CLIP (Radford et al., OpenAI 2021) showed that training on 400M (image, caption) pairs scraped from the web produces a model that can classify into any set of categories at inference, described purely in natural language. You give it a new class by writing a sentence.
 
+> CLIP（Radford 等，OpenAI 2021）表明，在从网络抓取的 4 亿（图像，标题）对上训练产生的模型可以在推理时分类到任何类别集合，纯粹用自然语言描述。你通过写一句话来给它一个新类别。
+
 That capability — zero-shot transfer — is why every modern vision system starts with a CLIP-family checkpoint. Detection (Grounding DINO, OWL-ViT), segmentation (CLIPSeg, SAM), retrieval, content moderation, VLMs, and text-to-image generation all build on CLIP-style joint embeddings.
+
+> 那个能力——零样本迁移——就是为什么每个现代视觉系统都从 CLIP 家族的检查点开始。检测（Grounding DINO、OWL-ViT）、分割（CLIPSeg、SAM）、检索、内容审核、VLM 和文本到图像生成都建立在 CLIP 风格的联合嵌入上。
 
 ## The Concept | 核心概念
 

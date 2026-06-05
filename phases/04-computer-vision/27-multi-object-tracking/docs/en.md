@@ -25,9 +25,15 @@
 
 A detector tells you where the objects are in a single frame. A tracker tells you which detection in frame `t` is the same object as a detection in frame `t-1`. Without that, you cannot count objects crossing a line, follow a ball through an occlusion, or know "car #4 has been in the lane for 8 seconds."
 
+> 检测器告诉你物体在单帧中的位置。跟踪器告诉你第 `t` 帧中的哪个检测与第 `t-1` 帧中的哪个检测是同一个物体。没有它，你无法计算穿过线的物体数量、跟踪被遮挡的球，或知道"4 号车已经在这条车道上 8 秒了"。
+
 Tracking is essential to every video-facing product: sports analytics, surveillance, autonomous driving, medical video analysis, wildlife monitoring, wordmark counting. The core building blocks are shared: a per-frame detector, a motion model (Kalman filter or something richer), an association step (Hungarian algorithm on IoU / cosine / learned features), and a track lifecycle (birth, update, death).
 
+> 跟踪对每个面向视频的产品都至关重要：体育分析、监控、自动驾驶、医学视频分析、野生动物监测、商标计数。核心构建模块是共享的：逐帧检测器、运动模型（卡尔曼滤波或更丰富的模型）、关联步骤（基于 IoU/余弦/学习特征的匈牙利算法）和跟踪生命周期（出生、更新、死亡）。
+
 2026 brought two new patterns: **SAM 2 memory-based tracking** (feature-memory instead of motion-model association) and **SAM 3.1 Object Multiplex** (shared memory for many instances of the same concept). This lesson walks the classical stack first, then the memory-based approach.
+
+> 2026 年带来了两种新模式：**SAM 2 基于记忆的跟踪**（特征记忆替代运动模型关联）和 **SAM 3.1 Object Multiplex**（同一概念的多个实例共享记忆）。本课先走经典栈，然后走基于记忆的方法。
 
 ## The Concept | 核心概念
 
