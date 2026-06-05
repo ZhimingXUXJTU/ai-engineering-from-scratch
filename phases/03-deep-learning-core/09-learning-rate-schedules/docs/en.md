@@ -22,11 +22,19 @@
 
 Set the learning rate to 0.1. Training diverges -- loss jumps to infinity in 3 steps. Set it to 0.0001. Training crawls -- after 100 epochs, the model has barely moved from random. Set it to 0.01. Training works for 50 epochs, then the loss oscillates around a minimum it can never reach because the steps are too large.
 
+> 将学习率设为 0.1。训练发散——损失在 3 步内跳到无穷大。设为 0.0001。训练缓慢爬行——100 个 epoch 后，模型几乎没从随机状态移动。设为 0.01。训练前 50 个 epoch 有效，然后损失在一个永远无法达到的极小值附近振荡，因为步长太大。
+
 The optimal learning rate is not a constant. It changes during training. Early on, you want large steps to cover ground quickly. Late in training, you want tiny steps to settle into a sharp minimum. The difference between a 90% accurate model and a 95% accurate model is often just the schedule.
+
+> 最优学习率不是常数。它在训练过程中变化。早期，你想要大步长快速覆盖空间。训练后期，你想要微小步长稳定到一个尖锐的极小值。90% 准确率的模型和 95% 准确率的模型之间的差异往往只是调度方案。
 
 Every major model published in the last three years uses a learning rate schedule. Llama 3 used peak lr=3e-4 with 2000 warmup steps and cosine decay to 3e-5. GPT-3 used lr=6e-4 with warmup over 375 million tokens. These are not arbitrary choices. They are the result of extensive hyperparameter sweeps that cost millions of dollars.
 
+> 过去三年发表的每个主要模型都使用学习率调度。Llama 3 使用峰值 lr=3e-4，2000 步 warmup 和余弦衰减到 3e-5。GPT-3 使用 lr=6e-4，warmup 覆盖 3.75 亿 token。这些不是随意的选择。它们是花费数百万美元进行大量超参数搜索的结果。
+
 You need to understand schedules because the defaults will not work for your problem. When you fine-tune a pretrained model, the right schedule is different than training from scratch. When you increase batch size, the warmup period needs to change. When training breaks at step 10,000, you need to know whether it's a schedule problem or something else.
+
+> 你需要理解调度方案，因为默认值不适用于你的问题。当你微调预训练模型时，正确的调度与从头训练不同。当你增加批量大小时，warmup 期需要改变。当训练在第 10,000 步崩溃时，你需要知道是调度问题还是其他问题。
 
 > **【中文解读】** 学习率太高 → 训练发散（loss 到无穷）；太低 → 训练极慢；合适但不衰减 → 振荡在最小值附近。每种主流模型都有精心调优的学习率调度方案，这些方案是通过百万美元级别的超参数搜索找到的。
 
@@ -74,7 +82,11 @@ This is the default for most modern training runs. No hyperparameters to tune be
 
 Adam and other adaptive optimizers maintain running estimates of gradient mean and variance. At step 0, these estimates are initialized to zero. The first few gradient updates are based on garbage statistics. If your learning rate is large during this period, the model takes huge, poorly-directed steps.
 
+> Adam 和其他自适应优化器维护梯度均值和方差的运行估计。在第 0 步，这些估计被初始化为零。前几次梯度更新基于垃圾统计。如果在这个期间学习率很大，模型会采取巨大的、方向错误的步骤。
+
 Warmup fixes this. Start with a tiny learning rate (often lr_max / warmup_steps or even zero) and linearly ramp up to lr_max over the first N steps. By the time you reach the full learning rate, Adam's statistics have stabilized.
+
+> Warmup 修复了这个问题。从一个很小的学习率开始（通常是 lr_max / warmup_steps 甚至零），然后在前 N 步线性升到 lr_max。当你达到完整学习率时，Adam 的统计量已经稳定了。
 
 ```
 lr(t) = lr_max * (t / warmup_steps)     for t < warmup_steps

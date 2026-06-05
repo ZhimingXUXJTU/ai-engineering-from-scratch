@@ -22,9 +22,15 @@
 
 A neural network with enough parameters can memorize any dataset. This is not a hypothetical -- Zhang et al. (2017) proved it by training standard networks on ImageNet with random labels. The networks reached near-zero training loss on completely random label assignments. They memorized a million random input-output pairs with no pattern to learn. Training loss was perfect. Test accuracy was zero.
 
+> 一个有足够参数的神经网络可以记住任何数据集。这不是假设——Zhang 等人 (2017) 通过在 ImageNet 上用随机标签训练标准网络证明了这一点。网络在完全随机的标签分配上达到了接近零的训练损失。它们记住了一百万个没有规律可学的随机输入-输出对。训练损失完美。测试准确率为零。
+
 This is the overfitting problem, and it gets worse as models get larger. GPT-3 has 175 billion parameters. The training set has about 500 billion tokens. With that many parameters, the model has enough capacity to memorize significant chunks of the training data verbatim. Without regularization, it would just regurgitate training examples instead of learning generalizable patterns.
 
+> 这就是过拟合问题，随着模型变大而变得更糟。GPT-3 有 1750 亿参数。训练集约 5000 亿 token。有这么多参数，模型有足够的能力逐字记住训练数据的大部分内容。没有正则化，它只会复述训练样本，而不是学习可泛化的模式。
+
 The gap between training performance and test performance is the overfitting gap. Every technique in this lesson attacks that gap from a different angle. Dropout forces the network to not rely on any single neuron. Weight decay prevents any single weight from growing too large. Batch normalization smooths the loss landscape so the optimizer finds flatter, more generalizable minima. Layer normalization does the same thing but works where batch normalization fails (small batches, variable-length sequences). RMSNorm does it 10% faster by dropping the mean calculation. Each technique is simple. Together, they're the difference between a model that memorizes and one that generalizes.
+
+> 训练性能和测试性能之间的差距就是过拟合差距。本课中的每种技术从不同角度攻击这个差距。Dropout 强制网络不依赖任何单个神经元。权重衰减防止任何单个权重增长过大。批归一化平滑损失曲面，使优化器找到更平坦、更可泛化的极小值。层归一化做同样的事，但在批归一化失败的地方有效（小批量、变长序列）。RMSNorm 通过省略均值计算快 10%。每种技术都很简单。加在一起，它们就是记忆模型和泛化模型之间的区别。
 
 > **【中文解读】** 模型参数越多，越容易过拟合。GPT-3 有 1750 亿参数、5000 亿 token——没有正则化，它只会背诵训练数据。每个正则化手段从不同角度攻击过拟合：Dropout 强制冗余表示、权重衰减限制参数幅度、归一化平滑损失曲面。
 
@@ -51,13 +57,19 @@ graph LR
 
 The simplest regularization technique with the most elegant interpretation. During training, randomly set each neuron's output to zero with probability p.
 
+> 最简单且解释最优雅的正则化技术。训练期间，以概率 p 随机将每个神经元的输出设为零。
+
 ```
 output = activation(z) * mask    where mask[i] ~ Bernoulli(1 - p)
 ```
 
 With p = 0.5, half the neurons are zeroed on every forward pass. The network must learn redundant representations because it can't predict which neurons will be available. This prevents co-adaptation -- neurons learning to rely on specific other neurons being present.
 
+> 当 p = 0.5 时，每次前向传播有一半神经元被置零。网络必须学习冗余表示，因为它无法预测哪些神经元可用。这防止了共适应——神经元学会依赖特定其他神经元的存在。
+
 The ensemble interpretation: a network with N neurons and dropout creates 2^N possible subnetworks (every combination of which neurons are on or off). Training with dropout approximately trains all 2^N subnetworks simultaneously, each on different mini-batches. At test time, you use all neurons (no dropout) and scale outputs by (1 - p) to match the expected value during training. This is equivalent to averaging the predictions of 2^N subnetworks -- a massive ensemble from a single model.
+
+> 集成解释：一个有 N 个神经元和 dropout 的网络创建 2^N 个可能的子网络（神经元开或关的每种组合）。用 dropout 训练大约同时训练所有 2^N 个子网络，每个在不同的 mini-batch 上。测试时，你使用所有神经元（无 dropout）并按 (1 - p) 缩放输出以匹配训练期间的期望值。这等价于对 2^N 个子网络的预测取平均——用单个模型实现大规模集成。
 
 In practice, the scaling is applied during training instead of testing (inverted dropout):
 

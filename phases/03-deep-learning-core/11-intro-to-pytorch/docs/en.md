@@ -22,13 +22,23 @@
 
 You have a working mini framework. Linear layers, ReLU, dropout, batch norm, Adam, a DataLoader, a training loop. It trains a 4-layer network on a circle classification problem in pure Python.
 
+> 你有了一个可用的迷你框架。线性层、ReLU、dropout、批归一化、Adam、DataLoader、训练循环。它用纯 Python 在圆形分类问题上训练一个 4 层网络。
+
 It is also 500x slower than PyTorch on the same problem.
+
+> 但它比 PyTorch 在相同问题上慢 500 倍。
 
 Your mini framework processes one sample at a time with nested Python loops. PyTorch dispatches the same operations to optimized C++/CUDA kernels that run on GPU. On a single NVIDIA A100, PyTorch trains a ResNet-50 (25.6M parameters) on ImageNet (1.28M images) in about 6 hours. Your framework would take roughly 3,000 hours on the same task -- if it didn't run out of memory first.
 
+> 你的迷你框架用嵌套的 Python 循环逐个处理样本。PyTorch 将相同的操作分派到在 GPU 上运行的优化 C++/CUDA 内核。在单个 NVIDIA A100 上，PyTorch 在 ImageNet（128 万张图像）上训练 ResNet-50（2560 万参数）大约需要 6 小时。你的框架在相同任务上大约需要 3000 小时——如果它不先用光内存的话。
+
 Speed is not the only gap. Your framework has no GPU support. No automatic differentiation -- you hand-wrote backward() for every module. No serialization. No distributed training. No mixed precision. No way to debug gradient flow without print statements.
 
+> 速度不是唯一的差距。你的框架没有 GPU 支持。没有自动微分——你为每个模块手写了 backward()。没有序列化。没有分布式训练。没有混合精度。没有不用 print 语句就能调试梯度流的方法。
+
 PyTorch fills every one of these gaps. And it does so while keeping the exact same mental model you already built: Module, forward(), parameters(), backward(), optimizer.step(). The concepts transfer one-to-one. The syntax is nearly identical. The difference is that PyTorch wraps a decade of systems engineering behind the same interface you designed from scratch.
+
+> PyTorch 填补了所有这些差距。而且它保持了与你已经构建的完全相同的心智模型：Module、forward()、parameters()、backward()、optimizer.step()。概念一一对应。语法几乎相同。区别在于 PyTorch 在与你从零设计的相同接口后面包装了十年的系统工程。
 
 > **【中文解读】** 你的迷你框架比 PyTorch 慢 500 倍——因为 Python 循环逐个处理样本，而 PyTorch 用 C++/CUDA 内核并行处理。A100 上训练 ResNet-50 只需 6 小时，你的框架需要 3000 小时。但两者的心智模型完全一致：Module、forward、backward、optimizer.step()。
 
@@ -42,11 +52,19 @@ PyTorch fills every one of these gaps. And it does so while keeping the exact sa
 
 In 2015, TensorFlow required you to define a static computation graph before running anything. You built the graph, compiled it, then fed data through it. Debugging meant staring at graph visualizations. Changing the architecture meant rebuilding the graph from scratch.
 
+> 2015 年，TensorFlow 要求你在运行任何东西之前定义静态计算图。你构建图、编译它、然后通过它输入数据。调试意味着盯着图可视化。改变架构意味着从头重建图。
+
 PyTorch launched in 2017 with a different philosophy: eager execution. You write Python. It runs immediately. `y = model(x)` actually computes y right now, not "add a node to a graph that will compute y later." This meant standard Python debugging tools worked. print() worked. pdb worked. if/else in your forward pass worked.
+
+> PyTorch 在 2017 年推出，采用了不同的哲学：即时执行。你写 Python。它立即运行。`y = model(x)` 现在就计算 y，而不是"添加一个稍后计算 y 的节点到图中"。这意味着标准的 Python 调试工具可用。print() 可用。pdb 可用。forward pass 中的 if/else 可用。
 
 By 2020, the market had spoken. PyTorch's share in ML research papers went from 7% (2017) to over 75% (2022). Meta, Google DeepMind, OpenAI, Anthropic, and Hugging Face all use PyTorch as their primary framework. TensorFlow 2.x adopted eager execution in response -- tacit admission that PyTorch's design was correct.
 
+> 到 2020 年，市场给出了答案。PyTorch 在 ML 研究论文中的份额从 7%（2017）增长到超过 75%（2022）。Meta、Google DeepMind、OpenAI、Anthropic 和 Hugging Face 都将 PyTorch 作为主要框架。TensorFlow 2.x 作为回应采用了即时执行——默认承认 PyTorch 的设计是正确的。
+
 The lesson: developer experience compounds. A framework that is 10% slower but 50% faster to debug wins every time.
+
+> 教训：开发者体验会累积。一个慢 10% 但调试快 50% 的框架每次都会赢。
 
 ### Tensors | 张量
 
