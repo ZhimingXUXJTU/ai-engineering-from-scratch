@@ -12,7 +12,7 @@
 **Time:** ~90 minutes
 **Related:** Phase 11 · 15 (Prompt Caching) — the cache-friendly layout is an extension of context engineering. Phase 5 · 28 (Long-Context Evaluation) for how to measure lost-in-the-middle with NIAH/RULER.
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Calculate token budgets across all context window components (system prompt, tools, history, retrieved docs, generation headroom)
 - Implement context window management strategies: truncation, summarization, and sliding window for conversation history
@@ -26,13 +26,23 @@
 
 Claude Opus 4.7 has a 200K token window (1M in beta). GPT-5 has 400K. Gemini 3 Pro has 2M. Llama 4 claims 10M. These numbers sound enormous until you fill them.
 
+> Claude Opus 4.7 有 200K token 窗口（beta 版 1M）。GPT-5 有 400K。Gemini 3 Pro 有 2M。这些数字听起来很大，直到你填满它们。
+
 Here is a real breakdown for a coding assistant. System prompt: 500 tokens. Tool definitions for 50 tools: 8,000 tokens. Retrieved documentation: 4,000 tokens. Conversation history (10 turns): 6,000 tokens. Current user query: 200 tokens. Generation budget (max output): 4,000 tokens. Total: 22,700 tokens. That is only 18% of a 128K window.
+
+> 这是一个编程助手的真实分解。系统提示：500 token。50 个工具定义：8,000 token。检索文档：4,000 token。对话历史（10 轮）：6,000 token。当前查询：200 token。生成预算：4,000 token。总计：22,700 token。这只占 128K 窗口的 18%。
 
 But attention does not scale linearly with context length. A model with 128K tokens of context pays quadratic attention cost (O(n^2) in vanilla transformers, though most production models use efficient attention variants). More importantly, retrieval accuracy degrades. The "Needle in a Haystack" test shows that models struggle to find information placed in the middle of long contexts. Research by Liu et al. (2023) showed that LLMs retrieve information at the start and end of long contexts with near-perfect accuracy, but accuracy drops 10-20% for information placed in the middle (positions 40-70% of the context). This "lost-in-the-middle" effect varies by model but affects all current architectures.
 
+> 但注意力不会随上下文长度线性扩展。更重要的是，检索准确率会下降。"大海捞针"测试表明，模型难以找到放在长上下文中间位置的信息。Liu 等人（2023）的研究表明，LLM 在长上下文开头和结尾检索信息的准确率接近完美，但中间位置（上下文的 40-70%）的准确率下降 10-20%。
+
 The practical lesson: having 200K tokens available does not mean using 200K tokens is effective. A carefully curated 10K token context often outperforms a dumped 100K token context. Context engineering is the discipline of maximizing signal-to-noise ratio within the context window.
 
+> 实际教训：有 200K token 可用并不意味着使用 200K token 是有效的。精心策划的 10K token 上下文通常优于倾倒的 100K token 上下文。上下文工程是在上下文窗口内最大化信噪比的学科。
+
 Every token you put in the window displaces a token that could carry more relevant information. Every irrelevant tool definition, every stale conversation turn, every chunk of retrieved text that does not answer the question -- each one makes the model slightly worse at the task.
+
+> 你放入窗口的每个 token 都挤占了一个可能携带更相关信息的 token。每个不相关的工具定义、每个过时的对话轮次、每个不回答问题的检索文本块——每一个都让模型在任务上稍微变差。
 
 ## The Concept | 核心概念
 

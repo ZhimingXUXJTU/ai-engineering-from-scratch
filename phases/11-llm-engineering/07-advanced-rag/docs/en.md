@@ -12,7 +12,7 @@
 **Time:** ~90 minutes
 **Related:** Phase 5 · 23 (Chunking Strategies for RAG) covers all six chunking algorithms — recursive, semantic, sentence, parent-document, late chunking, contextual retrieval — with Vectara/Anthropic benchmarks. This lesson builds on top: hybrid search, reranking, query transformation.
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement advanced chunking strategies (semantic, recursive, parent-child) that preserve document structure and context
 - Build a hybrid search pipeline combining BM25 keyword matching with semantic vector search and a cross-encoder reranker
@@ -26,13 +26,23 @@
 
 You built a basic RAG pipeline in Lesson 06. It works for straightforward questions on a small corpus. Now try these:
 
+> 你在第 06 课构建了一个基础 RAG 流水线。它对小型语料库上的直接问题有效。现在试试这些：
+
 **Ambiguous query**: "What was revenue last quarter?" Semantic search returns chunks about revenue strategy, revenue projections, and the CFO's thoughts on revenue growth. All semantically similar to the word "revenue." None containing the actual number. The correct chunk says "$47.2M in Q3 2025" but uses the word "earnings" instead of "revenue." The embedding model thinks "revenue strategy" is closer to the query than "Q3 earnings were $47.2M."
+
+> **模糊查询**："上季度营收是多少？"语义搜索返回了关于营收策略、营收预测和 CFO 对营收增长看法的片段。都和"revenue"语义相似，但没有一个包含实际数字。
 
 **Multi-hop question**: "Which team had the highest customer satisfaction score improvement?" This requires finding the satisfaction scores for each team, comparing them, and identifying the maximum. No single chunk contains the answer. The information is scattered across team reports.
 
+> **多跳问题**："哪个团队的客户满意度评分提升最高？"这需要找到每个团队的满意度评分，比较它们，并识别最大值。没有任何单个片段包含答案。
+
 **Large corpus problem**: You have 2 million chunks. The correct answer is in chunk #1,847,293. Your top-5 retrieval pulls chunks #14, #89,201, #1,200,000, #44, and #901,333. Close in embedding space, but none containing the answer. At this scale, approximate nearest neighbor search introduces enough error that relevant results get pushed out of the top-k.
 
+> **大型语料库问题**：你有 200 万个片段。正确答案在第 1,847,293 号片段中。你的 top-5 检索拉出了其他片段。在这个规模下，近似最近邻搜索引入了足够的误差。
+
 Basic RAG fails because vector similarity is not the same as relevance. A chunk can be semantically similar to a query without being useful for answering it. Advanced RAG addresses this with four techniques: hybrid search (add keyword matching), reranking (score candidates more carefully), query transformation (fix the query before searching), and better chunking (retrieve at the right granularity).
+
+> 基础 RAG 失败是因为向量相似度不等于相关性。高级 RAG 用四种技术解决：混合搜索（添加关键词匹配）、重排序（更仔细地评分候选）、查询转换（搜索前修复查询）和更好的分块（以正确的粒度检索）。
 
 ## The Concept | 核心概念
 

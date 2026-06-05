@@ -12,7 +12,7 @@
 **Time:** ~75 minutes
 **Related:** Phase 5 · 22 (Embedding Models Deep Dive) covers dense vs sparse vs multi-vector, Matryoshka truncation, and per-axis model selection. This lesson focuses on the production pipeline (vector DBs, HNSW, similarity math). Read Phase 5 · 22 before picking a model.
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Generate text embeddings using API providers and open-source models, and compute cosine similarity between them
 - Explain why embeddings solve the vocabulary mismatch problem that keyword search cannot handle
@@ -26,11 +26,19 @@
 
 You have 10,000 support tickets. A customer writes "my payment didn't go through." You need to find similar past tickets. Keyword search finds tickets containing "payment" and "didn't go through." It misses "transaction failed," "charge was declined," and "billing error." These tickets describe the exact same problem with completely different words.
 
+> 你有 10,000 张工单。客户写"我的付款没有成功"。你需要找到类似的过往工单。关键词搜索找到了包含"payment"和"didn't go through"的工单，但漏掉了"transaction failed"、"charge was declined"和"billing error"。这些工单描述的是完全相同的问题，只是用了完全不同的词。
+
 This is the vocabulary mismatch problem. Human language has dozens of ways to say the same thing. Keyword search treats each word as an independent symbol with no meaning. It cannot know that "declined" and "didn't go through" refer to the same concept.
+
+> 这就是词汇不匹配问题。人类语言有几十种方式来表达同一件事。关键词搜索将每个词视为没有意义的独立符号。它无法知道"declined"和"didn't go through"指的是同一个概念。
 
 You need a representation of text where meaning, not spelling, determines similarity. You need a way to place "my payment didn't go through" and "transaction was declined" close together in some mathematical space, while pushing "my payment arrived on time" far away despite sharing the word "payment."
 
+> 你需要一种文本表示方式，其中意义而非拼写决定相似性。你需要一种方法，将"我的付款没有成功"和"交易被拒绝"放在某个数学空间中彼此接近。
+
 That representation is an embedding.
+
+> 这种表示就是嵌入。
 
 ## The Concept | 核心概念
 
@@ -43,7 +51,11 @@ That representation is an embedding.
 
 An embedding is a dense vector of floating-point numbers that represents the meaning of text. The word "dense" matters -- every dimension carries information, unlike sparse representations (bag-of-words, TF-IDF) where most dimensions are zero.
 
+> 嵌入是表示文本含义的浮点数稠密向量。"稠密"很重要——每个维度都承载信息，不像稀疏表示（词袋、TF-IDF）中大多数维度为零。
+
 "The cat sat on the mat" becomes something like `[0.023, -0.041, 0.087, ..., 0.012]` -- a list of 768 to 3072 numbers depending on the model. These numbers encode meaning. You never inspect them directly. You compare them.
+
+> "猫坐在垫子上"变成类似 `[0.023, -0.041, 0.087, ..., 0.012]` 的东西——根据模型不同，是 768 到 3072 个数字的列表。这些数字编码了含义。你从不直接检查它们，你比较它们。
 
 ### The Word2Vec Breakthrough
 

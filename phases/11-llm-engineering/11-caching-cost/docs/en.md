@@ -12,7 +12,7 @@
 **Time:** ~45 minutes
 **Related:** Phase 11 · 15 (Prompt Caching) — this lesson covers application-layer caching (semantic cache, exact hash cache, model routing). Lesson 15 covers provider-layer prompt caching (Anthropic cache_control, OpenAI automatic, Gemini CachedContent). Combine both for 50-95% cost reduction.
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement semantic caching that serves repeated or similar queries from cache instead of making a new API call
 - Calculate per-request costs across providers and implement token-aware rate limiting and budget alerts
@@ -28,24 +28,38 @@ You build a RAG chatbot. It works beautifully. Users love it.
 
 Then the invoice arrives.
 
+> 你构建了一个 RAG 聊天机器人。它运行得很好。用户很喜欢。然后账单到了。
+
 GPT-5 costs $5 per million input tokens and $15 per million output. Claude Opus 4.7 costs $15 input / $75 output. Gemini 3 Pro costs $1.25 input / $5 output. GPT-5-mini is $0.25/$2. Prices below are illustrative; always check the provider's current pricing page.
+
+> GPT-5 每百万输入 token $5，每百万输出 $15。Claude Opus 4.7 是 $15/$75。Gemini 3 Pro 是 $1.25/$5。
 
 Here is the math that kills startups:
 
-- 10,000 daily active users
-- 10 queries per user per day
-- 1,000 input tokens per query (system prompt + context + user message)
-- 500 output tokens per response
+> 这是让初创公司倒闭的数学：
 
-**Daily input cost:** 10,000 x 10 x 1,000 / 1,000,000 x $2.50 = **$250/day**
-**Daily output cost:** 10,000 x 10 x 500 / 1,000,000 x $10.00 = **$500/day**
+- 10,000 daily active users
+  10,000 日活用户
+- 10 queries per user per day
+  每用户每天 10 次查询
+- 1,000 input tokens per query (system prompt + context + user message)
+  每次查询 1,000 输入 token
+- 500 output tokens per response
+  每次响应 500 输出 token
+
 **Monthly total:** **$22,500/month**
 
 That is just the LLM. Add embeddings, vector database hosting, infrastructure. You are looking at $30,000/month for a chatbot.
 
+> 这只是 LLM 的费用。加上嵌入、向量数据库托管、基础设施。一个聊天机器人每月 $30,000。
+
 The brutal part: 40-60% of those queries are near-duplicates. Users ask the same questions in slightly different words. Your system prompt -- identical across every request -- gets billed every single time. Context documents retrieved by RAG repeat across users who ask about the same topic.
 
+> 残酷的部分：40-60% 的查询是近似重复的。用户用稍微不同的词问同样的问题。你的系统提示——每次请求都相同——每次都被计费。
+
 You are paying full price for redundant computation.
+
+> 你在为冗余计算支付全价。
 
 ## The Concept | 核心概念
 

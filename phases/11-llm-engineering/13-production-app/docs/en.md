@@ -12,7 +12,7 @@
 **Time:** ~120 minutes
 **Related:** Phase 11 · 14 (MCP) for replacing bespoke tool schemas with a shared protocol; Phase 11 · 15 (Prompt Caching) for 50-90% cost reduction on stable prefixes. Both are expected in every serious 2026 production stack.
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Wire all Phase 11 components (prompts, RAG, function calling, caching, guardrails) into a single production-ready service
 - Implement streaming token delivery, graceful error handling, and request timeout management
@@ -26,18 +26,32 @@
 
 Building an LLM feature takes an afternoon. Shipping an LLM product takes months.
 
+> 构建一个 LLM 功能只需要一个下午。发布一个 LLM 产品需要几个月。
+
 The gap is not intelligence. It is infrastructure. Your prototype calls OpenAI, gets a response, prints it. Works on your laptop. Then reality arrives:
 
+> 差距不在智能。而在基础设施。你的原型调用 OpenAI，获取响应，打印出来。在你的笔记本上工作。然后现实来了：
+
 - A user sends a 50,000-token document. Your context window overflows.
+  用户发送 50,000 token 文档。上下文窗口溢出。
 - Two users ask the same question 4 seconds apart. You pay for both.
+  两个用户 4 秒内问了同样的问题。你为两个都付费了。
 - The API returns a 500 error at 2am. Your service crashes.
+  API 在凌晨 2 点返回 500 错误。你的服务崩溃了。
 - A user asks the model to generate SQL. The model outputs `DROP TABLE users`.
+  用户要求模型生成 SQL。模型输出了 `DROP TABLE users`。
 - Your monthly bill hits $12,000 and you have no idea which feature caused it.
+  月账单达到 $12,000，你不知道是哪个功能导致的。
 - Response time averages 8 seconds. Users leave after 3.
+  平均响应时间 8 秒。用户 3 秒后就离开了。
 
 Every LLM application in production today -- Perplexity, Cursor, ChatGPT, Notion AI -- solved these problems. Not by being smarter about prompts. By being rigorous about engineering.
 
+> 今天每个生产环境中的 LLM 应用——Perplexity、Cursor、ChatGPT、Notion AI——都解决了这些问题。不是通过更聪明的提示，而是通过严谨的工程。
+
 This is the capstone. You will build a complete production LLM service that integrates prompt management (L01-02), embeddings and vector search (L04-07), function calling (L09), evaluation (L10), caching (L11), guardrails (L12), streaming, error handling, observability, and cost tracking. One service. Every component wired together.
+
+> 这是顶点课程。你将构建一个完整的生产级 LLM 服务，集成提示管理、嵌入和向量搜索、函数调用、评估、缓存、护栏、流式输出、错误处理、可观测性和成本追踪。
 
 ## The Concept | 核心概念
 

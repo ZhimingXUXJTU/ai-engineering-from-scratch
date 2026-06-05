@@ -12,7 +12,7 @@
 **Time:** ~75 minutes
 **Related:** Phase 10 covers the SFT/DPO loops from scratch. This lesson plugs those into the 2026 PEFT toolkits (PEFT, TRL, Unsloth, Axolotl, LLaMA-Factory).
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement LoRA by injecting low-rank adapter matrices (A and B) into a pretrained model's attention layers
 - Calculate the parameter savings of LoRA vs full fine-tuning: rank r with d_model dimensions trains 2*r*d parameters instead of d^2
@@ -26,15 +26,23 @@
 
 You have a base model. Llama 3 8B. You want it to answer customer support tickets in your company's voice. SFT is the answer. But SFT has a cost problem.
 
+> 你有一个基础模型。Llama 3 8B。你希望它用你公司的语气回答客服工单。SFT 是答案。但 SFT 有成本问题。
+
 Full fine-tuning updates every parameter in the model. Llama 3 8B has 8 billion parameters. In fp16, each parameter takes 2 bytes. That's 16GB just to load the weights. During training, you also need gradients (16GB), optimizer states for Adam (32GB for momentum + variance), and activations. Total: roughly 56GB of VRAM for a single 8B model.
+
+> 全参数微调更新模型中的每个参数。Llama 3 8B 有 80 亿参数。fp16 下每个参数占 2 字节。仅加载权重就需要 16GB。训练期间还需要梯度和优化器状态。单个 8B 模型总共需要约 56GB 显存。
 
 An A100 80GB can barely fit this. Two A100s cost $3-4/hour on cloud providers. Training for 3 epochs on 50,000 examples takes 6-10 hours. That's $30-40 per experiment. Run 10 experiments to get the hyperparameters right and you've spent $400 before deploying anything.
 
-Scale this to Llama 3 70B and the numbers get absurd. 140GB for weights alone. You need a cluster. $100+ per experiment.
+> 一张 A100 80GB 勉强能装下。两张 A100 在云上每小时 $3-4。在 50,000 个样本上训练 3 个 epoch 需要 6-10 小时。每次实验 $30-40。
 
 There's a deeper problem too. Full fine-tuning modifies every weight in the model. If you fine-tune on customer support data, you might degrade the model's general capabilities. It's called catastrophic forgetting. The model gets better at your task and worse at everything else.
 
+> 还有一个更深层的问题。全参数微调修改模型中的每个权重。如果你在客服数据上微调，可能会降低模型的通用能力。这叫灾难性遗忘。
+
 You need a method that trains fewer parameters, uses less memory, and doesn't destroy the model's existing knowledge.
+
+> 你需要一种训练更少参数、使用更少内存、且不破坏模型现有知识的方法。
 
 ## The Concept | 核心概念
 

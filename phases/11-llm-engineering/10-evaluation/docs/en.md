@@ -12,7 +12,7 @@
 **Time:** ~45 minutes
 **Related:** Phase 5 · 27 (LLM Evaluation — RAGAS, DeepEval, G-Eval) covers the framework-level concepts (NLI-based faithfulness, judge calibration, the RAG four). Phase 5 · 28 (Long-Context Evaluation) covers NIAH / RULER / LongBench / MRCR for context-length regression. This lesson focuses on what is LLM-engineering-specific: CI/CD integration, cost-gated eval runs, regression dashboards.
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build an evaluation dataset with input-output pairs, rubrics, and edge cases specific to your LLM application
 - Implement automated scoring using LLM-as-judge, regex matching, and deterministic assertion checks
@@ -26,13 +26,23 @@
 
 You build a RAG chatbot for customer support. It works great in your demos. You ship it. Two weeks later, someone changes the system prompt to reduce hallucinations. The change works -- hallucination rate drops. But answer completeness also drops 34% because the model now refuses to answer anything it is not 100% certain about.
 
+> 你为客服构建了一个 RAG 聊天机器人。演示效果很好。你发布了它。两周后，有人改了系统提示来减少幻觉。更改有效——幻觉率下降了。但回答完整性也下降了 34%，因为模型现在拒绝回答任何它不是 100% 确定的事情。
+
 Nobody noticed for 11 days. Revenue from the self-service channel fell. Support tickets spiked.
+
+> 11 天没人注意到。自助服务渠道的收入下降了。工单激增。
 
 This is the default outcome when you evaluate by vibes. You check a few examples, they look fine, you merge. But LLM outputs are stochastic. A prompt that works on 5 test cases can fail on the 6th. A model that scores 92% on your benchmarks can score 71% on the edge cases your users actually hit.
 
+> 这是凭感觉评估的默认结果。LLM 输出是随机的。在 5 个测试用例上有效的提示可能在第 6 个上失败。
+
 The fix is not "be more careful." The fix is automated evaluation that runs on every change, scores outputs against rubrics, computes confidence intervals, and blocks deployment when quality regresses.
 
+> 修复方法不是"更小心"。修复方法是自动化评估——在每次更改时运行，对照评分标准评分，计算置信区间，质量回退时阻止部署。
+
 Evaluation is not a nice-to-have. It is table stakes. Shipping without evals is deploying blind.
+
+> 评估不是锦上添花，而是基本要求。没有评估就发布是盲目部署。
 
 ## The Concept | 核心概念
 

@@ -12,7 +12,7 @@
 **Time:** ~75 minutes
 **Related:** Phase 11 · 14 (Model Context Protocol) — when a tool is shared across hosts, graduate from inline function-calling to an MCP server. This lesson covers the inline case; MCP covers the protocol case.
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement a function calling loop: define tool schemas, parse the model's tool-call JSON, execute functions, and return results
 - Design tool schemas with clear descriptions and typed parameters that the model can reliably invoke
@@ -26,15 +26,27 @@
 
 You build a chatbot. A user asks: "What's the weather in Tokyo right now?"
 
+> 你构建了一个聊天机器人。用户问："东京现在天气怎么样？"
+
 The model responds: "I don't have access to real-time weather data, but based on the season, Tokyo is likely around 15 degrees Celsius..."
+
+> 模型回复了一个带着免责声明的幻觉答案。
 
 That is a hallucination dressed in a disclaimer. The model does not know the weather. It never will. Weather changes every hour. The model's training data is months old.
 
+> 这是披着免责声明的幻觉。模型不知道天气，也永远不会知道。天气每小时都在变化。
+
 The correct answer requires calling the OpenWeatherMap API, getting the current temperature, and returning the real number. The model cannot call APIs. Your code can. The missing piece: a structured protocol that lets the model say "I need to call the weather API with these arguments" and lets your code execute it and feed the result back.
+
+> 正确答案需要调用 OpenWeatherMap API。模型不能调用 API，你的代码可以。缺失的是结构化协议。
 
 This is function calling. The model outputs structured JSON describing which function to invoke with what arguments. Your application executes the function. The result goes back into the conversation. The model uses the result to produce its final answer.
 
+> 这就是函数调用。模型输出结构化 JSON 描述要调用哪个函数。你的应用执行函数，结果回到对话中。
+
 Without function calling, LLMs are encyclopedias. With it, they become agents.
+
+> 没有函数调用，LLM 是百科全书。有了它，它们变成 Agent。
 
 ## The Concept | 核心概念
 
