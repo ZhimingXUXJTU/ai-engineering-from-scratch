@@ -2,10 +2,10 @@
 
 > Every neural network is just matrix multiplication with extra steps.
 
-**Type:** Build
-**Languages:** Python, Julia
-**Prerequisites:** Phase 1, Lesson 01 (Linear Algebra Intuition)
-**Time:** ~60 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python, Julia | **语言:** Python, Julia
+**Prerequisites:** Phase 1, Lesson 01 (Linear Algebra Intuition) | **前置知识:** Phase 1, Lesson 01 (线性代数直觉)
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标
 
@@ -22,9 +22,11 @@
 > - **神经网络权重**: 每一层的权重就是一个矩阵，输入向量乘以权重矩阵得到输出向量。
 > - **Transformer 的注意力机制**: 本质上是 Q、K、V 三个矩阵的乘法和 Softmax 运算。
 
-## The Problem | 问题描述
+## The Problem | 问题引入
 
 You want to build a neural network. You read the code and see this:
+
+> 你想构建一个神经网络。你看到代码里写着：
 
 ```
 output = activation(weights @ input + bias)
@@ -32,9 +34,15 @@ output = activation(weights @ input + bias)
 
 That `@` is matrix multiplication. The `weights` are a matrix. The `input` is a vector. If you do not know what those operations do, this line is magic. If you do know, it is the entire forward pass of a layer in three operations.
 
+> `@` 是矩阵乘法。`weights` 是一个矩阵。`input` 是一个向量。如果你不知道这些操作做什么，这行代码就是魔法。如果你知道，这就是一层的完整前向传播——只有三个操作。
+
 Every image your model processes is a matrix of pixel values. Every word embedding is a vector. Every layer of every neural network is a matrix transformation. You cannot build AI systems without being fluent in matrix operations the same way you cannot write code without understanding variables.
 
+> 模型处理的每张图片都是像素矩阵，每个词嵌入都是向量，神经网络的每一层都是矩阵变换。不精通矩阵运算就无法构建 AI 系统，就像不理解变量就无法写代码一样。
+
 This lesson builds that fluency from scratch.
+
+> 本课从零开始建立这种熟练度。
 
 > **【中文解读】**
 > `output = activation(weights @ input + bias)` 这行代码就是神经网络一层的前向传播。如果你不懂矩阵乘法，它看起来像魔法；如果你懂，它就是三个基本操作。
@@ -45,6 +53,8 @@ This lesson builds that fluency from scratch.
 
 A vector is a list of numbers with a direction and magnitude. In AI, vectors represent data points, features, or parameters.
 
+> 向量是一组有方向和大小的数字。在 AI 中，向量表示数据点、特征或参数。
+
 ```
 v = [3, 4]        -- a 2D vector # 二维向量
 w = [1, 0, -2]    -- a 3D vector # 三维向量
@@ -52,9 +62,13 @@ w = [1, 0, -2]    -- a 3D vector # 三维向量
 
 A 2D vector `[3, 4]` points to coordinates (3, 4) on a plane. Its length (magnitude) is 5 (the 3-4-5 triangle).
 
+> 二维向量 `[3, 4]` 指向平面上的坐标 (3, 4)，长度为 5（勾股定理 3-4-5 三角形）。
+
 ### Matrices: grids of numbers | 矩阵：数字网格
 
 A matrix is a 2D grid. Rows and columns. An m x n matrix has m rows and n columns.
+
+> 矩阵是二维网格，由行和列组成。一个 m x n 矩阵有 m 行 n 列。
 
 ```
 A = | 1  2  3 |     -- 2x3 matrix (2 rows, 3 columns) # 2行3列矩阵
@@ -63,9 +77,13 @@ A = | 1  2  3 |     -- 2x3 matrix (2 rows, 3 columns) # 2行3列矩阵
 
 In neural networks, weight matrices transform input vectors into output vectors. A layer with 784 inputs and 128 outputs uses a 128x784 weight matrix.
 
+> 在神经网络中，权重矩阵将输入向量变换为输出向量。一个有 784 个输入和 128 个输出的层使用 128x784 的权重矩阵。
+
 ### Why shapes matter | 为什么形状很重要
 
 Matrix multiplication has a strict rule: `(m x n) @ (n x p) = (m x p)`. The inner dimensions must match.
+
+> 矩阵乘法有严格的形状规则：`(m x n) @ (n x p) = (m x p)`，内部维度必须一致。
 
 ```
 (128 x 784) @ (784 x 1) = (128 x 1)
@@ -75,6 +93,8 @@ Inner dimensions: 784 = 784  -- valid # 内部维度必须匹配
 ```
 
 If you get a shape mismatch error in PyTorch, this is why.
+
+> 你在 PyTorch 中遇到 "shape mismatch" 错误时，99% 的原因是这个规则被违反了。
 
 > **【中文解读】**
 > 矩阵乘法的形状规则：(m x n) @ (n x p) = (m x p)。内部维度必须一致。你在 PyTorch 中遇到 "shape mismatch" 错误时，99% 的原因是这个规则被违反了。
@@ -105,7 +125,11 @@ If you get a shape mismatch error in PyTorch, this is why.
 
 This distinction trips up beginners constantly.
 
+> 这个区别经常让初学者困惑。
+
 Element-wise: multiply matching positions. Both matrices must be the same shape.
+
+> 逐元素乘法：对应位置相乘，两个矩阵形状必须相同。
 
 ```
 | 1  2 |   | 5  6 |   | 5  12 |
@@ -114,6 +138,8 @@ Element-wise: multiply matching positions. Both matrices must be the same shape.
 
 Matrix multiplication: dot products of rows and columns. Inner dimensions must match.
 
+> 矩阵乘法：行与列做点积，内部维度必须一致。
+
 ```
 | 1  2 |   | 5  6 |   | 1*5+2*7  1*6+2*8 |   | 19  22 |
 | 3  4 | @ | 7  8 | = | 3*5+4*7  3*6+4*8 | = | 43  50 |
@@ -121,9 +147,13 @@ Matrix multiplication: dot products of rows and columns. Inner dimensions must m
 
 Different operations, different results, different rules.
 
+> 不同的操作，不同的结果，不同的规则。
+
 ### Broadcasting
 
 When you add a bias vector to a matrix of outputs, the shapes do not match. Broadcasting stretches the smaller array to fit.
+
+> 广播机制：当偏置向量与输出矩阵形状不匹配时，广播会自动扩展较小的数组来适配。
 
 ```
 | 1  2  3 |   +   [10, 20, 30]
@@ -136,6 +166,8 @@ Broadcasting stretches the vector across rows:
 ```
 
 Every modern framework does this automatically. Understanding it prevents confusion when shapes seem wrong but the code runs.
+
+> 每个现代框架都会自动做广播。理解它可以避免"形状不对但代码能跑"的困惑。
 
 ## Build It | 动手实现
 
@@ -299,6 +331,8 @@ This is a single dense layer: `output = relu(W @ x + b)`. Every dense layer in e
 
 NumPy does everything above in fewer lines and orders of magnitude faster.
 
+> NumPy 用更少的代码、快几个数量级地完成同样的操作。
+
 ```python
 import numpy as np
 
@@ -324,6 +358,8 @@ print(f"Output:\n{output}")
 
 The `@` operator in Python calls `__matmul__`. NumPy implements it with optimized BLAS routines written in C and Fortran. Same math, 100x faster.
 
+> Python 的 `@` 运算符调用 `__matmul__`。NumPy 使用 C 和 Fortran 编写的优化 BLAS 例程，同样的数学，快 100 倍。
+
 Broadcasting in NumPy:
 
 ```python
@@ -334,11 +370,17 @@ print(matrix + bias)
 
 NumPy automatically broadcasts the 1D bias across both rows. This is how bias addition works in every neural network framework.
 
+> NumPy 自动将一维偏置向量广播到所有行。这就是每个神经网络框架中偏置加法的工作方式。
+
 ## Ship It | 产出物
 
 This lesson produces a prompt for teaching matrix operations through geometric intuition. See `outputs/prompt-matrix-operations.md`.
 
+> 本课产出了一个通过几何直觉教授矩阵运算的提示词。参见 `outputs/prompt-matrix-operations.md`。
+
 The Matrix class built here is the foundation for the mini neural network framework we build in Phase 3, Lesson 10.
+
+> 这里构建的 Matrix 类是 Phase 3 第 10 课迷你神经网络框架的基础。
 
 ## Exercises | 练习题
 

@@ -6,6 +6,10 @@ import random
 
 
 class Vector:
+    """向量类：表示 n 维空间中的点或方向。
+
+    AI 应用：词嵌入、图片特征、用户偏好等一切数据都用向量表示。
+    """
     def __init__(self, data):
         self.data = list(data)
         self.size = len(self.data)
@@ -23,6 +27,7 @@ class Vector:
         return Vector([x * scalar for x in self.data])
 
     def dot(self, other):
+        """点积：衡量两个向量的对齐程度。Attention 机制的核心操作。"""
         return sum(a * b for a, b in zip(self.data, other.data))
 
     def magnitude(self):
@@ -94,7 +99,7 @@ class Matrix:
         ])
 
     def matmul(self, other):
-        if self.cols != other.rows:
+        """矩阵乘法：神经网络一层的核心计算 (W @ x)。"""
             raise ValueError(
                 f"Cannot multiply shapes {self.shape} and {other.shape}: "
                 f"inner dimensions {self.cols} != {other.rows}"
@@ -111,6 +116,7 @@ class Matrix:
         return self.matmul(other)
 
     def transpose(self):
+        """转置：行列互换。反向传播中 Key 矩阵需要转置 (K.T)。"""
         return Matrix([
             [self.data[j][i] for j in range(self.rows)]
             for i in range(self.cols)
@@ -121,6 +127,7 @@ class Matrix:
         return self.transpose()
 
     def determinant(self):
+        """行列式：衡量矩阵对空间的缩放程度。为零则矩阵不可逆。"""
         if self.rows != self.cols:
             raise ValueError("Determinant only defined for square matrices")
         if self.shape == (1, 1):
@@ -137,6 +144,7 @@ class Matrix:
         return det
 
     def inverse_2x2(self):
+        """逆矩阵：撤销变换。仅在行列式非零时存在。"""
         if self.shape != (2, 2):
             raise ValueError("This method only works for 2x2 matrices")
         det = self.determinant()
@@ -167,6 +175,7 @@ class Matrix:
 
 
 def relu_matrix(m):
+    """ReLU 激活函数：小于 0 的值变为 0。神经网络最常用的激活函数。"""
     return Matrix([[max(0, val) for val in row] for row in m.data])
 
 

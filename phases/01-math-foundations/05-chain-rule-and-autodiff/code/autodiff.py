@@ -17,6 +17,7 @@ class Value:
         return f"Value(data={self.data:.4f}, grad={self.grad:.4f})"
 
     def __add__(self, other):
+        """加法：梯度直接传递（1 * 上游梯度）。"""
         other = other if isinstance(other, Value) else Value(other)
         out = Value(self.data + other.data, (self, other), '+')
         def _backward():
@@ -29,6 +30,7 @@ class Value:
         return self.__add__(other)
 
     def __mul__(self, other):
+        """乘法：梯度交叉传递（a*b 的导数对 a 是 b，对 b 是 a）。"""
         other = other if isinstance(other, Value) else Value(other)
         out = Value(self.data * other.data, (self, other), '*')
         def _backward():
@@ -50,6 +52,7 @@ class Value:
         return other + (-self)
 
     def __pow__(self, n):
+        """幂运算：导数 = n * x^(n-1)。用于 MSE 损失 (error^2)。"""
         out = Value(self.data ** n, (self,), f'**{n}')
         def _backward():
             self.grad += n * (self.data ** (n - 1)) * out.grad
@@ -60,6 +63,7 @@ class Value:
         return self * (other ** -1) if isinstance(other, Value) else self * (Value(other) ** -1)
 
     def relu(self):
+        """ReLU 激活函数：正数不变，负数归零。梯度：正区1，负区0。"""
         out = Value(max(0, self.data), (self,), 'relu')
         def _backward():
             self.grad += (1.0 if out.data > 0 else 0.0) * out.grad
@@ -67,6 +71,7 @@ class Value:
         return out
 
     def tanh(self):
+        """tanh 激活函数：导数 = 1 - tanh^2(x)。XOR 分类器使用。"""
         import math
         t = math.tanh(self.data)
         out = Value(t, (self,), 'tanh')
@@ -76,6 +81,7 @@ class Value:
         return out
 
     def exp(self):
+        """指数函数：导数 = exp(x)。Softmax 的核心组件。"""
         import math
         e = math.exp(self.data)
         out = Value(e, (self,), 'exp')
@@ -85,6 +91,7 @@ class Value:
         return out
 
     def log(self):
+        """对数函数：导数 = 1/x。交叉熵损失的核心组件。"""
         import math
         out = Value(math.log(self.data), (self,), 'log')
         def _backward():
@@ -93,6 +100,7 @@ class Value:
         return out
 
     def backward(self):
+        """反向传播：拓扑排序后从输出到输入逐层应用链式法则计算梯度。"""
         topo = []
         visited = set()
         def build_topo(v):

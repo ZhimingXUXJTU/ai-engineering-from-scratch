@@ -1,11 +1,12 @@
 # Complex Numbers for AI | AI 中的复数
 
 > The square root of -1 is not imaginary. It is the key to rotations, frequencies, and half of signal processing.
+> -1 的平方根并非"虚"的。它是旋转、频率和半个信号处理领域的钥匙。
 
-**Type:** Learn
-**Language:** Python
-**Prerequisites:** Phase 1, Lessons 01-04 (linear algebra, calculus)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Language:** Python | **语言:** Python
+**Prerequisites:** Phase 1, Lessons 01-04 (linear algebra, calculus) | **前置知识:** Phase 1, 第 01-04 课（线性代数、微积分）
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标
 

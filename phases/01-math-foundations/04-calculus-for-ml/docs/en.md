@@ -2,10 +2,10 @@
 
 > Derivatives tell you which way is downhill. That is all a neural network needs to learn.
 
-**Type:** Learn
-**Language:** Python
-**Prerequisites:** Phase 1, Lessons 01-03
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Language:** Python | **语言:** Python
+**Prerequisites:** Phase 1, Lessons 01-03 | **前置知识:** Phase 1, Lessons 01-03
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标
 
@@ -36,7 +36,11 @@
 
 A derivative measures the rate of change. For a function y = f(x), the derivative f'(x) tells you: if you nudge x by a tiny amount, how much does y change?
 
+> 导数衡量变化率。对于函数 y = f(x)，导数 f'(x) 告诉你：如果 x 微小变化，y 变化多少？
+
 Geometrically, the derivative is the slope of the tangent line at a point.
+
+> 几何上，导数是某一点切线的斜率。
 
 **f(x) = x^2:**
 
@@ -59,9 +63,13 @@ f'(x) = lim   f(x + h) - f(x)
 
 In code, you skip the limit and just use a very small h. That is the numerical derivative.
 
+> 在代码中，跳过极限，直接用很小的 h 来近似。这就是数值导数。
+
 ### Partial derivatives: one variable at a time
 
 Real functions have many inputs. A neural network loss depends on thousands of weights. A partial derivative holds all variables constant except one, then takes the derivative with respect to that one.
+
+> 真实函数有多个输入。神经网络损失函数依赖数千个权重。偏导数保持其他变量不变，只对一个变量求导。
 
 ```
 f(x, y) = x^2 + 3xy + y^2
@@ -76,11 +84,15 @@ Each partial derivative answers: if I nudge just this one weight, how does the l
 
 The gradient collects every partial derivative into one vector. For a function f(x, y, z), the gradient is:
 
+> 梯度把所有偏导数收集成一个向量。
+
 ```
 grad f = [ df/dx, df/dy, df/dz ]
 ```
 
 The gradient points in the direction of steepest ascent. To minimize a function, go in the opposite direction.
+
+> 梯度指向最陡上升方向。要最小化函数，就沿相反方向走。
 
 **Contour plot of f(x,y) = x^2 + y^2:**
 
@@ -93,9 +105,13 @@ The function forms a bowl shape with concentric circles as contour lines. The mi
 
 This is gradient descent in a picture. Compute the gradient, negate it, take a step.
 
+> 这就是梯度下降的图示。计算梯度，取反，走一步。
+
 ### The connection to optimization
 
 Training a neural network is optimization. You have a loss function L(w1, w2, ..., wn) that measures how wrong the model is. You want to minimize it.
+
+> 训练神经网络就是优化。损失函数 L(w1, w2, ..., wn) 衡量模型有多"错"，你要最小化它。
 
 ```
 Gradient descent update rule:
@@ -110,6 +126,8 @@ For every weight:
 
 The learning rate controls step size. Too big and you overshoot. Too small and you crawl.
 
+> 学习率控制步长。太大则跳过最小值，太小则收敛太慢。
+
 **Loss landscape (1D slice):**
 
 The loss function L(w) forms a curve with peaks and valleys as the weight w varies.
@@ -122,13 +140,21 @@ The loss function L(w) forms a curve with peaks and valleys as the weight w vari
 
 Gradient descent follows the slope downhill. It can get stuck in local minima, but in high-dimensional spaces (millions of weights) this is rarely a practical problem.
 
+> 梯度下降沿坡下行。可能陷入局部最小值，但在高维空间中（百万级权重），这很少成为实际问题。
+
 ### Numerical vs analytical derivatives
 
 There are two ways to compute a derivative.
 
+> 计算导数有两种方法。
+
 Analytical: apply calculus rules by hand. For f(x) = x^2, the derivative is f'(x) = 2x. Exact. Fast.
 
+> 解析法：手动应用微积分规则。如 f(x) = x^2 的导数是 f'(x) = 2x。精确且快速。
+
 Numerical: approximate using the definition. Compute f(x+h) and f(x-h) for a tiny h, then use the difference.
+
+> 数值法：用定义近似。计算 f(x+h) 和 f(x-h)，用差值除以 2h。
 
 ```
 Numerical (central difference):
@@ -141,6 +167,8 @@ h = 0.0001 works well in practice
 ```
 
 Numerical derivatives are slower but work for any function. Analytical derivatives are fast but require you to derive the formula. Neural network frameworks use a third approach: automatic differentiation, which computes exact derivatives mechanically. You will see that in Phase 3.
+
+> 数值导数较慢但适用于任何函数。解析导数快但需要手动推导。神经网络框架使用第三种方法：自动微分，机械地计算精确导数。
 
 ### Derivatives by hand for simple functions
 
@@ -184,6 +212,8 @@ If x is big, a small change in w causes a big change in output.
 
 When functions are composed, the chain rule tells you how to differentiate.
 
+> 当函数复合时，链式法则告诉你如何求导。
+
 ```
 If y = f(g(x)), then dy/dx = f'(g(x)) * g'(x)
 
@@ -195,9 +225,13 @@ Example: y = (3x + 1)^2
 
 Neural networks are chains of functions: input -> linear -> activation -> linear -> activation -> loss. Backpropagation is the chain rule applied repeatedly from output to input. That is the entire algorithm.
 
+> 神经网络是函数链：输入 -> 线性 -> 激活 -> 线性 -> 激活 -> 损失。反向传播就是从输出到输入反复应用链式法则。这就是整个算法。
+
 ### The Hessian Matrix
 
 The gradient tells you the slope. The Hessian tells you the curvature.
+
+> 梯度告诉你斜率，Hessian 矩阵告诉你曲率。
 
 The Hessian is the matrix of second-order partial derivatives. For a function f(x1, x2, ..., xn), entry (i, j) of the Hessian is:
 
@@ -397,6 +431,8 @@ Each weight update:
 - `W2 = W2 - lr * dL/dW2`
 
 The forward pass computes the prediction and loss. The backward pass computes the gradient of the loss with respect to every weight. Then every weight takes a small step downhill. Repeat for millions of steps. That is deep learning.
+
+> 前向传播计算预测和损失，反向传播计算每个权重的梯度，然后每个权重沿梯度负方向走一小步。重复数百万次。这就是深度学习。
 
 ## Build It | 动手实现
 
@@ -603,6 +639,8 @@ print(f"Learned: y = {w:.2f}x + {b:.2f}")
 ```
 
 You just built gradient descent from scratch. PyTorch automates the gradient computation, but the update loop is identical.
+
+> 你刚从零实现了梯度下降。PyTorch 自动化了梯度计算，但更新循环完全相同。
 
 ## Exercises | 练习题
 

@@ -2,10 +2,10 @@
 
 > The chain rule is the engine behind every neural network that learns.
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 1, Lesson 04 (Derivatives & Gradients)
-**Time:** ~90 minutes
+**Type:** Build | **类型:** 动手
+**Language:** Python | **语言:** Python
+**Prerequisites:** Phase 1, Lesson 04 (Derivatives & Gradients) | **前置知识:** Phase 1, Lesson 04（导数与梯度）
+**Time:** ~90 minutes | **时间:** ~90 分钟
 
 ## Learning Objectives | 学习目标
 
@@ -24,11 +24,19 @@
 
 You can compute derivatives of simple functions. But a neural network is not a simple function. It is hundreds of functions composed together: matrix multiply, add bias, apply activation, matrix multiply again, softmax, cross-entropy loss. The output is a function of a function of a function.
 
+> 你能计算简单函数的导数。但神经网络不是简单函数。它是数百个函数的复合：矩阵乘法、加偏置、激活函数、再矩阵乘法、Softmax、交叉熵损失。输出是函数的函数的函数。
+
 To train the network, you need the gradient of the loss with respect to every single weight. Doing this by hand is impossible for millions of parameters. Doing it numerically (finite differences) is too slow.
+
+> 要训练网络，你需要损失对每个权重的梯度。手动计算百万参数不可能，数值方法（有限差分）太慢。
 
 The chain rule gives you the math. Automatic differentiation gives you the algorithm. Together they let you compute exact gradients through arbitrary compositions of functions in time proportional to a single forward pass.
 
+> 链式法则给出数学，自动微分给出算法。两者结合，让你在与单次前向传播相当的时间内，计算任意复合函数的精确梯度。
+
 This is how PyTorch, TensorFlow, and JAX work. You will build a miniature version from scratch.
+
+> 这就是 PyTorch、TensorFlow 和 JAX 的工作方式。你将从零构建一个微型版本。
 
 > **【中文解读】** 神经网络 = 函数的函数的函数。链式法则让你逐层拆解复合函数的导数：dL/dw = dL/d_out × d_out/d_hidden × d_hidden/d_w。自动求导把这个过程自动化——PyTorch 的 `backward()` 一行代码搞定百万参数的梯度计算。
 
@@ -40,11 +48,15 @@ This is how PyTorch, TensorFlow, and JAX work. You will build a miniature versio
 
 If `y = f(g(x))`, the derivative of `y` with respect to `x` is:
 
+> 如果 `y = f(g(x))`，y 对 x 的导数是：
+
 ```
 dy/dx = dy/dg * dg/dx = f'(g(x)) * g'(x)
 ```
 
 Multiply the derivatives along the chain. Each link contributes its local derivative.
+
+> 沿链路乘导数。每一步贡献其局部导数。
 
 Example: `y = sin(x^2)`
 
@@ -65,9 +77,13 @@ dy/dx = f'(g(h(x))) * g'(h(x)) * h'(x)
 
 Every layer in a neural network is one link in this chain.
 
+> 神经网络的每一层都是这个链条中的一个环节。
+
 ### Computational Graphs
 
 A computational graph makes the chain rule visual. Every operation becomes a node. Data flows forward through the graph. Gradients flow backward.
+
+> 计算图让链式法则可视化。每个操作变成一个节点，数据向前流动，梯度向后流动。
 
 **Forward pass (compute values):**
 
@@ -94,6 +110,8 @@ graph TD
 
 The backward pass applies the chain rule at every node, propagating gradients from output to inputs.
 
+> 反向传播在每个节点应用链式法则，将梯度从输出传播到输入。
+
 ### Forward Mode vs Reverse Mode
 
 There are two ways to apply the chain rule through a graph.
@@ -119,6 +137,8 @@ Reverse mode: seed dy/dy = 1, propagate backward
 ```
 
 Neural networks have millions of inputs (weights) and one output (loss). Reverse mode computes all gradients in one backward pass. This is why backpropagation uses reverse mode.
+
+> 神经网络有百万个输入（权重）和一个输出（损失）。反向模式一次反向传播就能计算所有梯度。这就是反向传播使用反向模式的原因。
 
 | Mode | Seed | Direction | Best when |
 |------|------|-----------|-----------|
@@ -152,6 +172,8 @@ An autograd engine needs three things:
 
 This is exactly what PyTorch's `autograd` does. The `torch.Tensor` class wraps values, records operations when `requires_grad=True`, and computes gradients when you call `.backward()`.
 
+> 这正是 PyTorch 的 `autograd` 做的事。`torch.Tensor` 包装数值，当 `requires_grad=True` 时记录操作，调用 `.backward()` 时计算梯度。
+
 ### How PyTorch Autograd Works Under the Hood
 
 When you write PyTorch code:
@@ -173,6 +195,8 @@ PyTorch internally:
 
 The graph is dynamic (define-by-run). A new graph is built on every forward pass. This is why PyTorch supports control flow (if/else, loops) inside models.
 
+> 计算图是动态的（define-by-run）。每次前向传播都构建新图。这就是 PyTorch 支持模型内部控制流（if/else、循环）的原因。
+
 ## Build It | 动手实现
 
 ### Step 1: The Value class
@@ -191,6 +215,8 @@ class Value:
 ```
 
 Every `Value` stores its numeric data, its gradient (initially zero), a backward function, and pointers to child nodes that produced it.
+
+> 每个 `Value` 存储数值、梯度（初始为零）、反向函数和产生它的子节点指针。
 
 ### Step 2: Arithmetic operations with gradient tracking
 
@@ -223,6 +249,8 @@ Every `Value` stores its numeric data, its gradient (initially zero), a backward
 
 Each operation creates a closure that knows how to compute local gradients and multiply by the upstream gradient (`out.grad`). The `+=` handles the case where a value is used in multiple operations.
 
+> 每个操作创建一个闭包，知道如何计算局部梯度并乘以上游梯度。`+=` 处理一个值被多个操作使用的情况。
+
 ### Step 3: The backward pass
 
 ```python
@@ -243,6 +271,8 @@ Each operation creates a closure that knows how to compute local gradients and m
 ```
 
 Topological sort ensures every node's gradient is fully computed before it propagates to its children. The seed gradient is 1.0 (dy/dy = 1).
+
+> 拓扑排序确保每个节点的梯度在传播到子节点之前完全计算。种子梯度是 1.0（dy/dy = 1）。
 
 ### Step 4: More operations for a complete engine
 
@@ -389,6 +419,8 @@ for x, y in zip(xs, ys):
 
 This is micrograd. A complete neural network training loop in pure Python with automatic differentiation. Every commercial deep learning framework does the same thing at massive scale.
 
+> 这就是 micrograd。用纯 Python 实现的完整神经网络训练循环和自动微分。每个商业深度学习框架在更大规模上做着同样的事。
+
 ### Step 6: Gradient checking
 
 How do you know your autodiff is correct? Compare it against numerical derivatives. This is gradient checking.
@@ -470,6 +502,8 @@ print(f"PyTorch dy/dx2 = {x2.grad.item()}")  # 2.0
 ```
 
 Same gradients. Your engine computes the same result as PyTorch because the math is the same: reverse-mode autodiff via the chain rule.
+
+> 相同的梯度。你的引擎和 PyTorch 计算出相同的结果，因为数学相同：通过链式法则的反向模式自动微分。
 
 ### A more complex expression
 

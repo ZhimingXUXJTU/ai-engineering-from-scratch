@@ -2,10 +2,10 @@
 
 > Probability is about what you expect. Bayes' theorem is about what you learn.
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 1, Lesson 06 (Probability Fundamentals)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Language:** Python | **语言:** Python
+**Prerequisites:** Phase 1, Lesson 06 (Probability Fundamentals) | **前置知识:** Phase 1, Lesson 06（概率基础）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 
@@ -32,9 +32,15 @@
 
 Most people say 99%. The real answer depends on how rare the disease is. If 1 in 10,000 people have it, a positive result only gives you about a 1% chance of being sick. The other 99% of positive results are false alarms from healthy people.
 
+> 大多数人说 99%。真实答案取决于疾病有多罕见。如果万分之一的人患病，阳性结果只给你大约 1% 的患病概率。其余 99% 的阳性结果都是健康人的假阳性。
+
 This is not a trick question. It is Bayes' theorem. Every spam filter, every medical diagnostic, every machine learning model that quantifies uncertainty uses this exact reasoning. You start with a belief. You see evidence. You update.
 
+> 这不是脑筋急转弯。这是贝叶斯定理。每个垃圾邮件过滤器、每个医疗诊断、每个量化不确定性的 ML 模型都使用同样的推理：从信念出发，看到证据，更新信念。
+
 If you build ML systems without understanding this, you will misinterpret model outputs, set bad thresholds, and ship overconfident predictions.
+
+> 如果不理解这一点就构建 ML 系统，你会误判模型输出、设置错误的阈值、发布过度自信的预测。
 
 ## The Concept | 核心概念
 
@@ -63,6 +69,8 @@ P(A|B) = P(B|A) * P(A) / P(B)
 ```
 
 That is Bayes' theorem. Four quantities, one equation.
+
+> 这就是贝叶斯定理。四个量，一个等式。
 
 ### The four parts
 
@@ -101,6 +109,8 @@ P(sick|positive) = P(positive|sick) * P(sick) / P(positive)
 
 Less than 1%. The prior dominates. When a condition is rare, even accurate tests produce mostly false positives. This is why doctors order confirmation tests.
 
+> 不到 1%。先验概率占主导。当疾病罕见时，即使精确的检测也主要产生假阳性。这就是为什么医生要求复查。
+
 ### Spam filter example
 
 You receive an email containing the word "lottery". Is it spam?
@@ -121,6 +131,8 @@ P(spam|"lottery") = 0.05 * 0.3 / 0.0157
 
 One word shifts the probability from 30% to 95.5%. A real spam filter applies Bayes across hundreds of words simultaneously.
 
+> 一个词将概率从 30% 推到 95.5%。真实的垃圾邮件过滤器同时跨数百个词应用贝叶斯。
+
 ### Naive Bayes: independence assumption
 
 Naive Bayes extends this to multiple features by assuming all features are conditionally independent given the class:
@@ -132,6 +144,8 @@ P(class | feature_1, feature_2, ..., feature_n)
 ```
 
 The "naive" part is the independence assumption. In text, word occurrences are not independent ("New" and "York" are correlated). But the assumption works surprisingly well in practice because the classifier only needs to rank classes, not produce calibrated probabilities.
+
+> "朴素"部分是独立性假设。在文本中，词的出现并不独立（"New" 和 "York" 相关）。但这个假设在实践中出奇地好用，因为分类器只需排序类别，不需要校准概率。
 
 Since the denominator is the same for all classes, you can skip it and just compare numerators:
 
@@ -172,6 +186,8 @@ P(parameters|data) proportional to P(data|parameters) * P(parameters)
 ```
 
 MAP adds a prior over the parameters themselves. If you believe parameters should be small, you encode that as a prior that penalizes large values. This is identical to L2 regularization in ML. The "ridge" penalty in ridge regression is literally a Gaussian prior on the weights.
+
+> MAP 在参数本身上加了一个先验。如果你认为参数应该较小，就用先验惩罚大值。这与 ML 中的 L2 正则化完全等价。岭回归中的"岭"惩罚本质上就是权重的高斯先验。
 
 | Estimation | Optimizes | ML equivalent |
 |------------|-----------|---------------|
@@ -264,6 +280,8 @@ class NaiveBayes:
 
 Log probabilities prevent underflow. Multiplying many small probabilities produces numbers too tiny for floating point. Summing log-probabilities is numerically stable and mathematically equivalent.
 
+> 对数概率防止下溢。许多小概率相乘产生对浮点数来说太小的数字。对数概率求和数值稳定且数学等价。
+
 ### Step 3: Train on spam data
 
 ```python
@@ -342,6 +360,8 @@ for msg, pred in zip(test_messages, predictions):
 ```
 
 Same algorithm. CountVectorizer handles tokenization and vocabulary building. MultinomialNB handles smoothing and log-probabilities internally. Your from-scratch version does the same thing in 40 lines.
+
+> 同样的算法。CountVectorizer 处理分词和词汇构建，MultinomialNB 内部处理平滑和对数概率。你的从零版本用 40 行做了同样的事。
 
 ## Ship It | 产出物
 

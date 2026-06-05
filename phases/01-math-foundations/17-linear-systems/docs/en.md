@@ -1,11 +1,12 @@
 # Linear Systems | 线性系统
 
 > Solving Ax = b is the oldest problem in mathematics that still runs your neural network.
+> 解 Ax=b 是数学中最古老的问题，至今仍在驱动你的神经网络。
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 1, Lessons 01 (Linear Algebra Intuition), 02 (Vectors & Matrices), 03 (Matrix Transformations)
-**Time:** ~120 minutes
+**Type:** Build | **类型:** 动手
+**Language:** Python | **语言:** Python
+**Prerequisites:** Phase 1, Lessons 01 (Linear Algebra Intuition), 02 (Vectors & Matrices), 03 (Matrix Transformations) | **前置知识:** Phase 1, 第 01 课（线性代数直觉）、第 02 课（向量与矩阵）、第 03 课（矩阵变换）
+**Time:** ~120 minutes | **时间:** ~120 分钟
 
 ## Learning Objectives | 学习目标
 

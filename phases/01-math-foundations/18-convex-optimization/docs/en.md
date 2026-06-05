@@ -1,11 +1,12 @@
 # Convex Optimization | 凸优化
 
 > Convex problems have one valley. Neural networks have millions. Knowing the difference matters.
+> 凸问题只有一个谷底。神经网络有数百万个。理解差异至关重要。
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 1, Lessons 04 (Calculus for ML), 08 (Optimization)
-**Time:** ~90 minutes
+**Type:** Build | **类型:** 动手
+**Language:** Python | **语言:** Python
+**Prerequisites:** Phase 1, Lessons 04 (Calculus for ML), 08 (Optimization) | **前置知识:** Phase 1, 第 04 课（微积分）、第 08 课（优化）
+**Time:** ~90 minutes | **时间:** ~90 分钟
 
 ## Learning Objectives | 学习目标
 

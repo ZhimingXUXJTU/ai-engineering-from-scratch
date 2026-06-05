@@ -7,10 +7,12 @@ import random
 
 
 def numerical_derivative(f, x, h=1e-7):
+    """数值导数（中心差分法）：用微小增量近似计算导数。"""
     return (f(x + h) - f(x - h)) / (2 * h)
 
 
 def numerical_gradient(f, point, h=1e-7):
+    """数值梯度：对每个维度分别计算偏导数，组合成梯度向量。"""
     gradient = []
     for i in range(len(point)):
         point_plus = list(point)
@@ -23,6 +25,7 @@ def numerical_gradient(f, point, h=1e-7):
 
 
 def gradient_descent_1d(f, df, x0, lr=0.1, steps=20):
+    """一维梯度下降：沿导数反方向迭代寻找最小值。所有优化器的基础。"""
     x = x0
     history = []
     for step in range(steps):
@@ -123,6 +126,7 @@ def demo_gradient_descent_2d():
 
 
 def hessian_2d(f, x, y, h=1e-5):
+    """Hessian 矩阵（二阶偏导数）：描述函数的曲率，用于判断极值类型。"""
     fxx = (f(x + h, y) - 2 * f(x, y) + f(x - h, y)) / (h ** 2)
     fyy = (f(x, y + h) - 2 * f(x, y) + f(x, y - h)) / (h ** 2)
     fxy = (f(x + h, y + h) - f(x + h, y - h) - f(x - h, y + h) + f(x - h, y - h)) / (4 * h ** 2)
@@ -130,6 +134,7 @@ def hessian_2d(f, x, y, h=1e-5):
 
 
 def taylor_approx(f, f_prime, f_double_prime, x0, h, order=2):
+    """泰勒展开近似：一阶=梯度下降，二阶=牛顿法。"""
     result = f(x0)
     if order >= 1:
         result += f_prime(x0) * h
