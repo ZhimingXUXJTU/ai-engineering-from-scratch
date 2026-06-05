@@ -6,20 +6,27 @@
 
 > **【拓展：MusicGen 与 AudioCraft】** Meta 的 MusicGen 和 AudioCraft 使用 EnCodec + Transformer 架构生成音乐和音效。音频 token 化是音频生成领域的关键创新。
 
-**Type:** Build
+**Type:** Build / 构建型
 **Languages:** Python
-**Prerequisites:** Phase 6 · 02 (Audio Features), Phase 6 · 04 (ASR), Phase 8 · 06 (DDPM)
+**Prerequisites:** Phase 6 · 02 (Audio Features / 音频特征), Phase 6 · 04 (ASR), Phase 8 · 06 (DDPM)
 **Time:** ~45 minutes
 
 ## The Problem | 问题引入
 
 Three audio generation tasks:
 
+> 三种音频生成任务：
+
 1. **Text-to-speech.** Given text, produce speech. Clean speech is narrow-band and has strong phonetic structure — solved well by transformer-over-tokens. VALL-E (Microsoft), NaturalSpeech 3, ElevenLabs, OpenAI TTS.
+   **语音合成。** 给定文本生成语音。已有良好解决方案。
 2. **Music generation.** Given a prompt (text, melody, chord progression, genre), produce music. Much broader distribution. MusicGen (Meta), Stable Audio 2.5, Suno v4, Udio, Riffusion.
+   **音乐生成。** 给定提示（文本、旋律、和弦、流派）生成音乐。分布更广。
 3. **Audio effects / sound design.** Given a prompt, produce ambient sound or Foley. AudioGen, AudioLDM 2, Stable Audio Open.
+   **音效/声音设计。** 给定提示生成环境音或拟音。
 
 All three run on the same substrate: neural audio codec + token-AR or diffusion generator.
+
+> 三者都运行在相同的基础设施上：神经音频编解码器 + token 自回归或扩散生成器。
 
 > **【中文解读】** 音频生成的三大任务——语音合成（TTS）、音乐生成、音效生成——都基于相同的基础架构：神经音频编解码器（如 EnCodec）将音频压缩为离散 token，然后 Transformer 或扩散模型在 token 序列上生成。这与语言模型的"tokenizer + Transformer"模式完全一致。
 
@@ -50,7 +57,7 @@ waveform (16000 samples/sec)
 
 The 2024-2026 trend: flow matching is winning for music (faster inference, cleaner samples) while token-AR still dominates speech because it is naturally causal and streams well.
 
-## Production landscape
+## Production landscape | 生产格局
 
 | System | Task | Backbone | Latency |
 |--------|------|----------|---------|
@@ -86,7 +93,7 @@ A bigram-style predictor conditioned on style. The point is the pattern: codec t
 
 Given the style token and a starting token, sample the next token from the predicted distribution. Continue for 20-40 tokens.
 
-## Pitfalls
+## Pitfalls | 常见陷阱
 
 - **Codec quality caps output quality.** If the codec can't represent a sound faithfully, no amount of generator quality helps. DAC is the current open best.
 - **RVQ error accumulation.** Each RVQ layer models the residual of the previous. Errors on layer 1 propagate. Sampling with temperature 0 on higher layers helps.
@@ -97,16 +104,16 @@ Given the style token and a starting token, sample the next token from the predi
 
 ## Use It | 用框架实现
 
-| Task | 2026 stack |
+| Task / 任务 | 2026 stack / 2026 技术栈 |
 |------|------------|
-| Commercial TTS | ElevenLabs, OpenAI TTS, or Azure Neural |
-| Voice cloning (consent-verified) | XTTS v2 (open) or ElevenLabs Pro |
-| Background music, fast | Stable Audio 2.5 API, Suno, or Udio |
-| Music with lyrics | Suno v4 or Udio v1.5 |
-| Sound effects / Foley | AudioCraft 2, ElevenLabs SFX, or Stable Audio Open |
-| Real-time voice agent | GPT-4o realtime or Gemini Live |
-| Open-weights music research | MusicGen 3.3B, Stable Audio Open 1.0, AudioLDM 2 |
-| Dubbing / translation | HeyGen, ElevenLabs Dubbing |
+| Commercial TTS / 商业语音合成 | ElevenLabs, OpenAI TTS, or Azure Neural |
+| Voice cloning (consent-verified) / 语音克隆 | XTTS v2 (open) or ElevenLabs Pro |
+| Background music, fast / 快速背景音乐 | Stable Audio 2.5 API, Suno, or Udio |
+| Music with lyrics / 带歌词音乐 | Suno v4 or Udio v1.5 |
+| Sound effects / Foley / 音效/拟音 | AudioCraft 2, ElevenLabs SFX, or Stable Audio Open |
+| Real-time voice agent / 实时语音代理 | GPT-4o realtime or Gemini Live |
+| Open-weights music research / 开源音乐研究 | MusicGen 3.3B, Stable Audio Open 1.0, AudioLDM 2 |
+| Dubbing / translation / 配音/翻译 | HeyGen, ElevenLabs Dubbing |
 
 ## Ship It | 产出物
 
@@ -131,7 +138,7 @@ Save `outputs/skill-audio-brief.md`. Skill takes an audio brief (task, duration,
 | Mel spectrogram | "The visual" | Log-magnitude perceptual spectrogram; used by many TTS systems. |
 | Vocoder | "Mel to wave" | Neural component that converts mel spectrograms back to audio. |
 
-## Production note: audio is a streaming problem
+## Production note: audio is a streaming problem | 生产笔记：音频是流式问题
 
 Audio is the one output modality users expect to arrive *as it is generated*, not all-at-once. In production terms this means TPOT matters (Time Per Output Token) because the user's listening speed is the target throughput — not their reading speed. For 16kHz audio tokenized at ~75 tokens/second (Encodec), the server must generate ≥75 tokens/sec per user to keep playback smooth.
 
