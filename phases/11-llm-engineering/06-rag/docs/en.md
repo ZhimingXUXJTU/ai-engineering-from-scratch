@@ -12,7 +12,7 @@
 **Time:** ~90 minutes
 **Related:** Phase 5 · 23 (Chunking Strategies for RAG) for the six chunking algorithms and when each wins. Phase 5 · 22 (Embedding Models Deep Dive) for picking the embedder. Phase 11 · 07 (Advanced RAG) for hybrid search, reranking, and query transformation.
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build a complete RAG pipeline: document loading, chunking, embedding, vector storage, retrieval, and generation
 - Implement semantic search using a vector database (ChromaDB, FAISS, or Pinecone) with proper indexing
@@ -26,9 +26,15 @@
 
 You build a chatbot for your company. A customer asks "What's the refund policy for enterprise plans?" The LLM responds with a generic answer about typical SaaS refund policies. The actual policy, buried in a 200-page internal wiki, says enterprise customers get a 60-day window with pro-rated refunds. The LLM has never seen this document. It cannot know what it was not trained on.
 
+> 你为公司构建了一个聊天机器人。客户问"企业版的退款政策是什么？"LLM 给出了关于典型 SaaS 退款政策的通用回答。实际政策藏在 200 页的内部维基中，说企业客户有 60 天窗口期并按比例退款。LLM 从未见过这个文档。它无法知道它没被训练过的东西。
+
 Fine-tuning is one solution. Take the LLM, train it on your internal docs, and deploy the updated model. This works but has serious problems. Fine-tuning costs thousands of dollars in compute. The model becomes stale the moment a document changes. You have no way to know which source the model drew from. And if the company acquires another product line next month, you fine-tune again.
 
+> 微调是一种解决方案。但微调需要数千美元的计算成本。文档一变模型就过时了。你无法知道模型引用了哪个来源。如果公司下个月收购了新的产品线，你又要重新微调。
+
 RAG is the other solution. Leave the model untouched. When a question comes in, search your document store for relevant passages, paste them into the prompt before the question, and let the model answer using those passages as context. The document store can be updated in minutes. You can see exactly which documents were retrieved. The model itself never changes. This is why RAG is the dominant pattern in production: it's cheaper, fresher, more auditable, and works with any LLM.
+
+> RAG 是另一种解决方案。保持模型不变。当问题进来时，搜索你的文档存储找到相关段落，将它们粘贴到提示中问题的前面，让模型使用这些段落作为上下文来回答。这就是为什么 RAG 是生产中的主流模式：更便宜、更新鲜、更可审计，适用于任何 LLM。
 
 ## The Concept | 核心概念
 
