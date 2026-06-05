@@ -1,0 +1,8 @@
+{
+  "visitors30d": 145598,
+  "pageViews30d": 234496,
+  "period": "30 days",
+  "updated": "2026-06-05",
+  "source": "Vercel Web Analytics (Production)",
+  "note": "Vercel has no public analytics API. Refresh these from the dashboard, then run `node site/build.js` to propagate to README + site."
+}

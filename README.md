@@ -24,6 +24,10 @@
 >
 > You don't just learn AI. You build it. End-to-end. By hand.
 
+<!-- STATS:START (generated from site/stats.json by build.js — do not edit by hand) -->
+<p align="center"><sub><b>145,598</b> readers &nbsp;·&nbsp; <b>234,496</b> page views in the last 30 days &nbsp;·&nbsp; as of 2026-06-05</sub></p>
+<!-- STATS:END -->
+
 ## How this works
 
 Most AI material teaches in scattered pieces. A paper here, a fine-tuning post there, a
