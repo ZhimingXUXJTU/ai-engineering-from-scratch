@@ -13,11 +13,19 @@
 
 Monte Carlo works but it has two expensive demands. It needs episodes that terminate, and it only updates after the final return is in. If your episode is 1,000 steps, MC waits 1,000 steps to update anything. It is high-variance, low-bias, and slow in practice.
 
+> 蒙特卡洛有效但有两个昂贵的要求。它需要终止的回合，而且只在最终回报出来后才更新。如果回合有 1,000 步，MC 要等 1,000 步才更新任何东西。它方差高、偏差低，实践中很慢。
+
 Dynamic programming has the opposite profile — zero-variance bootstrapped backups — but requires a known model.
+
+> 动态规划有相反的特点——零方差的自举备份——但需要已知模型。
 
 Temporal difference (TD) learning splits the difference. From a single transition `(s, a, r, s')`, form a one-step target `r + γ V(s')` and nudge `V(s)` toward it. No model. No complete episodes. Bias from using an approximate `V` on the RHS, but dramatically lower variance than MC and online updates from step one.
 
+> 时序差分（TD）学习折中了两者。从单次转移 `(s, a, r, s')` 构造单步目标 `r + γ V(s')`，将 `V(s)` 向其靠近。不需要模型。不需要完整回合。因为右侧使用近似 `V` 而有偏差，但方差远低于 MC，且从第一步就能在线更新。
+
 This is the pivot on which all of modern RL — DQN, A2C, PPO, SAC — turns. The rest of Phase 9 is layers of function approximation and tricks built on top of the one-step TD update you will write in this lesson.
+
+> 这是所有现代 RL——DQN、A2C、PPO、SAC——的枢纽。Phase 9 的其余部分是在本课中你将编写的单步 TD 更新之上构建的函数近似和技巧层。
 
 > **【中文解读】** TD 学习是 DP 和 MC 的折中：用单步转移 `(s,a,r,s')` 构造目标 `r + γV(s')`，不需要模型，也不需要完整回合。有偏差（因为用了近似 V），但方差远低于 MC，而且可以在线更新。DQN、PPO、RLHF 都是基于 TD 思想的变体。
 
@@ -33,17 +41,23 @@ This is the pivot on which all of modern RL — DQN, A2C, PPO, SAC — turns. Th
 
 The bracketed quantity is the TD error `δ = r + γ V(s') - V(s)`. It is the online analogue of `G_t - V(s_t)` in MC. Convergence requires `α` satisfying Robbins-Monro (`Σ α = ∞`, `Σ α² < ∞`) and all states visited infinitely often.
 
+> **V 的 TD(0) 更新：** 括号中的量是 TD 误差 `δ = r + γ V(s') - V(s)`。它是 MC 中 `G_t - V(s_t)` 的在线对应。收敛要求 `α` 满足 Robbins-Monro 条件且所有状态被无限次访问。
+
 **Q-learning.** An off-policy TD method for control:
 
 `Q(s, a) ← Q(s, a) + α [r + γ max_{a'} Q(s', a') - Q(s, a)]`
 
 The `max` assumes the *greedy* policy will be followed from `s'` onward, regardless of what action the agent actually takes. That decoupling makes Q-learning learn `Q*` while the agent explores via ε-greedy. Mnih et al. (2015) converted this into deep Q-learning on Atari (Lesson 05).
 
+> **Q-learning。** 一种离策略 TD 控制方法。`max` 假设从 `s'` 开始将遵循*贪心*策略，无论智能体实际采取什么动作。这种解耦使得 Q-learning 在通过 ε-贪心探索的同时学习 `Q*`。Mnih 等人 (2015) 将此转化为 Atari 上的深度 Q-learning（Lesson 05）。
+
 **SARSA.** An on-policy TD method:
 
 `Q(s, a) ← Q(s, a) + α [r + γ Q(s', a') - Q(s, a)]`
 
 The name is the tuple `(s, a, r, s', a')`. SARSA uses the action `a'` the agent *actually* takes next, not the greedy `argmax`. Converges to `Q^π` for whatever ε-greedy `π` is running, which in the limit `ε → 0` becomes `Q*`.
+
+> **SARSA。** 一种在线策略 TD 方法。名称是元组 `(s, a, r, s', a')`。SARSA 使用智能体*实际*采取的下一个动作 `a'`，而非贪心的 `argmax`。收敛到当前 ε-贪心 `π` 的 `Q^π`，在 `ε → 0` 的极限下变为 `Q*`。
 
 **The cliff-walking difference.** On the classic cliff-walking task (fall-off-cliff = reward -100), Q-learning learns the optimal path along the cliff edge but occasionally takes the penalty during exploration. SARSA learns a safer path one step away from the cliff because it factors exploration noise into its Q-value. With training, both reach optimal at `ε → 0`. In practice it matters: when exploration is actually happening at deployment, SARSA's behavior is more conservative.
 
@@ -55,7 +69,11 @@ The name is the tuple `(s, a, r, s', a')`. SARSA uses the action `a'` the agent 
 
 Lower variance than SARSA (no sample of `a'`), same on-policy target. Often the default in modern textbooks.
 
+> **期望 SARSA。** 用 `π` 下的期望值替换 `Q(s', a')`。比 SARSA 方差更低（无需采样 `a'`），相同在线策略目标。常作为现代教科书的默认选择。
+
 **n-step TD and TD(λ).** Interpolate between TD(0) and MC by waiting `n` steps before bootstrapping. `n=1` is TD, `n=∞` is MC. TD(λ) averages over all `n` with geometric weights `(1-λ)λ^{n-1}`. Most deep-RL uses `n` between 3 and 20.
+
+> **n 步 TD 和 TD(λ)。** 在 TD(0) 和 MC 之间插值，等待 `n` 步再自举。`n=1` 是 TD，`n=∞` 是 MC。TD(λ) 用几何权重对所有 `n` 取平均。大多数深度 RL 使用 `n` 在 3 到 20 之间。
 
 > **【拓展：TD 误差在 LLM RLHF 中的对应】** TD 误差 δ = r + γV(s') - V(s) 在 LLM 的 RLHF 训练中有直接对应：PPO 的优势函数 A = r + γV(s') - V(s) 就是 TD 误差的变体。每生成一个 token，计算当前 token 的奖励（来自 RM）加上 critic 对未来价值的估计减去当前估计。理解 TD 误差是理解 PPO 优势函数的关键。
 
@@ -88,6 +106,8 @@ def sarsa(env, episodes, alpha=0.1, gamma=0.99, epsilon=0.1):
 
 Eight lines. The *only* difference from Q-learning is the target line.
 
+> 八行代码。与 Q-learning *唯一*的区别是目标行。
+
 ### Step 2: Q-learning
 
 ```python
@@ -108,37 +128,54 @@ def q_learning(env, episodes, alpha=0.1, gamma=0.99, epsilon=0.1):
 
 The `max` decouples target from behavior. That one symbol is the difference between on-policy and off-policy.
 
+> `max` 将目标与行为解耦。这一个符号就是在线策略和离策略的区别。
+
 ### Step 3: learning curves
 
 Track mean return per 100 episodes. Q-learning converges faster on simple deterministic GridWorld; SARSA is more conservative on cliff-walking. On the 4×4 GridWorld in `code/main.py`, both are near-optimal after ~2,000 episodes with `α=0.1, ε=0.1`.
+
+> 跟踪每 100 回合的平均回报。Q-learning 在简单确定性 GridWorld 上收敛更快；SARSA 在悬崖行走上更保守。在 `code/main.py` 的 4×4 GridWorld 上，两者在 `α=0.1, ε=0.1` 下约 2,000 回合后接近最优。
 
 ### Step 4: compare to DP truth
 
 Run value iteration (Lesson 02) to get `Q*`. Check `max_{s,a} |Q_learned(s,a) - Q*(s,a)|`. A healthy tabular TD agent lands within `~0.5` on the 4×4 GridWorld after 10,000 episodes.
 
+> 运行值迭代（Lesson 02）获得 `Q*`。检查 `max_{s,a} |Q_learned(s,a) - Q*(s,a)|`。一个健康的表格 TD 智能体在 10,000 回合后在 4×4 GridWorld 上误差在 `~0.5` 以内。
+
 ## Pitfalls
 
 - **Initial Q values matter.** Optimistic init (`Q = 0` for a negative-reward task) encourages exploration. Pessimistic init can trap a greedy policy forever.
+  **初始 Q 值很重要。** 乐观初始化（负奖励任务中 `Q = 0`）鼓励探索。悲观初始化可能永远困住贪心策略。
 - **α schedule.** Constant `α` is fine for non-stationary problems. Decaying `α_n = 1/n` gives convergence in theory but is too slow in practice — pin `α` in `[0.05, 0.3]` and monitor the learning curve.
+  **α 调度。** 常数 `α` 适用于非平稳问题。衰减的 `α_n = 1/n` 理论上收敛但实践中太慢——将 `α` 固定在 `[0.05, 0.3]` 并监控学习曲线。
 - **ε schedule.** Start high (`ε=1.0`), decay to `ε=0.05`. "GLIE" (greedy in the limit with infinite exploration) is the convergence condition.
+  **ε 调度。** 从高值开始（`ε=1.0`），衰减到 `ε=0.05`。"GLIE"（极限贪心且无限探索）是收敛条件。
 - **Max bias in Q-learning.** The `max` operator is biased upward when `Q` is noisy. Leads to overestimation — Hasselt's Double Q-learning (used by DDQN in Lesson 05) fixes this with two Q tables.
+  **Q-learning 的最大化偏差。** `max` 算子在 `Q` 有噪声时向上偏倚。导致过估计——Hasselt 的双重 Q-learning（Lesson 05 中的 DDQN）用两个 Q 表修复。
 - **Non-terminating episodes.** TD can learn without terminals, but you need to either cap steps or handle bootstrap correctly at the cap. Standard: treat cap as non-terminal, keep bootstrapping.
+  **非终止回合。** TD 可以在无终止状态下学习，但需要设置步数上限或正确处理上限处的自举。标准做法：将上限视为非终止，继续自举。
 - **State hashing.** If states are tuples/tensors, use a hashable key (tuple, not list; tuple of floats rounded, not raw).
+  **状态哈希。** 如果状态是元组/张量，使用可哈希的键（元组而非列表；舍入的浮点数元组而非原始值）。
 
 ## Use It | 用框架实现
 
 The 2026 TD landscape:
 
+> 2026 年 TD 学习的版图：
+
 | Task | Method | Reason |
 |------|--------|--------|
-| Small tabular environments | Q-learning | Learns optimal policy directly. |
-| On-policy safety-critical | SARSA / Expected SARSA | Conservative during exploration. |
-| High-dimensional state | DQN (Phase 9 · 05) | Neural-net Q-function with replay and target net. |
-| Continuous actions | SAC / TD3 (Phase 9 · 07) | TD update on a Q-network; policy net emits actions. |
-| LLM RL (reward-model-based) | PPO / GRPO (Phase 9 · 08, 12) | Actor-critic with TD-style advantage via GAE. |
-| Offline RL | CQL / IQL (Phase 9 · 08) | Q-learning with conservative regularization. |
+| Task / 任务 | Method / 方法 | Reason / 原因 |
+| Small tabular environments / 小型表格环境 | Q-learning | Learns optimal policy directly. / 直接学习最优策略。 |
+| On-policy safety-critical / 在线策略安全关键 | SARSA / Expected SARSA | Conservative during exploration. / 探索期间保守。 |
+| High-dimensional state / 高维状态 | DQN (Phase 9 · 05) | Neural-net Q-function with replay and target net. / 神经网络 Q 函数+回放+目标网络。 |
+| Continuous actions / 连续动作 | SAC / TD3 (Phase 9 · 07) | TD update on a Q-network; policy net emits actions. / Q 网络上的 TD 更新；策略网络输出动作。 |
+| LLM RL (reward-model-based) / LLM RL（基于奖励模型） | PPO / GRPO (Phase 9 · 08, 12) | Actor-critic with TD-style advantage via GAE. / Actor-Critic + GAE 的 TD 式优势。 |
+| Offline RL / 离线 RL | CQL / IQL (Phase 9 · 08) | Q-learning with conservative regularization. / 带保守正则化的 Q-learning。 |
 
 Ninety percent of the "RL" you read about in 2026 papers is some elaboration of Q-learning or SARSA. Understand the tabular update in your fingers before reading deeper.
+
+> 2026 年论文中你读到的"RL"，90% 是 Q-learning 或 SARSA 的某种变体。在深入阅读之前，先把表格更新掌握到肌肉记忆。
 
 ## Ship It | 产出物
 
