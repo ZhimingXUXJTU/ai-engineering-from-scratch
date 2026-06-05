@@ -1,6 +1,7 @@
 # Information Retrieval and Search | 信息检索与搜索
 
 > BM25 is precise but brittle. Dense casts a wide net but misses keywords. Hybrid is the 2026 default. Everything else is tuning.
+> BM25 精确但脆弱。稠密检索撒大网但漏掉关键词。混合检索是 2026 年的默认选择。其余都是调参。
 
 > **【中文解读】** 从关键词匹配到向量检索。RAG 的检索器就是信息检索的应用。
 

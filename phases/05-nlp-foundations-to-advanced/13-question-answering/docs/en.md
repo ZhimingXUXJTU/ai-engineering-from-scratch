@@ -1,6 +1,7 @@
 # Question Answering Systems | 问答系统
 
 > Three systems shaped modern QA. Extractive found spans. Retrieval-augmented grounded them in documents. Generative produced answers. Every modern AI assistant is a mix of the three.
+> 三种系统塑造了现代问答。抽取式找到文本片段。检索增强将其锚定到文档。生成式产生答案。每个现代 AI 助手都是三者的混合。
 
 > **【中文解读】** 从信息检索到生成式问答。RAG 就是一种问答系统。
 
