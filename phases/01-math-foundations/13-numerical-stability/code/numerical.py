@@ -8,23 +8,34 @@ import random
 
 
 def softmax_naive(logits):
+    """朴素 softmax：直接计算 exp(x)/sum(exp(x))，大 logits 时会溢出。"""
     exps = [math.exp(z) for z in logits]
     total = sum(exps)
     return [e / total for e in exps]
 
 
 def softmax_stable(logits):
-    max_logit = max(logits)
+    """数值稳定的 softmax：减去最大值防止 exp 溢出。
+
+    AI 应用：这是所有深度学习框架内部的实现方式。
+    PyTorch 的 F.cross_entropy 内部使用此技巧。
+    """
+    max_logit = max(logits)  # 减最大值技巧
     exps = [math.exp(z - max_logit) for z in logits]
     total = sum(exps)
     return [e / total for e in exps]
 
 
 def logsumexp_naive(values):
+    """朴素 log-sum-exp：大值时溢出。"""
     return math.log(sum(math.exp(v) for v in values))
 
 
 def logsumexp_stable(values):
+    """数值稳定的 log-sum-exp：先减最大值再计算。
+
+    AI 应用：softmax 归一化、交叉熵损失、对数概率求和的核心技巧。
+    """
     c = max(values)
     return c + math.log(sum(math.exp(v - c) for v in values))
 

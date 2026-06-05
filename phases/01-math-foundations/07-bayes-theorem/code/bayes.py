@@ -7,6 +7,7 @@ from collections import defaultdict
 
 
 def bayes(prior, likelihood, false_positive_rate):
+    """贝叶斯定理计算：后验 = 先验 × 似然 / 证据。"""
     evidence = likelihood * prior + false_positive_rate * (1 - prior)
     posterior = likelihood * prior / evidence
     return posterior
@@ -21,6 +22,11 @@ def sequential_bayes(prior, likelihood, false_positive_rate, num_tests):
 
 
 class NaiveBayes:
+    """朴素贝叶斯分类器：假设特征独立，用贝叶斯定理做分类。
+
+    AI 应用：垃圾邮件过滤、文本分类、情感分析。
+    拉普拉斯平滑防止未见词导致概率为零。
+    """
     def __init__(self, smoothing=1.0):
         self.smoothing = smoothing
         self.class_counts = defaultdict(int)
@@ -50,6 +56,7 @@ class NaiveBayes:
         )
 
     def predict(self, document):
+        """预测文本类别：用对数概率求和（防止下溢），选最高分类。"""
         words = document.lower().split()
         best_class = None
         best_score = float("-inf")
@@ -215,6 +222,7 @@ def demo_mle_vs_map():
 
 
 def beta_update(alpha, beta_param, successes, failures):
+    """Beta-Binomial 共轭更新：后验 = Beta(α+成功, β+失败)。在线学习的数学基础。"""
     return alpha + successes, beta_param + failures
 
 

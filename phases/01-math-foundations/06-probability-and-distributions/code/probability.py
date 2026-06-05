@@ -42,6 +42,7 @@ def uniform_pdf(x, a, b):
 
 
 def normal_pdf(x, mu, sigma):
+    """正态分布（高斯分布）概率密度函数。中心极限定理使其无处不在。"""
     coeff = 1.0 / (sigma * math.sqrt(2 * math.pi))
     exponent = -0.5 * ((x - mu) / sigma) ** 2
     return coeff * math.exp(exponent)
@@ -81,6 +82,7 @@ def sample_uniform(a, b, n=1):
 
 
 def sample_normal_box_muller(mu, sigma, n=1):
+    """Box-Muller 变换：从均匀分布生成正态分布样本。权重初始化使用。"""
     samples = []
     for _ in range(n):
         u1 = random.random()
@@ -91,6 +93,10 @@ def sample_normal_box_muller(mu, sigma, n=1):
 
 
 def softmax(logits):
+    """Softmax 函数：将 logits 转换为概率分布。所有分类模型的最后一步。
+
+    数值稳定性技巧：先减去最大 logit 再取指数，防止溢出。
+    """
     max_logit = max(logits)
     shifted = [z - max_logit for z in logits]
     exps = [math.exp(z) for z in shifted]
@@ -99,6 +105,7 @@ def softmax(logits):
 
 
 def log_softmax(logits):
+    """Log-Softmax：数值稳定的对数概率。PyTorch 交叉熵内部使用。"""
     max_logit = max(logits)
     shifted = [z - max_logit for z in logits]
     log_sum_exp = max_logit + math.log(sum(math.exp(z) for z in shifted))
@@ -106,6 +113,7 @@ def log_softmax(logits):
 
 
 def cross_entropy_loss(logits, target_index):
+    """交叉熵损失 = -log(正确类别的概率)。分类任务的标准损失函数。"""
     log_probs = log_softmax(logits)
     return -log_probs[target_index]
 
