@@ -1,18 +1,23 @@
 # Terminal & Shell | 终端与 Shell
 
 > The terminal is where AI engineers live. Get comfortable here.
+> 终端是 AI 工程师的家。在这里让自己感到舒适。
 
-**Type:** Learn
-**Languages:** --
-**Prerequisites:** Phase 0, Lesson 01
-**Time:** ~35 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** -- | **语言:** 无
+**Prerequisites:** Phase 0, Lesson 01 | **前置知识:** Phase 0, 第 01 课
+**Time:** ~35 minutes | **时间:** ~35 分钟
 
 ## Learning Objectives | 学习目标
 
 - Use piping, redirects, and `grep` to filter and process training logs from the command line
+  中文翻译：使用管道、重定向和 `grep` 从命令行过滤和处理训练日志
 - Create persistent tmux sessions with multiple panes for concurrent training and GPU monitoring
+  中文翻译：创建带多面板的持久 tmux 会话，用于同时训练和监控 GPU
 - Monitor system and GPU resources with `htop`, `nvtop`, and `nvidia-smi`
+  中文翻译：使用 `htop`、`nvtop` 和 `nvidia-smi` 监控系统和 GPU 资源
 - Transfer files between local and remote machines using SSH, `scp`, and `rsync`
+  中文翻译：使用 SSH、`scp` 和 `rsync` 在本地和远程机器间传输文件
 
 > **【中文解读】**
 > 终端是 AI 工程师最常使用的工具。训练模型、监控 GPU、查看日志、远程连接——全部在终端完成。本章教你终端操作的核心技能：管道、tmux 会话、GPU 监控和文件传输。
@@ -21,7 +26,11 @@
 
 You will spend more time in the terminal than in any editor. Training runs, GPU monitoring, log tailing, remote SSH sessions, environment management. Every AI workflow touches the shell. If you're slow here, you're slow everywhere.
 
+> 你在终端中度过的时间比任何编辑器都多。训练运行、GPU 监控、日志追踪、远程 SSH 会话、环境管理。每个 AI 工作流都离不开 shell。如果你在这里慢，你在所有地方都慢。
+
 This lesson covers the terminal skills that matter for AI work. No history of Unix. No deep-dive into Bash scripting. Just what you need.
+
+> 本课只讲 AI 工作中真正需要的终端技能。不讲 Unix 历史，不深入 Bash 脚本编程。只讲你需要的。
 
 > **【中文解读】**
 > AI 工程师在终端的时间比任何编辑器都多。训练模型、监控 GPU、远程 SSH——都依赖终端技能。本章只教 AI 工作中真正需要的终端技巧。
@@ -41,6 +50,8 @@ graph TD
 
 Three things running at once. One terminal. You can detach, go home, SSH back in, and reattach. The training keeps running.
 
+> 三个任务同时运行，一个终端窗口。你可以分离会话、回家、重新 SSH 连接后再恢复会话。训练持续运行。
+
 > **【中文解读】**
 > 终端复用是 AI 工程师的核心技能。上图展示了一个典型的 tmux 会话：一个面板跑训练、一个面板监控 GPU、一个面板查看日志。三个任务同时在一个终端窗口中运行。断开 SSH 后训练继续，第二天重新连接即可恢复。
 
@@ -53,13 +64,19 @@ Three things running at once. One terminal. You can detach, go home, SSH back in
 
 Check which shell you're running:
 
+> 检查你正在使用哪个 shell：
+
 ```bash
 echo $SHELL
 ```
 
 Most systems use `bash` or `zsh`. Both work fine. The commands in this course work in either.
 
+> 大多数系统使用 `bash` 或 `zsh`。两者都可以。本课程的命令在两者中都适用。
+
 Key things to know:
+
+> 关键知识：
 
 ```bash
 # Move around
@@ -84,6 +101,8 @@ clear   # or Ctrl+L
 ### Step 2: Piping and redirects
 
 Piping connects commands together. This is how you process logs, filter output, and chain tools. You will use this constantly.
+
+> 管道将命令连接在一起。这就是你处理日志、过滤输出和串联工具的方式。你会经常用到。
 
 > **【中文解读】**
 > 管道（pipe）是 Unix 哲学的核心：每个工具只做一件事，通过管道串联完成复杂任务。`cat train.log | grep "loss" | wc -l` 这条命令的含义是：读取日志 → 过滤含 "loss" 的行 → 统计行数。重定向（`>`、`>>`、`2>`）控制输出到文件还是屏幕。这些是 AI 工程师每天必用的操作。
@@ -110,6 +129,8 @@ python train.py > train_full.log 2>&1
 
 The three redirects you need:
 
+> 你需要掌握的三种重定向：
+
 | Symbol | What it does |
 |--------|-------------|
 | `>` | Write stdout to file (overwrite) |
@@ -129,6 +150,8 @@ The three redirects you need:
 ### Step 3: Background processes
 
 Training runs take hours. You don't want to keep your terminal open the whole time.
+
+> 训练运行需要数小时。你不想一直开着终端。
 
 ```bash
 # Run in background (output still goes to terminal)
@@ -152,6 +175,8 @@ kill $(pgrep -f "train.py")
 
 The difference between `&`, `nohup`, and `screen`/`tmux`:
 
+> `&`、`nohup` 和 `screen`/`tmux` 的区别：
+
 | Method | Survives terminal close? | Can reattach? |
 |--------|-------------------------|---------------|
 | `command &` | No | No |
@@ -166,9 +191,13 @@ The difference between `&`, `nohup`, and `screen`/`tmux`:
 
 For anything longer than a few minutes, use tmux.
 
+> 对于超过几分钟的任务，使用 tmux。
+
 ### Step 4: tmux
 
 tmux lets you create persistent terminal sessions with multiple panes. This is the single most useful tool for managing training runs.
+
+> tmux 让你创建带多面板的持久终端会话。这是管理训练运行最有用的工具。
 
 > **【中文解读】**
 > tmux 是终端复用器，能创建多个面板（pane）和多个窗口（window），断开 SSH 后会话仍然在后台运行。这是管理 GPU 训练任务最重要的工具。上方的代码展示了 tmux 的核心操作：新建会话、分割面板、分离和重连。
@@ -206,6 +235,8 @@ tmux kill-session -t training
 ```
 
 A typical AI workflow session:
+
+> 典型的 AI 工作流会话：
 
 ```bash
 tmux new -s train
@@ -248,14 +279,23 @@ nvidia-smi --query-compute-apps=pid,name,used_memory --format=csv
 > 在多 GPU 训练中，GPU 利用率低于 80% 通常意味着数据加载是瓶颈（GPU 在等数据）。通过 `nvidia-smi` 可以快速发现：显存不足（OOM）、GPU 利用率低（数据瓶颈）、温度过高（散热问题）。nvidia-smi 的 `--query-compute-apps` 参数能精确找到哪个进程占用了 GPU 显存——这在共享服务器上非常重要。
 
 `htop` keybindings you'll use:
+
+> `htop` 常用快捷键：
+
 - `F6` or `>` to sort by column (sort by memory to find memory leaks)
+  中文翻译：`F6` 或 `>` 按列排序（按内存排序找到内存泄漏）
 - `F5` to toggle tree view (see child processes)
+  中文翻译：`F5` 切换树形视图（查看子进程）
 - `F9` to kill a process
+  中文翻译：`F9` 终止进程
 - `/` to search for a process name
+  中文翻译：`/` 搜索进程名
 
 ### Step 6: SSH for remote GPU boxes
 
 When you rent a cloud GPU (Lambda, RunPod, Vast.ai), you connect via SSH.
+
+> 当你租用云 GPU（Lambda、RunPod、Vast.ai）时，通过 SSH 连接。
 
 ```bash
 # Basic connection  基本 SSH 连接
@@ -296,11 +336,15 @@ ssh -L 8888:localhost:8888 user@gpu-box-ip
 
 Add these to your `~/.bashrc` or `~/.zshrc`:
 
+> 将这些添加到你的 `~/.bashrc` 或 `~/.zshrc`：
+
 ```bash
 source phases/00-setup-and-tooling/10-terminal-and-shell/code/shell_aliases.sh
 ```
 
 Or copy the ones you want. The key aliases:
+
+> 或者复制你想要的。关键别名：
 
 ```bash
 # GPU status at a glance  一行查看 GPU 状态
@@ -318,12 +362,16 @@ alias watchloss='tail -f logs/*.log | grep --line-buffered "loss"'
 
 See `code/shell_aliases.sh` for the full set.
 
+> 完整的别名列表参见 `code/shell_aliases.sh`。
+
 > **【拓展：管道与重定向在 AI 日志分析中的威力】**
 > 在 Google Brain 和 DeepMind，研究员用管道链处理实验日志：`grep "loss" train.log | awk '{print $3}' | sort -n | head -5` 可以在一秒内从百万行日志中找出 loss 最低的 5 个 epoch。这种技能不依赖任何 IDE 或 GUI 工具，在远程 GPU 服务器上尤其有用——那里只有终端可用。
 
 ### Step 8: Common AI terminal patterns
 
 These come up repeatedly in practice:
+
+> 这些模式在实践中反复出现：
 
 > **【中文解读】**
 > 这些是 AI 工程中反复出现的终端模式：用 `tee` 同时输出到终端和日志文件、用 `diff` 对比实验结果、用 `find` 找到最大的模型文件清理磁盘、用 `tar` 解压数据集。掌握这些命令组合能大幅提升日常效率。
@@ -359,6 +407,8 @@ env | grep -i torch
 ## Use It | 用框架实现
 
 Here's when each tool comes into play during this course:
+
+> 以下是每个工具在本课程中的使用场景：
 
 | Tool | When you use it |
 |------|----------------|

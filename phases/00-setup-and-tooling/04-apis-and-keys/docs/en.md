@@ -1,18 +1,23 @@
 # APIs & Keys | API 与密钥管理
 
 > Every AI API works the same way: send a request, get a response. The details change, the pattern doesn't.
+> 所有 AI API 的工作方式都一样：发送请求，获取响应。细节不同，模式不变。
 
-**Type:** Build
-**Languages:** Python, TypeScript
-**Prerequisites:** Phase 0, Lesson 01
-**Time:** ~30 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python, TypeScript | **语言:** Python, TypeScript
+**Prerequisites:** Phase 0, Lesson 01 | **前置知识:** Phase 0, 第 01 课
+**Time:** ~30 minutes | **时间:** ~30 分钟
 
 ## Learning Objectives | 学习目标
 
 - Store API keys securely using environment variables and `.env` files
+  中文翻译：使用环境变量和 `.env` 文件安全存储 API 密钥
 - Make an LLM API call using both the Anthropic Python SDK and raw HTTP
+  中文翻译：使用 Anthropic Python SDK 和原始 HTTP 两种方式调用 LLM API
 - Compare SDK-based and raw HTTP request/response formats for debugging
+  中文翻译：对比 SDK 和原始 HTTP 的请求/响应格式，以便调试
 - Identify and handle common API errors including authentication and rate limits
+  中文翻译：识别并处理常见 API 错误，包括认证和限流问题
 
 > **【中文解读】**
 > 所有 AI API 的工作方式都一样：发送请求、获取响应。本章教你如何安全管理 API 密钥、调用 LLM API，以及理解 SDK 调用和原始 HTTP 请求的区别。这是后面构建 AI Agent 的基础。
@@ -20,6 +25,8 @@
 ## The Problem | 问题描述
 
 Starting from Phase 11, you'll call LLM APIs (Anthropic, OpenAI, Google). In Phase 13-16 you'll build agents that use these APIs in loops. You need to know how API keys work, how to store them safely, and how to make your first API call.
+
+> 从阶段 11 开始，你将调用 LLM API（Anthropic、OpenAI、Google）。在阶段 13-16 中，你将构建循环调用这些 API 的 Agent。你需要了解 API 密钥的工作原理、如何安全存储，以及如何完成第一次 API 调用。
 
 > **【中文解读】**
 > 从阶段 11 开始，你将调用 LLM API；阶段 13-16 会构建循环调用 API 的 Agent。你需要先掌握 API 密钥管理和基本调用方式。
@@ -40,6 +47,12 @@ Every API call has:
 3. A request body (what you want)
 4. A response body (what you get back)
 
+> 每次 API 调用包含四要素：
+> 1. 端点（URL）
+> 2. API 密钥（身份认证）
+> 3. 请求体（你想要什么）
+> 4. 响应体（返回什么）
+
 > **【中文解读】**
 > 每次 API 调用包含四要素：端点 URL、API 密钥（身份认证）、请求体（你想要什么）、响应体（返回什么）。理解这个模式后，所有 AI API 都是一样的。
 
@@ -54,12 +67,16 @@ Every API call has:
 
 Never put API keys in code. Use environment variables.
 
+> 永远不要把 API 密钥写在代码里。使用环境变量。
+
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."  # 设置环境变量（密钥永远不要写在代码里！）
 export OPENAI_API_KEY="sk-..."
 ```
 
 Or use a `.env` file (add it to `.gitignore`):
+
+> 或者使用 `.env` 文件（记得添加到 `.gitignore`）：
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...  # .env 文件（确保加入 .gitignore）
@@ -127,6 +144,8 @@ with urllib.request.urlopen(req) as resp:
 
 This is what the SDKs do under the hood. Understanding the raw HTTP call helps when debugging.
 
+> 这就是 SDK 底层做的事情。理解原始 HTTP 调用有助于调试。
+
 > **【中文解读】**
 > SDK 只是对 HTTP 请求的封装。理解原始 HTTP 调用可以帮助你调试 API 问题、处理错误、甚至在 SDK 不支持的语言中调用 API。
 
@@ -135,6 +154,8 @@ This is what the SDKs do under the hood. Understanding the raw HTTP call helps w
 > **【中文解读】** 现在不需要注册所有 API。Phase 4-10 用 Hugging Face（免费），Phase 11-16 需要 Anthropic 或 OpenAI。等课程用到时再注册即可。
 
 For this course:
+
+> 本课程中：
 
 | API | When you need it | Free tier |
 |-----|-----------------|-----------|
@@ -150,12 +171,17 @@ For this course:
 
 You don't need all of them right now. Set them up when the lesson requires it.
 
+> 你不需要现在就注册所有 API。等课程用到时再设置即可。
+
 ## Ship It | 产出物
 
 > **【拓展：429 限流处理】** 调用 LLM API 时最常见的错误是 429 Rate Limit。处理方式：指数退避重试（等 1s → 2s → 4s → 8s）。Anthropic SDK 内置了自动重试，但理解原理很重要——在实际的 Agent 系统中，你可能需要自己实现限流逻辑来控制成本和避免被封。
 
 This lesson produces:
 - `outputs/prompt-api-troubleshooter.md` - diagnose common API errors
+
+> 本课产出：
+> - `outputs/prompt-api-troubleshooter.md` - 诊断常见 API 错误的 prompt
 
 ## Exercises | 练习题
 
