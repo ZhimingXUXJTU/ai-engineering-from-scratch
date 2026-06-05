@@ -4,10 +4,10 @@
 
 > **【中文解读】** ViT 把图像切成 patch 当作 token 序列处理。理解 ViT = 理解 Transformer 不限于 NLP。CLIP、DALL-E、Sora 都基于 Transformer。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 7 · 05 (Full Transformer), Phase 4 · 03 (CNNs), Phase 4 · 14 (Vision Transformers intro)
-**Time:** ~45 minutes
+**Type:**  | **类型:** 动手
+**Language:** Python | **语言:** Python | **语言:** Python
+**Prerequisites:** Phase 7 · 05 (Full Transformer), Phase 4 · 03 (CNNs), Phase 4 · 14 (Vision Transformers intro) | **前置知识:** Phase 7 · 05 (Full Transformer), Phase 4 · 03 (CNNs), Phase 4 · 14 (Vision Transformers intro)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## The Problem | 问题引入
 

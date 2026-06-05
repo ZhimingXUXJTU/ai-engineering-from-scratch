@@ -4,10 +4,10 @@
 
 > **【中文解读】** T5 把所有 NLP 任务统一为 text-to-text 格式。BART 用去噪自编码训练。适用于翻译、摘要等序列转换任务。
 
-**Type:** Learn
-**Languages:** Python
-**Prerequisites:** Phase 7 · 05 (Full Transformer), Phase 7 · 06 (BERT), Phase 7 · 07 (GPT)
-**Time:** ~45 minutes
+**Type:**  | **类型:** 学习
+**Language:** Python | **语言:** Python | **语言:** Python
+**Prerequisites:** Phase 7 · 05 (Full Transformer), Phase 7 · 06 (BERT), Phase 7 · 07 (GPT) | **前置知识:** Phase 7 · 05 (Full Transformer), Phase 7 · 06 (BERT), Phase 7 · 07 (GPT)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## The Problem | 问题引入
 

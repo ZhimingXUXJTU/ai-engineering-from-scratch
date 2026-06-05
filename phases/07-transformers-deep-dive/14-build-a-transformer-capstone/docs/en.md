@@ -4,10 +4,10 @@
 
 > **【中文解读】** 整合所有知识，从零实现完整的 GPT 架构。这是本阶段的核心实践——理解这个，你就能读懂任何 Transformer 的代码。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 7 · 01 through 13. Don't skip.
-**Time:** ~120 minutes
+**Type:**  | **类型:** 动手
+**Language:** Python | **语言:** Python | **语言:** Python
+**Prerequisites:** Phase 7 · 01 through 13. Don't skip. | **前置知识:** Phase 7 · 01 through 13. Don't skip.
+**Time:** ~120 minutes | **时间:** ~120 分钟
 
 ## The Problem | 问题引入
 
