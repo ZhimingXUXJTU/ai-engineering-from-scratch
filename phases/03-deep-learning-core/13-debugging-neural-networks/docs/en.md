@@ -22,13 +22,23 @@
 
 Traditional software crashes when it is broken. A null pointer throws an exception. A type mismatch fails at compile time. An off-by-one error produces a clearly wrong output.
 
+> 传统软件在出问题时会崩溃。空指针抛出异常。类型不匹配在编译时失败。差一错误产生明显错误的输出。
+
 Neural networks do not give you that luxury.
+
+> 神经网络不会给你这种奢侈。
 
 A broken neural network runs to completion, prints a loss value, and outputs predictions. The loss might decrease. The predictions might look plausible. But the model is silently wrong -- learning shortcuts, memorizing noise, or converging to a useless local minimum. Google researchers estimated that 60-70% of ML debugging time is spent on "silent" bugs that produce no errors but degrade model quality.
 
+> 一个有问题的神经网络可以运行到完成，打印损失值，输出预测。损失可能在下降。预测可能看起来合理。但模型在悄悄地犯错——学习捷径、记忆噪声或收敛到无用的局部最小值。Google 研究人员估计 60-70% 的 ML 调试时间花在"静默"错误上——不产生错误但降低模型质量。
+
 The difference between a working model and a broken one is often a single misplaced line: a missing `zero_grad()`, a transposed dimension, a learning rate off by 10x. the canonical "Recipe for Training Neural Networks" (2019) opens with this: "The most common neural net mistakes are bugs that don't crash."
 
+> 可用模型和损坏模型之间的差异往往只是一行放错位置的代码：缺少 `zero_grad()`、维度转置错误、学习率差 10 倍。经典的"训练神经网络的方法"(2019) 开头写道："最常见的神经网络错误是不会崩溃的 bug。"
+
 This lesson teaches you to find those bugs.
+
+> 本课教你如何找到这些 bug。
 
 > **【中文解读】** 传统软件有明确的错误信号（异常、编译错误）。神经网络最难调试的地方在于"静默错误"——程序正常运行、loss 也在下降，但模型悄悄地学错了。最常见的三个坑：忘记 zero_grad()、维度转置错误、学习率差 10 倍。
 
@@ -40,7 +50,11 @@ This lesson teaches you to find those bugs.
 
 Forget print-and-pray debugging. Neural network debugging requires a systematic approach because the feedback loop is slow (minutes to hours per training run) and the symptoms are ambiguous (bad loss could mean 20 different things).
 
+> 忘掉 print-and-pray 调试。神经网络调试需要系统化的方法，因为反馈循环很慢（每次训练运行几分钟到几小时），而且症状模糊（差的损失可能意味着 20 种不同的问题）。
+
 The golden rule: **start simple, add complexity one piece at a time, and verify each piece independently.**
+
+> 黄金法则：**从简单开始，一次只加一个复杂度，独立验证每个组件。**
 
 > **【中文解读】** 调试神经网络的黄金法则：从最简单的情况开始，每次只加一个组件，独立验证每个组件。不要一上来就跑完整训练——先确保模型能在单个 batch 上过拟合到 loss≈0，再逐步扩展。
 
@@ -158,7 +172,11 @@ graph LR
 
 The single most important debugging technique in deep learning.
 
+> 深度学习中最重要的单一调试技术。
+
 Take one small batch (8-32 samples). Train on it for 100+ iterations. The loss should go to nearly zero and training accuracy should hit 100%. If it does not, your model or training loop has a fundamental bug -- do not proceed to full training.
+
+> 取一个小批量（8-32 个样本）。在上面训练 100+ 次迭代。损失应该降到接近零，训练准确率应该达到 100%。如果不是，你的模型或训练循环有根本性的 bug——不要进入完整训练。
 
 This test catches:
 - Broken loss functions
@@ -167,7 +185,11 @@ This test catches:
 - Optimizer not connected to model parameters
 - Data and labels misaligned
 
+> 这个测试能捕获：损坏的损失函数、损坏的反向传播、架构太小无法表示数据、优化器未连接到模型参数、数据和标签不匹配。
+
 This takes 30 seconds to run and saves hours of debugging full training runs.
+
+> 这只需 30 秒运行，可以节省数小时的完整训练调试时间。
 
 > **【拓展：Andrej Karpathy 的调试建议】** Karpathy 在 "Recipe for Training Neural Networks" 中给出的建议：(1) 先不要管性能，确保 loss 计算正确；(2) 在固定小数据集上过拟合；(3) 检查梯度用数值梯度验证；(4) 监控权重和梯度的范数；(5) 先用小模型验证，再扩大。他的核心观点："如果你不能过拟合一个小数据集，说明代码有 bug。"
 

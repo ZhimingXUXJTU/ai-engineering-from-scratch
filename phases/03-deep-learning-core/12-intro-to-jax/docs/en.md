@@ -22,11 +22,19 @@
 
 You know how to build neural networks in PyTorch. You define an `nn.Module`, call `.backward()`, step the optimizer. It works. Millions of people use it.
 
+> 你已经知道如何在 PyTorch 中构建神经网络。你定义一个 `nn.Module`，调用 `.backward()`，步进优化器。它能工作。数百万人使用它。
+
 But PyTorch has a constraint baked into its DNA: it traces operations eagerly, one at a time, in Python. Every `tensor + tensor` is a separate kernel launch. Every training step re-interprets the same Python code. This works fine until you need to train a 540-billion-parameter model across 2,048 TPUs. Then the overhead kills you.
+
+> 但 PyTorch 的 DNA 中有一个限制：它逐个急切地追踪操作，用 Python 执行。每次 `tensor + tensor` 都是一次单独的内核启动。每次训练步骤都重新解释相同的 Python 代码。这在需要跨 2,048 个 TPU 训练 5400 亿参数模型之前都能工作。然后开销就会杀死你。
 
 Google DeepMind trains Gemini on JAX. Anthropic trained Claude on JAX. These are not small operations -- they are the largest neural network training runs on Earth. They chose JAX because it treats your training loop as a compilable program, not a sequence of Python calls.
 
+> Google DeepMind 用 JAX 训练 Gemini。Anthropic 用 JAX 训练 Claude。这些不是小规模操作——它们是地球上最大的神经网络训练运行。他们选择 JAX 是因为它把你的训练循环当作可编译的程序，而不是一系列 Python 调用。
+
 JAX is NumPy with three superpowers: automatic differentiation, JIT compilation to XLA, and automatic vectorization. You write a function that processes one example. JAX gives you a function that processes a batch, computes gradients, compiles to machine code, and runs across multiple devices. All without changing the original function.
+
+> JAX 是具有三个超能力的 NumPy：自动微分、JIT 编译到 XLA 和自动向量化。你写一个处理单个样本的函数。JAX 给你一个处理批量、计算梯度、编译为机器码并在多个设备上运行的函数。所有这些都不需要改变原始函数。
 
 > **【中文解读】** PyTorch 的局限：每次训练都重新解释 Python 代码，每个 tensor 运算都是单独的 kernel 启动。在 2048 块 TPU 上训练 540B 参数模型时，这个开销不可接受。JAX 把训练循环编译成机器码，跳过 Python 层，直接在加速器上运行。
 
@@ -38,6 +46,8 @@ JAX is NumPy with three superpowers: automatic differentiation, JIT compilation 
 
 JAX is a functional framework. No classes, no mutable state, no `.backward()` method. Instead:
 
+> JAX 是一个函数式框架。没有类，没有可变状态，没有 `.backward()` 方法。取而代之的是：
+
 | PyTorch | JAX |
 |---------|-----|
 | `nn.Module` class with state | Pure function: `f(params, x) -> y` |
@@ -48,6 +58,8 @@ JAX is a functional framework. No classes, no mutable state, no `.backward()` me
 | Mutable `model.parameters()` | Immutable pytree of arrays |
 
 This is not a style preference. It is a compiler constraint. JIT compilation requires pure functions -- same inputs always produce same outputs, no side effects. That restriction is what makes 100x speedups possible.
+
+> 这不是风格偏好。这是编译器约束。JIT 编译需要纯函数——相同输入总是产生相同输出，没有副作用。这个限制正是 100 倍加速成为可能的原因。
 
 ### jax.numpy: The Familiar Surface | jax.numpy：熟悉的接口
 

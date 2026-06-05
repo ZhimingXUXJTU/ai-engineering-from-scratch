@@ -66,6 +66,8 @@ y = W2 * h + b2
 
 Now the substitution breaks. W2 * g(W1 * x + b1) + b2 cannot be reduced to a single linear transformation. The network can represent nonlinear functions. Each additional layer with an activation adds representational capacity.
 
+> 现在代入被打破了。W2 * g(W1 * x + b1) + b2 无法简化为单一线性变换。网络可以表示非线性函数。每个带激活函数的附加层都增加了表示能力。
+
 > **【中文解读】** 数学证明：两个线性变换的复合还是线性的。但插入非线性激活 g() 后，W2 * g(W1x + b1) + b2 无法合并为单一矩阵——每多一个带激活的层，网络的表达能力就真正增加。
 
 ### Sigmoid
@@ -173,6 +175,8 @@ But there is a failure mode: the dead neuron problem. If a neuron's weighted inp
 
 The simplest fix for dead neurons.
 
+> 修复死亡神经元的最简单方法。
+
 ```
 leaky_relu(x) = x        if x > 0
                 alpha * x if x <= 0
@@ -180,11 +184,15 @@ leaky_relu(x) = x        if x > 0
 
 Where alpha is a small constant, typically 0.01. The negative side has a small slope instead of zero, so dead neurons still get a gradient signal and can recover.
 
+> 其中 alpha 是一个小常数，通常为 0.01。负侧有一个小斜率而不是零，所以死亡神经元仍然能获得梯度信号并可以恢复。
+
 > **【中文解读】** Leaky ReLU 在负区间保留一个小的斜率（0.01），让死亡神经元仍能收到梯度信号、有可能恢复。
 
 ### GELU: The Modern Default | GELU：现代默认选择
 
 Gaussian Error Linear Unit. Introduced by Hendrycks and Gimpel in 2016. Default activation in BERT, GPT, and most modern transformers.
+
+> 高斯误差线性单元。由 Hendrycks 和 Gimpel 于 2016 年提出。BERT、GPT 和大多数现代 Transformer 的默认激活函数。
 
 ```
 gelu(x) = x * Phi(x)
@@ -197,6 +205,8 @@ gelu(x) ~= 0.5 * x * (1 + tanh(sqrt(2/pi) * (x + 0.044715 * x^3)))
 ```
 
 GELU is smooth everywhere, allows small negative values (unlike ReLU which hard-clips to zero), and has a probabilistic interpretation: it weights each input by how likely it is to be positive under a Gaussian distribution. This smooth gating outperforms ReLU in transformer architectures because it provides better gradient flow and avoids the dead neuron problem entirely.
+
+> GELU 处处平滑，允许小的负值（不像 ReLU 硬截断为零），具有概率解释：它按输入在正态分布下为正的概率对每个输入加权。这种平滑门控在 Transformer 架构中优于 ReLU，因为它提供更好的梯度流并完全避免死亡神经元问题。
 
 > **【中文解读】** GELU 是 BERT、GPT 和大多数现代 Transformer 的默认激活函数。它处处平滑、允许小的负值（不像 ReLU 硬截断为 0），概率解释是：按输入为正的概率加权。平滑的门控机制在 Transformer 中优于 ReLU，因为它提供更好的梯度流且完全避免死亡神经元问题。
 

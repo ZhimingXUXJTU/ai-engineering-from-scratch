@@ -22,11 +22,19 @@
 
 Initialize all weights to zero. Nothing learns. Every neuron computes the same function, receives the same gradient, and updates identically. After 10,000 epochs, your 512-neuron hidden layer is still 512 copies of the same neuron. You paid for 512 parameters and got 1.
 
+> 将所有权重初始化为零。什么也学不到。每个神经元计算相同的函数，接收相同的梯度，以相同的方式更新。经过 10,000 个 epoch 后，你的 512 神经元隐藏层仍然是同一个神经元的 512 个副本。你为 512 个参数付了代价，却只得到了 1 个。
+
 Initialize them too large. Activations explode through the network. By layer 10, values hit 1e15. By layer 20, they overflow to infinity. Gradients follow the same trajectory in reverse.
+
+> 初始化得太大。激活值在网络中爆炸。到第 10 层，值达到 1e15。到第 20 层，它们溢出为无穷大。梯度沿相反方向遵循相同的轨迹。
 
 Initialize them randomly from a standard normal distribution. Works for 3 layers. At 50 layers, the signal collapses to zero or detonates to infinity depending on whether the random scale was slightly too small or slightly too large. The boundary between "works" and "broken" is razor-thin.
 
+> 从标准正态分布随机初始化。3 层可以工作。50 层时，信号坍缩为零或爆炸为无穷大，取决于随机尺度是略小还是略大。"有效"和"损坏"之间的边界极其微弱。
+
 Weight initialization is the most underrated decision in deep learning. Architecture gets papers. Optimizers get blog posts. Initialization gets a footnote. But get it wrong and nothing else matters -- your network is dead before training begins.
+
+> 权重初始化是深度学习中最被低估的决策。架构能发论文。优化器能写博客。初始化只能得到一个脚注。但如果搞错了，其他一切都不重要——你的网络在训练开始之前就已经死了。
 
 > **【中文解读】** 初始化是深度学习中最被低估的决策。零初始化导致对称性（所有神经元学一样的东西），随机初始化的方差不对会导致 50 层网络信号消失或爆炸。Xavier 和 Kaiming 初始化通过数学推导解决了这个问题。
 
@@ -38,9 +46,15 @@ Weight initialization is the most underrated decision in deep learning. Architec
 
 Every neuron in a layer has the same structure: multiply inputs by weights, add bias, apply activation. If all weights start at the same value (zero is the extreme case), every neuron computes the same output. During backpropagation, every neuron receives the same gradient. During the update step, every neuron changes by the same amount.
 
+> 一层中每个神经元具有相同的结构：输入乘以权重、加偏置、应用激活函数。如果所有权重从相同的值开始（零是极端情况），每个神经元计算相同的输出。在反向传播中，每个神经元接收相同的梯度。在更新步骤中，每个神经元以相同的量变化。
+
 You're stuck. The network has hundreds of parameters, but they all move in lockstep. This is called symmetry, and random initialization is the brute-force way to break it. Each neuron starts at a different point in weight space, so each learns a different feature.
 
+> 你被卡住了。网络有数百个参数，但它们都同步移动。这称为对称性，随机初始化是打破它的暴力方式。每个神经元从权重空间中的不同点开始，因此每个学习不同的特征。
+
 But "random" is not enough. The *scale* of the randomness determines whether the network trains.
+
+> 但"随机"还不够。随机性的*尺度*决定了网络是否能训练。
 
 ### Variance Propagation Through Layers | 方差逐层传播
 

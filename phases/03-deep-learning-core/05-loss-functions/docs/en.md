@@ -156,9 +156,13 @@ Why this works: a model trying to output exactly 1.0 through a softmax needs to 
 
 No labels. No classes. Just pairs of inputs and the question: are these similar or different?
 
+> 没有标签。没有类别。只有输入对和这个问题：它们相似还是不同？
+
 **SimCLR-style contrastive loss (NT-Xent / InfoNCE):**
 
 Take one image. Create two augmented views of it (crop, rotate, color jitter). These are the "positive pair" -- they should have similar embeddings. Every other image in the batch forms a "negative pair" -- they should have different embeddings.
+
+> 取一张图像。创建两个增强视图（裁剪、旋转、颜色抖动）。这是"正对"——它们应该有相似的嵌入。批量中的每张其他图像形成"负对"——它们应该有不同的嵌入。
 
 ```
 L = -log(exp(sim(z_i, z_j) / tau) / sum(exp(sim(z_i, z_k) / tau)))

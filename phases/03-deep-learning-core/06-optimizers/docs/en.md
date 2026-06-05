@@ -20,15 +20,27 @@
 
 You computed the gradients. You know that weight #4,721 should decrease by 0.003 to reduce the loss. But 0.003 in what units? Scaled by what? And should you move the same amount on step 1 as on step 1,000?
 
+> 你计算了梯度。你知道权重 #4,721 应该减少 0.003 来降低损失。但 0.003 是什么单位？按什么比例缩放？在步骤 1 和步骤 1,000 上应该移动相同的量吗？
+
 Vanilla gradient descent applies the same learning rate to every parameter on every step: w = w - lr * gradient. This creates three problems that make training neural networks painful in practice.
+
+> 原始梯度下降在每个步骤对每个参数应用相同的学习率：w = w - lr * gradient。这造成了三个使训练神经网络在实践中很痛苦的问题。
 
 First, oscillation. The loss landscape is rarely shaped like a smooth bowl. It's more like a long, narrow valley. The gradient points across the valley (steep direction), not along it (shallow direction). Gradient descent bounces back and forth across the narrow dimension while making tiny progress along the useful one. You've seen this: loss drops fast then plateaus, not because the model converged but because it's oscillating.
 
+> 首先，振荡。损失曲面很少像平滑的碗。它更像一个长而窄的山谷。梯度指向山谷的横向（陡峭方向），而不是纵向（浅方向）。梯度下降在窄维度上来回弹跳，而在有用的方向上进展微小。
+
 Second, one learning rate for all parameters is wrong. Some weights need large updates (they're in the early, underfitting stage). Others need tiny updates (they're near their optimal value). A learning rate that works for the former destroys the latter, and vice versa.
+
+> 其次，所有参数共用一个学习率是错误的。有些权重需要大的更新（它们处于早期欠拟合阶段）。另一些需要微小的更新（它们接近最优值）。对前者有效的学习率会破坏后者，反之亦然。
 
 Third, saddle points. In high dimensions, the loss landscape has vast flat regions where the gradient is near zero. Vanilla SGD crawls through these at the speed of the gradient, which is effectively zero. The model looks stuck. It isn't stuck -- it's in a flat region with useful descent on the other side. But SGD has no mechanism to push through.
 
+> 第三，鞍点。在高维中，损失曲面有大片平坦区域，梯度接近于零。原始 SGD 以梯度（实际上为零）的速度爬行通过这些区域。模型看起来卡住了。它并没有卡住——它在一个平坦区域中，另一侧有有用的下降。但 SGD 没有机制来突破。
+
 Adam solves all three. It maintains two running averages per parameter -- the mean gradient (momentum, handles oscillation) and the mean squared gradient (adaptive rate, handles different scales). Combined with bias correction for the first few steps, it gives you a single optimizer that works on 80% of problems with default hyperparameters. This lesson builds it from scratch so you understand exactly when and why it fails on the other 20%.
+
+> Adam 解决了所有三个问题。它为每个参数维护两个运行平均值——均值梯度（动量，处理振荡）和均方梯度（自适应速率，处理不同规模）。结合前几步的偏差修正，它提供了一个单一的优化器，在默认超参数下适用于 80% 的问题。本课从零构建它，让你准确理解它在另外 20% 的问题上何时以及为何失败。
 
 > **【中文解读】** 原始 SGD 有三个问题：振荡（在窄谷中来回跳动）、单一学习率（不适合所有参数）、无法穿越平坦区域（梯度接近零就卡住）。Adam 同时解决这三个问题：动量抑制振荡、自适应学习率适合不同参数、偏差修正加速初期收敛。
 
@@ -38,17 +50,25 @@ Adam solves all three. It maintains two running averages per parameter -- the me
 
 The simplest optimizer. Compute the gradient on a mini-batch and step in the opposite direction.
 
+> 最简单的优化器。在小批量上计算梯度，然后向相反方向走一步。
+
 ```
 w = w - lr * gradient    # 最简单的参数更新公式
 ```
 
 The "stochastic" means you use a random subset (mini-batch) of data to estimate the gradient, rather than the full dataset. This noise is actually useful -- it helps escape sharp local minima. But the noise also causes oscillation.
 
+> "随机"意味着你使用数据的随机子集（小批量）来估计梯度，而不是整个数据集。这种噪声实际上是有用的——它有助于逃离尖锐的局部最小值。但噪声也会导致振荡。
+
 Learning rate is the only knob. Too high: the loss diverges. Too low: training takes forever. The optimal value depends on the architecture, the data, the batch size, and the current stage of training. For vanilla SGD on modern networks, typical values range from 0.01 to 0.1. But even within a single training run, the ideal learning rate changes.
+
+> 学习率是唯一的旋钮。太高：损失发散。太低：训练永远完不成。最优值取决于架构、数据、批量大小和训练的当前阶段。对于现代网络上的原始 SGD，典型值范围为 0.01 到 0.1。但即使在单次训练运行中，理想的学习率也在变化。
 
 ### Momentum | 动量
 
 The ball-rolling-downhill analogy is overused but accurate. Instead of stepping by the gradient alone, you maintain a velocity that accumulates past gradients.
+
+> 球滚下山坡的比喻被过度使用但很准确。与仅按梯度步进不同，你维护一个累积过去梯度的速度。
 
 ```
 m_t = beta * m_{t-1} + gradient    # 速度 = 衰减 × 历史速度 + 当前梯度
@@ -57,9 +77,15 @@ w = w - lr * m_t                    # 沿速度方向更新
 
 Beta (typically 0.9) controls how much history to keep. With beta = 0.9, the momentum is roughly the average of the last 10 gradients (1 / (1 - 0.9) = 10).
 
+> Beta（通常为 0.9）控制保留多少历史。当 beta = 0.9 时，动量大约是最近 10 个梯度的平均值（1 / (1 - 0.9) = 10）。
+
 Why this fixes oscillation: gradients that point in the same direction accumulate. Gradients that flip direction cancel out. In that narrow valley, the "across" component flips sign each step and gets dampened. The "along" component stays consistent and gets amplified. The result is smooth acceleration in the useful direction.
 
+> 为什么这能修复振荡：指向相同方向的梯度累积。翻转方向的梯度相互抵消。在那个窄谷中，"横向"分量每步翻转符号并被抑制。"纵向"分量保持一致并被放大。结果是在有用方向上的平滑加速。
+
 Real numbers: SGD alone on a badly conditioned loss landscape might take 10,000 steps. SGD with momentum (beta=0.9) typically takes 3,000-5,000 steps on the same problem. The speedup is not marginal.
+
+> 具体数字：在条件差的损失曲面上，单独 SGD 可能需要 10,000 步。带动量（beta=0.9）的 SGD 在相同问题上通常需要 3,000-5,000 步。加速效果不是微不足道的。
 
 > **【拓展：SGD + Momentum 的 resurgence】** 虽然 Adam 是默认选择，但 2023 年的论文显示 SGD+Momentum 在特定任务上仍有优势。ResNet 系列（ImageNet 分类冠军）和许多 Kaggle 竞赛赢家仍然用 SGD+Momentum (lr=0.1, momentum=0.9)。原因是 SGD 找到的极小值更"平"，泛化性更好。
 
@@ -81,6 +107,8 @@ Epsilon (typically 1e-8) prevents division by zero when a parameter hasn't been 
 ### Adam: Momentum + RMSProp | Adam：动量 + 自适应学习率
 
 Adam combines both ideas. It maintains two exponential moving averages per parameter:
+
+> Adam 结合了两种思想。它为每个参数维护两个指数移动平均值：
 
 ```
 m_t = beta1 * m_{t-1} + (1 - beta1) * gradient        (first moment: mean)        # 一阶矩：梯度均值
@@ -110,7 +138,11 @@ Adam defaults: lr = 0.001, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8. These def
 
 L2 regularization adds lambda * w^2 to the loss. In vanilla SGD, this is equivalent to weight decay (subtracting lambda * w from the weight at each step). In Adam, this equivalence breaks.
 
+> L2 正则化将 lambda * w^2 加到损失中。在原始 SGD 中，这等价于权重衰减（每步从权重中减去 lambda * w）。在 Adam 中，这个等价性被打破了。
+
 The Loshchilov & Hutter insight: when you add L2 to the loss and then Adam processes the gradient, the adaptive learning rate scales the regularization term too. Parameters with large gradient variance get less regularization. Parameters with small variance get more. This is not what you want -- you want uniform regularization regardless of the gradient statistics.
+
+> Loshchilov 和 Hutter 的洞察：当你将 L2 加到损失中然后 Adam 处理梯度时，自适应学习率也会缩放正则化项。梯度方差大的参数获得较少的正则化。梯度方差小的获得更多。这不是你想要的——你想要无论梯度统计如何都统一正则化。
 
 AdamW fixes this by applying weight decay directly to the weights, after the Adam update:
 

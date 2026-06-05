@@ -22,11 +22,19 @@
 
 You have ten lessons of building blocks scattered across separate files. A `Value` class here, a training loop there, weight initialization in another file, learning rate schedules in yet another. To train a network, you copy-paste from five different lessons and wire them together by hand.
 
+> 你有十课的构建模块散落在不同文件中。这里一个 `Value` 类，那里一个训练循环，另一个文件中是权重初始化，还有另一个是学习率调度。要训练一个网络，你需要从五六个不同的课程中复制粘贴并手动组装。
+
 That is what frameworks solve. PyTorch gives you `nn.Module`, `nn.Sequential`, `optim.Adam`, `DataLoader`, and a training loop pattern that ties them together. TensorFlow gives you `keras.Layer`, `keras.Sequential`, `keras.optimizers.Adam`. These are not magic. They are organizational patterns that make it possible to define, train, and evaluate networks without reinventing the plumbing every time.
+
+> 这就是框架解决的问题。PyTorch 给你 `nn.Module`、`nn.Sequential`、`optim.Adam`、`DataLoader` 和将它们绑在一起的训练循环模式。TensorFlow 给你 `keras.Layer`、`keras.Sequential`、`keras.optimizers.Adam`。这些不是魔法。它们是组织模式，让你可以定义、训练和评估网络，而不必每次都重新发明管道。
 
 You are going to build the same thing in ~500 lines of Python. No numpy. No external dependencies. A framework that can define any feedforward network, train it with SGD or Adam, batch the data, apply dropout and batch normalization, use any activation, and schedule the learning rate.
 
+> 你将用大约 500 行 Python 构建同样的东西。不用 numpy。没有外部依赖。一个可以定义任何前馈网络、用 SGD 或 Adam 训练、批量处理数据、应用 dropout 和批归一化、使用任何激活函数并调度学习率的框架。
+
 When you finish, you will understand exactly what happens when you write `model = nn.Sequential(...)` in PyTorch. You will understand why `model.train()` and `model.eval()` exist. You will understand why `optimizer.zero_grad()` is a separate call. You will understand all of it, because you built all of it.
+
+> 完成后，你会完全理解在 PyTorch 中写 `model = nn.Sequential(...)` 时到底发生了什么。你会理解为什么 `model.train()` 和 `model.eval()` 存在。你会理解为什么 `optimizer.zero_grad()` 是一个单独的调用。你会理解这一切，因为你自己构建了这一切。
 
 > **【中文解读】** 框架的核心价值：把散落的组件统一到一个接口下。Module 是一切的基础——Linear、ReLU、Dropout、BatchNorm 都是 Module。Sequential 是组合模式——一堆 Module 串起来还是一个 Module。这和 PyTorch 的设计完全一致。
 
@@ -38,15 +46,24 @@ When you finish, you will understand exactly what happens when you write `model 
 
 Every layer in PyTorch inherits from `nn.Module`. A Module has three responsibilities:
 
+> PyTorch 中每一层都继承自 `nn.Module`。一个 Module 有三个职责：
+
 1. **forward()** -- compute the output given inputs
+   **forward()** -- 给定输入计算输出
 2. **parameters()** -- return all trainable weights
+   **parameters()** -- 返回所有可训练权重
 3. **backward()** -- compute gradients (handled by autograd in PyTorch, explicit in ours)
+   **backward()** -- 计算梯度（PyTorch 中由 autograd 处理，我们的框架中需要显式实现）
 
 A Linear layer is a Module. A ReLU activation is a Module. A dropout layer is a Module. A batch normalization layer is a Module. They all have the same interface.
+
+> Linear 层是一个 Module。ReLU 激活是一个 Module。Dropout 层是一个 Module。BatchNorm 层是一个 Module。它们都有相同的接口。
 
 ### Sequential Container | Sequential 容器
 
 `nn.Sequential` chains Modules. Forward pass: feed data through Module 1, then Module 2, then Module 3. Backward pass: reverse the chain. The container itself is a Module -- it has forward(), parameters(), and backward(). This is the composite pattern: a sequence of Modules is itself a Module.
+
+> `nn.Sequential` 将 Module 串联起来。前向传播：数据流过 Module 1、然后 Module 2、然后 Module 3。反向传播：反向遍历链。容器本身也是一个 Module——它有 forward()、parameters() 和 backward()。这就是组合模式：Module 序列本身也是一个 Module。
 
 > **【拓展：真实框架的额外功能】** 你的迷你框架覆盖了 PyTorch 的核心概念，但真实框架还有：(1) autograd 自动微分（不需要手写 backward）；(2) GPU 支持（CUDA 内存管理和 kernel 调度）；(3) 分布式训练（DDP、FSDP、DeepSpeed）；(4) 混合精度训练（AMP）；(5) 模型序列化（state_dict + save/load）。PyTorch 的代码库超过 100 万行，但核心抽象还是你实现的这 5 个。
 
