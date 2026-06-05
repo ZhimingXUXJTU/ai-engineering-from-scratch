@@ -6,10 +6,10 @@
 
 > **【拓展：WER 是语音识别的黄金指标】** WER（Word Error Rate，词错率）= (替换+删除+插入) / 总词数。Whisper Large v3 在英文上达到 ~5% WER，接近人类水平。中文用 CER（字错率）。
 
-**Type:** Learn
-**Languages:** Python
-**Prerequisites:** Phase 6 · 04, 06, 07, 09, 10; Phase 2 · 09 (Model Evaluation)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 6 · 04, 06, 07, 09, 10; Phase 2 · 09 (Model Evaluation) | **前置知识:** 阶段 6 · 04、06、07、09、10；阶段 2 · 09（模型评估）
+**Time:** ~60 minutes | **预计用时:** ~60 分钟
 
 ## The Problem | 问题引入
 

@@ -4,10 +4,10 @@
 
 > **【中文解读】** 语音克隆技术跑在了防御前面。2026 年的生产级语音系统需要两样东西：检测器（AASIST、RawNet2）区分真假语音，水印（AudioSeal）在压缩和编辑后仍能存活。不做这两项就不要上线语音克隆功能。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 6 · 06 (Speaker Recognition), Phase 6 · 08 (Voice Cloning)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 6 · 06 (Speaker Recognition), Phase 6 · 08 (Voice Cloning) | **前置知识:** 阶段 6 · 06（说话人识别），阶段 6 · 08（语音克隆）
+**Time:** ~75 minutes | **预计用时:** ~75 分钟
 
 ## The Problem | 问题引入
 
