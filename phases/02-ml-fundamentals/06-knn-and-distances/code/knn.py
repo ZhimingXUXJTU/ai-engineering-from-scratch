@@ -15,6 +15,7 @@ def l1_distance(a, b):
 
 
 def cosine_distance(a, b):
+    """余弦距离：1 - cos(a,b)，适合衡量方向相似性。"""
     dot_val = sum(ai * bi for ai, bi in zip(a, b))
     norm_a = math.sqrt(sum(ai ** 2 for ai in a))
     norm_b = math.sqrt(sum(bi ** 2 for bi in b))
@@ -24,12 +25,14 @@ def cosine_distance(a, b):
 
 
 def minkowski_distance(a, b, p=2):
+    """闵可夫斯基距离：(|a-b|^p)^(1/p)，p=1 为曼哈顿，p=2 为欧氏。"""
     if p == float("inf"):
         return max(abs(ai - bi) for ai, bi in zip(a, b))
     return sum(abs(ai - bi) ** p for ai, bi in zip(a, b)) ** (1 / p)
 
 
 def standardize(X):
+    """标准化（Z-score）：转换为零均值单位方差。"""
     n = len(X)
     d = len(X[0])
     means = [sum(X[i][j] for i in range(n)) / n for j in range(d)]
@@ -176,15 +179,18 @@ class KDTree:
 
 
 def accuracy(y_true, y_pred):
+    """计算准确率：正确预测的比例。"""
     correct = sum(1 for a, b in zip(y_true, y_pred) if a == b)
     return correct / len(y_true)
 
 
 def mse(y_true, y_pred):
+    """均方误差 (MSE)：衡量预测偏差的常用指标。"""
     return sum((a - b) ** 2 for a, b in zip(y_true, y_pred)) / len(y_true)
 
 
 def generate_classification_data(n_samples=200, n_classes=3, seed=42):
+    """生成合成分类数据：两个高斯分布的类别。"""
     random.seed(seed)
     X = []
     y = []
@@ -227,6 +233,7 @@ def generate_high_dim_data(n_samples=500, n_dims=2, seed=42):
 
 
 def train_test_split(X, y, test_ratio=0.2, seed=42):
+    """将数据集随机划分为训练集和测试集。"""
     random.seed(seed)
     n = len(X)
     indices = list(range(n))

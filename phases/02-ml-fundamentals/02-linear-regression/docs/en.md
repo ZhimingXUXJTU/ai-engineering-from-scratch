@@ -1,18 +1,26 @@
-# Linear Regression | 线性回归
+# Linear Regression
+# 线性回归
+
 
 > Linear regression draws the best straight line through your data. It is the "hello world" of machine learning.
 
-**Type:** Build
+> 线性回归穿过你的数据画出最佳直线。它是机器学习的"Hello World"。
+
+**Type:** Build | **类型：** 构建
 **Languages:** Python
-**Prerequisites:** Phase 1 (Linear Algebra, Calculus, Optimization), Phase 2 Lesson 1
-**Time:** ~90 minutes
+**Prerequisites:** Phase 1 (Linear Algebra, Calculus, Optimization), Phase 2 Lesson 1 | **前置知识：** Phase 1（线性代数、微积分、优化），Phase 2 第 1 课
+**Time:** ~90 minutes | **时间：** 约 90 分钟
 
 ## Learning Objectives | 学习目标
 
 - Derive the gradient descent update rules for mean squared error and implement linear regression from scratch
+  推导均方误差的梯度下降更新规则并从零实现线性回归
 - Compare gradient descent and the normal equation in terms of computational complexity and when to use each
+  比较梯度下降和正规方程的计算复杂度，判断何时使用各自
 - Build a multiple linear regression model with feature standardization and interpret the learned weights
+  构建带特征标准化的多元线性回归模型并解释学习到的权重
 - Explain how Ridge regression (L2 regularization) prevents overfitting by penalizing large weights
+  解释 Ridge 回归（L2 正则化）如何通过惩罚大权重来防止过拟合
 
 
 > **【中文解读】**
@@ -554,8 +562,11 @@ This lesson produces:
 ## Exercises | 练习题
 
 1. Implement batch gradient descent, stochastic gradient descent (SGD), and mini-batch gradient descent. Compare convergence speed on the same dataset. Which converges fastest? Which has the smoothest cost curve?
+   1. 实现批量梯度下降、随机梯度下降 (SGD) 和小批量梯度下降。在同一数据集上比较收敛速度。哪个收敛最快？哪个损失曲线最平滑？
 2. Generate data from a cubic function (y = ax^3 + bx^2 + cx + d + noise). Fit polynomials of degree 1, 3, and 10. Compare training R^2 and test R^2. At what degree does overfitting become obvious?
+   2. 从三次函数 (y = ax^3 + bx^2 + cx + d + noise) 生成数据。拟合 1、3 和 10 次多项式。比较训练 R^2 和测试 R^2。几次多项式时过拟合变得明显？
 3. Implement Lasso regression (L1 regularization: penalty = alpha * sum(|w_i|)). Train on the multi-feature housing data. Compare which weights go to zero vs Ridge. Why does L1 produce sparse solutions while L2 does not?
+   3. 实现 Lasso 回归（L1 正则化：penalty = alpha * sum(|w_i|)）。在多特征房价数据上训练。比较哪些权重变为零（对比 Ridge）。为什么 L1 产生稀疏解而 L2 不会？
 
 ## Key Terms | 术语速查表
 
@@ -577,6 +588,10 @@ This lesson produces:
 ## Further Reading | 延伸阅读
 
 - [An Introduction to Statistical Learning (ISLR)](https://www.statlearning.com/) -- free PDF, chapters 3 and 6 cover linear regression and regularization with practical R examples
+  [An Introduction to Statistical Learning (ISLR)](https://www.statlearning.com/) -- 免费教材，第 3 章和第 6 章用实际 R 示例涵盖线性回归和正则化
 - [The Elements of Statistical Learning (ESL)](https://hastie.su.domains/ElemStatLearn/) -- free PDF, the more mathematical companion to ISLR with deeper treatment of ridge and lasso
+  [The Elements of Statistical Learning (ESL)](https://hastie.su.domains/ElemStatLearn/) -- 免费教材，ISLR 的数学版，对 ridge 和 lasso 有更深入的处理
 - [Stanford CS229 Lecture Notes on Linear Regression](https://cs229.stanford.edu/main_notes.pdf) -- Andrew Ng's notes deriving the normal equation and gradient descent from first principles
+  [Stanford CS229 Lecture Notes on Linear Regression](https://cs229.stanford.edu/main_notes.pdf) -- Andrew Ng 的笔记从第一性原理推导正规方程和梯度下降
 - [scikit-learn LinearRegression documentation](https://scikit-learn.org/stable/modules/linear_model.html) -- practical reference for LinearRegression, Ridge, Lasso, and ElasticNet with code examples
+  [scikit-learn LinearRegression documentation](https://scikit-learn.org/stable/modules/linear_model.html) -- LinearRegression、Ridge、Lasso 和 ElasticNet 的实用参考及代码示例

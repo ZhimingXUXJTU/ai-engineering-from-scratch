@@ -1,18 +1,26 @@
-# Handling Imbalanced Data | 处理不平衡数据
+# Handling Imbalanced Data
+# 处理不平衡数据
+
 
 > When 99% of your data is "normal," accuracy is a lie.
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 2, Lessons 01-09 (especially evaluation metrics)
-**Time:** ~90 minutes
+> 当 99% 的数据是"正常"时，准确率就是一个谎言。
+
+**Type:** Build | **类型：** 构建
+**Language:** Python | **语言：** Python
+**Prerequisites:** Phase 2, Lessons 01-09 (especially evaluation metrics) | **前置知识：** Phase 2 第 1-9 课（尤其是评估指标）
+**Time:** ~90 minutes | **时间：** 约 90 分钟
 
 ## Learning Objectives | 学习目标
 
 - Implement SMOTE from scratch and explain how synthetic oversampling differs from random duplication
+  从零实现 SMOTE，解释合成过采样与随机复制的区别
 - Evaluate imbalanced classifiers using F1, AUPRC, and Matthews Correlation Coefficient instead of accuracy
+  使用 F1、AUPRC 和马修斯相关系数 (MCC) 评估不平衡分类器，而非准确率
 - Compare class weighting, threshold tuning, and resampling strategies and select the right approach for a given imbalance ratio
+  比较类权重、阈值调优和重采样策略，为给定不平衡比例选择正确方法
 - Build a complete imbalanced data pipeline that combines SMOTE, class weights, and threshold optimization
+  构建结合 SMOTE、类权重和阈值优化的完整不平衡数据管线
 
 
 > **【中文解读】**
@@ -515,12 +523,16 @@ This lesson produces:
 ## Exercises | 练习题
 
 1. **Borderline-SMOTE**: modify the SMOTE implementation to only generate synthetic samples for minority points that are near the decision boundary (those whose k-nearest neighbors include majority class samples). Compare results with standard SMOTE on a dataset where classes overlap.
+   1. 生成不平衡数据集（1% 正例）。比较始终预测多数类、随机森林（默认）、随机森林（class_weight='balanced'）和 SMOTE+随机森林的 F1 和 MCC。
 
 2. **Cost matrix optimization**: implement cost-sensitive learning where the cost matrix is a parameter. Create a function that takes a cost matrix and returns optimal predictions that minimize expected cost. Test with different cost ratios (1:10, 1:100, 1:1000) and plot how the precision-recall tradeoff changes.
+   2. 在同一数据集上比较随机过采样和 SMOTE。展示 SMOTE 产生更好的决策边界。
 
 3. **Threshold calibration**: implement Platt scaling (fit a logistic regression on the model's raw outputs to produce calibrated probabilities). Compare the precision-recall curve before and after calibration. Show that calibration does not change the ranking (AUC stays the same) but makes the probabilities more meaningful.
+   3. 实现阈值调优：对逻辑回归输出的概率，扫描 0.01 到 0.99 的阈值，找到 F1 最高的阈值。展示它比默认阈值 0.5 好多少。
 
 4. **Ensemble with balanced bagging**: train multiple models, each on a balanced bootstrap sample (all minority + random subset of majority). Average their predictions. Compare this approach against a single model with SMOTE. Measure both performance and variance across runs.
+   4. 构建完整管线：SMOTE -> 标准化 -> 逻辑回归（class_weight='balanced'）-> 阈值优化。比较管线中移除任一步骤的性能下降。
 
 5. **Imbalance ratio experiment**: take a balanced dataset and progressively increase the imbalance ratio (50/50, 70/30, 90/10, 95/5, 99/1). For each ratio, train with and without SMOTE. Plot F1 vs imbalance ratio for both approaches. At what ratio does SMOTE start making a meaningful difference?
 
@@ -547,6 +559,9 @@ This lesson produces:
 ## Further Reading | 延伸阅读
 
 - [SMOTE: Synthetic Minority Over-sampling Technique (Chawla et al., 2002)](https://arxiv.org/abs/1106.1813) -- the original SMOTE paper, still the most cited work on imbalanced learning
+  [Chawla et al.: SMOTE (2002)](https://arxiv.org/abs/1106.1813) - SMOTE 原始论文
 - [Learning from Imbalanced Data (He & Garcia, 2009)](https://ieeexplore.ieee.org/document/5128907) -- comprehensive survey covering sampling, cost-sensitive, and algorithmic approaches
+  [He & Garcia: Learning from Imbalanced Data (2009)](https://link.springer.com/article/10.1007/s10115-008-0164-4) - 不平衡学习综述
 - [imbalanced-learn documentation](https://imbalanced-learn.org/stable/) -- Python library with SMOTE variants, undersampling strategies, and pipeline integration
+  [imbalanced-learn 文档](https://imbalanced-learn.org/) - Python 不平衡学习库
 - [The Precision-Recall Plot Is More Informative than the ROC Plot (Saito & Rehmsmeier, 2015)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0118432) -- when and why to prefer PR curves over ROC curves for imbalanced problems

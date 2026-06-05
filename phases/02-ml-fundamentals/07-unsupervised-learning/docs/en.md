@@ -1,18 +1,26 @@
-# Unsupervised Learning | 无监督学习
+# Unsupervised Learning
+# 无监督学习
+
 
 > No labels, no teacher. The algorithm finds structure on its own.
 
-**Type:** Build
+> 没有标签，没有老师。算法自己发现结构。
+
+**Type:** Build | **类型：** 构建
 **Languages:** Python
-**Prerequisites:** Phase 1 (Norms & Distances, Probability & Distributions), Phase 2 Lessons 1-6
-**Time:** ~90 minutes
+**Prerequisites:** Phase 1 (Norms & Distances, Probability & Distributions), Phase 2 Lessons 1-6 | **前置知识：** Phase 1（范数与距离、概率与分布），Phase 2 第 1-6 课
+**Time:** ~90 minutes | **时间：** 约 90 分钟
 
 ## Learning Objectives | 学习目标
 
 - Implement K-Means, DBSCAN, and Gaussian Mixture Models from scratch and compare their clustering behavior
+  从零实现 K-Means、DBSCAN 和高斯混合模型 (GMM)，比较它们的聚类行为
 - Evaluate cluster quality using the silhouette score and the elbow method to select the optimal K
+  使用轮廓系数和肘部法评估聚类质量，选择最优 K
 - Explain when DBSCAN outperforms K-Means and identify which algorithm handles non-spherical clusters and outliers
+  解释 DBSCAN 何时优于 K-Means，识别哪种算法能处理非球形簇和异常值
 - Build an anomaly detection pipeline using clustering methods to flag points that deviate from normal patterns
+  使用聚类方法构建异常检测管线，标记偏离正常模式的点
 
 
 > **【中文解读】**
@@ -493,8 +501,11 @@ This lesson produces working implementations of K-Means, DBSCAN, and GMM from sc
 ## Exercises | 练习题
 
 1. Implement K-Means++ initialization: instead of picking random centroids, pick the first randomly and each subsequent centroid with probability proportional to its squared distance from the nearest existing centroid. Compare convergence speed to random initialization.
+   1. 实现 K-Means++ 初始化：不是随机选择质心，而是随机选择第一个，然后每个后续质心以与其到最近已有质心的平方距离成正比的概率选择。比较收敛速度与随机初始化的差别。
 2. Add hierarchical agglomerative clustering to the code. Implement Ward's linkage and produce a dendrogram (as a nested list of merges). Cut it at different levels and compare to K-Means results.
+   2. 向代码中添加层次聚合聚类。实现 Ward 链接并生成树状图（作为合并的嵌套列表）。在不同层级切割并与 K-Means 结果比较。
 3. Build a simple anomaly detection pipeline: run DBSCAN and GMM on the same data, flag points that both methods agree are outliers (noise in DBSCAN, low probability in GMM). Measure the overlap and discuss when the methods disagree.
+   3. 构建简单的异常检测管线：在同一数据上运行 DBSCAN 和 GMM，标记两种方法都认为是异常值的点（DBSCAN 中的噪声、GMM 中的低概率点）。测量重叠并讨论方法何时不一致。
 
 ## Key Terms | 术语速查表
 
@@ -512,5 +523,8 @@ This lesson produces working implementations of K-Means, DBSCAN, and GMM from sc
 ## Further Reading | 延伸阅读
 
 - [Stanford CS229 - Unsupervised Learning](https://cs229.stanford.edu/notes2022fall/main_notes.pdf) - Andrew Ng's lecture notes on clustering and EM
+  [Stanford CS229 - 无监督学习](https://cs229.stanford.edu/notes2022fall/main_notes.pdf) - Andrew Ng 的聚类和 EM 讲义
 - [scikit-learn Clustering Guide](https://scikit-learn.org/stable/modules/clustering.html) - practical comparison of all clustering algorithms with visual examples
+  [scikit-learn 聚类指南](https://scikit-learn.org/stable/modules/clustering.html) - 所有聚类算法的实用比较和可视化示例
 - [DBSCAN original paper (Ester et al., 1996)](https://www.aaai.org/Papers/KDD/1996/KDD96-037.pdf) - the paper that introduced density-based clustering
+  [DBSCAN 原始论文 (Ester et al., 1996)](https://www.aaai.org/Papers/KDD/1996/KDD96-037.pdf) - 引入基于密度聚类的论文

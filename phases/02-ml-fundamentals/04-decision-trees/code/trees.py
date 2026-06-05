@@ -283,11 +283,13 @@ class RandomForest:
 
 
 def accuracy(y_true, y_pred):
+    """计算准确率：正确预测的比例。"""
     correct = sum(1 for a, b in zip(y_true, y_pred) if a == b)
     return correct / len(y_true)
 
 
 def generate_classification_data(n_samples=200, seed=42):
+    """生成合成分类数据：两个高斯分布的类别。"""
     random.seed(seed)
     X = []
     y = []
@@ -319,6 +321,7 @@ def generate_regression_data(n_samples=200, seed=42):
 
 
 def train_test_split(X, y, test_ratio=0.2, seed=42):
+    """将数据集随机划分为训练集和测试集。"""
     random.seed(seed)
     n = len(X)
     indices = list(range(n))

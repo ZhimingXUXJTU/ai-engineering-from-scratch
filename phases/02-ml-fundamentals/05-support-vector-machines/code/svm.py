@@ -27,14 +27,17 @@ def vec_norm(a):
 
 
 def linear_kernel(x, z):
+    """线性核函数：直接返回内积。"""
     return dot(x, z)
 
 
 def polynomial_kernel(x, z, degree=3, c=1.0):
+    """多项式核函数：(gamma * x1.dot(x2) + coef0)^degree。"""
     return (dot(x, z) + c) ** degree
 
 
 def rbf_kernel(x, z, gamma=0.5):
+    """RBF（高斯）核函数：exp(-gamma * ||x1-x2||^2)。"""
     diff = vec_sub(x, z)
     return math.exp(-gamma * dot(diff, diff))
 
@@ -115,6 +118,7 @@ class LinearSVM:
 
 
 def accuracy(y_true, y_pred):
+    """计算准确率：正确预测的比例。"""
     correct = sum(1 for a, b in zip(y_true, y_pred) if a == b)
     return correct / len(y_true)
 
@@ -166,6 +170,7 @@ def generate_circular_data(n_samples=200, seed=42):
 
 
 def train_test_split(X, y, test_ratio=0.2, seed=42):
+    """将数据集随机划分为训练集和测试集。"""
     random.seed(seed)
     n = len(X)
     indices = list(range(n))
@@ -216,6 +221,7 @@ def demo_hinge_loss():
 
 
 def demo_linear_svm():
+    """演示：线性 SVM 在线性可分数据上的效果。"""
     print("=" * 65)
     print("LINEAR SVM: MAXIMUM MARGIN CLASSIFIER")
     print("=" * 65)
@@ -255,6 +261,7 @@ def demo_linear_svm():
 
 
 def demo_c_parameter():
+    """演示：正则化参数 C 对决策边界的影响。"""
     print("=" * 65)
     print("C PARAMETER: REGULARIZATION TRADE-OFF")
     print("=" * 65)

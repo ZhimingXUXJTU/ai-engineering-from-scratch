@@ -8,6 +8,7 @@ warnings.filterwarnings("ignore")
 
 
 def make_mixed_data(n_samples=500, seed=42):
+    """生成混合类型数据（数值+类别+缺失值）用于管线演示。"""
     rng = np.random.RandomState(seed)
 
     age = rng.normal(35, 12, n_samples).clip(18, 80)
@@ -49,6 +50,7 @@ def make_mixed_data(n_samples=500, seed=42):
 
 
 def train_test_split_dict(data, test_ratio=0.2, seed=42):
+    """将字典格式的数据划分为训练集和测试集。"""
     rng = np.random.RandomState(seed)
     n = len(data["target"])
     idx = rng.permutation(n)
@@ -275,6 +277,7 @@ class DecisionTreeSimple:
 
 
 def cross_validate_pipeline(pipeline_factory, data, n_folds=5, seed=42):
+    """K 折交叉验证管线：评估管线整体性能。"""
     rng = np.random.RandomState(seed)
     n = len(data["target"])
     idx = rng.permutation(n)
@@ -339,6 +342,7 @@ class FullPipeline:
 
 
 def demo_data_leakage():
+    """演示：数据泄漏——为什么预处理必须在交叉验证内部。"""
     print("=" * 60)
     print("DATA LEAKAGE DEMONSTRATION")
     print("=" * 60)
@@ -378,6 +382,7 @@ def demo_data_leakage():
 
 
 def demo_pipeline_from_scratch():
+    """演示：从零实现管线的基本使用。"""
     print("=" * 60)
     print("PIPELINE FROM SCRATCH")
     print("=" * 60)
@@ -405,6 +410,7 @@ def demo_pipeline_from_scratch():
 
 
 def demo_full_pipeline():
+    """演示：完整管线（预处理+训练+评估）。"""
     print("=" * 60)
     print("FULL PIPELINE WITH MIXED DATA TYPES")
     print("=" * 60)
@@ -429,6 +435,7 @@ def demo_full_pipeline():
 
 
 def demo_cross_validation():
+    """演示：使用交叉验证评估管线。"""
     print("=" * 60)
     print("CROSS-VALIDATION WITH PIPELINE")
     print("=" * 60)
@@ -453,6 +460,7 @@ def demo_cross_validation():
 
 
 def demo_unknown_categories():
+    """演示：处理测试集中未见过的类别。"""
     print("=" * 60)
     print("HANDLING UNKNOWN CATEGORIES")
     print("=" * 60)
@@ -474,6 +482,7 @@ def demo_unknown_categories():
 
 
 def demo_model_comparison():
+    """演示：在同一管线上比较不同模型。"""
     print("=" * 60)
     print("MODEL COMPARISON VIA PIPELINE")
     print("=" * 60)
@@ -502,6 +511,7 @@ def demo_model_comparison():
 
 
 def demo_sklearn_pipeline():
+    """演示：sklearn Pipeline 的标准用法。"""
     print("=" * 60)
     print("SKLEARN PIPELINE (if installed)")
     print("=" * 60)
@@ -564,6 +574,7 @@ def demo_sklearn_pipeline():
 
 
 def demo_experiment_tracking():
+    """演示：简单的实验追踪（记录参数和结果）。"""
     print("=" * 60)
     print("EXPERIMENT TRACKING (manual log)")
     print("=" * 60)
@@ -618,6 +629,7 @@ def demo_experiment_tracking():
 
 
 def demo_reproducibility():
+    """演示：确保实验可复现的方法。"""
     print("=" * 60)
     print("REPRODUCIBILITY CHECK")
     print("=" * 60)

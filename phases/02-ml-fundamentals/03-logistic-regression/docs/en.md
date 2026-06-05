@@ -1,18 +1,26 @@
-# Logistic Regression | 逻辑回归
+# Logistic Regression
+# 逻辑回归
+
 
 > Logistic regression bends a straight line into an S-curve to answer yes-or-no questions with probabilities.
 
-**Type:** Build
+> 逻辑回归将直线弯成 S 形曲线，用概率回答是非问题。
+
+**Type:** Build | **类型：** 构建
 **Languages:** Python
-**Prerequisites:** Phase 2 Lesson 1-2 (What Is ML, Linear Regression)
-**Time:** ~90 minutes
+**Prerequisites:** Phase 2 Lesson 1-2 (What Is ML, Linear Regression) | **前置知识：** Phase 2 第 1-2 课（什么是机器学习、线性回归）
+**Time:** ~90 minutes | **时间：** 约 90 分钟
 
 ## Learning Objectives | 学习目标
 
 - Implement logistic regression from scratch using the sigmoid function and binary cross-entropy loss
+  从零实现逻辑回归，掌握 Sigmoid 函数和二元交叉熵损失
 - Compute and interpret precision, recall, F1 score, and the confusion matrix for binary classification
+  计算并解释精确率 (Precision)、召回率 (Recall)、F1 分数和混淆矩阵
 - Explain why MSE fails for classification and why binary cross-entropy produces a convex cost surface
+  解释为什么均方误差 (MSE) 不适用于分类任务，以及为什么二元交叉熵能产生凸的代价曲面
 - Build a softmax regression model for multi-class classification and evaluate threshold tuning tradeoffs
+  构建 Softmax 回归模型进行多分类，并评估阈值调优的权衡
 
 
 > **【中文解读】**
@@ -529,8 +537,11 @@ This lesson produces:
 ## Exercises | 练习题
 
 1. Generate a dataset that is NOT linearly separable (e.g., two concentric circles). Train logistic regression and observe its failure. Then add polynomial features (x1^2, x2^2, x1*x2) and train again. Show that the accuracy improves.
+   1. 生成一个**非**线性可分的数据集（例如两个同心圆）。训练逻辑回归并观察其失败。然后添加多项式特征（x1^2, x2^2, x1*x2）重新训练。展示准确率的提升。
 2. Implement a multi-class confusion matrix for the 3-class softmax model. Compute per-class precision and recall. Which class is hardest to classify?
+   2. 为 3 类 Softmax 模型实现多分类混淆矩阵。计算每个类别的精确率和召回率。哪个类别最难分类？
 3. Build an ROC curve from scratch. For 100 threshold values from 0 to 1, compute the true positive rate and false positive rate. Calculate the AUC (area under the curve) using the trapezoidal rule.
+   3. 从零构建 ROC 曲线。对于 0 到 1 之间的 100 个阈值，计算真正例率和假正例率。用梯形法则计算 AUC（曲线下面积）。
 
 ## Key Terms | 术语速查表
 

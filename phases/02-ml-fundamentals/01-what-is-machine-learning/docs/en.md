@@ -1,18 +1,26 @@
-# What Is Machine Learning | 什么是机器学习
+# What Is Machine Learning
+# 什么是机器学习
+
 
 > Machine learning is teaching computers to find patterns in data instead of writing rules by hand.
 
-**Type:** Learn
+> 机器学习是教计算机从数据中发现规律，而不是靠人工编写规则。
+
+**Type:** Learn | **类型：** 学习
 **Languages:** Python
-**Prerequisites:** Phase 1 (Math Foundations)
-**Time:** ~45 minutes
+**Prerequisites:** Phase 1 (Math Foundations) | **前置知识：** Phase 1（数学基础）
+**Time:** ~45 minutes | **时间：** 约 45 分钟
 
 ## Learning Objectives | 学习目标
 
 - Explain the difference between supervised, unsupervised, and reinforcement learning and identify which type applies to a given problem
+  解释监督学习、无监督学习和强化学习之间的区别，并判断给定问题适用于哪种类型
 - Implement a nearest centroid classifier from scratch and evaluate it against a random baseline
+  从零实现最近质心分类器，并与随机基线进行对比评估
 - Distinguish between classification and regression tasks and select the appropriate loss function for each
+  区分分类和回归任务，为每种任务选择合适的损失函数
 - Evaluate whether a given business problem is suitable for ML or better solved with deterministic rules
+  评估一个业务问题是否适合用 ML 解决，还是用确定性规则更好
 
 
 > **【中文解读】**
@@ -442,11 +450,17 @@ This lesson produces `outputs/prompt-ml-problem-framer.md` -- a prompt that turn
 ## Exercises | 练习题
 
 1. Take any dataset (e.g., Iris, Titanic). Split it 70/15/15 into train/validation/test. Explain why you should not tune hyperparameters on the test set.
+   1. 取任意数据集（如 Iris、Titanic）。按 70/15/15 划分为训练/验证/测试集。解释为什么不应在测试集上调节超参数。
 2. List three real-world problems. For each one, identify whether it is classification, regression, or clustering, and whether it is supervised or unsupervised.
+   2. 列出三个现实世界的问题。对每个问题，判断它是分类、回归还是聚类，以及是监督学习还是无监督学习。
 3. A model gets 99% accuracy on training data but 60% on test data. Diagnose the problem and list three things you would try to fix it.
+   3. 一个模型在训练数据上得到 99% 准确率，但在测试数据上只有 60%。诊断问题并列出三种修复方法。
 
 ## Further Reading | 延伸阅读
 
 - [An Introduction to Statistical Learning](https://www.statlearning.com/) - free textbook covering all classical ML methods with practical examples
+  [An Introduction to Statistical Learning](https://www.statlearning.com/) - 免费教材，用实际例子涵盖所有经典 ML 方法
 - [Google's Machine Learning Crash Course](https://developers.google.com/machine-learning/crash-course) - concise visual introduction to ML concepts
+  [Google's Machine Learning Crash Course](https://developers.google.com/machine-learning/crash-course) - 简明的 ML 概念可视化介绍
 - [Scikit-learn User Guide](https://scikit-learn.org/stable/user_guide.html) - the practical reference for implementing ML in Python
+  [Scikit-learn User Guide](https://scikit-learn.org/stable/user_guide.html) - Python 实现 ML 的实用参考

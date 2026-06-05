@@ -39,6 +39,7 @@ def make_feature_selection_data(n_samples=500, seed=42):
 
 
 def variance_threshold(X, threshold=0.01):
+    """方差阈值过滤：删除方差过小的特征（几乎不变的特征无用）。"""
     variances = np.var(X, axis=0)
     mask = variances > threshold
     return mask, variances
@@ -54,6 +55,7 @@ def discretize(x, n_bins=10):
 
 
 def mutual_information(X, y, n_bins=10):
+    """互信息：衡量特征与目标之间的信息依赖。"""
     n_samples, n_features = X.shape
     mi_scores = np.zeros(n_features)
 

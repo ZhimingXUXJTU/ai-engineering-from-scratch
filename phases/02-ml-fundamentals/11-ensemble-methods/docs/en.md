@@ -1,18 +1,26 @@
-# Ensemble Methods | 集成方法
+# Ensemble Methods
+# 集成方法
+
 
 > A group of weak learners, combined correctly, becomes a strong learner. This is not a metaphor. It is a theorem.
 
-**Type:** Build
-**Language:** Python
-**Prerequisites:** Phase 2, Lesson 10 (Bias-Variance Tradeoff)
-**Time:** ~120 minutes
+> 一组弱学习器，正确组合后，就变成强学习器。这不是比喻，这是定理。
+
+**Type:** Build | **类型：** 构建
+**Language:** Python | **语言：** Python
+**Prerequisites:** Phase 2, Lesson 10 (Bias-Variance Tradeoff) | **前置知识：** Phase 2 第 10 课（偏差-方差权衡）
+**Time:** ~120 minutes | **时间：** 约 120 分钟
 
 ## Learning Objectives | 学习目标
 
 - Implement AdaBoost and gradient boosting from scratch and explain how boosting sequentially reduces bias
+  从零实现 AdaBoost 和梯度提升，解释 Boosting 如何串行减少偏差
 - Build a bagging ensemble and demonstrate how averaging decorrelated models reduces variance without increasing bias
+  构建 Bagging 集成，展示平均不相关模型如何在不增加偏差的情况下减少方差
 - Compare bagging, boosting, and stacking in terms of what error component each method targets
+  比较 Bagging、Boosting 和 Stacking 各自针对的误差分量
 - Evaluate ensemble diversity and explain why majority voting accuracy improves with more independent weak learners
+  评估集成多样性，解释为什么多数投票准确率随更多独立弱学习器而提高
 
 
 > **【中文解读】**
@@ -332,14 +340,19 @@ This lesson produces `outputs/prompt-ensemble-selector.md` -- a prompt that help
 ## Exercises | 练习题
 
 1. Modify the AdaBoost implementation to track training accuracy after each round. Plot accuracy vs. number of estimators. When does it converge?
+   1. 修改 AdaBoost 实现在每轮后追踪训练准确率。绘制准确率 vs 估计器数量。何时收敛？
 
 2. Implement a random forest from scratch by adding random feature subsampling to the regression tree. Train 100 trees with `max_features=sqrt(n_features)` and average predictions. Compare variance reduction to a single tree.
+   2. 从零实现随机森林：在回归树上添加随机特征子采样。训练 100 棵树，`max_features=sqrt(n_features)`，平均预测。比较方差减少与单棵树。
 
 3. In the gradient boosting implementation, add early stopping: track validation loss after each round and stop when it has not improved for 10 consecutive rounds. How many trees does it actually need?
+   3. 在梯度提升实现中添加早停：每轮后追踪验证损失，连续 10 轮没改善就停止。实际需要多少棵树？
 
 4. Build a stacking ensemble with three base models (logistic regression, decision tree, k-nearest neighbors) and a logistic regression meta-learner. Use 5-fold cross-validation to generate meta-features. Compare to each base model alone.
+   4. 构建三个基础模型（逻辑回归、决策树、KNN）和一个逻辑回归元学习器的 Stacking 集成。用 5 折交叉验证生成元特征。与每个基础模型单独比较。
 
 5. Run XGBoost on the same dataset with default parameters. Compare its accuracy to your from-scratch gradient boosting. Time both. How large is the speed difference?
+   5. 在同一数据集上用默认参数运行 XGBoost。与从零实现的梯度提升比较准确率。计时两者。速度差异有多大？
 
 > **【中文解读】**
 > AdaBoost（自适应提升）的核心流程：训练一个弱分类器→计算错误率→增加被误分类样本的权重→训练下一个弱分类器。最终预测是所有弱分类器的加权投票，权重与错误率成反比。Gradient Boosting 的核心流程：训练第一棵树→计算残差→训练第二棵树拟合残差→重复。每棵新树都在纠正之前所有树的集体错误。
@@ -364,7 +377,12 @@ This lesson produces `outputs/prompt-ensemble-selector.md` -- a prompt that help
 ## Further Reading | 延伸阅读
 
 - [Schapire & Freund: Boosting: Foundations and Algorithms](https://mitpress.mit.edu/9780262526036/) -- the book by AdaBoost's creators
+  [Schapire & Freund: Boosting: Foundations and Algorithms](https://mitpress.mit.edu/9780262526036/) - AdaBoost 创始人的著作
 - [Friedman: Greedy Function Approximation: A Gradient Boosting Machine (2001)](https://statweb.stanford.edu/~jhf/ftp/trebst.pdf) -- the original gradient boosting paper
+  [Friedman: Greedy Function Approximation: A Gradient Boosting Machine (2001)](https://statweb.stanford.edu/~jhf/ftp/trebst.pdf) - 梯度提升原始论文
 - [Chen & Guestrin: XGBoost (2016)](https://arxiv.org/abs/1603.02754) -- the XGBoost paper
+  [Chen & Guestrin: XGBoost (2016)](https://arxiv.org/abs/1603.02754) - XGBoost 论文
 - [Wolpert: Stacked Generalization (1992)](https://www.sciencedirect.com/science/article/abs/pii/S0893608005800231) -- the original stacking paper
+  [Wolpert: Stacked Generalization (1992)](https://www.sciencedirect.com/science/article/abs/pii/S0893608005800231) - Stacking 原始论文
 - [scikit-learn Ensemble Methods](https://scikit-learn.org/stable/modules/ensemble.html) -- practical reference
+  [scikit-learn 集成方法](https://scikit-learn.org/stable/modules/ensemble.html) - 实用参考
