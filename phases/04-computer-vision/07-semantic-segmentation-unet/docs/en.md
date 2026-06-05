@@ -56,10 +56,15 @@ flowchart LR
 ```
 
 - **Semantic** says "this pixel is road, that pixel is car." Two cars next to each other collapse into a single blob.
+  中文翻译：语义分割说"这个像素是路，那个像素是车"。相邻的两辆车会被合并为一个区域。
 - **Instance** says "this pixel is car #3, that pixel is car #5." Ignores background stuff ("stuff" = sky, road, grass).
+  中文翻译：实例分割说"这个像素是第3辆车，那个像素是第5辆车"。忽略背景类别（"stuff" = 天空、道路、草地）。
 - **Panoptic** unifies both: every pixel gets a class label, every instance gets a unique id, stuff and things both segmented.
+  中文翻译：全景分割统一了两者：每个像素获得类别标签，每个实例获得唯一 ID，背景和前景物体都被分割。
 
 This lesson covers semantic. The next lesson (Mask R-CNN) covers instance.
+
+> 本课覆盖语义分割。下一课（Mask R-CNN）覆盖实例分割。
 
 ### The U-Net shape
 
