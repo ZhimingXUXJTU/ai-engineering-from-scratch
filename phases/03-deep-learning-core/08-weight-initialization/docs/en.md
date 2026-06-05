@@ -82,11 +82,15 @@ The goal: choose Var(w) so that Var(z) = Var(x). Signal magnitude stays constant
 
 Glorot and Bengio (2010) derived the solution for sigmoid and tanh activations. To keep variance constant in both the forward and backward pass:
 
+> Glorot 和 Bengio (2010) 推导了 sigmoid 和 tanh 激活函数的解。为了在前向和反向传播中保持方差恒定：
+
 ```
 Var(w) = 2 / (fan_in + fan_out)
 ```
 
 In practice, weights are drawn from:
+
+> 实践中，权重从以下分布抽取：
 
 ```
 w ~ Uniform(-limit, limit)  where limit = sqrt(6 / (fan_in + fan_out))
@@ -100,11 +104,17 @@ w ~ Normal(0, sqrt(2 / (fan_in + fan_out)))
 
 This works because sigmoid and tanh are roughly linear near zero, where properly initialized activations live. The variance stays stable through dozens of layers.
 
+> 这之所以有效，是因为 sigmoid 和 tanh 在零附近大致是线性的，而正确初始化的激活值恰好生活在零附近。方差在几十层中保持稳定。
+
 ### Kaiming/He Initialization | Kaiming/He 初始化
 
 ReLU kills half the outputs (everything negative becomes zero). The effective fan_in is halved because on average half the inputs are zeroed. Xavier init doesn't account for this -- it underestimates the variance needed.
 
+> ReLU 将一半的输出置零（所有负值变为零）。有效的 fan_in 减半，因为平均一半的输入被置零。Xavier 初始化没有考虑到这一点——它低估了所需的方差。
+
 He et al. (2015) adjusted the formula:
+
+> He 等人 (2015) 调整了公式：
 
 ```
 Var(w) = 2 / fan_in
@@ -112,11 +122,15 @@ Var(w) = 2 / fan_in
 
 Weights are drawn from:
 
+> 权重从以下分布抽取：
+
 ```
 w ~ Normal(0, sqrt(2 / fan_in))
 ```
 
 The factor of 2 compensates for ReLU zeroing half the activations. Without it, the signal shrinks by ~0.5x per layer. With 50 layers: 0.5^50 = 8.8e-16. Kaiming init prevents this.
+
+> 因子 2 补偿了 ReLU 将一半激活值置零。没有它，信号每层缩小约 0.5 倍。50 层后：0.5^50 = 8.8e-16。Kaiming 初始化防止了这种情况。
 
 > **【拓展：PyTorch 的默认初始化】** PyTorch 的 nn.Linear 默认使用 Kaiming Uniform 初始化（`nn.init.kaiming_uniform_`，mode='fan_in'），配合 LeakyReLU 的 negative_slope=sqrt(5)。这意味着当你写 `nn.Linear(784, 256)` 时，PyTorch 已经帮你选好了初始化。但自定义架构（Transformer、混合专家模型）需要手动调整。
 
@@ -124,13 +138,19 @@ The factor of 2 compensates for ReLU zeroing half the activations. Without it, t
 
 GPT-2 introduced a different pattern. Residual connections add the output of each sub-layer to its input:
 
+> GPT-2 引入了一种不同的模式。残差连接将每个子层的输出加到其输入上：
+
 ```
 x = x + sublayer(x)
 ```
 
 Each addition increases variance. With N residual layers, variance grows proportionally to N. GPT-2 scales the weights of residual layers by 1/sqrt(2N), where N is the number of layers. This keeps the accumulated signal magnitude stable.
 
+> 每次加法都会增加方差。有 N 个残差层时，方差按 N 成比例增长。GPT-2 将残差层的权重缩放 1/sqrt(2N)，其中 N 是层数。这保持了累积信号幅度的稳定。
+
 Llama 3 (405B parameters, 126 layers) uses a similar scheme. Without this scaling, the residual stream would grow unbounded through 126 layers of attention and feedforward blocks.
+
+> Llama 3（4050 亿参数，126 层）使用类似的方案。没有这种缩放，残差流会通过 126 层注意力和前馈块无限增长。
 
 > **【拓展：混合专家模型（MoE）的初始化挑战】** Mixtral 8x7B 和 GPT-4 等模型使用 MoE 架构，每个 token 只激活部分专家。初始化时需要确保：路由器的初始权重不能让所有 token 都选择同一个专家。常见做法是用小的初始化方差 + 噪声偏置，确保初始路由均匀。初始化不当会导致"路由崩塌"——一个专家承担所有负载。
 
@@ -197,6 +217,8 @@ flowchart TD
 
 Four ways to initialize a weight matrix. Each returns a list of lists (a 2D matrix) with fan_in columns and fan_out rows.
 
+> 四种初始化权重矩阵的方式。每种返回一个列表的列表（2D 矩阵），fan_in 列，fan_out 行。
+
 ```python
 import math
 import random
@@ -224,6 +246,8 @@ def kaiming_init(fan_in, fan_out):
 
 We need sigmoid, tanh, and ReLU to test each init strategy with its intended activation.
 
+> 我们需要 sigmoid、tanh 和 ReLU 来测试每种初始化策略与对应激活函数的组合。
+
 ```python
 def sigmoid(x):
     x = max(-500, min(500, x))
@@ -241,6 +265,8 @@ def relu(x):
 ### Step 3: Forward Pass Through 50 Layers | 第三步：50 层前向传播
 
 Pass random data through a deep network and measure mean activation magnitude at each layer.
+
+> 将随机数据通过深度网络，测量每层的平均激活幅度。
 
 ```python
 def forward_deep(init_fn, activation_fn, n_layers=50, width=64, n_samples=100):
@@ -275,6 +301,8 @@ def forward_deep(init_fn, activation_fn, n_layers=50, width=64, n_samples=100):
 
 Run all combinations: zero init, random N(0,1), random N(0,0.01), Xavier with sigmoid, Xavier with tanh, Kaiming with ReLU. Print the magnitude at key layers.
 
+> 运行所有组合：零初始化、随机 N(0,1)、随机 N(0,0.01)、Xavier + sigmoid、Xavier + tanh、Kaiming + ReLU。打印关键层的幅度。
+
 ```python
 def run_experiment():
     configs = [
@@ -307,6 +335,8 @@ def run_experiment():
 
 Show that zero init produces identical neurons.
 
+> 展示零初始化产生完全相同的神经元。
+
 ```python
 def symmetry_demo():
     random.seed(42)
@@ -331,6 +361,8 @@ def symmetry_demo():
 
 Print a visual bar chart of activation magnitudes through 50 layers.
 
+> 打印 50 层激活幅度的可视化条形图。
+
 ```python
 def magnitude_report(name, magnitudes):
     print(f"\n{name}:")
@@ -352,6 +384,8 @@ def magnitude_report(name, magnitudes):
 
 PyTorch provides these as built-in functions:
 
+> PyTorch 将这些作为内置函数提供：
+
 ```python
 import torch
 import torch.nn as nn
@@ -369,12 +403,18 @@ nn.init.zeros_(layer.bias)
 
 When you call `nn.Linear(512, 256)`, PyTorch defaults to Kaiming uniform initialization. That's why most simple networks "just work" -- PyTorch already made the right choice. But when you build custom architectures or go deeper than 20 layers, you need to understand what's happening and potentially override the default.
 
+> 当你调用 `nn.Linear(512, 256)` 时，PyTorch 默认使用 Kaiming 均匀初始化。这就是为什么大多数简单网络"开箱即用"——PyTorch 已经帮你做了正确的选择。但是当你构建自定义架构或超过 20 层时，你需要理解正在发生什么并可能覆盖默认值。
+
 For transformers, HuggingFace models typically handle initialization in their `_init_weights` method. GPT-2's implementation scales residual projections by 1/sqrt(N). If you're building a transformer from scratch, you need to add this yourself.
+
+> 对于 Transformer，HuggingFace 模型通常在 `_init_weights` 方法中处理初始化。GPT-2 的实现将残差投影缩放 1/sqrt(N)。如果你从零构建 Transformer，你需要自己添加这个。
 
 ## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-init-strategy.md` -- a prompt that diagnoses weight initialization problems and recommends the right strategy
+
+> 本课产出：`outputs/prompt-init-strategy.md` - 一个诊断权重初始化问题并推荐正确策略的提示词
 
 ## Exercises | 练习题
 
@@ -406,6 +446,10 @@ This lesson produces:
 ## Further Reading | 延伸阅读
 
 - Glorot & Bengio, "Understanding the difficulty of training deep feedforward neural networks" (2010) -- the original Xavier initialization paper with variance analysis
+  Glorot & Bengio，《理解训练深度前馈神经网络的困难》(2010)——原始 Xavier 初始化论文，包含方差分析
 - He et al., "Delving Deep into Rectifiers" (2015) -- introduced Kaiming initialization for ReLU networks
+  He 等人，《深入研究修正器》(2015)——为 ReLU 网络引入 Kaiming 初始化
 - Radford et al., "Language Models are Unsupervised Multitask Learners" (2019) -- GPT-2 paper with residual scaling initialization
+  Radford 等人，《语言模型是无监督多任务学习器》(2019)——GPT-2 论文，包含残差缩放初始化
 - Mishkin & Matas, "All You Need is a Good Init" (2016) -- layer-sequential unit-variance initialization, an empirical alternative to analytical formulas
+  Mishkin & Matas，《你只需要一个好的初始化》(2016)——层序单位方差初始化，解析公式的经验替代方案
