@@ -1,18 +1,23 @@
 # Git & Collaboration | Git 与协作
 
 > Version control is not optional. Every experiment, every model, every lesson you build here gets tracked.
+> 版本控制不是可选的。你的每一次实验、每一个模型、每一节课的成果都会被追踪。
 
-**Type:** Learn
-**Languages:** --
-**Prerequisites:** Phase 0, Lesson 01
-**Time:** ~30 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** -- | **语言:** 无
+**Prerequisites:** Phase 0, Lesson 01 | **前置知识:** Phase 0, 第 01 课
+**Time:** ~30 minutes | **时间:** ~30 分钟
 
 ## Learning Objectives | 学习目标
 
 - Configure git identity and use the daily workflow of add, commit, and push
+  中文翻译：配置 Git 身份信息，掌握 add、commit、push 的日常工作流
 - Create and merge branches for isolated experiments without breaking main
+  中文翻译：创建和合并分支，实现实验隔离而不破坏主分支
 - Write a `.gitignore` that excludes model checkpoints and large binary files
+  中文翻译：编写 `.gitignore` 文件，排除模型检查点和大文件
 - Navigate the commit history with `git log` to understand project evolution
+  中文翻译：用 `git log` 浏览提交历史，了解项目演进过程
 
 > **【中文解读】**
 > Git 是版本控制工具，用于追踪代码的每一次修改。在 AI 项目中，你会在实验中频繁修改模型参数和代码，Git 让你能随时回退到之前的任何一个状态。
@@ -23,7 +28,11 @@
 
 You're about to write hundreds of code files across 20 phases. Without version control you will lose work, break things you can't undo, and have no way to collaborate with others.
 
+> 你即将在 20 个阶段中编写数百个代码文件。没有版本控制，你会丢失工作成果、破坏无法恢复的东西，也无法与他人协作。
+
 Git is the tool. GitHub is where the code lives. This lesson covers what you need for this course and nothing more.
+
+> Git 是工具，GitHub 是代码托管的地方。本课只讲本课程需要的内容，不多不少。
 
 > **【中文解读】**
 > 你将写几百个代码文件，没有版本控制 = 随时可能丢失工作成果、无法回退、无法协作。Git 解决的就是这个问题。
@@ -48,6 +57,11 @@ Three things to remember:
 2. Push to remote (`git push`)
 3. Branch for experiments (`git checkout -b experiment`)
 
+> 要记住三件事：
+> 1. 经常保存（`git commit`）
+> 2. 推送到远程（`git push`）
+> 3. 用分支做实验（`git checkout -b experiment`）
+
 > **【中文解读】**
 > Git 的核心流程：工作目录 → 暂存区（git add）→ 本地仓库（git commit）→ 远程仓库（git push）。记住三件事：经常提交、推送到远程、用分支做实验。
 
@@ -56,6 +70,8 @@ Three things to remember:
 ## Build It | 动手实现
 
 ### Step 1: Configure git
+
+> 第1步：配置 Git
 
 ```bash
 git config --global user.name "Your Name"
@@ -101,6 +117,8 @@ git push origin my-progress
 
 For this course, you need exactly these commands:
 
+> 本课程中你只需要这些命令：
+
 | Command | When |
 |---------|------|
 | `git clone` | Get the course repo |
@@ -118,6 +136,8 @@ For this course, you need exactly these commands:
 | `git log --oneline` | 查看你做了什么 |
 
 That's it. You don't need rebase, cherry-pick, or submodules for this course.
+
+> 就这些。本课程不需要 rebase、cherry-pick 或 submodules。
 
 ## Exercises | 练习题
 

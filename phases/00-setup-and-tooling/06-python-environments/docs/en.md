@@ -1,18 +1,23 @@
 # Python Environments | Python 环境管理
 
 > Dependency hell is real. Virtual environments are the cure.
+> 依赖地狱是真实存在的。虚拟环境就是解药。
 
-**Type:** Build
-**Languages:** Shell
-**Prerequisites:** Phase 0, Lesson 01
-**Time:** ~30 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Shell | **语言:** Shell
+**Prerequisites:** Phase 0, Lesson 01 | **前置知识:** Phase 0, 第 01 课
+**Time:** ~30 minutes | **时间:** ~30 分钟
 
 ## Learning Objectives | 学习目标
 
 - Create isolated virtual environments using `uv`, `venv`, or `conda`
+  中文翻译：使用 `uv`、`venv` 或 `conda` 创建隔离的虚拟环境
 - Write a `pyproject.toml` with optional dependency groups and generate lockfiles for reproducibility
+  中文翻译：编写带可选依赖组的 `pyproject.toml`，生成 lockfile 确保可复现性
 - Diagnose and fix common pitfalls: global installs, pip/conda mixing, CUDA version mismatches
+  中文翻译：诊断并修复常见问题：全局安装、pip/conda 混用、CUDA 版本不匹配
 - Implement a per-phase environment strategy for projects with conflicting dependencies
+  中文翻译：为有依赖冲突的项目实施按阶段划分的环境策略
 
 > **【中文解读】**
 > Python 项目依赖冲突是 AI 开发中最常见的问题之一。本项目需要 PyTorch 2.4，那个项目需要 2.1——全局安装只能有一个版本。虚拟环境让每个项目拥有独立的依赖，互不干扰。
@@ -21,14 +26,24 @@
 
 You install PyTorch 2.4 for a fine-tuning project. Next week, a different project needs PyTorch 2.1 because its CUDA build is pinned. You upgrade globally, and the first project breaks. You downgrade, and the second one breaks.
 
+> 你为一个微调项目安装了 PyTorch 2.4。下周，另一个项目因为 CUDA 构建版本锁定需要 PyTorch 2.1。你全局升级，第一个项目就挂了。你降级，第二个项目又挂了。
+
 This is dependency hell. It happens constantly in AI/ML work because:
 
+> 这就是依赖地狱。在 AI/ML 工作中这经常发生，因为：
+
 - PyTorch, JAX, and TensorFlow each ship their own CUDA bindings
+  中文翻译：PyTorch、JAX 和 TensorFlow 各自带 CUDA 绑定
 - Model libraries pin specific framework versions
+  中文翻译：模型库锁定特定框架版本
 - A global `pip install` overwrites whatever was there before
+  中文翻译：全局 `pip install` 会覆盖之前安装的任何版本
 - CUDA 11.8 builds don't work with CUDA 12.x drivers (and vice versa)
+  中文翻译：CUDA 11.8 构建在 CUDA 12.x 驱动上不工作（反之亦然）
 
 The fix: every project gets its own isolated environment with its own packages.
+
+> 解决方案：每个项目都有自己的隔离环境，拥有独立的依赖包。
 
 > **【中文解读】**
 > "依赖地狱"在 AI 项目中特别常见，因为 PyTorch/JAX/TensorFlow 各自带 CUDA 绑定，版本之间互不兼容。解决方案：每个项目一个隔离的虚拟环境。
@@ -61,6 +76,8 @@ graph TD
 
 `uv` is the fastest Python package manager (10-100x faster than pip). It handles virtual environments, Python versions, and dependency resolution in one tool.
 
+> `uv` 是最快的 Python 包管理器（比 pip 快 10-100 倍）。它在一个工具中处理虚拟环境、Python 版本和依赖解析。
+
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
@@ -73,11 +90,15 @@ source .venv/bin/activate
 
 Install packages:
 
+> 安装包：
+
 ```bash
 uv pip install torch numpy
 ```
 
 Create a project with `pyproject.toml` in one step:
+
+> 一步创建带 `pyproject.toml` 的项目：
 
 ```bash
 uv init my-ai-project
@@ -91,6 +112,8 @@ uv add torch numpy matplotlib
 
 If you can't install `uv`, Python ships with `venv`:
 
+> 如果你无法安装 `uv`，Python 自带 `venv`：
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate  # Linux/macOS
@@ -101,13 +124,20 @@ pip install torch numpy
 
 Slower than `uv`, but works everywhere Python is installed.
 
+> 比 `uv` 慢，但在任何安装了 Python 的地方都能用。
+
 ### Option 3: conda (When You Need It)
 
 Conda manages non-Python dependencies like CUDA toolkits, cuDNN, and C libraries. Use it when:
 
+> Conda 管理非 Python 依赖，如 CUDA 工具包、cuDNN 和 C 库。在以下情况使用：
+
 - You need a specific CUDA toolkit version without installing it system-wide
+  中文翻译：需要特定 CUDA 工具包版本，但不希望全局安装
 - You're on a shared cluster where you can't install system packages
+  中文翻译：在共享集群上，无法安装系统包
 - A library's install instructions say "use conda"
+  中文翻译：库的安装说明写着"使用 conda"
 
 ```bash
 # Install miniconda (not the full Anaconda)
@@ -122,11 +152,17 @@ conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvi
 
 One rule: if you use conda for an environment, use conda for all packages in that environment. Mixing `pip install` into a conda env causes dependency conflicts that are painful to debug.
 
+> 一条规则：如果用 conda 管理环境，就用 conda 管理该环境的所有包。在 conda 环境中混用 `pip install` 会导致难以调试的依赖冲突。
+
 ### For This Course: Per-Phase Strategy
 
 You could create one environment for the whole course. Don't. Different phases need different (sometimes conflicting) dependencies.
 
+> 你可以为整个课程创建一个环境。不要这样做。不同阶段需要不同（有时冲突的）依赖。
+
 Strategy:
+
+> 策略：
 
 ```
 ai-engineering-from-scratch/
@@ -144,11 +180,15 @@ ai-engineering-from-scratch/
 
 The script in `code/env_setup.sh` creates the base environment for this course.
 
+> `code/env_setup.sh` 中的脚本会创建本课程的基础环境。
+
 ## pyproject.toml Basics | pyproject.toml 基础
 
 > **【拓展：pyproject.toml 是现代 Python 项目的标准配置】** 它替代了传统的 `setup.py` 和 `requirements.txt`。一个文件定义项目元数据、依赖、开发工具配置。AI 项目推荐使用 optional dependency groups 来区分训练依赖（`[train]`）和推理依赖（`[serve]`），避免在生产环境安装不必要的 GPU 库。
 
 Every Python project should have a `pyproject.toml`. It replaces `setup.py`, `setup.cfg`, and `requirements.txt` in one file.
+
+> 每个 Python 项目都应该有 `pyproject.toml`。它用一个文件替代了 `setup.py`、`setup.cfg` 和 `requirements.txt`。
 
 ```toml
 [project]
@@ -169,6 +209,8 @@ llm = ["anthropic>=0.39", "openai>=1.50"]
 
 Then install:
 
+> 然后安装：
+
 ```bash
 uv pip install -e ".[torch]"    # base + PyTorch
 uv pip install -e ".[llm]"     # base + LLM SDKs
@@ -178,6 +220,8 @@ uv pip install -e ".[torch,llm]" # everything
 ## Lockfiles
 
 A lockfile pins every dependency (including transitive ones) to exact versions. This guarantees reproducibility: anyone who installs from the lockfile gets exactly the same packages.
+
+> Lockfile 将每个依赖（包括传递依赖）锁定到精确版本。这保证了可复现性：任何人从 lockfile 安装都能获得完全相同的包。
 
 ```bash
 # uv generates uv.lock automatically when using uv add
@@ -189,6 +233,8 @@ uv pip install -r requirements.lock
 ```
 
 Commit your lockfile to git. When someone clones the repo, they install from the lockfile and get identical versions.
+
+> 将 lockfile 提交到 git。当有人克隆仓库时，他们从 lockfile 安装并获得完全相同的版本。
 
 ## Common Mistakes | 常见错误
 
@@ -204,6 +250,8 @@ pip install torch  # GOOD: installs to virtual environment
 ```
 
 Check where your packages go:
+
+> 检查你的包装在哪里：
 
 ```bash
 which python       # should show .venv/bin/python, not /usr/bin/python
@@ -222,6 +270,8 @@ conda install some-other-package # GOOD: let conda manage everything
 
 If you must use pip inside conda (some packages are pip-only), install all conda packages first, then pip packages last.
 
+> 如果必须在 conda 中使用 pip（有些包只有 pip 版本），先安装所有 conda 包，最后再安装 pip 包。
+
 ### 3. Forgetting to activate
 
 ```bash
@@ -231,6 +281,8 @@ python train.py           # uses project Python, packages found
 ```
 
 Your shell prompt should show the environment name:
+
+> 你的 shell 提示符应该显示环境名称：
 
 ```
 (.venv) $ python train.py
@@ -243,6 +295,8 @@ echo ".venv/" >> .gitignore
 ```
 
 Virtual environments are 200MB-2GB. They're local, not portable between machines. Commit `pyproject.toml` and the lockfile instead.
+
+> 虚拟环境有 200MB-2GB。它们是本地的，不能在机器间移植。改为提交 `pyproject.toml` 和 lockfile。
 
 ### 5. CUDA version mismatch | 第5个：CUDA 版本不匹配
 
@@ -262,11 +316,15 @@ python -c "import torch; print(torch.version.cuda)"  # shows PyTorch CUDA versio
 
 Run the setup script to create your course environment:
 
+> 运行安装脚本创建课程环境：
+
 ```bash
 bash phases/00-setup-and-tooling/06-python-environments/code/env_setup.sh
 ```
 
 This creates a `.venv` at the repo root with core dependencies installed and verified.
+
+> 这会在仓库根目录创建一个 `.venv`，并安装和验证核心依赖。
 
 ## Exercises | 练习题
 

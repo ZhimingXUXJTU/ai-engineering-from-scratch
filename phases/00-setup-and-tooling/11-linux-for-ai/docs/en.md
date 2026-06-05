@@ -1,18 +1,23 @@
 # Linux for AI | Linux 基础（AI 工程师必备）
 
 > Most AI runs on Linux. You need to know enough to not be stuck.
+> 大多数 AI 运行在 Linux 上。你需要掌握足够的知识，不至于卡住。
 
-**Type:** Learn
-**Languages:** --
-**Prerequisites:** Phase 0, Lesson 01
-**Time:** ~30 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** -- | **语言:** 无
+**Prerequisites:** Phase 0, Lesson 01 | **前置知识:** Phase 0, 第 01 课
+**Time:** ~30 minutes | **时间:** ~30 分钟
 
 ## Learning Objectives | 学习目标
 
 - Navigate the Linux file system and perform essential file operations from the command line
+  中文翻译：在 Linux 文件系统中导航，从命令行执行基本文件操作
 - Manage file permissions with `chmod` and `chown` to resolve "Permission denied" errors
+  中文翻译：使用 `chmod` 和 `chown` 管理文件权限，解决"Permission denied"错误
 - Install system packages with `apt` and set up a fresh GPU box for AI work
+  中文翻译：使用 `apt` 安装系统包，为新 GPU 服务器配置 AI 工作环境
 - Identify macOS-to-Linux differences that commonly trip up developers working on remote machines
+  中文翻译：识别从 macOS 切换到 Linux 时常见的踩坑点
 
 > **【中文解读】**
 > 大多数 AI 训练在 Linux 服务器上运行。当你 SSH 到云 GPU 实例时，你只有终端界面。本章是 Linux 生存指南——只教 AI 工作中真正需要的文件操作、权限管理和包安装。
@@ -21,7 +26,11 @@
 
 You develop on macOS or Windows. But the moment you SSH into a cloud GPU box, rent a Lambda instance, or spin up an EC2 machine, you land in Ubuntu. The terminal is your only interface. There is no Finder, no Explorer, no GUI. If you can't navigate the file system, install packages, and manage processes from the command line, you're stuck paying for idle GPU hours while googling "how to unzip a file in Linux."
 
+> 你在 macOS 或 Windows 上开发。但一旦你 SSH 到云 GPU 服务器、租用 Lambda 实例或启动 EC2 机器，你就进入了 Ubuntu。终端是你唯一的界面。没有 Finder、没有 Explorer、没有 GUI。如果你不能从命令行导航文件系统、安装包和管理进程，你就只能在付费 GPU 空转时搜索"如何在 Linux 中解压文件"。
+
 This is a survival guide. It covers exactly what you need to operate on a remote Linux machine for AI work. Nothing more.
+
+> 这是一份生存指南。它只覆盖在远程 Linux 机器上进行 AI 工作所需的知识。仅此而已。
 
 > **【中文解读】**
 > 你平时用 macOS 或 Windows 开发，但一 SSH 到云 GPU 服务器就进入了 Linux 世界。没有文件管理器，只有终端。这是 Linux 生存指南——只教够用的知识。
@@ -29,6 +38,8 @@ This is a survival guide. It covers exactly what you need to operate on a remote
 ## File System Layout | 文件系统结构
 
 Linux organizes everything under a single root `/`. There is no `C:\` or `/Volumes`. The directories you'll actually touch:
+
+> Linux 将所有内容组织在单一根目录 `/` 下。没有 `C:\` 或 `/Volumes`。你实际会接触的目录：
 
 > **【中文解读】**
 > Linux 文件系统是单一树状结构，根目录是 `/`。`/home/用户名/`（简写 `~`）是你的工作目录，几乎所有操作都在这里进行。`/tmp/` 存临时文件，重启后清空。`/var/log/` 存日志，出问题时必查。`/mnt/` 挂载外部存储。理解这个结构是在 Linux 服务器上工作的基础。
@@ -46,9 +57,13 @@ graph TD
 
 Your home directory is `~` or `/home/your-username`. Almost everything you do happens here.
 
+> 你的主目录是 `~` 或 `/home/your-username`。几乎所有操作都在这里进行。
+
 ## Essential Commands | 常用命令
 
 These are the 15 commands that cover 95% of what you'll do on a remote GPU box.
+
+> 这 15 个命令覆盖了你在远程 GPU 服务器上 95% 的操作。
 
 > **【中文解读】**
 > 你只需要掌握约 15 个命令就能在远程 Linux 服务器上完成 95% 的工作。这些命令分为四类：导航（pwd、ls、cd）、文件操作（cp、mv、rm、mkdir）、查看文件（cat、head、tail、grep）和搜索（find、grep -r）。熟练掌握这些命令比学习复杂的 GUI 工具更实用。
@@ -82,6 +97,8 @@ rm -rf my-dir/              # Delete a directory and everything inside  递归�
 
 `rm -rf` is permanent. There is no undo. Double-check the path before hitting enter.
 
+> `rm -rf` 是永久删除。没有撤销。按回车前仔细检查路径。
+
 ### Reading Files | 查看文件
 
 ```bash
@@ -107,6 +124,8 @@ find . -name "*.ckpt" -size +1G     # Find checkpoint files larger than 1GB  查
 
 Every file in Linux has an owner and permission bits. You'll run into this when scripts won't execute or you can't write to a directory.
 
+> Linux 中每个文件都有所有者和权限位。当脚本无法执行或无法写入目录时，你就会遇到这个问题。
+
 > **【中文解读】**
 > Linux 权限分为三组：文件所有者（owner）、同组用户（group）、其他用户（others）。每组有读（r）、写（w）、执行（x）三种权限。`chmod +x` 让脚本可执行，`chmod 644` 设置文件为所有者可读写、其他人只读。"Permission denied" 错误几乎都可以用 `chmod` 或 `sudo` 解决。
 
@@ -120,6 +139,8 @@ ls -l train.py
 
 Common fixes:
 
+> 常见修复方法：
+
 ```bash
 chmod +x train.sh           # Make a script executable  让脚本可执行
 chmod 755 deploy.sh         # Owner: full, others: read+execute  所有者全部权限，其他人可读可执行
@@ -130,9 +151,13 @@ chown user:group file.txt   # Change who owns a file (needs sudo)  修改文件�
 
 When something says "Permission denied," it's almost always a permissions issue. `chmod +x` or `sudo` will fix most cases.
 
+> 当出现"Permission denied"时，几乎总是权限问题。`chmod +x` 或 `sudo` 能解决大多数情况。
+
 ## Package Management (apt) | 包管理
 
 Ubuntu uses `apt`. This is how you install system-level software.
+
+> Ubuntu 使用 `apt`。这是安装系统级软件的方式。
 
 ```bash
 sudo apt update             # Refresh the package list (always do this first)  更新软件包列表（首先执行）
@@ -152,6 +177,8 @@ sudo apt remove htop        # Uninstall  卸载软件包
 
 Common packages you'll install on a fresh GPU box:
 
+> 新 GPU 服务器上通常会安装的包：
+
 ```bash
 sudo apt update && sudo apt install -y \
     build-essential \
@@ -168,6 +195,8 @@ sudo apt update && sudo apt install -y \
 
 You're usually logged in as a regular user. Some operations need root (admin) access.
 
+> 你通常以普通用户登录。某些操作需要 root（管理员）权限。
+
 ```bash
 whoami                      # What user am I?  查看当前用户名
 sudo command                # Run a single command as root  以 root 权限执行命令
@@ -179,9 +208,13 @@ sudo su                     # Become root (exit to go back, use sparingly)  切�
 
 On cloud GPU instances, you're typically the only user and already have sudo access. Don't run everything as root. Use sudo only when needed.
 
+> 在云 GPU 实例上，你通常是唯一用户且已有 sudo 权限。不要以 root 运行所有操作。只在需要时使用 sudo。
+
 ## Processes and systemd | 进程管理
 
 When your training hangs, or you need to check what's running:
+
+> 当训练卡住或你需要检查正在运行的进程时：
 
 ```bash
 htop                        # Interactive process viewer (q to quit)  交互式进程查看器
@@ -196,6 +229,8 @@ nvidia-smi                  # GPU processes and memory usage  查看 GPU 进程�
 
 systemd manages services (background daemons). You'll use it if you run inference servers:
 
+> systemd 管理服务（后台守护进程）。如果你运行推理服务器，会用到它：
+
 ```bash
 sudo systemctl start nginx          # Start a service  启动服务
 sudo systemctl stop nginx           # Stop it  停止服务
@@ -207,6 +242,8 @@ sudo systemctl enable nginx         # Start automatically on boot  设置开机�
 ## Disk Space | 磁盘空间
 
 GPU boxes often have limited disk space. Models and datasets fill it fast.
+
+> GPU 服务器的磁盘空间通常有限。模型和数据集很快就填满。
 
 ```bash
 df -h                       # Disk usage for all mounted drives  查看所有磁盘使用情况
@@ -225,6 +262,8 @@ du -h --max-depth=1 / 2>/dev/null | sort -hr | head -20
 
 Common space savers:
 
+> 常见的空间清理方法：
+
 ```bash
 # Clear pip cache  清理 pip 缓存
 pip cache purge
@@ -239,6 +278,8 @@ rm -rf checkpoints/epoch_01/ checkpoints/epoch_02/
 ## Networking | 网络操作
 
 You'll download models, transfer files, and hit APIs from the command line.
+
+> 你将从命令行下载模型、传输文件和调用 API。
 
 ```bash
 # Download files  下载文件
@@ -264,9 +305,13 @@ rsync -avz --progress user@remote:/results/ ./results/
 
 Use `rsync` over `scp` for anything large. It only transfers changed bytes and handles interrupted connections.
 
+> 对于大文件传输，优先使用 `rsync` 而非 `scp`。它只传输变化的字节，并能处理中断的连接。
+
 ## tmux: Keep Sessions Alive | tmux：保持会话
 
 When you SSH into a remote box, closing your laptop kills your training run. tmux prevents this.
+
+> 当你 SSH 到远程服务器时，关闭笔记本电脑会终止训练。tmux 防止这种情况。
 
 ```bash
 tmux new -s train           # Start a new session named "train"  创建名为 "train" 的新会话
@@ -287,6 +332,8 @@ tmux attach -t train        # Reattach to session  重新连接到会话
 
 Always run long training jobs inside tmux. Always.
 
+> 长时间训练任务务必在 tmux 中运行。务必如此。
+
 > **【拓展：Linux 在 AI 基础设施中的统治地位】**
 > 全球超过 99% 的 AI 训练在 Linux 上运行。AWS、GCP、Azure 的 GPU 实例全部运行 Linux（主要是 Ubuntu）。NVIDIA 的 CUDA 驱动、Docker 容器、Kubernetes 集群——AI 训练的每一层基础设施都基于 Linux。熟悉 Linux 不是"加分项"，而是 AI 工程师的必备技能。
 
@@ -296,6 +343,8 @@ Always run long training jobs inside tmux. Always.
 > WSL2 让 Windows 用户获得真正的 Linux 环境，无需双系统。GPU 直通已支持——只需在 Windows 侧安装 NVIDIA 驱动，WSL2 内即可使用 CUDA。Windows 文件在 WSL2 中通过 `/mnt/c/Users/用户名/` 访问。这是 Windows 用户学习 Linux 和 AI 开发的最佳方案。
 
 If you're on Windows, WSL2 gives you a real Linux environment without dual-booting.
+
+> 如果你使用 Windows，WSL2 无需双系统就能给你真正的 Linux 环境。
 
 ```bash
 # In PowerShell (admin)
@@ -307,7 +356,11 @@ sudo apt update && sudo apt upgrade -y
 
 WSL2 runs a real Linux kernel. Everything in this lesson works inside it. Your Windows files are at `/mnt/c/Users/YourName/` from inside WSL.
 
+> WSL2 运行真正的 Linux 内核。本课的所有内容都可在其中使用。Windows 文件在 WSL 内通过 `/mnt/c/Users/YourName/` 访问。
+
 GPU passthrough works with NVIDIA drivers installed on the Windows side. Install the Windows NVIDIA driver (not the Linux one), and CUDA will be available inside WSL2.
+
+> GPU 直通通过 Windows 侧安装的 NVIDIA 驱动工作。安装 Windows 版 NVIDIA 驱动（不是 Linux 版），CUDA 就能在 WSL2 内使用。
 
 > **【拓展：WSL2 GPU 支持的实际表现】**
 > WSL2 的 GPU 直通性能接近原生 Linux，PyTorch 和 TensorFlow 都能正常使用 CUDA。在 WSL2 中运行 `nvidia-smi` 可以看到 Windows 的 GPU。不过 WSL2 的文件系统性能有限——跨系统文件访问（`/mnt/c/`）比 WSL2 原生文件系统慢 3-5 倍。建议将项目文件放在 WSL2 的 `~/` 目录下以获得最佳性能。
@@ -315,6 +368,8 @@ GPU passthrough works with NVIDIA drivers installed on the Windows side. Install
 ## Gotchas: macOS to Linux | macOS 到 Linux 的踩坑指南
 
 Things that will trip you up if you're coming from macOS:
+
+> 如果你从 macOS 切换过来，这些事情会让你踩坑：
 
 | macOS | Linux | Notes |
 |-------|-------|-------|

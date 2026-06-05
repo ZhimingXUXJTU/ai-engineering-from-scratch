@@ -1,18 +1,23 @@
 # GPU Setup & Cloud | GPU 设置与云平台
 
 > Training on CPU is fine for learning. Training for real needs a GPU.
+> 用 CPU 训练用来学习没问题。但真正的训练需要 GPU。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 0, Lesson 01
-**Time:** ~45 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 0, Lesson 01 | **前置知识:** Phase 0, 第 01 课
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## Learning Objectives | 学习目标
 
 - Verify local GPU availability using `nvidia-smi` and PyTorch's CUDA API
+  中文翻译：使用 `nvidia-smi` 和 PyTorch 的 CUDA API 验证本地 GPU 是否可用
 - Configure Google Colab with a T4 GPU for free cloud-based experiments
+  中文翻译：配置 Google Colab 的 T4 GPU，进行免费云端实验
 - Benchmark matrix multiplication on CPU vs GPU and measure the speedup
+  中文翻译：对 CPU 和 GPU 的矩阵乘法进行基准测试，测量加速比
 - Estimate the largest model that fits in your VRAM using the fp16 rule of thumb
+  中文翻译：用 fp16 经验法则估算你的显存能装下的最大模型
 
 > **【中文解读】**
 > 本章教你如何配置 GPU 加速。在 AI 中，GPU 是训练模型的关键硬件——它能把训练时间从几小时缩短到几分钟。没有本地 GPU 也可以用免费的 Google Colab。
@@ -21,7 +26,11 @@
 
 Most lessons in phases 1-3 run fine on CPU. But once you start training CNNs, transformers, or LLMs (phases 4+), you need GPU acceleration. A training run that takes 8 hours on CPU takes 10 minutes on GPU.
 
+> 阶段 1-3 的大部分课程在 CPU 上运行良好。但一旦开始训练 CNN、Transformer 或 LLM（阶段 4+），就需要 GPU 加速。CPU 上 8 小时的训练，在 GPU 上只需 10 分钟。
+
 You have three options: local GPU, cloud GPU, or Google Colab (free).
+
+> 你有三种选择：本地 GPU、云端 GPU 或 Google Colab（免费）。
 
 > **【中文解读】**
 > 阶段 1-3 的课程在 CPU 上就能跑。但从阶段 4 开始（CNN、Transformer、LLM），没有 GPU 会慢到无法接受。CPU 上 8 小时的训练，GPU 上只要 10 分钟。
@@ -58,11 +67,15 @@ Your options:
 
 Check if you have one:
 
+> 检查你是否有本地 GPU：
+
 ```bash
 nvidia-smi  # 查看 GPU 状态和驱动信息
 ```
 
 Install PyTorch with CUDA:
+
+> 安装支持 CUDA 的 PyTorch：
 
 ```python
 import torch
@@ -82,9 +95,13 @@ if torch.cuda.is_available():
 
 Upload notebooks from this course directly to Colab.
 
+> 将本课程的 notebook 直接上传到 Colab。
+
 ### Option 3: Cloud GPU | 云 GPU
 
 For Lambda Labs, RunPod, or Vast.ai:
+
+> 用于 Lambda Labs、RunPod 或 Vast.ai：
 
 ```bash
 ssh user@your-gpu-instance
@@ -98,6 +115,8 @@ python -c "import torch; print(torch.cuda.get_device_name(0))"
 > **【拓展：显存估算经验公式】** fp16 下每个参数占 2 字节。7B 参数模型（如 Llama 2 7B）需要约 14GB 显存。加上优化器状态（Adam 需要 2 倍参数量的额外显存），训练 7B 模型实际需要约 40-50GB 显存（一张 A100 80GB 可以跑）。推理则只需约 14GB。这就是为什么 `device = "cuda" if available else "cpu"` 这行代码在 AI 工程中随处可见。
 
 Most lessons work on CPU. The ones that need GPU will say so and include Colab links.
+
+> 大部分课程在 CPU 上就能运行。需要 GPU 的课程会特别说明并提供 Colab 链接。
 
 ```python
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # 自动选择 GPU 或 CPU
