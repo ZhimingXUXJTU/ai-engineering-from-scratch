@@ -11,12 +11,16 @@
 **Prerequisites:** Phase 10, Lessons 01-05 (LLMs from Scratch)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build a custom evaluation harness that runs multiple-choice and open-ended benchmarks against a language model
+  构建自定义评测工具，对语言模型运行多选题和开放式基准测试
 - Explain why standard benchmarks (MMLU, HumanEval) saturate and fail to differentiate frontier models
+  解释为什么标准基准（MMLU、HumanEval）会饱和且无法区分前沿模型
 - Implement task-specific evals with proper metrics: exact match, F1, BLEU, and LLM-as-judge scoring
+  实现带正确指标的任务特定评测：精确匹配、F1、BLEU 和 LLM-as-judge 评分
 - Design a custom evaluation suite targeting your specific use case rather than relying solely on public leaderboards
+  设计针对特定用例的自定义评测套件，而非仅依赖公共排行榜
 
 > **【中文解读】** 本课聚焦 LLM 评估的工程实践。核心观点：公共基准（MMLU、HumanEval）已被饱和，前沿模型的分数压缩在 3 分范围内，差异是统计噪声而非真实能力差距。唯一重要的是在你的任务、你的数据、你的失败模式下的评测。
 
@@ -506,16 +510,16 @@ It also produces `outputs/skill-llm-evaluation.md` -- a decision framework for c
 
 | Term | What people say | What it actually means | 中文释义 |
 |------|----------------|----------------------|---------|
-| MMLU | "The benchmark" | Massive Multitask Language Understanding -- 15,908 multiple choice questions across 57 subjects, saturated above 88% by 2025 | |
-| HumanEval | "Code eval" | 164 Python function-completion problems from OpenAI, tests only isolated function generation | |
-| SWE-bench | "Real coding eval" | 2,294 GitHub issues from 12 Python repos, measures end-to-end bug fixing including test generation | |
-| Perplexity | "How confused the model is" | exp(-avg(log P(token_i given context))) -- lower means the model assigns higher probability to the actual tokens | |
-| ELO rating | "Chess ranking for models" | A relative skill rating computed from pairwise win/loss records, used by Chatbot Arena to rank 100+ models | |
-| LLM-as-judge | "Using AI to grade AI" | A strong model scores a weaker model's outputs against a rubric, ~80% agreement with human judges at ~$0.01/judgment | |
-| Data contamination | "The model saw the test" | Training data includes benchmark questions, inflating scores without improving real capability | |
-| Eval suite | "A bunch of tests" | A versioned collection of (input, expected_output, scorer) triples that measure a specific capability | |
-| Pass rate | "What percentage it gets right" | Fraction of eval cases scoring above a threshold -- more actionable than mean score because it measures reliability | |
-| Chatbot Arena | "Model ranking website" | LMSYS platform with 2M+ human preference votes, producing the most trusted LLM leaderboard via ELO ratings | |
+| MMLU | "The benchmark" | Massive Multitask Language Understanding -- 15,908 multiple choice questions across 57 subjects, saturated above 88% by 2025 | 大规模多任务语言理解，57 科目 15908 题选择题 |
+| HumanEval | "Code eval" | 164 Python function-completion problems from OpenAI, tests only isolated function generation | 代码评估，164 个 Python 函数补全题 |
+| SWE-bench | "Real coding eval" | 2,294 GitHub issues from 12 Python repos, measures end-to-end bug fixing including test generation | 真实编码评估，2294 个 GitHub issue 端到端修复 |
+| Perplexity | "How confused the model is" | exp(-avg(log P(token_i given context))) -- lower means the model assigns higher probability to the actual tokens | 困惑度，越低表示模型预测越准确 |
+| ELO rating | "Chess ranking for models" | A relative skill rating computed from pairwise win/loss records, used by Chatbot Arena to rank 100+ models | Elo 等级分，来自成对比较的相对技能评分 |
+| LLM-as-judge | "Using AI to grade AI" | A strong model scores a weaker model's outputs against a rubric, ~80% agreement with human judges at ~$0.01/judgment | LLM 评审，用强模型给弱模型打分，约 $0.01/次 |
+| Data contamination | "The model saw the test" | Training data includes benchmark questions, inflating scores without improving real capability | 数据污染，训练数据包含基准题目 |
+| Eval suite | "A bunch of tests" | A versioned collection of (input, expected_output, scorer) triples that measure a specific capability | 评测套件，版本化的测试集合 |
+| Pass rate | "What percentage it gets right" | Fraction of eval cases scoring above a threshold -- more actionable than mean score because it measures reliability | 通过率，得分超过阈值的用例比例 |
+| Chatbot Arena | "Model ranking website" | LMSYS platform with 2M+ human preference votes, producing the most trusted LLM leaderboard via ELO ratings | Chatbot Arena，200 万+人类偏好投票的模型排名平台 |
 
 ## Further Reading | 延伸阅读
 

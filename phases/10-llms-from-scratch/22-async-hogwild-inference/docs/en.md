@@ -11,12 +11,16 @@
 **Prerequisites:** Phase 10 · 12 (inference optimization), Phase 10 · 15 (speculative decoding)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Describe the three common parallel-LLM topologies (voting, sub-task, Hogwild!) and name which problems each one targets.
+  描述三种常见的并行 LLM 拓扑（投票、子任务、Hogwild!），说明各自针对的问题
 - State the core Hogwild! setup: multiple workers, one shared KV cache, emergent coordination via self-prompting.
+  说明 Hogwild! 的核心设置：多个 worker、一个共享 KV 缓存、通过自我提示实现涌现协调
 - Compute the wall-time speedup of Hogwild! as a function of worker count `N`, task-level parallelism `p`, and coordination overhead `c`.
+  计算 Hogwild! 的挂钟时间加速，作为 worker 数 `N`、任务并行度 `p` 和协调开销 `c` 的函数
 - Implement a two-worker Hogwild! simulator on a toy problem and observe the emergent task division.
+  在玩具问题上实现双 worker Hogwild! 模拟器，观察涌现的任务分工
 
 ## The Problem | 问题引入
 
@@ -187,15 +191,15 @@ This lesson produces `outputs/skill-parallel-inference-router.md`. Given a reaso
 
 | Term | What people say | What it actually means | 中文释义 |
 |------|----------------|------------------------|---------|
-| Hogwild! | "Parallel workers, shared cache" | N instances of the same LLM running concurrently with one shared KV cache; emergent coordination via self-prompting | |
-| Shared KV cache | "The coordination medium" | A single growing KV buffer that all workers read and write; enables instant token visibility across workers | |
-| Emergent coordination | "No training needed" | Reasoning-capable LLMs can read the shared cache and divide work without any fine-tuning or explicit protocol | |
-| Coordination overhead (c) | "Tokens spent orienting" | The per-worker cost of reading the extended cache and deciding what to do; must stay small vs total decode time | |
-| Parallelizable fraction (p) | "What can run in parallel" | Task-level parallelism: the fraction of the total work that is not intrinsically sequential | |
-| RoPE enables Hogwild! | "Rotary positions are shift-invariant" | Because positions are rotations, writing into a shared cache does not require recomputing prior tokens | |
-| Voting ensemble | "Run N, pick the majority" | The simplest parallel inference topology; useful for classification, less for long-form reasoning | |
-| Tree of thought | "Branch and prune" | Reasoning strategy that explores multiple branches and prunes; explicit coordination logic | |
-| Multi-agent framework | "Assign sub-tasks" | Each agent gets a role; a coordinator orchestrates; heavy protocol overhead | |
+| Hogwild! | "Parallel workers, shared cache" | N instances of the same LLM running concurrently with one shared KV cache; emergent coordination via self-prompting | Hogwild!，N 个 LLM 实例共享 KV 缓存并行运行 |
+| Shared KV cache | "The coordination medium" | A single growing KV buffer that all workers read and write; enables instant token visibility across workers | 共享 KV 缓存，所有 worker 读写同一缓冲区 |
+| Emergent coordination | "No training needed" | Reasoning-capable LLMs can read the shared cache and divide work without any fine-tuning or explicit protocol | 涌现协调，推理模型无需微调即可自行分工 |
+| Coordination overhead (c) | "Tokens spent orienting" | The per-worker cost of reading the extended cache and deciding what to do; must stay small vs total decode time | 协调开销，每个 worker 阅读缓存和决策的代价 |
+| Parallelizable fraction (p) | "What can run in parallel" | Task-level parallelism: the fraction of the total work that is not intrinsically sequential | 可并行比例，任务级可并行工作的比例 |
+| RoPE enables Hogwild! | "Rotary positions are shift-invariant" | Because positions are rotations, writing into a shared cache does not require recomputing prior tokens | RoPE 使 Hogwild! 可行，旋转位置具有平移不变性 |
+| Voting ensemble | "Run N, pick the majority" | The simplest parallel inference topology; useful for classification, less for long-form reasoning | 投票集成，运行 N 个模型取多数 |
+| Tree of thought | "Branch and prune" | Reasoning strategy that explores multiple branches and prunes; explicit coordination logic | 思维树，探索多个推理分支并剪枝 |
+| Multi-agent framework | "Assign sub-tasks" | Each agent gets a role; a coordinator orchestrates; heavy protocol overhead | 多 Agent 框架，每个 agent 分配角色，协调器编排 |
 
 ## Further Reading | 延伸阅读
 

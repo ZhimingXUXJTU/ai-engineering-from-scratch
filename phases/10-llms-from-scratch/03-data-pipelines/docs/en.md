@@ -11,12 +11,16 @@
 **Prerequisites:** Phase 10, Lessons 01-02 (Tokenizers, Building a Tokenizer)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build a streaming data pipeline that tokenizes, chunks, shuffles, and batches terabytes of text without loading it all into memory
+  构建流式数据管线，在 TB 级文本上实现分词、分块、打乱和批处理，无需全部加载到内存
 - Implement data quality filters (deduplication, language detection, content filtering) used in real pre-training pipelines
+  实现真实预训练管线中使用的数据质量过滤器（去重、语言检测、内容过滤）
 - Create fixed-length training sequences with proper attention masks and document boundary handling
+  创建具有正确注意力掩码和文档边界处理的固定长度训练序列
 - Profile pipeline throughput to ensure the dataloader keeps up with GPU training speed
+  分析管线吞吐量，确保数据加载速度跟得上 GPU 训练速度
 
 > **【中文解读】** 本课聚焦预训练数据管线——LLM 质量的真正决定因素。你将构建流式数据管线，在 TB 级数据上实现去重（MinHash+LSH）、质量过滤、分词打包和批处理，且所有操作都不能将数据全部加载到内存中。
 
