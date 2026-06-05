@@ -1,6 +1,7 @@
 # Probability and Distributions | 概率与分布
 
 > Probability is the language AI uses to express uncertainty.
+> 概率是 AI 表达不确定性的语言。
 
 **Type:** Learn | **类型:** 学习
 **Language:** Python | **语言:** Python
@@ -57,6 +58,11 @@ Three axioms define all of probability:
 2. P(S) = 1 (something always happens)
 3. P(A or B) = P(A) + P(B) when A and B cannot both occur
 
+> 概率论由三条公理定义：
+> 1. 对于任意事件 A，P(A) >= 0
+> 2. P(S) = 1（必然有某种结果发生）
+> 3. 当 A 和 B 不能同时发生时，P(A 或 B) = P(A) + P(B)
+
 Everything else (Bayes' theorem, expectations, distributions) follows from these three rules.
 
 > 其他一切（贝叶斯定理、期望、分布）都由这三条规则推导出来。
@@ -64,6 +70,8 @@ Everything else (Bayes' theorem, expectations, distributions) follows from these
 ### Conditional Probability and Independence
 
 P(A|B) is the probability of A given that B happened.
+
+> P(A|B) 是在 B 已经发生的条件下 A 发生的概率。
 
 ```
 P(A|B) = P(A and B) / P(B)
@@ -76,6 +84,8 @@ Example: deck of cards
 
 Two events are independent when knowing one tells you nothing about the other:
 
+> 两个事件独立是指知道其中一个不会告诉你关于另一个的任何信息：
+
 ```
 Independent:   P(A|B) = P(A)
 Equivalent to: P(A and B) = P(A) * P(B)
@@ -83,9 +93,13 @@ Equivalent to: P(A and B) = P(A) * P(B)
 
 Coin flips are independent. Drawing cards without replacement is not.
 
+> 抛硬币是独立的。不放回抽牌不是独立的。
+
 ### Probability Mass Functions vs Probability Density Functions
 
 Discrete random variables have a probability mass function (PMF). Each outcome has a specific probability that you can read off directly.
+
+> 离散随机变量有概率质量函数（PMF）。每个结果都有一个可以直接读出的具体概率。
 
 ```
 PMF: P(X = k)
@@ -100,6 +114,8 @@ Fair die:
 ```
 
 Continuous random variables have a probability density function (PDF). The density at a single point is not a probability. Probability comes from integrating the density over an interval.
+
+> 连续随机变量有概率密度函数（PDF）。单个点上的密度值不是概率，概率来自对密度函数在某个区间上求积分。
 
 ```
 PDF: f(x)
@@ -118,6 +134,8 @@ This distinction matters in ML. Classification outputs are PMFs (discrete choice
 
 **Bernoulli:** one trial, two outcomes. Models binary classification.
 
+> **伯努利分布：** 一次试验，两种结果。用于建模二分类问题。
+
 ```
 P(X = 1) = p
 P(X = 0) = 1 - p
@@ -126,6 +144,8 @@ Mean = p,  Variance = p(1-p)
 
 **Categorical:** one trial, k outcomes. Models multi-class classification (softmax output).
 
+> **分类分布：** 一次试验，k 种结果。用于建模多分类问题（softmax 输出）。
+
 ```
 P(X = i) = p_i,  where sum of p_i = 1
 Example: P(cat) = 0.7,  P(dog) = 0.2,  P(bird) = 0.1
@@ -133,12 +153,16 @@ Example: P(cat) = 0.7,  P(dog) = 0.2,  P(bird) = 0.1
 
 **Uniform:** all outcomes equally likely. Used for random initialization.
 
+> **均匀分布：** 所有结果等概率出现。用于随机初始化。
+
 ```
 Discrete: P(X = k) = 1/n for k in {1, ..., n}
 Continuous: f(x) = 1/(b-a) for x in [a, b]
 ```
 
 **Normal (Gaussian):** the bell curve. Parameterized by mean (mu) and variance (sigma^2).
+
+> **正态（高斯）分布：** 钟形曲线。由均值 (mu) 和方差 (sigma^2) 参数化。
 
 ```
 f(x) = (1 / sqrt(2*pi*sigma^2)) * exp(-(x - mu)^2 / (2*sigma^2))
@@ -151,6 +175,8 @@ Standard normal: mu = 0, sigma = 1
 
 **Poisson:** counts of rare events in a fixed interval. Models event rates.
 
+> **泊松分布：** 固定区间内稀有事件的计数。用于建模事件发生率。
+
 ```
 P(X = k) = (lambda^k * e^(-lambda)) / k!
 Mean = lambda,  Variance = lambda
@@ -160,12 +186,16 @@ Mean = lambda,  Variance = lambda
 
 Expected value is the weighted average outcome.
 
+> 期望值是加权平均结果。
+
 ```
 Discrete:   E[X] = sum of x_i * P(X = x_i)
 Continuous: E[X] = integral of x * f(x) dx
 ```
 
 Variance measures spread around the mean.
+
+> 方差衡量围绕均值的离散程度。
 
 ```
 Var(X) = E[(X - E[X])^2] = E[X^2] - (E[X])^2
@@ -180,21 +210,28 @@ In ML, expected value appears as the loss function (average loss over the data d
 
 A joint distribution P(X, Y) describes two random variables together.
 
-Joint PMF example (X = weather, Y = umbrella):
+> 联合分布 P(X, Y) 描述两个随机变量同时出现的情况。
 
-| | Y=0 (no umbrella) | Y=1 (umbrella) | Marginal P(X) |
+Joint PMF example (X = weather, Y = umbrella):
+联合 PMF 示例（X = 天气，Y = 是否带伞）：
+
+| | Y=0 (no umbrella / 不带伞) | Y=1 (umbrella / 带伞) | Marginal P(X) / 边缘 P(X) |
 |---|---|---|---|
-| X=0 (sun) | 0.40 | 0.10 | P(X=0) = 0.50 |
-| X=1 (rain) | 0.05 | 0.45 | P(X=1) = 0.50 |
-| **Marginal P(Y)** | P(Y=0) = 0.45 | P(Y=1) = 0.55 | 1.00 |
+| X=0 (sun / 晴天) | 0.40 | 0.10 | P(X=0) = 0.50 |
+| X=1 (rain / 下雨) | 0.05 | 0.45 | P(X=1) = 0.50 |
+| **Marginal P(Y) / 边缘 P(Y)** | P(Y=0) = 0.45 | P(Y=1) = 0.55 | 1.00 |
 
 The marginal distribution sums out the other variable:
+
+> 边缘分布通过对另一个变量求和得到：
 
 ```
 P(X = x) = sum over all y of P(X = x, Y = y)
 ```
 
 The row and column totals in the table above are the marginals.
+
+> 上表中的行合计和列合计就是边缘分布。
 
 ### Why the Normal Distribution Shows Up Everywhere
 
@@ -212,9 +249,13 @@ This works for ANY starting distribution.
 
 This is why:
 - Measurement errors are approximately normal (many small independent sources)
+  中文翻译：测量误差近似正态（由许多小的独立来源叠加）
 - Weight initializations in neural networks use normal distributions
+  中文翻译：神经网络的权重初始化使用正态分布
 - Gradient noise in SGD is approximately normal (sum of many sample gradients)
+  中文翻译：SGD 中的梯度噪声近似正态（许多样本梯度的总和）
 - The normal distribution is the maximum entropy distribution for a given mean and variance
+  中文翻译：正态分布是给定均值和方差下熵最大的分布
 
 ### Log Probabilities
 
@@ -244,6 +285,12 @@ Rules:
 - More negative = less likely
 - Cross-entropy loss is the negative log probability of the correct class
 
+> 规则：
+> - log(a * b) = log(a) + log(b)
+> - 对数概率总是 <= 0（因为 0 < P <= 1）
+> - 越负 = 越不可能
+> - 交叉熵损失就是正确类别的负对数概率
+
 ### Softmax as a Probability Distribution
 
 Neural networks output raw scores (logits). Softmax converts them into a valid probability distribution.
@@ -262,6 +309,8 @@ Properties:
 
 The softmax trick: subtract the max logit before exponentiating to prevent overflow.
 
+> Softmax 技巧：在取指数之前减去最大 logit，防止溢出。
+
 ```
 z = [100, 101, 102]
 exp(102) = overflow
@@ -274,15 +323,23 @@ Same result, no overflow.
 
 Log-softmax combines softmax and log for numerical stability. PyTorch uses this internally for cross-entropy loss.
 
+> Log-softmax 将 softmax 和 log 合并为一步以保持数值稳定性。PyTorch 内部的交叉熵损失就使用了这种方式。
+
 ### Sampling
 
 Sampling means drawing random values from a distribution. In ML:
 - Dropout randomly samples which neurons to zero out
+  中文翻译：Dropout 随机采样决定哪些神经元置零
 - Data augmentation samples random transformations
+  中文翻译：数据增强采样随机变换
 - Language models sample the next token from the predicted distribution
+  中文翻译：语言模型从预测分布中采样下一个词
 - Diffusion models sample noise and progressively denoise
+  中文翻译：扩散模型采样噪声并逐步去噪
 
 Sampling from arbitrary distributions requires techniques like inverse transform sampling, rejection sampling, or the reparameterization trick (used in VAEs).
+
+> 从任意分布中采样需要逆变换采样、拒绝采样或重参数化技巧（VAE 中使用）等技术。
 
 ## Build It | 动手实现
 
@@ -423,9 +480,13 @@ plt.plot(xs, ys)
 
 Full implementations with all visualizations are in `code/probability.py`.
 
+> 包含所有可视化的完整实现见 `code/probability.py`。
+
 ## Use It | 用框架实现
 
 With NumPy and SciPy, everything above is one-liners:
+
+> 使用 NumPy 和 SciPy，上面的所有功能只需一行代码：
 
 ```python
 import numpy as np
@@ -462,22 +523,22 @@ You built these from scratch. Now you know what the library calls are doing.
 
 | Term | What people say | What it actually means |
 |------|----------------|----------------------|
-| Sample space | "All the possibilities" | The set S of every possible outcome of an experiment |
-| PMF | "The probability function" | A function that gives the exact probability of each discrete outcome, summing to 1 |
-| PDF | "The probability curve" | A density function for continuous variables. Integrate it over an interval to get probability |
-| Conditional probability | "Probability given something" | P(A\|B) = P(A and B) / P(B). The foundation of Bayesian thinking and Bayes' theorem |
-| Independence | "They don't affect each other" | P(A and B) = P(A) * P(B). Knowing one event tells you nothing about the other |
-| Expected value | "The average" | The probability-weighted sum of all outcomes. The loss function is an expected value |
-| Variance | "How spread out" | The expected squared deviation from the mean. High variance = noisy, unstable estimates |
-| Normal distribution | "The bell curve" | f(x) = (1/sqrt(2*pi*sigma^2)) * exp(-(x-mu)^2/(2*sigma^2)). Appears everywhere due to the CLT |
-| Central Limit Theorem | "Averages become normal" | The mean of many independent samples converges to a normal distribution regardless of the source |
-| Joint distribution | "Two variables together" | P(X, Y) describes the probability of every combination of X and Y outcomes |
-| Marginal distribution | "Sum out the other variable" | P(X) = sum_y P(X, Y). Recovers one variable's distribution from the joint |
-| Log probability | "Log of the probability" | log P(x). Turns products into sums, preventing numerical underflow in long sequences |
-| Softmax | "Turn scores into probabilities" | softmax(z_i) = exp(z_i) / sum(exp(z_j)). Maps real-valued logits to a valid probability distribution |
-| Cross-entropy | "The loss function" | -sum(p_true * log(p_predicted)). Measures how different two distributions are. Lower is better |
-| Logits | "Raw model outputs" | Unnormalized scores before softmax. Named after the logistic function |
-| Sampling | "Drawing random values" | Generating values according to a probability distribution. How models generate output |
+| Sample space | "All the possibilities" / "所有可能性" | The set S of every possible outcome of an experiment / 实验所有可能结果的集合 S |
+| PMF | "The probability function" / "概率函数" | A function that gives the exact probability of each discrete outcome, summing to 1 / 给出每个离散结果精确概率的函数，总和为 1 |
+| PDF | "The probability curve" / "概率曲线" | A density function for continuous variables. Integrate it over an interval to get probability / 连续变量的密度函数，在区间上积分得到概率 |
+| Conditional probability | "Probability given something" / "条件概率" | P(A\|B) = P(A and B) / P(B). The foundation of Bayesian thinking and Bayes' theorem / 贝叶斯思维和贝叶斯定理的基础 |
+| Independence | "They don't affect each other" / "互不影响" | P(A and B) = P(A) * P(B). Knowing one event tells you nothing about the other / 知道一个事件不影响另一个 |
+| Expected value | "The average" / "平均值" | The probability-weighted sum of all outcomes. The loss function is an expected value / 所有结果的概率加权求和，损失函数就是一种期望值 |
+| Variance | "How spread out" / "离散程度" | The expected squared deviation from the mean. High variance = noisy, unstable estimates / 偏离均值的平方的期望，方差大 = 噪声大、不稳定 |
+| Normal distribution | "The bell curve" / "钟形曲线" | f(x) = (1/sqrt(2*pi*sigma^2)) * exp(-(x-mu)^2/(2*sigma^2)). Appears everywhere due to the CLT / 因中心极限定理而无处不在 |
+| Central Limit Theorem | "Averages become normal" / "平均趋于正态" | The mean of many independent samples converges to a normal distribution regardless of the source / 许多独立样本的均值收敛到正态分布 |
+| Joint distribution | "Two variables together" / "两个变量一起" | P(X, Y) describes the probability of every combination of X and Y outcomes / 描述 X 和 Y 每种组合的概率 |
+| Marginal distribution | "Sum out the other variable" / "消去另一个变量" | P(X) = sum_y P(X, Y). Recovers one variable's distribution from the joint / 从联合分布中恢复单个变量的分布 |
+| Log probability | "Log of the probability" / "概率的对数" | log P(x). Turns products into sums, preventing numerical underflow in long sequences / 将乘法变加法，防止长序列数值下溢 |
+| Softmax | "Turn scores into probabilities" / "分数转概率" | softmax(z_i) = exp(z_i) / sum(exp(z_j)). Maps real-valued logits to a valid probability distribution / 将实数值 logits 映射为有效概率分布 |
+| Cross-entropy | "The loss function" / "损失函数" | -sum(p_true * log(p_predicted)). Measures how different two distributions are. Lower is better / 衡量两个分布的差异，越小越好 |
+| Logits | "Raw model outputs" / "模型原始输出" | Unnormalized scores before softmax. Named after the logistic function / softmax 之前的未归一化分数 |
+| Sampling | "Drawing random values" / "随机取值" | Generating values according to a probability distribution. How models generate output / 按概率分布生成值，模型用它生成输出 |
 
 ## Further Reading | 延伸阅读
 
