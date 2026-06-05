@@ -14,33 +14,41 @@ class PCA:
         self.explained_variance_ratio_ = None
 
     def fit(self, X):
-        self.mean = np.mean(X, axis=0)
-        X_centered = X - self.mean
+        """拟合 PCA 模型：中心化 → 协方差矩阵 → 特征值分解。
 
-        cov_matrix = np.cov(X_centered, rowvar=False)
+        PCA 找到数据方差最大的方向（主成分），广泛用于
+        数据预处理、可视化和特征压缩。
+        """
+        self.mean = np.mean(X, axis=0)  # 计算均值
+        X_centered = X - self.mean  # 中心化数据
 
-        eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+        cov_matrix = np.cov(X_centered, rowvar=False)  # 计算协方差矩阵
 
-        sorted_idx = np.argsort(eigenvalues)[::-1]
+        eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)  # 特征值分解
+
+        sorted_idx = np.argsort(eigenvalues)[::-1]  # 按特征值降序排列
         eigenvalues = eigenvalues[sorted_idx]
         eigenvectors = eigenvectors[:, sorted_idx]
 
-        self.components = eigenvectors[:, : self.n_components].T
+        self.components = eigenvectors[:, : self.n_components].T  # 保留前 k 个主成分
         self.eigenvalues = eigenvalues[: self.n_components]
         total_var = np.sum(eigenvalues)
-        self.explained_variance_ratio_ = self.eigenvalues / total_var
+        self.explained_variance_ratio_ = self.eigenvalues / total_var  # 解释方差比
 
         return self
 
     def transform(self, X):
+        """将数据投影到主成分空间。"""
         X_centered = X - self.mean
         return X_centered @ self.components.T
 
     def fit_transform(self, X):
+        """拟合并投影数据。"""
         self.fit(X)
         return self.transform(X)
 
     def inverse_transform(self, X_reduced):
+        """从降维空间重建原始数据。"""
         return X_reduced @ self.components + self.mean
 
 

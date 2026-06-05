@@ -6,26 +6,36 @@ import numpy as np
 
 
 def power_iteration(M, num_iters=200, tol=1e-10):
+    """幂迭代法：找到矩阵的最大特征值和对应特征向量。
+
+    AI 应用：SVD 和特征值分解的基础算法。
+    通过反复乘以矩阵并归一化来逼近主特征向量。
+    """
     n = M.shape[1]
-    v = np.random.randn(n)
-    v = v / np.linalg.norm(v)
+    v = np.random.randn(n)  # 随机初始化
+    v = v / np.linalg.norm(v)  # 归一化
 
     for _ in range(num_iters):
-        Mv = M @ v
+        Mv = M @ v  # 矩阵-向量乘法
         norm = np.linalg.norm(Mv)
         if norm < tol:
             return 0.0, v
-        v_new = Mv / norm
-        if np.abs(np.dot(v_new, v)) > 1 - tol:
+        v_new = Mv / norm  # 归一化
+        if np.abs(np.dot(v_new, v)) > 1 - tol:  # 收敛检查
             v = v_new
             break
         v = v_new
 
-    eigenvalue = v @ M @ v
+    eigenvalue = v @ M @ v  # 计算特征值
     return eigenvalue, v
 
 
 def svd_from_scratch(A, k=None):
+    """用幂迭代法从零实现 SVD 分解。
+
+    将矩阵分解为 A = U * Sigma * V^T，通过逐次
+    找到最大奇异值并收缩矩阵来实现。
+    """
     m, n = A.shape
     if k is None:
         k = min(m, n)

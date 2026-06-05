@@ -8,7 +8,19 @@ from itertools import product as iterproduct
 
 
 class Tensor:
+    """张量类的从零实现。
+
+    支持形状、步长、重塑、转置、广播和 einsum。
+    AI 应用：Transformer 多头注意力中 Q/K/V 是四维张量，
+    理解张量操作是调试神经网络的基本功。
+    """
     def __init__(self, data, shape=None):
+        """初始化张量：从嵌套列表或 NumPy 数组创建。
+
+        参数:
+            data: 嵌套列表、NumPy 数组或标量
+            shape: 可选的形状覆盖，总元素数必须匹配
+        """
         if isinstance(data, (list, tuple)):
             self._data, self._shape = self._flatten_nested(data)
         elif isinstance(data, np.ndarray):

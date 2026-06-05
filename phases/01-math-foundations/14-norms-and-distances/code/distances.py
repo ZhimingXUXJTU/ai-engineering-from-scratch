@@ -7,24 +7,35 @@ import random
 
 
 def l1_norm(x):
+    """L1 范数（曼哈顿距离）：分量绝对值之和。
+
+    AI 应用：L1 正则化 (Lasso) 推动权重稀疏，实现自动特征选择。
+    """
     return sum(abs(xi) for xi in x)
 
 
 def l2_norm(x):
+    """L2 范数（欧氏距离）：分量平方和的平方根。
+
+    AI 应用：L2 正则化 (Ridge) 防止过拟合，梯度裁剪用 L2 范数。
+    """
     return math.sqrt(sum(xi ** 2 for xi in x))
 
 
 def lp_norm(x, p):
+    """Lp 范数的通用实现。L1 和 L2 是 p=1 和 p=2 的特例。"""
     if p == float('inf'):
         return max(abs(xi) for xi in x)
     return sum(abs(xi) ** p for xi in x) ** (1 / p)
 
 
 def linf_norm(x):
+    """L-infinity 范数（切比雪夫距离）：最大分量绝对值。"""
     return max(abs(xi) for xi in x)
 
 
 def l1_distance(a, b):
+    """L1 距离：对异常值鲁棒，适合稀疏高维数据。"""
     return sum(abs(ai - bi) for ai, bi in zip(a, b))
 
 
