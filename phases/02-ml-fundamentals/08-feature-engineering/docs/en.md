@@ -33,11 +33,19 @@
 
 You have a dataset. You pick an algorithm. You train it. The results are mediocre. You try a fancier algorithm. Still mediocre. You spend a week tuning hyperparameters. Marginal improvement.
 
+> 你有一个数据集。你选了一个算法。训练它。结果平平。你试了更花哨的算法。还是平平。你花了一周调超参数。微小的提升。
+
 Then someone transforms the raw data into better features and a simple logistic regression beats your tuned gradient-boosted ensemble.
+
+> 然后有人把原始数据转换成更好的特征，一个简单的逻辑回归打败了你调好参的梯度提升集成。
 
 This happens constantly. In classical ML, the representation of the data matters more than the choice of algorithm. A house price model with "square footage" and "number of bedrooms" will beat a model with "address as a raw string" no matter how sophisticated the learner is. The algorithm can only work with what you give it.
 
+> 这种情况经常发生。在经典 ML 中，数据的表示比算法的选择更重要。一个用"面积"和"卧室数"的房价模型会打败用"地址原始字符串"的模型，无论学习器多复杂。算法只能处理你给它的东西。
+
 Feature engineering is the process of transforming raw data into representations that make patterns easier for models to find. Feature selection is the process of throwing away features that add noise without adding signal. Together, they are the highest-leverage activity in classical ML.
+
+> 特征工程是将原始数据转换为使模式更容易被模型发现的表示的过程。特征选择是丢弃只增加噪声不增加信号的特征的过程。它们合在一起是经典 ML 中杠杆效应最高的活动。
 
 > **【中文解读】**
 > "数据和特征决定了 ML 的上限，模型和算法只是逼近这个上限。"好的特征可以让简单模型打败复杂模型。特征工程包括数值变换（标准化、对数变换）、类别编码（独热编码、目标编码）、文本特征（TF-IDF）、时间特征（周期编码）等。特征选择则是去除噪声特征，提高模型性能和训练速度。
@@ -63,29 +71,51 @@ flowchart LR
 
 Raw numbers are rarely model-ready. Common transforms:
 
+> 原始数字很少能直接用于模型。常见变换：
+
 **Scaling:** Put features on the same range so distance-based algorithms (K-Means, KNN, SVM) treat all features equally. Min-max scaling maps to [0, 1]. Standardization (z-score) maps to mean=0, std=1.
+
+> **缩放：** 将特征放到同一范围，使基于距离的算法（K-Means、KNN、SVM）平等对待所有特征。Min-Max 缩放映射到 [0, 1]。标准化（z-score）映射到均值=0、标准差=1。
 
 **Log transform:** Compresses right-skewed distributions (income, population, word counts). Turns multiplicative relationships into additive ones.
 
+> **对数变换：** 压缩右偏分布（收入、人口、词频）。将乘法关系变为加法关系。
+
 **Binning:** Converts continuous values into categories. Useful when the relationship between feature and target is non-linear but step-wise (e.g., age groups).
 
+> **分箱：** 将连续值转换为类别。当特征与目标的关系是非线性但阶梯式的时候有用（如年龄组）。
+
 **Polynomial features:** Creates x^2, x^3, x1*x2 terms. Lets linear models capture non-linear relationships at the cost of more features.
+
+> **多项式特征：** 创建 x^2、x^3、x1*x2 项。让线性模型以更多特征为代价捕捉非线性关系。
 
 ### Categorical Features
 
 Models need numbers. Categories need encoding.
 
+> 模型需要数字。类别需要编码。
+
 **One-hot encoding:** Creates a binary column for each category. "color = red/blue/green" becomes three columns: is_red, is_blue, is_green. Works well for low-cardinality features but explodes with many categories.
+
+> **独热编码：** 为每个类别创建一个二进制列。"color = red/blue/green" 变成三列：is_red、is_blue、is_green。对低基数特征效果好，但类别多时会爆炸。
 
 **Label encoding:** Maps each category to an integer: red=0, blue=1, green=2. Introduces false ordering (the model might think green > blue > red). Only appropriate for tree-based models that split on individual values.
 
+> **标签编码：** 将每个类别映射到整数：red=0、blue=1、green=2。引入了虚假排序（模型可能认为 green > blue > red）。只适合按单个值分裂的树模型。
+
 **Target encoding:** Replaces each category with the mean of the target variable for that category. Powerful but dangerous: high risk of data leakage. Must be computed only on training data and applied to test data.
+
+> **目标编码：** 将每个类别替换为该类别的目标变量均值。强大但危险：数据泄漏风险高。必须只在训练数据上计算并应用到测试数据。
 
 ### Text Features
 
 **Count vectorizer:** Counts how many times each word appears in a document. "the cat sat on the mat" becomes {the: 2, cat: 1, sat: 1, on: 1, mat: 1}.
 
+> **词频向量化：** 计算每个词在文档中出现的次数。"the cat sat on the mat" 变成 {the: 2, cat: 1, sat: 1, on: 1, mat: 1}。
+
 **TF-IDF:** Term Frequency-Inverse Document Frequency. Weighs words by how unique they are across documents. Common words like "the" get low weight. Rare, distinctive words get high weight.
+
+> **TF-IDF：** 词频-逆文档频率。按词在文档中的唯一性加权。常见词如"the"获得低权重。稀有、有区分度的词获得高权重。
 
 ```
 TF(word, doc) = count(word in doc) / total words in doc
@@ -97,30 +127,48 @@ TF-IDF = TF * IDF
 
 Real data has holes. Strategies:
 
+> 真实数据有空洞。策略：
+
 - **Drop rows:** Only when missing data is rare and random
+  **删除行：** 仅当缺失数据稀少且随机时
 - **Mean/median imputation:** Simple, preserves distribution shape (median is more robust to outliers)
+  **均值/中位数填充：** 简单，保持分布形状（中位数对异常值更鲁棒）
 - **Mode imputation:** For categorical features
+  **众数填充：** 用于类别特征
 - **Indicator column:** Add a binary column "was_this_missing" before imputing. The fact that data is missing can itself be informative
+  **指示列：** 填充前添加二进制列"was_this_missing"。数据缺失本身可能是信息性的
 - **Forward/backward fill:** For time series data
+  **前向/后向填充：** 用于时间序列数据
 
 ### Feature Interaction
 
 Sometimes the relationship is in the combination. "Height" and "weight" alone are less predictive than "BMI = weight / height^2". Feature interactions multiply the feature space, so use domain knowledge to pick the right ones.
 
+> 有时关系在组合中。"身高"和"体重"单独不如"BMI = 体重 / 身高^2"有预测力。特征交互会倍增特征空间，因此使用领域知识选择正确的组合。
+
 ### Feature Selection
 
 More features is not always better. Irrelevant features add noise, increase training time, and can cause overfitting.
 
+> 更多特征不一定更好。无关特征增加噪声、增加训练时间并可能导致过拟合。
+
 **Filter methods (pre-model):**
 - Correlation: remove features highly correlated with each other (redundant)
+  相关性：移除高度相关的特征（冗余）
 - Mutual information: measures how much knowing a feature reduces uncertainty about the target
+  互信息：衡量知道一个特征能减少目标多少不确定性
 - Variance threshold: remove features that barely vary
+  方差阈值：移除几乎不变的特征
 
 **Wrapper methods (model-based):**
 - L1 regularization (Lasso): drives irrelevant feature weights to exactly zero
+  L1 正则化（Lasso）：将无关特征权重驱动到恰好为零
 - Recursive feature elimination: train, remove least important feature, repeat
+  递归特征消除：训练，移除最不重要的特征，重复
 
 **Why selection matters:** A model with 10 good features will usually outperform a model with 10 good features and 90 noisy ones. The noisy features give the model opportunities to overfit on training data patterns that do not generalize.
+
+> **为什么选择很重要：** 一个有 10 个好特征的模型通常胜过有 10 个好特征加 90 个噪声特征的模型。噪声特征给了模型在训练数据上过拟合不泛化模式的机会。
 
 ## Build It | 动手实现
 
@@ -547,6 +595,8 @@ if __name__ == "__main__":
 
 With scikit-learn, these transforms are composable pipelines:
 
+> 使用 scikit-learn，这些变换可组合为管线：
+
 ```python
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, PolynomialFeatures  # 预处理变换器
 from sklearn.impute import SimpleImputer  # 缺失值填充
@@ -572,10 +622,15 @@ preprocessor = ColumnTransformer([
 
 The from-scratch versions show exactly what happens inside each transform. The library versions add edge-case handling, sparse matrix support, and pipeline composition, but the math is the same.
 
+> 从零版本准确展示了每个变换内部发生了什么。库版本添加了边界情况处理、稀疏矩阵支持和管线组合，但数学原理是相同的。
+
 ## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-feature-engineer.md` - a prompt for systematically engineering features from raw data
+
+> 本课产出：
+> - `outputs/prompt-feature-engineer.md` - 一个从原始数据系统化工程特征的提示词
 
 > **【拓展：自动化特征工程——Featuretools 和 AutoML】**
 > Featuretools 是一个开源的自动化特征工程库，能自动从关系型数据中生成数千个特征（聚合、时间差、交叉特征等）。Featuretools 的 Deep Feature Synthesis 算法可以递归地组合基础变换来生成深层特征。虽然深度学习减少了对手工特征工程的需求，但在表格数据上，自动特征工程 + 树模型仍然是最强的组合之一。Kaggle 竞赛中，AutoML 工具（如 AutoGluon）的竞争力很大程度上来自自动化特征工程。
