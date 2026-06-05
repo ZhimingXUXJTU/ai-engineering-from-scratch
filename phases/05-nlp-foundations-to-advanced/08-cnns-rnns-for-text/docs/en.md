@@ -4,25 +4,31 @@
 
 > **【中文解读】** CNN 捕捉局部 n-gram 特征，RNN 处理长程依赖。Transformer 之前的主流架构。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 3 · 11 (PyTorch Intro), Phase 5 · 03 (Word Embeddings), Phase 4 · 02 (Convolutions from Scratch)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 3 · 11 (PyTorch Intro), Phase 5 · 03 (Word Embeddings), Phase 4 · 02 (Convolutions from Scratch) | **前置知识:** Phase 3 · 11 (PyTorch Intro), Phase 5 · 03 (Word Embeddings), Phase 4 · 02 (Convolutions from Scratch)
+**Time:** ~75 minutes | **时间:** ~75 minutes
+
 
 ## The Problem | 问题引入
 
 TF-IDF and Word2Vec produced flat vectors that ignored word order. A classifier built on them could not tell `dog bites man` from `man bites dog`. Word order sometimes carries the signal.
+> TF-IDF 和 Word2Vec 产生忽略词序的扁平向量。基于它们构建的分类器无法区分 `dog bites man` 和 `man bites dog`。词序有时携带信号。
 
 > **【中文解读】** 本节提出的问题是：如何在实际工程中正确理解和应用这一技术。理解问题背景有助于把握技术选型的关键决策点。在实际 AI 系统中，错误的技术选型往往比实现细节的 bug 代价更高。
 
 
 Two families of architectures filled that gap before transformers arrived.
+> 在 Transformer 出现之前，两族架构填补了这个空白。
 
 **Convolutional nets for text (TextCNN).** Apply 1D convolutions over sequences of word embeddings. A filter of width 3 is a learnable trigram detector: it spans three words and outputs a score. Stack different widths (2, 3, 4, 5) to detect multi-scale patterns. Max-pool to a fixed-size representation. Flat, parallel, fast.
+> **文本卷积网络（TextCNN）。** 在词嵌入序列上应用一维卷积。宽度为 3 的滤波器是可学习的三元组检测器：它跨越三个词并输出分数。堆叠不同宽度（2、3、4、5）以检测多尺度模式。最大池化到固定大小的表示。扁平、并行、快速。
 
 **Recurrent nets (RNN, LSTM, GRU).** Process tokens one at a time, maintaining a hidden state that carries information forward. Sequential, memory-bearing, flexible input lengths. Dominated sequence modeling from 2014 to 2017, then attention happened.
+> **循环网络（RNN、LSTM、GRU）。** 逐个处理 token，维护向前传递信息的隐藏状态。顺序、有记忆、灵活输入长度。从 2014 年到 2017 年主导序列建模，然后注意力机制出现了。
 
 This lesson builds both, then names the failure that motivated attention.
+> 本课构建两者，然后指出驱动注意力动机的失败。
 
 > **【中文解读】** 本节介绍核心概念和理论基础。掌握这些概念是后续动手实现的前提，同时也是面试和工程实践中高频考察的知识点。
 
@@ -30,14 +36,19 @@ This lesson builds both, then names the failure that motivated attention.
 ## The Concept | 核心概念
 
 **TextCNN** (Kim, 2014). Tokens get embedded. A width-`k` 1D convolution slides a filter over consecutive `k`-grams of embeddings, producing a feature map. Global max-pooling over that map picks the strongest activation. Concatenate max-pooled outputs from several filter widths. Feed to a classifier head.
+> **TextCNN**（Kim, 2014）。Token 被嵌入。宽度为 `k` 的一维卷积在连续的 `k`-gram 嵌入上滑动滤波器，产生特征图。对该特征图做全局最大池化选取最强激活。从多个滤波器宽度的最大池化输出拼接。送入分类器头。
 
 Why it works. A filter is a learnable n-gram. Max-pooling is position-invariant, so "not good" fires the same feature at the start or middle of a review. Three filter widths with 100 filters each gives you 300 learned n-gram detectors. Training is parallel; no sequential dependency.
+> 为什么有效。滤波器是可学习的 n-gram。最大池化是位置不变的，所以 "not good" 在评论开头或中间触发相同特征。三个滤波器宽度各 100 个滤波器给你 300 个可学习的 n-gram 检测器。训练是并行的；没有顺序依赖。
 
 **RNN.** At each time step `t`, the hidden state `h_t = f(W * x_t + U * h_{t-1} + b)`. Share `W`, `U`, `b` across time. The hidden state at time `T` is a summary of the entire prefix. For classification, pool across `h_1 ... h_T` (max, mean, or last).
+> **RNN。** 在每个时间步 `t`，隐藏状态 `h_t = f(W * x_t + U * h_{t-1} + b)`。`W`、`U`、`b` 跨时间共享。时间 `T` 的隐藏状态是整个前缀的摘要。对于分类，在 `h_1 ... h_T` 上池化（最大、均值或最后）。
 
 Plain RNNs suffer vanishing gradients. The **LSTM** adds gates that decide what to forget, what to store, and what to output, stabilizing gradients through long sequences. The **GRU** simplifies LSTM to two gates; performs similarly with fewer parameters.
+> 普通 RNN 存在梯度消失问题。**LSTM** 添加决定遗忘什么、存储什么和输出什么的门，稳定长序列的梯度。**GRU** 将 LSTM 简化为两个门；参数更少但效果相似。
 
 **Bidirectional RNNs** run one RNN forward and another backward, concatenating hidden states. Every token's representation sees both left and right context. Essential for tagging tasks.
+> **双向 RNN** 运行一个 RNN 向前、另一个向后，拼接隐藏状态。每个 token 的表示看到左右两侧的上下文。对标注任务必不可少。
 
 > **【拓展：大语言模型的工程实践】** 从 GPT 到 ChatGPT，NLP 领域经历了从 "每个任务训练一个模型" 到 "一个模型解决所有任务" 的范式转变。在实际工程中，LLM 的部署需要考虑 Token 限制、延迟、成本、安全审查等问题。LangChain、LlamaIndex 等框架简化了 LLM 应用的开发。
 
@@ -46,14 +57,13 @@ Plain RNNs suffer vanishing gradients. The **LSTM** adds gates that decide what 
 > **【拓展：NLP 的多语言挑战】** 全球有 7000+ 种语言，但 NLP 研究主要集中在英语等少数语言。跨语言迁移学习、多语言预训练模型（如 mBERT、XLM-R）是解决低资源语言 NLP 的主要方法。字节级模型（如 ByT5）甚至可以在无分词器的情况下处理任何语言。
 
 
-
-
 ## Build It | 动手实现
 
 > **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
 
 
 ### Step 1: TextCNN in PyTorch
+> `transpose(1, 2)` 将 `[batch, seq_len, embed_dim]` 重塑为 `[batch, embed_dim, seq_len]`，因为 `nn.Conv1d` 将中间轴视为通道。池化后的输出是固定大小的，无论输入长度如何。
 
 ```python
 import torch
@@ -84,8 +94,10 @@ class TextCNN(nn.Module):
 ```
 
 The `transpose(1, 2)` reshapes `[batch, seq_len, embed_dim]` to `[batch, embed_dim, seq_len]` because `nn.Conv1d` treats the middle axis as channels. The pooled output is fixed-size regardless of input length.
+> 在序列上做最大池化，而不是最后状态池化。对于分类，最大池化通常优于取最后隐藏状态，因为长序列末端的信息倾向于主导最后状态。
 
 ### Step 2: LSTM classifier
+> 没有门控的普通 RNN 无法学习长程依赖。考虑一个玩具任务：预测 token `A` 是否出现在序列的任何位置。如果 `A` 在位置 1，序列长度为 100，损失的梯度必须通过 99 次循环权重的乘法回流。如果权重小于 1，梯度消失。如果大于 1，梯度爆炸。
 
 ```python
 class LSTMClassifier(nn.Module):
@@ -105,10 +117,15 @@ class LSTMClassifier(nn.Module):
 ```
 
 Max-pool over the sequence, not last-state pool. For classification, max-pooling usually beats taking the last hidden state because information at the end of a long sequence tends to dominate the last state.
+> LSTM 通过一个**细胞状态**修复了这个问题，该状态仅通过加法交互贯穿网络（遗忘门对其做乘法缩放，但梯度仍然沿 "高速公路" 流动）。GRU 用更少的参数做了类似的事情。两者都让你在 100+ 步序列上稳定训练。
 
 ### Step 3: the vanishing gradient demo (intuition)
+> 即使有 LSTM，三个问题持续存在。
 
 A plain RNN without gating cannot learn long-range dependencies. Consider a toy task: predict whether token `A` appeared anywhere in a sequence. If `A` is at position 1 and the sequence is 100 tokens long, the gradient from the loss has to flow back through 99 multiplications of the recurrent weight. If the weight is less than 1, the gradient vanishes. If more than 1, it explodes.
+> 1. **顺序瓶颈。** 在长度为 1000 的序列上训练 RNN 需要 1000 个串行的正向/反向步骤。无法跨时间并行化。
+2. **编码器-解码器中的固定大小上下文向量。** 解码器只看到编码器的最终隐藏状态，压缩了整个输入。长输入丢失细节。第 09 课直接讲解这个问题。
+3. **远距离依赖准确率天花板。** LSTM 优于普通 RNN，但在 200+ 步之间传播特定信息仍然困难。
 
 ```python
 def vanishing_gradient_sim(seq_len, recurrent_weight=0.9):
@@ -122,6 +139,7 @@ def vanishing_gradient_sim(seq_len, recurrent_weight=0.9):
 ```
 
 LSTMs fix this with a **cell state** that runs through the network with only additive interactions (the forget gate scales it multiplicatively, but gradients still flow along the "highway"). GRUs do something similar with fewer parameters. Both give you stable training through 100+ step sequences.
+> 注意力解决了所有三个问题。Transformer 完全放弃了循环。第 10 课是转折点。
 
 ### Step 4: why this still was not enough
 
@@ -137,15 +155,15 @@ Three problems persisted even with LSTMs.
 Attention solved all three. Transformers dropped recurrence entirely. Lesson 10 is the pivot.
 
 
-
-
 > **【拓展：Prompt Engineering 与 LLM 应用】** Prompt Engineering 已成为 NLP 工程师的核心技能。从 Zero-shot 到 Few-shot，从 Chain-of-Thought 到 ReAct，不同的提示策略适用于不同场景。在实际项目中，系统提示（System Prompt）的设计直接影响 LLM 应用的稳定性和输出质量。
 
 ## Use It | 用框架实现
 
 PyTorch's `nn.LSTM`, `nn.GRU`, and `nn.Conv1d` are production-ready. Training code is standard.
+> PyTorch 的 `nn.LSTM`、`nn.GRU` 和 `nn.Conv1d` 是生产就绪的。训练代码是标准的。
 
 Hugging Face ships pretrained embeddings you plug in as the input layer:
+> Hugging Face 提供预训练嵌入作为输入层插入：
 
 ```python
 from transformers import AutoModel
@@ -171,22 +189,28 @@ class BertCNN(nn.Module):
 ```
 
 Use-when-it-fits-the-constraint checklist.
+> 适用约束检查清单。
 
 - **Edge / on-device inference.** TextCNN with GloVe embeddings is 10-100x smaller than a transformer. If your deploy target is a phone, this is the stack.
 - **Streaming / online classification.** RNN processes one token at a time; transformers need the full sequence. For real-time incoming text, LSTMs still win.
 - **Tiny models for baselines.** Fast iteration on a new task. Train a TextCNN in 5 minutes on a CPU.
 - **Sequence labeling with limited data.** BiLSTM-CRF (lesson 06) is still a production-grade NER architecture for 1k-10k labeled sentences.
+> - **边缘/设备端推理。** 带 GloVe 嵌入的 TextCNN 比 Transformer 小 10-100 倍。如果部署目标是手机，这就是你的技术栈。
+- **流式/在线分类。** RNN 每次处理一个 token；Transformer 需要完整序列。对于实时输入文本，LSTM 仍然胜出。
+- **用于基线的微型模型。** 在新任务上快速迭代。在 CPU 上 5 分钟训练一个 TextCNN。
+- **数据有限的序列标注。** BiLSTM-CRF（第 06 课）对于 1k-10k 标注句子仍是生产级 NER 架构。
 
 > **【中文解读】** 本节关注如何将模型部署为可用的产品。从原型到生产级系统需要考虑性能优化、错误处理、监控等多个维度。
 
 
 Everything else goes to a transformer.
-
+> 其他一切用 Transformer。
 
 
 ## Ship It | 产出物
 
 Save as `outputs/prompt-text-encoder-picker.md`:
+> 保存为 `outputs/prompt-text-encoder-picker.md`：
 
 ```markdown
 ---
@@ -214,6 +238,9 @@ Refuse to recommend fine-tuning a transformer when data is under ~500 labeled ex
 1. **Easy.** Train a TextCNN on a 3-class toy dataset (you invent the data). Verify that filter widths (2, 3, 4) outperform a single width (3) on average F1.
 2. **Medium.** Implement max-pool, mean-pool, and last-state pooling for the LSTM classifier. Compare on a small dataset; document which pooling wins and hypothesize why.
 3. **Hard.** Build a BiLSTM-CRF NER tagger (combine lesson 06 and this one). Train on CoNLL-2003. Compare to the CRF-alone baseline from lesson 06 and to a BERT fine-tune. Report training time, memory, and F1.
+> 1. **简单。** 在一个 3 类玩具数据集上训练 TextCNN（你自己发明数据）。验证滤波器宽度 (2, 3, 4) 在平均 F1 上优于单个宽度 (3)。
+2. **中等。** 为 LSTM 分类器实现最大池化、均值池化和最后状态池化。在小数据集上比较；记录哪种池化胜出并假设原因。
+3. **困难。** 构建 BiLSTM-CRF NER 标注器（结合第 06 课和本课）。在 CoNLL-2003 上训练。与第 06 课的纯 CRF 基线和 BERT 微调比较。报告训练时间、内存和 F1。
 
 > **【中文解读】** 术语表中的 "What people say" vs "What it actually means" 区分了日常口语和精确技术含义。在团队协作中，统一术语定义可以避免大量沟通误解。
 
@@ -228,6 +255,14 @@ Refuse to recommend fine-tuning a transformer when data is under ~500 labeled ex
 | GRU | Simpler LSTM | Two gates instead of three. Similar accuracy, fewer parameters. |
 | Bidirectional | Both directions | Forward + backward RNN concatenated. Every token sees both sides of its context. |
 | Vanishing gradient | Training signal dies | Repeated multiplication by <1 weights in plain RNNs makes early-step gradients effectively zero. |
+> | 术语 | 人们常说的 | 实际含义 |
+|------|-----------|---------|
+| TextCNN | 文本 CNN | 在词嵌入上堆叠一维卷积加全局最大池化。Kim (2014)。 |
+| RNN | 循环网络 | 每个时间步更新隐藏状态：`h_t = f(W x_t + U h_{t-1})`。 |
+| LSTM | 门控 RNN | 添加输入/遗忘/输出门 + 细胞状态。在长序列上稳定训练。 |
+| GRU | 更简单的 LSTM | 两个门代替三个。类似准确率，更少参数。 |
+| 双向 | 两个方向 | 前向 + 后向 RNN 拼接。每个 token 看到其上下文两侧。 |
+| 梯度消失 | 训练信号消失 | 普通 RNN 中对小于 1 的权重反复乘法使早期步骤的梯度实际上为零。 |
 
 > **【中文解读】** 延伸阅读提供了深入学习的高质量资源。这些论文和教程是该领域的经典参考文献，适合需要深入理解的读者。
 
@@ -237,3 +272,6 @@ Refuse to recommend fine-tuning a transformer when data is under ~500 labeled ex
 - [Kim, Y. (2014). Convolutional Neural Networks for Sentence Classification](https://arxiv.org/abs/1408.5882) — the TextCNN paper. Eight pages. Readable.
 - [Hochreiter, S. and Schmidhuber, J. (1997). Long Short-Term Memory](https://www.bioinf.jku.at/publications/older/2604.pdf) — the LSTM paper. Unexpectedly lucid.
 - [Olah, C. (2015). Understanding LSTM Networks](https://colah.github.io/posts/2015-08-Understanding-LSTMs/) — the diagrams that made LSTMs accessible to everyone.
+> - [Kim, Y. (2014). Convolutional Neural Networks for Sentence Classification](https://arxiv.org/abs/1408.5882) — TextCNN 论文。八页。易读。
+- [Hochreiter, S. and Schmidhuber, J. (1997). Long Short-Term Memory](https://www.bioinf.jku.at/publications/older/2604.pdf) — LSTM 论文。出乎意料地清晰。
+- [Olah, C. (2015). Understanding LSTM Networks](https://colah.github.io/posts/2015-08-Understanding-LSTMs/) — 让 LSTM 对每个人都变得可理解的图解。
