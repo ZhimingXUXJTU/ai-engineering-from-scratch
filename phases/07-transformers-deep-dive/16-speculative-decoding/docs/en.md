@@ -4,10 +4,10 @@
 
 > **【中文解读】** 用小模型快速生成候选 token，大模型批量验证。可以加速推理 2-3 倍而不降低质量。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 7 · 07 (GPT Causal LM), Phase 7 · 12 (KV Cache & Flash Attention)
-**Time:** ~60 minutes
+**Type:**  | **类型:** 动手
+**Language:** Python | **语言:** Python | **语言:** Python
+**Prerequisites:** Phase 7 · 07 (GPT Causal LM), Phase 7 · 12 (KV Cache & Flash Attention) | **前置知识:** Phase 7 · 07 (GPT Causal LM), Phase 7 · 12 (KV Cache & Flash Attention)
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## The Problem | 问题引入
 

@@ -4,10 +4,10 @@
 
 > **【中文解读】** 标准注意力的 O(n^2) 复杂度太昂贵。滑动窗口注意力(Mistral)、稀疏注意力、差分注意力是降低复杂度的方法。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 7 · 02 (Self-Attention), Phase 7 · 03 (Multi-Head), Phase 7 · 12 (KV Cache / Flash Attention)
-**Time:** ~60 minutes
+**Type:**  | **类型:** 动手
+**Language:** Python | **语言:** Python | **语言:** Python
+**Prerequisites:** Phase 7 · 02 (Self-Attention), Phase 7 · 03 (Multi-Head), Phase 7 · 12 (KV Cache / Flash Attention) | **前置知识:** Phase 7 · 02 (Self-Attention), Phase 7 · 03 (Multi-Head), Phase 7 · 12 (KV Cache / Flash Attention)
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## The Problem | 问题引入
 

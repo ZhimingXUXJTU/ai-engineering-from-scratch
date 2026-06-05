@@ -4,10 +4,10 @@
 
 > **【中文解读】** KV Cache 缓存已计算的 Key/Value 避免重复计算，是 LLM 推理加速的核心。Flash Attention 优化显存访问模式，减少显存使用。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 7 · 02 (Self-Attention), Phase 7 · 05 (Full Transformer), Phase 7 · 07 (GPT)
-**Time:** ~75 minutes
+**Type:**  | **类型:** 动手
+**Language:** Python | **语言:** Python | **语言:** Python
+**Prerequisites:** Phase 7 · 02 (Self-Attention), Phase 7 · 05 (Full Transformer), Phase 7 · 07 (GPT) | **前置知识:** Phase 7 · 02 (Self-Attention), Phase 7 · 05 (Full Transformer), Phase 7 · 07 (GPT)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## The Problem | 问题引入
 

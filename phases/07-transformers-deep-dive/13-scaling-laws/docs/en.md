@@ -4,10 +4,10 @@
 
 > **【中文解读】** Chinchilla 定律揭示了模型大小、数据量、计算量的最优关系。理解缩放定律 = 理解为什么 LLM 需要那么多数据。
 
-**Type:** Learn
-**Languages:** Python
-**Prerequisites:** Phase 7 · 05 (Full Transformer), Phase 7 · 07 (GPT)
-**Time:** ~45 minutes
+**Type:**  | **类型:** 学习
+**Language:** Python | **语言:** Python | **语言:** Python
+**Prerequisites:** Phase 7 · 05 (Full Transformer), Phase 7 · 07 (GPT) | **前置知识:** Phase 7 · 05 (Full Transformer), Phase 7 · 07 (GPT)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## The Problem | 问题引入
 

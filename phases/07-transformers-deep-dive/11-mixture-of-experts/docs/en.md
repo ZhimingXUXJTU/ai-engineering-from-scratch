@@ -4,10 +4,10 @@
 
 > **【中文解读】** MoE 只激活部分专家网络处理每个 token，大幅增加参数量而不增加计算量。DeepSeek、Mixtral 都用 MoE 架构。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 7 · 05 (Full Transformer), Phase 7 · 07 (GPT)
-**Time:** ~45 minutes
+**Type:**  | **类型:** 动手
+**Language:** Python | **语言:** Python | **语言:** Python
+**Prerequisites:** Phase 7 · 05 (Full Transformer), Phase 7 · 07 (GPT) | **前置知识:** Phase 7 · 05 (Full Transformer), Phase 7 · 07 (GPT)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## The Problem | 问题引入
 
