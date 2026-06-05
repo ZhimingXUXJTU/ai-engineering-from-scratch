@@ -22,11 +22,19 @@
 
 A model minimizing MSE on a classification problem will confidently predict 0.5 for everything. It's minimizing loss. It's also useless.
 
+> 一个在分类问题上最小化 MSE 的模型会自信地对所有输入预测 0.5。它在最小化损失。但同时也毫无用处。
+
 The loss function is the only thing your model actually optimizes. Not accuracy. Not F1 score. Not whatever metric you report to your manager. The optimizer takes the gradient of the loss function and adjusts weights to make that number smaller. If the loss function doesn't capture what you care about, the model will find the mathematically cheapest way to satisfy it, and that way is almost never what you wanted.
+
+> 损失函数是你的模型实际优化的唯一目标。不是准确率。不是 F1 分数。不是你向经理报告的任何指标。优化器获取损失函数的梯度并调整权重使该数字更小。如果损失函数没有捕捉到你在乎的东西，模型会找到数学上最便宜的方式来满足它，而那个方式几乎从来不是你想要的。
 
 Here is a concrete example. You have a binary classification task. Two classes, 50/50 split. You use MSE as your loss. The model predicts 0.5 for every single input. The average MSE is 0.25, which is the minimum possible without actually learning anything. The model has zero discriminative ability but it has technically minimized your loss function. Switch to cross-entropy and the same model is forced to push predictions toward 0 or 1, because -log(0.5) = 0.693 is a terrible loss, while -log(0.99) = 0.01 rewards confident correct predictions. The choice of loss function is the difference between a model that learns and a model that games the metric.
 
+> 具体例子：二元分类任务，两类各占 50%。你用 MSE 作为损失。模型对每个输入都预测 0.5。平均 MSE 为 0.25，这是在实际上没学到任何东西的情况下可能的最小值。模型没有任何区分能力，但在技术上已经最小化了你的损失函数。换成交叉熵后，同样的模型被迫将预测推向 0 或 1，因为 -log(0.5) = 0.693 是一个很差的损失，而 -log(0.99) = 0.01 会奖励自信的正确预测。损失函数的选择决定了模型是学习还是在钻系统的空子。
+
 It gets worse. In self-supervised learning, you don't even have labels. Contrastive loss defines the learning signal entirely: what counts as similar, what counts as different, and how hard the model should push them apart. Get contrastive loss wrong and your embeddings collapse to a single point -- every input maps to the same vector. Technically zero loss. Completely worthless.
+
+> 情况更糟的是，在自监督学习中，你甚至没有标签。对比损失完全定义了学习信号：什么算相似，什么算不同，模型应该以多大力度将它们分开。搞错对比损失，你的嵌入会坍缩到一个点——每个输入映射到同一个向量。技术上损失为零。但完全无用。
 
 > **【中文解读】** MSE 做分类时，模型发现预测 0.5 是最安全的策略——损失最低但毫无区分能力。交叉熵则通过 -log(p) 惩罚不自信的预测：-log(0.5)=0.693（很差）vs -log(0.99)=0.01（很好），迫使模型做出明确判断。在自监督学习中，对比损失定义了全部学习信号——搞错了会导致所有嵌入坍缩到同一点。
 
@@ -36,21 +44,31 @@ It gets worse. In self-supervised learning, you don't even have labels. Contrast
 
 The default for regression. Compute the squared difference between prediction and target, average over all samples.
 
+> 回归任务的默认选择。计算预测值与目标值的平方差，对所有样本取平均。
+
 ```
 MSE = (1/n) * sum((y_pred - y_true)^2)
 ```
 
 Why squaring matters: it penalizes large errors quadratically. An error of 2 costs 4x as much as an error of 1. An error of 10 costs 100x. This makes MSE sensitive to outliers -- a single wildly wrong prediction dominates the loss.
 
+> 为什么平方很重要：它对大误差进行二次惩罚。误差为 2 的代价是误差为 1 的 4 倍。误差为 10 的代价是 100 倍。这使得 MSE 对异常值敏感——一个严重错误的预测会主导整个损失。
+
 Real numbers: if your model predicts housing prices and is off by $10,000 on most houses but off by $200,000 on one mansion, MSE will aggressively try to fix that one mansion, potentially hurting performance on the other 99 houses.
 
+> 具体数字：如果你的模型预测房价，大多数房屋偏差 $10,000，但一栋豪宅偏差 $200,000，MSE 会激进地试图修复那栋豪宅，可能会损害其他 99 栋房屋的性能。
+
 The gradient of MSE with respect to a prediction is:
+
+> MSE 对预测的梯度为：
 
 ```
 dMSE/dy_pred = (2/n) * (y_pred - y_true)      # 梯度与误差成线性关系
 ```
 
 Linear in the error. Bigger errors get bigger gradients. This is a feature for regression (large errors need large corrections) and a bug for classification (you want to penalize confident wrong answers exponentially, not linearly).
+
+> 与误差成线性关系。更大的误差获得更大的梯度。这对回归是优点（大误差需要大修正），但对分类是缺点（你想对自信的错误答案进行指数级惩罚，而不是线性惩罚）。
 
 > **【中文解读】** MSE 是回归任务的默认损失：误差的平方平均。平方让大误差付出更高代价（误差 10 的惩罚是误差 1 的 100 倍），但也让它对异常值敏感。梯度与误差成线性关系——对回归是好事（大误差需要大修正），对分类是坏事（应该对"自信的错误"指数级惩罚）。
 
@@ -60,6 +78,8 @@ Linear in the error. Bigger errors get bigger gradients. This is a feature for r
 
 The loss function for classification. Rooted in information theory -- it measures the divergence between the predicted probability distribution and the true distribution.
 
+> 分类任务的损失函数。根植于信息论——它衡量预测概率分布与真实分布之间的差异。
+
 **Binary Cross-Entropy (BCE) | 二元交叉熵：**
 
 ```
@@ -68,7 +88,11 @@ BCE = -(y * log(p) + (1 - y) * log(1 - p))
 
 Where y is the true label (0 or 1) and p is the predicted probability.
 
+> 其中 y 是真实标签（0 或 1），p 是预测概率。
+
 Why -log(p) works: when the true label is 1 and you predict p = 0.99, the loss is -log(0.99) = 0.01. When you predict p = 0.01, the loss is -log(0.01) = 4.6. That 460x difference is why cross-entropy works. It brutally punishes confident wrong predictions while barely penalizing confident correct ones.
+
+> 为什么 -log(p) 有效：当真实标签为 1 且你预测 p = 0.99 时，损失为 -log(0.99) = 0.01。当你预测 p = 0.01 时，损失为 -log(0.01) = 4.6。那 460 倍的差距就是交叉熵有效的原因。它残酷地惩罚自信的错误预测，而对自信的正确预测几乎不惩罚。
 
 The gradient tells the same story:
 
