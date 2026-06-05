@@ -11,12 +11,16 @@
 **Prerequisites:** Phase 10 · 04 (pre-training a mini GPT), Phase 10 · 15 (speculative decoding)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - State the MTP training objective and derive the joint loss across prediction depths.
+  说明 MTP 训练目标，推导跨预测深度的联合损失
 - Explain the difference between Gloeckle et al.'s parallel MTP heads (2024) and DeepSeek-V3's sequential MTP modules and why the sequential design preserves the causal chain.
+  解释 Gloeckle 的并行 MTP 头与 DeepSeek-V3 的顺序 MTP 模块的区别，以及为什么顺序设计保持因果链
 - Compute the parameter and memory overhead of adding MTP modules to a pre-training run.
+  计算在预训练中添加 MTP 模块的参数和内存开销
 - Implement one MTP module from scratch: the shared embedding, the per-depth transformer block, the projection, and the shared output head.
+  从零实现一个 MTP 模块：共享嵌入、每深度 Transformer 块、投影和共享输出头
 
 ## The Problem | 问题引入
 
@@ -193,16 +197,16 @@ This lesson produces `outputs/skill-mtp-planner.md`. Given a pre-training run sp
 
 | Term | What people say | What it actually means | 中文释义 |
 |------|----------------|------------------------|---------|
-| MTP module | "Extra loss block" | A small transformer block plus projection that predicts a token `k` positions ahead of the main model | |
-| Prediction depth | "Which offset" | The integer `k` such that module `k` predicts `t_{i+k}` from prefix through position `i` | |
-| Parallel MTP | "Gloeckle-style" | D independent heads on the same backbone hidden state, no conditional chain | |
-| Sequential MTP | "DeepSeek-V3 style" | Each module conditions on the previous depth's hidden state plus the next token's embedding; preserves causal chain | |
-| Shared output head | "Reuse the main head" | The MTP modules call the main model's LM head, not a separate output projection | |
-| Shared embedding | "Reuse the main table" | Same vocabulary embedding table is used everywhere; no duplicate parameters | |
-| Projection matrix M_k | "Combine hidden + next-token" | An `h x 2h` linear layer that folds the previous hidden state and the target-token embedding into the next depth's input | |
-| Joint loss L_MTP | "Averaged extra losses" | Arithmetic mean of per-depth cross-entropy losses, scaled by `lambda` | |
-| Acceptance rate at depth 1 | "How often MTP draft is right" | The rate at which the D=1 MTP module's top-1 prediction equals the main model's top-1 prediction; 80%+ on DeepSeek-V3 | |
-| Lambda weighting | "Extra-loss importance" | Per-depth scaling factor; 0.3 at start of training, 0.1 later on DeepSeek-V3 | |
+| MTP module | "Extra loss block" | A small transformer block plus projection that predicts a token `k` positions ahead of the main model | MTP 模块，预测主模型后方第 k 个 token |
+| Prediction depth | "Which offset" | The integer `k` such that module `k` predicts `t_{i+k}` from prefix through position `i` | 预测深度，模块 k 预测第 i+k 个 token |
+| Parallel MTP | "Gloeckle-style" | D independent heads on the same backbone hidden state, no conditional chain | 并行 MTP，D 个独立头共享隐状态 |
+| Sequential MTP | "DeepSeek-V3 style" | Each module conditions on the previous depth's hidden state plus the next token's embedding; preserves causal chain | 顺序 MTP，每层依赖前一层隐状态，保持因果链 |
+| Shared output head | "Reuse the main head" | The MTP modules call the main model's LM head, not a separate output projection | 共享输出头，MTP 模块复用主模型的语言模型头 |
+| Shared embedding | "Reuse the main table" | Same vocabulary embedding table is used everywhere; no duplicate parameters | 共享嵌入，复用词表嵌入表 |
+| Projection matrix M_k | "Combine hidden + next-token" | An `h x 2h` linear层 that folds the previous hidden state and the target-token embedding into the next depth's input | 投影矩阵，组合隐状态与下一 token 嵌入 |
+| Joint loss L_MTP | "Averaged extra losses" | Arithmetic mean of per-depth cross-entropy losses, scaled by `lambda` | 联合损失，各深度交叉熵损失的算术均值 |
+| Acceptance rate at depth 1 | "How often MTP draft is right" | The rate at which the D=1 MTP module's top-1 prediction equals the main model's top-1 prediction; 80%+ on DeepSeek-V3 | 深度 1 的接受率，MTP 草稿与主模型一致的概率 |
+| Lambda weighting | "Extra-loss importance" | Per-depth scaling factor; 0.3 at start of training, 0.1 later on DeepSeek-V3 | Lambda 权重，每深度损失的缩放因子 |
 
 ## Further Reading | 延伸阅读
 

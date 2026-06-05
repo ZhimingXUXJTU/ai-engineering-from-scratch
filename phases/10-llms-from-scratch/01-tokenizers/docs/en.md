@@ -11,12 +11,16 @@
 **Prerequisites:** Phase 05 (NLP Foundations)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement BPE, WordPiece, and Unigram tokenization algorithms from scratch and compare their merge strategies
+  从零实现 BPE、WordPiece 和 Unigram 分词算法，比较它们的合并策略
 - Explain how vocabulary size affects model efficiency: too small creates long sequences, too large wastes embedding parameters
+  解释词表大小如何影响模型效率：太小产生长序列，太大浪费嵌入参数
 - Analyze tokenization artifacts across languages and code, identifying where specific tokenizers break down
+  分析跨语言和代码的分词边界情况，找出特定分词器的失效点
 - Use the tiktoken and sentencepiece libraries to tokenize text and inspect the resulting token IDs
+  使用 tiktoken 和 sentencepiece 库分词文本并检查生成的 token ID
 
 > **【中文解读】** 本章的学习目标围绕分词器的四个维度：实现（手写 BPE/WordPiece/Unigram 算法）、理解（词表大小的工程权衡）、分析（跨语言分词的边界情况）、应用（tiktoken/sentencepiece 工具库）。分词是 LLM 管线的第一步，直接影响模型效率和成本。
 

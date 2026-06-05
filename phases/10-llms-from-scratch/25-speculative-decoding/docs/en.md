@@ -196,17 +196,17 @@ This lesson produces `outputs/skill-speculative-tuning.md` — a skill that prof
 
 | Term | What people say | What it actually means | 中文释义 |
 |------|-----------------|------------------------|---------|
-| Target model | "The big model" | The slow, high-quality model you want samples from (p distribution) | |
-| Draft model | "The speculator" | The small, fast predictor (q distribution); 5-30x smaller | |
-| K / draft length | "Look-ahead" | Number of speculated tokens per verify pass | |
-| α / acceptance rate | "Hit rate" | Per-token probability that the draft's proposal is accepted | |
-| Exact rejection rule | "The accept test" | r < p/q compare that preserves target's distribution | |
-| Residual distribution | "Corrected p-q" | (p - q)+ / ||(p - q)+||_1, the distribution to sample from on rejection | |
-| Tree drafting | "Branching speculation" | Draft outputs a tree of candidates, verified in one pass with tree-structured attention mask | |
-| Tree attention mask | "Topological mask" | Causal mask encoding the tree topology so each node attends only to its ancestors | |
-| Medusa heads | "Parallel heads" | K extra prediction heads on the target itself; no separate draft model | |
-| EAGLE feature reuse | "Hidden-state draft" | Draft input is target's last hidden state, not raw tokens, shrinking the draft | |
-| Test-time simulation loss | "EAGLE-3 training" | Train draft on outputs matching target's test-time distribution, not teacher forcing | |
+| Target model | "The big model" | The slow, high-quality model you want samples from (p distribution) | 目标模型，慢速高质量的大模型 |
+| Draft model | "The speculator" | The small, fast predictor (q distribution); 5-30x smaller | 草稿模型，小而快的预测器 |
+| K / draft length | "Look-ahead" | Number of speculated tokens per verify pass | 草稿长度，每次验证的投机 token 数 |
+| α / acceptance rate | "Hit rate" | Per-token probability that the draft's proposal is accepted | 接受率，草稿每 token 被接受的概率 |
+| Exact rejection rule | "The accept test" | r < p/q compare that preserves target's distribution | 精确拒绝规则，保持目标分布不变的接受测试 |
+| Residual distribution | "Corrected p-q" | (p - q)+ / ||(p - q)+||_1, the distribution to sample from on rejection | 残差分布，拒绝时从中采样的校正分布 |
+| Tree drafting | "Branching speculation" | Draft outputs a tree of candidates, verified in one pass with tree-structured attention mask | 树形草稿，一次验证多个分支候选 |
+| Tree attention mask | "Topological mask" | Causal mask encoding the tree topology so each node attends only to its ancestors | 树注意力掩码，按拓扑结构编码因果掩码 |
+| Medusa heads | "Parallel heads" | K extra prediction heads on the target itself; no separate draft model | Medusa 头，目标模型上的多个并行预测头 |
+| EAGLE feature reuse | "Hidden-state draft" | Draft input is target's last hidden state, not raw tokens, shrinking the draft | EAGLE 特征复用，用目标模型隐藏状态作草稿输入 |
+| Test-time simulation loss | "EAGLE-3 training" | Train draft on outputs matching target's test-time distribution, not teacher forcing | 测试时模拟损失，EAGLE-3 训练方法 |
 
 ## Further Reading | 延伸阅读
 

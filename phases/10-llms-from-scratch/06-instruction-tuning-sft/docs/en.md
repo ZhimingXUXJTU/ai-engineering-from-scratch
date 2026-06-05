@@ -11,12 +11,16 @@
 **Prerequisites:** Phase 10, Lesson 04 (Pre-Training a Mini GPT)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement supervised fine-tuning (SFT) that converts a base language model into an instruction-following assistant
+  实现监督微调（SFT），将基础语言模型转换为指令跟随助手
 - Format training data using chat templates with system, user, and assistant roles, and mask loss on non-assistant tokens
+  使用带 system/user/assistant 角色的聊天模板格式化训练数据，并对非 assistant token 进行损失掩码
 - Explain why SFT is necessary: base models continue text rather than answer questions
+  解释为什么需要 SFT：基础模型是继续文本而非回答问题
 - Evaluate SFT quality by comparing base model vs fine-tuned model responses on a held-out instruction set
+  通过在留出指令集上比较基础模型与微调模型的回复来评估 SFT 质量
 
 > **【中文解读】** 本课将基础模型转换为指令跟随助手。关键概念：SFT 使用与预训练相同的训练循环（前向→损失→反向→更新），但数据从原始文本变为结构化对话。核心技巧是损失掩码（loss masking）——只在 assistant 的回复部分计算损失，忽略 prompt 和 user 部分。
 
@@ -598,14 +602,14 @@ This lesson produces `outputs/prompt-sft-data-curator.md` -- a prompt that helps
 
 | Term | What people say | What it actually means | 中文释义 |
 |------|----------------|----------------------|---------|
-| SFT | "Fine-tuning on conversations" | Supervised Fine-Tuning: continuing training on (instruction, response) pairs with loss computed only on response tokens | |
-| Instruction tuning | "Teaching the model to follow instructions" | Training on explicit instruction-response pairs so the base model learns the conversation pattern, not new knowledge | |
-| Loss masking | "Ignoring the prompt" | Setting loss to zero for instruction tokens so gradients only flow from response token predictions | |
-| ChatML | "Chat Markup Language" | A token format using `<\|im_start\|>` and `<\|im_end\|>` delimiters to mark speaker roles in conversation data | |
-| Alpaca format | "Stanford's format" | A JSON format with instruction/input/output fields, used for 52K GPT-3.5-generated examples that cost $600 | |
-| Catastrophic forgetting | "The model gets dumber" | Fine-tuning destroys pre-trained capabilities because gradient updates overwrite general knowledge with task-specific patterns | |
-| Weight tying | "Shared embeddings" | Using the same matrix for input token embeddings and output prediction head, saving parameters and improving coherence | |
-| Chat template | "How you format the prompt" | The specific token sequence (role markers, delimiters) that structures a conversation for the model | |
+| SFT | "Fine-tuning on conversations" | Supervised Fine-Tuning: continuing training on (instruction, response) pairs with loss computed only on response tokens | 监督微调，在指令-回复对上继续训练，仅对回复 token 计算损失 |
+| Instruction tuning | "Teaching the model to follow instructions" | Training on explicit instruction-response pairs so the base model learns the conversation pattern, not new knowledge | 指令微调，训练基础模型学会对话模式而非新知识 |
+| Loss masking | "Ignoring the prompt" | Setting loss to zero for instruction tokens so gradients only flow from response token predictions | 损失掩码，指令 token 损失设为零，梯度仅来自回复预测 |
+| ChatML | "Chat Markup Language" | A token format using `<\|im_start\|>` and `<\|im_end\|>` delimiters to mark speaker roles in conversation data | 聊天标记语言，用特殊 token 标记对话角色 |
+| Alpaca format | "Stanford's format" | A JSON format with instruction/input/output fields, used for 52K GPT-3.5-generated examples that cost $600 | Alpaca 格式，Stanford 的 JSON 指令格式，52K 样本成本 $600 |
+| Catastrophic forgetting | "The model gets dumber" | Fine-tuning destroys pre-trained capabilities because gradient updates overwrite general knowledge with task-specific patterns | 灾难性遗忘，微调破坏预训练能力 |
+| Weight tying | "Shared embeddings" | Using the same matrix for input token embeddings and output prediction head, saving parameters and improving coherence | 权重共享，输入输出共用嵌入矩阵 |
+| Chat template | "How you format the prompt" | The specific token sequence (role markers, delimiters) that structures a conversation for the model | 聊天模板，格式化对话的 token 序列 |
 
 ## Further Reading | 延伸阅读
 

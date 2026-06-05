@@ -11,12 +11,16 @@
 **Prerequisites:** Phase 10, Lessons 01-03 (Tokenizers, Building a Tokenizer, Data Pipelines)
 **Time:** ~120 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement the full GPT-2 architecture (124M parameters) from scratch: token embeddings, positional embeddings, transformer blocks, and the language model head
+  从零实现完整的 GPT-2 架构（124M 参数）：token 嵌入、位置嵌入、Transformer 块和语言模型头
 - Train a GPT model on a text corpus using next-token prediction with cross-entropy loss
+  使用下一 token 预测和交叉熵损失在文本语料上训练 GPT 模型
 - Implement autoregressive text generation with temperature sampling and top-k/top-p filtering
+  实现带温度采样和 top-k/top-p 过滤的自回归文本生成
 - Monitor training loss curves and validate that the model learns coherent language patterns
+  监控训练损失曲线，验证模型学到了连贯的语言模式
 
 > **【中文解读】** 本课用纯 numpy 从零实现 GPT-2 Small（124M 参数）。你将看到 1.24 亿个参数如何通过前向传播、损失计算、反向传播、权重更新的训练循环来预测下一个 token。这不是 PyTorch 黑箱——每一个矩阵乘法都是可见的。
 
@@ -28,15 +32,23 @@ None of that means you understand what happens when a model generates text.
 
 There are 124,438,272 parameters in GPT-2 Small (with weight tying). Every single one of them was set by running a training loop: forward pass, compute loss, backward pass, update weights. Twelve transformer blocks. Twelve attention heads per block. A 768-dimensional embedding space. A vocabulary of 50,257 tokens. Every time the model generates a token, all 124 million parameters participate in a single matrix multiplication chain that takes a sequence of token IDs and produces a probability distribution over the next token.
 
+> GPT-2 Small 有 124,438,272 个参数（含权重共享）。每一个参数都通过训练循环设定：前向传播、计算损失、反向传播、更新权重。12 个 Transformer 块，每块 12 个注意力头，768 维嵌入空间，50,257 词表。每次生成 token，所有 1.24 亿参数参与一条矩阵乘法链，将 token ID 序列转换为下一个 token 的概率分布。
+
 If you have never built this yourself, you are working with a black box. You can use the API. You can fine-tune. But when something goes wrong -- when the model hallucinates, when it repeats itself, when it refuses to follow instructions -- you have no mental model for *why*.
 
+> 如果你从未亲手构建过这个模型，你就在使用一个黑箱。你可以调用 API，可以微调。但当模型产生幻觉、重复自己或拒绝遵循指令时，你不知道为什么。
+
 This lesson builds GPT-2 Small from scratch. Not in PyTorch. In numpy. Every matrix multiplication is visible. Every gradient is computed by your code. You will see exactly how 124 million numbers conspire to predict the next word.
+
+> 本课从零构建 GPT-2 Small。不用 PyTorch。用 numpy。每个矩阵乘法都可见。每个梯度都由你的代码计算。你将看到 1.24 亿个数字如何协作预测下一个词。
 
 ## The Concept | 核心概念
 
 ### The GPT Architecture
 
 GPT is an autoregressive language model. "Autoregressive" means it generates one token at a time, each conditioned on all previous tokens. The architecture is a stack of transformer decoder blocks.
+
+> GPT 是自回归语言模型。"自回归"意味着它一次生成一个 token，每个 token 以所有之前的 token 为条件。架构是 Transformer 解码器块的堆叠。
 
 Here is the full computation graph from token IDs to next-token probabilities:
 

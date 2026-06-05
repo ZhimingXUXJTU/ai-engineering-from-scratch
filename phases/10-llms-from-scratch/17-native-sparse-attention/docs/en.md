@@ -11,12 +11,16 @@
 **Prerequisites:** Phase 7 · 12 (KV cache, flash-attention), Phase 7 · 15 (attention variants), Phase 10 · 16 (differential attention)
 **Time:** ~60 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - State the three NSA attention branches and what each one captures.
+  说明 NSA 的三条注意力分支及其各自捕获的信息
 - Explain why NSA is "natively trainable" where prior sparse-attention methods were inference-only.
+  解释为什么 NSA 是"原生可训练的"，而之前的稀疏注意力方法只能用于推理
 - Compute the attention compute savings of NSA versus full attention at 64k context as a function of compression block size and selection top-k.
+  计算在 64K 上下文中 NSA 相对全注意力的计算节省量（作为压缩块大小和选择 top-k 的函数）
 - Implement the three-branch combination in stdlib Python on a short synthetic sequence and verify the gating weights behave.
+  用 stdlib Python 在短合成序列上实现三分支组合，验证门控权重行为
 
 ## The Problem | 问题引入
 
@@ -180,16 +184,16 @@ This lesson produces `outputs/skill-nsa-integrator.md`. Given a long-context pre
 
 | Term | What people say | What it actually means | 中文释义 |
 |------|----------------|------------------------|---------|
-| Compressed branch | "Coarse view" | Attention over block-averaged keys that provides global context in O(N/l) keys per query | |
-| Selected branch | "Top-k blocks" | Fine-grained attention over the `k` blocks with highest compressed-branch scores | |
-| Sliding window | "Local context" | Attention over the last `W` tokens for short-range patterns | |
-| Native trainability | "Pre-train with the sparsity on" | The sparsity pattern is learned during pre-training, not bolted on at inference | |
-| Compression block size l | "Group size for coarse view" | How many tokens get merged into one summary; 32-64 typical | |
-| Top-k | "Blocks to keep" | Number of compressed blocks whose uncompressed tokens get read; 16 typical | |
-| Sliding window W | "Local attention radius" | Typically 512; shorter hurts local coherence, longer wastes compute | |
-| Branch gate | "How to mix the three" | Per-position MLP output that weights the three branches' contributions | |
-| Hardware alignment | "Kernel-friendly sparsity" | Sparse pattern chosen so that the actual GPU kernel achieves the theoretical speedup | |
-| DSA | "NSA's successor" | Deepseek Sparse Attention, the architecture that followed NSA in DeepSeek's lineage | |
+| Compressed branch | "Coarse view" | Attention over block-averaged keys that provides global context in O(N/l) keys per query | 压缩分支，块平均键上的注意力 |
+| Selected branch | "Top-k blocks" | Fine-grained attention over the `k` blocks with highest compressed-branch scores | 选择分支，对 top-k 块做细粒度注意力 |
+| Sliding window | "Local context" | Attention over the last `W` tokens for short-range patterns | 滑动窗口，最近 W 个 token 的局部上下文 |
+| Native trainability | "Pre-train with the sparsity on" | The sparsity pattern is learned during pre-training, not bolted on at inference | 原生可训练，预训练时就使用稀疏模式 |
+| Compression block size l | "Group size for coarse view" | How many tokens get merged into one summary; 32-64 typical | 压缩块大小，每组合并多少 token |
+| Top-k | "Blocks to keep" | Number of compressed blocks whose uncompressed tokens get read; 16 typical | Top-k，保留的压缩块数量 |
+| Sliding window W | "Local attention radius" | Typically 512; shorter hurts local coherence, longer wastes compute | 滑动窗口大小，典型值 512 |
+| Branch gate | "How to mix the three" | Per-position MLP output that weights the three branches' contributions | 分支门控，MLP 输出加权三分支贡献 |
+| Hardware alignment | "Kernel-friendly sparsity" | Sparse pattern chosen so that the actual GPU kernel achieves the theoretical speedup | 硬件对齐，稀疏模式适配 GPU 核函数 |
+| DSA | "NSA's successor" | Deepseek Sparse Attention, the architecture that followed NSA in DeepSeek's lineage | DSA，DeepSeek 稀疏注意力，NSA 的后继架构 |
 
 ## Further Reading | 延伸阅读
 

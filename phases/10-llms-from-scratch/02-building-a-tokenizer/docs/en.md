@@ -11,12 +11,16 @@
 **Prerequisites:** Phase 10, Lesson 01 (Tokenizers: BPE, WordPiece, SentencePiece)
 **Time:** ~90 minutes
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Build a production-grade BPE tokenizer that handles Unicode, whitespace normalization, and special tokens
+  构建处理 Unicode、空白归一化和特殊 token 的生产级 BPE 分词器
 - Implement byte-level fallback so the tokenizer can encode any input (including emoji, CJK, and code) without unknown tokens
+  实现字节级回退，使分词器能编码任何输入（包括 emoji、CJK、代码）而不产生未知 token
 - Add pre-tokenization regex patterns that split text at word boundaries before applying BPE merges
+  添加预分词正则模式，在 BPE 合并前按词边界拆分文本
 - Train a custom tokenizer on a corpus and evaluate its compression ratio against tiktoken on multilingual text
+  在语料上训练自定义分词器，并在多语言文本上评估其与 tiktoken 的压缩比
 
 > **【中文解读】** 本课目标是将第一课的玩具 BPE 升级为生产级分词器。关键改进包括：Unicode 归一化（NFKC）、预分词正则（防止跨词边界的合并）、字节级回退（零未知 token）、特殊 token 管理（BOS/EOS/聊天模板标记）。这些是让分词器处理"整个互联网"的必备机制。
 
