@@ -33,11 +33,19 @@
 
 You need to classify text. Emails into spam or not-spam. Customer reviews into positive or negative. Support tickets into categories. You have thousands of features (one per word) and limited training data.
 
+> 你需要对文本进行分类。邮件分为垃圾邮件或非垃圾邮件。客户评论分为正面或负面。工单分为不同类别。你有数千个特征（每个词一个）和有限的训练数据。
+
 Most classifiers choke here. Logistic regression needs enough samples to estimate thousands of weights reliably. Decision trees split on one word at a time and overfit wildly. KNN in 10,000 dimensions is meaningless because every point is equally far from every other point.
+
+> 大多数分类器在这里会卡住。逻辑回归需要足够样本来可靠估计数千个权重。决策树每次在一个词上分裂并严重过拟合。在 10,000 维中的 KNN 毫无意义，因为每个点与其他所有点的距离相等。
 
 Naive Bayes handles this. It makes a mathematically wrong assumption (that every feature is independent of every other feature given the class), and it still outperforms "smarter" models on text classification, especially with small training sets. It trains in a single pass through the data. It scales to millions of features. It produces probability estimates (though often poorly calibrated due to the independence assumption).
 
+> 朴素贝叶斯能处理这种情况。它做了一个数学上错误的假设（给定类别下每个特征相互独立），但在文本分类上仍然优于"更聪明"的模型，特别是在小训练集上。它只需一次遍历数据就能训练。它扩展到数百万特征。它产生概率估计（尽管由于独立性假设通常校准不佳）。
+
 Understanding why a wrong assumption leads to good predictions teaches you something fundamental about machine learning: the best model is not the most correct one, it is the one with the best bias-variance tradeoff for your data.
+
+> 理解为什么错误的假设能产生好的预测会教会你机器学习中一些基本的东西：最好的模型不是最正确的模型，而是对你的数据偏差-方差权衡最好的模型。
 
 > **【中文解读】**
 > 朴素贝叶斯的"朴素"在于假设所有特征在给定类别下相互独立——这在现实中几乎不成立（如"免费"和"优惠"在垃圾邮件中高度相关）。但为什么还能用？因为分类只需要各类别概率的排名正确，不需要概率值精确。独立性假设使参数估计的方差极低（每个特征只需统计频率），在高维稀疏数据上这个优势弥补了假设错误带来的偏差。
@@ -48,22 +56,33 @@ Understanding why a wrong assumption leads to good predictions teaches you somet
 
 Bayes' theorem flips conditional probabilities:
 
+> 贝叶斯定理翻转条件概率：
+
 ```
 P(class | features) = P(features | class) * P(class) / P(features)
 ```
 
 We want `P(class | features)` -- the probability that a document belongs to a class given the words in it. We can compute this from:
 - `P(features | class)` -- the likelihood of seeing these words in documents of this class
+  `P(features | class)` -- 在该类文档中看到这些词的似然
 - `P(class)` -- the prior probability of the class (how common is spam in general?)
+  `P(class)` -- 类别的先验概率（垃圾邮件通常有多常见？）
 - `P(features)` -- the evidence, same for all classes, so we can ignore it when comparing
+  `P(features)` -- 证据，对所有类别相同，比较时可以忽略
 
 The class with the highest `P(class | features)` wins.
+
+> `P(class | features)` 最高的类别获胜。
 
 ### The Naive Independence Assumption
 
 Computing `P(features | class)` exactly requires estimating the joint probability of all features together. With a vocabulary of 10,000 words, you would need to estimate a distribution over 2^10,000 possible combinations. Impossible.
 
+> 精确计算 `P(features | class)` 需要估计所有特征的联合概率。对于 10,000 个词的词表，你需要估计 2^10,000 种可能组合上的分布。不可能。
+
 The naive assumption: every feature is conditionally independent given the class.
+
+> 朴素假设：给定类别下每个特征条件独立。
 
 ```
 P(w1, w2, ..., wn | class) = P(w1 | class) * P(w2 | class) * ... * P(wn | class)
@@ -71,19 +90,30 @@ P(w1, w2, ..., wn | class) = P(w1 | class) * P(w2 | class) * ... * P(wn | class)
 
 Instead of one impossible joint distribution, you estimate n simple per-feature distributions. Each one needs only a count.
 
+> 你不需要估计一个不可能的联合分布，而是估计 n 个简单的逐特征分布。每个只需要计数。
+
 This assumption is obviously wrong. The words "machine" and "learning" are not independent in any document. But the classifier does not need correct probability estimates. It needs correct rankings -- which class has the highest probability. The independence assumption introduces systematic errors, but those errors affect all classes similarly, so the ranking stays correct.
+
+> 这个假设明显是错的。"machine" 和 "learning" 在任何文档中都不是独立的。但分类器不需要正确的概率估计。它需要正确的排名——哪个类别的概率最高。独立性假设引入了系统性误差，但这些误差对所有类别的影响相似，所以排名保持正确。
 
 ### Why It Still Works
 
 Three reasons:
 
+> 三个原因：
+
 1. **Ranking over calibration.** Classification only needs the top-ranked class to be correct. Even if P(spam) = 0.99999 when the true probability is 0.7, the classifier still picks spam correctly. We do not need correct probabilities. We need the correct winner.
+   **排名优于校准。** 分类只需要排名第一的类别正确。即使 P(spam) = 0.99999 而真实概率是 0.7，分类器仍然正确选择垃圾邮件。我们不需要正确的概率。我们需要正确的赢家。
 
 2. **High bias, low variance.** The independence assumption is a strong prior. It constrains the model heavily, which prevents overfitting. With limited training data, a model that is slightly wrong but stable beats a model that is theoretically right but wildly unstable. This is the bias-variance tradeoff in action.
+   **高偏差、低方差。** 独立性假设是一个强先验。它严重约束模型，防止过拟合。在有限训练数据下，一个稍微错误但稳定的模型胜过理论上正确但极不稳定的模型。这是偏差-方差权衡的实际运作。
 
 3. **Feature redundancy cancels out.** Correlated features provide redundant evidence. The classifier double-counts this evidence, but it double-counts it for the correct class too. If "machine" and "learning" always appear together, both provide evidence for the "tech" class. NB counts them twice, but it counts them twice for the right class.
+   **特征冗余相互抵消。** 相关特征提供冗余证据。分类器重复计数这些证据，但正确类别的证据也被重复计数。如果 "machine" 和 "learning" 总是一起出现，两者都为 "tech" 类提供证据。朴素贝叶斯计数两次，但为正确的类别计数两次。
 
 A fourth, practical reason: Naive Bayes is extremely fast. Training is a single pass through the data counting frequencies. Prediction is a matrix multiplication. You can train on a million documents in seconds. This speed means you can iterate faster, try more feature sets, and run more experiments than with slower models.
+
+> 第四个实际原因：朴素贝叶斯极快。训练是单次遍历数据计数频率。预测是矩阵乘法。你可以在几秒内训练一百万个文档。这种速度意味着你可以比使用更慢的模型更快迭代、尝试更多特征集、运行更多实验。
 
 ### The Math Step by Step
 

@@ -33,7 +33,11 @@
 
 A single decision tree is fast to train and easy to interpret, but it overfits. A single linear model underfits on complex boundaries. You could spend days engineering the perfect model architecture. Or you could combine a bunch of imperfect models and get something better than any of them individually.
 
+> 单棵决策树训练快、易解释，但会过拟合。单个线性模型在复杂边界上欠拟合。你可以花几天时间设计完美的模型架构，或者把一堆不完美的模型组合起来，得到比任何一个都更好的结果。
+
 Ensemble methods do exactly this. They are the most reliable technique for winning Kaggle competitions on tabular data, they power most production ML systems, and they illustrate the bias-variance tradeoff in action. Bagging reduces variance. Boosting reduces bias. Stacking learns which models to trust on which inputs.
+
+> 集成方法正是这样做的。它们是赢得 Kaggle 表格数据竞赛最可靠的技术，驱动着大多数生产 ML 系统，并直观展示了偏差-方差权衡的实际运作。Bagging 降低方差。Boosting 降低偏差。Stacking 学习在哪些输入上信任哪些模型。
 
 > **【中文解读】**
 > 集成方法的核心原理：如果多个不完美的模型犯不同的错误，它们的平均预测会更准确。Bagging（如随机森林）通过训练独立的模型取平均来降低方差；Boosting（如 AdaBoost、GBDT）通过串行训练让每个新模型纠正前一个的错误来降低偏差；Stacking 用元学习器组合不同类型的基模型。
@@ -44,22 +48,34 @@ Ensemble methods do exactly this. They are the most reliable technique for winni
 
 Suppose you have N independent classifiers, each with accuracy p > 0.5. The majority vote has accuracy:
 
+> 假设你有 N 个独立分类器，每个准确率为 p > 0.5。多数投票的准确率为：
+
 ```
 P(majority correct) = sum over k > N/2 of C(N,k) * p^k * (1-p)^(N-k)
 ```
 
 For 21 classifiers each with 60% accuracy, majority vote accuracy is about 74%. With 101 classifiers, it rises to 84%. The errors cancel out when the models make different mistakes.
 
+> 21 个准确率各为 60% 的分类器，多数投票准确率约为 74%。101 个分类器时上升到 84%。当模型犯不同错误时，误差会相互抵消。
+
 The key requirement is **diversity**. If all models make the same errors, combining them helps nothing. Ensembles work because they produce diverse models through:
 
+> 关键要求是**多样性**。如果所有模型犯相同的错误，组合它们毫无帮助。集成之所以有效，是因为通过以下方式产生多样化的模型：
+
 - Different training subsets (bagging)
+  不同的训练子集（Bagging）
 - Different feature subsets (random forests)
+  不同的特征子集（随机森林）
 - Sequential error correction (boosting)
+  顺序错误纠正（Boosting）
 - Different model families (stacking)
+  不同的模型族（Stacking）
 
 ### Bagging (Bootstrap Aggregating)
 
 Bagging creates diversity by training each model on a different bootstrap sample of the training data.
+
+> Bagging 通过在每个不同的 bootstrap 训练样本上训练每个模型来创造多样性。
 
 ```mermaid
 flowchart TD
@@ -83,13 +99,21 @@ flowchart TD
 
 A bootstrap sample is drawn with replacement from the original data, same size as the original. About 63.2% of unique samples appear in each bootstrap. The remaining 36.8% (out-of-bag samples) provide a free validation set.
 
+> Bootstrap 样本从原始数据中有放回地抽取，大小与原始数据相同。约 63.2% 的唯一样本出现在每个 bootstrap 中。剩余 36.8%（袋外样本）提供了一个免费的验证集。
+
 Bagging reduces variance without increasing bias much. Each individual tree overfits to its bootstrap sample, but the overfitting is different for each tree, so averaging cancels out the noise.
 
+> Bagging 在不增加太多偏差的情况下减少方差。每棵单独的树过拟合其 bootstrap 样本，但每棵树的过拟合不同，因此平均会抵消噪声。
+
 **Random Forests** are bagging with an extra twist: at each split, only a random subset of features is considered. This forces even more diversity among trees. The typical number of candidate features is `sqrt(n_features)` for classification and `n_features / 3` for regression.
+
+> **随机森林**是 Bagging 加上一个额外技巧：在每次分裂时，只考虑一个随机特征子集。这迫使树之间更加多样化。分类的典型候选特征数为 `sqrt(n_features)`，回归为 `n_features / 3`。
 
 ### Boosting (Sequential Error Correction)
 
 Boosting trains models sequentially. Each new model focuses on the examples that previous models got wrong.
+
+> Boosting 顺序训练模型。每个新模型关注之前模型弄错的样本。
 
 ```mermaid
 flowchart LR
@@ -105,13 +129,21 @@ flowchart LR
 
 Boosting reduces bias. Each new model corrects the systematic errors of the ensemble so far. The final prediction is a weighted sum of all models, where better models get higher weights.
 
+> Boosting 减少偏差。每个新模型纠正迄今为止集成的系统性错误。最终预测是所有模型的加权和，更好的模型获得更高的权重。
+
 The tradeoff: boosting can overfit if you run too many rounds, because it keeps fitting harder examples, some of which may be noise.
+
+> 权衡：如果运行太多轮，Boosting 可能过拟合，因为它持续拟合更难的样本，其中一些可能是噪声。
 
 ### AdaBoost
 
 AdaBoost (Adaptive Boosting) was the first practical boosting algorithm. It works with any base learner, typically decision stumps (depth-1 trees).
 
+> AdaBoost（自适应提升）是第一个实用的提升算法。它适用于任何基学习器，通常使用决策树桩（深度为 1 的树）。
+
 The algorithm:
+
+> 算法流程：
 
 ```
 1. Initialize sample weights: w_i = 1/N for all i
@@ -131,9 +163,13 @@ The algorithm:
 
 Models with lower error get higher alpha. Misclassified samples get higher weights so the next model focuses on them.
 
+> 错误率较低的模型获得更高的 alpha。被误分类的样本获得更高的权重，这样下一个模型就会关注它们。
+
 ### Gradient Boosting
 
 Gradient boosting generalizes boosting to arbitrary loss functions. Instead of reweighting samples, it fits each new model to the residuals (negative gradient of the loss) of the current ensemble.
+
+> 梯度提升将提升推广到任意损失函数。与重新加权样本不同，它将每个新模型拟合到当前集成的残差（损失的负梯度）。
 
 ```
 1. Initialize: F_0(x) = argmin_c sum(L(y_i, c))
@@ -152,24 +188,40 @@ Gradient boosting generalizes boosting to arbitrary loss functions. Instead of r
 
 For squared error loss, the pseudo-residuals are just the actual residuals: `r_i = y_i - F_{t-1}(x_i)`. Each tree literally fits the errors of the previous ensemble.
 
+> 对于平方误差损失，伪残差就是实际残差：`r_i = y_i - F_{t-1}(x_i)`。每棵树实际上在拟合之前集成的误差。
+
 The learning rate (shrinkage) controls how much each tree contributes. Smaller learning rates require more trees but generalize better. Typical values: 0.01 to 0.3.
+
+> 学习率（收缩）控制每棵树的贡献量。更小的学习率需要更多的树但泛化更好。典型值：0.01 到 0.3。
 
 ### XGBoost: Why It Dominates Tabular Data
 
 XGBoost (eXtreme Gradient Boosting) is gradient boosting with engineering optimizations that make it fast, accurate, and resistant to overfitting:
 
+> XGBoost（极端梯度提升）是带有工程优化的梯度提升，使其快速、准确且抗过拟合：
+
 - **Regularized objective:** L1 and L2 penalties on leaf weights prevent individual trees from being too confident
+  **正则化目标**：叶权重的 L1 和 L2 惩罚防止单棵树过于自信
 - **Second-order approximation:** Uses both first and second derivatives of the loss, giving better split decisions
+  **二阶近似**：同时使用损失的一阶和二阶导数，给出更好的分裂决策
 - **Sparsity-aware splits:** Handles missing values natively by learning the best direction for missing data at each split
+  **稀疏感知分裂**：原生处理缺失值，在每个分裂点学习缺失数据的最佳方向
 - **Column subsampling:** Like random forests, samples features at each split for diversity
+  **列子采样**：像随机森林一样，在每次分裂时采样特征以增加多样性
 - **Weighted quantile sketch:** Efficiently finds split points for continuous features on distributed data
+  **加权分位数草图**：高效地在分布式数据上找到连续特征的分裂点
 - **Cache-aware block structure:** Memory layout optimized for CPU cache lines
+  **缓存感知块结构**：针对 CPU 缓存行优化的内存布局
 
 For tabular data, XGBoost (and its successor LightGBM) consistently outperforms neural networks. This is not changing anytime soon. If your data fits in a table with rows and columns, start with gradient boosting.
+
+> 对于表格数据，XGBoost（及其继任者 LightGBM）始终优于神经网络。短期内这不会改变。如果你的数据适合放入行列表格中，从梯度提升开始。
 
 ### Stacking (Meta-Learning)
 
 Stacking uses the predictions of multiple base models as features for a meta-learner.
+
+> Stacking 将多个基模型的预测作为元学习器的特征。
 
 ```mermaid
 flowchart TD
@@ -190,14 +242,22 @@ flowchart TD
 
 The meta-learner learns which base model to trust for which inputs. If the random forest is better at certain regions and the SVM at others, the meta-learner will learn to route accordingly.
 
+> 元学习器学习在哪些输入上信任哪个基模型。如果随机森林在某些区域更好，SVM 在其他区域更好，元学习器会学会相应地路由。
+
 To avoid data leakage, base model predictions must be generated via cross-validation on the training set. You never train base models and generate meta-features on the same data.
+
+> 为避免数据泄漏，基模型预测必须通过训练集上的交叉验证生成。永远不要在相同数据上训练基模型并生成元特征。
 
 ### Voting
 
 The simplest ensemble. Just combine predictions directly.
 
+> 最简单的集成。直接组合预测。
+
 - **Hard voting:** Majority vote on class labels.
+  **硬投票**：对类标签进行多数投票。
 - **Soft voting:** Average predicted probabilities, pick the class with highest average probability. Usually better because it uses confidence information.
+  **软投票**：平均预测概率，选择平均概率最高的类别。通常更好因为它利用了置信度信息。
 
 ## Build It | 动手实现
 
@@ -207,6 +267,8 @@ The simplest ensemble. Just combine predictions directly.
 ### Step 1: Decision Stump (Base Learner)
 
 The code in `code/ensembles.py` implements everything from scratch. We start with a decision stump: a tree with a single split.
+
+> `code/ensembles.py` 中的代码从零实现一切。我们从决策树桩开始：只有一次分裂的树。
 
 ```python
 class DecisionStump:
@@ -309,9 +371,13 @@ class GradientBoostingScratch:
 
 The code verifies that our from-scratch implementations produce similar accuracy to sklearn's `AdaBoostClassifier` and `GradientBoostingClassifier`, and compares all methods side by side.
 
+> 代码验证我们从零的实现产生与 sklearn 的 `AdaBoostClassifier` 和 `GradientBoostingClassifier` 相似的准确率，并并排比较所有方法。
+
 ## Use It | 用框架实现
 
 ### When to Use Each Method
+
+> 何时使用每种方法
 
 | Method | Reduces | Best for | Watch out for |
 |--------|---------|----------|---------------|
@@ -322,20 +388,39 @@ The code verifies that our from-scratch implementations produce similar accuracy
 | Stacking | Both | Getting last 1-2% accuracy | Complex, risk of overfitting meta-learner |
 | Voting | Variance | Quick combination of diverse models | Only helps if models are diverse |
 
+| 方法 | 减少 | 最适合 | 注意事项 |
+|------|------|--------|---------|
+| Bagging / 随机森林 | 方差 | 噪声数据、多特征 | 不能帮助偏差 |
+| AdaBoost | 偏差 | 干净数据、简单基学习器 | 对异常值和噪声敏感 |
+| 梯度提升 | 偏差 | 表格数据、竞赛 | 训练慢、不调参容易过拟合 |
+| XGBoost / LightGBM | 两者 | 生产表格 ML | 超参数多 |
+| Stacking | 两者 | 获取最后 1-2% 准确率 | 复杂、元学习器有过拟合风险 |
+| Voting | 方差 | 快速组合多样模型 | 模型不多样时无帮助 |
+
 ### The Production Stack for Tabular Data
 
 For most tabular prediction problems, this is the order to try:
 
+> 对于大多数表格预测问题，这是推荐的尝试顺序：
+
 1. **LightGBM or XGBoost** with default parameters
+   **LightGBM 或 XGBoost** 使用默认参数
 2. Tune n_estimators, learning_rate, max_depth, min_child_weight
+   调优 n_estimators、learning_rate、max_depth、min_child_weight
 3. If you need the last 0.5%, build a stacking ensemble with 3-5 diverse models
+   如果需要最后 0.5%，构建 3-5 个多样模型的 Stacking 集成
 4. Use cross-validation throughout
+   全程使用交叉验证
 
 Neural networks on tabular data are almost always worse than gradient boosting, despite continued research attempts. TabNet, NODE, and similar architectures occasionally match but rarely beat a well-tuned XGBoost.
+
+> 尽管不断有研究尝试，神经网络在表格数据上几乎总是不如梯度提升。TabNet、NODE 及类似架构偶尔能追平，但很少能击败调好参的 XGBoost。
 
 ## Ship It | 产出物
 
 This lesson produces `outputs/prompt-ensemble-selector.md` -- a prompt that helps you pick the right ensemble method for a given dataset. Describe your data (size, feature types, noise level, class balance) and the problem you are solving. The prompt walks through a decision checklist, recommends a method, suggests starting hyperparameters, and warns about common mistakes for that method. Also produces `outputs/skill-ensemble-builder.md` with the full selection guide.
+
+> 本课产出 `outputs/prompt-ensemble-selector.md`——一个帮助你为给定数据集选择正确集成方法的提示词。描述你的数据（大小、特征类型、噪声水平、类别平衡）和你正在解决的问题。该提示词会引导你走一个决策清单，推荐方法，建议起始超参数，并警告该方法的常见错误。还产出 `outputs/skill-ensemble-builder.md`，包含完整选择指南。
 
 ## Exercises | 练习题
 
