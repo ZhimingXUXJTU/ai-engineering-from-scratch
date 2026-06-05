@@ -33,11 +33,19 @@
 
 You have two classes of data points and need to draw a line (or hyperplane) separating them. Infinitely many lines could work. Which one should you pick?
 
+> 你有两类数据点，需要画一条线（或超平面）将它们分开。无数条线都能工作。你应该选哪一条？
+
 The one with the biggest margin. The margin is the distance between the decision boundary and the nearest data points on each side. A wider margin means the classifier is more confident and generalizes better to unseen data.
+
+> 间隔最大的那条。间隔是决策边界到每一侧最近数据点的距离。更宽的间隔意味着分类器更有信心，对未见数据的泛化能力更好。
 
 This intuition leads to Support Vector Machines, one of the most mathematically elegant algorithms in ML. SVMs were the dominant classification method before deep learning and remain the best choice for small datasets, high-dimensional data, and problems where you need a principled, well-understood model with theoretical guarantees.
 
+> 这个直觉引出了支持向量机——ML 中数学上最优雅的算法之一。SVM 在深度学习之前是主流分类方法，至今仍是小数据集、高维数据以及需要理论保证的问题的最佳选择。
+
 SVMs connect directly to Phase 1: the optimization is convex (Lesson 18), the margin is measured with norms (Lesson 14), and the kernel trick exploits dot products to handle nonlinear boundaries without ever computing in the high-dimensional space.
+
+> SVM 与 Phase 1 直接相关：优化是凸的（第 18 课），间隔用范数衡量（第 14 课），核技巧利用点积处理非线性边界而无需在高维空间中计算。
 
 > **【中文解读】**
 > SVM 的核心思想：在无数条可分离两类数据的直线中，选择离最近数据点最远的那条——即"最大间隔"原则。间隔越大，分类器越自信，泛化能力越好。只有恰好位于间隔边界上的少数点（支持向量）决定了决策边界，其他点不影响结果。这使得 SVM 在预测时内存效率很高。
@@ -48,13 +56,19 @@ SVMs connect directly to Phase 1: the optimization is convex (Lesson 18), the ma
 
 Given linearly separable data with labels y_i in {-1, +1} and feature vectors x_i, we want a hyperplane w^T x + b = 0 that separates the classes.
 
+> 给定标签 y_i 为 {-1, +1} 的线性可分数据和特征向量 x_i，我们需要一个超平面 w^T x + b = 0 来分离类别。
+
 The distance from a point x_i to the hyperplane is:
+
+> 点 x_i 到超平面的距离为：
 
 ```
 distance = |w^T x_i + b| / ||w||
 ```
 
 For a correctly classified point: y_i * (w^T x_i + b) > 0. The margin is twice the distance from the hyperplane to the nearest point on either side.
+
+> 对于正确分类的点：y_i * (w^T x_i + b) > 0。间隔是超平面到两侧最近点距离的两倍。
 
 ```mermaid
 graph LR
@@ -69,6 +83,8 @@ graph LR
 
 The optimization problem:
 
+> 优化问题：
+
 ```
 maximize    2 / ||w||     (the margin width)
 subject to  y_i * (w^T x_i + b) >= 1  for all i
@@ -76,12 +92,16 @@ subject to  y_i * (w^T x_i + b) >= 1  for all i
 
 Equivalently (minimizing ||w||^2 is easier to optimize):
 
+> 等价地（最小化 ||w||^2 更容易优化）：
+
 ```
 minimize    (1/2) ||w||^2
 subject to  y_i * (w^T x_i + b) >= 1  for all i
 ```
 
 This is a convex quadratic program. It has a unique global solution. The data points that sit exactly on the margin boundaries (where y_i * (w^T x_i + b) = 1) are the support vectors. They are the only points that determine the decision boundary. Move or remove any non-support-vector point, and the boundary does not change.
+
+> 这是一个凸二次规划问题。它有唯一的全局解。恰好位于间隔边界上的数据点（y_i * (w^T x_i + b) = 1）就是支持向量。它们是唯一决定决策边界的点。移动或删除任何非支持向量的点，边界不会改变。
 
 ### Support vectors: the critical few
 
@@ -97,11 +117,17 @@ graph TD
 
 Most training points are irrelevant. Only the support vectors matter. This is why SVMs are memory-efficient at prediction time: you only need to store the support vectors, not the entire training set.
 
+> 大多数训练点是无关的。只有支持向量起作用。这就是 SVM 在预测时内存效率高的原因：你只需存储支持向量，而不是整个训练集。
+
 The number of support vectors also gives a bound on generalization error. Fewer support vectors relative to the dataset size means better generalization.
+
+> 支持向量的数量也给出了泛化误差的上界。相对于数据集大小，支持向量越少意味着泛化越好。
 
 ### Soft margin: handling noise with the C parameter
 
 Real data is rarely perfectly separable. Some points may be on the wrong side of the boundary, or inside the margin. The soft margin formulation allows violations by introducing slack variables.
+
+> 真实数据很少完全可分。一些点可能在边界的错误一侧，或在间隔内。软间隔公式通过引入松弛变量允许违规。
 
 ```
 minimize    (1/2) ||w||^2 + C * sum(xi_i)
@@ -111,22 +137,35 @@ subject to  y_i * (w^T x_i + b) >= 1 - xi_i
 
 The slack variable xi_i measures how much point i violates the margin. C controls the trade-off:
 
+> 松弛变量 xi_i 衡量点 i 违反间隔的程度。C 控制权衡：
+
 | C value | Behavior |
 |---------|----------|
 | Large C | Penalizes violations heavily. Narrow margin, fewer misclassifications. Overfits |
 | Small C | Allows more violations. Wide margin, more misclassifications. Underfits |
 
+| C 值 | 行为 |
+|------|------|
+| 大 C | 严重惩罚违规。窄间隔，较少误分类。易过拟合 |
+| 小 C | 允许更多违规。宽间隔，较多误分类。易欠拟合 |
+
 C is the regularization strength, inverted. Large C = less regularization. Small C = more regularization.
+
+> C 是正则化强度的反面。大 C = 较少正则化。小 C = 较多正则化。
 
 ### Hinge loss: the SVM loss function
 
 The soft margin SVM can be rewritten as an unconstrained optimization:
+
+> 软间隔 SVM 可以重写为无约束优化：
 
 ```
 minimize    (1/2) ||w||^2 + C * sum(max(0, 1 - y_i * (w^T x_i + b)))
 ```
 
 The term max(0, 1 - y_i * f(x_i)) is the hinge loss. It is zero when the point is correctly classified and beyond the margin. It is linear when the point is inside the margin or misclassified.
+
+> 项 max(0, 1 - y_i * f(x_i)) 是合页损失。当点被正确分类且在间隔之外时为零。当点在间隔内或被误分类时为线性惩罚。
 
 ```
 Hinge loss for a single point:
@@ -148,6 +187,8 @@ Linear penalty when y*f(x) < 1.
 
 Compare with logistic loss (logistic regression):
 
+> 与逻辑回归的逻辑损失比较：
+
 ```
 Hinge:     max(0, 1 - y*f(x))          Hard cutoff at margin
 Logistic:  log(1 + exp(-y*f(x)))        Smooth, never exactly zero
@@ -155,9 +196,13 @@ Logistic:  log(1 + exp(-y*f(x)))        Smooth, never exactly zero
 
 Hinge loss produces sparse solutions (only support vectors have nonzero contribution). Logistic loss uses all data points. This makes SVMs more memory-efficient at prediction time.
 
+> 合页损失产生稀疏解（只有支持向量有非零贡献）。逻辑损失使用所有数据点。这使得 SVM 在预测时更节省内存。
+
 ### Training a linear SVM with gradient descent
 
 You can train a linear SVM using gradient descent on the hinge loss plus L2 regularization, without solving the constrained QP:
+
+> 你可以在合页损失加 L2 正则化上使用梯度下降训练线性 SVM，无需求解约束二次规划：
 
 ```
 L(w, b) = (lambda/2) * ||w||^2 + (1/n) * sum(max(0, 1 - y_i * (w^T x_i + b)))
@@ -173,12 +218,16 @@ Gradient with respect to b:
 
 This is called the primal formulation. It runs in O(n * d) per epoch, where n is the number of samples and d is the number of features. For large, sparse, high-dimensional data (text classification), this is fast.
 
+> 这被称为原始形式。每轮运行时间为 O(n * d)，其中 n 是样本数，d 是特征数。对于大型稀疏高维数据（文本分类），这很快。
+
 > **【中文解读】**
 > 合页损失（Hinge Loss）是 SVM 的核心损失函数：当样本被正确分类且在间隔之外时损失为 0，否则线性惩罚。与逻辑回归的交叉熵损失不同，合页损失产生稀疏解——只有支持向量有非零贡献，预测时只需存储这些点。C 参数控制间隔宽度与分类错误的权衡：大 C = 窄间隔少犯错（可能过拟合），小 C = 宽间隔多犯错（可能欠拟合）。
 
 ### The dual formulation and the kernel trick
 
 The Lagrangian dual of the SVM problem (from Phase 1 Lesson 18, KKT conditions) is:
+
+> SVM 问题的拉格朗日对偶（来自 Phase 1 第 18 课 KKT 条件）为：
 
 ```
 maximize    sum(alpha_i) - (1/2) * sum_ij(alpha_i * alpha_j * y_i * y_j * (x_i . x_j))
@@ -188,6 +237,8 @@ subject to  0 <= alpha_i <= C
 
 The dual only involves dot products x_i . x_j between data points. This is the key insight. Replace every dot product with a kernel function K(x_i, x_j) and the SVM can learn nonlinear boundaries without ever computing the transformation explicitly.
 
+> 对偶形式只涉及数据点之间的点积 x_i . x_j。这是关键洞察。将每个点积替换为核函数 K(x_i, x_j)，SVM 就能学习非线性边界而无需显式计算变换。
+
 ```
 Linear kernel:      K(x, z) = x . z
 Polynomial kernel:  K(x, z) = (x . z + c)^d
@@ -195,6 +246,8 @@ RBF (Gaussian):     K(x, z) = exp(-gamma * ||x - z||^2)
 ```
 
 The RBF kernel maps data into an infinite-dimensional space. Points that are close in input space have kernel value near 1. Points that are far apart have kernel value near 0. It can learn any smooth decision boundary.
+
+> RBF 核将数据映射到无限维空间。输入空间中相近的点核值接近 1。远离的点核值接近 0。它能学习任何光滑的决策边界。
 
 ```mermaid
 graph LR
@@ -209,6 +262,8 @@ graph LR
 
 The kernel trick computes the dot product in the high-dimensional space without ever going there. For the polynomial kernel of degree d in D dimensions, the explicit feature space has O(D^d) dimensions. But K(x, z) is computed in O(D) time.
 
+> 核技巧在高维空间中计算点积而无需实际到达那里。对于 D 维中的 d 次多项式核，显式特征空间有 O(D^d) 维。但 K(x, z) 只需 O(D) 时间计算。
+
 > **【中文解读】**
 > 核技巧是 SVM 最优雅的数学贡献。对偶形式只涉及数据点之间的点积 x_i · x_j，将其替换为核函数 K(x_i, x_j) 即可在高维（甚至无限维）空间中学习非线性边界，而无需显式计算高维映射。RBF 核将数据映射到无限维空间，能学习任意光滑的决策边界。计算开销：多项式核的显式特征空间有 O(D^d) 维，但核函数只需 O(D) 时间。
 
@@ -219,6 +274,8 @@ The kernel trick computes the dot product in the high-dimensional space without 
 
 Support Vector Regression fits a tube of width epsilon around the data. Points inside the tube have zero loss. Points outside the tube are penalized linearly.
 
+> 支持向量回归在数据周围拟合一个宽度为 epsilon 的管道。管道内的点损失为零。管道外的点被线性惩罚。
+
 ```
 minimize    (1/2) ||w||^2 + C * sum(xi_i + xi_i*)
 subject to  y_i - (w^T x_i + b) <= epsilon + xi_i
@@ -228,9 +285,13 @@ subject to  y_i - (w^T x_i + b) <= epsilon + xi_i
 
 The epsilon parameter controls the tube width. Wider tube = fewer support vectors = smoother fit. Narrower tube = more support vectors = tighter fit.
 
+> epsilon 参数控制管道宽度。更宽的管道 = 更少的支持向量 = 更平滑的拟合。更窄的管道 = 更多的支持向量 = 更紧密的拟合。
+
 ### Why SVMs lost to deep learning (and when they still win)
 
 SVMs dominated ML from the late 1990s through the early 2010s. Deep learning surpassed them for several reasons:
+
+> SVM 在 20 世纪 90 年代末到 2010 年代初主导了 ML。深度学习超越了它们，原因如下：
 
 | Factor | SVMs | Deep learning |
 |--------|------|---------------|
@@ -240,19 +301,37 @@ SVMs dominated ML from the late 1990s through the early 2010s. Deep learning sur
 | Large datasets (>100k) | Slow | Scales well |
 | GPU acceleration | Limited benefit | Massive speedup |
 
+| 因素 | SVM | 深度学习 |
+|------|-----|---------|
+| 特征工程 | 需要手动 | 自动学习 |
+| 可扩展性 | 核方法 O(n^2) 到 O(n^3) | SGD 每轮 O(n) |
+| 图像/文本/音频 | 需要手工特征 | 从原始数据学习 |
+| 大数据集（>10 万） | 较慢 | 扩展性好 |
+| GPU 加速 | 有限收益 | 大幅提速 |
+
 SVMs still win in these situations:
 - Small datasets (hundreds to low thousands of samples)
+  小数据集（数百到数千样本）
 - High-dimensional sparse data (text with TF-IDF features)
+  高维稀疏数据（文本的 TF-IDF 特征）
 - When you need mathematical guarantees (margin bounds)
+  需要数学保证时（间隔边界）
 - When training time must be minimal (linear SVM is very fast)
+  训练时间必须最短时（线性 SVM 非常快）
 - Binary classification with clear margin structure
+  具有清晰间隔结构的二分类
 - Anomaly detection (one-class SVM)
+  异常检测（单类 SVM）
+
+> SVM 在以下情况下仍然胜出：
 
 ## Build It | 动手实现
 
 ### Step 1: Hinge loss and gradient
 
 The foundation. Compute hinge loss for a batch and its gradient.
+
+> 基础。计算一批数据的合页损失及其梯度。
 
 ```python
 def hinge_loss(X, y, w, b):
@@ -267,6 +346,8 @@ def hinge_loss(X, y, w, b):
 ### Step 2: Linear SVM via gradient descent
 
 Train by minimizing regularized hinge loss. No QP solver needed.
+
+> 通过最小化正则化合页损失训练。无需 QP 求解器。
 
 ```python
 class LinearSVM:
@@ -303,6 +384,8 @@ class LinearSVM:
 
 Implement linear, polynomial, and RBF kernels.
 
+> 实现线性核、多项式核和 RBF 核。
+
 ```python
 def linear_kernel(x, z):
     return dot(x, z)  # 线性核：直接点积
@@ -319,6 +402,8 @@ def rbf_kernel(x, z, gamma=0.5):
 
 After training, identify which points are support vectors and compute the margin width.
 
+> 训练后，识别哪些点是支持向量并计算间隔宽度。
+
 ```python
 def find_support_vectors(X, y, w, b, tol=1e-3):
     support_vectors = []
@@ -331,12 +416,16 @@ def find_support_vectors(X, y, w, b, tol=1e-3):
 
 See `code/svm.py` for the complete implementation with all demos.
 
+> 完整实现（含所有演示）见 `code/svm.py`。
+
 ## Use It | 用框架实现
 
 > **【中文解读】**
 > sklearn 中 SVM 的使用关键点：(1) 必须先标准化特征——SVM 对特征尺度敏感，因为间隔依赖 ||w||；(2) 小数据集用 SVC（支持核函数），大数据集用 LinearSVC（使用原始形式，O(n) 每轮）；(3) gamma 控制 RBF 核的影响范围，太大→过拟合，太小→欠拟合。Pipeline 封装确保 scaler 在训练集上 fit、在测试集上只 transform。
 
 With scikit-learn:
+
+> 使用 scikit-learn：
 
 ```python
 from sklearn.svm import SVC, LinearSVC, SVR
@@ -355,7 +444,11 @@ print(f"Support vectors: {clf['svm'].n_support_}")
 
 Important: always scale your features before training an SVM. SVMs are sensitive to feature magnitudes because the margin depends on ||w||, and unscaled features distort the geometry.
 
+> 重要：训练 SVM 前务必缩放特征。SVM 对特征量级敏感，因为间隔依赖 ||w||，未缩放的特征会扭曲几何结构。
+
 For large datasets, use `LinearSVC` (primal formulation, O(n) per epoch) instead of `SVC` (dual formulation, O(n^2) to O(n^3)):
+
+> 对于大数据集，使用 `LinearSVC`（原始形式，每轮 O(n)）而不是 `SVC`（对偶形式，O(n^2) 到 O(n^3)）：
 
 ```python
 from sklearn.svm import LinearSVC
