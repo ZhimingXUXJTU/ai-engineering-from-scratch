@@ -6,10 +6,10 @@
 
 > **【拓展：全双工语音 AI】** 传统语音助手是"半双工"（听的时候不能说），Moshi 实现了"全双工"（同时听说），就像人类自然对话一样。这是 2026 年语音 AI 最前沿的方向。
 
-**Type:** Learn
-**Languages:** Python
-**Prerequisites:** Phase 6 · 13 (Neural Audio Codecs), Phase 6 · 11 (Real-Time Audio), Phase 7 · 05 (Full Transformer)
-**Time:** ~75 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 6 · 13 (Neural Audio Codecs), Phase 6 · 11 (Real-Time Audio), Phase 7 · 05 (Full Transformer) | **前置知识:** 阶段 6 · 13（神经音频编解码器），阶段 6 · 11（实时音频），阶段 7 · 05（完整 Transformer）
+**Time:** ~75 minutes | **预计用时:** ~75 分钟
 
 ## The Problem | 问题引入
 

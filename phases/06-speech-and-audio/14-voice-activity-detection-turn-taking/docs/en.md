@@ -4,10 +4,10 @@
 
 > **【中文解读】** 每个语音助手的成败取决于两个判断：用户现在在说话吗？用户说完了吗？VAD（语音活动检测）回答第一个，轮次检测（VAD+静音持续+语义终点模型）回答第二个。任何一个搞错，助手要么打断用户，要么永远不开口。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 6 · 11 (Real-Time Audio), Phase 6 · 12 (Voice Assistant)
-**Time:** ~45 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 6 · 11 (Real-Time Audio), Phase 6 · 12 (Voice Assistant) | **前置知识:** 阶段 6 · 11（实时音频），阶段 6 · 12（语音助手）
+**Time:** ~45 minutes | **预计用时:** ~45 分钟
 
 ## The Problem | 问题引入
 
