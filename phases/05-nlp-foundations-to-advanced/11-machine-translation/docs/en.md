@@ -1,6 +1,7 @@
 # Machine Translation | 机器翻译
 
 > Translation is the task that paid for NLP research for thirty years and keeps paying now.
+> 翻译是为 NLP 研究买单三十年的任务，现在仍在继续。
 
 > **【中文解读】** 从统计机器翻译到神经机器翻译。现代用 Transformer。
 

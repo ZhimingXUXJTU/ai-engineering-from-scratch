@@ -1,6 +1,7 @@
 # Topic Modeling — LDA and BERTopic | 主题建模 — LDA 与 BERTopic
 
 > LDA: documents are mixtures of topics, topics are distributions over words. BERTopic: documents cluster in embedding space, clusters are topics. Same goal, different decompositions.
+> LDA：文档是主题的混合，主题是词的分布。BERTopic：文档在嵌入空间中聚类，聚类就是主题。相同目标，不同分解。
 
 > **【中文解读】** LDA 用概率模型发现主题，BERTopic 用 BERT 嵌入。
 

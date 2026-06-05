@@ -1,6 +1,7 @@
 # Text Summarization | 文本摘要
 
 > Extractive systems tell you what the document said. Abstractive systems tell you what the author meant. Different tasks, different pitfalls.
+> 抽取式系统告诉你文档说了什么。生成式系统告诉你作者的意思。不同的任务，不同的陷阱。
 
 > **【中文解读】** 抽取式 vs 生成式摘要。
 
