@@ -69,18 +69,29 @@ flowchart LR
 
 A "concept prompt" is a short noun phrase (`"yellow school bus"`, `"striped red umbrella"`, `"hand holding a mug"`) or an image exemplar. The model returns segmentation masks for every instance in the image that matches the concept, plus a unique instance ID per match.
 
+> "概念提示词"是一个简短的名词短语或一个图像示例。模型返回图像中匹配该概念的所有实例的分割掩码，加上每个匹配的唯一实例 ID。
+
 This differs from classic visual-prompt SAM in three ways:
 
+> 这与经典的视觉提示 SAM 有三个区别：
+
 1. No per-instance prompting required — one text prompt returns all matches.
+   中文翻译：无需逐实例提示——一个文本提示返回所有匹配。
 2. Open-vocabulary — the concept can be anything describable in natural language.
+   中文翻译：开放词汇——概念可以是自然语言可描述的任何东西。
 3. Returns multiple instances at once rather than one mask per prompt.
+   中文翻译：一次返回多个实例，而不是每个提示一个掩码。
 
 ### Key architectural pieces
 
 - **Shared backbone** — a single ViT processes the image. Both the detector head and the memory-based tracker read from it.
+  中文翻译：**共享骨干**——单个 ViT 处理图像。检测头和基于内存的跟踪器都从中读取。
 - **Presence head** — predicts whether the concept is present in the image at all. Decouples "is this here?" from "where is it?". Reduces false positives on absent concepts.
+  中文翻译：**存在性头**——预测概念是否存在于图像中。将"这在这里吗？"与"它在哪里？"解耦。减少不存在概念上的假阳性。
 - **Decoupled detector-tracker** — image-level detection and video-level tracking have separate heads so they do not interfere.
+  中文翻译：**解耦的检测器-跟踪器**——图像级检测和视频级跟踪有独立的头，互不干扰。
 - **Memory bank** — stores per-instance features across frames for video tracking (same mechanism SAM 2 used).
+  中文翻译：**记忆库**——跨帧存储每个实例的特征，用于视频跟踪（与 SAM 2 相同的机制）。
 
 ### Training at scale
 
@@ -102,9 +113,13 @@ Modular pipelines still have a place. For most production work, SAM 3 is the sim
 ### YOLO-World vs SAM 3
 
 - **YOLO-World** — open-vocabulary detector only (no masks). Real-time. Best when you need boxes at high fps.
+  中文翻译：**YOLO-World**——仅开放词汇检测器（无掩码）。实时。需要高 fps 框时的最佳选择。
 - **SAM 3** — full segmentation + tracking. Slower but richer output.
+  中文翻译：**SAM 3**——完整分割 + 跟踪。更慢但输出更丰富。
 
 Production split: YOLO-World for fast detection-only pipelines (robotics navigation, fast dashboards), SAM 3 for anything that needs masks or tracking.
+
+> 生产分工：YOLO-World 用于快速仅检测流水线（机器人导航、快速仪表盘），SAM 3 用于需要掩码或跟踪的场景。
 
 ### SAM-MI efficiency
 

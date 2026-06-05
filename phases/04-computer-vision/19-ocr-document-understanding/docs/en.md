@@ -62,12 +62,17 @@ flowchart LR
 ```
 
 - **Text detection** produces per-line or per-word quadrilaterals.
+  中文翻译：**文本检测**生成每行或每词的四边形框。
 - **Recognition** crops each region to a fixed height, runs a CNN + BiLSTM + CTC to produce a character sequence.
+  中文翻译：**识别**将每个区域裁剪为固定高度，运行 CNN + BiLSTM + CTC 生成字符序列。
 - **Layout** rebuilds reading order (top-to-bottom, left-to-right for Latin; different for Arabic, Japanese).
+  中文翻译：**布局**重建阅读顺序（拉丁文从上到下、从左到右；阿拉伯文和日文不同）。
 
 ### CTC in one paragraph
 
 OCR recognition produces a variable-length sequence from a fixed-length feature map. CTC (Graves et al., 2006) lets you train this without character-level alignment. The model outputs a distribution over (vocab + blank) at every time step; CTC loss marginalises over all alignments that reduce to the target text after merging repeats and removing blanks.
+
+> OCR 识别从固定长度的特征图生成可变长度序列。CTC（Graves 等，2006）让你无需字符级对齐就能训练。模型在每个时间步输出（词表 + 空白）上的分布；CTC 损失对所有合并重复和移除空白后归约为目标文本的对齐方式进行边缘化。
 
 ```
 raw output: "h h h _ _ e e l l _ l l o _ _"
@@ -76,27 +81,43 @@ after merge repeats and remove blanks: "hello"
 
 CTC is the reason CRNN worked in 2015 and still trains most production OCR models in 2026.
 
+> CTC 是 CRNN 在 2015 年就有效并且在 2026 年仍训练大多数生产 OCR 模型的原因。
+
 ### Modern end-to-end models
 
 - **Donut** (Kim et al., 2022) — a ViT encoder + a text decoder; reads an image and emits JSON directly. No text detector, no layout module.
+  中文翻译：**Donut**（Kim 等，2022）——ViT 编码器 + 文本解码器；读取图像直接输出 JSON。无需文本检测器或布局模块。
 - **TrOCR** — ViT + transformer decoder for line-level OCR.
+  中文翻译：**TrOCR**——ViT + Transformer 解码器，用于行级 OCR。
 - **Qwen-VL-OCR / InternVL** — full vision-language models fine-tuned for OCR tasks; best accuracy in 2026 on complex documents.
+  中文翻译：**Qwen-VL-OCR / InternVL**——为 OCR 任务微调的完整视觉语言模型；2026 年在复杂文档上精度最高。
 - **PaddleOCR** — classical DB + CRNN pipeline in a mature production package; still the open-source workhorse.
+  中文翻译：**PaddleOCR**——成熟生产包中的经典 DB + CRNN 流水线；仍是开源主力。
 
 End-to-end models need more data and compute but skip the error accumulation of multi-stage pipelines.
+
+> 端到端模型需要更多数据和计算，但跳过了多阶段流水线的误差累积。
 
 ### Layout parsing
 
 For structured documents, run a layout detector (LayoutLMv3, DocLayNet) that labels each region: Title, Paragraph, Figure, Table, Footnote. Reading order then becomes "iterate through regions in layout order, concatenate."
 
+> 对于结构化文档，运行布局检测器（LayoutLMv3、DocLayNet）标记每个区域：标题、段落、图、表、脚注。阅读顺序变成"按布局顺序遍历区域，拼接"。
+
 For forms, use **Key-Value extraction** models (Donut for visually-rich documents, LayoutLMv3 for plain scans). They take image + detected text + positions and predict structured key-value pairs.
+
+> 对于表单，使用**键值提取**模型（视觉丰富文档用 Donut，普通扫描用 LayoutLMv3）。它们接收图像 + 检测到的文本 + 位置，预测结构化的键值对。
 
 ### Evaluation metrics
 
 - **Character Error Rate (CER)** — Levenshtein distance / length of reference. Lower is better. Production target: < 2% on clean scans.
+  中文翻译：**字符错误率（CER）**——编辑距离 / 参考文本长度。越低越好。生产目标：清晰扫描上 < 2%。
 - **Word Error Rate (WER)** — same at the word level.
+  中文翻译：**词错误率（WER）**——词级别的同样指标。
 - **F1 on structured fields** — for key-value tasks; measures whether `{invoice_total: 42.50}` appears correctly.
+  中文翻译：**结构化字段 F1**——键值任务的指标；衡量 `{invoice_total: 42.50}` 是否正确出现。
 - **Edit distance on JSON** — for end-to-end document parsing; the Donut paper introduced normalised tree edit distance.
+  中文翻译：**JSON 编辑距离**——端到端文档解析的指标；Donut 论文引入了归一化树编辑距离。
 
 > **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
 
@@ -148,9 +169,13 @@ def greedy_ctc_decode(log_probs, blank=0):
 
 `F.ctc_loss` uses the efficient CuDNN implementation when available. The greedy decoder is simpler than a beam search and usually within 1% CER of it.
 
+> `F.ctc_loss` 在可用时使用高效的 CuDNN 实现。贪心解码器比束搜索简单，通常 CER 差距在 1% 以内。
+
 ### Step 2: Tiny CRNN recogniser
 
 Minimal CNN + BiLSTM for line OCR.
+
+> 用于行 OCR 的最小 CNN + BiLSTM。
 
 ```python
 class TinyCRNN(nn.Module):
@@ -179,9 +204,13 @@ class TinyCRNN(nn.Module):
 
 Fixed-height input (the CNN max-pools height to 1). Width is the time dimension for CTC.
 
+> 固定高度输入（CNN 将高度最大池化到 1）。宽度是 CTC 的时间维度。
+
 ### Step 3: Synthetic OCR
 
 Generate black-on-white digit strings for an end-to-end smoke test.
+
+> 生成白底黑字的数字字符串，用于端到端冒烟测试。
 
 ```python
 import numpy as np
@@ -217,6 +246,8 @@ print(f"images: {imgs.shape}   targets: {targets.shape}   lengths: {lengths.toli
 
 A real OCR dataset adds fonts, noise, rotation, blur, and colour. The pipeline above is identical.
 
+> 真实 OCR 数据集会增加字体、噪声、旋转、模糊和颜色。上面的流水线完全相同。
+
 ### Step 4: Training sketch
 
 ```python
@@ -236,6 +267,8 @@ for step in range(200):
 
 
 Loss should drop from ~3 to ~0.2 over 200 steps on this trivial synthetic data.
+
+> 在这个简单的合成数据上，200 步内损失应从约 3 降到约 0.2。
 
 
 

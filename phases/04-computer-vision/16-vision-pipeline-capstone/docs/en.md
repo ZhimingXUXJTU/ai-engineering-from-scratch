@@ -59,9 +59,13 @@ flowchart LR
 
 Seven stages. The two model stages are expensive; the five other stages are where the bugs live.
 
+> 七个阶段。两个模型阶段是昂贵的；其余五个阶段是 bug 藏身之处。
+
 ### Data contracts with Pydantic
 
 Every model boundary becomes a typed object. This turns silent failures into loud ones.
+
+> 每个模型边界都变成类型化对象。这将静默失败变成显式错误。
 
 ```
 Detection(
@@ -81,29 +85,47 @@ PipelineResult(
 
 When a detector returns boxes in `(cx, cy, w, h)` instead of `(x1, y1, x2, y2)`, Pydantic's validation fails at the boundary and you find out immediately instead of debugging a downstream crop that silently returns empty regions.
 
+> 当检测器返回 `(cx, cy, w, h)` 而非 `(x1, y1, x2, y2)` 格式的框时，Pydantic 的验证会在边界处失败，你立刻就能发现问题，而不是调试下游裁剪时发现它静默返回空区域。
+
 ### Where latency goes
 
 Three truths hold in nearly every vision pipeline:
 
+> 几乎每个视觉流水线都成立的三个事实：
+
 1. **Preprocessing is often the biggest single block.** Decoding JPEGs, converting colour spaces, resizing — these are CPU-bound and easy to forget.
+   中文翻译：**预处理通常是最大的单一开销。** 解码 JPEG、转换色彩空间、缩放——这些都是 CPU 密集型的，容易被遗忘。
 2. **The detector dominates GPU time.** 70-90% of GPU time is in the detection forward pass.
+   中文翻译：**检测器占据 GPU 时间的主导。** 70-90% 的 GPU 时间花在检测前向传播上。
 3. **Postprocessing (NMS, RLE encode/decode) is cheap on GPU, expensive on CPU.** Always profile with the actual target.
+   中文翻译：**后处理（NMS、RLE 编解码）在 GPU 上便宜，在 CPU 上昂贵。** 始终在实际目标上分析。
 
 Knowing the distribution is what turns optimisation into a prioritised list.
+
+> 了解分布情况才能将优化变成优先级列表。
 
 ### Failure modes
 
 - **Empty detections** — return empty list, do not crash. Log.
+  中文翻译：**空检测结果**——返回空列表，不要崩溃。记录日志。
 - **Out-of-bounds boxes** — clamp to image size before cropping.
+  中文翻译：**越界框**——裁剪前限制到图像尺寸内。
 - **Tiny crops** — skip classification for boxes smaller than the classifier's minimum input.
+  中文翻译：**微小裁剪**——跳过小于分类器最小输入的框的分类。
 - **Corrupt upload** — 400 response with a specific error code, not 500.
+  中文翻译：**损坏的上传**——返回带特定错误码的 400 响应，不是 500。
 - **Model load failure** — fail at service startup, not at first request.
+  中文翻译：**模型加载失败**——在服务启动时失败，而不是第一个请求时。
 
 A production pipeline handles each of these without writing generic `try/except` that hides the failure. Every failure gets a named code and a response.
+
+> 生产级流水线处理每种情况时不用隐藏失败的泛型 `try/except`。每个失败都有命名代码和响应。
 
 ### Batching
 
 A production service serves multiple clients. Batching detections and classifications across requests multiplies throughput. The trade-off: extra latency from waiting for a batch to fill. Typical setup: collect requests for up to 20ms, batch together, process, distribute responses. `torchserve` and `triton` do this natively; small services with predictable load roll their own micro-batcher.
+
+> 生产服务同时服务多个客户端。跨请求批量处理检测和分类可以倍增吞吐量。代价：等待批次填满带来的额外延迟。典型设置：收集请求最多 20ms，批量处理，分发响应。`torchserve` 和 `triton` 原生支持；负载可预测的小型服务可以自己实现微批处理器。
 
 > **【拓展：工业部署中的视觉系统】** 在实际工业部署中，视觉模型需要考虑推理延迟、模型大小、边缘设备适配等问题。TensorRT、ONNX Runtime、OpenVINO 是常用的推理加速工具。自动驾驶系统（如 Tesla FSD）通常在车载芯片上实时运行多个视觉模型。
 
@@ -147,6 +169,8 @@ class PipelineResult(BaseModel):
 ```
 
 Five seconds of code saves an hour of debugging on any serious pipeline.
+
+> 五秒钟的代码能节省任何严肃流水线上一小时的调试。
 
 ### Step 2: A minimal Pipeline class
 
@@ -239,6 +263,8 @@ class VisionPipeline:
 
 Every interface is typed. Every failure path has a specific handling decision.
 
+> 每个接口都是类型化的。每个失败路径都有明确的处理决策。
+
 ### Step 3: Wire a detector and a classifier
 
 ```python
@@ -289,6 +315,8 @@ async def detect_endpoint(file: UploadFile):
 
 Run with `uvicorn main:app --host 0.0.0.0 --port 8000`. Test with `curl -F 'file=@dog.jpg' http://localhost:8000/detect`.
 
+> 用 `uvicorn main:app --host 0.0.0.0 --port 8000` 运行。用 `curl -F 'file=@dog.jpg' http://localhost:8000/detect` 测试。
+
 ### Step 5: Benchmark the pipeline
 
 ```python
@@ -329,6 +357,8 @@ def benchmark(pipe, num_runs=20, image_size=(400, 600)):
 ```
 
 Typical output on CPU: preprocess ~3 ms, detect 300-500 ms, classify 20-40 ms, total 350-550 ms. On GPU, detect is 20-40 ms and the preprocess + classify start to matter more in relative terms.
+
+> CPU 上的典型输出：预处理约 3ms、检测 300-500ms、分类 20-40ms、总计 350-550ms。在 GPU 上，检测约 20-40ms，预处理和分类的相对占比变得更重要。
 
 > **【中文解读】** 本节展示如何用成熟框架（如 PyTorch、HuggingFace 等）快速应用该技术。在实际项目中，优先使用经过验证的框架实现，可以减少 bug 并提高开发效率。
 

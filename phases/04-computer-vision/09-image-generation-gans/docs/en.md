@@ -57,9 +57,13 @@ flowchart LR
 
 The **generator** G takes a vector of noise `z` and outputs an image. The **discriminator** D takes an image and outputs a single scalar: the probability that the image is real.
 
+> **生成器** G 接收噪声向量 `z` 并输出一张图像。**判别器** D 接收一张图像并输出一个标量：该图像为真实图像的概率。
+
 ### The game
 
 G wants D to be wrong. D wants to be right. Formally:
+
+> G 希望 D 判断错误，D 希望判断正确。形式化地：
 
 ```
 min_G max_D  E_x[log D(x)] + E_z[log(1 - D(G(z)))]
@@ -67,11 +71,17 @@ min_G max_D  E_x[log D(x)] + E_z[log(1 - D(G(z)))]
 
 Read right to left: D is maximising accuracy on real (`log D(real)`) and fake (`log (1 - D(fake))`) images. G is minimising D's accuracy on fakes — it wants `D(G(z))` to be high.
 
+> 从右往左读：D 在最大化对真实图像（`log D(real)`）和假图像（`log(1 - D(fake))`）的分类准确率。G 在最小化 D 对假图像的分类准确率——它希望 `D(G(z))` 尽可能高。
+
 Goodfellow proved that this minimax has a global equilibrium where `p_G = p_data`, D outputs 0.5 everywhere, and the Jensen-Shannon divergence between generated and real distributions is zero. The hard part is getting there.
+
+> Goodfellow 证明了这个极小极大博弈存在全局均衡点，此时 `p_G = p_data`，D 在所有位置输出 0.5，生成分布与真实分布之间的 Jensen-Shannon 散度为零。困难的部分是如何到达那个均衡。
 
 ### Non-saturating loss
 
 The form above is numerically unstable. Early in training, `D(G(z))` is near zero for every fake, so `log(1 - D(G(z)))` has vanishing gradients with respect to G. The fix: flip G's loss.
+
+> 上述形式在数值上不稳定。训练早期，`D(G(z))` 对每个假样本都接近零，因此 `log(1 - D(G(z)))` 对 G 的梯度趋于消失。修复方法：翻转 G 的损失函数。
 
 ```
 L_D = -E_x[log D(x)] - E_z[log(1 - D(G(z)))]
@@ -80,17 +90,28 @@ L_G = -E_z[log D(G(z))]                          # non-saturating
 
 Now when `D(G(z))` is near zero, G's loss is large and its gradient is informative. Every modern GAN trains with this variant.
 
+> 现在，当 `D(G(z))` 接近零时，G 的损失很大，梯度信息充足。每个现代 GAN 都使用这个变体训练。
+
 ### DCGAN architecture rules
 
 Radford, Metz, Chintala (2015) distilled years of failed experiments into five rules that make GAN training stable:
 
+> Radford、Metz、Chintala（2015）将多年失败实验的经验提炼为五条使 GAN 训练稳定的规则：
+
 1. Replace pooling with strided convs (both nets).
+   中文翻译：用步幅卷积替代池化层（两个网络都适用）。
 2. Use batch norm in both generator and discriminator, except output of G and input of D.
+   中文翻译：在生成器和判别器中都使用批归一化，但 G 的输出层和 D 的输入层除外。
 3. Remove fully connected layers on deeper architectures.
+   中文翻译：在更深的架构中移除全连接层。
 4. G uses ReLU on all layers except output (tanh for output in [-1, 1]).
+   中文翻译：G 在所有层使用 ReLU，输出层除外（输出层用 tanh 将值域限制在 [-1, 1]）。
 5. D uses LeakyReLU (negative_slope=0.2) on all layers.
+   中文翻译：D 在所有层使用 LeakyReLU（负斜率=0.2）。
 
 Every modern conv-based GAN (StyleGAN, BigGAN, GigaGAN) still starts from these rules and replaces pieces one at a time.
+
+> 每个现代基于卷积的 GAN（StyleGAN、BigGAN、GigaGAN）仍然从这些规则出发，逐一替换其中的组件。
 
 ### Failure modes and their signatures
 
@@ -106,19 +127,30 @@ flowchart LR
 ```
 
 - **Mode collapse**: G finds one image that fools D and produces only that. Fix: add minibatch discrimination, spectral norm, or label-conditioning.
+  中文翻译：模式坍塌——G 找到一张能骗过 D 的图像，然后只生成那张。修复：添加小批量判别、谱归一化或标签条件化。
 - **Discriminator wins**: D becomes too strong too fast, G's gradients vanish. Fix: smaller D, lower D learning rate, or apply label smoothing on the real labels.
+  中文翻译：判别器完胜——D 变得太强太快，G 的梯度消失。修复：缩小 D、降低 D 学习率或对真实标签进行平滑。
 - **Oscillation**: the two nets trade wins without ever approaching equilibrium. Fix: TTUR (D learns faster than G by a factor of 2-4), or switch to Wasserstein loss.
+  中文翻译：振荡——两个网络交替占优，永远无法逼近均衡。修复：TTUR（D 比 G 快 2-4 倍）或切换到 Wasserstein 损失。
 
 ### Evaluation
 
 GANs have no ground truth, so how do you know they are working?
 
+> GAN 没有标准答案，那么如何判断它们是否在正常工作？
+
 - **Sample inspection** — just look at 64 samples at the end of every epoch. Non-negotiable.
+  中文翻译：样本检查——每个 epoch 结束时看 64 个样本。这是不可省略的步骤。
 - **FID (Fréchet Inception Distance)** — distance between Inception-v3 feature distributions of real and generated sets. Lower is better. Community standard.
+  中文翻译：FID（Fréchet Inception Distance）——真实集和生成集在 Inception-v3 特征分布之间的距离。越低越好。社区标准。
 - **Inception Score** — older, more brittle; prefer FID.
+  中文翻译：Inception Score——较老、较脆弱；优先使用 FID。
 - **Precision/Recall for generative models** — measures quality (precision) and coverage (recall) separately. More informative than FID alone.
+  中文翻译：生成模型的精确率/召回率——分别衡量质量（精确率）和覆盖度（召回率）。比单独的 FID 更有信息量。
 
 For a small synthetic-data run, sample inspection is enough.
+
+> 对于小规模的合成数据实验，样本检查就够了。
 
 > **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
 
@@ -134,6 +166,8 @@ For a small synthetic-data run, sample inspection is enough.
 ### Step 1: Generator
 
 A small DCGAN generator that takes 64-dim noise and produces a 32x32 image.
+
+> 一个小型 DCGAN 生成器，接收 64 维噪声并生成 32x32 图像。
 
 ```python
 import torch
@@ -162,9 +196,13 @@ class Generator(nn.Module):
 
 Four transposed convs, each with `kernel_size=4, stride=2, padding=1` so they cleanly double spatial size. Output activations in [-1, 1] via tanh.
 
+> 四个转置卷积，每个使用 `kernel_size=4, stride=2, padding=1` 以便干净地将空间尺寸翻倍。通过 tanh 将输出激活值限制在 [-1, 1]。
+
 ### Step 2: Discriminator
 
 Mirror of the generator. LeakyReLU, strided convs, ends with a scalar logit.
+
+> 生成器的镜像。LeakyReLU、步幅卷积，最终输出一个标量 logit。
 
 ```python
 class Discriminator(nn.Module):
@@ -188,9 +226,13 @@ class Discriminator(nn.Module):
 
 The last conv reduces a `4x4` feature map to `1x1`. Output is a single scalar per image; apply sigmoid only during loss computation.
 
+> 最后一个卷积将 `4x4` 特征图缩减为 `1x1`。每张图像输出一个标量；仅在损失计算时应用 sigmoid。
+
 ### Step 3: Training step
 
 Alternate: update D once, then G once, every batch.
+
+> 交替进行：每个 batch 先更新 D 一次，再更新 G 一次。
 
 ```python
 import torch.nn.functional as F
@@ -219,6 +261,8 @@ def train_step(G, D, real, z, opt_g, opt_d, device):
 ```
 
 `G(z).detach()` in the D step is critical: we do not want gradients flowing into G during its update. Forgetting that is the classic beginner bug.
+
+> D 步骤中的 `G(z).detach()` 至关重要：我们不希望在 D 的更新过程中梯度流回 G。忘记这一点是典型的初学者 bug。
 
 ### Step 4: Full training loop on synthetic shapes
 
@@ -257,6 +301,8 @@ for epoch in range(10):
 
 `Adam(lr=2e-4, betas=(0.5, 0.999))` is the DCGAN default — the low beta1 keeps the momentum term from stabilising the adversarial game too much.
 
+> `Adam(lr=2e-4, betas=(0.5, 0.999))` 是 DCGAN 的默认配置——较低的 beta1 防止动量项过度稳定对抗博弈。
+
 ### Step 5: Sampling
 
 ```python
@@ -271,9 +317,13 @@ def sample(G, n=16, z_dim=64, device="cpu"):
 
 Always switch to eval mode before sampling. For DCGAN this matters because batch norm running stats are used instead of the batch's stats.
 
+> 采样前务必切换到 eval 模式。对 DCGAN 来说这很重要，因为批归一化会使用运行时统计量而不是当前 batch 的统计量。
+
 ### Step 6: Spectral normalisation
 
 A drop-in replacement for BN in the discriminator that guarantees the network is 1-Lipschitz. Fixes most "D wins too hard" failures.
+
+> 谱归一化是判别器中批归一化的即插即用替代方案，保证网络是 1-Lipschitz 的。能修复大多数 "D 赢得太彻底" 的问题。
 
 ```python
 from torch.nn.utils import spectral_norm
@@ -294,6 +344,8 @@ def build_sn_discriminator(img_channels=3, feat=64):
 
 
 Swap `Discriminator` for `build_sn_discriminator()` and you often do not need the TTUR trick. Spectral norm is the easiest single robustness upgrade you can apply.
+
+> 将 `Discriminator` 替换为 `build_sn_discriminator()` 后通常就不需要 TTUR 技巧了。谱归一化是你能应用的最简单的单一鲁棒性升级。
 
 
 

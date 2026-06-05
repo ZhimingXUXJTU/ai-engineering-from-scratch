@@ -61,22 +61,32 @@ flowchart LR
 ```
 
 1. **Vision encoder** — a pretrained ViT (CLIP-L/14, SigLIP, DINOv3, or a fine-tuned variant). Produces patch tokens.
+   中文翻译：**视觉编码器**——预训练的 ViT（CLIP-L/14、SigLIP、DINOv3 或微调变体）。产生补丁 token。
 2. **Projector** — a small module (2-4 layer MLP, or a Q-former) that maps vision tokens into the LLM's embedding dimension. This is where most of the fine-tuning happens.
+   中文翻译：**投影器**——小型模块（2-4 层 MLP 或 Q-former），将视觉 token 映射到 LLM 的嵌入维度。大部分微调发生在这里。
 3. **LLM** — a decoder-only language model (Qwen3, Llama, Mistral, GLM, InternLM). Reads the vision + text tokens in sequence, generates text.
+   中文翻译：**LLM**——仅解码器语言模型（Qwen3、Llama、Mistral、GLM、InternLM）。顺序读取视觉 + 文本 token，生成文本。
 
 All three pieces are trainable in principle. In practice, the vision encoder and LLM stay mostly frozen while the projector trains — a few billion parameters of signal for cheap.
+
+> 三个部分原则上都可训练。实践中，视觉编码器和 LLM 基本冻结，只训练投影器——以低廉成本获得数十亿参数的信号。
 
 ### DeepStack
 
 Vanilla projection uses only the last ViT layer. DeepStack (Qwen3-VL) samples features from multiple ViT depths and stacks them. Deeper layers carry high-level semantics; shallower layers carry fine-grained spatial and textural information. Feeding both into the LLM closes the gap between "what does the image contain" (semantics) and "where exactly" (spatial grounding).
+
+> 朴素投影只使用 ViT 最后一层。DeepStack（Qwen3-VL）从多个 ViT 深度采样特征并堆叠。更深的层携带高级语义；更浅的层携带细粒度空间和纹理信息。将两者都送入 LLM 弥合了"图像包含什么"（语义）和"具体在哪里"（空间定位）之间的差距。
 
 ### Three training stages
 
 Modern VLMs train in stages:
 
 1. **Alignment** — freeze ViT and LLM. Train only the projector on image-caption pairs. Teaches the projector to map vision space into language space.
+   中文翻译：**对齐**——冻结 ViT 和 LLM。只在图像-标题对上训练投影器。教投影器将视觉空间映射到语言空间。
 2. **Pre-training** — unfreeze everything. Train on large-scale interleaved image-text data (500M+ pairs). Builds the model's visual knowledge.
+   中文翻译：**预训练**——解冻一切。在大规模交织的图像-文本数据上训练（5 亿+ 对）。构建模型的视觉知识。
 3. **Instruction tuning** — fine-tune on curated (image, question, answer) triples. Teaches conversational behaviour and task formats. This is what turns a "vision-aware LM" into a usable assistant.
+   中文翻译：**指令微调**——在精选的（图像，问题，答案）三元组上微调。教会对话行为和任务格式。这将"视觉感知的 LM"转变为可用的助手。
 
 Most LoRA fine-tunes target stage 3 with a small labelled dataset.
 

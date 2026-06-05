@@ -56,9 +56,13 @@ flowchart LR
 
 Both encoders end with a linear projection to the same embedding dimension (512 for CLIP-B/32, 1024 for CLIP-L/14). L2-normalise and compute cosine similarity.
 
+> 两个编码器都以线性投影到相同嵌入维度结束（CLIP-B/32 为 512 维，CLIP-L/14 为 1024 维）。L2 归一化后计算余弦相似度。
+
 ### The objective
 
 Given a batch of N (image, caption) pairs, build an NxN similarity matrix. Train both encoders so the diagonal (matching pairs) has high similarity and off-diagonals (non-matching) have low similarity.
+
+> 给定一批 N 个（图像，标题）对，构建 NxN 相似度矩阵。训练两个编码器使对角线（匹配对）相似度高，非对角线（非匹配对）相似度低。
 
 ```
 sim_matrix = image_embeddings @ text_embeddings.T / tau
@@ -70,9 +74,13 @@ loss = (loss_i2t + loss_t2i) / 2
 
 Symmetric because both image-to-text and text-to-image retrieval should work. `tau` (temperature) is typically learned as a scalar parameter, initialised to 0.07.
 
+> 对称是因为图像到文本和文本到图像的检索都应该有效。`tau`（温度）通常作为标量参数学习，初始化为 0.07。
+
 ### SigLIP: a better loss
 
 SigLIP (Zhai et al., 2023) replaced the softmax with per-pair sigmoid:
+
+> SigLIP（Zhai 等，2023）用逐对 sigmoid 替换了 softmax：
 
 ```
 loss = mean over pairs of log(1 + exp(-y_ij * sim_ij))
@@ -81,28 +89,47 @@ y_ij = +1 if matching, -1 otherwise
 
 Per-pair loss removes the batch-level normalisation that CLIP requires. SigLIP trains better at small batch sizes and matches or exceeds CLIP at equal data.
 
+> 逐对损失消除了 CLIP 所需的批次级归一化。SigLIP 在小批量下训练更好，在相同数据下匹配或超越 CLIP。
+
 ### Zero-shot classification
 
 Given a trained CLIP:
 
+> 给定训练好的 CLIP：
+
 1. For each class, compose a prompt: "a photo of a {class}".
+   中文翻译：为每个类别构造提示词："a photo of a {类别}"。
 2. Encode all class prompts with the text encoder -> `T` shape (C, d).
+   中文翻译：用文本编码器编码所有类提示词 -> `T` 形状 (C, d)。
 3. Encode the test image -> `I` shape (1, d).
+   中文翻译：编码测试图像 -> `I` 形状 (1, d)。
 4. Similarity = `I @ T.T` shape (1, C).
+   中文翻译：相似度 = `I @ T.T` 形状 (1, C)。
 5. Argmax -> predicted class.
+   中文翻译：Argmax -> 预测类别。
 
 Prompt engineering matters. OpenAI published 80 prompt templates for ImageNet ("a photo of a {}", "a blurry photo of a {}", "a sketch of a {}", ...). Average the embeddings of all templates per class for an extra 1-3% top-1 accuracy.
+
+> 提示词工程很重要。OpenAI 为 ImageNet 发布了 80 个提示模板。将每个类别的所有模板嵌入取平均可以额外提升 1-3% 的 top-1 准确率。
 
 ### Where CLIP-style models are used in 2026
 
 - **Zero-shot classification** — direct use.
+  中文翻译：**零样本分类**——直接使用。
 - **Image retrieval** — encode all images once, embed query at inference.
+  中文翻译：**图像检索**——一次性编码所有图像，推理时嵌入查询。
 - **Text-conditioned detection** — Grounding DINO, OWL-ViT wrap a CLIP text tower around a detector.
+  中文翻译：**文本条件检测**——Grounding DINO、OWL-ViT 在检测器外包装 CLIP 文本塔。
 - **Text-conditioned segmentation** — CLIPSeg; SAM uses text-prompt inputs via CLIP.
+  中文翻译：**文本条件分割**——CLIPSeg；SAM 通过 CLIP 使用文本提示输入。
 - **VLMs** — LLaVA, Qwen-VL, InternVL wire a CLIP-family vision encoder into an LLM.
+  中文翻译：**VLM**——LLaVA、Qwen-VL、InternVL 将 CLIP 家族的视觉编码器接入 LLM。
 - **Text-to-image gen** — Stable Diffusion, DALL-E 3 condition on CLIP text embeddings.
+  中文翻译：**文本到图像生成**——Stable Diffusion、DALL-E 3 基于 CLIP 文本嵌入进行条件化。
 
 Once you have a shared embedding space, every vision+language task becomes a distance computation.
+
+> 一旦有了共享嵌入空间，每个视觉+语言任务都变成了距离计算。
 
 > **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
 
@@ -118,6 +145,8 @@ Once you have a shared embedding space, every vision+language task becomes a dis
 ### Step 1: A tiny two-tower model
 
 Real CLIP is ViT + transformer. For this lesson the towers are small MLPs over pre-extracted features so the training signal is visible on CPU.
+
+> 真正的 CLIP 是 ViT + Transformer。本课的塔是在预提取特征上的小型 MLP，以便在 CPU 上可见训练信号。
 
 ```python
 import torch
@@ -140,6 +169,8 @@ class TwoTower(nn.Module):
 
 Two projections, shared-dim output, learned temperature. Same shape as the real CLIP API.
 
+> 两个投影、共享维度输出、可学习温度。与真正的 CLIP API 形状相同。
+
 ### Step 2: Contrastive loss
 
 ```python
@@ -153,6 +184,8 @@ def clip_loss(image_emb, text_emb, logit_scale):
 ```
 
 Symmetric. Higher logit_scale = sharper softmax = more confident but risk of instability.
+
+> 对称的。更高的 logit_scale = 更尖锐的 softmax = 更自信但有不稳定风险。
 
 ### Step 3: Zero-shot classifier
 
@@ -172,6 +205,8 @@ def zero_shot_classify(model, image_feats, class_text_feats, class_names):
 
 One line per step. This is the exact zero-shot procedure used with a production CLIP checkpoint.
 
+> 每步一行。这就是生产级 CLIP 检查点使用的精确零样本流程。
+
 ### Step 4: Sanity check
 
 ```python
@@ -186,6 +221,8 @@ print(f"batch size: {i.size(0)}   loss: {loss.item():.3f}")
 ```
 
 Loss should be close to `log(N) = log(8) = 2.08` for a randomly initialised model — the symmetric cross-entropy target when no structure is learned yet.
+
+> 随机初始化模型的损失应接近 `log(N) = log(8) = 2.08`——尚未学到结构时的对称交叉熵目标。
 
 > **【中文解读】** 本节展示如何用成熟框架（如 PyTorch、HuggingFace 等）快速应用该技术。在实际项目中，优先使用经过验证的框架实现，可以减少 bug 并提高开发效率。
 

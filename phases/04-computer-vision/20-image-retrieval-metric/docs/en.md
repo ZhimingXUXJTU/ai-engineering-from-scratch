@@ -68,6 +68,8 @@ flowchart LR
 
 For most production use cases, start with a pretrained backbone and only add a metric-learning fine-tune if the off-the-shelf embeddings underperform on your test set.
 
+> 对于大多数生产场景，从预训练骨干网络开始，只有当现成的嵌入在你的测试集上表现不佳时才添加度量学习微调。
+
 ### Triplet loss formally
 
 ```
@@ -76,16 +78,26 @@ L = max(0, ||f(a) - f(p)||^2 - ||f(a) - f(n)||^2 + margin)
 
 Pull anchor `a` close to positive `p`, push it away from negative `n`, with a `margin` that ensures a gap. The three-image structure generalises to any similarity ordering.
 
+> 将锚点 `a` 拉近正样本 `p`，推远负样本 `n`，用 `margin` 确保间隔。三图像结构可推广到任何相似度排序。
+
 Mining matters: easy triplets (`n` already far from `a`) contribute zero loss; only hard triplets teach the network. Semi-hard mining (`n` further than `p` but within margin) is the 2016 FaceNet recipe and still dominates.
+
+> 挖掘很重要：简单三元组（`n` 已经远离 `a`）贡献零损失；只有困难三元组能教网络。半困难挖掘（`n` 比 `p` 远但在 margin 内）是 2016 年 FaceNet 的方案，至今仍占主导。
 
 ### Cosine similarity vs L2
 
 Two metrics, two conventions:
 
+> 两种度量，两种约定：
+
 - **Cosine**: angle between vectors. Requires L2-normalised embeddings.
+  中文翻译：**余弦**：向量间角度。需要 L2 归一化的嵌入。
 - **L2**: Euclidean distance. Works on raw or normalised embeddings, but is usually paired with L2-normalised + squared L2.
+  中文翻译：**L2**：欧氏距离。适用于原始或归一化嵌入，但通常与 L2 归一化 + 平方 L2 配对使用。
 
 For most modern nets the two are equivalent: `||a - b||^2 = 2 - 2 cos(a, b)` when `||a|| = ||b|| = 1`. Pick the convention that matches your embedding training; mixing them silently changes what "nearest" means.
+
+> 对于大多数现代网络，两者等价：当 `||a|| = ||b|| = 1` 时，`||a - b||^2 = 2 - 2 cos(a, b)`。选择与嵌入训练匹配的约定；混用会静默改变"最近"的含义。
 
 ### Recall@K
 
@@ -97,26 +109,43 @@ recall@K = fraction of queries where at least one correct match is in the top K 
 
 Report recall@1, @5, @10 side by side. A recall@10 above 0.95 with recall@1 below 0.5 means the embedding space has the right structure but the ranking is noisy — try longer fine-tunes or a re-ranking step.
 
+> 并排报告 recall@1、@5、@10。recall@10 超过 0.95 但 recall@1 低于 0.5 意味着嵌入空间结构正确但排序有噪声——尝试更长的微调或重排序步骤。
+
 For duplicate detection, precision@K matters more because every false positive is a user-visible mistake. For visual search, recall@K is the product signal.
+
+> 对于重复检测，precision@K 更重要，因为每个假阳性都是用户可见的错误。对于视觉搜索，recall@K 是产品信号。
 
 ### FAISS in one paragraph
 
 Facebook AI Similarity Search. The de-facto library for nearest-neighbour search. Three index choices:
 
+> Facebook AI 相似度搜索。最近邻搜索的事实标准库。三种索引选择：
+
 - `IndexFlatIP` / `IndexFlatL2` — brute force, exact, no training. Use up to ~1M vectors.
+  中文翻译：`IndexFlatIP` / `IndexFlatL2`——暴力搜索，精确，无需训练。适用于约 100 万向量以内。
 - `IndexIVFFlat` — partition into K cells, search only the closest few cells. Approximate, fast, needs training data.
+  中文翻译：`IndexIVFFlat`——划分为 K 个单元，只搜索最近的几个单元。近似、快速，需要训练数据。
 - `IndexHNSW` — graph-based, fastest for many queries, large index size.
+  中文翻译：`IndexHNSW`——基于图，多查询时最快，索引大小较大。
 
 For 100k vectors you probably want `IndexFlatIP` on cosine similarity. For 10M you want `IndexIVFFlat`. For 100M+ combined with product quantisation (`IndexIVFPQ`).
+
+> 10 万向量用 `IndexFlatIP` 余弦相似度即可。1000 万用 `IndexIVFFlat`。1 亿以上配合乘积量化（`IndexIVFPQ`）。
 
 ### Instance-level vs category-level retrieval
 
 Two very different problems with the same name:
 
+> 两个名字相同但非常不同的问题：
+
 - **Category-level** — "find cats in my catalogue." Class-conditional similarity; off-the-shelf CLIP / DINOv2 embeddings work well.
+  中文翻译：**类别级**——"在我的目录中找猫"。类别条件相似度；现成的 CLIP / DINOv2 嵌入即可。
 - **Instance-level** — "find *this exact product* in my catalogue." Needs fine-grained discrimination between visually similar objects of the same class; off-the-shelf embeddings under-perform; fine-tuning with metric learning matters.
+  中文翻译：**实例级**——"在我的目录中找*这个特定产品*"。需要同类视觉相似物体之间的细粒度区分；现成嵌入表现不佳；度量学习微调很重要。
 
 Always ask which one you are solving before picking a model.
+
+> 在选择模型前，务必问清楚你在解决哪个问题。
 
 > **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
 
@@ -143,9 +172,13 @@ def triplet_loss(anchor, positive, negative, margin=0.2):
 
 One line. Works on L2-normalised or raw embeddings.
 
+> 一行代码。适用于 L2 归一化或原始嵌入。
+
 ### Step 2: Semi-hard mining
 
 Given a batch of embeddings and labels, find the hardest semi-hard negative for each anchor.
+
+> 给定一批嵌入和标签，为每个锚点找到最难的半困难负样本。
 
 ```python
 def semi_hard_negatives(emb, labels, margin=0.2):
@@ -175,6 +208,8 @@ def semi_hard_negatives(emb, labels, margin=0.2):
 
 Each anchor gets the hardest positive in-class and a semi-hard negative that is further than the positive but within margin.
 
+> 每个锚点获得同类中最难的正样本和一个比正样本远但在 margin 内的半困难负样本。
+
 ### Step 3: Recall@K
 
 ```python
@@ -186,6 +221,8 @@ def recall_at_k(query_emb, gallery_emb, query_labels, gallery_labels, k=1):
 ```
 
 Top-k by inner product on L2-normalised embeddings equals top-k by cosine. Report the mean proportion of queries with at least one correct neighbour.
+
+> L2 归一化嵌入上的内积 top-k 等于余弦 top-k。报告至少有一个正确邻居的查询的平均比例。
 
 ### Step 4: Putting it together
 
@@ -229,6 +266,8 @@ for step in range(200):
 
 
 After a few hundred steps the embedding clusters form one cluster per class.
+
+> 几百步后，嵌入聚类形成每个类别一个簇。
 
 
 

@@ -54,7 +54,11 @@ SH coefficients  c_lm       (3 * (L+1)^2,)   view-dependent colour
 
 Rotation + scale build a 3x3 covariance: `Sigma = R S S^T R^T`. That is the shape of the Gaussian in 3D. Spherical harmonics let the colour change with viewing direction — specular highlights, subtle sheen, view-dependent glow — without storing per-view textures. With SH degree 3 you get 16 coefficients per colour channel, 48 floats per Gaussian for colour alone.
 
+> 旋转 + 缩放构建 3x3 协方差矩阵：`Sigma = R S S^T R^T`。这就是高斯在 3D 中的形状。球谐函数让颜色随观察方向变化——高光、微妙的光泽、视角相关的发光——无需存储每视角纹理。SH 度 3 下每颜色通道 16 个系数，仅颜色就有 48 个浮点数。
+
 A scene typically has 1-5 million Gaussians. Each stores roughly 60 floats (3 + 4 + 3 + 1 + 48 + misc). That is 240 MB for a five-million-Gaussian scene — far smaller than the equivalent point cloud with per-point texture, and an order of magnitude smaller than a NeRF's MLP weights re-rendered at high resolution.
+
+> 一个典型场景有 100-500 万个高斯。每个约存储 60 个浮点数（3 + 4 + 3 + 1 + 48 + 其他）。500 万高斯的场景约 240 MB——远小于等价的带逐点纹理的点云，也比 NeRF 的 MLP 权重在高分辨率下重渲染小一个数量级。
 
 ### Rasterisation, not ray marching
 
@@ -72,6 +76,8 @@ flowchart LR
 ```
 
 Five steps, all GPU-friendly. No MLP query per pixel. A single RTX 3080 Ti renders 6 million splats at 147 fps.
+
+> 五步，全部 GPU 友好。无需每像素 MLP 查询。单张 RTX 3080 Ti 以 147 fps 渲染 600 万泼溅。
 
 ### The projection step
 
@@ -101,19 +107,30 @@ c_i = eval_SH(SH_i, view_direction)    view-dependent colour
 
 This is **the same equation as NeRF's volumetric render**, just over an explicit sparse set of Gaussians instead of dense samples along a ray. That identity is why rendered quality matches NeRF — both are integrating the same radiance-field equation.
 
+> 这**与 NeRF 的体积渲染方程相同**，只是基于显式的稀疏高斯集合而非沿光线的密集采样。这个等价性就是渲染质量匹配 NeRF 的原因——两者积分相同的辐射场方程。
+
 ### Why this is differentiable
 
 Every step — projection, tile assignment, alpha compositing, SH evaluation — is differentiable with respect to the Gaussian parameters. Given a ground-truth image, compute rendered pixel loss, backprop through the rasteriser, update all `(mu, q, s, alpha, c_lm)` by gradient descent. Over ~30,000 iterations the Gaussians find their right positions, scales, and colours.
+
+> 每一步——投影、瓦片分配、alpha 合成、SH 评估——对高斯参数都是可微的。给定真实图像，计算渲染像素损失，通过光栅化器反向传播，梯度下降更新所有 `(mu, q, s, alpha, c_lm)`。约 30,000 次迭代后高斯找到正确的位置、缩放和颜色。
 
 ### Densification and pruning
 
 A fixed set of Gaussians cannot cover a complex scene. Training includes two adaptive mechanisms:
 
+> 固定数量的高斯无法覆盖复杂场景。训练包含两种自适应机制：
+
 - **Clone** a Gaussian at its current position when its gradient magnitude is high but its scale is small — the reconstruction needs more detail here.
+  中文翻译：**克隆**——当梯度高但缩放小时，在当前位置克隆一个高斯——重建需要更多细节。
 - **Split** a large-scale Gaussian into two smaller ones when its gradient is high — one big Gaussian is too smooth to fit the region.
+  中文翻译：**分裂**——当大尺度高斯梯度高时，将其分成两个更小的——一个大高斯太平滑无法拟合区域。
 - **Prune** Gaussians whose opacity drops below a threshold — they are not contributing.
+  中文翻译：**修剪**——不透明度低于阈值的高斯不贡献，修剪掉。
 
 Densification runs every N iterations. A scene typically grows from ~100k initial Gaussians (seeded from SfM points) to 1-5M at the end of training.
+
+> 密集化每 N 次迭代运行一次。场景通常从约 10 万初始高斯（从 SfM 点播种）增长到训练结束时的 100-500 万。
 
 ### Spherical harmonics in one paragraph
 

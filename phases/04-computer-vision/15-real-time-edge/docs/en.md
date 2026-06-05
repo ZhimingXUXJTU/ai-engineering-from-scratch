@@ -58,53 +58,87 @@ flowchart LR
 ```
 
 - **Latency**: p50, p95, p99. Averaging only p50 hides tail behaviour that matters for real-time systems.
+  中文翻译：**延迟**：p50、p95、p99。只看 p50 平均值会隐藏对实时系统至关重要的尾部行为。
 - **Peak memory**: the maximum the device ever sees, not the steady-state average. Matters because OOMs are fatal on embedded targets.
+  中文翻译：**峰值内存**：设备所见最大值，不是稳态平均值。重要是因为 OOM 在嵌入式目标上是致命的。
 - **Power / energy**: millijoules per inference on a battery-powered device. Often proxied by CPU/GPU utilisation * time.
+  中文翻译：**功耗/能量**：电池供电设备上每次推理的毫焦数。通常用 CPU/GPU 利用率 × 时间来近似。
 
 A table of (model, latency, memory, accuracy) is what an edge decision is made from. Every cell is measured on the target device, not the workstation.
+
+> 一张 (模型, 延迟, 内存, 精度) 的表格是边缘部署决策的依据。每个数据都在目标设备上测量，而非工作站。
 
 ### Measurement discipline
 
 Three rules that every edge profile should follow:
 
+> 每个边缘性能分析都应遵循的三条规则：
+
 1. **Warm up** the model with 5-10 dummy forward passes before measuring. Cold caches and JIT compilation produce unrepresentative first numbers.
+   中文翻译：**预热**——测量前用 5-10 次虚拟前向传播预热模型。冷缓存和 JIT 编译会产生不具代表性的初始数据。
 2. **Synchronise** GPU workloads with `torch.cuda.synchronize()` before and after the timed block. Without this you measure kernel dispatch, not kernel execution.
+   中文翻译：**同步**——在计时块前后用 `torch.cuda.synchronize()` 同步 GPU 工作负载。否则你测量的是内核调度，不是内核执行。
 3. **Fix input sizes** to the production resolution. Latency on 224x224 is not latency on 512x512.
+   中文翻译：**固定输入尺寸**——使用生产分辨率。224x224 上的延迟不等于 512x512 上的延迟。
 
 ### FLOPs as a proxy
 
 FLOPs (floating-point operations per inference) is a cheap, device-independent proxy for latency. Useful for architecture comparison, misleading as absolute wall-clock. A model with 10% more FLOPs can be 2x faster in practice because it uses hardware-friendly ops (depthwise convs compile well, large 7x7 convs do not).
 
+> FLOPs（每次推理的浮点运算数）是廉价的、设备无关的延迟代理指标。适用于架构比较，但作为绝对耗时则有误导性。一个多 10% FLOPs 的模型实际上可能快 2 倍，因为它使用了硬件友好的操作（深度可分离卷积编译良好，大的 7x7 卷积则不然）。
+
 Rule: use FLOPs for architecture search, use on-device latency for deployment decisions.
+
+> 法则：用 FLOPs 做架构搜索，用设备上的延迟做部署决策。
 
 ### Quantisation in one paragraph
 
 Replace FP32 weights and activations with INT8. Model size drops 4x, memory bandwidth drops 4x, compute drops 2-4x on hardware that has INT8 kernels (every modern mobile SoC, every NVIDIA GPU with Tensor Cores). Accuracy loss on vision tasks is typically 0.1-1 percentage points with post-training static quantisation.
 
+> 将 FP32 权重和激活替换为 INT8。模型大小减少 4 倍，内存带宽减少 4 倍，在有 INT8 内核的硬件上计算量减少 2-4 倍（每个现代移动 SoC、每个带 Tensor Cores 的 NVIDIA GPU）。视觉任务上的精度损失通常为 0.1-1 个百分点（使用训练后静态量化）。
+
 Types:
 
+> 类型：
+
 - **Dynamic** — quantise weights to INT8, activations computed in FP. Easy, small speedup.
+  中文翻译：**动态**——权重量化为 INT8，激活值以 FP 计算。简单，加速有限。
 - **Static (post-training)** — quantise weights + calibrate activation ranges on a small calibration set. Much faster than dynamic.
+  中文翻译：**静态（训练后）**——量化权重 + 在小校准集上校准激活范围。比动态快得多。
 - **Quantisation-aware training (QAT)** — simulate quantisation during training so the model learns around it. Best accuracy, needs labelled data.
+  中文翻译：**量化感知训练（QAT）**——训练时模拟量化，让模型学会适应。精度最好，需要标注数据。
 
 For vision, post-training static quantisation gives 95% of the benefit with 5% of the effort. Use QAT only when accuracy loss from PTQ is unacceptable.
+
+> 对于视觉任务，训练后静态量化以 5% 的努力获得 95% 的收益。只有当 PTQ 的精度损失不可接受时才使用 QAT。
 
 ### Pruning and distillation
 
 - **Pruning** — remove unimportant weights (magnitude-based) or channels (structured). Works well on overparameterised models; less useful on already-compact architectures.
+  中文翻译：**剪枝**——移除不重要的权重（基于幅度）或通道（结构化）。对过参数化模型效果好；对已经很紧凑的架构用处不大。
 - **Distillation** — train a small student to mimic a large teacher's logits. Often recovers most of the accuracy lost by shrinking the model. Standard for production edge models.
+  中文翻译：**蒸馏**——训练小模型（学生）模仿大模型（教师）的 logits。通常能恢复缩小模型所损失的大部分精度。生产级边缘模型的标准做法。
 
 ### The inference runtimes
 
 - **PyTorch eager** — slow, not for deployment. Use for development only.
+  中文翻译：**PyTorch eager**——慢，不用于部署。仅用于开发。
 - **TorchScript** — legacy. Superseded by `torch.compile` and ONNX export.
+  中文翻译：**TorchScript**——遗留方案。已被 `torch.compile` 和 ONNX 导出取代。
 - **ONNX Runtime** — the neutral runtime. CPU, CUDA, CoreML, TensorRT, OpenVINO all have ONNX providers. Start here.
+  中文翻译：**ONNX Runtime**——中性运行时。CPU、CUDA、CoreML、TensorRT、OpenVINO 都有 ONNX 提供者。从这里开始。
 - **TensorRT** — NVIDIA's compiler. Best latency on NVIDIA GPUs (workstation and Jetson). Integrates with ONNX Runtime or standalone.
+  中文翻译：**TensorRT**——NVIDIA 的编译器。在 NVIDIA GPU（工作站和 Jetson）上延迟最低。
 - **Core ML** — Apple's runtime for iOS/macOS. Needs `.mlmodel` or `.mlpackage`.
+  中文翻译：**Core ML**——Apple 的 iOS/macOS 运行时。需要 `.mlmodel` 或 `.mlpackage`。
 - **TFLite** — Google's runtime for Android/ARM. Needs `.tflite`.
+  中文翻译：**TFLite**——Google 的 Android/ARM 运行时。需要 `.tflite`。
 - **OpenVINO** — Intel's runtime for CPU/VPU. Needs `.xml` + `.bin`.
+  中文翻译：**OpenVINO**——Intel 的 CPU/VPU 运行时。需要 `.xml` + `.bin`。
 
 In practice: export PyTorch -> ONNX -> pick the runtime for the target. ONNX is the lingua franca.
+
+> 实践中：导出 PyTorch -> ONNX -> 选择目标运行时。ONNX 是通用语言。
 
 ### Edge architecture picker
 
@@ -163,6 +197,8 @@ def measure_latency(model, input_shape, device="cpu", warmup=10, iters=50):
 
 Warm up, synchronise, use `time.perf_counter()`. Report percentiles, not just mean.
 
+> 预热、同步、使用 `time.perf_counter()`。报告百分位数，不只是均值。
+
 ### Step 2: Parameter and FLOP counts
 
 ```python
@@ -198,6 +234,8 @@ def flops_estimate(model, input_shape):
 
 For real projects use `fvcore.nn.FlopCountAnalysis` or `ptflops`; they handle every module type correctly.
 
+> 真实项目使用 `fvcore.nn.FlopCountAnalysis` 或 `ptflops`；它们能正确处理每种模块类型。
+
 ### Step 3: Post-training static quantisation
 
 ```python
@@ -214,6 +252,8 @@ def quantise_ptq(model, calibration_loader, backend="x86"):
 ```
 
 Three steps: configure, prepare (insert observers), calibrate with real data, convert (fuse + quantise). Requires the model to be fused (`Conv -> BN -> ReLU` -> `ConvBnReLU`), which `torch.ao.quantization.fuse_modules` handles.
+
+> 三步：配置、准备（插入观察器）、用真实数据校准、转换（融合 + 量化）。需要模型已融合（`Conv -> BN -> ReLU` -> `ConvBnReLU`），`torch.ao.quantization.fuse_modules` 处理此事。
 
 ### Step 4: Export to ONNX
 
@@ -234,6 +274,8 @@ def export_onnx(model, sample_input, path="model.onnx"):
 
 `opset_version=17` is the safe default in 2026. `dynamic_axes` lets you run the ONNX model with arbitrary batch size.
 
+> `opset_version=17` 是 2026 年的安全默认值。`dynamic_axes` 允许 ONNX 模型以任意批量大小运行。
+
 ### Step 5: Benchmark and compare regimes
 
 ```python
@@ -250,6 +292,8 @@ def compare_regimes():
 ```
 
 Run the same function for `resnet50`, `efficientnet_v2_s`, and `convnext_tiny` and you have the comparison table you need for a deployment decision.
+
+> 对 `resnet50`、`efficientnet_v2_s` 和 `convnext_tiny` 运行相同函数，你就得到了部署决策所需的对比表。
 
 > **【中文解读】** 本节展示如何用成熟框架（如 PyTorch、HuggingFace 等）快速应用该技术。在实际项目中，优先使用经过验证的框架实现，可以减少 bug 并提高开发效率。
 

@@ -62,8 +62,11 @@ flowchart LR
 ```
 
 - **Sora 2** is pure video generation conditioned on prompts. No action interface. You cannot "steer" it mid-rollout.
+  中文翻译：**Sora 2** 是纯视频生成，条件化于提示词。没有动作接口。你无法在生成过程中"操控"它。
 - **Genie 3**, **GWM-1 Worlds**, **Mirage / Magica** are action-conditioned world models. Infer latent actions from observed video, then condition future frame predictions on actions. Interactive — you press keys or move a camera and the scene responds.
+  中文翻译：**Genie 3**、**GWM-1 Worlds**、**Mirage / Magica** 是动作条件化的世界模型。从观察到的视频推断潜在动作，然后用动作条件化未来帧预测。交互式——按键或移动相机，场景会响应。
 - **DreamerV3** and the classic RL world-model family predict in a latent space with explicit action conditioning, trained on a reward signal. Less visual; more useful for sample-efficient RL.
+  中文翻译：**DreamerV3** 和经典 RL 世界模型家族在潜空间中预测，带显式动作条件化，在奖励信号上训练。视觉性较弱；对样本高效的 RL 更有用。
 
 ### Video DiT architecture
 
@@ -77,10 +80,15 @@ Resulting tokens:      (T / P_t) * (H / P_h) * (W / P_w) tokens
 Positional encoding is 3D: a rotary or learned embedding per (t, h, w) coordinate. Attention can be:
 
 - **Full joint** — all tokens attend to all tokens. O(N^2) with N tokens. Prohibitive for long videos.
+  中文翻译：**全联合**——所有 token 注意所有 token。O(N^2)。对长视频不可行。
 - **Divided** — alternate temporal attention (same spatial position, across time: `(H*W) * T^2`) and spatial attention (same timestep, across space: `T * (H*W)^2`). Used by TimeSformer and most video DiTs.
+  中文翻译：**分离**——交替时间注意力（相同空间位置，跨时间）和空间注意力（相同时间步，跨空间）。TimeSformer 和大多数视频 DiT 使用。
 - **Window** — local windows in (t, h, w). Used by Video Swin.
+  中文翻译：**窗口**——(t, h, w) 中的局部窗口。Video Swin 使用。
 
 Every 2026 video diffusion model uses one of these three patterns plus AdaLN conditioning (Lesson 23) and rectified flow.
+
+> 每个 2026 年的视频扩散模型都使用这三种模式之一，加上 AdaLN 条件化（第 23 课）和整流流。
 
 ### Conditioning on actions: latent action models
 
@@ -105,22 +113,35 @@ Driving world models generate realistic road scenes conditioned on trajectories,
 
 They replace expensive real-world data collection for corner cases — pedestrian jaywalks at night, icy intersections, unusual vehicle types — that would otherwise require millions of miles of driving.
 
+> 它们替代了昂贵的真实世界数据收集来处理边缘情况——夜间行人乱穿马路、结冰路口、异常车辆类型——否则需要数百万英里的驾驶。
+
 ### Robotics stack: VLM + video model + inverse dynamics
 
 The emerging three-component robotics loop:
 
+> 新兴的三组件机器人循环：
+
 1. **VLM** parses the goal ("pick up the red cup"), plans a high-level action sequence.
+   中文翻译：**VLM** 解析目标（"拿起红色杯子"），规划高层动作序列。
 2. **Video generation model** simulates what executing each action would look like — predicts observations N frames ahead.
+   中文翻译：**视频生成模型**模拟执行每个动作后的样子——预测 N 帧后的观测。
 3. **Inverse dynamics model** extracts the concrete motor commands that would produce those observations.
+   中文翻译：**逆动力学模型**提取产生这些观测的具体电机指令。
 
 This replaces reward shaping and sample-heavy RL. The world model does the imagination; the inverse dynamics closes the loop on actuation. Genie Envisioner is one instantiation; many research groups are converging on this structure.
+
+> 这替代了奖励塑形和样本密集的 RL。世界模型负责想象；逆动力学闭环到执行。Genie Envisioner 是一个实例；许多研究组正在收敛到这种结构。
 
 ### Evaluation
 
 - **Visual quality** — FVD (Fréchet Video Distance), user studies.
+  中文翻译：**视觉质量**——FVD（Fréchet 视频距离）、用户研究。
 - **Prompt alignment** — CLIPScore per frame, VQA-style evaluation.
+  中文翻译：**提示对齐**——每帧 CLIPScore、VQA 风格评估。
 - **Physical plausibility** — hand-rated on a benchmark suite (Sora 2's internal benchmark, VBench).
+  中文翻译：**物理合理性**——在基准套件上人工评分（Sora 2 内部基准、VBench）。
 - **Controllability** (for interactive world models) — action → observation consistency; can you go back to a prior state?
+  中文翻译：**可控性**（交互式世界模型）——动作→观测一致性；能否回到先前的状态？
 
 ### Model landscape in 2026
 

@@ -59,9 +59,13 @@ flowchart LR
 
 Seven steps. Patches -> tokens -> attention -> classifier. Every variant (DeiT, Swin, ConvNeXt, MAE pretraining) changes one or two of the seven and leaves the rest alone.
 
+> 七步。补丁 -> token -> 注意力 -> 分类器。每个变体（DeiT、Swin、ConvNeXt、MAE 预训练）只改变七步中的一两步，其余保持不变。
+
 ### Patch embedding
 
 The first conv is the secret. Kernel size 16, stride 16, so a 224x224 image becomes a 14x14 grid of 16x16 patches, each projected to a 768-dim embedding. That single conv both patchifies and linearly projects.
+
+> 第一个卷积是秘密所在。核大小 16，步幅 16，所以 224x224 的图像变成 14x14 的 16x16 补丁网格，每个补丁投影为 768 维嵌入。这一个卷积同时完成了分块和线性投影。
 
 ```
 Input:  (3, 224, 224)
@@ -72,9 +76,13 @@ Flatten spatial: (196, 768)
 
 196 patches = 196 tokens. Each token's feature dimension is 768 (ViT-B), 1024 (ViT-L), or 1280 (ViT-H).
 
+> 196 个补丁 = 196 个 token。每个 token 的特征维度为 768（ViT-B）、1024（ViT-L）或 1280（ViT-H）。
+
 ### Class token
 
 A single learned vector prepended to the sequence:
+
+> 一个可学习的向量添加到序列前面：
 
 ```
 tokens = [CLS; patch_1; patch_2; ...; patch_196]   shape (197, 768)
@@ -82,9 +90,13 @@ tokens = [CLS; patch_1; patch_2; ...; patch_196]   shape (197, 768)
 
 After N transformer blocks, the `[CLS]` output is the global image representation. Classification head reads only this one vector.
 
+> 经过 N 个 Transformer 块后，`[CLS]` 的输出是全局图像表示。分类头只读取这一个向量。
+
 ### Positional embedding
 
 Transformers have no built-in notion of spatial position. Add a learned vector to every token:
+
+> Transformer 没有内置的空间位置概念。给每个 token 加一个可学习的向量：
 
 ```
 tokens = tokens + learned_pos_embedding   (also shape (197, 768))
@@ -92,9 +104,13 @@ tokens = tokens + learned_pos_embedding   (also shape (197, 768))
 
 The embedding is a parameter of the model; gradient-based training adapts it to 2D image structure. Sinusoidal 2D alternatives exist but are rarely used in practice.
 
+> 嵌入是模型的参数；基于梯度的训练使其适应 2D 图像结构。存在正弦 2D 替代方案，但实际中很少使用。
+
 ### Transformer encoder block
 
 Standard. Multi-head self-attention, MLP, residual connections, pre-LayerNorm.
+
+> 标准结构。多头自注意力、MLP、残差连接、前置 LayerNorm。
 
 ```
 x = x + MSA(LN(x))
@@ -105,41 +121,66 @@ MLP is two-layer with GELU: Linear(d -> 4d) -> GELU -> Linear(4d -> d)
 
 ViT-B/16 stacks 12 of these blocks, each with 12 attention heads, totalling 86M parameters.
 
+> ViT-B/16 堆叠 12 个这样的块，每个有 12 个注意力头，共 8600 万参数。
+
 ### Why pre-LN
 
 Early transformers used post-LN (`x = LN(x + sublayer(x))`) and struggled to train past 6-8 layers without warmup. Pre-LN (`x = x + sublayer(LN(x))`) trains deeper networks stably without warmup. Every ViT and every modern LLM uses pre-LN.
 
+> 早期 Transformer 使用后置 LN（`x = LN(x + sublayer(x))`），很难在没有预热的情况下训练超过 6-8 层。前置 LN（`x = x + sublayer(LN(x))`）无需预热即可稳定训练更深的网络。每个 ViT 和每个现代 LLM 都使用前置 LN。
+
 ### Patch size trade-off
 
 - 16x16 patches -> 196 tokens, standard.
+  中文翻译：16x16 补丁 -> 196 个 token，标准配置。
 - 32x32 patches -> 49 tokens, faster but lower resolution.
+  中文翻译：32x32 补丁 -> 49 个 token，更快但分辨率更低。
 - 8x8 patches -> 784 tokens, finer but O(n^2) attention cost scales badly.
+  中文翻译：8x8 补丁 -> 784 个 token，更精细但 O(n^2) 注意力成本增长严重。
 
 Bigger patches = fewer tokens = faster but less spatial detail. SwinV2 uses 4x4 patches in hierarchical windows.
+
+> 更大的补丁 = 更少的 token = 更快但空间细节更少。SwinV2 在层次化窗口中使用 4x4 补丁。
 
 ### DeiT's recipe for training ViT on ImageNet-1k
 
 The original ViT needed JFT-300M to beat CNNs. DeiT (Touvron et al., 2020) trained ViT-B to 81.8% top-1 on ImageNet-1k alone with four changes:
 
+> 原始 ViT 需要 JFT-300M 才能击败 CNN。DeiT（Touvron 等，2020）仅用四项改进就在 ImageNet-1k 上将 ViT-B 训练到 81.8% top-1：
+
 1. Heavy augmentation: RandAugment, Mixup, CutMix, Random Erasing.
+   中文翻译：强数据增强：RandAugment、Mixup、CutMix、Random Erasing。
 2. Stochastic depth (drop entire blocks at random during training).
+   中文翻译：随机深度（训练时随机丢弃整个块）。
 3. Repeated augmentation (same image sampled 3 times per batch).
+   中文翻译：重复增强（同一图像在每个 batch 中采样 3 次）。
 4. Distillation from a CNN teacher (optional, lifts accuracy further).
+   中文翻译：从 CNN 教师模型蒸馏（可选，进一步提升精度）。
 
 Every modern ViT training recipe descends from DeiT.
+
+> 每个现代 ViT 训练方案都源自 DeiT。
 
 ### Swin vs ConvNeXt
 
 - **Swin** (Liu et al., 2021) — window-based attention. Each block attends within a local window; alternating blocks shift the window to mix information across windows. Brings back a CNN-like locality prior while keeping the attention operator.
+  中文翻译：**Swin**（Liu 等，2021）——基于窗口的注意力。每个块在局部窗口内做注意力；交替块移动窗口以跨窗口混合信息。恢复了类 CNN 的局部性先验，同时保留了注意力算子。
 - **ConvNeXt** (Liu et al., 2022) — redesigned CNN that matches Swin's architecture choices (depthwise convs, LayerNorm, GELU, inverted bottleneck). Showed that the gap is not "attention vs convolution" but "modern training recipe + architecture."
+  中文翻译：**ConvNeXt**（Liu 等，2022）——重新设计的 CNN，匹配 Swin 的架构选择（深度可分离卷积、LayerNorm、GELU、倒置瓶颈）。表明差距不是"注意力 vs 卷积"而是"现代训练方案 + 架构"。
 
 In 2026, ConvNeXt-V2 and Swin-V2 are both production-grade; the right choice depends on your inference stack (ConvNeXt compiles better for edge) and pretraining corpus.
+
+> 2026 年，ConvNeXt-V2 和 Swin-V2 都是生产级方案；正确选择取决于推理栈（ConvNeXt 在边缘设备上编译更好）和预训练语料。
 
 ### MAE pretraining
 
 Masked Autoencoder (He et al., 2022): mask 75% of patches at random, train the encoder to process only the visible 25%, train a small decoder to reconstruct the masked patches from the encoder's output. After pretraining, discard the decoder and fine-tune the encoder.
 
+> 掩码自编码器（He 等，2022）：随机掩蔽 75% 的补丁，训练编码器只处理可见的 25%，训练一个小解码器从编码器输出重建被掩蔽的补丁。预训练后丢弃解码器，微调编码器。
+
 MAE makes ViT trainable on ImageNet-1k alone, hits SOTA, and is the current default self-supervised recipe.
+
+> MAE 使 ViT 仅在 ImageNet-1k 上可训练，达到 SOTA，是当前默认的自监督训练方案。
 
 > **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
 
@@ -173,9 +214,13 @@ class PatchEmbedding(nn.Module):
 
 One conv, one flatten, one transpose. That is the entire image-to-tokens step.
 
+> 一个卷积、一个展平、一个转置。这就是图像到 token 的全部步骤。
+
 ### Step 2: Transformer block
 
 Pre-LN, multi-head self-attention, MLP with GELU, residual connections.
+
+> 前置 LN、多头自注意力、带 GELU 的 MLP、残差连接。
 
 ```python
 class Block(nn.Module):
@@ -200,6 +245,8 @@ class Block(nn.Module):
 ```
 
 `nn.MultiheadAttention` handles the splitting into heads, the scaled dot-product, and the output projection. `batch_first=True` so shapes are `(N, seq, dim)`.
+
+> `nn.MultiheadAttention` 处理多头拆分、缩放点积和输出投影。`batch_first=True` 使形状为 `(N, seq, dim)`。
 
 ### Step 3: The ViT
 
@@ -238,6 +285,8 @@ print(f"params: {sum(p.numel() for p in vit.parameters()):,}")
 
 About 2.8M parameters — a tiny ViT tractable on CPU. Real ViT-B is 86M; same class definition with `dim=768, depth=12, num_heads=12`.
 
+> 约 280 万参数——一个可在 CPU 上训练的小型 ViT。真正的 ViT-B 有 8600 万参数；同样的类定义，只需 `dim=768, depth=12, num_heads=12`。
+
 ### Step 4: Sanity check — single image inference
 
 ```python
@@ -250,6 +299,8 @@ print(f"probs:  {logits.softmax(-1)}")
 
 
 Should run without error. Probabilities sum to 1.
+
+> 应无错误运行。概率之和为 1。
 
 
 
