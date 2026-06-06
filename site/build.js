@@ -463,8 +463,9 @@ function syncReadme(lessons) {
   let md = fs.readFileSync(readmePath, 'utf8');
   const before = md;
 
-  // Keep the lessons badge in sync with the live count
+  // Keep the lessons badge in sync with the live count (URL value + alt text)
   md = md.replace(/badge\/lessons-\d+-/g, `badge/lessons-${lessons}-`);
+  md = md.replace(/alt="\d+ lessons"/g, `alt="${lessons} lessons"`);
 
   // Regenerate the traffic proof block from site/stats.json
   const statsPath = path.join(__dirname, 'stats.json');
