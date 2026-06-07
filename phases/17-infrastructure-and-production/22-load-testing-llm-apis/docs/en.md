@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了 LLM API 负载测试——评估推理服务在高负载下表现的测试方法。
 
 
-**Type:** Build
-**Languages:** Python (stdlib, toy realistic-prompt generator + latency collector)
-**Prerequisites:** Phase 17 · 08 (Inference Metrics), Phase 17 · 03 (GPU Autoscaling)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 学习
+**Languages:** Python (stdlib, toy realistic-prompt generator + latency collector) | **语言:** Python
+**Prerequisites:** Phase 17 · 08 (Inference Metrics), Phase 17 · 03 (GPU Autoscaling) | **前置知识:** Phase 17 · 08 (Inference Metrics), Phase 17 · 03 (GPU Autoscaling)
+**Time:** ~75 minutes | **时间:** ~75 minutes
 
 ## Learning Objectives | 学习目标
 
 - Explain the two anti-patterns (GIL trap, prompt-uniformity trap) that make generic load testers lie for LLM APIs.
+  中文翻译：Explain the two anti-patterns (GIL trap, prompt-uniformity trap) that make generic load testers lie for LLM APIs.
 - Pick a tool for a given purpose: LLMPerf (benchmark run), k6 + streaming extension (CI gate), guidellm (large-scale synthetic), GenAI-Perf (NVIDIA reference).
+  中文翻译：Pick a tool for a given purpose: LLMPerf (benchmark run), k6 + streaming extension (CI gate), guidellm (large-scale synthetic), GenAI-Perf (NVIDIA reference).
 - Design four load patterns (steady, ramp, spike, soak) and name the failure mode each catches.
+  中文翻译：Design four load patterns (steady, ramp, spike, soak) and name the failure mode each catches.
 - Build a realistic prompt distribution using mean + stddev of input tokens rather than fixed length.
+  中文翻译：Build a realistic prompt distribution using mean + stddev of input tokens rather than fixed length.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 传统负载测试工具不是为 LLM 设计的——它们不支持流式响应、可变输出长度、token 级指标或 GPU 饱和度。两个常见陷阱：(1) GIL 陷阱——Locust 的 token 级测量在 Python GIL 下运行分词，高并发时 tokenization 队列膨胀，虚报 inter-token 延迟（你的客户端是瓶颈，不是服务器）；(2) 提示均匀性陷阱——循环测试中使用相同提示，前缀缓存命中率接近 100%，吞吐量看起来很好但完全不反映真实流量。
 
@@ -29,7 +33,7 @@ Two things happened. First, k6 sent 500 identical prompts — your request-coale
 
 Load testing for LLMs is its own discipline.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### The GIL trap (Locust)
 
@@ -95,23 +99,33 @@ Build from real traffic samples (if you have them) or from published distributio
 - Typical CI gate: 30-50 iterations per PR.
 - Four patterns: steady, ramp, spike, soak.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates a load test with realistic prompt distribution, measures effective TPOT, and demonstrates the uniform-prompt trap.
 
-## Ship It | 部署上线
+> `code/main.py` simulates a load test with realistic prompt distribution, measures effective TPOT, and demonstrates the uniform-prompt trap.
+
+> `code/main.py` simulates a load test with realistic prompt distribution, measures effective TPOT, and demonstrates the uniform-prompt trap.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-load-test-plan.md`. Given workload and SLA, picks tool and designs the four load patterns.
+
+> 本课产出 `outputs/skill-load-test-plan.md`. Given workload and SLA, picks tool and designs the four load patterns.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Compare uniform vs realistic distribution — where is the gap?
+   中文翻译：Run `code/main.py`. Compare uniform vs realistic distribution — where is the gap?
 2. Write the k6 script for a CI gate: TTFT P95 < 800 ms at 100 concurrent, runtime 5 minutes.
+   中文翻译：Write the k6 script for a CI gate: TTFT P95 < 800 ms at 100 concurrent, runtime 5 minutes.
 3. Your soak test shows memory growing 50 MB/hour. Name three causes and the instrumentation to pick between them.
+   中文翻译：Your soak test shows memory growing 50 MB/hour. Name three causes and the instrumentation to pick between them.
 4. Spike test from 10 RPS to 100 RPS. What's the expected recovery time if Karpenter + vLLM production-stack are in place (Phase 17 · 03 + 18)?
+   中文翻译：Spike test from 10 RPS to 100 RPS. What's the expected recovery time if Karpenter + vLLM production-stack are in place (Phase 17 · 03 + 18)?
 5. GenAI-Perf reports TPOT=6ms; LLMPerf reports TPOT=11ms on the same server. Explain.
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

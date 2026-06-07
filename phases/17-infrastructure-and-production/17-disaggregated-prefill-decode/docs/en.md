@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了分离式预填充/解码——将推理的预填充和解码阶段分离到不同硬件。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, toy disaggregated-vs-colocated simulator)
-**Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 08 (Inference Metrics)
-**Time:** ~75 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, toy disaggregated-vs-colocated simulator) | **语言:** Python
+**Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 08 (Inference Metrics) | **前置知识:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 08 (Inference Metrics)
+**Time:** ~75 minutes | **时间:** ~75 minutes
 
 ## Learning Objectives | 学习目标
 
 - Explain why prefill and decode have different optimal GPU allocations and quantify the waste under colocation.
+  中文翻译：Explain why prefill and decode have different optimal GPU allocations and quantify the waste under colocation.
 - Diagram the disaggregated architecture: prefill pool, decode pool, KV transfer via NIXL, router.
+  中文翻译：Diagram the disaggregated architecture: prefill pool, decode pool, KV transfer via NIXL, router.
 - Name the condition when disaggregation does NOT pay off (short prompts, short outputs).
+  中文翻译：Name the condition when disaggregation does NOT pay off (short prompts, short outputs).
 - Distinguish NVIDIA Dynamo (stack-above) from llm-d (Kubernetes-native) and match each to an operational context.
+  中文翻译：Distinguish NVIDIA Dynamo (stack-above) from llm-d (Kubernetes-native) and match each to an operational context.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 分离式预填充/解码的核心问题：prefill 是计算受限的，decode 是内存受限的，在同一 GPU 上运行两者浪费一种资源。在混合工作负载下，20-40% 的 GPU 时间浪费在错误的资源上——你用 H100 的算力跑内存受限的 decode，或用 H100 的带宽跑计算受限的 prefill。分离式架构将两者分配到各自优化的独立池中，KV Cache 通过高速互连（RDMA/InfiniBand）传输。
 
@@ -29,7 +33,7 @@ Budget impact: 20-40% of GPU time is wasted on the wrong resource. You are buyin
 
 Disaggregation splits prefill and decode onto separate pools sized for each's bottleneck. KV cache transfers from prefill pool to decode pool via high-bandwidth interconnect.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Why the bottlenecks differ
 
@@ -120,23 +124,33 @@ Benchmark numbers drift — NVIDIA and the inference stack post updated results 
 - Disaggregation threshold: prompts >512 tokens + outputs >200 tokens.
 - KV transfer via NIXL: 20-80 ms for 4K-prompt KV on 70B FP8.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates colocated vs disaggregated serving. Reports throughput, cost per request, and the prompt-length crossover.
 
-## Ship It | 部署上线
+> `code/main.py` simulates colocated vs disaggregated serving. Reports throughput, cost per request, and the prompt-length crossover.
+
+> `code/main.py` simulates colocated vs disaggregated serving. Reports throughput, cost per request, and the prompt-length crossover.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-disaggregation-decider.md`. Given workload and cluster, decides whether to disaggregate.
+
+> 本课产出 `outputs/skill-disaggregation-decider.md`. Given workload and cluster, decides whether to disaggregate.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. At what prompt length does disaggregation beat colocation?
+   中文翻译：Run `code/main.py`. At what prompt length does disaggregation beat colocation?
 2. Design the prefill pool and decode pool for a RAG service with P99 prefix length 8K, output 300.
+   中文翻译：Design the prefill pool and decode pool for a RAG service with P99 prefix length 8K, output 300.
 3. Dynamo vs llm-d: pick one for a pure-Kubernetes shop with no Python runtime preference.
+   中文翻译：Dynamo vs llm-d: pick one for a pure-Kubernetes shop with no Python runtime preference.
 4. Compute KV transfer cost: 4K prefill on 70B FP8 = ~500 MB KV. At RDMA 100 GB/s, transfer = 5 ms. At TCP 10 GB/s = 50 ms. Which matters for your SLA?
+   中文翻译：Compute KV transfer cost: 4K prefill on 70B FP8 = ~500 MB KV. At RDMA 100 GB/s, transfer = 5 ms. At TCP 10 GB/s = 50 ms. Which matters for your SLA?
 5. MoE expert routing changes KV access patterns. How does disaggregation behave with MoE that activates different experts per token?
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

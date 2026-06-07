@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了 vLLM 推理服务——PagedAttention、连续批处理和分块预填充三大核心优化。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, toy KV-spill simulator)
-**Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 06 (SGLang/RadixAttention)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, toy KV-spill simulator) | **语言:** Python
+**Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 06 (SGLang/RadixAttention) | **前置知识:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 06 (SGLang/RadixAttention)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
 
 - Diagram the vLLM production-stack layers: router, engines, KV offload, observability.
+  中文翻译：Diagram the vLLM production-stack layers: router, engines, KV offload, observability.
 - Explain the KV Offloading Connector API (v0.9.0+) and how the 0.11.0 asynchronous path hides offload latency.
+  中文翻译：Explain the KV Offloading Connector API (v0.9.0+) and how the 0.11.0 asynchronous path hides offload latency.
 - Quantify when LMCache CPU-DRAM helps (KV > HBM) vs adds overhead (KV small enough to fit HBM).
+  中文翻译：Quantify when LMCache CPU-DRAM helps (KV > HBM) vs adds overhead (KV small enough to fit HBM).
 - Pick between native vLLM CPU offload and LMCache connector given deployment constraints.
+  中文翻译：Pick between native vLLM CPU offload and LMCache connector given deployment constraints.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** vLLM 推理服务在高并发时 GPU HBM 占满，发生抢占事件——请求被逐出、重新排队、同一个 2K-token 提示一分钟内被重新 prefill 四次。GPU 计算花在冗余 prefill 上，Goodput 远低于原始吞吐。添加更多 GPU 是线性成本，但 CPU DRAM 很便宜——一个 socket 有 512GB+，延迟虽比 HBM 差几个数量级，但对于"临时温热"的 KV Cache 足够。
 
@@ -29,7 +33,7 @@ Adding more GPUs costs linearly. Adding more HBM is not possible. But CPU DRAM i
 
 LMCache extracts KV cache to CPU DRAM so preempted requests recover fast, and repeated prefixes across engines share cache without each engine re-prefilling.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### vLLM production-stack
 
@@ -97,23 +101,33 @@ Phase 17 · 17 disaggregated serving + LMCache compounds: KV transfers from pref
 - 16x H100 benchmark: LMCache helps when KV footprint exceeds HBM.
 - Small HBM pressure: 3-5% overhead without benefit.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates a preemption-heavy workload with and without LMCache. Reports re-prefills avoided, throughput gain, and the break-even HBM utilization.
 
-## Ship It | 部署上线
+> `code/main.py` simulates a preemption-heavy workload with and without LMCache. Reports re-prefills avoided, throughput gain, and the break-even HBM utilization.
+
+> `code/main.py` simulates a preemption-heavy workload with and without LMCache. Reports re-prefills avoided, throughput gain, and the break-even HBM utilization.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-vllm-stack-decider.md`. Given workload shape and vLLM deployment, decides native vs LMCache vs neither.
+
+> 本课产出 `outputs/skill-vllm-stack-decider.md`. Given workload shape and vLLM deployment, decides native vs LMCache vs neither.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. At what HBM utilization does LMCache start paying?
+   中文翻译：Run `code/main.py`. At what HBM utilization does LMCache start paying?
 2. A tenant shares a 6K-token system prompt across 200 queries/hour. Compute expected LMCache savings per tenant.
+   中文翻译：A tenant shares a 6K-token system prompt across 200 queries/hour. Compute expected LMCache savings per tenant.
 3. The LMCache server is a single point of failure. Design the HA strategy (replicas, fallback to native).
+   中文翻译：The LMCache server is a single point of failure. Design the HA strategy (replicas, fallback to native).
 4. LMCache stores to Ceph on spinning disk. For a 4K-token KV at 70B FP8 (500 MB), what's the read time vs re-prefill?
+   中文翻译：LMCache stores to Ceph on spinning disk. For a 4K-token KV at 70B FP8 (500 MB), what's the read time vs re-prefill?
 5. Argue whether the vLLM 0.11.0 asynchronous path is "free" — where does the overhead hide?
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了边缘推理——在边缘设备上部署 LLM 的挑战和方案。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, toy bandwidth-bound decode simulator)
-**Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 09 (Production Quantization)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, toy bandwidth-bound decode simulator) | **语言:** Python
+**Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 09 (Production Quantization) | **前置知识:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 09 (Production Quantization)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
 
 - Explain why mobile LLM inference is memory-bandwidth-bound and compute is secondary.
+  中文翻译：Explain why mobile LLM inference is memory-bandwidth-bound and compute is secondary.
 - Enumerate the four edge targets (Apple ANE, Qualcomm Hexagon, WebGPU/WebLLM, NVIDIA Jetson) and match each to a use case.
+  中文翻译：Enumerate the four edge targets (Apple ANE, Qualcomm Hexagon, WebGPU/WebLLM, NVIDIA Jetson) and match each to a use case.
 - Name the 2026 WebGPU coverage gap (Firefox Android catching up) and the Safari iOS 26 landing.
+  中文翻译：Name the 2026 WebGPU coverage gap (Firefox Android catching up) and the Safari iOS 26 landing.
 - Pick a quantization format per target (Core ML INT4 + FP16 for ANE, QNN INT8/INT4 for Hexagon, WebGPU Q4 for browser, NVFP4 for Jetson Thor).
+  中文翻译：Pick a quantization format per target (Core ML INT4 + FP16 for ANE, QNN INT8/INT4 for Hexagon, WebGPU Q4 for browser, NVFP4 for Jetson Thor).
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 边缘推理的核心约束是内存带宽而非计算能力。移动 DRAM 带宽 50-90 GB/s，数据中心 HBM3 达 2-3 TB/s——30-50x 差距。由于 decode 阶段是内存带宽受限的，这个差距是决定性的。7B 模型 Q4 量化后权重 3.5GB，在 50 GB/s 带宽下读取需要 70ms——理论上限仅约 14 tok/s。2026 年边缘推理是四个不同的平台、四种不同的解决方案。
 
@@ -27,7 +31,7 @@ A customer wants an on-device chatbot: voice-first, private-by-default, works of
 
 The throughput variance is not a porting issue. It is the bandwidth gap times the quantization format times whether the NPU is accessible from user-space. Edge inference in 2026 is four different problems with four different solutions.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Bandwidth is the real ceiling
 
@@ -104,23 +108,33 @@ Voice agents are latency-sensitive (first token < 500 ms). Local inference elimi
 - Datacenter-edge bandwidth gap: 30-50x.
 - WebGPU mobile coverage: ~70-75% (Firefox Android lagging).
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` computes theoretical decode throughput ceilings from bandwidth-bound math across edge targets. Compares to observed benchmarks and highlights where bandwidth, not compute, is the bottleneck.
 
-## Ship It | 部署上线
+> `code/main.py` computes theoretical decode throughput ceilings from bandwidth-bound math across edge targets. Compares to observed benchmarks and highlights where bandwidth, not compute, is the bottleneck.
+
+> `code/main.py` computes theoretical decode throughput ceilings from bandwidth-bound math across edge targets. Compares to observed benchmarks and highlights where bandwidth, not compute, is the bottleneck.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-edge-target-picker.md`. Given platform (iOS/Android/browser/Jetson), model, and latency/memory budget, picks a quantization format and conversion pipeline.
+
+> 本课产出 `outputs/skill-edge-target-picker.md`. Given platform (iOS/Android/browser/Jetson), model, and latency/memory budget, picks a quantization format and conversion pipeline.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. For a 7B model in Q4 on a Snapdragon 8 Gen 3 (~77 GB/s bandwidth), compute the decode ceiling. Compare to observed 6-8 tok/s — is the runtime efficient?
+   中文翻译：Run `code/main.py`. For a 7B model in Q4 on a Snapdragon 8 Gen 3 (~77 GB/s bandwidth), compute the decode ceiling. Compare to observed 6-8 tok/s — is the runtime efficient?
 2. WebGPU on Android requires Chrome v121+. Design a fallback for older browsers — server-side via the same OpenAI-compatible API.
+   中文翻译：WebGPU on Android requires Chrome v121+. Design a fallback for older browsers — server-side via the same OpenAI-compatible API.
 3. Your iOS app needs 4K-context streaming. Which model/format combination lets you stay under 4 GB active memory on an iPhone 16?
+   中文翻译：Your iOS app needs 4K-context streaming. Which model/format combination lets you stay under 4 GB active memory on an iPhone 16?
 4. Jetson AGX Orin runs gpt-oss-20b at 40 tok/s. Jetson Nano fits only a 3B. If your product targets both, how do you unify the inference stack?
+   中文翻译：Jetson AGX Orin runs gpt-oss-20b at 40 tok/s. Jetson Nano fits only a 3B. If your product targets both, how do you unify the inference stack?
 5. Argue whether "WebLLM is production-ready in 2026." Cite the coverage, performance, and the Firefox Android gap.
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

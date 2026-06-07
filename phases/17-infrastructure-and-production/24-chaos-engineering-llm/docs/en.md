@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了 LLM 混沌工程——主动注入故障来测试 LLM 服务韧性的实践。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, toy chaos experiment runner)
-**Prerequisites:** Phase 17 · 23 (SRE for AI), Phase 17 · 13 (Observability)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, toy chaos experiment runner) | **语言:** Python
+**Prerequisites:** Phase 17 · 23 (SRE for AI), Phase 17 · 13 (Observability) | **前置知识:** Phase 17 · 23 (SRE for AI), Phase 17 · 13 (Observability)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
 
 - Name the five chaos engineering prerequisites (SLI/SLO, observability, rollback, runbooks, on-call) and explain why skipping any breaks the practice.
+  中文翻译：Name the five chaos engineering prerequisites (SLI/SLO, observability, rollback, runbooks, on-call) and explain why skipping any breaks the practice.
 - Diagram the four planes (control, target, safety, observability) and the feedback loop into SLO.
+  中文翻译：Diagram the four planes (control, target, safety, observability) and the feedback loop into SLO.
 - Enumerate five LLM-specific experiments (memory overload, network fail, provider outage, malformed prompt, KV eviction storm).
+  中文翻译：Enumerate five LLM-specific experiments (memory overload, network fail, provider outage, malformed prompt, KV eviction storm).
 - Pick a tool — Harness, LitmusChaos, Chaos Mesh — given stack.
+  中文翻译：Pick a tool — Harness, LitmusChaos, Chaos Mesh — given stack.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** LLM 混沌工程是 2026 年的独立学科。LLM 栈增加了新的故障模式：4K-token 的毒化字符使分词器卡住 12 秒；上游提供商 429 触发网关重试，重试放大并发导致 OOM；突发负载下 KV Cache 淘汰风暴引发 re-prefill 级联，耗尽计算资源。这些都不会出现在单元测试中——混沌工程是在用户之前发现它们的手段。
 
@@ -27,7 +31,7 @@ Chaos testing in traditional stacks is established. LLM stacks add new failure m
 
 None of these show up in unit tests. Chaos engineering is how you discover them before users do.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Prerequisites
 
@@ -104,23 +108,33 @@ First LLM-specific experiment: inject one provider 429 for 5 minutes. Observe fa
 - Cadence: weekly canary, monthly game day, quarterly audit.
 - Five LLM experiments: memory, network, provider, malformed prompt, KV storm.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates three chaos experiments with safety plane gates. Reports which experiments would trip the burn-rate abort.
 
-## Ship It | 部署上线
+> `code/main.py` simulates three chaos experiments with safety plane gates. Reports which experiments would trip the burn-rate abort.
+
+> `code/main.py` simulates three chaos experiments with safety plane gates. Reports which experiments would trip the burn-rate abort.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-chaos-plan.md`. Given stack and maturity, picks first three experiments and the tooling.
+
+> 本课产出 `outputs/skill-chaos-plan.md`. Given stack and maturity, picks first three experiments and the tooling.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Which experiment trips the burn-rate gate and why?
+   中文翻译：Run `code/main.py`. Which experiment trips the burn-rate gate and why?
 2. Design the first five chaos experiments for a vLLM-based RAG service. Include success criteria.
+   中文翻译：Design the first five chaos experiments for a vLLM-based RAG service. Include success criteria.
 3. Your burn-rate alert paused an experiment. How do you determine root cause — chaos or natural?
+   中文翻译：Your burn-rate alert paused an experiment. How do you determine root cause — chaos or natural?
 4. Argue whether chaos should run in production or only staging. When is production the right answer?
+   中文翻译：Argue whether chaos should run in production or only staging. When is production the right answer?
 5. Name three LLM-specific failure modes that generic network-chaos cannot reproduce.
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

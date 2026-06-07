@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了 AI 的 SRE 实践——LLM 服务的站点可靠性工程方法论。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, toy multi-agent incident triage simulator)
-**Prerequisites:** Phase 17 · 13 (Observability), Phase 17 · 24 (Chaos Engineering)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, toy multi-agent incident triage simulator) | **语言:** Python
+**Prerequisites:** Phase 17 · 13 (Observability), Phase 17 · 24 (Chaos Engineering) | **前置知识:** Phase 17 · 13 (Observability), Phase 17 · 24 (Chaos Engineering)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
 
 - Diagram the multi-agent AI SRE architecture: supervisor + specialized agents (logs, metrics, runbooks) + human approval gate.
+  中文翻译：Diagram the multi-agent AI SRE architecture: supervisor + specialized agents (logs, metrics, runbooks) + human approval gate.
 - Explain why auto-remediation is narrow (restart pod, revert deploy) rather than broad (re-architect service).
+  中文翻译：Explain why auto-remediation is narrow (restart pod, revert deploy) rather than broad (re-architect service).
 - Name the adversarial evaluation pattern (NeuBird Hawkeye): two models agree = confidence; disagree = escalate.
+  中文翻译：Name the adversarial evaluation pattern (NeuBird Hawkeye): two models agree = confidence; disagree = escalate.
 - Cite the MIT 89% early-detection result and the operational constraint: predictions without actuation are just dashboards.
+  中文翻译：Cite the MIT 89% early-detection result and the operational constraint: predictions without actuation are just dashboards.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** AI SRE 的核心洞察：2026 年，事件调查的前 20 分钟是可自动化的——按服务分组日志、关联到最近部署、匹配 runbook——都是 RAG + 工具使用。监督式 Agent 可以在人类打开 Datadog 之前完成首轮分类并呈现假设。完全自主修复是不同的问题——重启 Pod 安全、扩展 GPU 池安全（如果策略允许）、重新架构服务绝对不行。
 
@@ -29,7 +33,7 @@ In 2026 the first 20 minutes of that investigation are automatable. Grouping log
 
 Fully autonomous remediation is a different problem. Restart pod: safe. Scale GPU pool: safe if policy allows. Re-architect the service: absolutely not. The discipline is drawing the narrow line.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Multi-agent architecture
 
@@ -103,23 +107,33 @@ Runbooks evolve from Confluence pages to versioned markdown with structured sect
 - Safe auto-remediation set: restart pod, revert deploy, scale within bounds.
 - Adversarial eval: two models independent; agreement = confidence.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates a multi-agent triage: log agent finds error, metric agent finds CPU spike, runbook agent matches to known issue. Supervisor ranks hypotheses.
 
-## Ship It | 部署上线
+> `code/main.py` simulates a multi-agent triage: log agent finds error, metric agent finds CPU spike, runbook agent matches to known issue. Supervisor ranks hypotheses.
+
+> `code/main.py` simulates a multi-agent triage: log agent finds error, metric agent finds CPU spike, runbook agent matches to known issue. Supervisor ranks hypotheses.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-ai-sre-plan.md`. Given current on-call, incident volume, team maturity, designs an AI SRE rollout.
+
+> 本课产出 `outputs/skill-ai-sre-plan.md`. Given current on-call, incident volume, team maturity, designs an AI SRE rollout.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. What if the log and metric agents disagree? How does the supervisor resolve?
+   中文翻译：Run `code/main.py`. What if the log and metric agents disagree? How does the supervisor resolve?
 2. Define three "safe" auto-remediation actions for your service. Justify each.
+   中文翻译：Define three "safe" auto-remediation actions for your service. Justify each.
 3. Write a structured runbook template: sections, required fields, verification commands.
+   中文翻译：Write a structured runbook template: sections, required fields, verification commands.
 4. Predictive detection fires at 12 min lead. What's your policy — pager, pre-drain, or both?
+   中文翻译：Predictive detection fires at 12 min lead. What's your policy — pager, pre-drain, or both?
 5. Argue whether a 3-person team should adopt AI SRE in 2026 or wait. Consider maturity, volume, risk.
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
