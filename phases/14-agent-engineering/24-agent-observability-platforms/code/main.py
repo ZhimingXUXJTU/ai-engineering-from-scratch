@@ -3,8 +3,12 @@
 Mirrors what Langfuse / Phoenix / Opik do with richer UIs: ingest spans,
 group by session, score with an LLM judge, surface failure categories.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Agent 可观测性平台的核心逻辑 —— TraceCollector 聚合 Span 事件，按 session 分组，
+LLM-judge 自动评分（基于错误率/工具使用/输出完整性），categorize_failures 归类失败原因。
+复刻 Langfuse/Phoenix/Opik 的核心评测管线。
+AI 对应：Langfuse（开源 LLM 可观测平台）、Arize Phoenix、Comet Opik 是 Agent 生产环境必备工具，
+用于追踪 GPT-4/Claude 调用链、评测输出质量、定位故障根因；
+OpenTelemetry + Langfuse 集成已成为 Agent 生产监控的事实标准方案。
 """
 
 from __future__ import annotations
@@ -16,7 +20,6 @@ from typing import Any, Callable
 
 @dataclass
 class SpanEvent:
-    """SpanEvent"""
     trace_id: str
     session_id: str
     name: str
@@ -26,7 +29,6 @@ class SpanEvent:
 
 @dataclass
 class SessionSummary:
-    """SessionSummary"""
     session_id: str
     trace_count: int
     error_count: int
@@ -35,7 +37,6 @@ class SessionSummary:
 
 
 class TraceCollector:
-    """TraceCollector"""
     def __init__(self) -> None:
         self.spans: list[SpanEvent] = []
 
@@ -46,11 +47,10 @@ class TraceCollector:
         result: dict[str, list[SpanEvent]] = {}
         for span in self.spans:
             result.setdefault(span.session_id, []).append(span)
-        return result  # 返回结果
+        return result
 
 
 def scripted_llm_judge(session_spans: list[SpanEvent]) -> tuple[float, str]:
-    """scripted_llm_judge"""
     errors = sum(1 for s in session_spans if s.status == "error")
     has_tool = any(s.name.startswith("tool_call") for s in session_spans)
     has_final = any(s.attributes.get("gen_ai.output.reference_id")
@@ -72,22 +72,20 @@ def scripted_llm_judge(session_spans: list[SpanEvent]) -> tuple[float, str]:
         verdict = "WARN"
     else:
         verdict = "FAIL"
-    return score, verdict  # 返回结果
+    return score, verdict
 
 
 def categorize_failures(session_spans: list[SpanEvent]) -> Counter:
-    """categorize_failures"""
     reasons: Counter = Counter()
     for span in session_spans:
         if span.status != "error":
             continue
         reason = span.attributes.get("error.reason", "unknown")
         reasons[reason] += 1
-    return reasons  # 返回结果
+    return reasons
 
 
 def summarize(collector: TraceCollector) -> list[SessionSummary]:
-    """summarize"""
     summaries: list[SessionSummary] = []
     for session_id, spans in collector.by_session().items():
         score, _ = scripted_llm_judge(spans)
@@ -99,11 +97,10 @@ def summarize(collector: TraceCollector) -> list[SessionSummary]:
             failure_reasons=categorize_failures(spans),
         ))
     summaries.sort(key=lambda s: s.eval_score_mean)
-    return summaries  # 返回结果
+    return summaries
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("AGENT OBSERVABILITY PLATFORMS — Phase 14, Lesson 24")
     print("=" * 70)

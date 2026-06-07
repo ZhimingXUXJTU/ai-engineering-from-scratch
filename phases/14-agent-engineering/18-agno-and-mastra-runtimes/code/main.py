@@ -1,8 +1,12 @@
 """Side-by-side toys: Agno-shaped (stateless FastAPI) vs Mastra-shaped
 (primitive-rich). Stdlib only; meant to show the structural difference.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：两种 Agent 运行时范式的对比实现 —— Agno 风格（极简无状态，单函数调用 + 会话记录）
+vs Mastra 风格（原语丰富，带 JSON Schema 的工具系统 + DAG 工作流引擎）。
+前者适合快速原型，后者适合生产级编排。
+AI 对应：Agno（原 Phidata）和 Mastra 分别代表轻量级和重量级 Agent 框架的两个极端；
+类似对比还有 SimpleAI vs LangChain、Haystack vs LlamaIndex。选择取决于场景复杂度和
+生产化需求（可观测性、类型安全、DAG 编排）。
 """
 
 from __future__ import annotations
@@ -14,16 +18,14 @@ from typing import Any, Callable
 
 @dataclass
 class AgnoAgent:
-    """AgnoAgent"""
     name: str
     fn: Callable[[str], str]
 
     def run(self, prompt: str) -> str:
-        return self.fn(prompt)  # 返回结果
+        return self.fn(prompt)
 
 
 class AgnoSession:
-    """AgnoSession"""
     def __init__(self) -> None:
         self._turns: dict[str, list[str]] = {}
 
@@ -31,11 +33,10 @@ class AgnoSession:
         self._turns.setdefault(session_id, []).append(turn)
 
     def history(self, session_id: str) -> list[str]:
-        return list(self._turns.get(session_id, []))  # 返回结果
+        return list(self._turns.get(session_id, []))
 
 
 def agno_request_handler(session: AgnoSession,
-    """agno_request_handler"""
                          agent: AgnoAgent,
                          session_id: str,
                          prompt: str) -> str:
@@ -44,12 +45,11 @@ def agno_request_handler(session: AgnoSession,
     output = agent.run(prompt)
     session.append(session_id, f"assistant: {output}")
     elapsed_us = (time.perf_counter_ns() - start) / 1000
-    return f"{output}  (handler {elapsed_us:.1f} us)"  # 返回结果
+    return f"{output}  (handler {elapsed_us:.1f} us)"
 
 
 @dataclass
 class MastraTool:
-    """MastraTool"""
     name: str
     input_schema: dict[str, Any]
     fn: Callable[..., str]
@@ -57,7 +57,6 @@ class MastraTool:
 
 @dataclass
 class MastraAgent:
-    """MastraAgent"""
     name: str
     instructions: str
     tools: list[MastraTool] = field(default_factory=list)
@@ -73,12 +72,11 @@ class MastraAgent:
             result = tool.fn(**args)
             trace.append((tool_name, result))
         output = f"{self.name} processed {len(tool_calls)} tools"
-        return output, trace  # 返回结果
+        return output, trace
 
 
 @dataclass
 class MastraWorkflow:
-    """MastraWorkflow"""
     steps: list[tuple[str, Callable[[Any], Any]]]
 
     def run(self, payload: Any) -> list[tuple[str, Any]]:
@@ -87,21 +85,18 @@ class MastraWorkflow:
         for name, fn in self.steps:
             current = fn(current)
             trace.append((name, current))
-        return trace  # 返回结果
+        return trace
 
 
 def _agno_agent_fn(prompt: str) -> str:
-    """_agno_agent_fn"""
-    return f"[agno reply] {prompt[:40]}"  # 返回结果
+    return f"[agno reply] {prompt[:40]}"
 
 
 def _mastra_tool_fn(query: str) -> str:
-    """_mastra_tool_fn"""
-    return f"[mastra search result for {query!r}]"  # 返回结果
+    return f"[mastra search result for {query!r}]"
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("AGNO vs MASTRA — Phase 14, Lesson 18")
     print("=" * 70)

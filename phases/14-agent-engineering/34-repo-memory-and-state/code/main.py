@@ -7,8 +7,13 @@ temp-and-rename writes so a partial failure cannot corrupt the file.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Schema-first Agent 状态管理 + 原子写入 —— 为 agent_state.json 和 task_board.json
+定义 JSON Schema，实现轻量级 stdlib 验证器（支持 required/type/enum/pattern/items），
+StateManager 使用 temp-and-rename 写入策略防止部分写入导致文件损坏。
+
+AI 对应：Claude Code 的 .claude/ 目录、Cursor 的状态管理都采用类似的 schema 验证 +
+原子写入模式。这是生产级 Agent 系统的基本要求 —— 状态损坏意味着 Agent 丢失上下文，
+可能导致不可预测的行为。数据库的 WAL（Write-Ahead Log）也是同样的思路。
 """
 
 from __future__ import annotations
@@ -57,29 +62,26 @@ BOARD_SCHEMA: dict[str, Any] = {
 
 
 class SchemaError(Exception):
-    """SchemaError"""
     pass
 
 
 def _check_type(value: Any, types: str | list[str]) -> bool:
-    """_check_type"""
     type_list = [types] if isinstance(types, str) else types
     for t in type_list:
         if t == "object" and isinstance(value, dict):
-            return True  # 返回结果
+            return True
         if t == "array" and isinstance(value, list):
-            return True  # 返回结果
+            return True
         if t == "string" and isinstance(value, str):
-            return True  # 返回结果
+            return True
         if t == "integer" and isinstance(value, int) and not isinstance(value, bool):
-            return True  # 返回结果
+            return True
         if t == "null" and value is None:
-            return True  # 返回结果
-    return False  # 返回结果
+            return True
+    return False
 
 
 def validate(value: Any, schema: dict[str, Any], path: str = "$") -> None:
-    """validate"""
     if "type" in schema and not _check_type(value, schema["type"]):
         raise SchemaError(f"{path}: expected {schema['type']}, got {type(value).__name__}")
     if "enum" in schema and value not in schema["enum"]:
@@ -103,7 +105,6 @@ def validate(value: Any, schema: dict[str, Any], path: str = "$") -> None:
 
 
 def atomic_write(path: Path, content: str) -> None:
-    """atomic_write"""
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp_name = tempfile.mkstemp(prefix=path.name + ".", dir=path.parent)
     try:
@@ -118,7 +119,6 @@ def atomic_write(path: Path, content: str) -> None:
 
 
 class StateManager:
-    """StateManager"""
     def __init__(self, state_path: Path, schema: dict[str, Any]):
         self.state_path = state_path
         self.schema = schema
@@ -126,7 +126,7 @@ class StateManager:
     def load(self) -> Any:
         raw = json.loads(self.state_path.read_text())
         validate(raw, self.schema)
-        return raw  # 返回结果
+        return raw
 
     def commit(self, state: Any) -> None:
         validate(state, self.schema)
@@ -134,7 +134,6 @@ class StateManager:
 
 
 def main() -> None:
-    """main"""
     WORK.mkdir(exist_ok=True)
     schema_dir = WORK / "schemas"
     schema_dir.mkdir(exist_ok=True)

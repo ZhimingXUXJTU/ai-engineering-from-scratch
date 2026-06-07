@@ -4,8 +4,13 @@ Cheap fast validator refuses injection-shaped content before the expensive
 main model commits. Demonstrates argument inspection, retrieved-content
 rejection, and memory-write guardrails.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：PVE（Prompt-Validator-Executor）防御架构 —— 轻量 Validator 在调用昂贵主模型前
+拦截注入攻击：检测参数中的指令性内容、拒绝来自检索内容的注入、保护内存写入。
+代价低、速度快、多层防御。
+AI 对应：Prompt injection 是 LLM Agent 面临的最大安全威胁，OWASP LLM Top 10 排名第一；
+Anthropic 的 prompt injection defense guide、Simon Willison 的 LLM security 研究和
+Protect AI 的 LLM Guard 都推荐类似的"快速验证器前置"模式。GPT-4 和 Claude 的
+system prompt 都内置了类似的注入检测逻辑。
 """
 
 from __future__ import annotations
@@ -19,7 +24,6 @@ SourceTag = str
 
 @dataclass
 class Content:
-    """Content"""
     text: str
     source: SourceTag
 
@@ -33,19 +37,17 @@ INJECTION_MARKERS = (
 
 
 def looks_like_directive(text: str) -> str | None:
-    """looks_like_directive"""
     t = text.lower()
     for marker in INJECTION_MARKERS:
         if marker in t:
-            return marker  # 返回结果
+            return marker
     if t.startswith("do ") or t.startswith("execute "):
-        return "starts with do/execute"  # 返回结果
-    return None  # 返回结果
+        return "starts with do/execute"
+    return None
 
 
 @dataclass
 class ToolCall:
-    """ToolCall"""
     name: str
     args: dict[str, Any]
     intent: str
@@ -53,74 +55,66 @@ class ToolCall:
 
 @dataclass
 class Validator:
-    """Validator"""
     allowed_tools: tuple[str, ...]
     sensitive_tools: tuple[str, ...]
 
     def assess(self, call: ToolCall, contents: list[Content]) -> tuple[bool, str]:
         if call.name not in self.allowed_tools:
-            return False, f"tool {call.name!r} not in allowlist"  # 返回结果
+            return False, f"tool {call.name!r} not in allowlist"
         for key, value in call.args.items():
             if not isinstance(value, str):
                 continue
             hit = looks_like_directive(value)
             if hit:
-                return False, f"arg {key!r} contains injection marker {hit!r}"  # 返回结果
+                return False, f"arg {key!r} contains injection marker {hit!r}"
         for content in contents:
             if content.source == "user_message":
                 continue
             hit = looks_like_directive(content.text)
             if hit:
-                return False, (  # 返回结果
+                return False, (
                     f"retrieved content (source={content.source}) "
                     f"contains injection marker {hit!r}"
                 )
-        return True, "ok"  # 返回结果
+        return True, "ok"
 
 
 @dataclass
 class Executor:
-    """Executor"""
     tools: dict[str, Callable[..., str]]
 
     def run(self, call: ToolCall) -> str:
         fn = self.tools.get(call.name)
         if fn is None:
-            return f"error: no tool {call.name!r}"  # 返回结果
-        return fn(**call.args)  # 返回结果
+            return f"error: no tool {call.name!r}"
+        return fn(**call.args)
 
 
 def _send_message(to: str, body: str) -> str:
-    """_send_message"""
-    return f"message sent to {to}: {body[:30]}"  # 返回结果
+    return f"message sent to {to}: {body[:30]}"
 
 
 def _read_memory(query: str) -> str:
-    """_read_memory"""
-    return f"memory hit for {query!r}"  # 返回结果
+    return f"memory hit for {query!r}"
 
 
 def _search(query: str) -> str:
-    """_search"""
-    return f"search hit for {query!r}"  # 返回结果
+    return f"search hit for {query!r}"
 
 
 @dataclass
 class MemoryWrite:
-    """MemoryWrite"""
     text: str
 
 
 def memory_write_guard(write: MemoryWrite) -> tuple[bool, str]:
-    """memory_write_guard"""
     hit = looks_like_directive(write.text)
     if hit:
-        return False, f"memory write contains directive-shaped text: {hit!r}"  # 返回结果
-    return True, "ok"  # 返回结果
+        return False, f"memory write contains directive-shaped text: {hit!r}"
+    return True, "ok"
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("PROMPT INJECTION + PVE DEFENSE — Phase 14, Lesson 27")
     print("=" * 70)

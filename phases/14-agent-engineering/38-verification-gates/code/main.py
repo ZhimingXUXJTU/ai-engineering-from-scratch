@@ -7,8 +7,13 @@ entry in overrides.jsonl with reason, user, and HEAD commit.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：确定性验证门 —— 聚合 scope_report + rule_report + feedback_log + coverage_report，
+生成 verification_report.json。支持 --strict 模式（全部 acceptance 必须通过）、
+覆盖率地板（80%）和覆盖率回归检测（delta > 1% 即拒绝）。覆盖（override）需 HMAC 签名 +
+reason + user + HEAD commit。
+AI 对应：SWE-bench 的 FAIL_TO_PASS 门控、GitHub Actions 的 required checks 和
+Gerrit 的 verified+1 标签都是验证门的生产实例；Claude Code 在每次编辑后自动运行
+相关测试，CI/CD 中的 coverage regression gate 是 Python 项目的标准质量保障。
 """
 
 from __future__ import annotations
@@ -36,17 +41,16 @@ _DEMO_MODE_ENV = "VERIFY_DEMO_MODE"
 
 
 def _load_override_secret() -> str:
-    """_load_override_secret"""
     secret = os.environ.get(_OVERRIDE_SECRET_ENV)
     if secret:
-        return secret  # 返回结果
+        return secret
     if os.environ.get(_DEMO_MODE_ENV) == "1":
         print(
             f"WARNING: {_OVERRIDE_SECRET_ENV} unset and {_DEMO_MODE_ENV}=1; "
             "using insecure demo secret. Do not record real overrides in this mode.",
             file=sys.stderr,
         )
-        return "demo-override-secret-do-not-ship"  # 返回结果
+        return "demo-override-secret-do-not-ship"
     raise RuntimeError(
         f"refused to start: {_OVERRIDE_SECRET_ENV} is unset. "
         f"Set the env var, or pass {_DEMO_MODE_ENV}=1 to run the lesson demo only."
@@ -55,7 +59,6 @@ def _load_override_secret() -> str:
 
 @dataclass
 class Finding:
-    """Finding"""
     code: str
     severity: str
     detail: str
@@ -63,7 +66,6 @@ class Finding:
 
 @dataclass
 class Artifacts:
-    """Artifacts"""
     task_id: str
     acceptance_commands: list[str]
     feedback: list[dict[str, object]]
@@ -75,7 +77,6 @@ class Artifacts:
 
 @dataclass
 class VerdictReport:
-    """VerdictReport"""
     task_id: str
     passed: bool
     strict: bool
@@ -85,7 +86,6 @@ class VerdictReport:
 
 
 def _acceptance_findings(art: Artifacts) -> list[Finding]:
-    """_acceptance_findings"""
     findings: list[Finding] = []
     commands_run = [str(rec.get("command")) for rec in art.feedback]
     accept_set = set(art.acceptance_commands)
@@ -100,11 +100,10 @@ def _acceptance_findings(art: Artifacts) -> list[Finding]:
             findings.append(
                 Finding("acceptance.failed", "block", f"acceptance exit {rec.get('exit_code')} on {cmd_str}")
             )
-    return findings  # 返回结果
+    return findings
 
 
 def _scope_findings(art: Artifacts) -> list[Finding]:
-    """_scope_findings"""
     findings: list[Finding] = []
     if art.scope_report.get("forbidden_writes"):
         findings.append(Finding("scope.forbidden", "block",
@@ -112,12 +111,11 @@ def _scope_findings(art: Artifacts) -> list[Finding]:
     if art.scope_report.get("off_scope_writes"):
         findings.append(Finding("scope.off_scope", "warn",
                                 f"off-scope writes: {art.scope_report['off_scope_writes']}"))
-    return findings  # 返回结果
+    return findings
 
 
 def _rule_findings(art: Artifacts) -> list[Finding]:
-    """_rule_findings"""
-    return [Finding("rule.failed", "block", f"rule failed: {row.get('slug')}")  # 返回结果
+    return [Finding("rule.failed", "block", f"rule failed: {row.get('slug')}")
             for row in art.rule_report if not row.get("passed")]
 
 
@@ -131,7 +129,7 @@ def _coverage_findings(art: Artifacts, floor: float) -> list[Finding]:
     if not art.coverage_report:
         findings.append(Finding("coverage.missing", "warn",
                                 "no coverage_report.json; cannot enforce floor"))
-        return findings  # 返回结果
+        return findings
     current = float(art.coverage_report.get("current", 0.0))
     previous = float(art.coverage_report.get("previous", current))
     if current < floor:
@@ -144,7 +142,7 @@ def _coverage_findings(art: Artifacts, floor: float) -> list[Finding]:
     elif delta > 0:
         findings.append(Finding("coverage.minor_regression", "warn",
                                 f"coverage dropped {delta:.2%}"))
-    return findings  # 返回结果
+    return findings
 
 
 def verify(
@@ -163,7 +161,7 @@ def verify(
         findings = [Finding(f.code, "block" if f.severity == "warn" else f.severity, f.detail)
                     for f in findings]
     blocking = [f for f in findings if f.severity == "block"]
-    return VerdictReport(  # 返回结果
+    return VerdictReport(
         task_id=art.task_id,
         passed=not blocking,
         strict=strict,
@@ -174,9 +172,8 @@ def verify(
 
 
 def _sign(payload: dict[str, object]) -> str:
-    """_sign"""
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
-    return hmac.new(_load_override_secret().encode(), canonical, hashlib.sha256).hexdigest()[:32]  # 返回结果
+    return hmac.new(_load_override_secret().encode(), canonical, hashlib.sha256).hexdigest()[:32]
 
 
 def record_override(
@@ -196,18 +193,16 @@ def record_override(
     payload["signature"] = _sign({k: v for k, v in payload.items() if k != "signature"})
     with OVERRIDES_PATH.open("a") as fh:
         fh.write(json.dumps(payload) + "\n")
-    return payload  # 返回结果
+    return payload
 
 
 def verify_signature(entry: dict[str, object]) -> bool:
-    """verify_signature"""
     expected = entry.get("signature")
     payload = {k: v for k, v in entry.items() if k != "signature"}
-    return hmac.compare_digest(_sign(payload), str(expected))  # 返回结果
+    return hmac.compare_digest(_sign(payload), str(expected))
 
 
 def main() -> None:
-    """main"""
     ap = argparse.ArgumentParser()
     ap.add_argument("--strict", action="store_true", help="promote every warn to block")
     ap.add_argument("--floor", type=float, default=COVERAGE_FLOOR_DEFAULT)

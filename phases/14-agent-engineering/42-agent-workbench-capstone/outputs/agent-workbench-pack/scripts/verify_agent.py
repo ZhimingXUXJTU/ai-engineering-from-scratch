@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Deterministic verification gate. See Phase 14 · 38."""
+"""确定性验证门控 —— 检查 Agent 输出是否满足预设的质量标准
+
+核心概念：
+  - 验证门控 (verification gate)：在 Agent 完成任务后，自动检查输出质量
+  - 确定性检查：基于规则而非 AI 判断，结果可复现
+  - 通过/失败判定：所有检查项通过才允许发布
+"""
 
 from __future__ import annotations
 

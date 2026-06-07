@@ -14,9 +14,13 @@
 - Describe the 2026 best practice: evals live next to code, run in CI, gate PRs.
 - Connect every Phase 14 lesson to the eval case it generates.
 
+> **【中文解读】** 学习目标：1) 掌握三层评估体系——静态基准、自定义离线评估、在线生产评估；2) 理解评估器-优化器的紧密循环；3) 掌握 2026 年最佳实践——评估与代码同仓、CI 运行、PR 门控；4) 将 Phase 14 每节课映射到对应的评估用例。
+
 ## The Problem | 问题
 
 Agents pass demos. They fail in production in ways demos cannot predict. Benchmarks answer "is this model broadly capable?" not "is this agent shipping the right patches for my product?" The answer: evaluation at three layers, running continuously, with every guardrail and learned rule mapped to an eval case.
+
+> **【中文解读】** Agent 能通过演示，但在生产中以演示无法预测的方式失败。基准测试回答的是"这个模型整体能力如何"，而非"这个 Agent 是否为我的产品生成了正确的补丁"。解决方案：三层评估持续运行，每个护栏和学到的规则都映射到一个评估用例。
 
 
 > **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
@@ -37,6 +41,8 @@ Agents pass demos. They fail in production in ways demos cannot predict. Benchma
    - Guardrail-triggered alerts (Lesson 16, 21).
    - Per-step cost / latency tracking (Lesson 23 OTel spans).
 
+> **【中文解读】** 三层评估体系：1) **静态基准**——标准化的跨模型对比（SWE-bench、GAIA、WebArena 等），注意数据污染问题：SWE-bench+ 发现 32.67% 的解决方案泄漏；2) **自定义离线评估**——针对你产品的特定形状，包括 LLM-as-judge、执行式评估和轨迹式评估；3) **在线评估**——生产环境中的会话回放、护栏告警和成本/延迟追踪。
+
 ### Evaluator-optimizer (Anthropic)
 
 The tight loop:
@@ -46,6 +52,8 @@ The tight loop:
 3. Refine until evaluator passes.
 
 This is Self-Refine (Lesson 05) generalized. Any agent flow you care about can wrap in evaluator-optimizer for reliability.
+
+> **【中文解读】** 评估器-优化器循环：提议者生成输出 → 评估器判断 → 优化器改进 → 重复直到通过。这是 Self-Refine（Lesson 05）的泛化形式。任何你在意的 Agent 流程都可以用评估器-优化器包装来提高可靠性。
 
 ### 2026 best practice
 
@@ -81,6 +89,8 @@ Every lesson in Phase 14 generates eval cases:
 | 29 Runtime Shapes | DLQ handles N% failure |
 
 If your eval suite has cases for each, you have covered Phase 14.
+
+> **【中文解读】** Phase 14 每节课都生成对应的评估用例：Agent 循环的预算耗尽/无限循环防护、ReWOO 的工具失败重规划、Reflexion 的反思应用、工具使用的参数强制转换、记忆的引用匹配和过期检测、各框架的正确输出验证等。如果评估套件覆盖了每节课的用例，你就完整覆盖了 Phase 14。
 
 ### Where eval-driven development fails
 
@@ -133,15 +143,15 @@ Output: per-case pass/fail, regression flag, CI gate verdict.
 
 ## Key Terms | 关键术语
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|---|
-| Static benchmark | "Off-the-shelf eval" | SWE-bench, GAIA, AgentBench, WebArena, OSWorld |  |
-| Custom offline eval | "Domain eval" | LLM-as-judge / exec / trajectory on your product shape |  |
-| Online eval | "Production eval" | Session replay, guardrail alerts, cost/latency tracking |  |
-| Evaluator-optimizer | "Propose-judge-refine" | Iterate until judge passes |  |
-| CI gate | "Merge blocker" | Fail the build on eval regression |  |
-| Baseline | "Last-known-good" | Reference score to detect regression |  |
-| Trajectory efficiency | "Steps over gold" | Agent step count divided by human expert minimum |  |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|---------|
+| Static benchmark | "Off-the-shelf eval" | SWE-bench, GAIA, AgentBench, WebArena, OSWorld | 静态基准：标准化的离线评估集，用于跨模型对比和回归门控 |
+| Custom offline eval | "Domain eval" | LLM-as-judge / exec / trajectory on your product shape | 自定义离线评估：针对产品特定形状的 LLM 评判/执行/轨迹评估 |
+| Online eval | "Production eval" | Session replay, guardrail alerts, cost/latency tracking | 在线评估：生产环境中的会话回放、护栏告警、成本延迟追踪 |
+| Evaluator-optimizer | "Propose-judge-refine" | Iterate until judge passes | 评估器-优化器：提议-评判-改进循环，直到评判通过 |
+| CI gate | "Merge blocker" | Fail the build on eval regression | CI 门控：评估回归时阻断合并 |
+| Baseline | "Last-known-good" | Reference score to detect regression | 基线：上次已知良好分数，用于检测回归 |
+| Trajectory efficiency | "Steps over gold" | Agent step count divided by human expert minimum | 轨迹效率：Agent 步数除以人类专家最少步数 |
 
 ## Further Reading | 延伸阅读
 

@@ -7,8 +7,12 @@ multiple contracts (project-wide + task-specific) into a single effective one.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Scope 合约检查器 —— 加载 per-task 的 scope_contract.json，对比实际运行摘要
+（编辑文件列表、执行命令、耗时、网络访问），按 allowed/forbidden/soft-off-scope 三级
+分类违规，支持 violation_budget（容错预算）和多合约最小权限合并（交集 allowed + 并集 forbidden）。
+AI 对应：Claude Code 的 file permissions、Devin 的 sandboxed workspace 和 OpenAI Assistants API 的
+code_interpreter 沙箱都实现类似的范围约束；GitHub Codespaces 的 devcontainer.json 和
+Kubernetes的 NetworkPolicy 也是"声明式范围合约"的生产实例。
 """
 
 from __future__ import annotations
@@ -24,7 +28,6 @@ HERE = Path(__file__).parent
 
 @dataclass
 class ScopeContract:
-    """ScopeContract"""
     task_id: str
     goal: str
     allowed_files: list[str]
@@ -40,7 +43,6 @@ class ScopeContract:
 
 @dataclass
 class RunSummary:
-    """RunSummary"""
     touched_files: list[str]
     commands_run: list[str]
     elapsed_minutes: float = 0.0
@@ -49,7 +51,6 @@ class RunSummary:
 
 @dataclass
 class Finding:
-    """Finding"""
     code: str
     severity: str  # block | warn | info
     detail: str
@@ -57,7 +58,6 @@ class Finding:
 
 @dataclass
 class ScopeReport:
-    """ScopeReport"""
     task_id: str
     in_scope_writes: list[str]
     off_scope_writes: list[str]
@@ -68,12 +68,11 @@ class ScopeReport:
     over_budget: bool
 
     def passed(self) -> bool:
-        return not self.over_budget and not any(f.severity == "block" for f in self.findings)  # 返回结果
+        return not self.over_budget and not any(f.severity == "block" for f in self.findings)
 
 
 def matches_any(path: str, patterns: list[str]) -> bool:
-    """matches_any"""
-    return any(fnmatch.fnmatch(path, p) for p in patterns)  # 返回结果
+    return any(fnmatch.fnmatch(path, p) for p in patterns)
 
 
 def merge_contracts(parent: ScopeContract, child: ScopeContract) -> ScopeContract:
@@ -86,7 +85,7 @@ def merge_contracts(parent: ScopeContract, child: ScopeContract) -> ScopeContrac
     network_egress: None means no enforcement, otherwise intersect; an empty
     list means deny-all and stays deny-all under merge.
     """
-    return ScopeContract(  # 返回结果
+    return ScopeContract(
         task_id=child.task_id,
         goal=child.goal or parent.goal,
         allowed_files=sorted(set(parent.allowed_files) & set(child.allowed_files)),
@@ -102,27 +101,24 @@ def merge_contracts(parent: ScopeContract, child: ScopeContract) -> ScopeContrac
 
 
 def _merge_egress(a: list[str] | None, b: list[str] | None) -> list[str] | None:
-    """_merge_egress"""
     if a is None and b is None:
-        return None  # 返回结果
+        return None
     if a is None:
-        return b  # 返回结果
+        return b
     if b is None:
-        return a  # 返回结果
-    return sorted(set(a) & set(b))  # 返回结果
+        return a
+    return sorted(set(a) & set(b))
 
 
 def _min_optional(a: int | None, b: int | None) -> int | None:
-    """_min_optional"""
     if a is None:
-        return b  # 返回结果
+        return b
     if b is None:
-        return a  # 返回结果
-    return min(a, b)  # 返回结果
+        return a
+    return min(a, b)
 
 
 def scope_check(contract: ScopeContract, run: RunSummary) -> ScopeReport:
-    """scope_check"""
     in_scope: list[str] = []
     off_scope: list[str] = []
     soft_off_scope: list[str] = []
@@ -159,7 +155,7 @@ def scope_check(contract: ScopeContract, run: RunSummary) -> ScopeReport:
     warn_count = sum(1 for f in findings if f.severity == "warn")
     over_budget = warn_count > contract.violation_budget
 
-    return ScopeReport(  # 返回结果
+    return ScopeReport(
         task_id=contract.task_id,
         in_scope_writes=in_scope,
         off_scope_writes=off_scope,
@@ -172,7 +168,6 @@ def scope_check(contract: ScopeContract, run: RunSummary) -> ScopeReport:
 
 
 def archive(report: ScopeReport) -> Path:
-    """archive"""
     out = HERE / "closed" / f"{report.task_id}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(
@@ -181,11 +176,10 @@ def archive(report: ScopeReport) -> Path:
                     "soft_off_scope": report.soft_off_scope_writes,
                     "passed": report.passed(), "closed_at": time.time()}, indent=2) + "\n"
     )
-    return out  # 返回结果
+    return out
 
 
 def main() -> None:
-    """main"""
     project_wide = ScopeContract(
         task_id="P-PROJECT",
         goal="project-wide defaults",

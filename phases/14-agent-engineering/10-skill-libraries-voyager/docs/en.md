@@ -14,6 +14,8 @@
 - Implement a stdlib skill library with registration, retrieval, composition, and failure-driven refinement.
 - Map Voyager's pattern onto the 2026 Claude Agent SDK skills and the skillkit ecosystem.
 
+> **【中文解读】** 学习目标：掌握 Voyager 的三大组件（自动课程、技能库、迭代提示），理解为什么 Voyager 将代码作为动作空间而非原始命令，用标准库实现技能库，映射到 2026 年 Claude Agent SDK skills 和 skillkit 生态。
+
 ## The Problem | 问题
 
 Agents that rebuild every capability from scratch in every session do three things wrong:
@@ -21,6 +23,8 @@ Agents that rebuild every capability from scratch in every session do three thin
 1. **Waste tokens.** Every task re-elicits the same reasoning.
 2. **Lose progress.** A correction learned in session A doesn't transfer to session B.
 3. **Fail on long-horizon composition.** Complex tasks need capability hierarchies; one-shot prompts cannot express them.
+
+> **【中文解读】** 每次会话都从头重建能力的 Agent 有三个问题：浪费 token（重复推理相同内容）、丢失进度（会话 A 学到的修正不会传递到会话 B）、无法处理长程组合任务。Voyager 将可执行代码视为技能——技能是命名的、可检索的、可组合的，并通过环境反馈来精炼。这是 2026 年技能库模式（Claude Agent SDK skills、skillkit）的参考架构。
 
 
 > **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。

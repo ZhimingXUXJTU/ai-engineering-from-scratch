@@ -5,8 +5,12 @@ preceding lessons of this mini-track. Idempotent. Prints the tree.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Agent Workbench 毕业项目 —— 将前面课程构建的所有表面（schema、脚本、文档）
+组装成 outputs/ 目录下的完整工作台包。幂等操作，打印目录树。
+
+AI 对应：这是将 Agent 工程从"零散技巧"整合为"完整系统"的汇总步骤。
+Claude Code 的 .claude/ 目录、Cursor 的 workspace 配置都是类似的"工作台包"概念。
+理解如何将各个组件组装成可复用的工具包是 Agent 工程的最终目标。
 """
 
 from __future__ import annotations
@@ -219,41 +223,35 @@ FRESH_SECONDS = 24 * 60 * 60
 
 
 def _probe_runtime() -> tuple[str, str, str]:
-    """_probe_runtime"""
     major, minor = sys.version_info[:2]
     ok = (major, minor) >= REQUIRED_PYTHON
-    return ("runtime", "pass" if ok else "fail", f"python {major}.{minor}")  # 返回结果
+    return ("runtime", "pass" if ok else "fail", f"python {major}.{minor}")
 
 
 def _probe_deps() -> tuple[str, str, str]:
-    """_probe_deps"""
     missing = [d for d in REQUIRED_DEPS if importlib.util.find_spec(d) is None]
-    return ("dependencies", "fail" if missing else "pass", f"missing: {missing}" if missing else "all importable")  # 返回结果
+    return ("dependencies", "fail" if missing else "pass", f"missing: {missing}" if missing else "all importable")
 
 
 def _probe_test_command() -> tuple[str, str, str]:
-    """_probe_test_command"""
-    return ("test_command", "pass" if shutil.which(TEST_COMMAND) else "fail", f"{TEST_COMMAND} on PATH")  # 返回结果
+    return ("test_command", "pass" if shutil.which(TEST_COMMAND) else "fail", f"{TEST_COMMAND} on PATH")
 
 
 def _probe_env() -> tuple[str, str, str]:
-    """_probe_env"""
     missing = [k for k in REQUIRED_ENV if not os.environ.get(k)]
-    return ("env", "fail" if missing else "pass", f"missing: {missing}" if missing else "all present")  # 返回结果
+    return ("env", "fail" if missing else "pass", f"missing: {missing}" if missing else "all present")
 
 
 def _probe_state() -> tuple[str, str, str]:
-    """_probe_state"""
     if not STATE_PATH.exists():
-        return ("state_freshness", "warn", "no state file yet")  # 返回结果
+        return ("state_freshness", "warn", "no state file yet")
     age = time.time() - STATE_PATH.stat().st_mtime
     if age > FRESH_SECONDS:
-        return ("state_freshness", "warn", f"state is {int(age // 3600)}h old")  # 返回结果
-    return ("state_freshness", "pass", f"state is {int(age)}s old")  # 返回结果
+        return ("state_freshness", "warn", f"state is {int(age // 3600)}h old")
+    return ("state_freshness", "pass", f"state is {int(age)}s old")
 
 
 def main() -> int:
-    """main"""
     probes = [_probe_runtime(), _probe_deps(), _probe_test_command(), _probe_env(), _probe_state()]
     REPORT_PATH.write_text(
         json.dumps(
@@ -268,8 +266,8 @@ def main() -> int:
     failed = [n for n, s, _ in probes if s == "fail"]
     if failed:
         print(f"\\ninit failed: {failed}", file=sys.stderr)
-        return 1  # 返回结果
-    return 0  # 返回结果
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
@@ -295,16 +293,14 @@ TAIL_LINES = 30
 
 
 def deterministic_tail(text: str) -> tuple[str, int]:
-    """deterministic_tail"""
     lines = text.splitlines()
     if len(lines) <= HEAD_LINES + TAIL_LINES:
-        return text, 0  # 返回结果
+        return text, 0
     cut = len(lines) - HEAD_LINES - TAIL_LINES
-    return "\\n".join(lines[:HEAD_LINES] + [f"...truncated {cut} lines..."] + lines[-TAIL_LINES:]), cut  # 返回结果
+    return "\\n".join(lines[:HEAD_LINES] + [f"...truncated {cut} lines..."] + lines[-TAIL_LINES:]), cut
 
 
 def run_with_feedback(command: list[str], agent_note: str = "", timeout_s: float = 30.0) -> dict[str, object]:
-    """run_with_feedback"""
     started = time.time()
     record: dict[str, object] = {"command": command, "agent_note": agent_note, "started_at": started}
     try:
@@ -332,11 +328,10 @@ def run_with_feedback(command: list[str], agent_note: str = "", timeout_s: float
                       duration_ms=int((time.time() - started) * 1000), error=str(exc))
     with RECORD.open("a") as fh:
         fh.write(json.dumps(record) + "\\n")
-    return record  # 返回结果
+    return record
 
 
 def main() -> int:
-    """main"""
     ap = argparse.ArgumentParser()
     ap.add_argument("command", nargs="+")
     ap.add_argument("--note", default="")
@@ -344,7 +339,7 @@ def main() -> int:
     args = ap.parse_args()
     rec = run_with_feedback(args.command, agent_note=args.note, timeout_s=args.timeout)
     print(json.dumps(rec, indent=2))
-    return 0 if rec.get("exit_code") == 0 else 1  # 返回结果
+    return 0 if rec.get("exit_code") == 0 else 1
 
 
 if __name__ == "__main__":
@@ -366,28 +361,24 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def _load_json(path: Path, default):
-    """_load_json"""
     if not path.exists():
-        return default  # 返回结果
-    return json.loads(path.read_text())  # 返回结果
+        return default
+    return json.loads(path.read_text())
 
 
 def _load_jsonl(path: Path) -> list[dict]:
-    """_load_jsonl"""
     if not path.exists():
-        return []  # 返回结果
-    return [json.loads(ln) for ln in path.read_text().splitlines() if ln.strip()]  # 返回结果
+        return []
+    return [json.loads(ln) for ln in path.read_text().splitlines() if ln.strip()]
 
 
 def _normalize_command(cmd) -> str:
-    """_normalize_command"""
     if isinstance(cmd, list):
-        return " ".join(str(part) for part in cmd)  # 返回结果
-    return str(cmd)  # 返回结果
+        return " ".join(str(part) for part in cmd)
+    return str(cmd)
 
 
 def check_acceptance(accept: list[str], feedback: list[dict]) -> list[dict]:
-    """check_acceptance"""
     findings: list[dict] = []
     commands_run = [_normalize_command(r.get("command")) for r in feedback]
     accept_set = set(accept)
@@ -401,11 +392,10 @@ def check_acceptance(accept: list[str], feedback: list[dict]) -> list[dict]:
         elif r.get("exit_code") != 0 and cmd_str in accept_set:
             findings.append({"code": "acceptance.failed", "severity": "block",
                              "detail": f"exit {r.get('exit_code')} on {cmd_str}"})
-    return findings  # 返回结果
+    return findings
 
 
 def check_scope(scope_report: dict) -> list[dict]:
-    """check_scope"""
     findings: list[dict] = []
     if scope_report.get("forbidden_writes"):
         findings.append({"code": "scope.forbidden", "severity": "block",
@@ -413,27 +403,24 @@ def check_scope(scope_report: dict) -> list[dict]:
     if scope_report.get("off_scope_writes"):
         findings.append({"code": "scope.off_scope", "severity": "warn",
                          "detail": f"off-scope writes: {scope_report['off_scope_writes']}"})
-    return findings  # 返回结果
+    return findings
 
 
 def check_rules(rule_report: list[dict]) -> list[dict]:
-    """check_rules"""
-    return [{"code": "rule.failed", "severity": "block", "detail": f"rule failed: {row.get('slug')}"}  # 返回结果
+    return [{"code": "rule.failed", "severity": "block", "detail": f"rule failed: {row.get('slug')}"}
             for row in rule_report if not row.get("passed")]
 
 
 def run_checks(task_id: str) -> dict[str, object]:
-    """run_checks"""
     accept = list(_load_json(ROOT / f"outputs/scope/closed/{task_id}.json", {}).get("acceptance_criteria", []))
     feedback = _load_jsonl(ROOT / "feedback_record.jsonl")
     scope_report = _load_json(ROOT / f"outputs/scope/closed/{task_id}.report.json", {})
     rule_report = _load_json(ROOT / "outputs/rule_report.json", [])
     findings = check_acceptance(accept, feedback) + check_scope(scope_report) + check_rules(rule_report)
-    return {"task_id": task_id, "passed": not any(f["severity"] == "block" for f in findings), "findings": findings}  # 返回结果
+    return {"task_id": task_id, "passed": not any(f["severity"] == "block" for f in findings), "findings": findings}
 
 
 def main() -> int:
-    """main"""
     ap = argparse.ArgumentParser()
     ap.add_argument("task_id")
     args = ap.parse_args()
@@ -444,8 +431,8 @@ def main() -> int:
     print(json.dumps(report, indent=2))
     if not report["passed"]:
         print("verification failed", file=sys.stderr)
-        return 1  # 返回结果
-    return 0  # 返回结果
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
@@ -468,21 +455,18 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def _load_json(path: Path, default):
-    """_load_json"""
     if not path.exists():
-        return default  # 返回结果
-    return json.loads(path.read_text())  # 返回结果
+        return default
+    return json.loads(path.read_text())
 
 
 def _load_jsonl(path: Path) -> list[dict]:
-    """_load_jsonl"""
     if not path.exists():
-        return []  # 返回结果
-    return [json.loads(ln) for ln in path.read_text().splitlines() if ln.strip()]  # 返回结果
+        return []
+    return [json.loads(ln) for ln in path.read_text().splitlines() if ln.strip()]
 
 
 def derive_risks(verdict: dict, state: dict, review: dict) -> list[dict[str, str]]:
-    """derive_risks"""
     risks: list[dict[str, str]] = []
     for f in verdict.get("findings", []) or []:
         if isinstance(f, dict) and f.get("severity") in ("warn", "block"):
@@ -495,11 +479,10 @@ def derive_risks(verdict: dict, state: dict, review: dict) -> list[dict[str, str
         total = 10
     if total < 7:
         risks.append({"severity": "warn", "detail": f"review total {review.get('total')} below 7"})
-    return risks  # 返回结果
+    return risks
 
 
 def generate_handoff(task_id: str, session_id: str | None = None) -> dict[str, object]:
-    """generate_handoff"""
     state = _load_json(ROOT / "agent_state.json", {})
     verdict = _load_json(ROOT / "outputs" / "verification" / f"{task_id}.json", {})
     review = _load_json(ROOT / "outputs" / "review" / f"{task_id}.json", {})
@@ -528,13 +511,12 @@ def generate_handoff(task_id: str, session_id: str | None = None) -> dict[str, o
     out.mkdir(parents=True, exist_ok=True)
     (out / "handoff.json").write_text(json.dumps(payload, indent=2) + "\\n")
     (out / "handoff.md").write_text(_render_markdown(payload))
-    return payload  # 返回结果
+    return payload
 
 
 def _render_markdown(p: dict[str, object]) -> str:
-    """_render_markdown"""
     def bullets(items):
-        return [f"- {x}" for x in items] or ["- none"]  # 返回结果
+        return [f"- {x}" for x in items] or ["- none"]
     lines = [
         f"# Handoff: {p['task_id']}",
         "",
@@ -559,11 +541,10 @@ def _render_markdown(p: dict[str, object]) -> str:
         f"- verdict: `{p['verdict_pointer']['verdict']}`",
         f"- review:  `{p['verdict_pointer']['review']}`",
     ]
-    return "\\n".join(lines) + "\\n"  # 返回结果
+    return "\\n".join(lines) + "\\n"
 
 
 def main() -> int:
-    """main"""
     ap = argparse.ArgumentParser()
     ap.add_argument("task_id")
     ap.add_argument("--session-id", default=None)
@@ -572,9 +553,9 @@ def main() -> int:
         payload = generate_handoff(args.task_id, args.session_id)
     except Exception as exc:
         print(f"handoff failed: {exc}", file=sys.stderr)
-        return 1  # 返回结果
+        return 1
     print(f"wrote outputs/handoff/{payload['session_id']}/{{handoff.json,handoff.md}}")
-    return 0  # 返回结果
+    return 0
 
 
 if __name__ == "__main__":
@@ -617,13 +598,11 @@ The `VERSION` file is the contract. Major bumps require a state migration.
 
 
 def write(path: Path, content: str) -> None:
-    """write"""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
 
 
 def main() -> None:
-    """main"""
     write(PACK / "AGENTS.md", AGENTS_MD.format(version=PACK_VERSION))
     write(PACK / "docs" / "agent-rules.md", AGENT_RULES_MD)
     write(PACK / "docs" / "reliability-policy.md", RELIABILITY_POLICY_MD)
