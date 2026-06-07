@@ -17,6 +17,8 @@ You want a representation where `dog` and `puppy` land close together in space. 
 
 Word2Vec gave us that space. Two layer neural network, trillion-token training runs, published in 2013. The architecture is almost embarrassingly simple. The results reshaped NLP for a decade.
 
+> **【中文解读】** TF-IDF 知道 dog 和 puppy 是不同的词，但不知道它们意思相近。Word2Vec 通过训练浅层神经网络，将词映射到稠密向量空间，使得相似词在空间中接近，甚至支持类比的向量运算（king - man + woman ≈ queen）。这是现代 NLP 的基石——从 Word2Vec 到 GloVe 到 Transformer 的词嵌入，核心思想一脉相承。
+
 ## The Concept
 
 **Distributional hypothesis** (Firth, 1957): "You shall know a word by the company it keeps." If two words appear in similar contexts, they probably mean similar things.

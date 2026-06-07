@@ -19,6 +19,8 @@ That vector has carried more production NLP than any embedding model. Spam filte
 
 This lesson builds bag of words, then TF-IDF, from scratch. Then shows scikit-learn doing the same in three lines. Then names the failure mode that makes you reach for embeddings.
 
+> **【中文解读】** 词袋模型（BoW）是最简单的文本表示：忽略词序，只统计词频。TF-IDF 在 BoW 基础上加重权稀有词、降权常见词。虽然简陋，但在 2026 年仍然是许多分类任务的首选——快速、可解释，在词的存在比语义更重要的任务上，效果往往不输 4 亿参数的嵌入模型。
+
 ## The Concept
 
 **Bag of Words (BoW)** throws away order. For each document, count how many times each vocabulary word appears. Vector length is the vocabulary size. Position `i` is the count of word `i`.

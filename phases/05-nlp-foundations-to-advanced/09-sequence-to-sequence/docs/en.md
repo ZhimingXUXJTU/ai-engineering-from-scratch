@@ -17,6 +17,8 @@ The seq2seq architecture (Sutskever, Vinyals, Le, 2014) cracked this with a deli
 
 This is worth studying for two reasons. First, the context-vector bottleneck is the most pedagogically useful failure in NLP. It motivates everything attention and transformers are good at. Second, the training recipe (teacher forcing, scheduled sampling, beam search at inference) still applies to every modern generation system including LLMs.
 
+> **【中文解读】** Seq2Seq 架构（2014）：两个 RNN，一个编码器将源序列压缩为固定大小的上下文向量，一个解码器从该向量逐 token 生成目标序列。核心瓶颈：所有源信息必须压缩进一个向量，长序列时信息丢失严重。这个瓶颈直接催生了注意力机制（Bahdanau 2014）。训练技巧（teacher forcing、scheduled sampling、beam search）至今仍用于 LLM 训练。
+
 ## The Concept
 
 **Encoder.** An RNN that reads the source sentence. Its final hidden state is the **context vector** — a fixed-size summary of the entire input. Lose nothing but the source, supposedly.

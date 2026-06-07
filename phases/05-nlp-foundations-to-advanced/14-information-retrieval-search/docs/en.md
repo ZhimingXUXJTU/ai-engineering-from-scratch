@@ -17,6 +17,8 @@ IR is the pipeline under every RAG system, every search bar, every docs site's f
 
 This lesson builds each piece and names which failures each catches.
 
+> **【中文解读】** 信息检索是 RAG 系统、搜索栏、文档站模糊查找的底层管线。2026 年的生产架构不是单一方法，而是互补方法的链条——BM25（关键词精确匹配）+ 稠密检索（语义匹配）+ RRF 融合 + 交叉编码器重排——每一层捕获上一层的失败。
+
 ## The Concept
 
 ![Hybrid retrieval: BM25 + dense + RRF + cross-encoder rerank](../assets/retrieval.svg)

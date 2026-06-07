@@ -19,6 +19,8 @@ Get tokenization wrong and the model learns from garbage. If your tokenizer trea
 
 This lesson builds the three preprocessing steps from scratch, then shows how NLTK and spaCy do the same work so you can see the tradeoffs.
 
+> **【中文解读】** 文本预处理是 NLP 的第一步。分词（tokenization）将连续文本切成离散 token，词干提取（stemming）粗暴地截断词尾（running → run），词形还原（lemmatization）利用词典还原词形（better → good）。在 LLM 时代，这些步骤由 BPE 等子词分词器自动化处理，但理解底层原理有助于诊断分词问题。
+
 ## The Concept
 
 Three operations. Each has a job and a failure mode.

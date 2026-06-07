@@ -21,6 +21,8 @@ Two families of architectures filled that gap before transformers arrived.
 
 This lesson builds both, then names the failure that motivated attention.
 
+> **【中文解读】** TextCNN 用 1D 卷积在词嵌入序列上滑动，不同宽度的滤波器检测不同长度的 n-gram 模式，并行且快速。RNN/LSTM/GRU 逐 token 处理，用隐藏状态传递信息，能捕捉长程依赖但无法并行。两者在 2014-2017 年主导 NLP，之后被 Transformer 取代，但在资源受限的边缘设备上仍有价值。
+
 ## The Concept
 
 **TextCNN** (Kim, 2014). Tokens get embedded. A width-`k` 1D convolution slides a filter over consecutive `k`-grams of embeddings, producing a feature map. Global max-pooling over that map picks the strongest activation. Concatenate max-pooled outputs from several filter widths. Feed to a classifier head.

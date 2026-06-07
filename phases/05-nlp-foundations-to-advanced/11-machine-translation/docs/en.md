@@ -17,6 +17,8 @@ Machine translation is the task that forced NLP to invent encoder-decoders, atte
 
 This lesson skips the history lesson and teaches the working pipeline of 2026: pretrained multilingual encoder-decoder (NLLB-200 or mBART), subword tokenization, beam search, BLEU and chrF evaluation, and the handful of failure modes that still ship to production uncaught.
 
+> **【中文解读】** 机器翻译是推动 NLP 发展三十年的核心任务——编码器-解码器、注意力机制、Transformer、乃至整个 LLM 范式都是为解决翻译问题而发明的。2026 年的生产流水线：预训练多语言编码器-解码器（NLLB-200 或 mBART）+ 子词分词 + beam search + BLEU/chrF 评估。
+
 ## The Concept
 
 ![MT pipeline: tokenize → encode → decode with attention → detokenize](../assets/mt-pipeline.svg)
