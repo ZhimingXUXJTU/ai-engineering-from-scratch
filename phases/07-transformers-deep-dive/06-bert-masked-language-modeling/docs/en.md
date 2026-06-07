@@ -19,6 +19,10 @@ The result: within 18 months BERT and its variants (RoBERTa, ALBERT, ELECTRA) do
 
 In 2026 encoder-only models are still the right tool for classification, retrieval, and structured extraction — they run 5–10× faster per token than decoders and their embeddings are the backbone of every modern retrieval stack. ModernBERT (Dec 2024) pushed the architecture to 8K context with Flash Attention + RoPE + GeGLU.
 
+> **【中文解读】** 2018 年之前，每个 NLP 任务都要从零训练自己的模型。BERT 的革命性在于：先用 Transformer 编码器在海量文本上做预训练（掩码语言建模），再在下游任务上微调一个小头。18 个月内 BERT 统治了所有 NLP 排行榜。2026 年编码器模型仍然是分类、检索、结构化提取的最佳选择——比解码器快 5-10 倍，嵌入质量是现代检索栈的基石。
+
+> **【拓展：BERT 在 RAG 系统中的角色】** 现代检索增强生成（RAG）系统依赖 BERT 族模型作为嵌入模型和重排序器。sentence-transformers 的 `all-MiniLM-L6-v2` 本质上是一个用对比学习微调的 BERT。交叉编码器重排序器则将 query 和 doc 拼接后通过 BERT，双向注意力赋予它比双编码器更高的质量。
+
 ## The Concept
 
 ![Masked language modeling: pick tokens, mask them, predict originals](../assets/bert-mlm.svg)
@@ -74,6 +78,8 @@ And unlike the 2018 stack, it is Flash-Attention-native. Inference is 2–3× fa
 | NER / token labeling | Per-position output, natively bidirectional |
 | Zero-shot entailment (NLI) | Classifier head on top of encoder |
 | Reranker for RAG | Cross-encoder scoring, 10x faster than LLM rerankers |
+
+> **【中文解读】** BERT 的掩码策略：随机选择 15% 的 token，其中 80% 替换为 [MASK]，10% 替换为随机 token，10% 保持不变。不全部用 [MASK] 的原因是避免预训练和微调之间的分布偏移。ModernBERT（2024）将 BERT 现代化：RoPE 位置编码、GeGLU 激活函数、RMSNorm、交替局部/全局注意力、8K 上下文长度。
 
 ## Build It
 
@@ -140,9 +146,16 @@ See `outputs/skill-bert-finetuner.md`. The skill scopes a BERT fine-tune (backbo
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| MLM | "Masked language modeling" | Training signal: randomly replace 15% of tokens with `[MASK]`, predict the originals. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| MLM | "Masked language modeling" | Training signal: randomly replace 15% of tokens with `[MASK]`, predict the originals. | 掩码语言建模——BERT 的预训练目标 |
+| Bidirectional | "Looks both ways" | Encoder attention has no causal mask — every position sees every other position. | 双向注意力——无因果掩码 |
+| `[CLS]` | "The pooler token" | A special token prepended to every sequence; its final embedding is used as the sentence-level representation. | 分类标记——句子级表示 |
+| `[SEP]` | "Segment separator" | Separates paired sequences (e.g. query/doc, sentence A/B). | 段落分隔符 |
+| NSP | "Next sentence prediction" | BERT's second pretraining task; shown to be useless in RoBERTa, dropped after 2019. | 下一句预测——已被证明无效并弃用 |
+| Fine-tuning | "Adapt to a task" | Keep the encoder mostly frozen; train a small head on top for the downstream task. | 微调——冻结编码器，训练任务头 |
+| Cross-encoder | "A reranker" | A BERT that takes both query and doc as input, outputs a relevance score. | 交叉编码器——用于重排序 |
+| ModernBERT | "2024 refresh" | Encoder rebuilt with RoPE, RMSNorm, GeGLU, alternating local/global attention, 8K context. | ModernBERT——2024 年的 BERT 现代化重构 |[MASK]`, predict the originals. |
 | Bidirectional | "Looks both ways" | Encoder attention has no causal mask — every position sees every other position. |
 | `[CLS]` | "The pooler token" | A special token prepended to every sequence; its final embedding is used as the sentence-level representation. |
 | `[SEP]` | "Segment separator" | Separates paired sequences (e.g. query/doc, sentence A/B). |

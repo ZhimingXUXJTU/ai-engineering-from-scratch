@@ -34,6 +34,10 @@ In 2026 the encoder-decoder format lives on where input structure matters:
 
 Decoder-only won the spotlight, but encoder-decoder never went away.
 
+> **【中文解读】** 编码器-解码器架构的核心理念：编码器理解输入（双向注意力），解码器生成输出（因果掩码 + 交叉注意力）。T5（2019）将所有 NLP 任务统一为 text-to-text 格式，用跨度损坏预训练；BART（2019）用多噪声去噪自编码训练。2026 年编码器-解码器仍在语音识别（Whisper）、翻译、结构化提取等有明确输入输出结构的任务中使用。
+
+> **【拓展：Decoder-only 为何"赢"了但 Encoder-Decoder 没有消失】** 2022 年以来 Decoder-only 逐步接管了 Encoder-Decoder 的传统领域，原因是指令微调的 Decoder-only LLM 通过提示词可以处理任何任务。但 Encoder-Decoder 在三个场景仍然占优：1) 输入模态不同（语音→文本、图像→文本）；2) 束搜索质量重要（翻译）；3) 输入结构需要独立编码（代码修复）。
+
 ## The Concept
 
 ![Encoder-decoder with cross-attention](../assets/encoder-decoder.svg)
@@ -146,16 +150,16 @@ See `outputs/skill-seq2seq-picker.md`. The skill picks between encoder-decoder a
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Encoder-decoder | "Seq2seq transformer" | Two stacks: bidirectional encoder for input, causal decoder with cross-attention for output. |
-| Cross-attention | "Where source talks to target" | Decoder's Q × encoder's K/V. The only place encoder information enters the decoder. |
-| Span corruption | "T5's pretraining trick" | Replace random spans with sentinel tokens; decoder outputs the spans. |
-| Denoising objective | "BART's game" | Apply a noise function to the input, train the decoder to reconstruct the clean sequence. |
-| Sentinel token | "The `<extra_id_N>` placeholder" | Special tokens that tag corrupted spans in the source and re-tag them in the target. |
-| Flan | "Instruction-tuned T5" | T5 fine-tuned on >1,800 tasks; made encoder-decoder competitive at instruction-following. |
-| Beam search | "Decoding strategy" | Keep top-k partial sequences at each step; standard for translation/summarization. |
-| Teacher forcing | "Training-time input" | During training, feed the true previous output token to the decoder, not the sampled one. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Encoder-decoder | "Seq2seq transformer" | Two stacks: bidirectional encoder for input, causal decoder with cross-attention for output. | 编码器-解码器——序列转换的标准架构 |
+| Cross-attention | "Where source talks to target" | Decoder's Q × encoder's K/V. The only place encoder information enters the decoder. | 交叉注意力——编码器信息流入解码器的唯一通道 |
+| Span corruption | "T5's pretraining trick" | Replace random spans with sentinel tokens; decoder outputs the spans. | 跨度损坏——T5 的预训练信号 |
+| Denoising objective | "BART's game" | Apply a noise function to the input, train the decoder to reconstruct the clean sequence. | 去噪目标——BART 的预训练方式 |
+| Sentinel token | "The `<extra_id_N>` placeholder" | Special tokens that tag corrupted spans in the source and re-tag them in the target. | 哨兵 token——标记损坏跨度的特殊标记 |
+| Flan | "Instruction-tuned T5" | T5 fine-tuned on >1,800 tasks; made encoder-decoder competitive at instruction-following. | Flan——指令微调的 T5 |
+| Beam search | "Decoding strategy" | Keep top-k partial sequences at each step; standard for translation/summarization. | 束搜索——翻译/摘要的标准解码策略 |
+| Teacher forcing | "Training-time input" | During training, feed the true previous output token to the decoder, not the sampled one. | 教师强制——训练时使用真实前 token |
 
 ## Further Reading
 

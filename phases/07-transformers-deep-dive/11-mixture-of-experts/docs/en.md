@@ -17,6 +17,10 @@ Mixture of Experts breaks this link. Replace each FFN with `E` independent exper
 
 The 2026 frontier is almost entirely MoE: DeepSeek-V3 (671B total / 37B active), Mixtral 8×22B, Qwen2.5-MoE, Llama 4, Kimi K2, gpt-oss. On Artificial Analysis's independent leaderboard, the top 10 open-source models are all MoE.
 
+> **【中文解读】** MoE 的核心思想：将 Transformer 中每个 FFN 替换为 E 个独立专家 + 路由器，每个 token 只激活其中 k 个专家。总参数 = E × FFN 大小，每个 token 的活跃参数 = k × FFN 大小。典型 2026 年配置：E=256，k=8。DeepSeek-V3 用 671B 总参数 / 37B 活跃参数，在几乎所有基准上击败 70B 的 Llama 3 密集模型，同时每个 token 的计算量更少。
+
+> **【拓展：MoE 的工程挑战】** MoE 的代价在于内存：所有专家都驻留在 GPU 上，无论哪些被激活。671B 模型需要约 1.3TB 显存。部署需要专家并行——将专家分片到不同 GPU，通过网络路由 token。推理延迟主要由 all-to-all 通信决定，而非矩阵乘法本身。
+
 ## The Concept
 
 ![MoE layer: router selects k of E experts per token](../assets/moe.svg)
@@ -148,16 +152,16 @@ See `outputs/skill-moe-configurator.md`. The skill picks E, k, and shared-expert
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Expert | "One FFN among many" | An independent feed-forward network; parameters dedicated to a sparse slice of the FFN computation. |
-| Router | "The gate" | A tiny linear layer that scores each token against each expert; top-k selection. |
-| Top-k routing | "k active experts per token" | Each token's FFN computation goes through exactly k experts, weighted by gate. |
-| Auxiliary loss | "Load-balance penalty" | Extra loss term that penalizes skewed expert usage. |
-| Auxiliary-loss-free | "DeepSeek-V3's trick" | Balance via per-expert bias on the router's selection only; no extra gradient. |
-| Shared expert | "Always on" | Extra expert through which every token passes; captures common knowledge. |
-| Expert parallelism | "Shard by expert" | Distribute different experts to different GPUs; route tokens across the network. |
-| Sparsity | "Active params < total params" | The ratio `k × expert_size / (E × expert_size)`; 37/671 ≈ 5.5% for DeepSeek-V3. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Expert | "One FFN among many" | An independent feed-forward network; parameters dedicated to a sparse slice of the FFN computation. | 专家——独立的 FFN 子网络 |
+| Router | "The gate" | A tiny linear layer that scores each token against each expert; top-k selection. | 路由器——决定 token 走哪些专家 |
+| Top-k routing | "k active experts per token" | Each token's FFN computation goes through exactly k experts, weighted by gate. | Top-k 路由——每 token 激活 k 个专家 |
+| Auxiliary loss | "Load-balance penalty" | Extra loss term that penalizes skewed expert usage. | 辅助损失——负载均衡惩罚项 |
+| Auxiliary-loss-free | "DeepSeek-V3's trick" | Balance via per-expert bias on the router's selection only; no extra gradient. | 无辅助损失——DeepSeek-V3 的偏置均衡法 |
+| Shared expert | "Always on" | Extra expert through which every token passes; captures common knowledge. | 共享专家——所有 token 都经过的通用专家 |
+| Expert parallelism | "Shard by expert" | Distribute different experts to different GPUs; route tokens across the network. | 专家并行——按专家分片到不同 GPU |
+| Sparsity | "Active params < total params" | The ratio `k × expert_size / (E × expert_size)`; 37/671 ≈ 5.5% for DeepSeek-V3. | 稀疏性——活跃参数远小于总参数 |
 
 ## Further Reading
 

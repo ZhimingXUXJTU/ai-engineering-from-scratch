@@ -17,6 +17,8 @@ The 2017 Vaswani paper packaged six design decisions that turned one attention l
 
 This lesson is the skeleton. Next lessons specialize it — 06 for encoders, 07 for decoders, 08 for encoder-decoder.
 
+> **【中文解读】** 单个注意力层只是特征提取器，不是完整的模型。Transformer 的核心在于将注意力堆叠成深层网络。2017 年 Vaswani 论文提出了六个关键设计决策——嵌入+位置信号、自注意力、前馈网络、残差连接、层归一化、交叉注意力——将单层注意力变成了可堆叠的模块。2026 年的变体（RMSNorm、SwiGLU、pre-norm、RoPE）只是替换了组件，骨架完全一致。
+
 ## The Concept
 
 ![Encoder and decoder block internals, wired](../assets/full-transformer.svg)
@@ -67,6 +69,10 @@ Vaswani 2017 shipped LayerNorm + ReLU. Modern stacks replaced both. What product
 | Bias terms | Yes | No |
 
 RMSNorm drops the mean-centering of LayerNorm (one fewer subtraction), which saves compute and is empirically at least as stable. SwiGLU (`Swish(W1 x) ⊙ W3 x`) consistently outperforms ReLU/GELU FFN by ~0.5 point ppl in the Llama, PaLM and Qwen papers.
+
+> **【中文解读】** 2017 到 2026 年的 Transformer 现代化演进：LayerNorm → RMSNorm（去掉均值中心化，节省计算）；ReLU → SwiGLU（三矩阵门控，困惑度降低约 0.5）；后归一化 → 前归一化（训练更稳定，无需预热技巧）；绝对正弦 → RoPE（相对位置编码）；全多头 → GQA/MLA（KV 缓存优化）；有偏置 → 无偏置。这些替换看似简单，但每一个都经过大量实验验证。
+
+> **【拓展：为什么 Decoder-only 赢了语言任务】** 2026 年主流大模型（GPT、Llama、Claude、Qwen）全部采用 Decoder-only 架构。原因：1) 去掉编码器后参数利用更高效；2) 单向注意力计算图更简单，训练和推理都更快；3) 在足够规模下，Decoder-only 的理解能力不弱于 Encoder。编码器-解码器架构仍保留在翻译、语音识别等有明确"源序列"的任务中。
 
 ### Parameter count
 
@@ -150,16 +156,16 @@ See `outputs/skill-transformer-block-reviewer.md`. The skill reviews a new trans
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Block | "One transformer layer" | Stack of norm + attention + norm + FFN, wrapped in residual connections. |
-| Residual | "Skip connection" | `x + f(x)` output; enables gradient flow through deep stacks. |
-| Pre-norm | "Normalize before, not after" | Modern: `x + sublayer(LN(x))`. Trains deeper without warmup gymnastics. |
-| RMSNorm | "LayerNorm without the mean" | Divide by RMS; one less op, same empirical stability. |
-| SwiGLU | "The FFN everyone switched to" | `Swish(W1 x) ⊙ W3 x → W2`. Beats ReLU/GELU on LM ppl. |
-| Cross-attention | "How the decoder sees the encoder" | MHA with Q from decoder, K/V from encoder outputs. |
-| FFN expansion | "How wide the middle MLP is" | Ratio of hidden-size to d_model, usually 4 (LayerNorm) or 2.6 (SwiGLU). |
-| Bias-free | "Drop the +b terms" | Modern stacks omit biases in linear layers; slight ppl improvement, smaller model. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Block | "One transformer layer" | Stack of norm + attention + norm + FFN, wrapped in residual connections. | Transformer 块——一个完整的编码/解码层 |
+| Residual | "Skip connection" | `x + f(x)` output; enables gradient flow through deep stacks. | 残差连接——保证深层网络的梯度流通 |
+| Pre-norm | "Normalize before, not after" | Modern: `x + sublayer(LN(x))`. Trains deeper without warmup gymnastics. | 前归一化——2026 年默认方案 |
+| RMSNorm | "LayerNorm without the mean" | Divide by RMS; one less op, same empirical stability. | 均方根归一化——LayerNorm 的高效替代 |
+| SwiGLU | "The FFN everyone switched to" | `Swish(W1 x) ⊙ W3 x → W2`. Beats ReLU/GELU on LM ppl. | SwiGLU 前馈网络——2026 年 FFN 标准 |
+| Cross-attention | "How the decoder sees the encoder" | MHA with Q from decoder, K/V from encoder outputs. | 交叉注意力——解码器获取编码器信息的通道 |
+| FFN expansion | "How wide the middle MLP is" | Ratio of hidden-size to d_model, usually 4 (LayerNorm) or 2.6 (SwiGLU). | FFN 扩展比——前馈网络中间层的宽度比 |
+| Bias-free | "Drop the +b terms" | Modern stacks omit biases in linear layers; slight ppl improvement, smaller model. | 无偏置——现代模型去掉线性层偏置项 |
 
 ## Further Reading
 

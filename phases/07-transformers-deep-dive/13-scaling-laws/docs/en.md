@@ -24,6 +24,10 @@ Hoffmann et al. (2022), training a small family of models called Chinchilla, fou
 
 2026 is Chinchilla's world — with one important twist. Llama 3 8B was trained on 15 trillion tokens, a ratio of 1,875 tokens per parameter. Ninety-four times past Chinchilla-optimal. Inference cost matters more than training cost for models that will be used at scale, so over-training (past Chinchilla) for a smaller deployable footprint is the 2026 default.
 
+> **【中文解读】** 缩放定律回答一个核心问题：给定有限的计算预算 C FLOPs，如何分配给模型参数 N 和训练数据 D？Chinchilla 定律（2022）揭示最优比例约为 D/N ≈ 20（20 个 token/参数），证明 GPT-3 训练严重不足。但 2026 年的实践走向了"过度训练"——Llama 3 8B 用 15 万亿 token 训练，比例达 1875:1，远超 Chinchilla 最优点。原因：训练成本付一次，推理成本付永远，更小的模型推理更便宜。
+
+> **【拓展：数据瓶颈与合成数据】** 互联网上高质量英文 token 总量约 5-10 万亿，前沿模型的预训练正在逼近这个天花板。应对方案：合成数据（模型生成训练数据）、多语言扩展、多模态 token、更高效的数据筛选。Phi 系列模型证明精心筛选的"好 token"等效于 2 倍以上的计算量。
+
 ## The Concept
 
 ![Chinchilla curves: loss vs compute at various N/D ratios](../assets/scaling-laws.svg)
@@ -137,16 +141,16 @@ See `outputs/skill-training-budget-estimator.md`. The skill picks `(N, D, hours,
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Parameters (N) | "Model size" | Non-embedding weight count; determines capacity. |
-| Tokens (D) | "Training data" | Number of training tokens seen; determines how well the parameters get used. |
-| Compute (C) | "FLOPs spent" | Approximately `6 × N × D` for a standard transformer. |
-| Chinchilla-optimal | "D/N ≈ 20" | Ratio that minimizes loss per FLOP of pretraining. |
-| Over-training | "Past Chinchilla" | Spend extra training FLOPs to save inference FLOPs; D/N >> 20. |
-| Irreducible loss | "The floor" | The `E` term in the scaling law; the entropy of the data itself. |
-| Emergent capability | "Sudden jumps at scale" | Often a scorer artifact; continuous loss is smooth. |
-| Effective compute | "Training-efficiency multiplier" | Better data / optimizer / architecture multiplies how far a FLOP goes. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Parameters (N) | "Model size" | Non-embedding weight count; determines capacity. | 参数量——模型容量 |
+| Tokens (D) | "Training data" | Number of training tokens seen; determines how well the parameters get used. | 训练 token 数——数据利用效率 |
+| Compute (C) | "FLOPs spent" | Approximately `6 × N × D` for a standard transformer. | 计算量——约 6 × N × D FLOPs |
+| Chinchilla-optimal | "D/N ≈ 20" | Ratio that minimizes loss per FLOP of pretraining. | Chinchilla 最优——D/N ≈ 20 |
+| Over-training | "Past Chinchilla" | Spend extra training FLOPs to save inference FLOPs; D/N >> 20. | 过度训练——为推理效率牺牲训练效率 |
+| Irreducible loss | "The floor" | The `E` term in the scaling law; the entropy of the data itself. | 不可约损失——数据的固有熵 |
+| Emergent capability | "Sudden jumps at scale" | Often a scorer artifact; continuous loss is smooth. | 涌现能力——往往是评估指标的假象 |
+| Effective compute | "Training-efficiency multiplier" | Better data / optimizer / architecture multiplies how far a FLOP goes. | 有效计算——数据/优化器/架构的效率乘数 |
 
 ## Further Reading
 

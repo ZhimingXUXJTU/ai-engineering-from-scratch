@@ -22,6 +22,10 @@ Two optimizations, both from Dao et al., pushed frontier inference from "slow" t
 
 By 2026 both are universal. Every production inference stack (vLLM, TensorRT-LLM, SGLang, llama.cpp) assumes them. Every frontier model ships with Flash Attention enabled.
 
+> **【中文解读】** 训练是并行的、受 FLOP 限制的；推理是串行的、受内存带宽限制的。两个优化彻底改变了推理效率：1) KV Cache——存储已计算的前缀 token 的 K/V 向量，将每个生成步骤从 O(N²) 降到 O(N)；2) Flash Attention——通过分块计算避免 N×N 注意力矩阵进出 HBM，利用 SRAM 的高带宽（30 TB/s vs HBM 的 3 TB/s），在 A100 上提速 2-4 倍。
+
+> **【拓展：KV Cache 内存开销的真实规模】** Llama 3 70B 在 32K 上下文下，仅 KV Cache 就需要 10.4 GB（GQA 8 个 KV 头）。如果用全 MHA（64 头），则需要 32 GB。这就是 GQA 和 MLA 如此重要的原因——它们直接决定模型能否在消费级硬件上运行。PagedAttention（vLLM）将 KV Cache 按 16 token 分页管理，类似虚拟内存，消除了内存碎片。
+
 ## The Concept
 
 ![KV cache growth and Flash Attention tiling](../assets/kv-cache-flash-attn.svg)
@@ -206,16 +210,16 @@ See `outputs/skill-inference-optimizer.md`. The skill picks attention implementa
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| KV cache | "The trick that makes decoding fast" | Stored K and V from every prefix token; new queries attend to them instead of recomputing. |
-| HBM | "GPU main memory" | High Bandwidth Memory; 80 GB on H100, 192 GB on B200. ~3 TB/s bandwidth. |
-| SRAM | "On-chip memory" | Per-SM fast memory, ~256 KB per SM on H100. ~30 TB/s bandwidth. |
-| Flash Attention | "Tiled attention kernel" | Computes attention without materializing N×N in HBM. |
-| Continuous batching | "No-wait batching" | Swap finished sequences out, new ones in, without draining the batch. |
-| PagedAttention | "vLLM's headline" | KV cache allocated in fixed blocks with a page table; eliminates fragmentation. |
-| Prefix caching | "Reuse long prompts" | Cache KV for a shared prefix across requests; major cost cut for agents. |
-| Speculative decoding | "Draft + verify" | Cheap draft model proposes tokens; big model verifies k in one pass. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| KV cache | "The trick that makes decoding fast" | Stored K and V from every prefix token; new queries attend to them instead of recomputing. | KV 缓存——存储前缀 token 的 K/V 避免重复计算 |
+| HBM | "GPU main memory" | High Bandwidth Memory; 80 GB on H100, 192 GB on B200. ~3 TB/s bandwidth. | HBM——GPU 高带宽主内存 |
+| SRAM | "On-chip memory" | Per-SM fast memory, ~256 KB per SM on H100. ~30 TB/s bandwidth. | SRAM——GPU 片上高速缓存 |
+| Flash Attention | "Tiled attention kernel" | Computes attention without materializing N×N in HBM. | Flash Attention——分块注意力核函数 |
+| Continuous batching | "No-wait batching" | Swap finished sequences out, new ones in, without draining the batch. | 连续批处理——动态替换完成/新增请求 |
+| PagedAttention | "vLLM's headline" | KV cache allocated in fixed blocks with a page table; eliminates fragmentation. | PagedAttention——分页 KV 缓存管理 |
+| Prefix caching | "Reuse long prompts" | Cache KV for a shared prefix across requests; major cost cut for agents. | 前缀缓存——跨请求复用共享前缀的 KV |
+| Speculative decoding | "Draft + verify" | Cheap draft model proposes tokens; big model verifies k in one pass. | 推测解码——小模型起草+大模型验证 |
 
 ## Further Reading
 

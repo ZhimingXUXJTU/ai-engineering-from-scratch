@@ -24,6 +24,10 @@ Four families of draft-verifier pairs dominate 2026 inference:
 
 Every production inference stack in 2026 ships speculative decoding by default. vLLM, TensorRT-LLM, SGLang, and llama.cpp all support at least vanilla + EAGLE-2.
 
+> **【中文解读】** 自回归解码的瓶颈在于串行——每个 token 必须等前一个 token 完成。推测解码的核心思路：用小模型（如 3B）快速提出 N 个候选 token，大模型（如 70B）一次前向传播验证所有 N 个。关键数学保证：Leviathan 定理证明，通过特定的接受/拒绝采样和残差分布，输出序列的分布与大模型直接采样完全相同——没有质量损失，只是更快。典型加速 2-4 倍。
+
+> **【拓展：EAGLE-2/3 为何成为 2026 默认选择】** EAGLE 的核心创新是让草案模型复用验证器的隐藏状态（hidden states）。因为草案看到了验证器的特征表示，其预测与验证器的输出分布高度相关，接受率从普通方法的约 0.6 提升到 0.85+。EAGLE-3 还加入了候选序列的树搜索。vLLM 和 SGLang 已将 EAGLE-2/3 作为 Llama 3/4 和 Qwen 3 的默认推测解码方案。
+
 ## The Concept
 
 ### The core algorithm
@@ -198,18 +202,18 @@ See `outputs/skill-spec-decode-picker.md`. The skill picks a speculative decodin
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Draft model | "The cheap one" | A smaller model that proposes candidate tokens; usually 10–50× cheaper than the verifier. |
-| Verifier | "The big one" | The target model whose distribution we preserve; runs once per speculative step. |
-| Acceptance rate (α) | "How often the draft is right" | Per-token probability that the verifier accepts the draft. 0.7–0.9 typical. |
-| Residual distribution | "The rejection fallback" | `(q - p)_+` normalized; sampling from this on rejection preserves the verifier's distribution. |
-| Bonus token | "The free one" | When all N drafts accepted, sample one more from the verifier's next-step distribution. |
-| Medusa | "Draft-less speculative" | Multiple LM heads on the verifier predict positions t+1..t+k in parallel. |
-| EAGLE | "Hidden-state draft" | Tiny transformer draft conditioned on the verifier's last-layer hidden states. |
-| Lookahead decoding | "Jacobi iteration" | Self-speculation using a fixed-point iteration; no draft model. |
-| Tree attention | "Verify many candidates at once" | Branching verification that considers several draft continuations simultaneously. |
-| KV rollback | "Undo rejected drafts" | Scratch KV buffer; commit on acceptance, discard on reject. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Draft model | "The cheap one" | A smaller model that proposes candidate tokens; usually 10–50× cheaper than the verifier. | 草案模型——提出候选 token 的小模型 |
+| Verifier | "The big one" | The target model whose distribution we preserve; runs once per speculative step. | 验证器——目标大模型 |
+| Acceptance rate (α) | "How often the draft is right" | Per-token probability that the verifier accepts the draft. 0.7–0.9 typical. | 接受率——草案被验证通过的概率 |
+| Residual distribution | "The rejection fallback" | `(q - p)_+` normalized; sampling from this on rejection preserves the verifier's distribution. | 残差分布——拒绝时的回退采样分布 |
+| Bonus token | "The free one" | When all N drafts accepted, sample one more from the verifier's next-step distribution. | 额外 token——全部接受时的免费生成 |
+| Medusa | "Draft-less speculative" | Multiple LM heads on the verifier predict positions t+1..t+k in parallel. | Medusa——多 LM 头并行预测 |
+| EAGLE | "Hidden-state draft" | Tiny transformer draft conditioned on the verifier's last-layer hidden states. | EAGLE——基于隐藏状态的草案 |
+| Lookahead decoding | "Jacobi iteration" | Self-speculation using a fixed-point iteration; no draft model. | Lookahead 解码——无草案自推测 |
+| Tree attention | "Verify many candidates at once" | Branching verification that considers several draft continuations simultaneously. | 树注意力——同时验证多条候选路径 |
+| KV rollback | "Undo rejected drafts" | Scratch KV buffer; commit on acceptance, discard on reject. | KV 回滚——撤销被拒绝的草案缓存 |
 
 ## Further Reading
 

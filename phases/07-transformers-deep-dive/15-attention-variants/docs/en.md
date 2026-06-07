@@ -21,6 +21,10 @@ Three classes of variants change the topology of the attention matrix itself:
 
 These coexist. A 2026 frontier model often mixes them: most layers are SWA-1024, every fifth is global full attention, and a handful are differential heads that clean up retrieval. Gemma 3's 5:1 SWA-to-global ratio is the current textbook default.
 
+> **【中文解读】** 全注意力的 O(N²) 复杂度在长上下文下代价极高。三种变体改变注意力矩阵的拓扑结构：1) 滑动窗口注意力（SWA）——每个 token 只关注最近 W 个邻居，内存和计算降到 O(N·W)；2) 稀疏/块注意力——只计算选定的 (i,j) 对；3) 差分注意力——计算两组注意力图并相减，消除"注意力沉点"（注意力权重集中到前几个 token 的现象）。2026 年前沿模型通常混合使用：大部分层用 SWA-1024，每 5 层用全局注意力。
+
+> **【拓展：Gemma 3 的 5:1 混合策略】** Gemma 3 采用 5 层滑动窗口注意力 + 1 层全局注意力的交替模式，窗口大小 1024。这种策略在 32K 以上上下文时成为默认选择：局部注意力处理邻近依赖（句法、局部语义），全局注意力负责长距离信息传递。PyTorch 2.5+ 的 FlexAttention API 可以用 Python 函数定义任意掩码模式并编译为高效的 Triton 核函数。
+
 ## The Concept
 
 ### Sliding Window Attention (SWA)
@@ -187,16 +191,16 @@ See `outputs/skill-attention-variant-picker.md`. The skill picks an attention to
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Sliding window attention (SWA) | "Local attention" | Each query attends to its last `W` tokens; KV cache shrinks to `O(W)`. |
-| Effective receptive field | "How far back the model sees" | In an `L`-layer SWA stack with window `W`, up to `L × W` tokens. |
-| Longformer / BigBird | "Local + global + random" | Sparse patterns with a few always-attending global tokens; early long-context approach. |
-| Native Sparse Attention | "DeepSeek's kernel trick" | Learn block-level sparsity; skip zero blocks at the kernel level while keeping quality. |
-| Differential attention | "Two maps, one subtracts" | DIFF Transformer: subtract a learned `λ` times a second attention map from the first to cancel attention sinks. |
-| Attention sink | "Weight bleeds to token 0" | Softmax normalization forces rows to sum to 1; uninformative queries dump weight on position 0. |
-| FlexAttention | "Mask-as-Python" | PyTorch 2.5+ API that compiles arbitrary mask functions into FlashAttention-shape kernels. |
-| Layer type mix | "5:1 SWA-to-global" | Interleave sparse and full attention layers in a stack to keep quality at lower memory. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Sliding window attention (SWA) | "Local attention" | Each query attends to its last `W` tokens; KV cache shrinks to `O(W)`. | 滑动窗口注意力——局部注意力模式 |
+| Effective receptive field | "How far back the model sees" | In an `L`-layer SWA stack with window `W`, up to `L × W` tokens. | 有效感受野——多层 SWA 的可达范围 |
+| Longformer / BigBird | "Local + global + random" | Sparse patterns with a few always-attending global tokens; early long-context approach. | Longformer/BigBird——早期长上下文方案 |
+| Native Sparse Attention | "DeepSeek's kernel trick" | Learn block-level sparsity; skip zero blocks at the kernel level while keeping quality. | 原生稀疏注意力——DeepSeek 的块级稀疏 |
+| Differential attention | "Two maps, one subtracts" | DIFF Transformer: subtract a learned `λ` times a second attention map from the first to cancel attention sinks. | 差分注意力——双图相减消除注意力沉点 |
+| Attention sink | "Weight bleeds to token 0" | Softmax normalization forces rows to sum to 1; uninformative queries dump weight on position 0. | 注意力沉点——权重集中到位置 0 |
+| FlexAttention | "Mask-as-Python" | PyTorch 2.5+ API that compiles arbitrary mask functions into FlashAttention-shape kernels. | FlexAttention——用 Python 定义掩码并编译 |
+| Layer type mix | "5:1 SWA-to-global" | Interleave sparse and full attention layers in a stack to keep quality at lower memory. | 层类型混合——SWA 与全局注意力交替 |
 
 ## Further Reading
 

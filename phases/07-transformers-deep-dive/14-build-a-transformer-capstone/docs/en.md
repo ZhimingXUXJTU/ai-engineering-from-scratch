@@ -17,6 +17,10 @@ The capstone: train a small decoder-only transformer end-to-end on a character-l
 
 This is the "nanoGPT" of the course. It is not original — Karpathy's 2023 nanoGPT tutorial is the reference implementation every student writes at least once. We lift the shape and retool it around what we've covered.
 
+> **【中文解读】** 毕业项目：训练一个字符级的 decoder-only Transformer，让它阅读莎士比亚并生成新文本。这个模型小到可以在笔记本上 10 分钟内训练完成。架构整合了前 13 课的所有组件：RMSNorm、因果多头注意力、SwiGLU FFN、残差连接、预归一化。训练 2000 步后损失从 4.2 降到 1.5，输出看起来像"莎士比亚形状"——有古体词、换行、角色名。约 800K 参数，6 分钟。
+
+> **【拓展：从 nanoGPT 到真正的 LLM】** 这个 capstone 的三个升级路径：1) 将字符级 tokenizer 替换为 BPE（词汇量从 65 扩展到 ~50000）；2) 用更大的语料库（OpenWebText、fineweb-edu）训练，单卡 A100 训练 125M 参数约需 24 小时；3) 加入 RoPE、KV Cache、Flash Attention。同样的代码路径，只是更大——这就是 Karpathy、EleutherAI、Allen Institute 训练研究模型的方式。
+
 ## The Concept
 
 ![Transformer-from-scratch block diagram](../assets/capstone.svg)
@@ -160,16 +164,16 @@ See `outputs/skill-transformer-review.md`. The skill reviews a transformer-from-
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| nanoGPT | "Karpathy's tutorial repo" | Minimal decoder-only transformer training code, ~300 LOC; the canonical reference. |
-| tinyshakespeare | "The standard toy corpus" | ~1.1 MB of text; every character-LM tutorial since 2015 uses it. |
-| Tied embeddings | "Share input/output matrix" | LM head weight = transpose of token embedding matrix; saves parameters, improves quality. |
-| bf16 autocast | "Training precision trick" | Run forward/back in bf16, keep optimizer state in fp32; standard since 2021. |
-| Gradient clipping | "Stops spikes" | Cap global grad norm at 1.0; prevents training blowups. |
-| Cosine LR schedule | "The 2020+ default" | LR ramps up linearly (warmup) then decays cosine-shaped to 10% of peak. |
-| MFU | "Model FLOP Utilization" | Achieved FLOPs / theoretical peak; 40% dense, 30% MoE is strong in 2026. |
-| Val loss | "Held-out loss" | Cross-entropy on data the model never saw; overfit detector. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| nanoGPT | "Karpathy's tutorial repo" | Minimal decoder-only transformer training code, ~300 LOC; the canonical reference. | nanoGPT——Karpathy 的最小 GPT 教程 |
+| tinyshakespeare | "The standard toy corpus" | ~1.1 MB of text; every character-LM tutorial since 2015 uses it. | tinyshakespeare——字符级 LM 标准语料 |
+| Tied embeddings | "Share input/output matrix" | LM head weight = transpose of token embedding matrix; saves parameters, improves quality. | 绑定嵌入——输入/输出共享权重矩阵 |
+| bf16 autocast | "Training precision trick" | Run forward/back in bf16, keep optimizer state in fp32; standard since 2021. | bf16 自动混合精度训练 |
+| Gradient clipping | "Stops spikes" | Cap global grad norm at 1.0; prevents training blowups. | 梯度裁剪——防止训练爆炸 |
+| Cosine LR schedule | "The 2020+ default" | LR ramps up linearly (warmup) then decays cosine-shaped to 10% of peak. | 余弦学习率调度——2020+ 默认方案 |
+| MFU | "Model FLOP Utilization" | Achieved FLOPs / theoretical peak; 40% dense, 30% MoE is strong in 2026. | MFU——模型 FLOP 利用率 |
+| Val loss | "Held-out loss" | Cross-entropy on data the model never saw; overfit detector. | 验证损失——过拟合检测器 |
 
 ## Further Reading
 

@@ -19,6 +19,10 @@ ViT was the start of a broader pattern in 2026: one architecture, many modalitie
 
 By 2026, ViT and its descendants (DeiT, Swin, DINOv2, ViT-22B, SAM 3) own most of vision. CNNs still win on edge devices and latency-sensitive tasks. Everything else has a ViT somewhere in the stack.
 
+> **【中文解读】** ViT 的核心洞察：图像可以像句子一样被"分词"。将图像切成固定大小的 patch（如 16x16），线性投影为嵌入向量，然后送入标准 Transformer 编码器。没有卷积、没有视觉特化层——和 BERT 完全相同的架构。关键代价：ViT 缺少 CNN 的归纳偏置（平移不变性、局部性），因此需要更多数据才能达到同等性能。
+
+> **【拓展：ViT 的统一架构意义】** ViT 开创了"一种架构处理多种模态"的范式。Whisper 将音频 token 化、ViT 将图像 token 化、Sora 将视频 token 化——Transformer 不关心输入是什么，只要是一个序列就行。DINOv2（2023）通过自监督学习彻底解决了 ViT 需要大量标注数据的问题，成为 2026 年图像特征提取的默认选择。
+
 ## The Concept
 
 ![Image → patches → tokens → transformer](../assets/vit.svg)
@@ -134,16 +138,16 @@ See `outputs/skill-vit-configurator.md`. The skill picks a ViT variant and patch
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Patch | "The vision-transformer token" | Flat vector of pixel values for a `P × P × C` region of the image. |
-| Patchify | "Chop + flatten" | Slice image into non-overlapping patches, flatten each to a vector. |
-| `[CLS]` token | "The image summary" | Prepended learnable token; its final embedding is the image representation. |
-| Inductive bias | "What the model assumes" | ViT has fewer priors than CNNs; needs more data to make up the gap. |
-| DINOv2 | "Self-supervised ViT" | Trained without labels using image augmentation + momentum teacher. Best general image features in 2026. |
-| SigLIP | "CLIP's successor" | ViT + text encoder trained with sigmoid contrastive loss; better than CLIP on matched compute. |
-| Swin | "Windowed ViT" | Hierarchical ViT with local attention + shifted windows; sub-quadratic. |
-| Register tokens | "2023 trick" | A few extra learnable tokens that soak up attention sinks; improves DINOv2 features. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Patch | "The vision-transformer token" | Flat vector of pixel values for a `P × P × C` region of the image. | 图像块——ViT 的基本输入单元 |
+| Patchify | "Chop + flatten" | Slice image into non-overlapping patches, flatten each to a vector. | 图像分块——将图像切为不重叠的 patch |
+| `[CLS]` token | "The image summary" | Prepended learnable token; its final embedding is the image representation. | CLS token——图像级表示 |
+| Inductive bias | "What the model assumes" | ViT has fewer priors than CNNs; needs more data to make up the gap. | 归纳偏置——ViT 缺少 CNN 的空间先验 |
+| DINOv2 | "Self-supervised ViT" | Trained without labels using image augmentation + momentum teacher. Best general image features in 2026. | DINOv2——自监督 ViT，2026 最佳图像特征 |
+| SigLIP | "CLIP's successor" | ViT + text encoder trained with sigmoid contrastive loss; better than CLIP on matched compute. | SigLIP——用 sigmoid 对比损失的视觉-语言模型 |
+| Swin | "Windowed ViT" | Hierarchical ViT with local attention + shifted windows; sub-quadratic. | Swin Transformer——层级式窗口注意力 |
+| Register tokens | "2023 trick" | A few extra learnable tokens that soak up attention sinks; improves DINOv2 features. | 寄存器 token——吸收注意力沉点的额外可学习 token |
 
 ## Further Reading
 
