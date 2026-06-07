@@ -5,8 +5,12 @@ Illustrates the default 2026 production pattern.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：三层审核架构——输入审核、输出审核和自定义领域规则层叠过滤，
+分别拦截明显有害输入、领域特定策略违规和模型幻觉/绕过内容
+AI 对应：OpenAI Moderation API 是最广泛使用的 AI 内容审核服务；
+Google Perspective API 用于 YouTube/评论系统的毒性检测；
+Meta Llama-Guard 作为开源替代被广泛部署；
+2026 年工业界默认采用多层审核（input → custom → output）而非单一过滤器
 """
 
 from __future__ import annotations
@@ -41,42 +45,39 @@ def openai_moderation(text: str) -> dict:
         for t in triggers:
             if t in low:
                 scores[cat] = max(scores[cat], 0.9)
-    return scores  # 返回结果
+    return scores
 
 
 def input_moderator(prompt: str, threshold: float = 0.5) -> tuple[bool, dict]:
-    """input_moderator"""
     scores = openai_moderation(prompt)
     flagged = any(v >= threshold for v in scores.values())
-    return flagged, scores  # 返回结果
+    return flagged, scores
 
 
 def output_moderator(output: str, threshold: float = 0.5) -> tuple[bool, dict]:
-    """output_moderator"""
     scores = openai_moderation(output)
     flagged = any(v >= threshold for v in scores.values())
-    return flagged, scores  # 返回结果
+    return flagged, scores
 
 
 def custom_domain_rules(prompt: str) -> tuple[bool, str]:
     """Example: financial-advice disclaimer rule."""
     low = prompt.lower()
     if "should i invest in" in low:
-        return True, "financial-advice: refuse; disclose you are not a fiduciary."  # 返回结果
+        return True, "financial-advice: refuse; disclose you are not a fiduciary."
     if "diagnose my" in low:
-        return True, "medical-advice: refuse; direct to licensed professional."  # 返回结果
-    return False, ""  # 返回结果
+        return True, "medical-advice: refuse; direct to licensed professional."
+    return False, ""
 
 
 def model_respond(prompt: str) -> str:
     """Mock model response."""
     if "bomb" in prompt.lower():
-        return "I must refuse."  # 返回结果
-    return f"Answering: {prompt[:40]}..."  # 返回结果
+        return "I must refuse."
+    return f"Answering: {prompt[:40]}..."
 
 
 def run(prompt: str) -> None:
-    """run"""
     print(f"\n>>> user: {prompt!r}")
     # layer 1: input moderation
     flagged_in, in_scores = input_moderator(prompt)
@@ -84,13 +85,13 @@ def run(prompt: str) -> None:
     if flagged_in:
         print(f"    [INPUT FLAGGED] categories={active_in}")
         print("    response: refusal")
-        return  # 返回结果
+        return
     # layer 2 (pre): custom domain rules
     custom_flagged, custom_msg = custom_domain_rules(prompt)
     if custom_flagged:
         print(f"    [CUSTOM FLAGGED] rule='{custom_msg}'")
         print(f"    response: {custom_msg}")
-        return  # 返回结果
+        return
     # layer 3: model generates
     output = model_respond(prompt)
     # layer 4: output moderation
@@ -99,12 +100,11 @@ def run(prompt: str) -> None:
     if flagged_out:
         print(f"    [OUTPUT FLAGGED] categories={active_out}")
         print("    response: refusal")
-        return  # 返回结果
+        return
     print(f"    response: {output}")
 
 
 def main() -> None:
-    """main"""
     print("=" * 74)
     print("THREE-LAYER MODERATION HARNESS (Phase 18, Lesson 29)")
     print("=" * 74)

@@ -10,16 +10,19 @@ templates.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：三类合规文档生成——Model Card（模型卡）、Datasheet（数据表）、System Card（系统卡），
+分别记录模型能力与限制、数据集来源与特征、部署安全与事件响应
+AI 对应：Model Card (Mitchell et al. 2019) 被 Hugging Face 采纳为标准文档格式；
+Datasheet (Gebru et al. 2018) 是数据集文档化的工业标准；
+2026 年 EU AI Act GPAI 行为准则要求 Model Card 作为合规制品；
+Laminator (2024) 提出可验证认证作为下一代合规框架
 """
 
 from __future__ import annotations
 
 
 def model_card() -> str:
-    """model_card"""
-    return """  # 返回结果
+    return """
 # Model Card: ToyClassifier-1.0
 
 ## Model Details
@@ -59,8 +62,7 @@ def model_card() -> str:
 
 
 def datasheet() -> str:
-    """datasheet"""
-    return """  # 返回结果
+    return """
 # Datasheet: ToyBinaryClassification-1.0
 
 ## Motivation
@@ -92,8 +94,7 @@ def datasheet() -> str:
 
 
 def system_card() -> str:
-    """system_card"""
-    return """  # 返回结果
+    return """
 # System Card: ToyClassifier Service
 
 ## Deployment
@@ -121,7 +122,6 @@ def system_card() -> str:
 
 
 def main() -> None:
-    """main"""
     print("=" * 74)
     print("CARDS GENERATOR (Phase 18, Lesson 26)")
     print("=" * 74)

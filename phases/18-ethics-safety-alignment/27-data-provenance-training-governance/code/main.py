@@ -7,8 +7,12 @@ copyright-protected flag -> EU TDM opt-out respect).
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：数据来源与训练治理——California AB 2013 法案 12 项数据集摘要要求，
+识别级联合规义务（CPRA 隐私、EU TDM 选择退出、版权尊重），在数据采集时就需合规
+AI 对应：California AB 2013 (2024) 要求 AI 训练数据集提供标准化摘要；
+EU AI Act GPAI 行为准则版权章节要求尊重 TDM 选择退出信号；
+Data Provenance Initiative 追踪 2000+ 数据集的许可证链；
+2025 年 DPA 趋势：合法利益 + 选择退出 = 合法处理
 """
 
 from __future__ import annotations
@@ -47,7 +51,6 @@ TOY_EXAMPLE = {
 
 
 def flag_followups(summary: dict) -> list[str]:
-    """flag_followups"""
     flags = []
     if summary["contains_personal_information (Y/N, per Cal. Civ. Code §1798.140(v))"] == "Y":
         flags.append("triggers CPRA obligations (California Privacy Rights Act)")
@@ -59,11 +62,10 @@ def flag_followups(summary: dict) -> list[str]:
         flags.append("may still trigger obligations on the base model used for generation")
     if summary["purchased_or_licensed (Y/N)"] == "Y":
         flags.append("retain license terms and provenance records for audit")
-    return flags  # 返回结果
+    return flags
 
 
 def render_markdown(summary: dict) -> str:
-    """render_markdown"""
     lines = ["# Dataset Summary (AB 2013 Section 3111(a) 12-item)", ""]
     for field in AB_2013_FIELDS:
         lines.append(f"- **{field}**: {summary.get(field, '(missing)')}")
@@ -73,11 +75,10 @@ def render_markdown(summary: dict) -> str:
         lines.append("## Follow-up obligations triggered")
         for f in followups:
             lines.append(f"- {f}")
-    return "\n".join(lines)  # 返回结果
+    return "\n".join(lines)
 
 
 def main() -> None:
-    """main"""
     print("=" * 74)
     print("CALIFORNIA AB 2013 SECTION 3111(a) 12-ITEM GENERATOR (Phase 18, L27)")
     print("=" * 74)

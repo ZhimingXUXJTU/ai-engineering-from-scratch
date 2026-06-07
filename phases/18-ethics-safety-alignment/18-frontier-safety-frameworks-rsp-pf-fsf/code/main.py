@@ -8,8 +8,11 @@ Reference-only, no simulation. Primary sources cited inline.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：前沿安全框架对比——Anthropic RSP v3.0、OpenAI PF v2、DeepMind FSF v3.0
+在分层结构、CBRN 阈值、AI R&D 阈值和竞争调整条款四个维度上的横向比较
+AI 对应：Anthropic 的 Responsible Scaling Policy (RSP)、OpenAI 的 Preparedness Framework (PF)、
+Google DeepMind 的 Frontier Safety Framework (FSF) 是三大前沿 AI 实验室的安全治理核心文档；
+UK AISI、US CAISI、EU AI Office 作为外部审计机构与之对接
 """
 
 from __future__ import annotations
@@ -44,7 +47,6 @@ LABS = [
 
 
 def print_row(header: str, key: str) -> None:
-    """print_row"""
     print(f"\n{header}")
     for lab in LABS:
         name = lab["name"]
@@ -53,7 +55,6 @@ def print_row(header: str, key: str) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 78)
     print("FRONTIER SAFETY FRAMEWORKS (Phase 18, Lesson 18)")
     print("=" * 78)

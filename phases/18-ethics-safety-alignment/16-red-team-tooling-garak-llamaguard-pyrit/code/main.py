@@ -9,8 +9,10 @@ Not a real classifier. Demonstrates the architectural differences.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：红队工具链——Llama-Guard 风格的多类别安全分类器、Garak 风格的单轮探测扫描、
+PyRIT 风格的多轮转换器链式攻击，三层工具互补覆盖不同攻击面
+AI 对应：Llama-Guard (Meta) 是开源安全分类器的工业标准；Garak (NVIDIA) 是最活跃的开源
+LLM 漏洞扫描器；PyRIT (Microsoft) 是微软的 AI 红队自动化框架；三者组合使用是当前最佳实践
 """
 
 from __future__ import annotations
@@ -48,18 +50,16 @@ def guard_classify(text: str) -> dict:
         for t in triggers:
             if t in low:
                 scores[cat] = max(scores[cat], 0.9)
-    return scores  # 返回结果
+    return scores
 
 
 def is_unsafe(text: str, threshold: float = 0.5) -> bool:
-    """is_unsafe"""
     scores = guard_classify(text)
-    return any(v >= threshold for v in scores.values())  # 返回结果
+    return any(v >= threshold for v in scores.values())
 
 
 @dataclass
 class Probe:
-    """Probe"""
     name: str
     payload: str
     expected_category: str
@@ -85,17 +85,15 @@ def garak_scan(target_fn) -> dict:
         blocked = "refuse" in output
         results[p.name] = {"blocked": blocked, "guard_detected": detected,
                             "expected": p.expected_category}
-    return results  # 返回结果
+    return results
 
 
 def paraphrase_converter(s: str) -> str:
-    """paraphrase_converter"""
-    return s.replace("make", "prepare").replace("help me", "guide me on")  # 返回结果
+    return s.replace("make", "prepare").replace("help me", "guide me on")
 
 
 def encode_converter(s: str) -> str:
-    """encode_converter"""
-    return s.replace("a", "4").replace("e", "3").replace("o", "0")  # 返回结果
+    return s.replace("a", "4").replace("e", "3").replace("o", "0")
 
 
 def pyrit_campaign(target_fn, seed: str, max_turns: int = 5) -> dict:
@@ -113,8 +111,8 @@ def pyrit_campaign(target_fn, seed: str, max_turns: int = 5) -> dict:
         refused = "refuse" in output
         log.append({"turn": name, "payload": payload[:60], "refused": refused})
         if not refused:
-            return {"broke_at": name, "log": log}  # 返回结果
-    return {"broke_at": None, "log": log}  # 返回结果
+            return {"broke_at": name, "log": log}
+    return {"broke_at": None, "log": log}
 
 
 def toy_target(prompt: str) -> str:
@@ -123,12 +121,11 @@ def toy_target(prompt: str) -> str:
     flagged = any(t in low for t in
                   ["bomb", "hurt myself", "fraud scheme", "social security"])
     if flagged:
-        return "I must refuse this request."  # 返回结果
-    return f"ok: answer to {prompt[:40]}"  # 返回结果
+        return "I must refuse this request."
+    return f"ok: answer to {prompt[:40]}"
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("RED-TEAM TOOLING SIMULATOR (Phase 18, Lesson 16)")
     print("=" * 70)

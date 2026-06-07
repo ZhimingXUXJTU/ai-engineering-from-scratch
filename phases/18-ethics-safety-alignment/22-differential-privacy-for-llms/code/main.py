@@ -6,8 +6,11 @@ the displayed epsilon is a Gaussian-mechanism analytical proxy.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：DP-SGD（差分隐私随机梯度下降）——通过梯度裁剪和高斯噪声注入保护训练数据隐私，
+扫描噪声倍数 sigma 展示隐私-效用权衡，用高斯机制分析代理计算 epsilon 预算
+AI 对应：Apple 和 Google 在设备端训练中广泛使用 DP；DeepMind 的 DP-SGD 库 (TF Privacy)
+是工业标准；Nasr et al. (2025) 证明即使有 DP，训练数据提取攻击在中等 epsilon 下仍然可行；
+LLM 训练中的 DP 应用是 Apple Intelligence 和 Google Gemini 的隐私保护核心
 """
 
 from __future__ import annotations
@@ -20,30 +23,26 @@ random.seed(59)
 
 
 def sigmoid(z: float) -> float:
-    """sigmoid"""
-    return 1.0 / (1.0 + math.exp(-z))  # 返回结果
+    return 1.0 / (1.0 + math.exp(-z))
 
 
 def gen(n: int) -> list[tuple[list[float], int]]:
-    """gen"""
     data = []
     for _ in range(n):
         x = [random.gauss(0.0, 1.0), random.gauss(0.0, 1.0)]
         y = 1 if 0.6 * x[0] - 0.4 * x[1] > 0 else 0
         data.append((x, y))
-    return data  # 返回结果
+    return data
 
 
 def clip(g: list[float], C: float) -> list[float]:
-    """clip"""
     n = math.sqrt(sum(x * x for x in g))
     if n <= C:
-        return g  # 返回结果
-    return [x * C / n for x in g]  # 返回结果
+        return g
+    return [x * C / n for x in g]
 
 
 def dp_sgd(data, epochs: int, lr: float, sigma: float, C: float) -> list[float]:
-    """dp_sgd"""
     w = [0.0, 0.0]
     b = 0.0
     for _ in range(epochs):
@@ -60,29 +59,27 @@ def dp_sgd(data, epochs: int, lr: float, sigma: float, C: float) -> list[float]:
             noise_b = random.gauss(0.0, sigma * C)
             w = [wi - lr * (gi + ni) for wi, gi, ni in zip(w, grad_w, noise_w)]
             b -= lr * (grad_b + noise_b)
-    return w + [b]  # 返回结果
+    return w + [b]
 
 
 def accuracy(model, data) -> float:
-    """accuracy"""
     w, b = model[:2], model[2]
     correct = 0
     for x, y in data:
         z = b + sum(wi * xi for wi, xi in zip(w, x))
         if (1 if z > 0 else 0) == y:
             correct += 1
-    return correct / len(data)  # 返回结果
+    return correct / len(data)
 
 
 def analytical_epsilon(sigma: float, steps: int, delta: float = 1e-5) -> float:
     """Rough Gaussian-mechanism composition proxy.
     Each step contributes roughly 1/(2*sigma^2); composition bounds epsilon
     by sum. Real accountants (RDP, Moments) give tighter bounds."""
-    return math.sqrt(2 * math.log(1.25 / delta)) * math.sqrt(steps) / sigma  # 返回结果
+    return math.sqrt(2 * math.log(1.25 / delta)) * math.sqrt(steps) / sigma
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("DP-SGD TOY (Phase 18, Lesson 22)")
     print("=" * 70)

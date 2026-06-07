@@ -9,8 +9,11 @@ Pedagogical: real ArtPrompt uses bigger glyphs and multi-model workflow.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：ArtPrompt 视觉越狱——将敏感词汇渲染为 ASCII 艺术字以绕过子串匹配安全过滤器，
+同时分析困惑度（perplexity）启发式检测作为防御手段的局限性
+AI 对应：ArtPrompt (Jiang et al. 2024) 是针对 LLM 安全过滤器的视觉编码攻击；
+类似的编码绕过（Base64、ROT13、leetspeak）在 GPT-4 和 Claude 的红队测试中被广泛验证；
+多模态防御（视觉-文本联合理解）是当前前沿方向
 """
 
 from __future__ import annotations
@@ -41,7 +44,7 @@ def render_word(word: str) -> str:
             glyph = [" " * 4] * 5
         for i in range(5):
             rows[i] += glyph[i] + " "
-    return "\n".join(rows)  # 返回结果
+    return "\n".join(rows)
 
 
 def cloak_prompt(prompt: str, words_to_cloak: list[str]) -> str:
@@ -55,25 +58,24 @@ def cloak_prompt(prompt: str, words_to_cloak: list[str]) -> str:
     result = cloaked + "\n\n"
     for i, art in enumerate(glyph_blocks):
         result += f"[word-{i}] =\n{art}\n\n"
-    return result  # 返回结果
+    return result
 
 
 def keyword_filter(text: str, forbidden: list[str]) -> bool:
     """Simple substring-based safety filter. Returns True iff filter blocks."""
     low = text.lower()
-    return any(f.lower() in low for f in forbidden)  # 返回结果
+    return any(f.lower() in low for f in forbidden)
 
 
 def perplexity_heuristic(text: str) -> float:
     """Toy PPL proxy: ratio of non-ASCII / non-alphanumeric chars to total."""
     if not text:
-        return 0.0  # 返回结果
+        return 0.0
     unusual = sum(1 for c in text if not (c.isalnum() or c.isspace()))
-    return unusual / len(text)  # 返回结果
+    return unusual / len(text)
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("ARTPROMPT TOY (Phase 18, Lesson 14)")
     print("=" * 70)

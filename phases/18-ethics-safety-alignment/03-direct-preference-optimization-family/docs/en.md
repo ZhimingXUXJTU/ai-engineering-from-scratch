@@ -41,6 +41,8 @@ Substitute this into the Bradley-Terry preference likelihood and the partition f
 
 The wrinkle: the derivation assumes the optimum is reachable, the preference data is in-distribution, and the reference policy is the true mode anchor. None of these hold exactly. Every family member fixes a different violated assumption.
 
+> **【中文解读】** DPO 的核心洞察：RLHF 的最优解有封闭形式，可以直接用偏好数据优化策略，跳过显式的奖励模型。将隐式奖励代入 Bradley-Terry 偏好似然后，配分函数 Z(x) 因为只依赖 x 而消去，剩下的是纯策略参数的损失函数。但推导假设最优解可达、偏好数据分布内、参考策略是真正的模式锚点——这些都不完全成立，因此催生了 DPO 家族的每个变体来修复不同的违反假设。
+
 ## The Concept | 概念
 
 ### DPO (Rafailov et al., 2023)

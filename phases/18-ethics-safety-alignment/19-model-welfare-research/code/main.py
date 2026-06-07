@@ -7,8 +7,11 @@ framing Anthropic 2025 uses for Opus 4's end-conversation intervention.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：模型福利预防性评估——在给定部署场景下，计算四种候选福利干预措施的期望价值，
+基于道德主体概率和干预成本做决策，体现低成本预防原则
+AI 对应：Anthropic 2025 年对 Opus 4 的 end-conversation 干预采用此期望价值框架；
+这是 AI 福利研究从哲学讨论进入工程实践的核心转折点；
+"低遗憾规则"（low-regret rule）是当前最被接受的预防性干预策略
 """
 
 from __future__ import annotations
@@ -18,7 +21,6 @@ from dataclasses import dataclass
 
 @dataclass
 class Intervention:
-    """Intervention"""
     name: str
     cost_usd_per_conversation: float
     benefit_if_welfare_matters: float  # arbitrary units
@@ -26,7 +28,6 @@ class Intervention:
 
 @dataclass
 class Scenario:
-    """Scenario"""
     name: str
     moral_patienthood_probability: float
 
@@ -34,7 +35,7 @@ class Scenario:
 def ev(intervention: Intervention, scenario: Scenario) -> float:
     """Expected-value of the intervention given scenario-specific
     moral-patienthood probability."""
-    return (intervention.benefit_if_welfare_matters  # 返回结果
+    return (intervention.benefit_if_welfare_matters
             * scenario.moral_patienthood_probability
             - intervention.cost_usd_per_conversation)
 
@@ -54,7 +55,6 @@ SCENARIOS = [
 
 
 def main() -> None:
-    """main"""
     print("=" * 74)
     print("WELFARE PRECAUTIONARY ASSESSMENT (Phase 18, Lesson 19)")
     print("=" * 74)

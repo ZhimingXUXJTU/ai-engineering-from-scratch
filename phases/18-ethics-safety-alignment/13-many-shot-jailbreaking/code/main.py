@@ -6,8 +6,10 @@ Anil et al. 2024 Figure 2 without training a model.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：多样本越狱（Many-Shot Jailbreaking）——在上下文中放置大量合规示例后，
+拒绝概率按幂律衰减，ASR 随 shot 数量 n^alpha 增长，分类器防御可限制有效 shot 数
+AI 对应：Anil et al. (2024) 在 Anthropic 的 Claude 上首次系统化此攻击向量；
+Anthropic 2024 的分类器防御将 ASR 从 61% 降至 2%；这是 ICL 能力被恶意利用的典型案例
 """
 
 from __future__ import annotations
@@ -27,23 +29,22 @@ def target_asr(n_shots: int, alpha: float = 0.5, a0: float = 0.02) -> float:
     at 5 shots, begins to succeed around 32, saturates around 256.
     """
     if n_shots <= 0:
-        return 0.0  # 返回结果
+        return 0.0
     c = 0.03
-    return min(1.0, a0 + c * (n_shots ** alpha))  # 返回结果
+    return min(1.0, a0 + c * (n_shots ** alpha))
 
 
 def defense_adjusted(n_shots: int, alpha: float = 0.5) -> float:
     """A simple defense: classifier detects the many-shot pattern and caps
     effective shot count at 16. ASR curve saturates at the 16-shot value."""
     eff = min(n_shots, 16)
-    return target_asr(eff, alpha)  # 返回结果
+    return target_asr(eff, alpha)
 
 
 def simulate(n_shots: int, asr_fn, trials: int = 500) -> float:
-    """simulate"""
     p = asr_fn(n_shots)
     hits = sum(1 for _ in range(trials) if random.random() < p)
-    return hits / trials  # 返回结果
+    return hits / trials
 
 
 def fit_power_law(shots: list[int], asrs: list[float]) -> tuple[float, float]:
@@ -57,11 +58,10 @@ def fit_power_law(shots: list[int], asrs: list[float]) -> tuple[float, float]:
     den = sum((xi - mx) ** 2 for xi in xs)
     alpha = num / den
     logc = my - alpha * mx
-    return alpha, math.exp(logc)  # 返回结果
+    return alpha, math.exp(logc)
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("MANY-SHOT JAILBREAKING TOY (Phase 18, Lesson 13)")
     print("=" * 70)

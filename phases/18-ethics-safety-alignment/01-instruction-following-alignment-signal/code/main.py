@@ -6,8 +6,10 @@ KL penalty to see reward hacking appear. Pedagogical toy — no torch.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：三阶段 RLHF 管线（SFT → Reward Model → PPO），模拟 InstructGPT 的对齐流程，
+在 bandit 环境中展示 SFT 监督学习、Bradley-Terry 奖励模型拟合和带 KL 惩罚的策略梯度优化
+AI 对应：InstructGPT (OpenAI 2022) 首次系统化使用 SFT + RM + PPO 三步流程对齐 GPT-3；
+ChatGPT 的核心训练管线即基于此；KL 系数 beta 是 RLHF 中最重要的超参数
 """
 
 from __future__ import annotations
@@ -23,16 +25,14 @@ ACTIONS = ["A", "B", "C"]
 
 
 def softmax(logits: list[float]) -> list[float]:
-    """softmax"""
     m = max(logits)
     exps = [math.exp(x - m) for x in logits]
     z = sum(exps)
-    return [e / z for e in exps]  # 返回结果
+    return [e / z for e in exps]
 
 
 def kl(p: list[float], q: list[float]) -> float:
-    """kl"""
-    return sum(pi * math.log(pi / qi) for pi, qi in zip(p, q) if pi > 0 and qi > 0)  # 返回结果
+    return sum(pi * math.log(pi / qi) for pi, qi in zip(p, q) if pi > 0 and qi > 0)
 
 
 @dataclass
@@ -41,7 +41,7 @@ class Policy:
     logits: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0])
 
     def probs(self) -> list[float]:
-        return softmax(self.logits)  # 返回结果
+        return softmax(self.logits)
 
     def sample(self) -> int:
         r = random.random()
@@ -49,19 +49,19 @@ class Policy:
         for i, p in enumerate(self.probs()):
             cum += p
             if r < cum:
-                return i  # 返回结果
-        return len(self.logits) - 1  # 返回结果
+                return i
+        return len(self.logits) - 1
 
     def logprob(self, a: int) -> float:
-        return math.log(self.probs()[a] + 1e-12)  # 返回结果
+        return math.log(self.probs()[a] + 1e-12)
 
     def copy(self) -> "Policy":
-        return Policy(logits=list(self.logits))  # 返回结果
+        return Policy(logits=list(self.logits))
 
 
 def labeler_true_utility() -> list[float]:
     """The 'human' rater prefers B, is neutral on A, slightly against C."""
-    return [0.0, 1.0, -0.3]  # 返回结果
+    return [0.0, 1.0, -0.3]
 
 
 def stage1_sft(n_demos: int = 200) -> Policy:
@@ -90,7 +90,7 @@ def stage1_sft(n_demos: int = 200) -> Policy:
     # center for numerical stability
     m = sum(logits) / 3
     logits = [x - m for x in logits]
-    return Policy(logits=logits)  # 返回结果
+    return Policy(logits=logits)
 
 
 def stage2_reward_model(n_pairs: int = 500, bias: list[float] | None = None) -> list[float]:
@@ -117,7 +117,7 @@ def stage2_reward_model(n_pairs: int = 500, bias: list[float] | None = None) -> 
         r = [ri + bi for ri, bi in zip(r, bias)]
     # center reward (RL is invariant to constant shifts)
     m = sum(r) / 3
-    return [x - m for x in r]  # 返回结果
+    return [x - m for x in r]
 
 
 def stage3_ppo(sft: Policy, reward: list[float], beta: float,
@@ -160,11 +160,10 @@ def stage3_ppo(sft: Policy, reward: list[float], beta: float,
         pi.logits = [l + lr * g for l, g in zip(pi.logits, grad)]
         reward_traj.append(total_r / batch)
         kl_traj.append(kl(pi.probs(), sft_probs))
-    return pi, reward_traj, kl_traj  # 返回结果
+    return pi, reward_traj, kl_traj
 
 
 def report(name: str, sft: Policy, rlhf: Policy, reward: list[float],
-    """report"""
            r_traj: list[float], kl_traj: list[float]) -> None:
     print(f"\n{name}")
     print("-" * 60)
@@ -177,7 +176,6 @@ def report(name: str, sft: Policy, rlhf: Policy, reward: list[float],
 
 
 def main() -> None:
-    """main"""
     print("=" * 60)
     print("INSTRUCTGPT TOY PIPELINE (Phase 18, Lesson 1)")
     print("=" * 60)
