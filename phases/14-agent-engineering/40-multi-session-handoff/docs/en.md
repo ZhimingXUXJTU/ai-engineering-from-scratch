@@ -2,10 +2,10 @@
 
 > The session is going to end. The work is not. The handoff packet is the artifact that turns "the agent worked for an hour" into "the next session is productive in the first minute." Build it on purpose, not as an afterthought.
 
-**Type:** Build
-**Languages:** Python (stdlib)
-**Prerequisites:** Phase 14 · 34 (Repo Memory), Phase 14 · 38 (Verification), Phase 14 · 39 (Reviewer)
-**Time:** ~50 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib) | **语言:** Python (标准库)
+**Prerequisites:** Phase 14 · 34 (Repo Memory), Phase 14 · 38 (Verification), Phase 14 · 39 (Reviewer) | **前置知识:** 见原文
+**Time:** ~50 minutes | **时间:** 见原文
 
 ## Learning Objectives | 学习目标
 
@@ -14,7 +14,7 @@
 - Trim large feedback logs into a handoff-sized summary.
 - Make the next session's first action deterministic.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 The session ends. The agent says "great, we made progress." The next session opens. The next agent asks "where did we leave off?" The first agent's answer is gone. The next agent rediscovers, re-runs the same commands, re-asks the human the same questions, and burns thirty minutes recovering the last thirty seconds of the previous session.
 
@@ -23,7 +23,7 @@ The cost of a bad handoff is paid every session for the life of the task. The fi
 
 > **【中文解读】** 多会话交接处理 Agent 跨多个会话的连续性。当一次会话因超时、token 限制或用户中断而结束时，Agent 需要将上下文传递给下一次会话。关键技术：(1) 会话摘要——压缩关键信息；(2) 检查点——保存中间状态；(3) 恢复协议——新会话如何加载旧状态。
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ```mermaid
 flowchart LR
@@ -52,19 +52,27 @@ flowchart LR
 
 The `next_action` field is the load-bearing one. A handoff with everything except `next_action` is a status report, not a handoff.
 
+> 多会话移交处理 Agent 在不同会话之间传递上下文和状态。确保工作连续性，避免跨会话信息丢失。
+
 ### Handoffs are generated, not written
 
 A hand-written handoff is a handoff that gets skipped on a hard day. The generator reads the workbench artifacts and emits the packet. The agent's job is to leave the workbench in a state the generator can summarize, not to write the summary.
+
+> 多会话移交处理 Agent 在不同会话之间传递上下文和状态。确保工作连续性，避免跨会话信息丢失。
 
 ### Two forms: human-readable and machine-readable
 
 `handoff.md` is what the human reads. `handoff.json` is what the next agent loads. Both come from the same source artifacts. If they diverge, the JSON wins.
 
+> 多会话移交处理 Agent 在不同会话之间传递上下文和状态。确保工作连续性，避免跨会话信息丢失。
+
 ### Feedback log trimming
 
 The full `feedback_record.jsonl` may be hundreds of entries. The handoff carries only the last K plus every entry with a non-zero exit. The next session loads the full log if it needs to, but the packet stays small.
 
-## Build It | 动手构建
+> 多会话移交处理 Agent 在不同会话之间传递上下文和状态。确保工作连续性，避免跨会话信息丢失。
+
+## Build It | 动手实现
 
 `code/main.py` implements:
 
@@ -81,9 +89,13 @@ python3 code/main.py
 
 Output: a printed handoff body, plus both files on disk.
 
+> 多会话移交处理 Agent 在不同会话之间传递上下文和状态。确保工作连续性，避免跨会话信息丢失。
+
 ## Production patterns in the wild
 
 Codex CLI, Claude Code, and OpenCode each ship a different compaction story; the structured handoff packet sits on top of all three.
+
+> 多会话移交处理 Agent 在不同会话之间传递上下文和状态。确保工作连续性，避免跨会话信息丢失。
 
 **Compaction strategies vary; the packet schema does not.** Codex CLI's POST /v1/responses/compact is a server-side opaque AES blob (fast path for OpenAI models); the fallback is a local "handoff summary" appended as a `_summary` user-role message. Claude Code runs five-stage progressive compaction at 95% of context. OpenCode does timestamp-based message hiding plus a 5-heading LLM summary. Three different mechanisms, same need: serialize what survives compression into a portable artifact. The packet is that artifact.
 
@@ -93,7 +105,7 @@ Codex CLI, Claude Code, and OpenCode each ship a different compaction story; the
 
 **Wrap up before 50-75% context, not at the wall.** The hand-written-pattern playbook (CLAUDE.md + HANDOVER.md) reports best results when the session ends at 50-75% context budget instead of 95%. The packet generator runs cleanly before compression artifacts pollute the source state. Cheap to write while context is intact; expensive when the model is already losing its place.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 Production patterns:
 
@@ -103,24 +115,28 @@ Production patterns:
 
 The packet is small, regular, and cheap to produce. The cost saving compounds with every session.
 
-## Ship It | 部署上线
+> 多会话移交处理 Agent 在不同会话之间传递上下文和状态。确保工作连续性，避免跨会话信息丢失。
+
+## Ship It | 产出物
 
 `outputs/skill-handoff-generator.md` produces a generator tuned to a project's artifact paths, an end-of-session hook that runs it, and a `handoff.json` schema the next agent reads on startup.
+
+> 多会话移交处理 Agent 在不同会话之间传递上下文和状态。确保工作连续性，避免跨会话信息丢失。
 
 ## Exercises | 练习题
 
 1. Add an `assumptions_to_validate` field that surfaces every assumption the builder logged but the reviewer did not score above 1.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 2. Trim the feedback summary differently for failing runs versus passing ones. Defend the asymmetry.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 3. Include a "questions for the human" list. What is the threshold for a question to make it into the packet versus into a chat message?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 4. Make the generator idempotent: running it twice produces the same packet. What needs to be stable for that to hold?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 5. Add a "next session prereqs" section listing exactly the artifacts the next session must load before acting.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|---|
@@ -133,16 +149,27 @@ The packet is small, regular, and cheap to produce. The cost saving compounds wi
 ## Further Reading | 延伸阅读
 
 - [Anthropic, Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+  中文翻译：见原文。
 - [OpenAI Agents SDK handoffs](https://platform.openai.com/docs/guides/agents-sdk/handoffs)
+  中文翻译：见原文。
 - [Codex Blog, Codex CLI Context Compaction: Architecture, Configuration, Managing Long Sessions](https://codex.danielvaughan.com/2026/03/31/codex-cli-context-compaction-architecture/) — POST /v1/responses/compact and local fallback
+  中文翻译：见原文。
 - [Justin3go, Shedding Heavy Memories: Context Compaction in Codex, Claude Code, OpenCode](https://justin3go.com/en/posts/2026/04/09-context-compaction-in-codex-claude-code-and-opencode) — three-vendor compaction comparison
+  中文翻译：见原文。
 - [JD Hodges, Claude Handoff Prompt: How to Keep Context Across Sessions (2026)](https://www.jdhodges.com/blog/ai-session-handoffs-keep-context-across-conversations/) — CLAUDE.md + HANDOVER.md, 50-75% context budget
+  中文翻译：见原文。
 - [Mervin Praison, Managing Handoffs in Multi-Agent Coding Sessions: Fresh Context Without Losing Continuity](https://mer.vin/2026/04/managing-handoffs-in-multi-agent-coding-sessions-fresh-context-without-losing-continuity/) — distributed-systems framing
+  中文翻译：见原文。
 - [Hermes Issue #20372 — automatic fresh-session handoff when compression becomes risky](https://github.com/NousResearch/hermes-agent/issues/20372)
+  中文翻译：见原文。
 - [Hermes Issue #499 — Context Compaction Quality Overhaul](https://github.com/NousResearch/hermes-agent/issues/499) — handoff-oriented prompts in Codex CLI
+  中文翻译：见原文。
 - [Microsoft Agent Framework, Compaction](https://learn.microsoft.com/en-us/agent-framework/agents/conversations/compaction)
+  中文翻译：见原文。
 - [OpenCode, Context Management and Compaction](https://deepwiki.com/sst/opencode/2.4-context-management-and-compaction)
+  中文翻译：见原文。
 - [LangChain, Context Engineering for Agents](https://www.langchain.com/blog/context-engineering-for-agents)
+  中文翻译：见原文。
 - Phase 14 · 34 — the state file the generator reads
 - Phase 14 · 38 — the verification verdict the packet points at
 - Phase 14 · 39 — the reviewer report bundled into the packet

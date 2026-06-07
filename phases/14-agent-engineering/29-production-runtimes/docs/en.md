@@ -2,10 +2,10 @@
 
 > Production agents run on six runtime shapes: request-response, streaming, durable execution, queue-based background, event-driven, and scheduled. Pick the shape before you pick the framework. Observability is load-bearing at every shape.
 
-**Type:** Learn
-**Languages:** Python (stdlib)
-**Prerequisites:** Phase 14 · 13 (LangGraph), Phase 14 · 22 (Voice)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib) | **语言:** Python (标准库)
+**Prerequisites:** Phase 14 · 13 (LangGraph), Phase 14 · 22 (Voice) | **前置知识:** 见原文
+**Time:** ~60 minutes | **时间:** 见原文
 
 ## Learning Objectives | 学习目标
 
@@ -14,7 +14,7 @@
 - Describe the event-driven runtime and when Claude Managed Agents fits.
 - Explain the observability-as-load-bearing claim for multi-step agents.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 Production agents fail in ways a Jupyter notebook doesn't surface: network timeouts at step 37, user hangs up mid-voice call, cron job dies on machine reboot, background worker runs out of memory. The runtime shape determines which failures are survivable.
 
@@ -22,7 +22,7 @@ Production agents fail in ways a Jupyter notebook doesn't surface: network timeo
 > **【中文解读】** 生产环境 Agent 运行时需要处理开发环境不需要的问题：持久化状态、容错恢复、水平扩展、速率限制、成本控制和可观测性。选择运行时（LangGraph、Temporal、自建）取决于任务的关键性和预算。
 
 > **{【拓展：2026年生产 Agent 运行时的选择：(1) LangGraph Cloud——LangGrap...】}** 2026年生产 Agent 运行时的选择：(1) LangGraph Cloud——LangGraph 的托管服务，内置状态检查点和重放；(2) Temporal——通用工作流引擎，配合 AI SDK 可构建持久化 Agent；(3) 自建——基于 Redis/Kafka 的消息队列 + 自定义 Agent 循环。关键决策因素是是否需要持久化执行——如果 Agent 可能运行数小时甚至数天，Temporal 或 LangGraph 是更安全的选择。
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Request-response
 
@@ -77,6 +77,8 @@ Production agents fail in ways a Jupyter notebook doesn't surface: network timeo
 
 Without OpenTelemetry GenAI spans (Lesson 23) plus a Langfuse/Phoenix/Opik backend (Lesson 24), you cannot debug a multi-step agent that failed at step 40. This is not optional for production. It's the difference between "we debug fast" and "we replay from scratch with more logging."
 
+> 生产运行时处理 Agent 的部署、扩展和可靠性。关键考虑因素包括：状态管理、错误恢复、限流、队列管理和成本控制。
+
 ### Where production runtimes fail
 
 - **Wrong shape choice.** Picking request-response for a 5-minute task. Users hang up; workers pile up; retries compound.
@@ -84,7 +86,7 @@ Without OpenTelemetry GenAI spans (Lesson 23) plus a Langfuse/Phoenix/Opik backe
 - **Opaque background work.** Background agent runs without trace export. Failures are invisible until the user reports them.
 - **Skipping durable state.** Any run > 30 seconds where you can't afford to restart needs durable execution.
 
-## Build It | 动手构建
+## Build It | 动手实现
 
 `code/main.py` is a stdlib multi-shape demo:
 
@@ -102,7 +104,9 @@ python3 code/main.py
 
 Output: five traces showing each shape's behavior on the same task. Same agent logic, different outer shells. Durable execution (the sixth shape) is intentionally covered in Lesson 13 with LangGraph checkpointing.
 
-## Use It | 使用方法
+> 生产运行时处理 Agent 的部署、扩展和可靠性。关键考虑因素包括：状态管理、错误恢复、限流、队列管理和成本控制。
+
+## Use It | 用框架实现
 
 - **Request-response** for chat-style UX.
 - **Streaming** for progressive responses.
@@ -111,24 +115,26 @@ Output: five traces showing each shape's behavior on the same task. Same agent l
 - **Event** for agent reactivity.
 - **Cron** for housekeeping (memory consolidation, evals, cost reports).
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-runtime-shape.md` picks a runtime shape for a task and wires the observability requirements.
+
+> 生产运行时处理 Agent 的部署、扩展和可靠性。关键考虑因素包括：状态管理、错误恢复、限流、队列管理和成本控制。
 
 ## Exercises | 练习题
 
 1. Port your Lesson 01 ReAct loop to all six shapes in your stack. Which shape fits which product surface?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 2. Add a DLQ to the queue-based demo. Simulate 10% job failure; surface DLQ size.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 3. Write a cron-triggered eval agent that runs nightly against your top 20 traces from the day.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 4. Implement streaming with backpressure: if the client is slow, pause the agent. How does this interact with a turn budget?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 5. Read Claude Managed Agents docs. When would you move a self-hosted long-horizon agent to managed?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|---|
@@ -143,6 +149,10 @@ Output: five traces showing each shape's behavior on the same task. Same agent l
 ## Further Reading | 延伸阅读
 
 - [LangGraph overview](https://docs.langchain.com/oss/python/langgraph/overview) — durable execution details
+  中文翻译：见原文。
 - [Claude Managed Agents overview](https://platform.claude.com/docs/en/managed-agents/overview) — hosted long-running async
+  中文翻译：见原文。
 - [Anthropic, Introducing computer use](https://www.anthropic.com/news/3-5-models-and-computer-use) — "dozens-to-hundreds of steps per task"
+  中文翻译：见原文。
 - [AutoGen v0.4 (Microsoft Research)](https://www.microsoft.com/en-us/research/articles/autogen-v0-4-reimagining-the-foundation-of-agentic-ai-for-scale-extensibility-and-robustness/) — actor-model fault isolation
+  中文翻译：见原文。

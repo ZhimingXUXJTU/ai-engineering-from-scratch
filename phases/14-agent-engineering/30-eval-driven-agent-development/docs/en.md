@@ -2,10 +2,10 @@
 
 > Anthropic's guidance: "start with simple prompts, optimize them with comprehensive evaluation, and add multi-step agentic systems only when needed." Evaluation is not the last step. It's the outer loop that drives every other choice in Phase 14.
 
-**Type:** Learn + Build
-**Languages:** Python (stdlib)
-**Prerequisites:** All of Phase 14.
-**Time:** ~60 minutes
+**Type:** Learn + Build | **类型:** 构建
+**Languages:** Python (stdlib) | **语言:** Python (标准库)
+**Prerequisites:** All of Phase 14. | **前置知识:** 见原文
+**Time:** ~60 minutes | **时间:** 见原文
 
 ## Learning Objectives | 学习目标
 
@@ -14,7 +14,7 @@
 - Describe the 2026 best practice: evals live next to code, run in CI, gate PRs.
 - Connect every Phase 14 lesson to the eval case it generates.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 Agents pass demos. They fail in production in ways demos cannot predict. Benchmarks answer "is this model broadly capable?" not "is this agent shipping the right patches for my product?" The answer: evaluation at three layers, running continuously, with every guardrail and learned rule mapped to an eval case.
 
@@ -22,7 +22,7 @@ Agents pass demos. They fail in production in ways demos cannot predict. Benchma
 > **【中文解读】** 评估驱动的 Agent 开发（Eval-Driven Development）将传统软件工程中的 TDD 应用于 Agent：先定义评估标准，再实现 Agent。核心挑战是 Agent 的非确定性——同样的输入可能产生不同的执行路径和输出，需要基于轨迹的评估而非基于快照的评估。
 
 > **{【拓展：Eval-Driven Agent Development 是 2025-2026 年的最佳实践。核...】}** Eval-Driven Agent Development 是 2025-2026 年的最佳实践。核心工具：(1) AgentOps——Agent 追踪和评估平台；(2) LangSmith——LangChain 的评估套件；(3) Braintrust——AI 评估框架。关键洞察：Agent 评估应该基于完整轨迹（trajectory）而非最终输出——两个 Agent 可能得到相同结果，但一个走了 5 步，另一个走了 50 步，质量和成本差异巨大。
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Three evaluation layers
 
@@ -47,6 +47,8 @@ The tight loop:
 3. Refine until evaluator passes.
 
 This is Self-Refine (Lesson 05) generalized. Any agent flow you care about can wrap in evaluator-optimizer for reliability.
+
+> 评估驱动的 Agent 开发（Eval-Driven Development）将评估作为 Agent 开发的核心。先定义评估标准，再构建 Agent，用评估轨迹指导改进。
 
 ### 2026 best practice
 
@@ -83,6 +85,8 @@ Every lesson in Phase 14 generates eval cases:
 
 If your eval suite has cases for each, you have covered Phase 14.
 
+> 评估驱动的 Agent 开发（Eval-Driven Development）将评估作为 Agent 开发的核心。先定义评估标准，再构建 Agent，用评估轨迹指导改进。
+
 ### Where eval-driven development fails
 
 - **No baseline.** Evals without a last-known-good are unreadable. Store baselines.
@@ -90,7 +94,7 @@ If your eval suite has cases for each, you have covered Phase 14.
 - **Over-fitting to evals.** Optimizing for the eval diverges from production usefulness. Rotate cases.
 - **Flaky evals.** Non-deterministic cases cause false alarms. Pin seeds, snapshot state.
 
-## Build It | 动手构建
+## Build It | 动手实现
 
 `code/main.py` is a stdlib eval harness:
 
@@ -107,7 +111,9 @@ python3 code/main.py
 
 Output: per-case pass/fail, regression flag, CI gate verdict.
 
-## Use It | 使用方法
+> 评估驱动的 Agent 开发（Eval-Driven Development）将评估作为 Agent 开发的核心。先定义评估标准，再构建 Agent，用评估轨迹指导改进。
+
+## Use It | 用框架实现
 
 - Write eval cases in the same repo as your agent code.
 - Run them on every PR via CI.
@@ -115,24 +121,26 @@ Output: per-case pass/fail, regression flag, CI gate verdict.
 - Track pass rate over time.
 - Tie every production failure to a new case.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-eval-suite.md` builds a three-layer eval suite for an agent product with CI gates and regression tracking.
+
+> 评估驱动的 Agent 开发（Eval-Driven Development）将评估作为 Agent 开发的核心。先定义评估标准，再构建 Agent，用评估轨迹指导改进。
 
 ## Exercises | 练习题
 
 1. Take one of your production failures. Write an eval case that reproduces it. Does your agent pass it now?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 2. Build an LLM-judge rubric for your domain with three dimensions (factual, tone, scope). Score 50 sessions.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 3. Wire the eval suite into CI. Fail the build on >=5% regression.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 4. Add a trajectory-efficiency metric: how many steps did the agent take vs a gold trajectory?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 5. Map every Phase 14 lesson to an eval case in your suite. Any missing? That's a gap to close.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|---|
@@ -147,6 +155,10 @@ Output: per-case pass/fail, regression flag, CI gate verdict.
 ## Further Reading | 延伸阅读
 
 - [Anthropic, Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) — "start simple, optimize with evals"
+  中文翻译：见原文。
 - [OpenAI, SWE-bench Verified](https://openai.com/index/introducing-swe-bench-verified/) — the curated benchmark
+  中文翻译：见原文。
 - [Berkeley Function Calling Leaderboard](https://gorilla.cs.berkeley.edu/leaderboard.html) — tool-use benchmark
+  中文翻译：见原文。
 - [Langfuse docs](https://langfuse.com/) — evals + session replay in practice
+  中文翻译：见原文。

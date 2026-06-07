@@ -2,10 +2,10 @@
 
 > CrewAI is the 2026 role-based multi-agent framework. Four primitives: Agent, Task, Crew, Process. Two top-level shapes: Crews (autonomous, role-based collaboration) and Flows (event-driven, deterministic). The docs are blunt: "for any production-ready application, start with a Flow."
 
-**Type:** Learn + Build
-**Languages:** Python (stdlib)
-**Prerequisites:** Phase 14 · 12 (Workflow Patterns), Phase 14 · 14 (Actor Model)
-**Time:** ~75 minutes
+**Type:** Learn + Build | **类型:** 构建
+**Languages:** Python (stdlib) | **语言:** Python (标准库)
+**Prerequisites:** Phase 14 · 12 (Workflow Patterns), Phase 14 · 14 (Actor Model) | **前置知识:** 见原文
+**Time:** ~75 minutes | **时间:** 见原文
 
 ## Learning Objectives | 学习目标
 
@@ -17,7 +17,7 @@
 - Implement a stdlib three-agent crew (researcher, writer, editor) that produces a brief.
 - Spot the three CrewAI failure modes: prompt-bloat, manager-LLM tax, brittle handoffs.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 Teams adopting multi-agent frameworks hit the same wall. "Autonomous collaboration" sounds great in a demo. Then a customer files a bug and you need deterministic replay. Or finance asks how much an LLM-routed crew costs per run. Or on-call needs to know which agent stalled at 3 AM.
 
@@ -29,11 +29,13 @@ Free-form LLM-routed crews answer none of those cleanly. Pure DAGs answer them a
 > **{【拓展：CrewAI 是 2024-2025 年增长最快的 Agent 框架之一（GitHub 20k+ s...】}** CrewAI 是 2024-2025 年增长最快的 Agent 框架之一（GitHub 20k+ stars）。其核心卖点是低代码 Agent 协作——通过 YAML 配置文件定义 Agent 角色和任务流。CrewAI 支持两种模式：Crew（预定义角色团队）和 Flow（动态工作流）。企业用户（尤其是非技术团队）特别青睐其直观的角色定义方式。
 CrewAI's split is honest about the trade. Crews for collaborative, role-based, exploratory work. Flows for event-driven, code-owned, auditable production. Same framework, two shapes, pick per surface.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Four primitives
 
 CrewAI's surface is small. Memorize this and the rest is config.
+
+> CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 - **Agent.** `role + goal + backstory + tools + (optional) llm`. The backstory is load-bearing. It shapes tone, judgment, when the agent stops. Tools are functions the agent can call (more below).
 - **Task.** `description + expected_output + agent + (optional) context + (optional) output_pydantic`. A reusable unit of work. `expected_output` is the contract. `context` lists upstream tasks whose outputs are passed in. `output_pydantic` forces a structured shape.
@@ -52,6 +54,8 @@ Agents do not see each other directly. Tasks reference agents. The Crew sequence
 
 Hierarchical adds a per-round LLM call (the manager) on top of every specialist call. Token cost can triple on a five-step run. Pay for it only when you need the routing.
 
+> CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
+
 ### Crews vs Flows
 
 This is the framing the docs lead with in 2026.
@@ -61,9 +65,13 @@ This is the framing the docs lead with in 2026.
 
 The docs' 2026 production recommendation: start with a Flow. Fold Crews in as `Crew.kickoff()` calls from inside Flow steps when autonomy earns its cost. The Flow gives you the audit trail, the Crew gives you the exploration. Compose, do not pick.
 
+> CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
+
 ### Tool integration
 
 Three ways to give an Agent a tool. Pick the simplest one that fits.
+
+> CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 1. **`@tool` decorator.** Pure functions become tools. Signature is the schema; docstring is the description the LLM sees. Best for one-off helpers.
 
@@ -99,6 +107,8 @@ Three ways to give an Agent a tool. Pick the simplest one that fits.
 
 Structured outputs use Pydantic. Pass `output_pydantic=MyModel` on the Task. CrewAI validates the LLM response against the model and either coerces or retries. Pair this with a tight `expected_output` string. Free-text outputs are fine for drafts; structured outputs are what downstream Flows can consume.
 
+> CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
+
 ### Memory hooks
 
 CrewAI ships four memory types out of the box. They compose: a Crew can enable all four at once.
@@ -111,6 +121,8 @@ CrewAI ships four memory types out of the box. They compose: a Crew can enable a
 - **Contextual.** Assembly-time retrieval. Pulls relevant memory at the moment the Agent needs it, not preloaded.
 
 Enable on the Crew with `memory=True` or per-type config. Backed by an embeddings provider you configure (defaults to OpenAI, swappable to local). Memory is one of the places CrewAI earns its keep against thinner frameworks; pure LangGraph requires you to wire each of these yourself.
+
+> CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 ### When CrewAI fits
 
@@ -126,9 +138,13 @@ Enable on the Crew with `memory=True` or per-type config. Backed by an embedding
 
 Lesson 17 (Agent Framework Tradeoffs) lays this out in a matrix. The short version: CrewAI sits in the "collaborative role-based" corner.
 
+> CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
+
 ### Dependency shape
 
 Independent of LangChain. Python 3.10 to 3.13. Uses `uv`. Star count: see [crewAIInc/crewAI](https://github.com/crewAIInc/crewAI) (snapshot as of 2026-05). AWS Bedrock integration is documented; vendor benchmarks report a substantial speedup vs LangGraph on QA workloads, but the methodology (dataset, hardware, evaluation metric) is not published, so treat framework-vendor numbers as directional only.
+
+> CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 ### Where this pattern goes wrong
 
@@ -137,9 +153,11 @@ Independent of LangChain. Python 3.10 to 3.13. Uses `uv`. Star count: see [crewA
 - **Brittle handoffs.** Task N's `expected_output` is "an outline". Task N+1 reads it as `context` and tries to parse three sections. The LLM produced four. The downstream Agent ad-libs. Fix with `output_pydantic` on Task N so Task N+1 reads a typed object, not free text.
 - **Crew-as-prod.** Free-form Crew shipped to production without a Flow wrapper. Output variability is high; replay is impossible; on-call cannot diff a bad run against a good one. Wrap with a Flow.
 
-## Build It | 动手构建
+## Build It | 动手实现
 
 `code/main.py` implements stdlib versions of both shapes plus a three-agent crew.
+
+> CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 Shape:
 
@@ -153,6 +171,8 @@ Shape:
 
 Concrete demo: researcher, writer, editor crew producing a brief on "agent engineering 2026". Researcher pulls (mocked) sources. Writer drafts. Editor tightens. Same crew runs through a Flow to show the deterministic shape.
 
+> CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
+
 Run it:
 
 ```bash
@@ -161,9 +181,13 @@ python3 code/main.py
 
 Trace covers: sequential crew threading outputs through `context`, hierarchical crew with manager picks (researcher, writer, editor, then "done"), flow running the same three steps with explicit topics (`researched`, `drafted`, `edited`), tool calls routed through `@tool`, and long-term memory surviving across two kickoffs.
 
+> CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
+
 The Crew trace is fluid; the manager could in principle re-order. The Flow trace is fixed. That choice is the lesson.
 
-## Use It | 使用方法
+> CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
+
+## Use It | 用框架实现
 
 - **CrewAI Flow** for production. Even when the Flow is one step that calls `Crew.kickoff()`. The Flow gives the audit boundary.
 - **CrewAI Crew (Sequential)** for clear-ordering collaborative work, especially first drafts and review loops.
@@ -173,11 +197,13 @@ The Crew trace is fluid; the manager could in principle re-order. The Flow trace
 - **OpenAI Agents SDK** (Lesson 16) for OpenAI-first products with handoffs and guardrails.
 - **Claude Agent SDK** (Lesson 17) for Claude-first products with subagents and session store.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-crew-or-flow.md` picks Crew vs Flow for a task and scaffolds the minimal implementation. Hard rejects on Crew-without-backstory, Flow-without-explicit-topics, Hierarchical with under three specialists.
 
-## Pitfalls
+> CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
+
+## Pitfalls | 常见陷阱
 
 - **Backstory as flavor.** It shapes outputs. Test three variants per agent; variance is real. Pick one, freeze it.
 - **Skipping `expected_output`.** Without a contract per task, downstream tasks pick up whatever the LLM produced. Crew runs; audit fails.
@@ -188,21 +214,21 @@ The Crew trace is fluid; the manager could in principle re-order. The Flow trace
 ## Exercises | 练习题
 
 1. Convert the Sequential crew to a Flow. Count the touchpoints where variability drops. Note where readability dropped.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 2. Add entity memory to the crew: facts about a customer persist across kickoffs. Verify retrieval pulls the right entity.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 3. Implement a Hierarchical process where the manager refuses to route to the editor until the writer's output has at least three paragraphs. Trace the retry.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 4. Wire a `BaseTool` subclass for a (mocked) web search. Compare the trace shape vs the `@tool` decorator version.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 5. Add `output_pydantic=Brief` to the editor task, where `Brief` has `title`, `summary`, `sections`. Make the writer task output malformed JSON once; verify CrewAI's retry behavior in the trace.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 6. Read CrewAI's docs intro. Port the toy to the real `crewai` API. Which guarantees did the stdlib version skip?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 7. Wire AgentOps or Langfuse (Lesson 24) to a real run. Which traces did you miss in the stdlib version?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|---|
@@ -223,8 +249,14 @@ The Crew trace is fluid; the manager could in principle re-order. The Flow trace
 ## Further Reading | 延伸阅读
 
 - [CrewAI docs introduction](https://docs.crewai.com/en/introduction): concepts and the recommended production path
+  中文翻译：见原文。
 - [CrewAI Flows guide](https://docs.crewai.com/en/concepts/flows): event-driven shape, `@start`, `@listen`
+  中文翻译：见原文。
 - [CrewAI tools reference](https://docs.crewai.com/en/concepts/tools): `@tool`, `BaseTool`, built-in toolkits
+  中文翻译：见原文。
 - [CrewAI memory](https://docs.crewai.com/en/concepts/memory): short-term, long-term, entity, contextual
+  中文翻译：见原文。
 - [Anthropic, Building Effective Agents](https://www.anthropic.com/research/building-effective-agents): when multi-agent helps and when it does not
+  中文翻译：见原文。
 - [LangGraph overview](https://docs.langchain.com/oss/python/langgraph/overview): the state-machine alternative
+  中文翻译：见原文。

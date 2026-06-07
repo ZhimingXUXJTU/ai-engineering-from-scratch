@@ -2,10 +2,10 @@
 
 > OpenTelemetry's GenAI SIG (launched April 2024) defines the standard schema for agent telemetry. Span names, attributes, and content-capture rules converge across vendors so agent traces mean the same thing in Datadog, Grafana, Jaeger, and Honeycomb.
 
-**Type:** Learn + Build
-**Languages:** Python (stdlib)
-**Prerequisites:** Phase 14 · 13 (LangGraph), Phase 14 · 24 (Observability Platforms)
-**Time:** ~60 minutes
+**Type:** Learn + Build | **类型:** 构建
+**Languages:** Python (stdlib) | **语言:** Python (标准库)
+**Prerequisites:** Phase 14 · 13 (LangGraph), Phase 14 · 24 (Observability Platforms) | **前置知识:** 见原文
+**Time:** ~60 minutes | **时间:** 见原文
 
 ## Learning Objectives | 学习目标
 
@@ -14,7 +14,7 @@
 - List the top-level GenAI attributes: provider name, request model, data-source ID.
 - Explain the content-capture contract: opt-in, `OTEL_SEMCONV_STABILITY_OPT_IN`, external-reference recommendation.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 每个供应商都发明自己的 span 名称，运维团队最终需要为每个框架构建独立的仪表盘。OpenTelemetry 的 GenAI SIG 通过定义一个全生态系统的标准来解决这个问题。
 
@@ -22,7 +22,7 @@ Every vendor invents their own span names. Ops teams end up building per-framewo
 
 > **【拓展：OTel GenAI 规范的跨平台统一】** OpenTelemetry GenAI 语义约定 (2024年4月启动) 定义了 Agent 遥测的标准 Schema：span 名称、属性和内容捕获规则跨供应商统一，使 Agent 追踪在 Datadog、Grafana、Jaeger 和 Honeycomb 中具有相同语义。一次埋点，多后端通用。
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Span categories
 
@@ -48,9 +48,13 @@ Every vendor invents their own span names. Ops teams end up building per-framewo
 
 Technology-specific conventions exist for Anthropic, Azure AI Inference, AWS Bedrock, OpenAI.
 
+> OpenTelemetry GenAI 语义约定定义了 LLM 和 Agent 的可观测性标准。关键属性包括 `gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.agent.name` 等。
+
 ### Content capture
 
 The default rule: instrumentations SHOULD NOT capture inputs/outputs by default. Capture is opt-in via:
+
+> OpenTelemetry GenAI 语义约定定义了 LLM 和 Agent 的可观测性标准。关键属性包括 `gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.agent.name` 等。
 
 - `gen_ai.system_instructions`
 - `gen_ai.input.messages`
@@ -58,15 +62,21 @@ The default rule: instrumentations SHOULD NOT capture inputs/outputs by default.
 
 Recommended production pattern: store content externally (S3, your log store), record references on spans (pointer IDs, not prose). This is the Lesson 27 content-poisoning defense wired into observability.
 
+> OpenTelemetry GenAI 语义约定定义了 LLM 和 Agent 的可观测性标准。关键属性包括 `gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.agent.name` 等。
+
 ### Stability
 
 Most conventions are experimental as of March 2026. Opt in to the stable preview with:
+
+> OpenTelemetry GenAI 语义约定定义了 LLM 和 Agent 的可观测性标准。关键属性包括 `gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.agent.name` 等。
 
 ```
 OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental
 ```
 
 Datadog v1.37+ maps GenAI attributes natively into its LLM Observability schema. Other backends (Grafana, Honeycomb, Jaeger) support the raw attributes.
+
+> OpenTelemetry GenAI 语义约定定义了 LLM 和 Agent 的可观测性标准。关键属性包括 `gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.agent.name` 等。
 
 ### Where this pattern goes wrong
 
@@ -75,9 +85,11 @@ Datadog v1.37+ maps GenAI attributes natively into its LLM Observability schema.
 - **Spans without parent links.** Orphaned tool spans. Always propagate context.
 - **Not setting stability opt-in.** Your attributes may get renamed on backend upgrade.
 
-## Build It | 动手构建
+## Build It | 动手实现
 
 `code/main.py` implements a stdlib span emitter matching GenAI conventions:
+
+> OpenTelemetry GenAI 语义约定定义了 LLM 和 Agent 的可观测性标准。关键属性包括 `gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.agent.name` 等。
 
 - `Span` with GenAI attribute schema.
 - `Tracer` with `start_span`, nested contexts.
@@ -92,31 +104,35 @@ python3 code/main.py
 
 Output: a span tree with all required GenAI attributes, and an "external store" showing the opt-in content references.
 
-## Use It | 使用方法
+> OpenTelemetry GenAI 语义约定定义了 LLM 和 Agent 的可观测性标准。关键属性包括 `gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.agent.name` 等。
+
+## Use It | 用框架实现
 
 - **Datadog LLM Observability** (v1.37+) maps attributes natively.
 - **Langfuse / Phoenix / Opik** (Lesson 24) — auto-instrument the ecosystem.
 - **Jaeger / Honeycomb / Grafana Tempo** — raw OTel traces; build dashboards from GenAI attributes.
 - **Self-hosted** — run the OTel Collector with a GenAI processor.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-otel-genai.md` wires OTel GenAI spans into an existing agent with content-capture defaults and external-reference storage.
+
+> OpenTelemetry GenAI 语义约定定义了 LLM 和 Agent 的可观测性标准。关键属性包括 `gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.agent.name` 等。
 
 ## Exercises | 练习题
 
 1. Instrument your Lesson 01 ReAct loop with `invoke_agent` (INTERNAL) + per-tool spans. Send to a Jaeger instance.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 2. Add content capture in "references only" mode: prompts to SQLite, span attributes carry only row IDs.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 3. Read the spec for `gen_ai.data_source.id`. Wire it into your Lesson 09 Mem0 search.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 4. Set `OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental` and verify your attributes don't get renamed by the collector.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 5. Build a dashboard: "which tool errors correlate with which models" from GenAI attributes alone.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|---|
@@ -132,6 +148,10 @@ Output: a span tree with all required GenAI attributes, and an "external store" 
 ## Further Reading | 延伸阅读
 
 - [OpenTelemetry GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) — the spec
+  中文翻译：见原文。
 - [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) — GenAI spans by default
+  中文翻译：见原文。
 - [AutoGen v0.4 (Microsoft Research)](https://www.microsoft.com/en-us/research/articles/autogen-v0-4-reimagining-the-foundation-of-agentic-ai-for-scale-extensibility-and-robustness/) — OTel spans built in
+  中文翻译：见原文。
 - [Claude Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview) — W3C trace context propagation
+  中文翻译：见原文。
