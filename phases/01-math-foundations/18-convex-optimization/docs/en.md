@@ -15,8 +15,7 @@
 - Explain why neural network loss landscapes are non-convex yet SGD still finds good solutions
 
 
-> **【中文解读】**
-> 凸函数只有一个山谷（全局最优），线性回归是凸的所以一定有全局最优。神经网络是非凸的但有无数个山谷，SGD 在实践中仍能找到好的解。牛顿法利用二阶信息实现二次收敛。
+> **【中文解读】** 凸函数只有一个山谷（全局最优），线性回归是凸的所以一定有全局最优。神经网络是非凸的但有无数个山谷，SGD 在实践中仍能找到好的解。本节覆盖凸性判定、牛顿法、拉格朗日乘子、KKT 条件和对偶性。
 
 ## The Problem
 
@@ -25,6 +24,8 @@ Lesson 08 taught you gradient descent, momentum, and Adam. Those optimizers walk
 But many problems in machine learning are convex. Linear regression, logistic regression, SVMs, LASSO, ridge regression. For these, something stronger exists: optimization with mathematical guarantees. A convex problem has exactly one valley. Any algorithm that walks downhill will reach the global minimum. No restarts needed. No learning rate schedules. No prayer.
 
 Understanding convexity does three things. First, it tells you when your problem is easy (convex) versus hard (non-convex). Second, it gives you faster tools like Newton's method for convex problems. Third, it explains concepts that appear throughout ML: regularization as a constraint, duality in SVMs, and why deep learning works despite violating every nice property convexity gives you.
+
+> **【中文解读】** 凸优化给你数学保证：凸问题只有一个谷底，任何下山算法都能到全局最优。线性回归、逻辑回归、SVM、LASSO、岭回归都是凸的。理解凸性有三个价值：知道问题难易、获得更快工具（牛顿法）、理解 ML 中的正则化、对偶性和深度学习为什么能工作。
 
 ## The Concept
 
@@ -51,6 +52,8 @@ Examples of non-convex sets:
 - The union of two disjoint circles
 - Any set with a "dent" or "hole"
 
+> **【中文解读】** 凸集：集合中任意两点的连线段仍在集合内。矩形、三角形、球、半空间都是凸集；甜甜圈、两个不相交圆的并集不是。交集保持凸性。
+
 ### Convex functions
 
 A function f is convex if its domain is a convex set and for any two points x, y in its domain and any t in [0, 1]:
@@ -73,7 +76,9 @@ Common convex functions:
 - f(x) = e^x (exponential)
 - f(x) = max(0, x) (ReLU, though piecewise linear)
 - f(x) = -log(x) for x > 0 (negative log)
-- Any linear function f(x) = a^T x + b (both convex and concave)
+- Any linear函数 f(x) = a^T x + b (both convex and concave)
+
+> **【中文解读】** 凸函数的直觉：图形上任意两点的连线段始终在曲线上方或重合。等价说法：函数图形是一个碗，只有一个底。常见凸函数包括 x^2、|x|、e^x、-log(x)。核心意义：凸函数的每个局部最小值都是全局最小值。
 
 ### Testing for convexity
 
@@ -116,6 +121,8 @@ Consequences:
 - Convergence proofs are possible (rate depends on function properties)
 - The solution is unique (up to flat regions)
 
+> **【中文解读】** 凸优化的核心定理：凸函数的每个局部最小值都是全局最小值。这意味着梯度下降不可能被困住，任何下山路径都通向同一个答案。不需要随机重启，不需要花哨的学习率调度，收敛性可以证明。
+
 ### Convex vs non-convex in ML
 
 | Problem | Convex? | Why |
@@ -130,6 +137,8 @@ Consequences:
 | Matrix factorization | No | Product of unknowns |
 
 Linear models with convex losses are convex. The moment you add hidden layers with nonlinear activations, convexity breaks.
+
+> **【中文解读】** ML 中哪些是凸的：线性回归（MSE 是权重的二次函数）、逻辑回归（log-loss 对权重凸）、SVM、LASSO、岭回归。哪些不是：神经网络（非线性激活破坏凸性）、K-means（离散分配）、矩阵分解（未知量的乘积）。规则很简单：线性模型+凸损失=凸问题，加隐藏层和非线性激活就变非凸。
 
 ### The Hessian matrix
 
@@ -156,6 +165,8 @@ The Hessian tells you about curvature:
 - Zero eigenvalue: flat in that direction (degenerate)
 
 For convexity, the Hessian must be positive semidefinite (all eigenvalues >= 0) everywhere, not just at one point.
+
+> **【中文解读】** Hessian 矩阵（二阶偏导数矩阵）描述函数曲率：特征值全正 = 凸（碗朝上），全负 = 凹（局部最大），有正有负 = 鞍点。凸性要求 Hessian 在所有点（不只是一个点）都是半正定的。
 
 ### Newton's method
 
@@ -197,6 +208,8 @@ Disadvantages:
 - Computing the Hessian costs O(n^2) memory and O(n^3) to invert
 - For a neural network with 1 million weights, that is 10^12 entries and 10^18 operations
 - Not practical for deep learning
+
+> **【中文解读】** 牛顿法用 Hessian 的逆替代标量学习率：x_new = x - H^{-1} * gradient。它根据局部曲率自动调整步长和方向。优势：二次收敛（每步误差平方级缩小）、不需要调学习率、尺度不变。致命缺点：Hessian 是 n*n 矩阵，百万参数的网络需要 10^{12} 个元素和 10^{18} 次运算，深度学习用不了。
 
 ### Constrained optimization
 
@@ -259,6 +272,8 @@ Substituting: 2x = 1, so x = y = 0.5, lambda = -1
 
 The closest point on the line x + y = 1 to the origin is (0.5, 0.5).
 
+> **【中文解读】** 拉格朗日乘子法把约束优化变成无约束问题：构造拉格朗日函数 L = f(x) + lambda*g(x)，对 x 和 lambda 分别求导令为零。直觉：最优解处，目标函数的梯度与约束函数的梯度共线（方向相反）。
+
 ### KKT conditions
 
 The Karush-Kuhn-Tucker conditions extend Lagrange multipliers to inequality constraints.
@@ -277,6 +292,8 @@ The KKT conditions (necessary for optimality):
 Complementary slackness is the key insight: either the constraint is active (g_i = 0, the solution sits on the boundary) or the multiplier is zero (the constraint does not matter). A constraint that does not affect the solution has lambda = 0.
 
 KKT conditions are central to SVMs. The support vectors are the data points where the constraint is active (lambda > 0). All other data points have lambda = 0 and do not affect the decision boundary.
+
+> **【中文解读】** KKT 条件把拉格朗日乘子扩展到不等式约束。核心洞察是互补松弛性：要么约束在边界上起作用（g_i=0），要么乘子为零（约束不影响解）。SVM 中支持向量就是约束起作用（lambda>0）的数据点，其余点的 lambda=0 不影响决策边界。
 
 ### Regularization as constrained optimization
 
@@ -313,6 +330,8 @@ The constraint ||w||_1 <= t defines a diamond (rotated square in 2D).
 
 This explains why L1 produces sparse models (feature selection) while L2 only shrinks weights. The diamond has corners aligned with axes. Loss contours are more likely to touch a corner, setting one or more weights exactly to zero.
 
+> **【中文解读】** 正则化不是随意加的，而是约束优化的等价形式。L2 正则化 = 约束权重在球内（||w||^2 <= t），L1 正则化 = 约束权重在菱形内（||w||_1 <= t）。L1 的菱形在轴上有尖角，损失等高线更容易碰到尖角，导致某些权重精确为零——这就是 L1 产生稀疏解（特征选择）而 L2 只收缩权重的几何原因。
+
 ### Duality
 
 Every constrained optimization problem (the primal) has a companion problem (the dual). For convex problems, the primal and dual have the same optimal value. This is strong duality.
@@ -344,6 +363,8 @@ The dual only involves dot products x_i^T x_j.
 Replace x_i^T x_j with K(x_i, x_j) to get the kernel trick.
 ```
 
+> **【中文解读】** 对偶性：每个约束优化问题（原始问题）都有对偶问题。凸问题中两者最优值相同（强对偶）。对偶在 SVM 中至关重要：对偶形式只涉及数据点间的点积 x_i^T*x_j，替换为核函数 K(x_i, x_j) 就得到核技巧——无需显式计算高维特征就能学习非线性边界。
+
 ### Why deep learning works despite non-convexity
 
 Neural network loss functions are wildly non-convex. By every classical measure, optimizing them should fail. Yet stochastic gradient descent finds good solutions reliably. Several factors explain this.
@@ -364,6 +385,8 @@ Neural network loss functions are wildly non-convex. By every classical measure,
 | **Critical points** | Mix of local minima and saddle points | Overwhelmingly saddle points, not local minima |
 
 **Stochastic noise acts as implicit regularization.** Mini-batch SGD adds noise that prevents settling into sharp minima. Sharp minima overfit; flat minima generalize. The noise biases optimization toward flat regions of the loss landscape.
+
+> **【中文解读】** 为什么深度学习在非凸情况下仍能工作？(1) 高维空间中大多数局部最小值已经够好了，极差的局部最小值几乎不存在；(2) 真正的障碍是鞍点而非局部最小值（n 维空间中随机临界点全是局部最小的概率约 2^{-n}），SGD 的噪声帮助逃离鞍点；(3) 过参数化使损失曲面更平滑；(4) 小批量 SGD 的随机噪声是隐式正则化，偏向平坦最小值（平坦=泛化好）。
 
 ### Second-order methods in practice
 
@@ -517,10 +540,13 @@ print(f"Support vectors: {svm.n_support_}")
 ## Exercises
 
 1. **Convexity gallery.** Test these functions for convexity using the checker: f(x) = x^4, f(x) = sin(x), f(x,y) = x^2 + y^2, f(x,y) = x*y, f(x) = max(x, 0). Explain why each result makes sense.
+   > **中文：** 凸性画廊。用检查器测试 x^4、sin(x)、x^2+y^2、x*y、max(x,0) 的凸性，解释每个结果为什么合理。
 
 2. **Newton vs gradient descent race.** Run both methods on f(x,y) = 50*x^2 + y^2 from the starting point (10, 10). How many steps does each need to reach loss < 1e-10? What happens to gradient descent when the condition number (ratio of largest to smallest Hessian eigenvalue) increases?
+   > **中文：** 牛顿法 vs 梯度下降赛跑。在 f(x,y)=50x^2+y^2 上从 (10,10) 出发，各需几步达到 loss<1e-10？条件数增大时梯度下降怎样？
 
 3. **Lagrange multiplier geometry.** Minimize f(x,y) = (x-3)^2 + (y-3)^2 subject to x + 2y = 4. Verify the solution by checking that the gradient of f is parallel to the gradient of g at the solution.
+   > **中文：** 拉格朗日乘子几何。在约束 x+2y=4 下最小化 (x-3)^2+(y-3)^2。验证解处 f 的梯度与 g 的梯度平行。
 
 4. **Regularization constraint.** Implement L1-constrained optimization: minimize (x-3)^2 + (y-2)^2 subject to |x| + |y| <= 1. Show that the solution has one coordinate equal to zero (sparsity from the diamond constraint).
 
@@ -528,24 +554,24 @@ print(f"Support vectors: {svm.n_support_}")
 
 ## Key Terms
 
-| Term | What it means |
-|------|---------------|
-| Convex set | A set where the line segment between any two points in the set stays inside the set |
-| Convex function | A function where the line between any two points on its graph lies above or on the graph. Equivalently, Hessian is positive semidefinite everywhere |
-| Local minimum | A point lower than all nearby points. For convex functions, every local minimum is the global minimum |
-| Global minimum | The lowest point of a function over its entire domain |
-| Hessian matrix | The matrix of all second partial derivatives. Encodes curvature information |
-| Positive semidefinite | A matrix whose eigenvalues are all non-negative. The multidimensional analogue of "second derivative >= 0" |
-| Condition number | Ratio of largest to smallest eigenvalue of the Hessian. High condition number means elongated valleys and slow gradient descent |
-| Newton's method | Second-order optimizer that uses the inverse Hessian to determine step direction and size. Quadratic convergence near the minimum |
-| Lagrange multiplier | A variable introduced to convert a constrained optimization problem into an unconstrained one |
-| KKT conditions | Necessary conditions for optimality with inequality constraints. Generalize Lagrange multipliers |
-| Complementary slackness | At the solution, either a constraint is active or its multiplier is zero. Never both nonzero |
-| Duality | Every constrained problem has a companion dual problem. For convex problems, both have the same optimal value |
-| Strong duality | Primal and dual optimal values are equal. Holds for convex problems satisfying Slater's condition |
-| L-BFGS | Approximate second-order method that stores the last m gradient differences instead of the full Hessian |
-| Saddle point | A point where the gradient is zero but it is a minimum in some directions and a maximum in others |
-| Overparameterization | Using more parameters than training examples. Smooths the loss landscape and reduces bad local minima |
+| Term | What it means | 中文释义 |
+|------|---------------|---------|
+| Convex set | A set where the line segment between any two points in the set stays inside the set | 凸集：任意两点连线段仍在集合内 |
+| Convex function | A function where the line between any two points on its graph lies above or on the graph. Equivalently, Hessian is positive semidefinite everywhere | 凸函数：图形上连线段在曲线上方，Hessian 处处半正定 |
+| Local minimum | A point lower than all nearby points. For convex functions, every local minimum is the global minimum | 局部最小值：凸函数中局部最小即全局最小 |
+| Global minimum | The lowest point of a function over its entire domain | 全局最小值：函数在整个定义域上的最低点 |
+| Hessian matrix | The matrix of all second partial derivatives. Encodes curvature information | Hessian 矩阵：二阶偏导数矩阵，编码曲率信息 |
+| Positive semidefinite | A matrix whose eigenvalues are all non-negative. The multidimensional analogue of "second derivative >= 0" | 半正定：所有特征值非负，多维版"二阶导数>=0" |
+| Condition number | Ratio of largest to smallest eigenvalue of the Hessian. High condition number means elongated valleys and slow gradient descent | 条件数：Hessian 最大/最小特征值，高条件数=窄谷=梯度下降慢 |
+| Newton's method | Second-order optimizer that uses the inverse Hessian to determine step direction and size. Quadratic convergence near the minimum | 牛顿法：用 Hessian 逆确定步长方向，二次收敛 |
+| Lagrange multiplier | A variable introduced to convert a constrained optimization problem into an unconstrained one | 拉格朗日乘子：把约束优化转为无约束的变量 |
+| KKT conditions | Necessary conditions for optimality with inequality constraints. Generalize Lagrange multipliers | KKT 条件：不等式约束优化的必要条件 |
+| Complementary slackness | At the solution, either a constraint is active or its multiplier is zero. Never both nonzero | 互补松弛性：约束要么在边界上，要么乘子为零 |
+| Duality | Every constrained problem has a companion dual problem. For convex problems, both have the same optimal value | 对偶性：每个约束问题有对偶问题，凸问题中两者最优值相同 |
+| Strong duality | Primal and dual optimal values are equal. Holds for convex problems satisfying Slater's condition | 强对偶：原始与对偶最优值相等 |
+| L-BFGS | Approximate second-order method that stores the last m gradient differences instead of the full Hessian | L-BFGS：近似二阶方法，只存最近 m 个梯度差 |
+| Saddle point | A point where the gradient is zero but it is a minimum in some directions and a maximum in others | 鞍点：梯度为零但在某些方向是最小，另一些方向是最大 |
+| Overparameterization | Using more parameters than training examples. Smooths the loss landscape and reduces bad local minima | 过参数化：参数多于样本数，平滑损失曲面 |
 
 ## Further Reading
 

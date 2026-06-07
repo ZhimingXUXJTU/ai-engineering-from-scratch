@@ -15,8 +15,7 @@
 - Diagnose ill-conditioned systems using the condition number and apply regularization to stabilize them
 
 
-> **【中文解读】**
-> 解 Ax=b 是数学中最古老的问题。线性回归的正规方程、岭回归的正则化系统、高斯过程的矩阵分解——都是线性系统。条件数衡量系统的数值稳定性。
+> **【中文解读】** 解 Ax=b 是数学中最古老的问题。线性回归的正规方程、岭回归的正则化系统、高斯过程的矩阵分解——都是线性系统。条件数衡量系统的数值稳定性。本节从高斯消元到 LU/QR/Cholesky 分解，再到最小二乘和迭代方法，系统性地覆盖所有解法。
 
 ## The Problem
 
@@ -25,6 +24,8 @@ Every time you train a linear regression, you solve a linear system. Every time 
 The equation Ax = b appears everywhere. A is a matrix of known coefficients. b is a vector of known outputs. x is the vector of unknowns you want to find. In linear regression, A is your data matrix, b is your target vector, and x is the weight vector. The entire model reduces to: find x such that Ax is as close to b as possible.
 
 This lesson builds every major method for solving that equation from scratch. You will understand why some methods are fast and others are stable, why some work only for square systems and others handle overdetermined ones, and why the condition number of your matrix determines whether your answer means anything at all.
+
+> **【中文解读】** Ax=b 无处不在：线性回归找权重 w 使得 Xw 接近 y，神经网络每层算 y=Wx+b，正则化修改系统矩阵，高斯过程分解核矩阵。A 是已知系数矩阵，b 是已知输出向量，x 是要求解的未知向量。
 
 ## The Concept
 
@@ -60,6 +61,8 @@ graph TD
 
 In matrix form, "one solution" means A is invertible. "No solution" means the system is inconsistent. "Infinite solutions" means A has a null space. Most ML problems fall in the "no exact solution" category because you have more equations (data points) than unknowns (parameters). That is where least squares comes in.
 
+> **【中文解读】** Ax=b 的几何含义：每个方程定义一个超平面，解就是所有超平面的交点。三种情况：一个解（A 可逆）、无解（方程矛盾）、无穷多解（A 有零空间）。ML 中最常见的是"无精确解"——数据点多于参数，所以用最小二乘找最接近的解。
+
 ### Column picture vs row picture
 
 There are two ways to read Ax = b.
@@ -80,6 +83,8 @@ Column picture: find x1, x2 such that:
 ```
 
 The column picture is more fundamental. If b lies in the column space of A, the system has a solution. If b does not, you find the closest point in the column space. That closest point is the least-squares solution.
+
+> **【中文解读】** 行视角（row picture）：每行一个方程，解是所有超平面的交点。列视角（column picture）：A 的每列是一个向量，问题是找列向量的什么线性组合能凑出 b。列视角更本质——如果 b 在 A 的列空间中就有解，否则找列空间中最近的点（最小二乘解）。
 
 ### Gaussian elimination
 
@@ -117,6 +122,8 @@ Back substitute:
 
 Gaussian elimination costs O(n^3) operations. For a 1000x1000 system, that is about a billion floating-point operations. Fast, but you can do better if you need to solve multiple systems with the same A.
 
+> **【中文解读】** 高斯消元把 Ax=b 变成上三角系统 Ux=c，然后回代求解。流程：逐列选主元（当前列最大元素），行交换，用倍数消去下方元素，最后从最后一行向上回代。代价 O(n^3)。
+
 ### Partial pivoting: why it matters
 
 Without pivoting, Gaussian elimination can fail or produce garbage. If a pivot element is zero, you divide by zero. If it is small, you amplify rounding errors.
@@ -137,6 +144,8 @@ x1 = (1.001 - 1)/0.001          x1 = (2 - 1)/1 = 1.000 (correct)
 ```
 
 In floating-point arithmetic with limited precision, the unpivoted version can lose significant digits. Partial pivoting always selects the largest available pivot to minimize error amplification.
+
+> **【中文解读】** 部分主元选取（partial pivoting）不是可选的，是必要的：如果主元为零，除以零出错；如果太小，舍入误差被放大。每次选当前列中绝对值最大的元素做主元，确保乘数小于 1，最小化误差传播。
 
 ### LU decomposition
 
@@ -163,6 +172,8 @@ Let y = Ux:
 The O(n^3) cost is paid once during factorization. Every subsequent solve is O(n^2). If you need to solve 1000 systems with the same A but different b vectors, LU saves a factor of 1000/3 in total work.
 
 With partial pivoting, you get PA = LU where P is a permutation matrix recording the row swaps.
+
+> **【中文解读】** LU 分解把 A 拆成下三角 L 和上三角 U：A=LU。好处是分解只做一次 O(n^3)，之后每个新 b 只需 O(n^2)（前代+回代）。需要解 1000 个相同 A 不同 b 的系统时，LU 省了约 333 倍工作量。
 
 ### QR decomposition
 
@@ -200,6 +211,8 @@ R[i][j] = qi . aj    for i <= j
 
 Each step removes the component along all previous q vectors, leaving only the new orthogonal direction.
 
+> **【中文解读】** QR 分解把 A 拆成正交矩阵 Q 和上三角 R：A=QR。Q 的列是标准正交向量（Q^T Q=I），乘以 Q 保持长度和角度。解 Ax=b 变成 Rx=Q^T b（只需乘 Q^T，不用求逆）。Gram-Schmidt 过程逐列构造 Q，每步减去与前面所有 q 向量的投影。QR 在数值上比 LU 更稳定，尤其适合最小二乘问题。
+
 ### Cholesky decomposition
 
 When A is symmetric (A = A^T) and positive definite (all eigenvalues positive), you can factor it as A = L L^T where L is lower triangular. This is the Cholesky decomposition.
@@ -222,6 +235,8 @@ Cholesky is twice as fast as LU and requires half the storage. It only works for
 - A^T A is always symmetric positive semi-definite.
 
 In Gaussian processes, you factor the kernel matrix K with Cholesky, then solve K alpha = y to get the predictive mean. The Cholesky factor also gives you the log-determinant for the marginal likelihood: log det(K) = 2 * sum(log(diag(L))).
+
+> **【中文解读】** Cholesky 分解适用于对称正定矩阵（A=A^T 且所有特征值为正），把 A 拆为 A=L*L^T。比 LU 快一倍、省一半存储。对称正定矩阵在 ML 中到处都是：协方差矩阵、高斯过程的核矩阵、凸函数在最小值处的 Hessian、A^T A。高斯过程中用 Cholesky 分解核矩阵 K，解 K*alpha=y 得预测均值，对角元素还给出 log 行列式用于边际似然。
 
 ### Least squares: when Ax = b has no exact solution
 
@@ -258,6 +273,8 @@ Solve: x = [1.5, 1.7]
 This is linear regression. x[0] is the intercept, x[1] is the slope.
 ```
 
+> **【中文解读】** 最小二乘：当方程多于未知量（超定系统）时，没有精确解。改为最小化 ||Ax-b||^2。对 x 求导令梯度为零，得到正规方程 A^T*A*x = A^T*b。解出的 x 就是线性回归的权重——x[0] 是截距，x[1] 是斜率。
+
 ### Normal equations = linear regression
 
 The connection is exact. In linear regression, your data matrix X has one row per sample and one column per feature. Your target vector y has one entry per sample. The weight vector w satisfies:
@@ -277,6 +294,8 @@ w = (X^T X + lambda * I)^(-1) X^T y
 ```
 
 The regularization makes the matrix better conditioned (easier to invert accurately) and prevents overfitting by shrinking the weights toward zero. The matrix X^T X + lambda * I is always symmetric positive definite when lambda > 0, so you can use Cholesky to solve it.
+
+> **【中文解读】** 正规方程 = 线性回归：w = (X^T*X)^(-1) * X^T*y 是线性回归的封闭解。sklearn 的 LinearRegression.fit() 内部就在算这个（用 QR 或 SVD 实现）。加正则化项 lambda*I 就是岭回归：(X^T*X + lambda*I)w = X^T*y。正则化既改善了条件数（更容易准确求逆），又防止过拟合（权重趋向零）。且 X^T*X + lambda*I 始终对称正定，可用 Cholesky 高效求解。
 
 ### Pseudoinverse (Moore-Penrose)
 
@@ -307,6 +326,8 @@ The pseudoinverse gives the minimum-norm least-squares solution. If the system h
 
 NumPy's `np.linalg.lstsq` and `np.linalg.pinv` both use the SVD internally.
 
+> **【中文解读】** Moore-Penrose 伪逆 A+ 是矩阵求逆在非方阵和奇异矩阵上的推广。通过 SVD 计算：A+ = V * Sigma+ * U^T（Sigma+ 是非零奇异值取倒数后转置）。无论系统有唯一解、无解还是无穷多解，A+*b 总是给出最小范数的最小二乘解。
+
 ### Condition number
 
 The condition number measures how sensitive the solution is to small changes in the input. For a matrix A, the condition number is:
@@ -332,6 +353,8 @@ Rules of thumb:
 - kappa ~ 10^16 (for float64): the solution is meaningless. The matrix is effectively singular.
 
 In ML, ill-conditioning happens when features are nearly collinear. Regularization (adding lambda * I) improves the condition number from sigma_max / sigma_min to (sigma_max + lambda) / (sigma_min + lambda).
+
+> **【中文解读】** 条件数 kappa(A) = sigma_max/sigma_min 衡量解对输入扰动的敏感度。kappa<100 安全；kappa~10^k 约丢失 k 位精度；kappa~10^16 时解毫无意义。ML 中特征近似共线时条件数很大。正则化（加 lambda*I）把条件数从 sigma_max/sigma_min 改善为 (sigma_max+lambda)/(sigma_min+lambda)——这是岭回归有效的另一个原因。
 
 ### Iterative methods: conjugate gradient
 
@@ -362,6 +385,8 @@ CG is used in:
 
 The convergence rate depends on the condition number. Better conditioned systems converge faster, which is another reason regularization helps.
 
+> **【中文解读】** 共轭梯度法（CG）适用于大规模稀疏对称正定系统。直接方法（LU/Cholesky）对百万级变量系统代价太高，CG 通过迭代改进近似解，至多 n 步收敛（精确算术下），特征值聚集时更快。用于大规模优化、PDE 离散化、核方法中无法直接分解的大核矩阵。
+
 ### The full picture: which method when
 
 | Method | Requirements | Cost | Use case |
@@ -389,6 +414,8 @@ Every method in this lesson appears in production ML:
 **Preconditioning.** Large-scale optimizers use incomplete Cholesky or incomplete LU as preconditioners for conjugate gradient solvers.
 
 **Feature engineering.** The condition number of X^T X tells you if your features are collinear. If kappa is large, drop features or add regularization.
+
+> **【中文解读】** 每种方法都在 ML 中有实际应用：线性回归解正规方程（小 n 用 Cholesky，需稳定用 QR，可能秩亏用 SVD）；岭回归加 lambda*I 后始终对称正定可用 Cholesky；高斯过程用 Cholesky 分解核矩阵；神经网络正交初始化用 QR 分解；大规模优化用不完全 Cholesky/LU 做预处理。
 
 ## Build It
 
@@ -544,32 +571,37 @@ This lesson produces:
 ## Exercises
 
 1. Solve the system `[[1,2,3],[4,5,6],[7,8,10]] x = [6, 15, 27]` using your Gaussian elimination, your LU solver, and `np.linalg.solve`. Verify all three give the same answer within floating-point tolerance.
+   > **中文：** 用高斯消元、LU 求解器和 `np.linalg.solve` 解这个 3x3 系统。验证三者给出相同答案。
 
 2. Generate a 50x5 random matrix X and target y = X @ w_true + noise. Solve for w using normal equations, QR (via `np.linalg.qr`), SVD (via `np.linalg.svd`), and `np.linalg.lstsq`. Compare all four solutions. Measure the condition number of X^T X and explain how it affects which method you trust.
+   > **中文：** 生成 50x5 随机矩阵和目标，用正规方程、QR、SVD、lstsq 四种方法求解权重。测量条件数并解释它如何影响你对各方法的信任度。
 
 3. Create a nearly singular matrix by making two columns almost identical (e.g., column 2 = column 1 + 1e-10 * noise). Compute its condition number. Solve Ax = b with and without regularization (add 0.01 * I). Compare the solutions and residuals. Explain why regularization helps.
+   > **中文：** 创建近似奇异矩阵（两列几乎相同），计算条件数，比较有/无正则化的求解结果，解释正则化为什么有效。
 
 4. Implement the conjugate gradient algorithm for a 100x100 random symmetric positive definite matrix. Count how many iterations it takes to converge to tolerance 1e-8. Compare with the theoretical maximum of n iterations.
+   > **中文：** 为 100x100 随机对称正定矩阵实现共轭梯度法，统计收敛到 1e-8 容差的迭代次数，与理论上限 n 比较。
 
 5. Time your Cholesky solver vs your LU solver vs `np.linalg.solve` on symmetric positive definite matrices of size 10, 50, 200, 500. Plot the results. Verify Cholesky is roughly 2x faster than LU.
+   > **中文：** 在不同大小（10,50,200,500）的对称正定矩阵上比较 Cholesky、LU 和 `np.linalg.solve` 的运行时间，验证 Cholesky 约比 LU 快 2 倍。
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Linear system | "Solve for x" | A set of linear equations Ax = b. Finding x means finding the input that produces output b under transformation A. |
-| Gaussian elimination | "Row reduce" | Systematically zero out entries below the diagonal using row operations, producing an upper triangular system solvable by back substitution. O(n^3). |
-| Partial pivoting | "Swap rows for stability" | Before eliminating in column k, swap the row with the largest absolute value in that column to the pivot position. Prevents division by small numbers. |
-| LU decomposition | "Factor into triangles" | Write A = LU where L is lower triangular (stores multipliers) and U is upper triangular (the eliminated matrix). Amortizes the O(n^3) cost over multiple solves. |
-| QR decomposition | "Orthogonal factorization" | Write A = QR where Q has orthonormal columns and R is upper triangular. More stable than LU for least squares. |
-| Cholesky decomposition | "Square root of a matrix" | For symmetric positive definite A, write A = LL^T. Half the cost of LU. Used for covariance matrices, kernel matrices, and ridge regression. |
-| Least squares | "Best fit when exact is impossible" | Minimize the sum of squared residuals ||Ax - b||^2 when the system is overdetermined (more equations than unknowns). |
-| Normal equations | "The calculus shortcut" | A^T A x = A^T b. Setting the gradient of ||Ax - b||^2 to zero. This IS the closed-form solution to linear regression. |
-| Pseudoinverse | "Inversion for non-square matrices" | A+ = V Sigma+ U^T via SVD. Gives the minimum-norm least-squares solution for any matrix, square or rectangular, singular or not. |
-| Condition number | "How trustworthy is this answer" | kappa = sigma_max / sigma_min. Measures sensitivity to input perturbations. Lose about log10(kappa) digits of precision. |
-| Ridge regression | "Regularized least squares" | Solve (X^T X + lambda I) w = X^T y. Adding lambda I improves conditioning and shrinks weights toward zero. Prevents overfitting. |
-| Conjugate gradient | "Iterative Ax=b for big matrices" | An iterative solver for symmetric positive definite systems. Converges in at most n steps. Practical for large sparse systems where factorization is too expensive. |
-| Overdetermined system | "More data than parameters" | m > n in an m-by-n system. No exact solution exists. Least squares finds the best approximation. This is every regression problem. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Linear system | "Solve for x" | A set of linear equations Ax = b. Finding x means finding the input that produces output b under transformation A. | 线性系统：求解 Ax=b |
+| Gaussian elimination | "Row reduce" | Systematically zero out entries below the diagonal using row operations, producing an upper triangular system solvable by back substitution. O(n^3). | 高斯消元：逐行化零变上三角，O(n^3) |
+| Partial pivoting | "Swap rows for stability" | Before eliminating in column k, swap the row with the largest absolute value in that column to the pivot position. Prevents division by small numbers. | 部分主元选取：选最大元素做主元防除零 |
+| LU decomposition | "Factor into triangles" | Write A = LU where L is lower triangular (stores multipliers) and U is upper triangular (the eliminated matrix). Amortizes the O(n^3) cost over multiple solves. | LU 分解：A=LU，分解一次多次求解 |
+| QR decomposition | "Orthogonal factorization" | Write A = QR where Q has orthonormal columns and R is upper triangular. More stable than LU for least squares. | QR 分解：A=QR，正交+上三角，最小二乘更稳定 |
+| Cholesky decomposition | "Square root of a matrix" | For symmetric positive definite A, write A = LL^T. Half the cost of LU. Used for covariance matrices, kernel matrices, and ridge regression. | Cholesky 分解：对称正定矩阵的 A=LL^T，比 LU 快一倍 |
+| Least squares | "Best fit when exact is impossible" | Minimize the sum of squared residuals ||Ax - b||^2 when the system is overdetermined (more equations than unknowns). | 最小二乘：超定系统的最佳拟合 |
+| Normal equations | "The calculus shortcut" | A^T A x = A^T b. Setting the gradient of ||Ax - b||^2 to zero. This IS the closed-form solution to linear regression. | 正规方程：A^T*A*x=A^T*b，就是线性回归的封闭解 |
+| Pseudoinverse | "Inversion for non-square matrices" | A+ = V Sigma+ U^T via SVD. Gives the minimum-norm least-squares solution for any matrix, square or rectangular, singular or not. | 伪逆：通过 SVD 推广矩阵求逆 |
+| Condition number | "How trustworthy is this answer" | kappa = sigma_max / sigma_min. Measures sensitivity to input perturbations. Lose about log10(kappa) digits of precision. | 条件数：衡量解对输入扰动的敏感度 |
+| Ridge regression | "Regularized least squares" | Solve (X^T X + lambda I) w = X^T y. Adding lambda I improves conditioning and shrinks weights toward zero. Prevents overfitting. | 岭回归：正则化最小二乘，防过拟合 |
+| Conjugate gradient | "Iterative Ax=b for big matrices" | An iterative solver for symmetric positive definite systems. Converges in at most n steps. Practical for large sparse systems where factorization is too expensive. | 共轭梯度：大规模稀疏系统的迭代解法 |
+| Overdetermined system | "More data than parameters" | m > n in an m-by-n system. No exact solution exists. Least squares finds the best approximation. This is every regression problem. | 超定系统：方程多于未知量，最小二乘找近似解 |
 | Back substitution | "Solve from the bottom up" | Given an upper triangular system, solve the last equation first, then substitute backward. O(n^2). |
 | Forward substitution | "Solve from the top down" | Given a lower triangular system, solve the first equation first, then substitute forward. O(n^2). Used in the L step of LU solves. |
 

@@ -15,8 +15,7 @@
 - Run Metropolis-Hastings MCMC to sample from an unnormalized target distribution
 
 
-> **【中文解读】**
-> 采样是 AI 探索可能性的方式。LLM 用 temperature/top-k/top-p 控制文本生成多样性。VAE 用重参数化技巧让采样可微。扩散模型的前向过程是采样（加噪），反向过程是去噪（生成）。
+> **【中文解读】** 采样是 AI 探索可能性的方式。LLM 用 temperature/top-k/top-p 控制文本生成多样性。VAE 用重参数化技巧让采样可微。扩散模型的前向过程是采样（加噪），反向过程是去噪（生成）。本节从均匀分布出发，逐步构建所有主流采样方法，直到支撑现代 LLM 和生成模型的核心技术。
 
 ## The Problem
 
@@ -27,6 +26,8 @@ If it always picks the highest-probability token, every response is identical. D
 Sampling is not limited to text generation. Reinforcement learning estimates policy gradients by sampling trajectories. VAEs learn latent representations by sampling from learned distributions and backpropagating through the randomness. Diffusion models generate images by sampling noise and iteratively denoising. Monte Carlo methods estimate integrals that have no closed-form solution. MCMC algorithms explore high-dimensional posterior distributions that are impossible to enumerate.
 
 Every generative AI system is a sampling system. The sampling strategy determines the quality, diversity, and controllability of the output. This lesson builds every major sampling method from scratch, starting from uniform random numbers and ending with the techniques that power modern LLMs and generative models.
+
+> **【中文解读】** 核心矛盾：语言模型输出 5 万个 token 的概率分布，但不能总选最高的（无聊）也不能随机选（胡说）。采样策略决定了"创造力"和"准确性"之间的平衡。同样的问题出现在 RL 策略梯度、VAE 潜变量、扩散模型去噪等所有生成场景中——本质上都是在问：如何从概率分布中"聪明地"取样本？
 
 ## The Concept
 
@@ -43,6 +44,8 @@ Sampling appears in four fundamental roles across AI and machine learning:
 **Exploration.** MCMC algorithms explore posterior distributions in Bayesian inference. Evolutionary strategies sample parameter perturbations. Thompson sampling balances exploration and exploitation in bandits.
 
 The core challenge: you can only sample directly from simple distributions (uniform, normal). For everything else, you need a method to convert simple samples into samples from your target distribution.
+
+> **【中文解读】** 采样在 AI 中扮演四个角色：**生成**（LLM、扩散模型用采样产生输出）、**训练**（SGD 采小批量、Dropout 随机丢弃神经元）、**估计**（用蒙特卡洛逼近无法解析求解的积分和期望）、**探索**（MCMC 在贝叶斯后验中探索高维空间）。所有方法的共同起点：计算机只能直接生成均匀分布或正态分布的样本，其他分布必须通过变换间接获得。
 
 ### Uniform Random Sampling
 
@@ -61,6 +64,8 @@ Properties:
 To sample uniformly from a discrete set of n items, generate U and return floor(n * U). To sample from a continuous range [a, b], compute a + (b - a) * U.
 
 The key insight: a single uniform random number contains exactly the right amount of randomness to produce one sample from any distribution. The trick is finding the right transformation.
+
+> **【中文解读】** 均匀分布是一切采样的基石。期望 0.5、方差 1/12。一个 U(0,1) 的随机数恰好包含"恰好够"的随机性来生成任何分布的一个样本——关键在于找到正确的变换函数。从连续区间 [a,b] 采样只需 `a + (b-a)*U`；从离散集合采样用 `floor(n*U)`。
 
 ### Inverse CDF Method (Inverse Transform Sampling)
 
@@ -106,6 +111,8 @@ This works perfectly when you can write down F_inverse in closed form. For the n
 
 **Discrete version:** For discrete distributions, build the CDF as a cumulative sum, generate U, and find the first index where the cumulative sum exceeds U. This is how `sample_categorical` works in Lesson 06.
 
+> **【中文解读】** 逆 CDF 方法的原理：CDF 函数 F(x) 把值映射到 [0,1]，逆函数 F^{-1} 把 [0,1] 映射回值。所以 F^{-1}(U) 就服从目标分布。以指数分布为例，CDF 为 F(x) = 1 - e^{-lambda*x}，反解得 x = -ln(U)/lambda。该方法精确且高效，但前提是必须能写出 F^{-1} 的解析形式——正态分布就不行，需要用 Box-Muller 等其他方法。
+
 ### Rejection Sampling
 
 When you cannot invert the CDF but can evaluate the target PDF up to a constant, rejection sampling works.
@@ -129,6 +136,10 @@ The tighter the bound M, the higher the acceptance rate. In low dimensions (1-3)
 **Example: sampling from a truncated normal.** Use a uniform proposal over the truncated range. The envelope M is the maximum of the normal PDF in that range.
 
 **Example: sampling from a semicircle.** Propose uniformly in the bounding rectangle. Accept if the point falls inside the semicircle. This is how Monte Carlo computes pi: the acceptance rate equals the area ratio pi/4.
+
+> **【中文解读】** 拒绝采样适用于无法求逆 CDF 但能计算目标概率密度的场景。核心思想是"投飞镖再筛选"：从简单的提议分布 q(x) 中采样，以 p(x)/(M*q(x)) 的概率接受。M 越紧贴目标分布，接受率越高（1/M）。致命缺点：高维空间中接受率随维度指数衰减——这就是拒绝采样的"维度灾难"。
+
+> **【拓展：拒绝采样与蒙特卡洛估计 pi】** 在 [-1,1]x[-1,1] 的正方形中均匀投点，落在单位圆内的比例约等于 pi/4（因为圆面积/正方形面积 = pi/4）。这就是经典的蒙特卡洛估计 pi 的方法——本质上是拒绝采样的一种特例。
 
 ### Importance Sampling
 
@@ -154,6 +165,8 @@ The variance of the importance sampling estimator depends on how similar q is to
 ```
 E_p[f(x)] ~ sum(w_i * f(x_i)) / sum(w_i)
 ```
+
+> **【中文解读】** 重要性采样不需要从目标分布 p(x) 中采样——它用另一个分布 q(x) 的样本来估计 p(x) 下的期望，方法是给每个样本加权 w(x) = p(x)/q(x)。在强化学习 PPO 算法中，旧策略采集的轨迹通过重要性加权 `pi_new/pi_old` 来更新新策略，并裁剪权重防止偏离太远。方差取决于 p 和 q 的相似度——差异大时少数样本获得巨大权重，主导估计结果。
 
 ### Monte Carlo Estimation
 
@@ -188,6 +201,8 @@ The sample mean converges to the true expectation.
 Variance of the estimator = Var(f(X)) / N
 ```
 
+> **【中文解读】** 蒙特卡洛估计的核心思想：用样本均值逼近积分/期望。大数定律保证收敛，误差为 O(1/sqrt(N))，且与维度无关——这正是蒙特卡洛在高维问题上碾压网格积分的原因。估计 pi 是最经典的例子：在正方形中随机投点，统计落在内切圆中的比例。
+
 ### Markov Chain Monte Carlo (MCMC): Metropolis-Hastings
 
 MCMC constructs a Markov chain whose stationary distribution is the target distribution p(x). After enough steps, samples from the chain are (approximately) samples from p(x).
@@ -219,6 +234,10 @@ For symmetric proposals (q(x'|x) = q(x|x')), the ratio simplifies to p(x')/p(x).
 - Proposal scale: too small and the chain moves slowly (high acceptance, slow exploration); too large and most proposals are rejected (low acceptance, stuck in place)
 - The optimal acceptance rate for a Gaussian proposal in high dimensions is approximately 0.234
 
+> **【中文解读】** MCMC 构造一条马尔可夫链，使其平稳分布恰好是目标分布 p(x)。Metropolis-Hastings 的流程：从当前位置提议一个新位置 x'，以概率 alpha = p(x')*q(x|x') / [p(x)*q(x'|x)] 接受转移。对称提议（如高斯随机游走）下简化为 p(x')/p(x)——"向上走必接受，向下走有概率接受"。细致平衡条件保证了收敛。实践中需要丢弃预热期（burn-in）的样本，并注意提议步长太大太小都不好。
+
+> **【拓展：为什么 MCMC 如此重要】** 贝叶斯推断中，后验分布通常没有解析解，直接采样也不可能。MCMC 通过构建一条随机游走链来间接探索后验分布，是贝叶斯方法的核心工具。PyMC、Stan 等概率编程库的本质就是在帮你跑 MCMC。
+
 ### Gibbs Sampling
 
 Gibbs sampling is a special case of MCMC for multivariate distributions. Instead of proposing a move in all dimensions at once, it updates one variable at a time from its conditional distribution.
@@ -242,6 +261,8 @@ Gibbs sampling requires that you can sample from each conditional distribution p
 The acceptance rate is always 1 (every proposal is accepted) because sampling from the exact conditional automatically satisfies detailed balance.
 
 **Limitation.** When variables are highly correlated, Gibbs sampling mixes slowly because updating one variable at a time cannot make large diagonal moves through the distribution.
+
+> **【中文解读】** Gibbs 采样是 MCMC 的特殊情况：每次只更新一个变量（从其条件分布中采样），其余变量固定。由于每次从精确的条件分布采样，接受率永远是 100%。适用于条件分布容易采样的模型（如贝叶斯网络、高斯混合模型）。但变量高度相关时，每次只能沿坐标轴方向小步移动，导致收敛极慢。
 
 ### Temperature Sampling (Used in LLMs)
 
@@ -268,6 +289,8 @@ T > 1.0: flattens the distribution (less confident, more diverse)
 
 Temperature does not change which tokens are possible. It changes the probability mass allocated to each token.
 
+> **【中文解读】** Temperature 是 LLM 中最常用的采样控制参数。softmax 前把 logits 除以 T：T<1 放大概率差距（更确定、更保守），T>1 缩小差距（更随机、更多样），T->0 等价于贪心解码（始终选概率最高的）。实践经验：代码生成用 T=0.3-0.7，对话用 T=0.7-1.0，创意写作用 T=1.0-1.5。Temperature 不改变哪些 token 可选，只改变概率分配。
+
 ### Top-k Sampling
 
 Top-k sampling restricts the candidate set to the k tokens with the highest probabilities, then renormalizes and samples from that restricted set.
@@ -286,6 +309,8 @@ k = 40: typical setting, removes long tail of unlikely tokens
 ```
 
 Top-k prevents the model from selecting extremely unlikely tokens (typos, nonsense) that exist in the long tail of the vocabulary distribution. The problem: k is fixed regardless of context. When the model is confident (one token has 95% probability), k = 40 still allows 39 alternatives. When the model is uncertain (probability is spread across 1000 tokens), k = 40 cuts off plausible options.
+
+> **【中文解读】** Top-k 固定保留概率最高的 k 个 token，重新归一化后采样。k=1 就是贪心，k=词表大小等于不过滤。典型值 k=40 可以过滤掉长尾的低质量 token。缺点：k 是固定的，不适应模型的置信度——模型很确定时仍保留了太多候选，模型不确定时又可能截掉了合理选项。
 
 ### Top-p (Nucleus) Sampling
 
@@ -312,6 +337,8 @@ When the model is confident, nucleus sampling keeps few tokens (maybe 2-3). When
 - Temperature 1.0 + top-k 50: Fan et al. (2018) original paper setting
 
 Top-k and top-p can be combined. Apply top-k first, then top-p on the remaining set.
+
+> **【中文解读】** Top-p（核采样/Nucleus Sampling）是 Top-k 的升级版：不固定候选数量，而是保留累积概率刚好超过 p 的最小 token 集合。模型自信时只保留 2-3 个 token，不确定时保留上百个——这种自适应性使 top-p 通常比 top-k 效果更好。实际中常用组合：Temperature 0.7 + top-p 0.9。
 
 ### Reparameterization Trick (Used in VAEs)
 
@@ -350,6 +377,10 @@ This works because N(mu, sigma^2) has the same distribution as mu + sigma * N(0,
 
 Without the reparameterization trick, VAEs cannot be trained with standard backpropagation. This single insight made VAEs practical.
 
+> **【中文解读】** VAE 的训练瓶颈：编码器输出分布参数 (mu, sigma)，需要从中采样再送入解码器，但采样操作不可微。重参数化技巧的优雅解法：把随机性"搬"到外部——先从标准正态采样 epsilon，再用 z = mu + sigma * epsilon 构造样本。这样 z 对 mu 的梯度是 1，对 sigma 的梯度是 epsilon，反向传播畅通无阻。这个看似简单的技巧是 VAE 能够端到端训练的关键。
+
+> **【拓展：为什么采样操作不可微】** 采样涉及随机数生成，输出与输入的关系是概率性的而非确定性的。例如 z ~ N(mu, sigma^2) 中，相同的 mu 和 sigma 可以产生不同的 z，所以 dz/dmu 没有定义。重参数化把随机性隔离到 epsilon 中，使 z 成为 mu 和 sigma 的确定性函数。
+
 ### Gumbel-Softmax (Differentiable Categorical Sampling)
 
 The reparameterization trick works for continuous distributions (Gaussian). For discrete categorical distributions, we need a different approach. Gumbel-Softmax provides a differentiable approximation to categorical sampling.
@@ -385,6 +416,8 @@ Gumbel-Softmax produces a continuous relaxation of a discrete sample. The output
 - Hard attention mechanisms
 - Reinforcement learning with discrete actions
 
+> **【中文解读】** Gumbel-Softmax 是重参数化技巧在离散分布上的扩展。先用 Gumbel-Max 技巧精确采样（加 Gumbel 噪声后取 argmax），再用 softmax 替代不可微的 argmax 实现可微近似。温度参数 tau 控制连续性：tau->0 趋近 one-hot（硬采样），tau->inf 趋近均匀分布。应用于离散潜变量 VAE、神经架构搜索和硬注意力机制。
+
 ### Stratified Sampling
 
 Standard Monte Carlo sampling can leave gaps in the sample space by chance. Stratified sampling forces even coverage by dividing the space into strata and sampling from each.
@@ -415,6 +448,8 @@ For piecewise-constant functions, stratified sampling is exact.
 - Importance sampling with stratification (combining both techniques)
 - NeRF (Neural Radiance Fields) uses stratified sampling along camera rays
 
+> **【中文解读】** 分层采样强制样本均匀覆盖空间：将采样域划分为 N 个等分层，每层内采一个点。由于保证了每个区域都有代表，方差永远不高于朴素蒙特卡洛。NeRF 中沿相机光线使用分层采样来保证射线方向上的覆盖均匀性。
+
 ### Connection to Diffusion Models
 
 Diffusion models generate images through a sampling process. The forward process adds Gaussian noise to an image over T steps until it becomes pure noise. The reverse process learns to denoise, recovering the original image step by step.
@@ -440,6 +475,8 @@ The connection to the methods in this lesson:
 - Ancestral sampling in diffusion models is a Markov chain (each step depends only on the current state)
 
 The entire image generation process is iterative sampling: start from noise, and at each step, sample a slightly less noisy version conditioned on the learned denoising model.
+
+> **【中文解读】** 扩散模型把图像生成完全变成了采样过程：前向过程逐步加噪直到变成纯噪声，反向过程逐步去噪恢复图像。每一步去噪都使用了重参数化技巧（采样噪声再施加确定性变换），噪声调度表 {alpha_t} 控制着类似温度退火的效果，训练用蒙特卡洛估计 ELBO，整个生成过程本身是一条马尔可夫链。
 
 ## Build It
 
@@ -608,6 +645,8 @@ Show how decreasing temperature makes the output approach a one-hot vector.
 
 Full implementations with all visualizations are in `code/sampling.py`.
 
+> **【中文解读】** 代码实现按难度递进：从均匀分布和逆 CDF 采样（最基础）开始，到拒绝采样和重要性采样（间接采样），再到 MCMC（Metropolis-Hastings 和 Gibbs），最后是 LLM 相关的 temperature/top-k/top-p 和 VAE 相关的重参数化/Gumbel-Softmax。每一步都用纯 Python 从零实现，让你理解库函数背后真正在做什么。
+
 ## Use It
 
 With NumPy and SciPy, the production versions:
@@ -640,40 +679,47 @@ For MCMC at scale, use dedicated libraries:
 
 You built these from scratch. Now you know what the library calls are doing.
 
+> **【中文解读】** 生产环境中用 NumPy/SciPy 一行就能完成我们手写的采样。`rng.exponential()`、`stats.norm.cdf()`、`stats.norm.ppf()` 分别对应指数分布采样、CDF 计算和逆 CDF 计算。LLM 的 temperature 采样只需对 logits 除以 T 再做 softmax。大规模 MCMC 推荐使用 PyMC（贝叶斯建模）、emcee（集成采样）或 NumPyro/JAX（GPU 加速）。
+
 ## Exercises
 
 1. Implement inverse CDF sampling for the Cauchy distribution. The CDF is F(x) = 0.5 + arctan(x)/pi. Generate 10,000 samples and plot the histogram against the true PDF. Notice the heavy tails (extreme values far from center).
+   > **中文：** 实现柯西分布的逆 CDF 采样。CDF 为 F(x) = 0.5 + arctan(x)/pi。生成 10,000 个样本，绘制直方图并与真实 PDF 对比。注意其重尾特性（远离中心的极端值频繁出现）。
 
 2. Use rejection sampling to generate samples from a Beta(2, 5) distribution using a Uniform(0, 1) proposal. Plot the accepted samples against the true Beta PDF. What is the theoretical acceptance rate?
+   > **中文：** 用拒绝采样从 Beta(2,5) 分布生成样本，提议分布用 Uniform(0,1)。绘制接受样本与真实 Beta PDF 的对比图。理论接受率是多少？
 
 3. Estimate the integral of sin(x) from 0 to pi using Monte Carlo with 1,000, 10,000, and 100,000 samples. Compare the error at each level. Verify that the error scales as O(1/sqrt(N)).
+   > **中文：** 用蒙特卡洛方法估计 sin(x) 在 [0, pi] 上的积分，分别用 1000、10000、100000 个样本。比较各层级的误差，验证误差按 O(1/sqrt(N)) 缩放。
 
 4. Implement Metropolis-Hastings to sample from a 2D distribution p(x, y) proportional to exp(-(x^2 * y^2 + x^2 + y^2 - 8*x - 8*y) / 2). Plot the samples and the chain trajectory. Experiment with different proposal standard deviations.
+   > **中文：** 实现 Metropolis-Hastings 从二维分布 p(x,y) 正比于 exp(-(x^2*y^2 + x^2 + y^2 - 8x - 8y)/2) 中采样。绘制样本和链的轨迹。尝试不同的提议标准差。
 
 5. Build a complete text generation demo: given a vocabulary of 10 words with logits, generate sequences of 20 tokens using (a) greedy, (b) temperature=0.7, (c) top-k=3, (d) top-p=0.9. Compare the diversity of outputs across 5 runs.
+   > **中文：** 构建完整的文本生成演示：给定 10 个词的词表和 logits，用 (a) 贪心、(b) temperature=0.7、(c) top-k=3、(d) top-p=0.9 分别生成 20 个 token 的序列。比较 5 次运行的输出多样性。
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Sampling | "Drawing random values" | Generating values according to a probability distribution. The mechanism behind all generative AI |
-| Uniform distribution | "All equally likely" | Every value in [a, b] has equal probability density 1/(b-a). The starting point for all sampling methods |
-| Inverse CDF | "Probability transform" | F_inverse(U) converts a uniform sample into a sample from any distribution with known CDF. Exact and efficient |
-| Rejection sampling | "Propose and accept/reject" | Generate from a simple proposal, accept with probability proportional to target/proposal ratio. Exact but wastes samples |
-| Importance sampling | "Reweight samples" | Estimate expectations under p(x) using samples from q(x) by weighting each sample by p(x)/q(x). Core to PPO in RL |
-| Monte Carlo | "Average random samples" | Approximate integrals as sample averages. Error O(1/sqrt(N)) regardless of dimension |
-| MCMC | "Random walk that converges" | Construct a Markov chain whose stationary distribution is the target. Metropolis-Hastings is the foundational algorithm |
-| Metropolis-Hastings | "Accept uphill, sometimes downhill" | Propose moves, accept based on density ratio. Detailed balance ensures convergence to target distribution |
-| Gibbs sampling | "One variable at a time" | Update each variable from its conditional distribution holding others fixed. 100% acceptance rate |
-| Temperature | "Confidence knob" | Divides logits by T before softmax. T<1 sharpens (more confident), T>1 flattens (more diverse) |
-| Top-k sampling | "Keep the k best" | Zero out all but the k highest-probability tokens, renormalize, sample. Fixed candidate set size |
-| Nucleus sampling (top-p) | "Keep the probable ones" | Keep the smallest set of tokens whose cumulative probability exceeds p. Adaptive candidate set size |
-| Reparameterization trick | "Move randomness outside" | Write z = mu + sigma * epsilon where epsilon ~ N(0,1). Makes sampling differentiable. Essential for VAE training |
-| Gumbel-Softmax | "Soft categorical sampling" | Differentiable approximation to categorical sampling using Gumbel noise + softmax with temperature |
-| Stratified sampling | "Forced coverage" | Divide sample space into strata, sample from each. Always lower variance than naive Monte Carlo |
-| Burn-in | "Warm-up period" | Initial MCMC samples discarded before the chain reaches its stationary distribution |
-| Detailed balance | "Reversibility condition" | p(x) * T(x->y) = p(y) * T(y->x). Sufficient condition for p to be the stationary distribution of a Markov chain |
-| Diffusion sampling | "Iterative denoising" | Generate data by starting from noise and applying learned denoising steps. Each step is a conditional sampling operation |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Sampling | "Drawing random values" | Generating values according to a probability distribution. The mechanism behind all generative AI | 采样：按概率分布生成随机值，所有生成式 AI 的底层机制 |
+| Uniform distribution | "All equally likely" | Every value in [a, b] has equal probability density 1/(b-a). The starting point for all sampling methods | 均匀分布：所有值等概率出现，一切采样方法的起点 |
+| Inverse CDF | "Probability transform" | F_inverse(U) converts a uniform sample into a sample from any distribution with known CDF. Exact and efficient | 逆 CDF 法：用均匀样本通过逆累积分布函数变换为目标分布样本 |
+| Rejection sampling | "Propose and accept/reject" | Generate from a simple proposal, accept with probability proportional to target/proposal ratio. Exact but wastes samples | 拒绝采样：从简单分布提议，按概率比例接受，精确但浪费样本 |
+| Importance sampling | "Reweight samples" | Estimate expectations under p(x) using samples from q(x) by weighting each sample by p(x)/q(x). Core to PPO in RL | 重要性采样：用 q(x) 的样本加权估计 p(x) 下的期望，PPO 的核心 |
+| Monte Carlo | "Average random samples" | Approximate integrals as sample averages. Error O(1/sqrt(N)) regardless of dimension | 蒙特卡洛：用样本均值逼近积分，误差与维度无关 |
+| MCMC | "Random walk that converges" | Construct a Markov chain whose stationary distribution is the target. Metropolis-Hastings is the foundational algorithm | 马尔可夫链蒙特卡洛：构造收敛到目标分布的随机游走 |
+| Metropolis-Hastings | "Accept uphill, sometimes downhill" | Propose moves, accept based on density ratio. Detailed balance ensures convergence to target distribution | MH 算法：提议移动，按密度比决定接受，细致平衡保证收敛 |
+| Gibbs sampling | "One variable at a time" | Update each variable from its conditional distribution holding others fixed. 100% acceptance rate | Gibbs 采样：每次从条件分布更新一个变量，100% 接受率 |
+| Temperature | "Confidence knob" | Divides logits by T before softmax. T<1 sharpens (more confident), T>1 flattens (more diverse) | 温度：softmax 前缩放 logits，控制输出的确定性程度 |
+| Top-k sampling | "Keep the k best" | Zero out all but the k highest-probability tokens, renormalize, sample. Fixed candidate set size | Top-k 采样：只保留概率最高的 k 个 token |
+| Nucleus sampling (top-p) | "Keep the probable ones" | Keep the smallest set of tokens whose cumulative probability exceeds p. Adaptive candidate set size | 核采样(top-p)：保留累积概率超过 p 的最小 token 集合 |
+| Reparameterization trick | "Move randomness outside" | Write z = mu + sigma * epsilon where epsilon ~ N(0,1). Makes sampling differentiable. Essential for VAE training | 重参数化技巧：把随机性移到外部，使采样可微分 |
+| Gumbel-Softmax | "Soft categorical sampling" | Differentiable approximation to categorical sampling using Gumbel noise + softmax with temperature | Gumbel-Softmax：离散分布的可微采样近似 |
+| Stratified sampling | "Forced coverage" | Divide sample space into strata, sample from each. Always lower variance than naive Monte Carlo | 分层采样：强制覆盖每个区域，方差永远不高于朴素蒙特卡洛 |
+| Burn-in | "Warm-up period" | Initial MCMC samples discarded before the chain reaches its stationary distribution | 预热期：丢弃链达到平稳分布前的初始样本 |
+| Detailed balance | "Reversibility condition" | p(x) * T(x->y) = p(y) * T(y->x). Sufficient condition for p to be the stationary distribution of a Markov chain | 细致平衡：保证平稳分布的充分条件 |
+| Diffusion sampling | "Iterative denoising" | Generate data by starting from noise and applying learned denoising steps. Each step is a conditional sampling operation | 扩散采样：从噪声出发迭代去噪生成数据 |
 
 ## Further Reading
 
