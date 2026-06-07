@@ -6,17 +6,21 @@
 
 > **【拓展：Roots→MCP 安全边界】** Roots 是 MCP 安全模型的基础。客户端通过声明 roots 控制服务器可以访问的文件/资源范围。例如 Claude Desktop 只允许 MCP 服务器访问用户打开的项目目录。Elicitation 则让工具在需要额外信息时安全地向用户请求，而非假设或幻觉参数值。
 
-**Type:** Build
-**Languages:** Python (stdlib, roots + elicitation demo)
-**Prerequisites:** Phase 13 · 07 (MCP server)
-**Time:** ~45 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib, roots + elicitation demo) | **语言:** Python (stdlib, roots + elicitation demo)
+**Prerequisites:** Phase 13 · 07 (MCP server) | **前置知识:** Phase 13 · 07 (MCP server)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Declare `roots` and respond to `notifications/roots/list_changed`.
+  中文翻译：参见英文条目了解详情。
 - Restrict server file operations to URIs inside the declared root set.
+  中文翻译：参见英文条目了解详情。
 - Use `elicitation/create` to ask the user for a confirmation or structured input mid-tool-call.
+  中文翻译：参见英文条目了解详情。
 - Choose between form-mode and URL-mode elicitation (the latter is experimental; drift-risk noted).
+  中文翻译：参见英文条目了解详情。
 
 ## The Problem | 问题引入
 
@@ -24,11 +28,19 @@
 
 Two concrete failures a notes MCP server hits in production.
 
+> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+
 **Broken path assumption.** The server is written against `~/notes`. A user on a different machine with notes in `~/Documents/Notes` gets a tool call that fails silently (no file found) or worse, wrote to the wrong place.
+
+> 工具调用相关内容：工具发现、调用和结果返回。
 
 **Missing argument the user would know.** The user asks "delete the old TPS report note". The model calls `notes_delete(title: "TPS report")` but there are three matching notes from 2023, 2024, and 2025. The tool cannot guess. Failing with "ambiguous" is annoying; running on all three is catastrophic.
 
+> 工具调用相关内容：工具发现、调用和结果返回。
+
 Roots fix the first: the client declares at `initialize` the set of URIs the server may touch. Elicitation fixes the second: the server pauses the tool call and sends `elicitation/create` to ask the user to pick which one.
+
+> 用户输入请求相关内容：服务器在执行中请求用户输入的机制。
 
 ## The Concept | 核心概念
 
@@ -38,6 +50,8 @@ Roots fix the first: the client declares at `initialize` the set of URIs the ser
 
 The client declares a root list at `initialize`:
 
+> 初始化握手相关内容：客户端和服务器的能力协商。
+
 ```json
 {
   "capabilities": {"roots": {"listChanged": true}}
@@ -46,23 +60,33 @@ The client declares a root list at `initialize`:
 
 Server can then call `roots/list`:
 
+> 参见英文原文获取完整的技术说明。
+
 ```json
 {"roots": [{"uri": "file:///Users/alice/Documents/Notes", "name": "Notes"}]}
 ```
 
 Servers MUST treat roots as the boundary: any file read or write outside the root set is rejected. This is not enforced by the client (the server is still code the user trusted), but spec-compliant servers honor it.
 
+> 规范相关内容：MCP 规范的具体条款和要求。
+
 When the user adds or removes a root, the client sends `notifications/roots/list_changed`. The server re-calls `roots/list` and updates its boundary.
+
+> 参见英文原文获取完整的技术说明。
 
 ### Why roots are a client primitive
 
 Roots are declared by the client because they represent the user's consent model. The user told Claude Desktop "give this notes server access to these two directories". The server cannot widen that scope.
+
+> 根范围相关内容：客户端声明服务器可访问的 URI 范围。
 
 ### Elicitation: the form-mode default
 
 > **【中文解读】** Elicitation 让服务器在工具执行过程中暂停，向用户请求结构化输入。`elicitation/create` 接受表单 Schema 和自然语言提示。用户填写后响应返回服务器，服务器继续执行。这是 MCP 的"人机协作"原语——让服务器在需要人类判断时优雅暂停。
 
 `elicitation/create` takes a form schema plus a natural-language prompt:
+
+> 用户输入请求相关内容：服务器在执行中请求用户输入的机制。
 
 ```json
 {
@@ -86,6 +110,8 @@ Roots are declared by the client because they represent the user's consent model
 
 Client renders a form, collects the user's answer, returns:
 
+> 参见英文原文获取完整的技术说明。
+
 ```json
 {
   "action": "accept",
@@ -95,11 +121,17 @@ Client renders a form, collects the user's answer, returns:
 
 Three possible actions: `accept` (user filled it), `decline` (user closed it), `cancel` (user aborted the whole tool call).
 
+> 工具调用相关内容：工具发现、调用和结果返回。
+
 Form schemas are flat — nested objects are not supported in v1. SDKs typically reject anything more complex than a single layer.
+
+> 技能与打包相关内容：Agent SDK 和可复用技能的定义与分发。
 
 ### Elicitation: URL mode (SEP-1036, experimental)
 
 New in 2025-11-25. Instead of a schema, the server sends a URL:
+
+> 参见英文原文获取完整的技术说明。
 
 ```json
 {
@@ -113,51 +145,79 @@ New in 2025-11-25. Instead of a schema, the server sends a URL:
 
 Client opens the URL in a browser, waits for completion, returns when the user comes back. Useful for OAuth flows, payment authorization, and document signing where a form is insufficient.
 
+> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+
 Drift-risk note: the SEP-1036 response shape is still settling; some SDKs return the callback URL, others return a completion token. Read your SDK's release notes before using URL mode in production.
+
+> 技能与打包相关内容：Agent SDK 和可复用技能的定义与分发。
 
 ### When elicitation is the right tool
 
 - User confirmation before destructive actions (destructive hint + elicitation).
+  中文翻译：参见英文条目了解详情。
 - Disambiguation (pick one of N matches).
+  中文翻译：参见英文条目了解详情。
 - First-run setup (API keys, directories, preferences).
+  中文翻译：参见英文条目了解详情。
 - OAuth-style flows (URL mode).
+  中文翻译：参见英文条目了解详情。
 
 ### When elicitation is wrong
 
 - Filling a tool's required arguments that the model could have asked for in prose. Use a normal re-prompt, not an elicitation dialog.
+  中文翻译：参见英文条目了解详情。
 - High-frequency calls. Elicitation interrupts the conversation; do not fire it inside a loop.
+  中文翻译：参见英文条目了解详情。
 - Anything the server could validate after the fact. Validate, return an error, let the model ask the user in text.
+  中文翻译：参见英文条目了解详情。
 
 ### Human-in-the-loop bridge
 
 Elicitation plus sampling together enable MCP's "human-in-the-loop" model. A server's agent loop can pause for either user input (elicitation) or model reasoning (sampling). Phase 13 · 11 covered sampling; this lesson covers elicitation. Put them together for full mid-loop control.
 
+> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+
 ## Use It | 用框架实现
 
 `code/main.py` extends the notes server with:
 
+> 代码实现说明：参见 code/main.py 中的具体实现。
+
 - `roots/list` response that the server re-queries after root-list-changed notifications.
+  中文翻译：参见英文条目了解详情。
 - A `notes_delete` tool that uses `elicitation/create` to disambiguate when multiple notes match.
+  中文翻译：参见英文条目了解详情。
 - A `notes_setup` tool that uses URL-mode elicitation to open a first-run config page (simulated).
+  中文翻译：参见英文条目了解详情。
 - A boundary check that refuses operations on URIs outside the declared roots.
+  中文翻译：参见英文条目了解详情。
 
 The demo runs three scenarios: happy path (one match), disambiguation (three matches, elicitation fires), out-of-root-write (rejected).
+
+> 用户输入请求相关内容：服务器在执行中请求用户输入的机制。
 
 ## Ship It | 产出物
 
 This lesson produces `outputs/skill-elicitation-form-designer.md`. Given a tool that might need user confirmation or disambiguation, the skill designs the elicitation form schema and the message template.
 
+> 技能与打包相关内容：Agent SDK 和可复用技能的定义与分发。
+
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Trigger the disambiguation path; confirm the simulated user answer gets routed back to the tool.
+   中文翻译：运行相关练习。参见英文原文了解完整要求。
 
 2. Add a new tool `notes_archive` that requires elicitation confirmation every time (destructive hint). Check the UX: how does this compare to the model re-asking in text?
+   中文翻译：添加相关练习。参见英文原文了解完整要求。
 
 3. Implement URL-mode elicitation for a first-run OAuth flow. Note the drift risk and add an SDK-version guard.
+   中文翻译：实现相关练习。参见英文原文了解完整要求。
 
 4. Extend `roots/list` handling: when a notification arrives, the server should atomically re-read and rescan open file handles that might now be out of scope.
+   中文翻译：扩展相关练习。参见英文原文了解完整要求。
 
 5. Read the SEP-1036 issue discussion thread on GitHub. Identify one open question that affects how servers should handle URL-mode callbacks.
+   中文翻译：阅读相关练习。参见英文原文了解完整要求。
 
 ## Key Terms | 术语速查表
 
@@ -177,7 +237,12 @@ This lesson produces `outputs/skill-elicitation-form-designer.md`. Given a tool 
 ## Further Reading | 延伸阅读
 
 - [MCP — Client roots spec](https://modelcontextprotocol.io/specification/draft/client/roots) — canonical roots reference
+  中文翻译：canonical roots reference
 - [MCP — Client elicitation spec](https://modelcontextprotocol.io/specification/draft/client/elicitation) — canonical elicitation reference
+  中文翻译：canonical elicitation reference
 - [Cisco — What's new in MCP elicitation, structured content, OAuth enhancements](https://blogs.cisco.com/developer/whats-new-in-mcp-elicitation-structured-content-and-oauth-enhancements) — 2025-11-25 additions walk-through
+  中文翻译：2025-11-25 additions walk-through
 - [MCP — GitHub SEP-1036](https://github.com/modelcontextprotocol/modelcontextprotocol) — URL-mode elicitation proposal (experimental, drift-risk)
+  中文翻译：URL-mode elicitation proposal (experimental, drift-risk)
 - [The New Stack — How elicitation brings human-in-the-loop to AI tools](https://thenewstack.io/how-elicitation-in-mcp-brings-human-in-the-loop-to-ai-tools/) — UX walkthrough
+  中文翻译：UX walkthrough

@@ -6,17 +6,21 @@
 
 > **【拓展：Resources vs Tools 选择】** 在 MCP 设计中，Resources 用于只读数据暴露（如文件内容、数据库记录），Tools 用于有副作用的操作（如创建、删除、发送）。错误地将读操作包装为 tool 会增加不必要的模型决策负担。Prompts 作为斜杠命令模板，让用户快速触发预设工作流。
 
-**Type:** Build
-**Languages:** Python (stdlib, resource + prompt handler)
-**Prerequisites:** Phase 13 · 07 (MCP server)
-**Time:** ~45 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib, resource + prompt handler) | **语言:** Python (stdlib, resource + prompt handler)
+**Prerequisites:** Phase 13 · 07 (MCP server) | **前置知识:** Phase 13 · 07 (MCP server)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Decide between exposing a capability as a tool, a resource, or a prompt for a given domain.
+  中文翻译：参见英文条目了解详情。
 - Implement `resources/list`, `resources/read`, `resources/subscribe` and handle `notifications/resources/updated`.
+  中文翻译：参见英文条目了解详情。
 - Implement `prompts/list` and `prompts/get` with argument templates.
+  中文翻译：参见英文条目了解详情。
 - Recognize when the host surfaces prompts as slash-commands vs auto-injected context.
+  中文翻译：参见英文条目了解详情。
 
 ## The Problem | 问题引入
 
@@ -24,11 +28,18 @@
 
 A naive MCP server for a notes app exposes everything as tools: `notes_read`, `notes_list`, `notes_search`. This wraps every data access in a model-driven tool call. Consequences:
 
+> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+
 - The model has to decide whether to call `notes_read` for every query that might benefit from context.
+  中文翻译：参见英文条目了解详情。
 - Read-only content cannot be subscribed to or streamed to the host's side panel.
+  中文翻译：参见英文条目了解详情。
 - Client UIs (Claude Desktop's resource attachment panel, Cursor's "Include file" picker) cannot surface the data.
+  中文翻译：参见英文条目了解详情。
 
 The right split: expose data as a resource, expose mutating or computed actions as tools, expose reusable multi-step workflows as prompts. Each primitive has its UX affordance and its access pattern.
+
+> 资源相关内容：MCP 资源的暴露、订阅和读取机制。
 
 ## The Concept | 核心概念
 
@@ -44,28 +55,46 @@ The right split: expose data as a resource, expose mutating or computed actions 
 
 Guideline: if the model would benefit from calling it on every related query, it is a tool. If the user would benefit from attaching it to a conversation, it is a resource. If a whole multi-step workflow is the unit the user wants to re-use, it is a prompt.
 
+> 资源相关内容：MCP 资源的暴露、订阅和读取机制。
+
 ### Resources
 
 `resources/list` returns `{resources: [{uri, name, mimeType, description?}]}`. `resources/read` takes `{uri}` and returns `{contents: [{uri, mimeType, text | blob}]}`.
 
+> 资源相关内容：MCP 资源的暴露、订阅和读取机制。
+
 URIs can be anything addressable:
 
+> 参见英文原文获取完整的技术说明。
+
 - `file:///Users/alice/notes/mcp.md`
+  中文翻译：参见英文条目了解详情。
 - `postgres://my-db/query/SELECT ...`
+  中文翻译：参见英文条目了解详情。
 - `notes://note-14` (custom scheme)
+  中文翻译：参见英文条目了解详情。
 - `memory://session-2026-04-22/recent` (server-specific)
+  中文翻译：参见英文条目了解详情。
 
 `contents[]` supports both text and binary. Binary uses `blob` as a base64-encoded string plus a `mimeType`.
+
+> 参见英文原文获取完整的技术说明。
 
 ### Resource subscriptions
 
 Declare `{resources: {subscribe: true}}` in capabilities. Client calls `resources/subscribe {uri}`. Server sends `notifications/resources/updated {uri}` when the resource changes. Client re-reads.
 
+> 资源相关内容：MCP 资源的暴露、订阅和读取机制。
+
 Use case: a notes server whose resources are files on disk; a file watcher triggers update notifications; Claude Desktop re-pulls the file into context when edited outside the host.
+
+> 资源相关内容：MCP 资源的暴露、订阅和读取机制。
 
 ### Resource templates (2025-11-25 addition)
 
 `resourceTemplates` let you expose a parameterized URI pattern: `notes://{id}` with `id` as a completion target. The client can autocomplete ids in the resource picker.
+
+> 资源相关内容：MCP 资源的暴露、订阅和读取机制。
 
 ### Prompts
 
@@ -73,23 +102,39 @@ Use case: a notes server whose resources are files on disk; a file watcher trigg
 
 `prompts/list` returns `{prompts: [{name, description, arguments?}]}`. `prompts/get` takes `{name, arguments}` and returns `{description, messages: [{role, content}]}`.
 
+> 参见英文原文获取完整的技术说明。
+
 A prompt is a template that fills to a list of messages the host feeds its model. For example, a `code_review` prompt takes a `file_path` argument and returns a three-message sequence: a system message, a user message with the file body, and an assistant kickoff with a reasoning template.
+
+> 提示模板相关内容：MCP 提示的定义、参数和复用。
 
 ### Hosts and prompts
 
 Claude Desktop, VS Code, and Cursor expose prompts as slash-commands in the chat UI. The user types `/code_review` and picks arguments from a form. The server's prompt is the contract between "user shortcut" and "full prompt sent to model".
 
+> 参见英文原文获取完整的技术说明。
+
 Not every client supports prompts yet — check capability negotiation. A server with prompt capability declared but a client without prompt support simply will not see the slash commands.
+
+> 参见英文原文获取完整的技术说明。
 
 ### The "list changed" notification
 
 Both resources and prompts emit `notifications/list_changed` when the set mutates. A notes server that just imported 20 new notes emits `notifications/resources/list_changed`; the client re-calls `resources/list` to pick up the additions.
 
+> 资源相关内容：MCP 资源的暴露、订阅和读取机制。
+
 ### Content type conventions
 
 For text: `mimeType: "text/plain"`, `text/markdown`, `application/json`.
+
+> 参见英文原文获取完整的技术说明。
 For binary: `image/png`, `application/pdf`, plus the `blob` field.
+
+> 参见英文原文获取完整的技术说明。
 For MCP Apps (Lesson 14): `text/html;profile=mcp-app` in a `ui://` URI.
+
+> MCP Apps 相关内容：交互式 UI 资源和富界面组件。
 
 ### Dynamic resources
 
@@ -97,13 +142,21 @@ For MCP Apps (Lesson 14): `text/html;profile=mcp-app` in a `ui://` URI.
 
 A resource URI does not have to correspond to a static file. `notes://recent` can return the latest five notes on every read. `db://query/users/active` can execute a parameterized query. The server is free to compute content dynamically.
 
+> 资源相关内容：MCP 资源的暴露、订阅和读取机制。
+
 Rule: if the client can cache by URI, the URI must be stable. If computation is one-shot, the URI should include a timestamp or nonce so the client cache does not stale out.
+
+> 参见英文原文获取完整的技术说明。
 
 ### Subscriptions vs polling
 
 Subscription-capable clients get server push via `notifications/resources/updated`. Pre-subscription clients or hosts that do not support it poll by re-reading. Both are spec-compliant. The server's capability declaration tells the client which it supports.
 
+> 资源相关内容：MCP 资源的暴露、订阅和读取机制。
+
 Cost of subscriptions: per-session state on the server (who is subscribed to what). Keep the subscribed set bounded; disconnected clients should time out.
+
+> 会话管理相关内容：MCP 会话的建立、维护和终止。
 
 ### Prompts vs system prompts
 
@@ -111,32 +164,49 @@ Cost of subscriptions: per-session state on the server (who is subscribed to wha
 
 Prompts in MCP are not system prompts. The host's system prompt (its own operating instructions) and MCP prompts (server-supplied templates invoked by user) live side by side. A well-behaved client never lets a server prompt override its own system prompt; it layers them.
 
+> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+
 ## Use It | 用框架实现
 
 `code/main.py` extends the notes server from Lesson 07 with:
 
+> 代码实现说明：参见 code/main.py 中的具体实现。
+
 - Per-note resources (`notes://note-1`, etc.) with `resources/subscribe` support.
+  中文翻译：参见英文条目了解详情。
 - A `review_note` prompt that renders to a three-message template.
+  中文翻译：参见英文条目了解详情。
 - A file-watcher simulation that emits `notifications/resources/updated` when a note is modified.
+  中文翻译：参见英文条目了解详情。
 - A `notes://recent` dynamic resource that always returns the latest five notes.
+  中文翻译：参见英文条目了解详情。
 
 Run the demo to see the full flow.
+
+> 参见英文原文获取完整的技术说明。
 
 ## Ship It | 产出物
 
 This lesson produces `outputs/skill-primitive-splitter.md`. Given a proposed MCP server, the skill categorizes each capability as tool / resource / prompt with a rationale.
 
+> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Observe the initial resource list, then trigger a note edit and verify the `notifications/resources/updated` event fires.
+   中文翻译：运行相关练习。参见英文原文了解完整要求。
 
 2. Add a `resources/list_changed` emitter: when a new note is created, send the notification so clients re-discover.
+   中文翻译：添加相关练习。参见英文原文了解完整要求。
 
 3. Design three prompts for a GitHub MCP server: `summarize_pr`, `triage_issue`, `release_notes`. Each with argument schemas. The prompt body should be runnable without further edits.
+   中文翻译：设计相关练习。参见英文原文了解完整要求。
 
 4. Take an existing tool in the Lesson 07 server and classify whether it should remain a tool or be split into a resource plus tool pair. Justify in one sentence.
+   中文翻译：参见英文原文了解完整练习要求。
 
 5. Read the spec's `server/resources` and `server/prompts` sections. Identify the one field in `resources/read` that is rarely populated but spec-supported. Hint: look at `_meta` on resource content.
+   中文翻译：阅读相关练习。参见英文原文了解完整要求。
 
 ## Key Terms | 术语速查表
 
@@ -156,7 +226,12 @@ This lesson produces `outputs/skill-primitive-splitter.md`. Given a proposed MCP
 ## Further Reading | 延伸阅读
 
 - [MCP — Concepts: Resources](https://modelcontextprotocol.io/docs/concepts/resources) — resource URIs, subscriptions, and templates
+  中文翻译：resource URIs, subscriptions, and templates
 - [MCP — Concepts: Prompts](https://modelcontextprotocol.io/docs/concepts/prompts) — prompt templates and slash-command integration
+  中文翻译：prompt templates and slash-command integration
 - [MCP — Server resources spec 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/server/resources) — full `resources/*` message reference
+  中文翻译：full `resources/*` message reference
 - [MCP — Server prompts spec 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/server/prompts) — full `prompts/*` message reference
+  中文翻译：full `prompts/*` message reference
 - [MCP — Protocol info site: resources](https://modelcontextprotocol.info/docs/concepts/resources/) — community guide expanding on the official docs
+  中文翻译：community guide expanding on the official docs
