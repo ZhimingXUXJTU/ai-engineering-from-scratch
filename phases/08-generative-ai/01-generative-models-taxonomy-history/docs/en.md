@@ -19,6 +19,8 @@ The rub is that `p_data` lives in a space with millions of dimensions (a 512x512
 
 Five families have survived the last twelve years. Knowing which compromise each family makes tells you why it wins on some tasks and collapses on others.
 
+> **【中文解读】** 生成模型的核心任务：从训练样本中学习未知分布 p_data(x)，然后生成看起来来自同一分布的新样本。困难在于 p_data 生活在数百万维的空间中（一张 512x512 RGB 图像约 786K 维），样本只分布在其中的薄流形上，而你只有约 1000 万个样本。五种家族各自用不同的妥协来应对这个难题。
+
 ## The Concept
 
 ![Five families of generative models — taxonomy by what they model](../assets/taxonomy.svg)
@@ -63,6 +65,10 @@ When a new generative model paper drops, answer these five questions before read
 5. **Evaluation: FID, CLIP score, IS, human preference, task accuracy?** Each has known failure modes (see Lesson 14).
 
 You will re-answer these five for every lesson in this phase. By the end, they will be reflex.
+
+> **【中文解读】** 五大家族的核心妥协：1) 显式密度·可计算——自回归模型（如 GPT）精确分解 p(x)=∏p(x_i|x_{<i})，推理慢但训练干净；归一化流构建可逆变换，架构受限。2) 显式密度·近似——VAE 优化 ELBO 下界；扩散模型隐式优化加权 ELBO，是 2026 年图像/视频/3D 的主流骨干。3) 隐式密度——GAN 跳过密度估计，直接训练生成器+判别器，推理快但训练不稳定。4) 基于分数/连续时间——学习 ∇_x log p(x)，Flow Matching 是 2024-2026 的热点。5) 离散 token 自回归——VQ-VAE 压缩 + Transformer 建模。
+
+> **【拓展：Flow Matching 为何是 2026 的热点】** Flow Matching（Lipman 2023）相比 DDPM 的优势：无需模拟随机微分方程（simulation-free training）、生成路径更直（straighter paths）、采样速度快 4-10 倍。Stable Diffusion 3、Flux.1、AudioCraft 2 都已转向 Flow Matching。
 
 ## Build It
 

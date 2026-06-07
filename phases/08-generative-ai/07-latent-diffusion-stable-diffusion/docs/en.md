@@ -19,6 +19,8 @@ Most of those FLOPs go to pushing perceptually unimportant details through the n
 
 This is the Stable Diffusion recipe. SD 1.x / 2.x used an 860M U-Net over `64×64×4` latents, SDXL used a 2.6B U-Net over `128×128×4`, SD3 swapped the U-Net for a Diffusion Transformer (DiT) with flow matching. Flux.1-dev (Black Forest Labs, 2024) ships a 12B-param DiT-MMDiT. All run on the same two-stage substrate.
 
+> **【中文解读】** 像素空间扩散的计算瓶颈：在 512² 分辨率上运行 U-Net，每步约 100 GFLOPS，50 步就是 5 TFLOPS/张图。Rombach 的潜在扩散方案：用 VAE 将 512×512×3 压缩到 64×64×4，在低维潜在空间运行扩散——计算量减少约 64 倍，质量基本不降。SD 1.x/2.x 用 860M U-Net，SDXL 用 2.6B U-Net，SD3 换成 Diffusion Transformer (DiT) + Flow Matching，Flux.1 部署 12B 参数的 MMDiT。所有这些都基于同一个两阶段架构。
+
 ## The Concept
 
 ![Latent diffusion: VAE compression + diffusion in latent space](../assets/latent-diffusion.svg)

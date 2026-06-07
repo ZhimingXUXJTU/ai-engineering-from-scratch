@@ -19,6 +19,8 @@ Karras et al. (2019, NVIDIA) proposed: stop feeding `z` directly into conv layer
 
 The result: `W` has roughly orthogonal axes for "high-level style" (pose, identity) vs "fine style" (lighting, color). You can swap styles between two images by using image A's `w` for the low-resolution levels and image B's `w` for the high. This unlocked editing, cross-domain stylization, and the entire "StyleGAN-inversion" line of research.
 
+> **【中文解读】** DCGAN 的根本问题：z 控制一切（姿态、光照、身份、背景），且全部纠缠在一起。StyleGAN 的关键创新：不再直接将 z 喂入卷积层，而是用一个学习到的常数 4×4×512 作为网络输入。8 层 MLP 将 z 映射到中间空间 w，通过 AdaIN 在每个分辨率层级注入 w。结果：W 空间的不同轴大致对应不同层面的特征，可以实现风格混合（style mixing）——低分辨率用图像 A 的 w（控制姿态/身份），高分辨率用图像 B 的 w（控制光照/颜色）。
+
 ## The Concept
 
 ![StyleGAN: mapping network + AdaIN + per-layer noise](../assets/stylegan.svg)

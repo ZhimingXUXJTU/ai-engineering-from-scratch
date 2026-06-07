@@ -17,6 +17,8 @@ An unconditional GAN samples arbitrary faces. Useful for a demo, useless in prod
 
 Conditional GAN (Mirza & Osindero, 2014) adds a condition `c` as an input to both `G` and `D`. Pix2Pix (Isola et al., 2017) specialized this: condition is a full input image, generator is a U-Net, discriminator is a *patch-based* classifier (PatchGAN), and loss is adversarial + L1. That recipe outperforms from-scratch text-to-image models on narrow image-to-image domains even in 2026 because it is trained on *paired data* — you have exactly the signal you need.
 
+> **【中文解读】** 无条件 GAN 只能随机生成，在生产中无用。条件 GAN 的突破在于给生成器和判别器都附加条件输入。Pix2Pix 的关键设计：U-Net 生成器（跨瓶颈的跳跃连接保留低层结构）、PatchGAN 判别器（70×70 感受野的局部判别，而非全局真/假）、对抗损失 + L1 的组合损失。这个配方在窄域图像翻译任务上至今仍超越通用文本生成图像模型，因为它训练在配对数据上——信号精确。
+
 ## The Concept
 
 ![Pix2Pix: U-Net generator, PatchGAN discriminator](../assets/pix2pix.svg)

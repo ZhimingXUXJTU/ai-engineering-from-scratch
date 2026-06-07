@@ -22,6 +22,8 @@ A 10-second 1080p video at 24fps is 240 frames of 1920×1080×3 pixels. That's ~
 
 The architecture that solved this is the **Diffusion Transformer (DiT)** applied to spatiotemporal patches, trained on huge (prompt, caption, video) datasets. Same diffusion loss as Lesson 06.
 
+> **【中文解读】** 视频生成的四大挑战：1) 数据量巨大——10 秒 1080p/24fps 视频约 1.5 GB 原始数据；2) 时空压缩——需要编码视频（不是单帧）的时空 patch；3) 时序一致性——帧间需共享内容、光照、物体身份；4) 计算预算——视频训练比图像贵 10-100 倍。解决架构是 Diffusion Transformer (DiT) 处理时空 patch，与图像扩散使用相同的损失函数。
+
 ## The Concept
 
 ![Video diffusion: patchify, DiT, decode](../assets/video-generation.svg)

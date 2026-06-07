@@ -21,6 +21,8 @@ A generative model is judged on *sample quality* and *conditioning adherence*. N
 
 You will also see: IS (inception score, largely retired), KID, CMMD, ImageReward, PickScore, HPSv2, MJHQ-30k. Each corrects for one failure of the previous.
 
+> **【中文解读】** 生成模型评估的三个核心指标：FID（Fréchet Inception Distance）——在 Inception 网络特征空间中测量真实分布与生成分布的距离，越低越好；CLIP Score——生成图像的 CLIP 图像嵌入与提示词的 CLIP 文本嵌入的余弦相似度，越高越好，衡量提示词忠实度；人类偏好——双盲对比两个模型在同一提示词下的输出，聚合成 Elo 评分。每个指标都有已知缺陷：FID 不衡量文本对齐、CLIP Score 不衡量整体分布质量、人类偏好成本高且不一致。
+
 ## The Concept
 
 ![FID, CLIP, and preference: three axes, different failure modes](../assets/evaluation.svg)

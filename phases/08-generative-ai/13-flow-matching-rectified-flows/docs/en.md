@@ -19,6 +19,8 @@ If you could train the model such that the path from noise to data was a *straig
 
 Rectified flow (Liu 2022) goes further: iteratively straighten the paths with a reflow procedure that produces a progressively closer-to-linear ODE. After two reflow iterations, a 2-step sampler matches 50-step DDPM quality.
 
+> **【中文解读】** DDPM 的反向过程是 1000 步的随机游走，DDIM 压缩到 20-50 步确定性采样。更少步数的障碍是 ODE 路径弯曲——一步欧拉法走不完。Flow Matching 的核心洞察：如果训练模型使噪声到数据的路径是直线，单步欧拉法就够了。具体做法：定义从 x_1~N(0,I) 到 x_0~data 的直线插值，训练向量场 v_θ(x,t) 匹配其时间导数。Rectified Flow 通过 reflow 迭代地将路径拉直，两次 reflow 后 2 步采样即可匹配 50 步 DDPM 质量。Stable Diffusion 3 和 Flux.1 都采用 Flow Matching。
+
 ## The Concept
 
 ![Flow matching: straight-line interpolation between noise and data](../assets/flow-matching.svg)

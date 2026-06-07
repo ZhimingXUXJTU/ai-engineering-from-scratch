@@ -21,6 +21,10 @@ Kingma's 2013 VAE solves this by training the encoder to output a *distribution*
 
 In 2026 VAEs rarely ship standalone — they have been outclassed by diffusion for raw image quality — but they are the encoder of choice for every latent-diffusion model (SD 1/2/XL/3, Flux, AudioCraft). Learn the VAE and you learn the invisible first layer of every image pipeline you use.
 
+> **【中文解读】** 普通自编码器将 784 维 MNIST 图像压缩到 16 维编码，再重建回来——重建 MSE 很好但编码空间是混乱的，随机采样一个点解码得到的是噪声。VAE 的解决方案：让编码器输出分布 q(z|x) = N(μ, σ²)，用 KL 散度惩罚将这个分布拉向标准正态分布 N(0, I)。重参数化技巧 z = μ + σ·ε 让梯度可以穿过采样操作。推理时丢弃编码器，直接从 N(0, I) 采样并解码。
+
+> **【拓展：潜在扩散模型中的 VAE 角色】** Stable Diffusion 的架构本质上是一个 VAE + 扩散模型的组合：VAE 将 512×512×3 图像压缩为 64×64×4 的潜在表示（空间下采样 8 倍），扩散模型在低维潜在空间中运行，VAE 解码器将结果还原为图像。这种设计将计算量降低了 48 倍，使消费级 GPU 图像生成成为可能。
+
 ## The Concept
 
 ![Autoencoder vs VAE: the reparameterization trick](../assets/vae.svg)
@@ -128,16 +132,16 @@ Skill takes: dataset profile + latent-dim target + downstream use (reconstructio
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Autoencoder | Encode-decode network | `x → z → x̂`, learn MSE. Not generative. |
-| VAE | AE with a sampler | Encoder outputs a distribution, KL penalty shapes code space. |
-| ELBO | Evidence lower bound | `log p(x) ≥ recon - KL[q(z\|x) \|\| p(z)]`; tight when `q = p(z\|x)`. |
-| Reparameterization | `z = μ + σ·ε` | Rewrites stochastic node as deterministic + pure noise. Enables backprop through sampling. |
-| Prior | `p(z)` | Target distribution for the latent, typically `N(0, I)`. |
-| Posterior collapse | "KL term wins" | Encoder ignores `x`, outputs the prior; decoder must hallucinate. |
-| β-VAE | Tunable KL weight | `loss = recon + β·KL`. Higher β = more disentangled but blurrier. |
-| VQ-VAE | Discrete latent | Replace continuous `z` with nearest codebook vector; enables transformer modelling. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Autoencoder | Encode-decode network | `x → z → x̂`, learn MSE. Not generative. | 自编码器——压缩重建，非生成模型 |
+| VAE | AE with a sampler | Encoder outputs a distribution, KL penalty shapes code space. | 变分自编码器——有采样器的自编码器 |
+| ELBO | Evidence lower bound | `log p(x) ≥ recon - KL[q(z\|x) \|\| p(z)]`; tight when `q = p(z\|x)`. | ELBO——证据下界 |
+| Reparameterization | `z = μ + σ·ε` | Rewrites stochastic node as deterministic + pure noise. Enables backprop through sampling. | 重参数化技巧——使梯度可穿过采样 |
+| Prior | `p(z)` | Target distribution for the latent, typically `N(0, I)`. | 先验——潜在空间的目标分布 |
+| Posterior collapse | "KL term wins" | Encoder ignores `x`, outputs the prior; decoder must hallucinate. | 后验坍缩——编码器忽略输入 |
+| β-VAE | Tunable KL weight | `loss = recon + β·KL`. Higher β = more disentangled but blurrier. | β-VAE——可调 KL 权重 |
+| VQ-VAE | Discrete latent | Replace continuous `z` with nearest codebook vector; enables transformer modelling. | VQ-VAE——离散潜在表示 |
 
 ## Production note: the VAE is the hottest path in a diffusion server
 

@@ -21,6 +21,8 @@ VAR fixes the generation-order problem by changing what is being generated. Inst
 
 Each scale attends to all previous scales (causally in "scale order") and parallel within its own scale. The order problem disappears: the whole image at scale k is produced in one transformer pass.
 
+> **【中文解读】** VAR（Visual AutoRegressive）解决了图像自回归生成的顺序问题。传统方法（PixelRNN、DALL-E 1）按 1D 栅格顺序逐像素/逐 token 生成，早期像素不知道图像最终会变成什么。VAR 的创新：改变生成对象——不是逐空间位置生成，而是逐分辨率尺度生成。第一步预测 1×1 的全局摘要，第二步预测 2×2 的粗特征，第三步 4×4……第 K 步预测最终分辨率。每个尺度在单次 Transformer 前向传播中并行生成。
+
 ## The Concept
 
 ### VQ-VAE Multi-Scale Tokenizer

@@ -22,6 +22,8 @@
 
 The 2026 stack separates the two problems. First, generate *2D multi-view images* with a diffusion model. Second, fit a *3D representation* (usually Gaussian splatting) to those images.
 
+> **【中文解读】** 3D 生成的四大困难：1) 表示形式多样（网格、点云、体素、SDF、NeRF、3D 高斯），各有取舍；2) 数据稀缺——ImageNet 有 14M 图像，最大 3D 数据集仅约 10M 物体且质量低；3) 内存巨大——512³ 体素网格有 128M 体素；4) 监督信号稀疏——通常只有几张 2D 视图需要提升到 3D。2026 年的解决方案：先用扩散模型生成多视角 2D 图像，再用 3D 高斯溅射拟合这些图像。
+
 ## The Concept
 
 ![3D generation: multi-view diffusion + 3D reconstruction](../assets/3d-generation.svg)
