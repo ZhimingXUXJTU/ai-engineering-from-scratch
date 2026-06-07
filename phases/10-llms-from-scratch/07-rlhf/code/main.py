@@ -1,3 +1,17 @@
+"""RLHF (Reinforcement Learning from Human Feedback) —— 通过人类反馈对齐语言模型
+
+核心概念：
+  - RLHF 是 ChatGPT 的核心技术，分三步：SFT -> 训练奖励模型 -> PPO 强化学习
+  - 奖励模型 (Reward Model)：学习人类偏好，给 (prompt, response) 对打分
+  - Bradley-Terry 模型：preferred 的奖励应该高于 rejected，用 sigmoid(logit) 建模偏好概率
+  - PPO (Proximal Policy Optimization)：在奖励模型引导下优化策略，同时用 KL 散度约束不偏离太远
+
+AI 对应：
+  - ChatGPT / Claude / Gemini 都使用 RLHF 来对齐模型行为
+  - Claude 使用"Constitutional AI"在 RLHF 基础上增加了自我纠错机制
+  - 奖励模型是 RLHF 最昂贵的组件——需要大量人类标注的偏好数据
+"""
+
 import numpy as np
 import sys
 import os
@@ -46,6 +60,11 @@ PREFERENCE_DATA = [
 
 
 class RewardModel:
+    """奖励模型：基于 Transformer 的文本评分器
+
+    结构与 MiniGPT 相同，但最后一个 token 的隐藏状态通过线性头映射为标量分数。
+    输入 (prompt, response) -> 输出一个实数值，越高表示越符合人类偏好。
+    """
     def __init__(
         self,
         vocab_size=256,
@@ -90,6 +109,11 @@ def sigmoid(x):
 
 
 def bradley_terry_loss(reward_preferred, reward_rejected):
+    """Bradley-Terry 偏好损失：preferred 的奖励应高于 rejected
+
+    loss = -log(sigmoid(r_preferred - r_rejected))
+    当 r_preferred >> r_rejected 时 loss → 0，当两者相等时 loss → log(2)
+    """
     diff = reward_preferred - reward_rejected
     loss = -np.log(sigmoid(diff) + 1e-8)
     return loss
@@ -161,6 +185,10 @@ def train_reward_model(rm, preference_data, num_epochs=10, lr=1e-4, max_seq_len=
 
 
 def compute_kl_divergence(policy_logits, reference_logits):
+    """KL 散度：衡量策略模型输出分布与参考模型输出分布的距离
+
+    在 RLHF 中用作正则化，防止策略模型偏离参考模型太远导致质量下降。
+    """
     policy_probs = np.exp(policy_logits - policy_logits.max(axis=-1, keepdims=True))
     policy_probs = policy_probs / policy_probs.sum(axis=-1, keepdims=True)
     policy_probs = np.clip(policy_probs, 1e-10, 1.0)
@@ -218,6 +246,24 @@ def copy_model_weights(source, target):
 
 
 def ppo_training(
+    policy_model,
+    reference_model,
+    reward_model,
+    prompts,
+    num_episodes=20,
+    lr=1.5e-5,
+    kl_coeff=0.02,
+    max_seq_len=128,
+):
+    """PPO 训练：在奖励模型引导下优化策略
+
+    流程：(1) 用策略模型生成回复
+    (2) 用奖励模型打分
+    (3) 计算 KL 惩罚，得到调整后的奖励 = reward - kl_coeff * KL
+    (4) 用调整后的奖励更新策略模型
+
+    KL 系数控制对齐强度 vs 保持能力的权衡：太高则学不到东西，太低则偏离太远。
+    """
     policy_model,
     reference_model,
     reward_model,

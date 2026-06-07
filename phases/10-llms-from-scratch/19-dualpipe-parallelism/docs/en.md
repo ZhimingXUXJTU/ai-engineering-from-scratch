@@ -30,6 +30,9 @@ Each of these has separate solutions: gradient checkpointing for memory, Zero Bu
 
 Reported result: near-elimination of pipeline bubbles, over 95% GPU utilization in DeepSeek-V3's 14.8T-token training run.
 
+> **【中文解读】**
+> 大模型训练有三大瓶颈：显存压力、流水线气泡、跨节点通信。GPipe 让 GPU 大量时间空闲，1F1B 稍好但气泡仍占 12%。DualPipe 的核心思路是把 MoE 的 all-to-all 通信"藏"在前向/反向计算里面——通信和计算同时进行，GPU 不再等待。这意味着同样的 GPU 集群可以训练更多 token，DeepSeek-V3 靠它达到了 95% 以上的 GPU 利用率。
+
 ## The Concept
 
 ### Pipeline parallelism refresher
@@ -114,6 +117,11 @@ For smaller runs (under 1k GPUs), DualPipe is overkill — pipeline bubbles are 
 
 ## Use It
 
+> **【中文解读】**
+> 实际使用 DualPipe 时，核心是模拟器帮你直观感受不同调度策略的差异：1F1B 的气泡随 micro-batch 数增长，DualPipe 的气泡不增长。集成到真实训练中需要确保 EP mesh 支持双向 all-to-all，并且第一次调试调度本身可能要花一周时间。
+
+> **【拓展：流水线并行→千亿参数训练】** GPT-4、DeepSeek-V3、Llama 405B 等千亿/万亿参数模型的训练都依赖某种形式的流水线并行。DualPipe 的创新在于专门针对 MoE 架构优化——当模型有 256 个专家分布在多节点时，通信开销是最大的瓶颈。PyTorch 的 PiPPy 和 DeepSpeed 的流水线引擎是更通用的方案，但针对 MoE 的效率不如 DualPipe。
+
 `code/main.py` is a pipeline schedule simulator. It takes `(P, n_micro_batches, schedule)` and prints the stable-phase utilization for each of 1F1B, Zero Bubble, DualPipe, and DualPipeV. It is a teaching tool — the numbers match the qualitative claims in the papers, they are not a claim about production measured speedup.
 
 The simulator's value: run it with different P and micro-batch counts and watch how the bubble fraction grows for 1F1B but not DualPipe.
@@ -156,6 +164,20 @@ This lesson produces `outputs/skill-dualpipe-planner.md`. Given a training clust
 | Expert Parallelism (EP) | "Experts across GPUs" | Shards MoE experts across ranks so different GPUs hold different experts |
 | Pipeline Parallelism (PP) | "Layers across GPUs" | Shards model layers across ranks; the dimension DualPipe schedules |
 | Bubble fraction | "Wasted GPU time" | (bubble_time / total_time); the fraction DualPipe drives toward zero |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| 流水线气泡 | "GPU 空闲时间" | GPU 因等待前序阶段输出而浪费的时钟周期 |
+| 1F1B | "默认流水线调度" | 一前向一后向交替调度；DualPipe 要超越的基线 |
+| Zero Bubble | "Sea AI Lab 2023" | 将后向拆分为 B（输入梯度）和 W（权重梯度）；几乎完全压紧流水线 |
+| DualPipe | "DeepSeek-V3 调度" | 双向流水线 + 计算-通信重叠；气泡不随 micro-batch 数增长 |
+| DualPipeV | "Cut-in-half" | V 形改进版，去掉双倍参数复制，代价是气泡稍大 |
+| Chunk | "流水线工作单元" | 一个 micro-batch 在一个流水线阶段的前向或后向传播 |
+| All-to-all dispatch | "发 token 给专家" | 跨节点通信，将 token 路由到其分配的 MoE 专家 |
+| All-to-all combine | "收集专家输出" | 跨节点通信，在 MLP 后收集专家输出 |
+| 专家并行 (EP) | "专家分到不同 GPU" | 将 MoE 专家分片到不同 rank，不同 GPU 持有不同专家 |
+| 流水线并行 (PP) | "层分到不同 GPU" | 将模型层分片到不同 rank；DualPipe 调度的维度 |
+| 气泡比例 | "浪费的 GPU 时间" | (气泡时间 / 总时间)；DualPipe 将其推向零 |
 
 ## Further Reading
 

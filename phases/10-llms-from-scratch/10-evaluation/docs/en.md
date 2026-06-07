@@ -18,6 +18,8 @@
 - Implement task-specific evals with proper metrics: exact match, F1, BLEU, and LLM-as-judge scoring
 - Design a custom evaluation suite targeting your specific use case rather than relying solely on public leaderboards
 
+> **【中文解读】** 学习目标：1) 构建自定义评测框架；2) 理解为什么标准基准（MMLU、HumanEval）趋于饱和；3) 实现任务特定评测（精确匹配、F1、BLEU、LLM-as-judge）；4) 设计针对你自己用例的自定义评测套件。
+
 ## The Problem
 
 MMLU was published in 2020 with 15,908 questions across 57 subjects. Within three years, frontier models saturated it. GPT-4 scored 86.4%. Claude 3 Opus scored 86.8%. Llama 3 405B scored 88.6%. The leaderboard compressed into a 3-point range where differences are statistical noise, not real capability gaps.
@@ -27,6 +29,8 @@ Meanwhile, those same models fail at tasks that a 10-year-old handles without th
 The gap between benchmark performance and real-world reliability is the central problem of LLM evaluation. Benchmarks tell you how a model performs on the benchmark. They tell you almost nothing about how that model will perform on your specific task, with your specific data, under your specific failure modes. If you are building a customer support bot, MMLU is irrelevant. If you are building a code assistant, HumanEval only covers function-level generation -- it says nothing about debugging, refactoring, or explaining code across files.
 
 You need custom evals. Not because benchmarks are useless -- they are useful for rough model selection -- but because the final evaluation must match your deployment conditions exactly.
+
+> **【中文解读】** MMLU 在三年内被前沿模型饱和——GPT-4 86.4%、Claude 3 Opus 86.8%、Llama 3 405B 88.6%，3 分范围内的差异是统计噪声。同一时间，这些模型连 10 岁小孩都能做的任务（数"strawberry"中的字母数）都做不好。基准分数与真实可靠性的差距是 LLM 评测的核心问题。你需要自定义评测——不是因为基准无用，而是因为最终评测必须精确匹配你的部署条件。
 
 ## The Concept
 

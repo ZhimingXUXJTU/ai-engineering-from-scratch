@@ -1,3 +1,18 @@
+"""LLM 预训练数据流水线 —— 从原始文本到训练就绪的 token 序列
+
+核心概念：
+  - 数据清洗：去除 HTML 标签、URL、多余空白等噪声
+  - 质量过滤：根据文档长度、大写比例、特殊字符比例过滤低质量数据
+  - 去重 (MinHash + LSH)：用局部敏感哈希快速检测近似重复文档
+  - BPE 分词：将清洗后的文本转换为 token ID 序列
+  - 序列打包：将 token 序列切分为固定长度的训练样本，附加 attention mask
+
+AI 对应：
+  - GPT-4 的预训练数据经过严格的清洗、去重和质量过滤（CommonCrawl -> FineWeb）
+  - Llama 3 使用了超过 15T tokens 的训练数据，去重是节省算力的关键步骤
+  - 生产级流水线使用 Apache Beam / Spark 分布式处理 TB 级数据
+"""
+
 import re
 import hashlib
 import random
@@ -6,6 +21,7 @@ from collections import Counter, defaultdict
 
 
 def clean_text(text):
+    """清洗文本：去除 HTML 标签、URL、不可打印字符和多余空白"""
     text = re.sub(r"<[^>]+>", "", text)
     text = re.sub(r"http\S+", "", text)
     text = re.sub(r"[^\x20-\x7E\n]", "", text)
@@ -15,6 +31,10 @@ def clean_text(text):
 
 
 def quality_filter(text, min_words=50, max_ratio_caps=0.3, max_ratio_special=0.1):
+    """质量过滤器：根据字数、大写比例和特殊字符比例判断文档是否高质量
+
+    GPT-3 论文中使用了类似的启发式过滤，并结合了分类器打分。
+    """
     words = text.split()
     if len(words) < min_words:
         return False
@@ -28,6 +48,10 @@ def quality_filter(text, min_words=50, max_ratio_caps=0.3, max_ratio_special=0.1
 
 
 def get_shingles(text, k=5):
+    """生成 k-shingle 集合：将文本按滑动窗口切分为 k 个连续词的短语
+
+    两个文档的 shingle 集合越相似，它们的内容越重复。
+    """
     words = text.lower().split()
     if len(words) < k:
         return set()
@@ -35,6 +59,11 @@ def get_shingles(text, k=5):
 
 
 def minhash_signature(shingles, num_hashes=128):
+    """计算 MinHash 签名：将 shingle 集合压缩为固定长度的数值向量
+
+    两个集合的 MinHash 签名在相同位置相等的概率 = Jaccard 相似度。
+    这是一种概率近似方法，用于快速估计集合相似性。
+    """
     signature = []
     for i in range(num_hashes):
         min_hash = float("inf")
@@ -48,6 +77,11 @@ def minhash_signature(shingles, num_hashes=128):
 
 
 def lsh_buckets(signature, bands=16):
+    """局部敏感哈希 (LSH)：将签名分 band，同一 band 哈希到同一桶的文档对为候选重复
+
+    核心思想：将 128 维签名分为 16 个 band（每 band 8 行），
+    如果两个文档在任一 band 完全相同，就可能是近似重复。
+    """
     rows_per_band = len(signature) // bands
     buckets = []
     for b in range(bands):
@@ -59,6 +93,12 @@ def lsh_buckets(signature, bands=16):
 
 
 def deduplicate(documents, threshold=0.8, num_hashes=128, bands=16):
+    """MinHash + LSH 去重：快速找到并移除近似重复文档
+
+    流程：(1) 对每个文档计算 MinHash 签名
+    (2) 用 LSH 将签名分桶，找到候选重复对
+    (3) 对候选对精确计算 Jaccard 相似度，超过阈值则移除
+    """
     signatures = []
     shingle_sets = []
     for doc in documents:
@@ -86,7 +126,7 @@ def deduplicate(documents, threshold=0.8, num_hashes=128, bands=16):
         s1, s2 = shingle_sets[i], shingle_sets[j]
         if not s1 or not s2:
             continue
-        jaccard = len(s1 & s2) / len(s1 | s2)
+        jaccard = len(s1 & s2) / len(s1 | s2)  # Jaccard 相似度 = 交集 / 并集
         if jaccard >= threshold:
             removed.add(j)
 
@@ -180,6 +220,12 @@ def pack_sequences(token_ids, seq_length, pad_id=0):
 
 
 class PreTrainingDataLoader:
+    """预训练数据加载器：将序列打包为 batch，支持 shuffle 和 attention mask
+
+    功能类似于 PyTorch 的 DataLoader，但纯 Python 实现。
+    每个 batch 包含等长的序列和对应的 attention mask（标记哪些位置是 padding）。
+    """
+
     def __init__(self, sequences, attention_masks, batch_size, shuffle=True):
         self.sequences = sequences
         self.attention_masks = attention_masks

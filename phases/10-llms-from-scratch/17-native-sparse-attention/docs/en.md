@@ -22,6 +22,9 @@
 
 Full attention at sequence length N costs `O(N^2)` time and `O(N)` KV cache per layer. At 64k tokens, the compute and memory bandwidth numbers are catastrophic. Measured theoretical estimate from the NSA paper: attention accounts for 70-80% of total decode latency at 64k. Everything downstream — TTFT, tokens/sec, cost per million tokens — is dominated by attention cost.
 
+> **【中文解读】**
+> 64K token 时，注意力机制占了解码延迟的 70-80%。问题出在 O(N^2) 的计算复杂度——token 数量翻倍，计算量翻四倍。之前的稀疏注意力方案要么丢弃信息（滑动窗口），要么在推理时才稀疏化（KV cache 剪枝），效果都不理想。NSA 的突破在于让稀疏模式在预训练阶段就参与学习，模型自动学会如何在稀疏模式下路由信息。
+
 Sparse attention is the obvious answer. Prior attempts fall into two buckets. Fixed-pattern sparsity (sliding-window, strided, block-local) throws information away and fails on long-range recall tasks. Inference-time sparsity (KV cache pruning, H2O, StreamingLLM) is applied to a model pre-trained on dense attention and recovers only a fraction of the potential speedup because the model was never asked to route information through the sparse pattern.
 
 Native Sparse Attention (Yuan et al., DeepSeek + PKU + UW, ACL 2025 best paper, arXiv:2502.11089) does both: a sparsity pattern the model learns during pre-training, implemented as a kernel-aligned algorithm that actually delivers the compute savings at inference. Two years from now, NSA or a direct descendant is the default attention on every frontier long-context model.
@@ -87,6 +90,11 @@ With `N = 128k, l = 64, k = 16, b = 64, w = 512`: per-query cost is `2000 + 1024
 MoBA (Moonshot, arXiv:2502.13189) was concurrently published and takes a similar three-is-better-than-one approach, applying the MoE principle to attention blocks. NSA and MoBA are the two architectures to know for 2026 long-context pre-training.
 
 ## Build It
+
+> **【中文解读】**
+> NSA 的三条分支各司其职：压缩分支用 O(N/l) 的开销扫描全序列找到粗粒度相关区域；选择分支在 top-k 区域做细粒度注意力，精确捕捉远距离依赖；滑动窗口分支处理局部语法和指代关系。三条分支通过可学习门控组合，整体复杂度从 O(N^2) 降到 O(N*(N/l + k*b + w))，64K 时 25 倍计算减少。
+
+> **【拓展：稀疏注意力→RAG 和长文档】** NSA 使得 128K+ token 的上下文窗口在经济上可行。想象一下把整本书喂给 LLM 做 RAG——标准注意力在 128K token 时的计算量是 NSA 的 36 倍。DeepSeek 的 Triton 内核在 64K 解码时比 FlashAttention 快 9 倍，这意味着长上下文推理不再需要昂贵的集群，单卡就能跑。
 
 `code/main.py` implements the three branches on a short synthetic sequence and shows:
 
@@ -181,6 +189,19 @@ This lesson produces `outputs/skill-nsa-integrator.md`. Given a long-context pre
 | Branch gate | "How to mix the three" | Per-position MLP output that weights the three branches' contributions |
 | Hardware alignment | "Kernel-friendly sparsity" | Sparse pattern chosen so that the actual GPU kernel achieves the theoretical speedup |
 | DSA | "NSA's successor" | Deepseek Sparse Attention, the architecture that followed NSA in DeepSeek's lineage |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| 压缩分支 | "粗粒度视图" | 对块平均键做注意力，以 O(N/l) 的键/query 提供全局上下文 |
+| 选择分支 | "Top-k 块" | 对压缩分支得分最高的 k 个块做细粒度注意力 |
+| 滑动窗口 | "局部上下文" | 对最近 W 个 token 做注意力，捕捉短程模式 |
+| 原生可训练性 | "预训练时带稀疏性" | 稀疏模式在预训练阶段学习，而非推理时才加上 |
+| 压缩块大小 l | "粗粒度分组大小" | 多少 token 合并成一个摘要；典型值 32-64 |
+| Top-k | "保留的块数" | 压缩块中哪些保留原始 token 做细粒度注意力；典型值 16 |
+| 滑动窗口 W | "局部注意力半径" | 典型值 512；太短影响局部连贯性，太长浪费计算 |
+| 分支门控 | "如何混合三条" | 逐位置 MLP 输出，加权三条分支的贡献 |
+| 硬件对齐 | "内核友好的稀疏性" | 稀疏模式让实际 GPU 内核达到理论加速比 |
+| DSA | "NSA 的继任者" | Deepseek Sparse Attention，NSA 之后 DeepSeek 的下一代架构 |
 
 ## Further Reading
 

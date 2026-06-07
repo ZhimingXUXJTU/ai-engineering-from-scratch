@@ -1,18 +1,14 @@
-"""Hogwild! Inference toy simulator — stdlib Python.
+"""Hogwild! 异步推理模拟器 —— 无锁并行生成的玩具演示
 
-Two workers run concurrently against a shared token cache. Each worker reads
-the cache and decides whether to add a work-token to category A or B, using
-a simple coordination heuristic: if the other worker already produced enough
-tokens in a category, switch.
+核心概念：
+  - Hogwild!：一种无锁并行策略——多个 worker 共享同一个 token 缓存，不使用互斥锁
+  - 异步推理：多个 worker 并行生成 token，通过读取共享缓存来隐式协调
+  - 协调启发式：如果另一个 worker 已经在某个类别产出了足够多的 token，就切换类别
+  - 核心权衡：协调越好，重复工作越少；但协调本身也有开销
 
-Outputs:
-  - total work-tokens produced in fixed step budget
-  - wall-time speedup vs a single-worker baseline
-  - a trace of which worker wrote which token and what category
-  - a coordination-weight sweep showing the effect of poor coordination
-
-Not a faithful LLM simulation. The point is to demonstrate emergent work
-division driven by shared-cache reads.
+AI 对应：
+  - SpecInfer / Medusa 等投机解码系统使用类似的并行生成策略
+  - 在多 GPU 推理中，worker 之间的通信延迟是主要瓶颈，异步策略可以重叠计算和通信
 """
 
 from __future__ import annotations

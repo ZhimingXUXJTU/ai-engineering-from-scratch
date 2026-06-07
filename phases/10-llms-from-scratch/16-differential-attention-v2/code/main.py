@@ -1,12 +1,16 @@
-"""Differential attention (Ye et al., ICLR 2025) in stdlib Python.
+"""差分注意力 (Differential Attention, Ye et al., ICLR 2025) —— 纯标准库实现
 
-Builds two softmax maps from split Q, K, subtracts the second from the first
-scaled by a learned lambda, multiplies by V. Measures the signal-to-noise
-ratio of the resulting attention weights on a synthetic long-context query
-and compares to standard softmax attention. Also prints the parameter-count
-diff for DIFF V1 and DIFF V2 against a baseline Transformer.
+核心概念：
+  - 标准注意力：softmax(QK^T/sqrt(d)) * V，存在注意力噪声问题
+  - 差分注意力：将 Q, K 分为两组，计算两个 softmax 注意力图后相减
+    Attention = (softmax(Q1*K1^T) - lambda * softmax(Q2*K2^T)) * V
+  - 通过减去第二个注意力图来消除噪声信号，提高信噪比 (SNR)
+  - lambda 是可学习参数，控制减法强度
 
-Pure stdlib. No numpy, no torch.
+AI 对应：
+  - 差分注意力是 Transformer 架构的改进方向之一
+  - 类比信号处理中的差分放大器：通过两个信号的差值来消除共模噪声
+  - 在长上下文场景下效果更明显（需要从大量 token 中找到真正相关的信息）
 """
 
 from __future__ import annotations

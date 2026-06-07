@@ -1,11 +1,15 @@
-"""Architecture calculator for open LLMs.
+"""开源 LLM 架构计算器 —— 解析主流模型的配置并计算参数量
 
-Given a HuggingFace-style config dict, compute parameter counts by component,
-KV cache at max context, MLP ratio, and a verdict on the architecture. Ships
-with configs for Llama 3 8B, Mistral 7B, Mixtral 8x7B, DeepSeek V3, Qwen 2.5,
-and GPT-2 Small for direct comparison.
+核心概念：
+  - 给定 HuggingFace 风格的模型配置（层数、头数、维度等），精确计算参数量
+  - 支持 MHA / GQA / MQA / MLA 四种注意力方案的参数计算
+  - 支持 Dense MLP 和 MoE（混合专家）两种 FFN 架构
+  - 计算 KV Cache 在最大上下文长度下的显存占用
 
-Stdlib only. No torch, no downloads. The point is to read configs, not weights.
+AI 对应：
+  - 本文件包含 GPT-2 Small, Mistral 7B, Llama 3 8B/70B, Mixtral 8x7B, Qwen 2.5 72B, DeepSeek V3 的配置
+  - DeepSeek V3 使用 MoE（256 专家 / 每 token 选 8 个）+ MLA 注意力，总参数 671B 但激活参数仅 37B
+  - 理解架构参数是评估训练成本和推理需求的第一步
 """
 
 from __future__ import annotations
@@ -94,6 +98,7 @@ class Breakdown:
 
 
 def attention_scheme(config: dict) -> str:
+    """判断注意力方案：MHA（多头）/ GQA（分组查询）/ MQA（多查询）/ MLA（多头潜在）"""
     if config.get("attention") == "mla":
         return "MLA"
     q_heads = config["num_attention_heads"]

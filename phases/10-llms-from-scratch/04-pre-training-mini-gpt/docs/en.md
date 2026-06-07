@@ -18,6 +18,8 @@
 - Implement autoregressive text generation with temperature sampling and top-k/top-p filtering
 - Monitor training loss curves and validate that the model learns coherent language patterns
 
+> **【中文解读】** 学习目标：1) 从零实现 GPT-2 架构（1.24 亿参数）——token 嵌入、位置嵌入、Transformer 块、语言模型头；2) 用下一个 token 预测训练模型；3) 实现自回归文本生成（温度采样、top-k/top-p 过滤）；4) 监控训练损失曲线。
+
 ## The Problem
 
 You know what a transformer is. You have read the diagrams. You can recite "attention is all you need" and draw boxes labeled "Multi-Head Attention" on a whiteboard.
@@ -29,6 +31,8 @@ There are 124,438,272 parameters in GPT-2 Small (with weight tying). Every singl
 If you have never built this yourself, you are working with a black box. You can use the API. You can fine-tune. But when something goes wrong -- when the model hallucinates, when it repeats itself, when it refuses to follow instructions -- you have no mental model for *why*.
 
 This lesson builds GPT-2 Small from scratch. Not in PyTorch. In numpy. Every matrix multiplication is visible. Every gradient is computed by your code. You will see exactly how 124 million numbers conspire to predict the next word.
+
+> **【中文解读】** 如果你从未从头构建过 GPT，你就在使用一个黑盒。你可以调用 API、微调模型，但当模型幻觉、重复、拒绝指令时，你不知道"为什么"。本课用纯 NumPy（非 PyTorch）构建 GPT-2 Small，让每一次矩阵乘法都可见。
 
 ## The Concept
 
@@ -48,6 +52,8 @@ Here is the full computation graph from token IDs to next-token probabilities:
 8. Softmax to get probabilities.
 
 That is the entire model. No convolutions. No recurrence. Just embeddings, attention, feedforward networks, and layer norms stacked 12 times.
+
+> **【中文解读】** GPT 的完整计算图：Token ID → Token 嵌入（768 维）+ 位置嵌入（768 维）→ 12 个 Transformer 块 → 层归一化 → 线性投影到词表大小（50,257）→ Softmax 得到概率。整个模型没有卷积、没有循环，只有嵌入、注意力、前馈网络和层归一化堆叠 12 次。
 
 ```mermaid
 graph TD

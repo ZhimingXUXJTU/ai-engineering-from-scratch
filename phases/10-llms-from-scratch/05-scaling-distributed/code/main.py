@@ -1,8 +1,27 @@
+"""LLM 分布式训练 —— 数据并行、张量并行、流水线并行与成本估算
+
+核心概念：
+  - 数据并行 (Data Parallelism)：每个 GPU 持有完整模型副本，处理不同的数据分片，梯度同步平均
+  - 张量并行 (Tensor Parallelism)：将单个矩阵乘法切分到多个 GPU，每张卡计算部分结果后拼接
+  - 流水线并行 (Pipeline Parallelism)：将模型按层切分到不同 GPU，数据像流水线一样依次通过
+  - ZeRO/FSDP：通过分片优化器状态、梯度、权重来降低每张卡的显存需求
+
+AI 对应：
+  - GPT-4 训练使用了数千张 A100/H100 GPU，结合三种并行策略
+  - Llama 3 405B 使用 FSDP 在 16384 张 H100 上训练
+  - DeepSeek V3 使用 DualPipe 流水线并行（本课程 Phase 10 Lesson 19 专题讲解）
+"""
+
 import numpy as np
 from collections import defaultdict
 
 
 def simulate_data_parallelism(data, num_gpus, model_fn):
+    """模拟数据并行：将数据均匀分片到多个 GPU，各自计算 loss 和梯度后取平均
+
+    数据并行是最简单的分布式策略，但每张 GPU 需要放下完整模型。
+    通信量与模型参数量成正比（AllReduce 梯度）。
+    """
     batch_size = len(data)
     shard_size = batch_size // num_gpus
     remainder = batch_size % num_gpus
@@ -27,6 +46,11 @@ def simulate_data_parallelism(data, num_gpus, model_fn):
 
 
 def simulate_tensor_parallelism(input_data, weight_matrix, num_gpus):
+    """模拟张量并行：将权重矩阵按列切分到多个 GPU，各自计算部分矩阵乘法后拼接
+
+    Megatron-LM 使用这种方法：将线性层的权重按列切分，每个 GPU 计算 Y_i = X @ W_i，
+    然后 AllGather 得到完整输出。通信发生在每一层，需要高带宽互联（NVLink）。
+    """
     d_in, d_out = weight_matrix.shape
     assert d_out % num_gpus == 0, f"d_out {d_out} not divisible by num_gpus {num_gpus}"
     shard_size = d_out // num_gpus
@@ -49,6 +73,11 @@ def simulate_tensor_parallelism(input_data, weight_matrix, num_gpus):
 
 
 def simulate_pipeline_parallelism(num_layers, num_stages, num_microbatches):
+    """模拟流水线并行：将模型按层分为多个 stage，micro-batch 像流水线一样依次通过
+
+    关键指标是"气泡率"（bubble fraction）：GPU 空闲等待时间的比例。
+    增加 micro-batch 数量可以减少气泡率，提高 GPU 利用率。
+    """
     layers_per_stage = num_layers // num_stages
 
     timeline = {}
@@ -83,6 +112,21 @@ def simulate_pipeline_parallelism(num_layers, num_stages, num_microbatches):
 
 
 def memory_calculator(
+    params_billions,
+    precision_bytes=2,
+    optimizer="adam",
+    num_gpus=1,
+    sharding="none",
+    sequence_length=2048,
+    batch_size_per_gpu=1,
+    hidden_dim=None,
+    num_layers=None,
+):
+    """训练显存计算器：估算不同并行策略下每张 GPU 的显存需求
+
+    组成部分：权重 + 优化器状态 + 梯度 + 激活值
+    ZeRO Stage 1/2/3 通过分片不同组件来降低单卡显存。
+    FSDP (ZeRO-3) 将所有组件都分片，需要的每卡显存最少。
     params_billions,
     precision_bytes=2,
     optimizer="adam",
@@ -141,6 +185,11 @@ def memory_calculator(
 
 
 def mixed_precision_comparison(params_billions):
+    """混合精度对比：FP32 vs FP16+FP32 主权重 vs BF16 混合精度
+
+    混合精度训练是现代 LLM 训练的标准做法：前向用低精度（快），
+    优化器更新用高精度（准），在速度和精度之间取得平衡。
+    """
     params = params_billions * 1e9
 
     fp32_weights = params * 4
@@ -203,6 +252,16 @@ def training_cost_estimator(
     num_gpus=None,
     utilization=0.4,
 ):
+    """训练成本估算器：基于 Chinchilla 缩放定律估算训练 LLM 的 GPU 时间和费用
+
+    经验公式：总 FLOPS ≈ 6 × 参数量 × token 数（前向+反向各约 3 倍参数量的计算）
+    40% 的 MFU (Model FLOPs Utilization) 是实际训练中的典型效率。
+    params_billions,
+    target_tokens_trillions,
+    gpu_type="h100",
+    num_gpus=None,
+    utilization=0.4,
+):
     gpu_specs = {
         "a100": {"tflops_bf16": 312, "cost_per_hour": 2.00, "memory_gb": 80},
         "h100": {"tflops_bf16": 990, "cost_per_hour": 3.50, "memory_gb": 80},
@@ -213,7 +272,7 @@ def training_cost_estimator(
     params = params_billions * 1e9
     tokens = target_tokens_trillions * 1e12
 
-    flops_total = 6 * params * tokens
+    flops_total = 6 * params * tokens  # Chinchilla 经验公式：训练总 FLOPS
 
     flops_per_gpu_per_sec = spec["tflops_bf16"] * 1e12 * utilization
 

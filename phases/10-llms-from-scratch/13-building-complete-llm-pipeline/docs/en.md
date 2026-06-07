@@ -22,6 +22,9 @@
 
 The previous lessons each work. Tokenizer trained. Tiny GPT pre-trained. SFT dataset assembled. Reward model trained. DPO run. Evals measured. Quantized weights exported. Inference server spun up. Each one is a notebook. Each one has its own conventions, its own output paths, its own seed.
 
+> **【中文解读】**
+> 每个 Lesson 都是一个独立的 notebook，但真实的大模型训练不是 notebook——Llama 3 405B 花了 3000 万 H100 小时，DeepSeek-V3 花了 280 万 H800 小时。一次数据污染或评估回归就可能浪费一周的时间和百万美元的 GPU 预算。生存之道是管线纪律：每个阶段有确定的输入、确定的输出、manifest、hash 和门控。这套规则从 100M 到 1T 参数不变。
+
 A frontier training run is not a notebook. Llama 3 405B took 30 million H100 hours over roughly 54 days. DeepSeek-V3 used around 2.8 million H800 hours. During that time, one corrupted checkpoint, one data contamination, one eval regression can cost a team a week of wall-clock and a month of GPU budget. The way teams survive this is through pipeline hygiene: every stage has a deterministic input, a deterministic output, a manifest, a hash, and a gate.
 
 This is the capstone. You will not run the pipeline end-to-end on a laptop. You will write the orchestrator that coordinates the stages, the manifest that describes the run, the verifier that gates ship decisions, and the replay plan that lets a third party re-run your work from a single file. The code is small; the discipline is large.
@@ -199,6 +202,11 @@ The numbers change every six months. The skeleton does not.
 
 ## Build It
 
+> **【中文解读】**
+> 管线的核心是四个组件：(1) Manifest——YAML 文件描述整个运行，包括每个阶段的配置、hash 和门控阈值；(2) Orchestrator——解析 DAG、调度阶段、验证 hash、失败时生成部分 manifest；(3) Eval Gate——纯数值门槛，没有"看起来不错"这种主观判断；(4) Artifact Store——按 hash 寻址的不可变存储。关键原则：用 hash 不用文件名（`ckpt-7b-step-20000-sha256:abc123.safetensors` 而非 `latest.pt`）。
+
+> **【拓展：LLM 管线→MLOps】** 这套管线纪律是 MLOps 在大模型时代的延伸。W&B（Weights & Biases）做实验跟踪，S3/R2 做模型注册，eval gate 替代人工审批。Llama 3 报告的训练成本是 $61M，DeepSeek-V3 是 $5.6M——差距主要来自 MoE 架构的效率，但两者都靠严格的管线控制来避免浪费。
+
 The lesson's code is an orchestrator and a manifest checker, not twelve training scripts. Each stage is simulated with a placeholder that produces an output artifact with the correct shape and hash. Running the orchestrator end-to-end proves the pipeline's plumbing works before you burn GPU money on the real stages.
 
 See `code/main.py` for the full implementation. The key pieces:
@@ -256,6 +264,19 @@ This lesson produces `outputs/skill-llm-pipeline-reviewer.md`. Feed it a propose
 | Artifact store | "Versioned S3 for weights" | Immutable content-addressed object store — single source of truth for checkpoints, datasets, eval reports |
 | Reproducible | "Same metrics on replay" | Different bit-level weights but equivalent downstream metrics — the realistic target for distributed LLM training |
 | Cost gate | "You cannot exceed X" | Pre-run cost estimate plus in-run tracker — the pipeline refuses to start if the estimate exceeds budget |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| Manifest | "配方文件" | 描述管线版本、种子、逐阶段配置和门控阈值的 YAML/JSON——足以重放整个运行 |
+| 内容寻址 | "按 hash 不按名字" | 按 SHA-256 存储产物，不会混淆版本 A 和版本 B |
+| 评估门控 | "发布标准" | 基准指标和安全分数的数值门槛，全部通过才能标记为可发布 |
+| KL 预算 | "对齐漂移了多少" | 对齐阶段 KL(policy \|\| reference) 的累积上限，作为门控执行 |
+| MFU | "GPU 用了多少" | 模型 FLOPs 利用率——实际 FLOPs 除以理论峰值。70B 级别典型 40%，7B 级别 55% |
+| 回滚计划 | "出问题怎么办" | 每个阶段失败时的预写行动集：重跑、回退、用修正输入重训 |
+| 编排器 | "指挥者" | 读取 manifest、调度阶段、验证 hash、任何合约违规时停止的进程 |
+| 产物存储 | "版本化 S3" | 不可变的内容寻址对象存储——检查点、数据集、评估报告的唯一真相来源 |
+| 可复现 | "重放时指标相同" | 不同的 bit 级别权重但等价的下游指标——分布式 LLM 训练的现实目标 |
+| 成本门控 | "不能超过 X" | 运行前成本估算加运行中追踪——估算超预算时管线拒绝启动 |
 
 ## Further Reading
 

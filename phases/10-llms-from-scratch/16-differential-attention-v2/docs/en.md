@@ -22,6 +22,9 @@
 
 Standard softmax attention has a mathematical property that turns into an operational headache at scale. For a query `q`, the attention weights are `softmax(qK^T / sqrt(d))`. Softmax can never produce exact zeros — every non-matching token gets some positive mass. That residual mass is noise, and it scales with context length. At 128k tokens, even if each non-matching token gets only 0.001% of the probability, 127,999 of them combined contribute about 12% of the total. The model has to learn to route around a noise floor that grows with context.
 
+> **【中文解读】**
+> Softmax 无法输出精确的零——每个不相关的 token 都会分到一点注意力。128K token 时，12 万多个不相关 token 的噪声加起来占总注意力的 12%。这就是长上下文 RAG 中出现"幻觉引用"、100K 检索中"中间丢失"的根本原因。差分注意力用两个 softmax 相减来消除共享噪声，类似于降噪耳机的工作原理。
+
 Empirically this shows up as attention-head interference: hallucinated citations in long-context RAG, lost-in-the-middle failures on 100k-token retrieval tasks, and subtle accuracy degradation on needle-in-haystack benchmarks past 32k. The Differential Transformer paper (arXiv:2410.05258, ICLR 2025) measured the gap: DIFF Transformers hit lower perplexity, higher long-context accuracy, and fewer hallucinations than same-size baselines.
 
 DIFF V1 had three problems that kept it out of frontier pre-training pipelines. Its value cache had to be loaded twice per decode step, it required custom CUDA kernels that broke FlashAttention compatibility, and its per-head RMSNorm destabilized long-run training at 70B-plus scale. DIFF V2 (Microsoft unilm blog, January 20, 2026) fixed all three. This lesson walks both versions, builds the difference operator, and benchmarks noise cancellation on a toy query.
@@ -100,6 +103,11 @@ The value grows with context length. At 4k tokens the noise floor is small enoug
 | Speculative decoding | Yes (attention change is invisible to the spec-decode loop) |
 
 ## Build It
+
+> **【中文解读】**
+> V1 将每个头的维度减半来塞进两组 Q/K，导致解码变慢。V2 的改进很聪明：保持 KV cache 不变，增加 Q 头数，减法运算后再投影回原始维度。这样解码速度与基线 Transformer 一样，还能直接用 FlashAttention——不需要自定义 CUDA 内核。在 1024 token 的合成实验中，差分注意力的信噪比是标准注意力的 3-10 倍。
+
+> **【拓展：差分注意力→RAG 幻觉】** 长上下文 RAG 系统最常见的故障模式是"幻觉引用"——模型引用了文档中不存在的内容。这是因为 softmax 的噪声让不相关的段落也贡献了注意力，模型基于噪声做出了错误的引用。差分注意力在大海捞针（needle-in-haystack）测试中准确率显著提升，特别是在 32K token 以上时效果明显。如果你的 RAG 系统经常出现幻觉引用，差分注意力是一个值得考虑的架构改进。
 
 `code/main.py` implements differential attention in pure Python. A toy query with known signal-plus-noise structure lets you measure the noise-cancellation ratio directly.
 
@@ -191,6 +199,18 @@ This lesson produces `outputs/skill-diff-attention-integrator.md`. Given a model
 | Signal-to-noise ratio | "How much attention is wasted" | Ratio of weight on the true signal position to average weight on unrelated positions |
 | Lost in the middle | "Long-context failure mode" | Empirical phenomenon where retrieval accuracy dips for documents in the middle of a long context — DIFF attention reduces this |
 | Arithmetic intensity | "FLOPs per byte loaded" | Ratio V2 increased at decode by doubling queries per KV load; important for memory-bound decode |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| 差分注意力 | "两个 softmax 相减" | 将 Q、K 拆成两半，计算两个 softmax 图，用第一个减去第二个（乘以 lambda），再乘以 V |
+| 噪声基底 | "softmax 的非零尾巴" | softmax 给每个不相关 token 分配的 O(1/N) 权重，在长上下文中累积到 O(1) |
+| lambda | "减法缩放" | 逐头可学习标量，参数化为 exp(lq1.lk1) - exp(lq2.lk2) + lambda_init；可以为负 |
+| DIFF V1 | "ICLR 2025 版" | 原始差分 Transformer；减半头维度以保持参数量，需要自定义内核，解码更慢 |
+| DIFF V2 | "2026 年 1 月修复版" | Q 头加倍，KV 头不变；匹配基线解码速度，兼容 FlashAttention |
+| 逐头 RMSNorm | "V1 稳定器" | V1 在差分后施加的额外归一化；V2 去掉了以防止后期训练不稳定 |
+| 信噪比 | "注意力浪费了多少" | 真实信号位置的权重与不相关位置平均权重的比率 |
+| 中间丢失 | "长上下文失败模式" | 长上下文中间部分的检索准确率下降的现象——差分注意力减轻了这个问题 |
+| 算术强度 | "每字节加载的 FLOPs" | V2 通过加倍每次 KV 加载的查询数，提升了内存受限解码的这个比率 |
 
 ## Further Reading
 

@@ -18,6 +18,8 @@
 - Compare DPO vs RLHF in terms of training stability, compute cost, and number of models required
 - Tune the beta parameter to control how far the trained policy diverges from the reference model
 
+> **【中文解读】** 学习目标：1) 实现 DPO 训练——直接在偏好对上优化语言模型，无需单独的奖励模型；2) 推导 DPO 损失函数，理解策略的对数概率如何隐式表示奖励模型；3) 对比 DPO 与 RLHF 的训练稳定性、计算成本和模型数量；4) 调节 beta 参数控制策略偏离参考模型的程度。
+
 ## The Problem
 
 You built an RLHF pipeline in Lesson 07. Three stages. Three models. The SFT model, the reward model, and the policy model optimized with PPO. The reward model alone required thousands of human preference pairs and a separate training loop. PPO required careful tuning of the KL coefficient, learning rate, clip ratio, and number of epochs.
@@ -29,6 +31,8 @@ This complexity is why most open-source models struggled with RLHF for years aft
 In May 2023, Rafael Rafailov, Archit Sharma, and colleagues at Stanford published "Direct Preference Optimization: Your Language Model is Secretly a Reward Model." The key insight: you don't need a separate reward model. The optimal reward function is mathematically determined by the language model's own token probabilities. You can skip the reward model entirely and optimize the language model directly on preference pairs.
 
 DPO reduces RLHF to a single supervised learning step. One model. One loss function. One training loop. No reinforcement learning. Zephyr-7B, one of the first models to use DPO at scale, matched or beat models trained with full RLHF on several benchmarks. Meta used DPO as part of Llama 3's alignment pipeline. Anthropic has cited DPO-style methods in their alignment research.
+
+> **【中文解读】** DPO 的核心洞察：你不需要单独的奖励模型。最优奖励函数由语言模型自身的 token 概率数学确定。DPO 将 RLHF 简化为单一的监督学习步骤——一个模型、一个损失函数、一个训练循环。Zephyr-7B 是首批大规模使用 DPO 的模型之一，在多个基准上匹配或超越了完整 RLHF 训练的模型。Meta 在 Llama 3 的对齐流程中也使用了 DPO。
 
 ## The Concept
 

@@ -22,6 +22,9 @@
 
 Modern LLMs solve hard problems by producing long chains of reasoning — 5000 tokens of step-by-step logic is common, tens of thousands of tokens happens on deep math problems. At 35 tokens/sec decode on a 70B model, 50k tokens is 24 minutes. Interactive the model is not.
 
+> **【中文解读】**
+> 推理模型（如 DeepSeek-R1、QwQ）生成 50K token 的推理链需要 24 分钟——这不现实。投机解码在单序列内并行，但受限于自回归依赖。Hogwild! 推理的思路完全不同：多个 LLM 实例共享一个 KV cache，每个 worker 实时看到其他 worker 写入的 token。不需要投票、不需要子任务分配、不需要协调器——推理模型自己就能读共享上下文然后自发分工。
+
 Speculative decoding (Phase 10 · 15) gets you a 3-5x speedup by parallelizing within one sequence. Past that the sequential dependency of autoregressive decoding is the hard ceiling. Each new token depends on every prior token.
 
 The obvious question: can we parallelize across sequences? Run multiple copies of the same model on the same problem, let them cooperate, have them divide the work?
@@ -108,6 +111,11 @@ Worth knowing. Worth experimenting with. Not yet worth betting a product on.
 
 ## Build It
 
+> **【中文解读】**
+> Hogwild! 的核心机制：N 个 worker 写入同一个共享 KV cache，写入顺序由到达时间决定。RoPE（旋转位置编码）是关键——因为位置是旋转变换而非固定偏移，token 写入共享 cache 时不需要重新计算已有的 KV 条目。如果用绝对位置编码，每次并发写入都需要 cache 失效重算。
+
+> **【拓展：共享上下文→AI Agent 协作】** Hogwild! 推理的"共享白板"模式预示了 AI Agent 协作的未来方向。不同于 LangChain/CrewAI 等框架通过显式消息传递协调，Hogwild! 让 Agent 通过共享上下文自发协调。这种模式在数学证明、代码审查、科学推理等可分解任务上特别有效。
+
 `code/main.py` implements a toy Hogwild! simulator:
 
 - Two worker processes, each a deterministic "LLM" that produces one of several token categories (work-token, observe-token, coordinate-token) with known probabilities.
@@ -187,6 +195,18 @@ This lesson produces `outputs/skill-parallel-inference-router.md`. Given a reaso
 | Voting ensemble | "Run N, pick the majority" | The simplest parallel inference topology; useful for classification, less for long-form reasoning |
 | Tree of thought | "Branch and prune" | Reasoning strategy that explores multiple branches and prunes; explicit coordination logic |
 | Multi-agent framework | "Assign sub-tasks" | Each agent gets a role; a coordinator orchestrates; heavy protocol overhead |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| Hogwild! | "并行 worker，共享 cache" | N 个相同 LLM 实例并发运行，共享一个 KV cache；通过自我提示实现涌现协调 |
+| 共享 KV cache | "协调媒介" | 所有 worker 读写的一个不断增长的 KV 缓冲区；实现跨 worker 即时 token 可见性 |
+| 涌现协调 | "无需训练" | 推理能力的 LLM 可以读取共享 cache 并自主分工，无需微调或显式协议 |
+| 协调开销 (c) | "花在定位上的 token" | 每个 worker 读取扩展 cache 并决定做什么的成本；必须远小于总解码时间 |
+| 可并行化比例 (p) | "什么可以并行" | 任务级并行度：总工作中非固有串行部分的比例 |
+| RoPE 使 Hogwild! 可行 | "旋转位置是移位不变的" | 因为位置是旋转，写入共享 cache 不需要重算之前的 token |
+| 投票集成 | "跑 N 个，选多数" | 最简单的并行推理拓扑；适用于分类，不适合长篇推理 |
+| 思维树 | "分支和剪枝" | 探索多个分支并剪枝的推理策略；有显式协调逻辑 |
+| 多 Agent 框架 | "分配子任务" | 每个 Agent 一个角色；协调器编排；协议开销大 |
 
 ## Further Reading
 
