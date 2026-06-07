@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Workbench init script. See Phase 14 · 35 for the from-scratch build."""
+"""Agent 工作台初始化脚本 —— 检查环境、依赖并设置初始状态
+
+核心概念：
+  - 环境检查：验证 Python 版本、依赖库是否安装
+  - 状态初始化：创建 agent_state.json 记录 Agent 的初始配置
+  - 初始化报告：记录环境信息、依赖状态，便于调试
+"""
 
 from __future__ import annotations
 

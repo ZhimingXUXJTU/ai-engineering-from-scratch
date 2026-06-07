@@ -4,8 +4,12 @@ No real screen. We model the screen as labeled rectangles at pixel coordinates,
 render what the agent would "see," classify each action before execution, and
 require human-in-the-loop confirmation on sensitive actions.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Computer Use Agent 安全架构 —— 屏幕建模为标注矩形（Element），每步操作前经过
+SafetyClassifier 分类（注入检测 + 元素白名单 + 敏感操作确认门控），敏感操作触发
+human-in-the-loop 确认。
+AI 对应：Anthropic Computer Use（2024）、OpenAI Operator 和 Google Project Mariner 都采用类似的
+"视觉识别 → 安全分类 → 确认执行"管线；Claude 的 computer_use 工具在 Anthropic API 中原生支持
+坐标点击和键盘输入，是 GUI 自动化 Agent 的标杆实现。
 """
 
 from __future__ import annotations
@@ -16,7 +20,6 @@ from typing import Any, Callable
 
 @dataclass
 class Element:
-    """Element"""
     eid: str
     label: str
     x: int
@@ -28,34 +31,30 @@ class Element:
 
 @dataclass
 class Screen:
-    """Screen"""
     elements: list[Element]
     dom_text: str = ""
 
     def element_at(self, x: int, y: int) -> Element | None:
         for el in self.elements:
             if el.x <= x <= el.x + el.w and el.y <= y <= el.y + el.h:
-                return el  # 返回结果
-        return None  # 返回结果
+                return el
+        return None
 
 
 @dataclass
 class Action:
-    """Action"""
     kind: str
     args: dict[str, Any]
 
 
 @dataclass
 class SafetyVerdict:
-    """SafetyVerdict"""
     allow: bool
     reason: str
     needs_confirmation: bool = False
 
 
 class SafetyClassifier:
-    """SafetyClassifier"""
     INJECTION_MARKERS = (
         "ignore all instructions", "ignore previous instructions",
         "system:", "override:", "act as",
@@ -66,39 +65,38 @@ class SafetyClassifier:
 
     def assess(self, action: Action, screen: Screen) -> SafetyVerdict:
         if self._dom_has_injection(screen):
-            return SafetyVerdict(False, "DOM contains injection markers")  # 返回结果
+            return SafetyVerdict(False, "DOM contains injection markers")
         if action.kind == "click":
             x, y = action.args["x"], action.args["y"]
             el = screen.element_at(x, y)
             if el is None:
-                return SafetyVerdict(False, f"no element at ({x}, {y})")  # 返回结果
+                return SafetyVerdict(False, f"no element at ({x}, {y})")
             if el.label not in self.allowed_labels:
-                return SafetyVerdict(  # 返回结果
+                return SafetyVerdict(
                     False, f"label {el.label!r} not in allowlist"
                 )
             if el.sensitive:
-                return SafetyVerdict(  # 返回结果
+                return SafetyVerdict(
                     True, f"label {el.label!r} is sensitive; confirm required",
                     needs_confirmation=True,
                 )
-            return SafetyVerdict(True, "ok")  # 返回结果
+            return SafetyVerdict(True, "ok")
         if action.kind == "type":
             text = action.args["text"]
             for marker in self.INJECTION_MARKERS:
                 if marker in text.lower():
-                    return SafetyVerdict(  # 返回结果
+                    return SafetyVerdict(
                         False, f"typed text contains injection marker: {marker!r}"
                     )
-            return SafetyVerdict(True, "ok")  # 返回结果
-        return SafetyVerdict(False, f"unknown action kind: {action.kind}")  # 返回结果
+            return SafetyVerdict(True, "ok")
+        return SafetyVerdict(False, f"unknown action kind: {action.kind}")
 
     def _dom_has_injection(self, screen: Screen) -> bool:
         text = screen.dom_text.lower()
-        return any(m in text for m in self.INJECTION_MARKERS)  # 返回结果
+        return any(m in text for m in self.INJECTION_MARKERS)
 
 
 def run_agent(actions: list[Action], screen: Screen,
-    """run_agent"""
               classifier: SafetyClassifier,
               human_confirm: Callable[[str], bool]) -> list[tuple[Action, str]]:
     trace: list[tuple[Action, str]] = []
@@ -118,11 +116,10 @@ def run_agent(actions: list[Action], screen: Screen,
             trace.append((action, f"CLICK OK: {el.label}"))
         elif action.kind == "type":
             trace.append((action, f"TYPE OK: {action.args['text'][:40]}"))
-    return trace  # 返回结果
+    return trace
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("COMPUTER USE AGENT — Phase 14, Lesson 21")
     print("=" * 70)
@@ -141,10 +138,10 @@ def main() -> None:
     )
 
     def always_approve(reason: str) -> bool:
-        return True  # 返回结果
+        return True
 
     def never_approve(reason: str) -> bool:
-        return False  # 返回结果
+        return False
 
     print("\ncase 1: normal flow (click search, type query, click buy; confirm)")
     trace = run_agent(

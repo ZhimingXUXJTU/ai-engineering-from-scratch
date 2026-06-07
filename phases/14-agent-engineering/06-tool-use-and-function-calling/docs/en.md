@@ -21,7 +21,7 @@ Early tool use asked: can the model predict a correct function call? Modern tool
 Toolformer established the baseline: models can learn when to call tools with self-supervision. BFCL V4 defines the 2026 evaluation target. The gap between them is the space production agents live in.
 
 
-> **【中文解读】** 本节介绍了 Agent 的记忆机制，包括短期工作记忆和长期情景记忆的管理策略。
+> **【中文解读】** 本节介绍工具调用（Tool Use）和函数调用（Function Calling）——Agent 的"手脚"。核心内容：1) Toolformer 的自监督工具标注方法（模型自己学会何时调用工具）；2) BFCL V4 评估体系（2026 年工具调用的标准基准）；3) 用纯标准库实现一个带 Schema 验证、参数类型转换和沙箱执行的工具注册表。
 
 ## The Concept | 概念
 

@@ -14,6 +14,8 @@
 - Describe Mem0's fusion scoring — relevance, importance, recency — and why it is a weighted sum, not a hierarchy.
 - Implement a toy three-store memory in stdlib with an `add()` that writes to all three and a `search()` that fuses results.
 
+> **【中文解读】** 学习目标：解释为什么单一存储（纯向量、纯图、纯 KV）不足以支撑 Agent 记忆，掌握 Mem0 的三个并行存储及其优化目标，理解融合评分（相关性+重要性+时效性），用标准库实现三存储记忆系统。
+
 ## The Problem | 问题
 
 One store is wrong for one of three query classes:
@@ -21,6 +23,8 @@ One store is wrong for one of three query classes:
 - **Semantic similarity** — "what did we discuss about agent drift last week?" Vector wins; KV and graph miss.
 - **Fact lookup** — "what is the user's phone number?" KV wins; vector is wasteful, graph is overkill.
 - **Relationship reasoning** — "which customers share the same billing entity?" Graph wins; vector and KV cannot answer.
+
+> **【中文解读】** 单一存储无法覆盖三类查询：语义相似性查询需要向量存储、事实查找需要 KV 存储、关系推理需要图存储。Mem0 将三种存储并行使用，融合评分层在检索时合并三个存储的结果。
 
 
 > **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。

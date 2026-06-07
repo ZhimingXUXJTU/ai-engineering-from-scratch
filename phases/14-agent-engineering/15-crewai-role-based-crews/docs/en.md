@@ -17,16 +17,17 @@
 - Implement a stdlib three-agent crew (researcher, writer, editor) that produces a brief.
 - Spot the three CrewAI failure modes: prompt-bloat, manager-LLM tax, brittle handoffs.
 
+> **【中文解读】** 学习目标：掌握 CrewAI 的四个原语（Agent、Task、Crew、Process），区分顺序/层级/共识三种执行模式，理解 Crews（自主协作）与 Flows（事件驱动确定性）的区别，学会工具集成、记忆类型选择和常见失败模式识别。
+
 ## The Problem | 问题
 
 Teams adopting multi-agent frameworks hit the same wall. "Autonomous collaboration" sounds great in a demo. Then a customer files a bug and you need deterministic replay. Or finance asks how much an LLM-routed crew costs per run. Or on-call needs to know which agent stalled at 3 AM.
 
 Free-form LLM-routed crews answer none of those cleanly. Pure DAGs answer them all but lose the exploratory shape a brainstorming agent needs.
 
-
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
-
 CrewAI's split is honest about the trade. Crews for collaborative, role-based, exploratory work. Flows for event-driven, code-owned, auditable production. Same framework, two shapes, pick per surface.
+
+> **【中文解读】** 采用多 Agent 框架的团队都会撞墙："自主协作"在演示中看起来很好，但生产环境需要确定性重放、成本审计和故障定位。自由形式的 LLM 路由团队无法满足这些需求。CrewAI 诚实面对这个权衡：Crews 用于探索性工作，Flows 用于可审计的生产环境。
 
 ## The Concept | 概念
 
@@ -41,7 +42,7 @@ CrewAI's surface is small. Memorize this and the rest is config.
 
 Agents do not see each other directly. Tasks reference agents. The Crew sequences tasks. The Process decides who picks the next task. That is the whole mental model.
 
-> **Validated against** CrewAI 0.86 (2026-05). Newer versions may rename or merge process types; check the [CrewAI Processes docs](https://docs.crewai.com/concepts/processes) before relying on a specific shape.
+> **【中文解读】** CrewAI 的四个原语：Agent（角色+目标+背景故事+工具）、Task（描述+预期输出+分配的 Agent）、Crew（容器，持有 Agent 列表、Task 列表和执行策略）、Process（执行策略：顺序/层级/共识）。关键心智模型：Agent 不直接看到彼此，Task 引用 Agent，Crew 编排 Task，Process 决定谁来接下一个 Task。
 
 ### Sequential vs Hierarchical vs Consensus
 
@@ -51,6 +52,8 @@ Agents do not see each other directly. Tasks reference agents. The Crew sequence
 
 Hierarchical adds a per-round LLM call (the manager) on top of every specialist call. Token cost can triple on a five-step run. Pay for it only when you need the routing.
 
+> **【中文解读】** 三种执行模式：**Sequential**（顺序）——按声明顺序运行，成本最低、最可预测；**Hierarchical**（层级）——管理 Agent（额外 LLM 调用）路由到专家，五步运行中 token 成本可能翻三倍；**Consensus**（共识）——计划中，尚未实现。只在顺序不确定且有四个以上专家时才用层级模式。
+
 ### Crews vs Flows
 
 This is the framing the docs lead with in 2026.
@@ -59,6 +62,10 @@ This is the framing the docs lead with in 2026.
 - **Flow.** Event-driven graph you own. `@start` marks the entry. `@listen(topic)` marks a step that fires when another step emits that topic. Each step is plain Python (can call a Crew internally). Good for: production. Observable. Testable. Deterministic.
 
 The docs' 2026 production recommendation: start with a Flow. Fold Crews in as `Crew.kickoff()` calls from inside Flow steps when autonomy earns its cost. The Flow gives you the audit trail, the Crew gives you the exploration. Compose, do not pick.
+
+> **【中文解读】** Crews vs Flows 是 2026 年 CrewAI 文档的核心区分：**Crew**——LLM 驱动的自主协作，框架在运行时决定流程，适合研究、头脑风暴、初稿，难以重放和测试；**Flow**——你拥有的事件驱动图，`@start` 标记入口，`@listen(topic)` 标记触发步骤，每个步骤是普通 Python，适合生产环境。生产推荐：从 Flow 开始，在 Flow 步骤内部调用 Crew.kickoff() 来组合使用。
+
+> **【拓展：CrewAI Flow → 生产实践】** CrewAI 文档直言"任何生产就绪的应用都应从 Flow 开始"。这个建议适用于所有多 Agent 框架——先用确定性流程（DAG/工作流）搭建骨架，只在确实需要 LLM 自主决策的地方嵌入 Agent 自主性。
 
 ### Tool integration
 

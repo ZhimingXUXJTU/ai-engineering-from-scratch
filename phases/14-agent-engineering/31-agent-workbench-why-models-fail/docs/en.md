@@ -14,16 +14,17 @@
 - Compare a prompt-only run against a workbench-guided run on a small repo task.
 - Produce a failure-mode report that maps each missed surface to the symptom it caused.
 
+> **【中文解读】** 学习目标：区分模型能力与执行可靠性，掌握决定 Agent 是否能交付的七个工作台面，对比纯提示运行与工作台引导运行的差异。
+
 ## The Problem | 问题
 
 You drop a frontier model into a real repo and ask it to add input validation. It opens four files, writes plausible code, declares success, and stops. You run the tests. Two fail. A third file is touched that had nothing to do with validation. There is no record of what the agent assumed, what it tried first, or what is left to do.
 
 The model was not wrong about Python. It was wrong about the work. It had no idea what counted as done, where it was allowed to write, what tests were authoritative, or how the next session was supposed to pick up.
 
-
-> **【中文解读】** 本节内容是 AI 工程学习路径中的重要一环，为构建生产级 AI 系统奠定基础。
-
 This is not a model bug. It is a workbench bug. The surface around the agent is missing the parts that turn a one-shot generation into reliable, resumable engineering.
+
+> **【中文解读】** 强大模型不够——可靠 Agent 需要工作台。将前沿模型放入真实仓库执行任务时，它可能写出看起来合理的代码但测试失败、修改不相关文件、且没有记录。模型不是在 Python 上出错，而是在"工作方式"上出错——不知道什么算完成、可以在哪里写、哪些测试权威、下一个会话如何继续。这是工作台的 Bug，不是模型的 Bug。
 
 ## The Concept | 概念
 

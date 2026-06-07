@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Structured shell-command runner. See Phase 14 · 37."""
+"""带反馈记录的结构化命令运行器 —— 执行命令并记录输出到反馈日志
+
+核心概念：
+  - 结构化执行：运行 shell 命令并捕获 stdout/stderr/退出码
+  - 反馈记录：将每次执行的结果追加到 feedback_record.jsonl
+  - 确定性输出截断：保留头部和尾部，避免超长输出
+"""
 
 from __future__ import annotations
 

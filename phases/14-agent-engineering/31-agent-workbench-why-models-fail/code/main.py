@@ -6,8 +6,13 @@ caught each failure on the first run.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Agent Workbench 失败分析 —— 对比纯提示词运行 vs Workbench 引导运行，
+统计每个 Workbench 表面（状态追踪、任务板、规则检查等）能捕获多少个纯提示词运行中的失败。
+这是理解"为什么 Agent 需要工作台而非仅靠提示词"的实验方法。
+
+AI 对应：Claude Code、Cursor、Devin 等 Agent IDE 都采用类似的工作台架构，
+而非简单的"发提示词给 LLM"。工作台提供的结构化表面（文件追踪、任务管理、
+规则约束）显著降低了 Agent 的失败率。这是从"提示词工程"到"Agent 工程"的关键转变。
 """
 
 from __future__ import annotations
@@ -30,7 +35,6 @@ WORKBENCH_SURFACES = [
 
 @dataclass
 class RepoTask:
-    """RepoTask"""
     description: str
     allowed_files: list[str]
     forbidden_files: list[str]
@@ -39,7 +43,6 @@ class RepoTask:
 
 @dataclass
 class RunResult:
-    """RunResult"""
     label: str
     surfaces_present: list[str] = field(default_factory=list)
     files_touched: list[str] = field(default_factory=list)
@@ -49,7 +52,7 @@ class RunResult:
     notes: list[str] = field(default_factory=list)
 
     def missing_surfaces(self) -> list[str]:
-        return [s for s in WORKBENCH_SURFACES if s not in self.surfaces_present]  # 返回结果
+        return [s for s in WORKBENCH_SURFACES if s not in self.surfaces_present]
 
 
 def stub_agent(task: RepoTask, surfaces: list[str]) -> RunResult:
@@ -86,12 +89,11 @@ def stub_agent(task: RepoTask, surfaces: list[str]) -> RunResult:
     if not has_state:
         result.notes.append("no state file written, next session restarts from zero")
 
-    return result  # 返回结果
+    return result
 
 
 def failure_report(result: RunResult) -> dict[str, object]:
-    """failure_report"""
-    return {  # 返回结果
+    return {
         "label": result.label,
         "missing_surfaces": result.missing_surfaces(),
         "off_scope_writes": [
@@ -105,7 +107,6 @@ def failure_report(result: RunResult) -> dict[str, object]:
 
 
 def main() -> None:
-    """main"""
     task = RepoTask(
         description="add input validation to /signup and a passing test",
         allowed_files=["app.py", "test_app.py"],
