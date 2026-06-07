@@ -5,8 +5,12 @@ resources/read, A2A task creation) reduces to a FIPA-ACL envelope with a
 different syntax. Then runs a 3-bidder contract-net negotiation using the
 canonical cfp / propose / accept-proposal / reject-proposal performatives.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：FIPA-ACL（Agent 通信语言）信封格式与 Contract Net 协议，将 MCP tools/call、
+A2A POST /tasks 等 2026 年主流 Agent 协议消息统一映射为 FIPA-ACL 的 performative 语义，
+并用 cfp/propose/accept-proposal/reject-proposal 四步实现多 Agent 招标协商
+AI 对应：MCP（Anthropic Model Context Protocol）和 A2A（Google Agent-to-Agent Protocol）是
+当前最流行的 Agent 通信标准；FIPA-ACL 的 performative 分类思想被 OpenAI Swarm、
+CrewAI 的任务委派机制继承；Contract Net 协议在 AutoGen GroupChat 的 speaker 选择中复现
 """
 from __future__ import annotations
 
@@ -24,7 +28,6 @@ PERFORMATIVES = {
 
 @dataclass
 class ACLMessage:
-    """ACLMessage"""
     performative: str
     sender: str
     receiver: str
@@ -54,12 +57,12 @@ class ACLMessage:
         if self.reply_with:
             fields.append(f":reply-with   {self.reply_with}")
         inner = "\n  ".join(fields)
-        return f"({self.performative}\n  {inner}\n)"  # 返回结果
+        return f"({self.performative}\n  {inner}\n)"
 
 
 def mcp_tools_call_to_acl(req: dict) -> ACLMessage:
     """MCP tools/call JSON-RPC message -> FIPA-ACL request."""
-    return ACLMessage(  # 返回结果
+    return ACLMessage(
         performative="request",
         sender="host",
         receiver=req["params"]["name"],
@@ -74,7 +77,7 @@ def mcp_tools_call_to_acl(req: dict) -> ACLMessage:
 
 def mcp_resources_read_to_acl(req: dict) -> ACLMessage:
     """MCP resources/read JSON-RPC message -> FIPA-ACL query-ref."""
-    return ACLMessage(  # 返回结果
+    return ACLMessage(
         performative="query-ref",
         sender="host",
         receiver="resource-server",
@@ -89,7 +92,7 @@ def mcp_resources_read_to_acl(req: dict) -> ACLMessage:
 
 def a2a_task_create_to_acl(task: dict) -> ACLMessage:
     """A2A POST /tasks body -> FIPA-ACL request inside a contract-net-like flow."""
-    return ACLMessage(  # 返回结果
+    return ACLMessage(
         performative="request",
         sender=task.get("client", "client"),
         receiver=task.get("agent", "agent"),
@@ -104,7 +107,7 @@ def a2a_task_create_to_acl(task: dict) -> ACLMessage:
 
 def a2a_subscribe_to_acl(task_id: str, client: str, agent: str) -> ACLMessage:
     """A2A SSE subscription -> FIPA-ACL subscribe."""
-    return ACLMessage(  # 返回结果
+    return ACLMessage(
         performative="subscribe",
         sender=client,
         receiver=agent,
@@ -118,7 +121,6 @@ def a2a_subscribe_to_acl(task_id: str, client: str, agent: str) -> ACLMessage:
 
 @dataclass
 class Bid:
-    """Bid"""
     bidder: str
     price: int
     eta_minutes: int
@@ -126,7 +128,6 @@ class Bid:
 
 @dataclass
 class ContractNet:
-    """ContractNet"""
     manager: str
     bidders: list[str]
     log: list[ACLMessage] = field(default_factory=list)
@@ -179,7 +180,6 @@ class ContractNet:
 
 
 def demo_round_trip() -> None:
-    """demo_round_trip"""
     print("=" * 72)
     print("Round-trip: 2026 JSON-RPC / REST <-> FIPA-ACL envelope")
     print("=" * 72)
@@ -223,7 +223,6 @@ def demo_round_trip() -> None:
 
 
 def demo_contract_net() -> None:
-    """demo_contract_net"""
     print("\n" + "=" * 72)
     print("Contract Net Protocol — manager broadcasts cfp, bidders propose")
     print("=" * 72)
@@ -249,7 +248,6 @@ def demo_contract_net() -> None:
 
 
 def main() -> None:
-    """main"""
     demo_round_trip()
     demo_contract_net()
     print("\nTakeaway: MCP/A2A messages are FIPA-ACL envelopes with JSON syntax.")

@@ -5,8 +5,13 @@ ticks, invitations spread through bilateral memory observations, reflection
 synthesizes beliefs, and plans update. By the final tick, 3+ agents converge
 at the party location without any central orchestrator.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：生成式 Agent 模拟（Stanford Smallville 论文缩小版），Agent 通过三个核心机制运作——
+Memory Stream（带时间戳和重要性的记忆流）、Reflection（从高重要性记忆中合成信念）、
+Plan（基于信念更新行动计划），无需中心编排器即可实现涌现式群体协调
+AI 对应：Stanford "Generative Agents" (Park et al. 2023) 是此模式的奠基论文，
+被广泛用于 NPC 行为模拟和社会仿真；记忆检索的 recency+importance+relevance 三维评分
+被 LangChain 的 ConversationBufferWindowMemory 和 MemGPT/Letta 的记忆管理系统继承；
+AI Town (a16z) 是此模式的开源实现
 """
 from __future__ import annotations
 
@@ -20,7 +25,6 @@ TICK_DURATION_S = 0.01  # simulated; output is instantaneous
 
 @dataclass
 class Memory:
-    """Memory"""
     ts: int
     kind: str
     content: str
@@ -29,7 +33,6 @@ class Memory:
 
 @dataclass
 class Plan:
-    """Plan"""
     tick: int
     where: str
     note: str
@@ -37,7 +40,6 @@ class Plan:
 
 @dataclass
 class Agent:
-    """Agent"""
     name: str
     location: str
     stream: list[Memory] = field(default_factory=list)
@@ -65,22 +67,20 @@ class Agent:
         for p in self.plans:
             if p.tick == tick:
                 self.location = p.where
-                return f"{self.name} moves to {p.where} ({p.note})"  # 返回结果
-        return f"{self.name} remains at {self.location}"  # 返回结果
+                return f"{self.name} moves to {p.where} ({p.note})"
+        return f"{self.name} remains at {self.location}"
 
 
 def retrieve_top_k(stream: list[Memory], query: str, tick: int, k: int = 3) -> list[Memory]:
-    """retrieve_top_k"""
     def score(m: Memory) -> float:
         recency = math.exp(-0.3 * (tick - m.ts))
         importance = m.importance / 10.0
         relevance = 0.6 if any(w in m.content.lower() for w in query.lower().split()) else 0.1
-        return recency + importance + relevance  # 返回结果
-    return sorted(stream, key=score, reverse=True)[:k]  # 返回结果
+        return recency + importance + relevance
+    return sorted(stream, key=score, reverse=True)[:k]
 
 
 def run_simulation(n_agents: int = 5, ticks: int = 6) -> None:
-    """run_simulation"""
     agents = [Agent(f"agent-{i}", location="home") for i in range(n_agents)]
 
     # Seed agent 0 with the party goal.
@@ -126,7 +126,6 @@ def run_simulation(n_agents: int = 5, ticks: int = 6) -> None:
 
 
 def demo_retrieval() -> None:
-    """demo_retrieval"""
     print("\n" + "=" * 72)
     print("RETRIEVAL DEMO — top-k by recency + importance + relevance")
     print("=" * 72)
@@ -143,7 +142,6 @@ def demo_retrieval() -> None:
 
 
 def main() -> None:
-    """main"""
     run_simulation()
     demo_retrieval()
     print("\nTakeaways:")

@@ -4,8 +4,13 @@
 Run happy path and a perturbed path where the top manager mislabels one branch.
 Watch the error cascade.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：三层分级多 Agent 架构（Top Manager -> Sub-Manager -> Worker），
+以及"分解漂移"(decomposition drift) 问题——顶层 Manager 将任务错误路由到
+不匹配的 Sub-Manager 时，错误会级联放大且难以在下游被发现
+AI 对应：CrewAI 的 hierarchical process（Manager -> Agent 两层）和
+AutoGen 的 NestedChat 实现类似的多级委派；MetaGPT 的 SoftwareCompany 架构
+（ProductManager -> Architect -> Engineer）是典型的三级分层；
+错误级联是生产系统中 "Agent 失效模式" 研究的核心问题
 """
 from __future__ import annotations
 
@@ -14,7 +19,6 @@ from dataclasses import dataclass, field
 
 @dataclass
 class LeafOutput:
-    """LeafOutput"""
     worker: str
     question: str
     answer: str
@@ -22,7 +26,6 @@ class LeafOutput:
 
 @dataclass
 class SubSummary:
-    """SubSummary"""
     sub_manager: str
     leaves: list[LeafOutput]
     summary: str
@@ -30,14 +33,12 @@ class SubSummary:
 
 @dataclass
 class TopSynthesis:
-    """TopSynthesis"""
     top_manager: str
     branches: list[SubSummary]
     synthesis: str
 
 
 class Worker:
-    """Worker"""
     def __init__(self, name: str, canned: dict[str, str]) -> None:
         self.name = name
         self.canned = canned
@@ -45,18 +46,17 @@ class Worker:
     def run(self, question: str) -> LeafOutput:
         key = self._match_key(question)
         ans = self.canned.get(key, f"[no canned answer for '{question}']")
-        return LeafOutput(worker=self.name, question=question, answer=ans)  # 返回结果
+        return LeafOutput(worker=self.name, question=question, answer=ans)
 
     def _match_key(self, q: str) -> str:
         ql = q.lower()
         for k in self.canned:
             if k in ql:
-                return k  # 返回结果
-        return "default"  # 返回结果
+                return k
+        return "default"
 
 
 class SubManager:
-    """SubManager"""
     def __init__(self, name: str, workers: list[Worker], split: dict[str, str]) -> None:
         self.name = name
         self.workers = workers
@@ -68,11 +68,10 @@ class SubManager:
             sub_q = self.split.get(w.name, task)
             leaves.append(w.run(sub_q))
         summary = f"[{self.name}] aggregated: " + " | ".join(l.answer for l in leaves)
-        return SubSummary(sub_manager=self.name, leaves=leaves, summary=summary)  # 返回结果
+        return SubSummary(sub_manager=self.name, leaves=leaves, summary=summary)
 
 
 class TopManager:
-    """TopManager"""
     def __init__(self, name: str, subs: dict[str, SubManager]) -> None:
         self.name = name
         self.subs = subs
@@ -91,11 +90,10 @@ class TopManager:
                 continue
             summaries.append(self.subs[label].run(f"{task} -- branch: {label}"))
         synth = "top synthesis: " + " || ".join(s.summary for s in summaries)
-        return TopSynthesis(top_manager=self.name, branches=summaries, synthesis=synth)  # 返回结果
+        return TopSynthesis(top_manager=self.name, branches=summaries, synthesis=synth)
 
 
 def build_hierarchy() -> TopManager:
-    """build_hierarchy"""
     fe = Worker("fe", {"frontend": "React component audited; 2 issues."})
     be = Worker("be", {"backend": "API endpoints audited; 1 issue."})
     eng = SubManager(
@@ -110,11 +108,10 @@ def build_hierarchy() -> TopManager:
         {"finance": "Projected cost $42k/month; exceeds budget by 12%."},
     )
     finance = SubManager("finance-manager", [fw], {"finance": "finance review of the feature"})
-    return TopManager("vp-eng", {"engineering": eng, "legal": legal, "finance": finance})  # 返回结果
+    return TopManager("vp-eng", {"engineering": eng, "legal": legal, "finance": finance})
 
 
 def render(label: str, synth: TopSynthesis) -> None:
-    """render"""
     print(f"\n=== {label} ===")
     for branch in synth.branches:
         print(f"  [sub] {branch.sub_manager}")
@@ -126,7 +123,6 @@ def render(label: str, synth: TopSynthesis) -> None:
 
 
 def main() -> None:
-    """main"""
     print("Hierarchical multi-agent with decomposition-drift demo")
     print("-" * 60)
 

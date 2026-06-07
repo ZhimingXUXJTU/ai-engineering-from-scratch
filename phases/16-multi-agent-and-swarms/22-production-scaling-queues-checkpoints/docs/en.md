@@ -28,6 +28,8 @@ The in-memory event loop does none of these. You need a durable execution layer 
 
 This lesson builds a miniature of each.
 
+> **【中文解读】** 多 Agent 系统从原型到生产面临的四大挑战：长时间运行（数小时）、工作进程崩溃导致状态丢失、峰值负载是平均的 10 倍、需要精确一次的计费语义。内存事件循环无法解决这些问题，需要持久化执行层。2026 年的四种方案：带检查点的工作流引擎、消息队列+状态存储、Actor 模型框架、简单的 FastAPI+Postgres。
+
 ## Concept
 
 ### Durable execution, the pattern

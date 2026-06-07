@@ -4,8 +4,13 @@ Simulates 3 multi-agent systems on a toy task set. Computes MARBLE-style
 milestone metrics, random baseline delta, cost-per-milestone, and a
 contamination check by splitting seen/unseen tasks.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：多 Agent 系统评估方法论——MARBLE 风格里程碑评估（milestone completion rate
+而非简单准确率）、污染检测（seen vs held-out 数据集分割）、成本效益比
+（cost per milestone）、随机基线对比，以及六项声明验证清单
+AI 对应：MARBLE benchmark (Zeno et al.) 是多 Agent 系统的标准评估框架；
+SWE-bench 和 WebArena 是单 Agent 代码/Web 任务的评估基准；
+GAIA (Mistral/DeepMind) 评估通用 AI 助手能力；
+Arcade (Scale AI) 和 AgentBench (Tsinghua) 提供多 Agent 协调基准
 """
 from __future__ import annotations
 
@@ -15,7 +20,6 @@ from dataclasses import dataclass, field
 
 @dataclass
 class SystemSim:
-    """SystemSim"""
     name: str
     base_accuracy: float
     cost_per_task: float
@@ -26,7 +30,6 @@ class SystemSim:
 
 @dataclass
 class TaskResult:
-    """TaskResult"""
     task_id: str
     seen_in_training: bool
     accuracy: float
@@ -45,14 +48,13 @@ SYSTEMS = [
 
 
 def run_task(system: SystemSim, task_id: str, seen: bool, rng: random.Random) -> TaskResult:
-    """run_task"""
     base = system.base_accuracy
     if seen:
         base += system.training_contamination
     base = max(0.0, min(1.0, base + rng.uniform(-system.variance, system.variance)))
     success = rng.random() < base
     milestones = 4 if success else int(4 * system.milestone_completion_rate * rng.random())
-    return TaskResult(  # 返回结果
+    return TaskResult(
         task_id=task_id,
         seen_in_training=seen,
         accuracy=1.0 if success else 0.0,
@@ -62,12 +64,10 @@ def run_task(system: SystemSim, task_id: str, seen: bool, rng: random.Random) ->
 
 
 def random_baseline(rng: random.Random) -> float:
-    """random_baseline"""
     return 0.15  # random routing accuracy on this task family
 
 
 def run_bench(system: SystemSim, n_seen: int, n_held: int, seed: int = 0) -> dict:
-    """run_bench"""
     rng = random.Random(seed)
     results_seen: list[TaskResult] = []
     results_held: list[TaskResult] = []
@@ -75,7 +75,7 @@ def run_bench(system: SystemSim, n_seen: int, n_held: int, seed: int = 0) -> dic
         results_seen.append(run_task(system, f"seen-{i}", True, rng))
     for i in range(n_held):
         results_held.append(run_task(system, f"held-{i}", False, rng))
-    return {  # 返回结果
+    return {
         "name": system.name,
         "accuracy_seen": sum(r.accuracy for r in results_seen) / len(results_seen),
         "accuracy_held": sum(r.accuracy for r in results_held) / len(results_held),
@@ -88,7 +88,6 @@ def run_bench(system: SystemSim, n_seen: int, n_held: int, seed: int = 0) -> dic
 
 
 def format_scorecard() -> None:
-    """format_scorecard"""
     print("=" * 78)
     print("BENCHMARK SCORECARD — MARBLE-style milestone + contamination check")
     print("  contamination check: accuracy_seen - accuracy_held (delta > 0.1 = suspect)")
@@ -113,7 +112,6 @@ def format_scorecard() -> None:
 
 
 def print_claim_scorecard() -> None:
-    """print_claim_scorecard"""
     print("\n" + "=" * 78)
     print("CLAIM CHECKLIST — read this before accepting any multi-agent result")
     print("=" * 78)
@@ -130,7 +128,6 @@ def print_claim_scorecard() -> None:
 
 
 def main() -> None:
-    """main"""
     format_scorecard()
     print_claim_scorecard()
     print("\nTakeaways:")

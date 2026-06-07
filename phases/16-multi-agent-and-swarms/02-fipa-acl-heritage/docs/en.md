@@ -18,11 +18,15 @@ The honest read is that most of them are rediscovering a very specific twenty-ye
 
 When you look at MCP's `tools/call`, A2A's task lifecycle, or CA-MCP's shared context store, you are looking at a softer, JSON-native rehash of FIPA decisions. Knowing the heritage tells you two things: which new "innovations" are actually reinventions, and which old failure modes the new specs will rediscover.
 
+> **【中文解读】** 2026 年的 Agent 协议（MCP、A2A、ACP、ANP 等）大多是在重新发现 2000 年 FIPA-ACL 已经解决的设计决策。言语行为理论（Austin 1962、Searle 1969）提出"话语即行动"，KQML（1993）将其变为线协议，FIPA-ACL（2000）形成了参考标准。FIPA 在 2010 年左右衰落，因为本体论开销太重，而 Web 技术栈胜出。了解这段历史可以帮你分辨：哪些"创新"实际上是重新发明，哪些旧的失败模式新规范将重新遭遇。
+
 ## Concept
 
 ### Speech acts, in one paragraph
 
 Austin noticed that some sentences do not describe the world — they change it. "I promise." "I request." "I declare." He called these performative utterances. Searle formalized five categories: assertive, directive, commissive, expressive, declarative. KQML (Finin et al., 1993) made this operational for software agents: a message is a performative (the action) plus content (what the action is about). FIPA-ACL cleaned up KQML's gaps and standardized around twenty performatives.
+
+> **【中文解读】** 言语行为理论的核心洞察：有些句子不是在描述世界，而是在改变世界。"我承诺"、"我请求"、"我宣告"——这些都是施事话语。Searle 将其分为五类：断言式、指令式、承诺式、表达式、宣告式。KQML 将此概念操作化为软件 Agent 的消息格式：消息 = 施事行为 + 内容。FIPA-ACL 在此基础上标准化了约二十个施事行为。
 
 ### The twenty FIPA performatives (partial list)
 
@@ -72,6 +76,8 @@ Seven fields carry the protocol envelope; one field (`content`) carries the payl
 
 Both declined once the web stack ate multi-agent use cases. MCP and A2A are the runtime "containers" of 2026.
 
+> **【中文解读】** JADE（Java Agent DEvelopment framework）是最广泛使用的 FIPA 兼容运行时。Agent 通过基类扩展、ACL 消息交换、容器内协调来工作。JACK 在 FIPA 消息之上强调 BDI（信念-欲望-意图）推理。两者都随着 Web 技术栈的胜出而衰落。MCP 和 A2A 可以看作是 2026 年的"容器"。
+
 ### Why FIPA faded
 
 - **Ontology overhead.** FIPA required a shared ontology to parse `content`. Agreeing on ontologies is a years-long standards process. The web just used HTTP + JSON.
@@ -96,6 +102,8 @@ Compare a FIPA `request` to an MCP `tools/call`:
 Same envelope, different syntax. Both carry: who, whom, intent, payload, correlation id. Neither is a revolution over the other — they are different trade-offs on the same design.
 
 The 2025 survey by Liu et al. ("A Survey of Agent Interoperability Protocols: MCP, ACP, A2A, ANP", arXiv:2505.02279) makes this lineage explicit: MCP corresponds to tool-use speech acts, A2A to agent-peer speech acts, ACP to audit-trail speech acts, ANP to decentralized-identity extensions. The new specs are ACL descendants with JSON syntax and looser semantics.
+
+> **【中文解读】** LLM 时代是多 Agent 协议实际上是 FIPA-lite：相同的信封（谁、对谁、意图、载荷、关联 ID），不同的语法（JSON 替代 S-expression）。MCP 的 `tools/call` 对应 FIPA 的 `request`，A2A 任务生命周期对应 contract-net + request-when。新规范是 ACL 后裔，用 JSON 语法和更宽松的语义。
 
 ### The trade-off, stated plainly
 
@@ -124,6 +132,8 @@ FIPA shipped ~15 interaction protocols. Three are worth carrying forward into LL
 
 Each maps cleanly onto modern message queues, HTTP + polling, or SSE streaming.
 
+> **【中文解读】** FIPA 的三个值得移植的交互协议：1) **Contract Net Protocol（CNP）**——管理者发出招标，投标人提交提案，管理者接受/拒绝，这是任务市场的经典模式；2) **Subscribe/Notify**——订阅者注册关注，发布者在变化时通知，这是所有现代事件总线的原型；3) **Request-When**——"当条件 Y 满足时执行 X"，带前置条件的延迟动作，对应 2026 年持久化工作流引擎中的延迟任务。
+
 ### What breaks when you drop the ontology
 
 Without a shared ontology, agents infer meaning from natural-language content. The documented 2026 failure mode is **semantic drift**: two agents use the same word (`"customer"`) for subtly different concepts, the receiver's agent acts on the wrong interpretation, no schema validator catches it. FIPA's ontology requirement would have rejected the message at parse time.
@@ -146,6 +156,10 @@ Mitigations without going full ontology:
 | NLIP | natural-language content | LLM-native | schema |
 
 Reading the table top to bottom, the pattern is: keep the structural primitive, drop the formalism, let LLMs paper over the ambiguity.
+
+> **【中文解读】** 放弃本体论的代价是**语义漂移**：两个 Agent 用同一个词（如"客户"）表示微妙不同的概念，接收方基于错误理解行动，而没有任何 schema 验证器能捕获。FIPA 的本体论要求会在解析时拒绝这种消息。现代缓解措施包括 JSON Schema 验证、类型化工件（A2A）和信封中显式的施事行为声明。
+
+> **【拓展：FIPA 遗产 → 现代 Agent 协议设计】** 在设计新协议时，FIPA 的清单仍然有用：每条消息的意图原语是什么？是否有请求-响应和取消的关联 ID？是否有显式的内容语言？交互协议是否是一等公民？两个 Agent 对内容含义有分歧时怎么办？在发布到生产之前，用这五个问题检查你的协议。
 
 ## Build It | 动手构建
 
@@ -189,17 +203,17 @@ Document these five questions for any new protocol before you ship it into produ
 
 ## Key Terms | 关键术语
 
-| Term | What people say | What it actually means |
-|------|----------------|------------------------|
-| Speech act | "An utterance that does something" | Austin/Searle: utterances as actions. The theoretical parent of ACL. |
-| FIPA | "That old XML thing" | IEEE Foundation for Intelligent Physical Agents. Standardized ACL in 2000. |
-| ACL | "Agent Communication Language" | FIPA's envelope format: performative + content + metadata. |
-| Performative | "The verb" | The intent class of a message: `inform`, `request`, `propose`, `cfp`, etc. |
-| KQML | "FIPA's predecessor" | Knowledge Query and Manipulation Language (1993). Simpler, narrower. |
-| Ontology | "Shared vocabulary" | A formal definition of the concepts the content language talks about. |
-| SL0 / SL1 | "FIPA content languages" | Semantic Language levels 0 and 1 — the formal content language family. |
-| Contract Net | "Task market" | Manager issues cfp; bidders propose; manager accepts. The canonical interaction protocol. |
-| Interaction protocol | "Pattern of messages" | A sequence of performatives with known correctness: request-when, subscribe-notify, etc. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|------------------------|---------|
+| Speech act | "An utterance that does something" | Austin/Searle: utterances as actions. The theoretical parent of ACL. | 言语行为：话语即行动，ACL 的理论基础 |
+| FIPA | "That old XML thing" | IEEE Foundation for Intelligent Physical Agents. Standardized ACL in 2000. | 智能物理 Agent 基金会：2000 年标准化 ACL 的 IEEE 组织 |
+| ACL | "Agent Communication Language" | FIPA's envelope format: performative + content + metadata. | Agent 通信语言：FIPA 的信封格式，包含施事行为+内容+元数据 |
+| Performative | "The verb" | The intent class of a message: `inform`, `request`, `propose`, `cfp`, etc. | 施事行为：消息的意图类别，如通知、请求、提议、招标等 |
+| KQML | "FIPA's predecessor" | Knowledge Query and Manipulation Language (1993). Simpler, narrower. | 知识查询与操作语言：FIPA 的前身（1993） |
+| Ontology | "Shared vocabulary" | A formal definition of the concepts the content language talks about. | 本体论：内容语言所讨论概念的形式化定义 |
+| SL0 / SL1 | "FIPA content languages" | Semantic Language levels 0 and 1 — the formal content language family. | 语义语言级别 0 和 1：FIPA 的形式化内容语言族 |
+| Contract Net | "Task market" | Manager issues cfp; bidders propose; manager accepts. The canonical interaction protocol. | 合同网协议：管理者招标-投标人提案-管理者接受，经典交互协议 |
+| Interaction protocol | "Pattern of messages" | A sequence of performatives with known correctness: request-when, subscribe-notify, etc. | 交互协议：具有已知正确性的施事行为序列 |
 
 ## Further Reading | 延伸阅读
 

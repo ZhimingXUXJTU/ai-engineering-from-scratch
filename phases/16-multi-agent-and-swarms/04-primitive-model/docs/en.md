@@ -18,6 +18,8 @@ If you try to learn them one at a time you will burn out. The APIs look differen
 
 It is not. Underneath the marketing, the four primitives are stable. Learn them once, read every new framework in one paragraph.
 
+> **【中文解读】** 每六个月就有一个新的多 Agent 框架发布，每个都声称自己是"正确的抽象"。如果逐个学习会精疲力竭——API 看起来不同、文档对"Agent"的定义不一致、共享记忆的叫法五花八门。但表层之下，四个原语是稳定的：Agent、Handoff、Shared State、Orchestrator。学会这四个，就能快速理解任何新框架。
+
 ## Concept
 
 ### The four primitives
@@ -28,6 +30,8 @@ It is not. Underneath the marketing, the four primitives are stable. Learn them 
 4. **Orchestrator** — whoever decides who speaks next. Options: an explicit graph (deterministic), an LLM speaker-selector (soft), the last speaker's handoff call (OpenAI Swarm), or a scheduler over a queue (swarm architecture).
 
 That is the entire design space. Every framework picks defaults for each axis; the rest is surface syntax.
+
+> **【中文解读】** 四个原语定义了整个多 Agent 设计空间：1) **Agent**——系统提示+工具列表，无状态，每次运行从系统提示和当前消息历史开始；2) **Handoff**——结构化的控制转移，机械上是一个返回新 Agent 的工具调用或跟随条件的图边；3) **Shared State**——多个 Agent 可读（有时可写）的数据结构；4) **Orchestrator**——决定谁下一步发言的组件，可以是显式图、LLM 发言选择器、上一位发言者的 Handoff 调用或队列调度器。
 
 ### How every 2026 framework maps to it
 
@@ -41,6 +45,8 @@ That is the entire design space. Every framework picks defaults for each axis; t
 | Google ADK | agent + A2A card | A2A task | A2A artifacts | host decides |
 
 Surface differences look huge. Underneath: same four knobs.
+
+> **【中文解读】** 所有 2026 年主流框架都映射到相同的四维设计空间：OpenAI Swarm 用 Agent+工具返回 Agent+调用者管理状态+LLM Handoff；LangGraph 用节点函数+图边条件+StateGraph reducer+确定性图；CrewAI 用角色 Agent+Process 模式+Task 输出链+管理 LLM。表面差异巨大，底层都是相同的四个旋钮。
 
 ### Why this matters
 

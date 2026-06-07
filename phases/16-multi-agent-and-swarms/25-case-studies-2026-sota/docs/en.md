@@ -14,6 +14,8 @@
 
 Multi-agent engineering is a young discipline. The production references are few, and each covers a different part of the space. Reading them one at a time is useful; comparing them as a set is more useful. This lesson treats three canonical 2026 case studies as an end-to-end reading list, pins the common patterns, and maps the framework landscape so you can make framework choices from knowledge, not marketing.
 
+> **【中文解读】** 2026 年三大生产级多 Agent 案例研究：1) **Anthropic 研究系统**——编排器-工人模式，15x token 消耗换取 +90.2% 的性能提升，彩虹部署；2) **MetaGPT/ChatDev**——SOP 编码的角色专业化用于软件工程；3) **OpenClaw/Moltbook**——人口规模的 Agent 社交网络。框架格局：LangGraph 和 CrewAI 领先生产环境，OpenAI Agents SDK 是 Swarm 的生产继任者，Google ADK 是 A2A 原生的新入者。
+
 ## Concept
 
 ### Anthropic Research system

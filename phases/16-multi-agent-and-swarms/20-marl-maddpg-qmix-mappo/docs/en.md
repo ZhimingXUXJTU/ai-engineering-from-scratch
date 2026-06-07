@@ -20,6 +20,8 @@ Reading MARL papers without the pattern vocabulary is painful. Centralized train
 - Centralized RL (one agent controls all) does not scale and violates execution constraints.
 - CTDE gets the best of both: train with global information, deploy with local policies.
 
+> **【中文解读】** 多 Agent 强化学习（MARL）为 LLM Agent 的协调策略训练提供了理论基础。核心问题是：独立 RL 对每个 Agent 来说是非平稳的，集中式 RL 不可扩展。CTDE（集中训练、分散执行）取两者之长——训练时使用全局信息，部署时使用局部策略。MADDPG 引入 CTDE，QMIX 用单调混合网络做值分解，MAPPO 是 2026 年合作 MARL 的默认基线。
+
 ## Concept
 
 ### Three environments the papers use

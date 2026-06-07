@@ -21,6 +21,8 @@ Debate can improve accuracy (Du et al., arXiv:2305.14325). It can also degrade i
 
 Teams that bolt "run 5 agents and vote" onto a task often regress vs. a single agent. The failures are not random. They track topology and heterogeneity. This lesson is the topology map.
 
+> **【中文解读】** 辩论可以提高准确性，但也可以降低它。效果取决于四个结构选择：拓扑结构（谁和谁对话）、轮次数、Agent 异构性（不同基础模型打破单一文化）、是否存在对抗性声音。简单粗暴地"跑 5 个 Agent 投票"往往比单 Agent 效果更差——失败不是随机的，它们与拓扑和异构性相关。
+
 ## Concept
 
 ### Self-consistency, the single-model baseline
@@ -34,6 +36,8 @@ Limit: self-consistency uses one base model. Errors are correlated by constructi
 Replace N samples with N *different* agents. Different base models (Claude, GPT, Llama), different prompts, different tool access. The benefit: uncorrelated errors. The cost: different agents cost different amounts; coordinating them adds overhead.
 
 The canonical 2026 name for heterogeneous debate is **A-HMAD** — Adversarial Heterogeneous Multi-Agent Debate. Not universally adopted, but papers use the term for "different models debate, which reduces correlated errors from monoculture collapse."
+
+> **【中文解读】** Self-consistency（自一致性）是单模型投票基线：同一模型采样 N 次后多数投票，但错误因同一模型而相关。多 Agent 投票用 N 个不同的 Agent（不同基础模型、不同提示、不同工具）替代，好处是错误不相关，代价是不同 Agent 成本不同且需要协调开销。MultiAgentBench 发现图拓扑最适合研究任务，但超过 ~4 个 Agent 会出现"协调税"。
 
 ### The four topologies
 

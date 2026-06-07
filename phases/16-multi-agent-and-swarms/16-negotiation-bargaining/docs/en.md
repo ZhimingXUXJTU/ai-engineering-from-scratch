@@ -18,6 +18,8 @@ The root issue is that LLMs conflate two jobs — deciding the offer and narrati
 
 This mirrors a classical multi-agent finding: decoupling the mechanism from the communication layer wins. Contract Net Protocol (FIPA, 1996; Smith, 1980) is the reference task-market mechanism. Plug an LLM into the narration slot and you get a modern LLM-powered task market.
 
+> **【中文解读】** LLM Agent 在谈判中的核心问题：LLM 混淆了两个任务——决定报价和叙述报价。纯语言提示下的交易成功率只有 ~27%。OG-Narrator 将两者解耦：确定性报价生成器计算数值，LLM 只负责叙述，交易成功率跳到 ~89%。这反映了经典多 Agent 发现：将机制与通信层解耦是赢家策略。
+
 ## Concept
 
 ### Contract Net, in one paragraph

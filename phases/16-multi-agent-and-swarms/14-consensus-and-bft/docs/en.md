@@ -18,6 +18,8 @@ Now add a deceptive agent: it lies on purpose. Or a sycophantic agent: it agrees
 
 Classical BFT (PBFT, 1999) is not wrong — it is incomplete. It handles arbitrary bit-flipping. It does not handle "three honest agents share a hallucination because they share training data." This lesson builds from PBFT's foundation and layers on three 2025-2026 adaptations.
 
+> **【中文解读】** 经典 BFT 假设独立故障和诚实节点正确性，但 LLM Agent 违反了这两个假设：1) 使用相同基础模型的 Agent 产生相关错误；2) 诚实 Agent 也会产生幻觉。三个 Agent 特有的攻击：拜占庭说谎（故意给出错误答案）、阿谀从众（同意最后发言者）、相关错误单一文化。经典 PBFT 处理任意比特翻转，但无法处理"三个诚实 Agent 因共享训练数据而产生相同幻觉"。
+
 ## Concept
 
 ### What classical BFT gives you
