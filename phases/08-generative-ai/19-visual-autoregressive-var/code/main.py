@@ -1,30 +1,16 @@
-"""Toy Visual Autoregressive (VAR) model: next-scale prediction over a pyramid.
+"""视觉自回归模型 (Visual Autoregressive, VAR) —— 多尺度金字塔预测
 
-A minimal numpy implementation of the VAR mechanism described in
-docs/en.md. Three pieces:
+核心概念：
+  - 传统图像生成（如 VQGAN+Transformer）逐像素/逐 patch 自回归生成，序列太长
+  - VAR 的创新：将图像表示为多尺度金字塔（从粗到细），逐尺度自回归生成
+  - 残差 VQ 编码：每个尺度的 token 编码上一尺度未能捕捉的残差信息
+  - 并行生成：同一尺度内的所有位置可以并行预测（不像像素级那样严格串行）
+  - 生成过程只需 K 次 Transformer 前向传播（K = 尺度数），远少于像素级方法
 
-1. A multi-scale residual VQ tokenizer over tiny 8x8 "images" (a small
-   library of patterns: solid, gradient, ring, checker, cross). Tokens at
-   scale k encode the residual left by scales 1..k-1. The decoder is the
-   sum of upsampled scale embeddings.
-2. A scale-conditioned next-scale predictor (a logistic / softmax mini-LM
-   over the small vocab). The "transformer" is approximated by per-scale
-   conditional histograms; the geometry the lesson teaches is the
-   scale-ordered conditioning and the parallel-within-scale prediction,
-   not deep attention.
-3. A generation loop that runs K transformer passes (one per scale) and
-   samples every position at the current scale in parallel from the
-   conditional. Decoded sums of scale embeddings reconstruct an image.
-
-The point is to exercise the scale-ordered training data, the parallel-
-within-scale sampling, and the residual-VQ reconstruction. A real VAR
-swaps the histogram for a transformer and the pattern library for an
-image dataset; the harness around them stays the same.
-
-Stdlib + numpy only.
-
-Run:
-    python main.py
+AI 对应：
+  - VAR 是 2024 年提出的图像生成新范式，论文声称质量和速度都优于扩散模型
+  - 本实现在 8x8 玩具图像上演示多尺度残差 VQ + 逐尺度预测的完整流程
+  - 真实 VAR 用 Transformer 替代条件直方图，用 ImageNet 替代图案库
 """
 
 from __future__ import annotations

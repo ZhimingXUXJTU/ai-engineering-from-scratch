@@ -21,6 +21,10 @@ You also want to teach the model new concepts (your face, your product, your sty
 
 ControlNet + LoRA + text = the 2026 practitioner's toolkit. Most production image pipelines layer 2-5 LoRAs, 1-3 ControlNets, and an IP-Adapter on top of an SDXL / SD3 / Flux base.
 
+> **【中文解读】** 文本提示词只能控制图像约 10% 的信息——姿态、构图、深度等视觉信息无法用文字高效描述。ControlNet 复制编码器结构作为旁路网络，将条件信号（姿态图、深度图、Canny 边缘等）注入主干网络的中间特征，保持 2.6B 参数的 SDXL 冻结。LoRA 在注意力权重上添加低秩矩阵（秩 r 通常为 4-64），只需训练原模型 0.1-1% 的参数即可学会新概念（你的脸、你的产品、你的风格）。
+
+> **【拓展：生产级图像管线】** 2026 年典型生产管线：SDXL/SD3/Flux 基础模型 + 2-5 个 LoRA（不同风格/概念）+ 1-3 个 ControlNet（姿态/深度/边缘控制）+ IP-Adapter（图像参考）。这种组合式架构让单个模型通过模块组合服务数千种场景，而无需重新训练。
+
 ## The Concept
 
 ![ControlNet clones the encoder; LoRA adds low-rank deltas](../assets/controlnet-lora.svg)

@@ -25,6 +25,8 @@ min_G max_D  E_real[log D(x)] + E_fake[log(1 - D(G(z)))]
 
 In 2026 GANs are no longer the SOTA generator (diffusion and flow matching ate that crown). But StyleGAN 2/3 remain the sharpest face models ever shipped, GAN discriminators are used as *perceptual losses* in diffusion training, and adversarial training powers the fast 1-step distillations (SDXL-Turbo, SD3-Turbo, LCM) that let you ship real-time diffusion.
 
+> **【中文解读】** GAN 的核心机制——极小极大博弈：生成器 G(z) 将随机噪声映射为假样本，判别器 D(x) 学习区分真假。两者交替训练，D 的梯度信号就是 G 的学习目标。训练成功的标志是 D 输出 0.5（无法区分），此时 G 学会了数据分布。失败模式包括模式坍缩（G 只生成一种样本）和梯度消失（D 学得太快）。WGAN（2017）用 Wasserstein 距离替代 JS 散度，大幅缓解了训练不稳定。
+
 ## The Concept
 
 ![GAN training: generator and discriminator in minimax](../assets/gan.svg)

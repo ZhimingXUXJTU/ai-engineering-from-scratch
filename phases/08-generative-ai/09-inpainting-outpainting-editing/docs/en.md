@@ -23,6 +23,8 @@ That is inpainting. Variants:
 
 Every diffusion pipeline in 2026 ships an inpainting mode. Flux.1-Fill, Stable Diffusion Inpaint, SDXL-Inpaint, DALL-E 3 Edit. They work on the same principle.
 
+> **【中文解读】** 图像修复（inpainting）的核心需求：只重新生成遮罩区域内的内容，保持遮罩外像素完全不变。不能从头生成——结果会有不同的颜色、光照、角度。三种变体：inpainting（遮罩内重建）、outpainting（遮罩外扩展/画布外延展）、image editing（全图重新生成但保持语义/结构一致性）。所有 2026 年的扩散管线都支持这些操作。
+
 ## The Concept
 
 ![Inpainting: mask-aware denoising with context-preserving reinjection](../assets/inpainting.svg)

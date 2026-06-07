@@ -21,6 +21,8 @@ Three audio generation tasks:
 
 All three run on the same substrate: neural audio codec + token-AR or diffusion generator.
 
+> **【中文解读】** 三种音频生成任务共享同一底层架构：神经音频编解码器 + token 自回归或扩散生成器。TTS（文本到语音）因语音频带窄、音素结构强而基本解决；音乐生成分布局更广，挑战更大；音效/声音设计介于两者之间。关键组件：Encodec/SoundStream 等编解码器将音频压缩为离散 token 或连续潜在表示，Transformer 或扩散模型在 token/潜在空间中生成。
+
 ## The Concept
 
 ![Audio generation: codec tokens + transformer or diffusion](../assets/audio-generation.svg)
