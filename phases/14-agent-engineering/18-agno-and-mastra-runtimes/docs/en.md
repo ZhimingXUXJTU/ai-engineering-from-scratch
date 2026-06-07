@@ -2,10 +2,10 @@
 
 > Agno (Python) and Mastra (TypeScript) are the 2026 production-runtime pairing. Agno aims at microsecond agent instantiation and stateless FastAPI backends. Mastra ships agents, tools, workflows, unified model routing, and composite storage on the Vercel AI SDK substrate.
 
-**Type:** Learn
-**Languages:** Python, TypeScript
-**Prerequisites:** Phase 14 · 01 (Agent Loop), Phase 14 · 13 (LangGraph)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python, TypeScript | **语言:** Python (标准库)
+**Prerequisites:** Phase 14 · 01 (Agent Loop), Phase 14 · 13 (LangGraph) | **前置知识:** 见原文
+**Time:** ~45 minutes | **时间:** 见原文
 
 ## Learning Objectives | 学习目标
 
@@ -14,7 +14,7 @@
 - Explain why a stateless session-scoped FastAPI backend is the recommended Agno production path.
 - Pick Agno vs Mastra for a given stack (Python-first vs TypeScript-first).
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 LangGraph, AutoGen, CrewAI are framework-heavy. Teams that want "just the agent loop, fast, in my runtime" reach for Agno (Python) or Mastra (TypeScript). Both trade some of the framework-owned primitives for raw speed and a tighter fit to the surrounding stack.
 
@@ -22,7 +22,7 @@ LangGraph, AutoGen, CrewAI are framework-heavy. Teams that want "just the agent 
 > **【中文解读】** Agno 和 Mastra 代表了 2026 年的两种 Agent 运行时设计哲学。Agno（原 PhiData）追求极简——用最少的代码构建 Agent。Mastra（TypeScript）追求全功能——提供完整的 Agent 生命周期管理。选择取决于团队的技术栈和复杂度需求。
 
 > **{【拓展：Agno (GitHub 15k+ stars) 和 Mastra 是 2026 年 Agent 运...】}** Agno (GitHub 15k+ stars) 和 Mastra 是 2026 年 Agent 运行时的新秀。Agno 的哲学是'Agent 即函数'——每个 Agent 是一个带有工具集的异步函数。Mastra 基于 TypeScript，面向全栈开发者，提供完整的 Agent 生命周期管理（部署、监控、扩展）。两者都支持多模型后端和 MCP 集成。
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Agno
 
@@ -33,6 +33,8 @@ LangGraph, AutoGen, CrewAI are framework-heavy. Teams that want "just the agent 
 - Native multimodal (text, image, audio, video, file) and agentic RAG.
 
 The speed targets matter when you have thousands of short-lived agents per second (chat fan-in, evaluation pipelines). They matter less when one agent runs for 10 minutes.
+
+> Agno 和 Mastra 是两种轻量级 Agent 运行时。Agno 专注快速构建，Mastra 专注 TypeScript 生产部署。两者都提供最小化的 Agent 抽象。
 
 ### Mastra
 
@@ -48,6 +50,8 @@ The speed targets matter when you have thousands of short-lived agents per secon
 ### Positioning
 
 Neither is trying to be LangGraph. They compete on:
+
+> Agno 和 Mastra 是两种轻量级 Agent 运行时。Agno 专注快速构建，Mastra 专注 TypeScript 生产部署。两者都提供最小化的 Agent 抽象。
 
 - **Language fit.** Agno for Python-first teams; Mastra for TypeScript-first.
 - **Runtime ergonomics.** Agno = near-zero overhead; Mastra = integrated with the Vercel ecosystem.
@@ -66,9 +70,11 @@ Neither is trying to be LangGraph. They compete on:
 - **Ecosystem lock-in.** Mastra's Vercel-flavored integration is a plus on Vercel, a minus elsewhere.
 - **Enterprise license confusion.** Mastra's `ee/` directories are source-available, not Apache 2.0. Read the licenses if you're planning to fork.
 
-## Build It | 动手构建
+## Build It | 动手实现
 
 This lesson is primarily comparative — no single code artifact would do both frameworks justice. See `code/main.py` for a side-by-side toy: a minimal "run an agent, stream the output, persist session" flow implemented twice (once Agno-shaped, once Mastra-shaped).
+
+> Agno 和 Mastra 是两种轻量级 Agent 运行时。Agno 专注快速构建，Mastra 专注 TypeScript 生产部署。两者都提供最小化的 Agent 抽象。
 
 Run it:
 
@@ -78,30 +84,34 @@ python3 code/main.py
 
 Two structurally different but functionally equivalent traces.
 
-## Use It | 使用方法
+> Agno 和 Mastra 是两种轻量级 Agent 运行时。Agno 专注快速构建，Mastra 专注 TypeScript 生产部署。两者都提供最小化的 Agent 抽象。
+
+## Use It | 用框架实现
 
 - **Agno** — Python backend that needs speed and FastAPI shape.
 - **Mastra** — TypeScript backend with many providers and workflow primitives.
 - Both ship first-party observability hooks. Both integrate with Langfuse.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-runtime-picker.md` picks Agno, Mastra, LangGraph, or a provider SDK based on stack, latency budget, and operational shape.
+
+> Agno 和 Mastra 是两种轻量级 Agent 运行时。Agno 专注快速构建，Mastra 专注 TypeScript 生产部署。两者都提供最小化的 Agent 抽象。
 
 ## Exercises | 练习题
 
 1. Read Agno's docs. Port the stdlib ReAct loop (Lesson 01) to Agno. What disappeared? What stayed?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 2. Read Mastra's docs. Port the same loop to Mastra. What changed in tool typing (Zod vs nothing)?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 3. Benchmark: measure agent instantiation latency on your stack. Does Agno's 2μs matter to your workload?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 4. Design a migration: if you've been running CrewAI in Python, what breaks if you move to Agno?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 5. Read Mastra's `ee/` license terms. What restrictions would affect an open-source fork?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|---|
@@ -115,6 +125,10 @@ Two structurally different but functionally equivalent traces.
 ## Further Reading | 延伸阅读
 
 - [Agno Agent Framework docs](https://www.agno.com/agent-framework) — performance targets, FastAPI integration
+  中文翻译：见原文。
 - [Mastra docs](https://mastra.ai/docs) — primitives, server adapters, Model Router
+  中文翻译：见原文。
 - [LangGraph overview](https://docs.langchain.com/oss/python/langgraph/overview) — the stateful-graph alternative
+  中文翻译：见原文。
 - [Comet Opik](https://www.comet.com/site/products/opik/) — observability comparisons cited by Mastra integrations
+  中文翻译：见原文。

@@ -2,10 +2,10 @@
 
 > The mini-track ends with a pack you drop into any repo. Eleven lessons of surfaces compressed into a directory you can `cp -r` and have an agent working reliably the next morning. The capstone is the artifact this curriculum trades on.
 
-**Type:** Build
-**Languages:** Python (stdlib)
-**Prerequisites:** Phases 14 · 31 to 14 · 41
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib) | **语言:** Python (标准库)
+**Prerequisites:** Phases 14 · 31 to 14 · 41 | **前置知识:** 见原文
+**Time:** ~75 minutes | **时间:** 见原文
 
 ## Learning Objectives | 学习目标
 
@@ -14,7 +14,7 @@
 - Add a single installer script that lays down the pack idempotently.
 - Decide what stays in the pack and what stays out, defending the cut for each.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 A workbench that lives in a Google Doc, a chat history, and three half-remembered scripts is a workbench that gets rebuilt every quarter. The cure is a versioned pack: a repo or directory with the surfaces, the schemas, the scripts, and a one-command installer.
 
@@ -23,7 +23,7 @@ You will end this lesson with `outputs/agent-workbench-pack/` shipped on disk an
 
 > **【中文解读】** Agent Workbench 顶点项目：将前面 11 课的所有概念整合到一个完整的编码 Agent 中。该 Agent 能够：(1) 理解项目结构和约定；(2) 执行范围受限的修改；(3) 运行验证门检查；(4) 通过审查者 Agent 质检；(5) 跨会话保持状态。这是最小可行生产 Agent 的设计。
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ```mermaid
 flowchart TD
@@ -89,9 +89,13 @@ A short `bin/install.sh` (or `bin/install.py`):
 
 The pack carries a `VERSION` file. Schema bumps and script changes that require migrations bump the major. Doc-only changes bump the patch. The target repo's `agent_state.json` records which pack version it was initialized against.
 
-## Build It | 动手构建
+> Agent Workbench 毕业项目综合运用 Phase 14 所有知识，在真实代码仓库中构建一个生产级 Agent。
+
+## Build It | 动手实现
 
 `code/main.py` assembles the pack into `outputs/agent-workbench-pack/` next to the lesson, seeded with the schemas and scripts from the previous lessons in this mini-track and the docs you already wrote.
+
+> Agent Workbench 毕业项目综合运用 Phase 14 所有知识，在真实代码仓库中构建一个生产级 Agent。
 
 Run it:
 
@@ -101,9 +105,13 @@ python3 code/main.py
 
 The script copies and pins the surfaces, writes the README, prints the pack tree, and exits zero. Re-running is idempotent.
 
+> Agent Workbench 毕业项目综合运用 Phase 14 所有知识，在真实代码仓库中构建一个生产级 Agent。
+
 ## Production patterns in the wild
 
 A pack is only valuable if it survives forks, updates, and an unfriendly upstream. Four patterns make that work.
+
+> Agent Workbench 毕业项目综合运用 Phase 14 所有知识，在真实代码仓库中构建一个生产级 Agent。
 
 **`VERSION` is the contract, not the marketing.** Major bumps require a state migration. Minor bumps require a checker re-run. Patch bumps are doc-only. The installer writes `.workbench-version` into the target repo on every install; `lint_pack.py` refuses to ship if the target's lock disagrees with the pack's `VERSION`. This is how `npm`, `Cargo`, and `pyproject.toml` survive 10 years of churn; nothing about agents changes the rules.
 
@@ -113,7 +121,7 @@ A pack is only valuable if it survives forks, updates, and an unfriendly upstrea
 
 **Skill-as-publishable. SkillKit-style distribution.** The pack ships as a SkillKit skill: `skillkit install agent-workbench-pack` lays it down across 32 AI agents from a single source. The pack repo is the source of truth; SkillKit is the distribution channel. Vendor lock-in collapses; the seven surfaces stay the same.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 Three places the pack ships:
 
@@ -123,24 +131,28 @@ Three places the pack ships:
 
 The pack is the recipe. Each install is a serving.
 
-## Ship It | 部署上线
+> Agent Workbench 毕业项目综合运用 Phase 14 所有知识，在真实代码仓库中构建一个生产级 Agent。
+
+## Ship It | 产出物
 
 `outputs/skill-workbench-pack.md` generates a project-tuned pack: rules sharpened to the team's history, scope globs matched to the repo, rubric dimensions extended with one domain-specific entry.
+
+> Agent Workbench 毕业项目综合运用 Phase 14 所有知识，在真实代码仓库中构建一个生产级 Agent。
 
 ## Exercises | 练习题
 
 1. Decide which optional fifth doc deserves promotion into the canonical pack. Defend the cut.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 2. Rewrite the installer as Python with a `--dry-run` flag. Compare ergonomics against bash.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 3. Add a `bin/uninstall.sh` that safely removes the pack and refuses if state files have non-trivial history. What counts as non-trivial?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 4. Add a `lint_pack.py` that fails when the pack drifts from `VERSION`. Wire it into CI for the pack's own repo.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 5. Author the migration runbook from a hand-rolled workbench to this pack. What is the order of operations that minimizes downtime?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|---|
@@ -154,12 +166,20 @@ The pack is the recipe. Each install is a serving.
 
 - Phases 14 · 31 to 14 · 41 — every surface this pack bundles
 - [SkillKit](https://github.com/rohitg00/skillkit) — install this skill across 32 AI agents
+  中文翻译：见原文。
 - [Nx Blog, Teach Your AI Agent How to Work in a Monorepo](https://nx.dev/blog/nx-ai-agent-skills) — single-source generator across six tools
+  中文翻译：见原文。
 - [agents.md — the open spec](https://agents.md/) — what your pack's router must implement
+  中文翻译：见原文。
 - [HKUDS/OpenHarness](https://github.com/HKUDS/OpenHarness) — reference implementation of a pack-equivalent
+  中文翻译：见原文。
 - [andrewgarst/agentic_harness](https://github.com/andrewgarst/agentic_harness) — Redis-backed reference with eval suite
+  中文翻译：见原文。
 - [Augment Code, A good AGENTS.md is a model upgrade](https://www.augmentcode.com/blog/how-to-write-good-agents-dot-md-files) — pack docs quality bar
+  中文翻译：见原文。
 - [Anthropic, Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+  中文翻译：见原文。
 - [Anthropic, Harness design for long-running application development](https://www.anthropic.com/engineering/harness-design-long-running-apps)
+  中文翻译：见原文。
 - Phase 14 · 30 — eval-driven agent development that consumes the pack's verification gate
 - Phase 14 · 41 — the before/after benchmark this pack improves on

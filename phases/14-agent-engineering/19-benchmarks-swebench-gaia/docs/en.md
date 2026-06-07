@@ -2,10 +2,10 @@
 
 > Three benchmarks anchor agent evaluation in 2026. SWE-bench tests code patching. GAIA tests generalist tool use. AgentBench tests multi-environment reasoning. Know their composition, their contamination story, and what they do not measure.
 
-**Type:** Learn
-**Languages:** Python (stdlib)
-**Prerequisites:** Phase 14 · 06 (Tool Use)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib) | **语言:** Python (标准库)
+**Prerequisites:** Phase 14 · 06 (Tool Use) | **前置知识:** 见原文
+**Time:** ~60 minutes | **时间:** 见原文
 
 ## Learning Objectives | 学习目标
 
@@ -15,9 +15,11 @@
 - Name AgentBench's eight environments and its primary blocker for open-source LLMs.
 - Summarize the SWE-bench+ contamination finding and its implications.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 Leaderboards tell you which model wins on one benchmark. They do not tell you:
+
+> SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
 
 - Whether the benchmark is contaminated (solutions in training data, test leakage).
 - Whether the benchmark measures what you care about (code vs browsing vs generalist).
@@ -29,7 +31,7 @@ Leaderboards tell you which model wins on one benchmark. They do not tell you:
 > **{【拓展：SWE-bench (Princeton, 2023) 包含 2,294 个真实 GitHub is...】}** SWE-bench (Princeton, 2023) 包含 2,294 个真实 GitHub issue，Agent 必须在真实代码库中定位 bug、编写修复并通过测试。2026 年 SOTA 是 72% 解决率（OpenAI 的 Codex）。GAIA (Meta, 2023) 的 466 个问题需要 web 搜索、文件处理、代码执行等工具。人类平均 92%，最好的 Agent 约 70%。
 Know the three anchoring benchmarks and their failure modes before you quote a number.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### SWE-bench (Jimenez et al., ICLR 2024 oral)
 
@@ -40,9 +42,13 @@ Know the three anchoring benchmarks and their failure modes before you quote a n
 
 SWE-agent (Yang et al., 2024) hit 12.5% at release by emphasizing agent-computer interfaces (file editor commands, search syntax the model understands).
 
+> SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
+
 ### SWE-bench Verified
 
 OpenAI, Aug 2024. Human-curated 500-task subset. Removes ambiguous issues, unreliable tests, and tasks where the fix was unclear. Primary benchmark for "does your agent ship real patches?"
+
+> SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
 
 ### Contamination
 
@@ -52,6 +58,8 @@ OpenAI, Aug 2024. Human-curated 500-task subset. Removes ambiguous issues, unrel
 
 Practical implication: a model that scores 50% on SWE-bench may score 35% on SWE-bench+. Always report both if you claim SWE-bench performance.
 
+> SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
+
 ### GAIA (Mialon et al., Nov 2023)
 
 - 466 questions; 300 retained for the private leaderboard at huggingface.co/gaia-benchmark.
@@ -60,6 +68,8 @@ Practical implication: a model that scores 50% on SWE-bench may score 35% on SWE
 - Three difficulty levels; Level 3 requires long tool chains across modalities.
 
 GAIA is what you run to measure "generalist capability." Do not confuse with code-specific benchmarks.
+
+> SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
 
 ### AgentBench (Liu et al., ICLR 2024)
 
@@ -80,9 +90,11 @@ GAIA is what you run to measure "generalist capability." Do not confuse with cod
 - **Contaminated claims.** Reporting SWE-bench without mentioning Verified or SWE-bench+ is misleading.
 - **Benchmark-as-development-target.** Optimizing for the benchmark diverges from production usefulness.
 
-## Build It | 动手构建
+## Build It | 动手实现
 
 `code/main.py` implements a toy SWE-bench-like harness:
+
+> SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
 
 - Synthetic bug-fix tasks (3 tasks).
 - A scripted "agent" that proposes patches.
@@ -97,31 +109,35 @@ python3 code/main.py
 
 The output shows resolution rate per task + per difficulty and makes the evaluator rules concrete.
 
-## Use It | 使用方法
+> SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
+
+## Use It | 用框架实现
 
 - **SWE-bench Verified** for code agents. Always report Verified scores.
 - **GAIA** for generalist agents. Use the private leaderboard split.
 - **AgentBench** for multi-environment comparison.
 - **Custom evals** (Lesson 30) for your product's actual shape.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-benchmark-harness.md` builds a SWE-bench-style harness for any codebase-task pair with FAIL_TO_PASS / PASS_TO_PASS gating.
+
+> SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
 
 ## Exercises | 练习题
 
 1. Port the toy harness to run on a real repo (pick one of yours). Write 3 FAIL_TO_PASS tests for known bugs.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 2. Add a step-count metric. On your 3 tasks, how many agent steps per resolution?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 3. Read the SWE-bench+ paper. Implement a solution-leakage check (pattern-match the issue text against the diff).
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 4. Download a GAIA question from the public split. Trace what a GPT-4-class agent would do. What tools does it need?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 5. Read AgentBench's per-environment breakdown. Which environment mirrors your product surface? What does "SOTA" look like there?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|---|
@@ -137,6 +153,10 @@ The output shows resolution rate per task + per difficulty and makes the evaluat
 ## Further Reading | 延伸阅读
 
 - [Jimenez et al., SWE-bench (arXiv:2310.06770)](https://arxiv.org/abs/2310.06770) — the original benchmark
+  中文翻译：见原文。
 - [OpenAI, SWE-bench Verified](https://openai.com/index/introducing-swe-bench-verified/) — the curated subset
+  中文翻译：见原文。
 - [Mialon et al., GAIA (arXiv:2311.12983)](https://arxiv.org/abs/2311.12983) — generalist benchmark
+  中文翻译：见原文。
 - [Liu et al., AgentBench (arXiv:2308.03688)](https://arxiv.org/abs/2308.03688) — multi-environment suite
+  中文翻译：见原文。

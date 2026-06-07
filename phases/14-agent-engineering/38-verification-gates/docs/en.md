@@ -2,10 +2,10 @@
 
 > The agent does not get to mark its own work as done. A verification gate reads the scope contract, the feedback log, the rule report, and the diff, and answers a single question: is this task actually complete? If the gate says no, the task is not done, no matter what the chat says.
 
-**Type:** Build
-**Languages:** Python (stdlib)
-**Prerequisites:** Phase 14 · 33 (Rules), Phase 14 · 36 (Scope), Phase 14 · 37 (Feedback)
-**Time:** ~55 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib) | **语言:** Python (标准库)
+**Prerequisites:** Phase 14 · 33 (Rules), Phase 14 · 36 (Scope), Phase 14 · 37 (Feedback) | **前置知识:** 见原文
+**Time:** ~55 minutes | **时间:** 见原文
 
 ## Learning Objectives | 学习目标
 
@@ -14,9 +14,11 @@
 - Emit a `verification_report.json` the reviewer agent and CI can both read.
 - Refuse to advance a task on any block-severity failure, without exception.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 Agents declare success too easily. Three failure shapes dominate:
+
+> 验证门（Verification Gates）在 Agent 工作流的关键节点设置检查点。每个门验证前一步的输出是否满足要求，不满足则触发修复流程。
 
 - "Looks good." The model read its own diff and decided it was correct.
 - "Tests passed." Said with confidence. No record of the test actually running.
@@ -27,7 +29,9 @@ Agents declare success too easily. Three failure shapes dominate:
 
 The workbench fix is a single verification gate that reads the artifacts the agent has already produced and makes the call. The gate is deterministic. The gate is in version control. The gate is wired into CI. The agent cannot bribe it.
 
-## The Concept | 概念
+> 验证门（Verification Gates）在 Agent 工作流的关键节点设置检查点。每个门验证前一步的输出是否满足要求，不满足则触发修复流程。
+
+## The Concept | 核心概念
 
 ```mermaid
 flowchart TD
@@ -58,19 +62,27 @@ flowchart TD
 
 A `warn` finding annotates the verdict; a `block` finding prevents `passed: true`.
 
+> 验证门（Verification Gates）在 Agent 工作流的关键节点设置检查点。每个门验证前一步的输出是否满足要求，不满足则触发修复流程。
+
 ### Deterministic, not probabilistic
 
 The gate must produce the same verdict for the same artifact set every time. No LLM judges. LLM judges belong on the reviewer side (Phase 14 · 39) where the goal is qualitative evaluation, not status.
+
+> 验证门（Verification Gates）在 Agent 工作流的关键节点设置检查点。每个门验证前一步的输出是否满足要求，不满足则触发修复流程。
 
 ### One report, one path
 
 The gate emits one `verification_report.json` per task close-out, written under `outputs/verification/<task_id>.json`. CI consumes the same path. Multiple gates with different paths fork the source of truth.
 
+> 验证门（Verification Gates）在 Agent 工作流的关键节点设置检查点。每个门验证前一步的输出是否满足要求，不满足则触发修复流程。
+
 ### Refuse without exception
 
 Block-severity findings cannot be overridden by the agent. They can only be overridden by a human, with a recorded `override_reason` and an `overridden_by` user id. The override is a signed change, not an agent decision.
 
-## Build It | 动手构建
+> 验证门（Verification Gates）在 Agent 工作流的关键节点设置检查点。每个门验证前一步的输出是否满足要求，不满足则触发修复流程。
+
+## Build It | 动手实现
 
 `code/main.py` implements:
 
@@ -87,9 +99,13 @@ python3 code/main.py
 
 Output: three verdict reports, each saved next to the script.
 
+> 验证门（Verification Gates）在 Agent 工作流的关键节点设置检查点。每个门验证前一步的输出是否满足要求，不满足则触发修复流程。
+
 ## Production patterns in the wild
 
 Four patterns elevate the gate from "another lint job" to "the deciding edge."
+
+> 验证门（Verification Gates）在 Agent 工作流的关键节点设置检查点。每个门验证前一步的输出是否满足要求，不满足则触发修复流程。
 
 **Defense-in-depth, not single gate.** Pre-commit hook → CI status check → pre-tool authz hook → pre-merge gate. Each layer is deterministic so a failure in one layer is caught by the next. microservices.io's March 2026 playbook is explicit: the pre-commit hook is non-bypassable because, unlike a model-side skill, it does not depend on the agent following instructions. The verification gate sits at the CI / pre-merge layer.
 
@@ -101,7 +117,7 @@ Four patterns elevate the gate from "another lint job" to "the deciding edge."
 
 **`--strict` mode promotes warns to blocks.** For release branches, ship-blocking PRs, or post-incident triage, `--strict` makes every warning a hard fail. The flag is opt-in by branch; not the global default, because strict-on-everything corrodes day-to-day flow.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 Production patterns:
 
@@ -111,24 +127,28 @@ Production patterns:
 
 The gate is the deciding edge in the workbench flow. Every other surface is upstream of it.
 
-## Ship It | 部署上线
+> 验证门（Verification Gates）在 Agent 工作流的关键节点设置检查点。每个门验证前一步的输出是否满足要求，不满足则触发修复流程。
+
+## Ship It | 产出物
 
 `outputs/skill-verification-gate.md` wires the gate into a specific project: which acceptance commands feed it, which rules are block-severity, which off-scope writes are tolerated, how the override audit log is stored.
+
+> 验证门（Verification Gates）在 Agent 工作流的关键节点设置检查点。每个门验证前一步的输出是否满足要求，不满足则触发修复流程。
 
 ## Exercises | 练习题
 
 1. Add a `coverage_floor` check: the test command must produce a coverage report with at least 80%. Decide which artifact carries the floor.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 2. Support a `--strict` mode that promotes every `warn` to `block`. Document the cases where strict mode is the right default.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 3. Make the gate produce a Markdown summary in addition to JSON. Defend which fields belong in the summary.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 4. Add a `time_since_last_human_touch` check: any file edited within 60 seconds of a human keystroke is exempt from off-scope flags.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 5. Run the gate on a real agent diff from your product. How many findings are real and how many are noise? Where does the gate need to grow?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|---|
@@ -141,13 +161,21 @@ The gate is the deciding edge in the workbench flow. Every other surface is upst
 ## Further Reading | 延伸阅读
 
 - [Anthropic, Harness design for long-running application development](https://www.anthropic.com/engineering/harness-design-long-running-apps)
+  中文翻译：见原文。
 - [OpenAI Agents SDK guardrails](https://platform.openai.com/docs/guides/agents-sdk/guardrails)
+  中文翻译：见原文。
 - [microservices.io, GenAI dev platform: guardrails](https://microservices.io/post/architecture/2026/03/09/genai-development-platform-part-1-development-guardrails.html) — defense in depth between pre-commit and CI
+  中文翻译：见原文。
 - [ICMD, The 2026 Playbook for Agentic AI Ops](https://icmd.app/article/the-2026-playbook-for-agentic-ai-ops-guardrails-costs-and-reliability-at-scale-1776661990431) — approval-gate ladder (draft → approval → auto under thresholds)
+  中文翻译：见原文。
 - [Type-Checked Compliance: Deterministic Guardrails (arXiv 2604.01483)](https://arxiv.org/pdf/2604.01483) — Lean 4 as the upper bound of deterministic gating
+  中文翻译：见原文。
 - [logi-cmd/agent-guardrails — merge gate spec](https://github.com/logi-cmd/agent-guardrails) — scope + mutation-testing gates
+  中文翻译：见原文。
 - [Guardrails AI x MLflow](https://guardrailsai.com/blog/guardrails-mlflow) — deterministic validators as CI scorers
+  中文翻译：见原文。
 - [Akira, Real-Time Guardrails for Agentic Systems](https://www.akira.ai/blog/real-time-guardrails-agentic-systems) — pre/post-tool gates
+  中文翻译：见原文。
 - Phase 14 · 27 — prompt injection defenses (the gate's adversarial pair)
 - Phase 14 · 36 — the scope contract this gate enforces
 - Phase 14 · 37 — the feedback log this gate scores

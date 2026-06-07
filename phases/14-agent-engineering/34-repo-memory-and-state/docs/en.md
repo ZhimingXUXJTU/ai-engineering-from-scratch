@@ -2,10 +2,10 @@
 
 > Chat history is volatile. The repo is durable. The workbench stores agent state in versioned files so the next session, the next agent, and the next reviewer all read from the same source of truth.
 
-**Type:** Build
-**Languages:** Python (stdlib + `jsonschema` optional)
-**Prerequisites:** Phase 14 · 32 (Minimal Workbench)
-**Time:** ~60 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib + `jsonschema` optional) | **语言:** Python (标准库)
+**Prerequisites:** Phase 14 · 32 (Minimal Workbench) | **前置知识:** 见原文
+**Time:** ~60 minutes | **时间:** 见原文
 
 ## Learning Objectives | 学习目标
 
@@ -14,7 +14,7 @@
 - Build a state manager that loads, validates, mutates, and persists state atomically.
 - Use the schema to refuse bad writes before they corrupt the workbench.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 The agent finishes a session. The chat closes. The next session opens and asks where to start. The model says "let me check the files," reads stale notes, and re-does work that was already complete. Or worse, it rewrites a finished file because no one told it the file was finished.
 
@@ -23,7 +23,7 @@ The workbench fix is repo memory: state lives in JSON files in the repo, written
 
 > **【中文解读】** 仓库记忆与状态管理——让 Agent 维护对代码库的理解。两种记忆：(1) 结构性记忆——文件树、依赖关系、API 接口；(2) 语义性记忆——代码意图、设计决策、变更历史。状态管理确保 Agent 在多轮交互中保持一致的代码库理解。
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ```mermaid
 flowchart LR
@@ -50,9 +50,13 @@ flowchart LR
 
 The test is durability: would this be useful three months from now in a CI rerun? If yes, repo. If no, telemetry.
 
+> 仓库记忆和状态管理解决 Agent 在代码仓库中的上下文持久化问题。包括文件索引、变更追踪、依赖图维护等。
+
 ### Schema-first state
 
 JSON Schema is the contract. Without it, every agent invents new fields, every reviewer learns a new shape, and every CI script has to special-case past versions. With it, a bad write is a refused write.
+
+> 仓库记忆和状态管理解决 Agent 在代码仓库中的上下文持久化问题。包括文件索引、变更追踪、依赖图维护等。
 
 The schema covers:
 
@@ -66,11 +70,15 @@ The schema covers:
 
 State writes need to survive partial failures: write to a tempfile, fsync, rename over the target. The state file is the source of truth; a half-written one is worse than no file at all.
 
+> 仓库记忆和状态管理解决 Agent 在代码仓库中的上下文持久化问题。包括文件索引、变更追踪、依赖图维护等。
+
 ### Migrations
 
 When the schema changes, ship a migration script next to the schema bump. The state file carries a `schema_version` field; the manager refuses to load a file from a version it cannot migrate.
 
-## Build It | 动手构建
+> 仓库记忆和状态管理解决 Agent 在代码仓库中的上下文持久化问题。包括文件索引、变更追踪、依赖图维护等。
+
+## Build It | 动手实现
 
 `code/main.py` implements:
 
@@ -87,9 +95,13 @@ python3 code/main.py
 
 The script writes `workdir/agent_state.json` and `workdir/task_board.json`, mutates them across two turns, and prints the validated state at each step.
 
+> 仓库记忆和状态管理解决 Agent 在代码仓库中的上下文持久化问题。包括文件索引、变更追踪、依赖图维护等。
+
 ## Production patterns in the wild
 
 Four patterns turn the lesson's minimum into something a multi-agent monorepo can survive.
+
+> 仓库记忆和状态管理解决 Agent 在代码仓库中的上下文持久化问题。包括文件索引、变更追踪、依赖图维护等。
 
 **Atomic temp-and-rename is not optional.** A March 2026 Hive project bug report documents the failure mode cleanly: `state.json` was written via `write_text()` and exceptions were caught and silenced. Partial writes left sessions resuming against corrupt state with no signal. The fix is always: `tempfile.mkstemp` in the same directory as the target, write, `fsync`, `os.replace` (atomic rename on POSIX and Windows). This lesson's `atomic_write` does exactly that.
 
@@ -101,7 +113,7 @@ Four patterns turn the lesson's minimum into something a multi-agent monorepo ca
 
 **Schema migrations or refuse to load.** The `schema_version` integer is the contract. When the manager loads a file at an unknown version, it refuses to read. Ship a migration script next to the schema bump; `tools/migrate_state.py` runs idempotently on every startup.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 In production:
 
@@ -109,24 +121,26 @@ In production:
 - **Letta memory blocks.** Persistent blocks with structured schemas (Phase 14 · 08). Same discipline scoped to long-running personas.
 - **OpenAI Agents SDK session store.** Pluggable backends, schema-aware. The state file in this lesson is the local-file backend.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-state-schema.md` generates a project-specific JSON Schema pair (state + board), a Python `StateManager` wired to atomic writes, and a migration scaffold so the next schema bump does not break the workbench.
+
+> 仓库记忆和状态管理解决 Agent 在代码仓库中的上下文持久化问题。包括文件索引、变更追踪、依赖图维护等。
 
 ## Exercises | 练习题
 
 1. Add a `last_human_touch` timestamp. Refuse any agent write within five seconds of a human edit.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 2. Extend the validator to support `oneOf` so a task can be either a build task or a review task with different required fields.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 3. Add a `schema_version` field and write the migration from v1 to v2 (rename `blockers` to `risks`).
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 4. Move the storage backend from a local file to SQLite. Keep the `StateManager` API identical.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 5. Run two agents against the same state file with a 50 ms write race. What goes wrong and how does the atomic rename save you?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|---|
@@ -139,14 +153,23 @@ In production:
 ## Further Reading | 延伸阅读
 
 - [JSON Schema specification](https://json-schema.org/specification.html)
+  中文翻译：见原文。
 - [LangGraph checkpointers](https://langchain-ai.github.io/langgraph/concepts/persistence/)
+  中文翻译：见原文。
 - [Letta memory blocks](https://docs.letta.com/concepts/memory)
+  中文翻译：见原文。
 - [Fast.io, AI Agent State Checkpointing: A Practical Guide](https://fast.io/resources/ai-agent-state-checkpointing/) — schema-first checkpointing with idempotency
+  中文翻译：见原文。
 - [Fast.io, AI Agent Workflow State Persistence: Best Practices 2026](https://fast.io/resources/ai-agent-workflow-state-persistence/) — concurrency control, TTL, event sourcing
+  中文翻译：见原文。
 - [Hive Issue #6263 — non-atomic state.json writes silently ignored](https://github.com/aden-hive/hive/issues/6263) — the failure mode in a real project
+  中文翻译：见原文。
 - [eunomia, Checkpoint/Restore Systems: Evolution, Techniques, Applications](https://eunomia.dev/blog/2025/05/11/checkpointrestore-systems-evolution-techniques-and-applications-in-ai-agents/) — CR primitives from OS history applied to agents
+  中文翻译：见原文。
 - [Indium, 7 State Persistence Strategies for Long-Running AI Agents in 2026](https://www.indium.tech/blog/7-state-persistence-strategies-ai-agents-2026/)
+  中文翻译：见原文。
 - [Microsoft Agent Framework, Compaction](https://learn.microsoft.com/en-us/agent-framework/agents/conversations/compaction) — vendor checkpoint manager
+  中文翻译：见原文。
 - Phase 14 · 08 — memory blocks and sleep-time compute
 - Phase 14 · 32 — the three-file minimum this lesson schematizes
 - Phase 14 · 40 — handoff packets read from the same schema

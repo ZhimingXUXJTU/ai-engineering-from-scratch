@@ -2,10 +2,10 @@
 
 > The agent that wrote the code cannot grade it. A reviewer is a second loop with a different system prompt, a different goal, and read-only access to everything the builder produced. The gap between builder and reviewer is where most reliability lives.
 
-**Type:** Build
-**Languages:** Python (stdlib)
-**Prerequisites:** Phase 14 · 38 (Verification Gate)
-**Time:** ~55 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib) | **语言:** Python (标准库)
+**Prerequisites:** Phase 14 · 38 (Verification Gate) | **前置知识:** 见原文
+**Time:** ~55 minutes | **时间:** 见原文
 
 ## Learning Objectives | 学习目标
 
@@ -14,7 +14,7 @@
 - Author a reviewer rubric that grades specific dimensions, not vibes.
 - Wire the reviewer into the workbench so the human review step starts from a real artifact.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 You ask the agent to fix a bug. It edits four files, runs the tests, and reports done. The verification gate (Phase 14 · 38) confirms acceptance ran and scope held. The gate says `passed: true`. You merge. Two days later you find that the fix solved the wrong half of the bug.
 
@@ -23,7 +23,7 @@ Acceptance is necessary, not sufficient. The reviewer asks the questions accepta
 
 > **【中文解读】** 审查者 Agent 是专门用于审查其他 Agent 工作的独立 Agent。它检查：(1) 代码质量——可读性、可维护性、性能；(2) 正确性——逻辑错误、边界条件、错误处理；(3) 安全性——注入漏洞、敏感数据泄露。独立的审查者提供第二双眼睛。
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ```mermaid
 flowchart LR
@@ -51,19 +51,27 @@ Five dimensions, each scored 0 to 2.
 
 Total out of 10. A run below 7 is a soft fail; a run below 5 is a hard fail.
 
+> 审查者 Agent（Reviewer Agent）专门审查其他 Agent 的输出。它从质量、安全、合规等维度评估工作成果，确保输出符合标准。
+
 ### The reviewer is a separate role, not a separate model
 
 You can run the reviewer with the same model as the builder. The discipline is the role separation: different system prompt, different inputs, no write access to the diff. The change in posture is the change in signal.
+
+> 审查者 Agent（Reviewer Agent）专门审查其他 Agent 的输出。它从质量、安全、合规等维度评估工作成果，确保输出符合标准。
 
 ### The reviewer cannot edit the diff
 
 The reviewer reads the diff, the state, the feedback, the verdict. It writes a report. It does not patch the diff. If the report says "fix this," the next builder turn does the fix; the reviewer goes back to reviewing. Mixing roles defeats the gap.
 
+> 审查者 Agent（Reviewer Agent）专门审查其他 Agent 的输出。它从质量、安全、合规等维度评估工作成果，确保输出符合标准。
+
 ### Reviewer rubric versus verification gate
 
 The gate (Phase 14 · 38) checks deterministic facts: did acceptance run, did rules pass, did scope hold. The reviewer makes qualitative judgments: was this the right work, is it documented, is the handoff usable. Both are required.
 
-## Build It | 动手构建
+> 审查者 Agent（Reviewer Agent）专门审查其他 Agent 的输出。它从质量、安全、合规等维度评估工作成果，确保输出符合标准。
+
+## Build It | 动手实现
 
 `code/main.py` implements:
 
@@ -80,9 +88,13 @@ python3 code/main.py
 
 Output: two review reports written to disk and a console table of dimensional scores.
 
+> 审查者 Agent（Reviewer Agent）专门审查其他 Agent 的输出。它从质量、安全、合规等维度评估工作成果，确保输出符合标准。
+
 ## Production patterns in the wild
 
 The receipts: Cloudflare's April 2026 AI Code Review system ran 131,246 review runs across 48,095 merge requests in 5,169 repos in 30 days. Median review completed in 3 minutes 39 seconds. Up to seven specialist reviewers (security, performance, code quality, docs, release management, compliance, Engineering Codex) ran in parallel under a Review Coordinator that deduplicated findings and judged severity. Top-tier model reserved exclusively for the coordinator; specialists ran on cheaper tiers.
+
+> 审查者 Agent（Reviewer Agent）专门审查其他 Agent 的输出。它从质量、安全、合规等维度评估工作成果，确保输出符合标准。
 
 Four patterns make this work at scale.
 
@@ -94,7 +106,7 @@ Four patterns make this work at scale.
 
 **Hybrid norm with the gate.** Verification gate (Phase 14 · 38) handles the deterministic checks (did acceptance run, did tests pass, did scope hold). Reviewer handles the semantic checks (was this the right work, are assumptions documented, is the handoff usable). Anthropic's 2026 guidance is explicit on this split: don't ask the reviewer to redo what the gate already proves.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 Production patterns:
 
@@ -104,24 +116,28 @@ Production patterns:
 
 The reviewer is the second pair of eyes the workbench grows when humans cannot do every review themselves.
 
-## Ship It | 部署上线
+> 审查者 Agent（Reviewer Agent）专门审查其他 Agent 的输出。它从质量、安全、合规等维度评估工作成果，确保输出符合标准。
+
+## Ship It | 产出物
 
 `outputs/skill-reviewer-agent.md` generates a project-specific reviewer rubric, a reviewer agent stub wired to the builder's artifacts, and an integration with the verification gate so human review starts from a written report instead of a blank page.
+
+> 审查者 Agent（Reviewer Agent）专门审查其他 Agent 的输出。它从质量、安全、合规等维度评估工作成果，确保输出符合标准。
 
 ## Exercises | 练习题
 
 1. Add a sixth dimension specific to your product domain. Defend why it is not absorbed by the existing five.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 2. Run the reviewer with two different system prompts (terse, verbose). Which produces a report a human is more likely to read?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 3. Add a `confidence` field per dimension. Refuse to ship the report when confidence in the lowest dimension is below 0.6.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 4. Build a calibration set: 10 historical task close-outs with known correct verdicts. Run the reviewer over them. Where does it disagree with the historical record?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 5. Add a "request more evidence" affordance: the reviewer can ask the builder for a specific test run before scoring. What is the right back-off so this does not loop?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|---|
@@ -134,14 +150,23 @@ The reviewer is the second pair of eyes the workbench grows when humans cannot d
 ## Further Reading | 延伸阅读
 
 - [OpenAI Agents SDK handoffs](https://platform.openai.com/docs/guides/agents-sdk/handoffs)
+  中文翻译：见原文。
 - [Anthropic Claude Code subagents](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sub-agents)
+  中文翻译：见原文。
 - [Cloudflare, Orchestrating AI Code Review at Scale](https://blog.cloudflare.com/ai-code-review/) — 7-specialist + coordinator architecture, 131k runs / 30 days
+  中文翻译：见原文。
 - [Agent-as-a-Judge: Evaluating Agents with Agents (OpenReview / ICLR)](https://openreview.net/forum?id=DeVm3YUnpj) — DevAI benchmark, 366 hierarchical solution requirements
+  中文翻译：见原文。
 - [Adnan Masood, Rubric-Based Evaluations and LLM-as-a-Judge: Methodologies, Biases, Empirical Validation](https://medium.com/@adnanmasood/rubric-based-evals-llm-as-a-judge-methodologies-and-empirical-validation-in-domain-context-71936b989e80) — the 4 biases and mitigations
+  中文翻译：见原文。
 - [MLflow, LLM-as-a-Judge Evaluation](https://mlflow.org/llm-as-a-judge) — production tooling for separated builder/evaluator
+  中文翻译：见原文。
 - [LangChain, How to Calibrate LLM-as-a-Judge with Human Corrections](https://www.langchain.com/articles/llm-as-a-judge) — calibration-set workflow
+  中文翻译：见原文。
 - [Evidently AI, LLM-as-a-judge: a complete guide](https://www.evidentlyai.com/llm-guide/llm-as-a-judge)
+  中文翻译：见原文。
 - [Arize, LLM as a Judge — Primer and Pre-Built Evaluators](https://arize.com/llm-as-a-judge/)
+  中文翻译：见原文。
 - Phase 14 · 05 — Self-Refine and CRITIC (single-agent self-review baseline)
 - Phase 14 · 30 — Eval-driven agent development (calibration set generator)
 - Phase 14 · 38 — the verification gate the reviewer reads

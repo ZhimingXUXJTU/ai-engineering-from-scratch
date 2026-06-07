@@ -2,10 +2,10 @@
 
 > Du et al. (ICML 2024, "Society of Minds") run N model instances that independently propose answers, then iteratively critique each other over R rounds to converge. Improves factuality, rule-following, reasoning. Sparse topology beats full mesh on token cost.
 
-**Type:** Learn + Build
-**Languages:** Python (stdlib)
-**Prerequisites:** Phase 14 · 12 (Workflow Patterns), Phase 14 · 05 (Self-Refine and CRITIC)
-**Time:** ~60 minutes
+**Type:** Learn + Build | **类型:** 构建
+**Languages:** Python (stdlib) | **语言:** Python (标准库)
+**Prerequisites:** Phase 14 · 12 (Workflow Patterns), Phase 14 · 05 (Self-Refine and CRITIC) | **前置知识:** 见原文
+**Time:** ~60 minutes | **时间:** 见原文
 
 ## Learning Objectives | 学习目标
 
@@ -14,7 +14,7 @@
 - Explain sparse topology: not every debater needs to see every other.
 - Implement a stdlib debate over a scripted LLM with full-mesh and sparse variants; measure token cost vs accuracy.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 Self-Refine (Lesson 05) is one model critiquing itself — risks groupthink. CRITIC (Lesson 05) grounds critique in external tools — not always available. Debate introduces a third mode: multiple instances, cross-critique, convergence by disagreement.
 
@@ -22,7 +22,7 @@ Self-Refine (Lesson 05) is one model critiquing itself — risks groupthink. CRI
 > **【中文解读】** 多 Agent 辩论通过让多个 LLM 实例从不同角度讨论同一问题来提高推理质量。核心洞察：单个 LLM 可能自信地给出错误答案，但多个 LLM 辩论时，错误更容易被识别和纠正。这与人类专家小组讨论的原理相似。
 
 > **{【拓展：多 Agent 辩论是 2023-2025 年的研究热点。Du et al. (2023) 证明两个...】}** 多 Agent 辩论是 2023-2025 年的研究热点。Du et al. (2023) 证明两个 ChatGPT 实例辩论可以显著提高推理准确率。2026 年的实践表明，3-5 个 Agent 的辩论效果最好——太少缺乏多样性，太多导致协调成本过高。OpenAI 的 Council 模式和 Anthropic 的多模型验证都采用了这一思想。
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Society of Minds (Du et al., ICML 2024)
 
@@ -33,11 +33,17 @@ Self-Refine (Lesson 05) is one model critiquing itself — risks groupthink. CRI
 
 Original experiments used N=3, R=2 due to cost. Accuracy improves with more agents and more rounds on hard problems (MMLU, GSM8K, Chess Move Validity, biography generation).
 
+> 多 Agent 辩论通过让多个 Agent 对同一问题提出和论证不同观点来提高推理质量。这种方法在复杂推理任务上比单 Agent 表现更好。
+
 Cross-model combinations beat single-model debates: ChatGPT + Bard together > either alone.
+
+> 多 Agent 辩论通过让多个 Agent 对同一问题提出和论证不同观点来提高推理质量。这种方法在复杂推理任务上比单 Agent 表现更好。
 
 ### Sparse topology
 
 "Improving Multi-Agent Debate with Sparse Communication Topology" (arXiv:2406.11776, 2024-2025) showed full-mesh debate is not always optimal. Sparse topologies (star, ring, hub-and-spoke) can match accuracy at lower token cost. Each debater sees only a subset of peers.
+
+> 多 Agent 辩论通过让多个 Agent 对同一问题提出和论证不同观点来提高推理质量。这种方法在复杂推理任务上比单 Agent 表现更好。
 
 Implications:
 
@@ -69,7 +75,7 @@ Implications:
 - **Hub failure.** In a star topology, a bad hub corrupts everyone. Rotate or use multiple hubs.
 - **Prompt homogenization.** All agents use the same prompt; they produce the same answers. Use diverse prompts and/or models.
 
-## Build It | 动手构建
+## Build It | 动手实现
 
 `code/main.py` implements stdlib debate:
 
@@ -86,30 +92,34 @@ python3 code/main.py
 
 Output: per-protocol accuracy and cost; sparse matches full mesh on 2/3 questions at lower cost.
 
-## Use It | 使用方法
+> 多 Agent 辩论通过让多个 Agent 对同一问题提出和论证不同观点来提高推理质量。这种方法在复杂推理任务上比单 Agent 表现更好。
+
+## Use It | 用框架实现
 
 - **Anthropic orchestrator-workers** for simple 2-3-worker debates.
 - **LangGraph** for stateful multi-round debate with checkpointing.
 - **Custom** for research or specialized correctness guarantees.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-debate.md` scaffolds a multi-agent debate with configurable topology, N, R, and a convergence rule.
+
+> 多 Agent 辩论通过让多个 Agent 对同一问题提出和论证不同观点来提高推理质量。这种方法在复杂推理任务上比单 Agent 表现更好。
 
 ## Exercises | 练习题
 
 1. Implement a "forced disagreement" rule: in round 1, every debater must produce a distinct proposal. Measure effect on convergence speed.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 2. Add a confidence-weighted aggregation: debaters return (answer, confidence); aggregator weights by confidence. Does it help?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 3. Swap one "agent" for a different scripted LLM with different opinions. Does heterogeneity improve accuracy?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 4. Measure token cost for full mesh vs sparse on your 3 questions. Plot cost vs accuracy.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 5. Read the Society of Minds paper. Port your toy to N=5, R=3. What breaks? What gets better?
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|---|
@@ -123,6 +133,10 @@ Output: per-protocol accuracy and cost; sparse matches full mesh on 2/3 question
 ## Further Reading | 延伸阅读
 
 - [Du et al., Society of Minds (arXiv:2305.14325)](https://arxiv.org/abs/2305.14325) — canonical multi-agent debate
+  中文翻译：见原文。
 - [Sparse Communication Topology (arXiv:2406.11776)](https://arxiv.org/abs/2406.11776) — sparse topology results
+  中文翻译：见原文。
 - [Anthropic, Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) — orchestrator-workers as a debate variant
+  中文翻译：见原文。
 - [Madaan et al., Self-Refine (arXiv:2303.17651)](https://arxiv.org/abs/2303.17651) — single-model self-critique counterpart
+  中文翻译：见原文。

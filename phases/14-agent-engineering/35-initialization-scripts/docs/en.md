@@ -2,10 +2,10 @@
 
 > Every session that starts cold pays a tax. The agent reads the same files, retries the same probes, and rediscovers the same paths. An init script pays the tax once and writes the answers into state.
 
-**Type:** Build
-**Languages:** Python (stdlib)
-**Prerequisites:** Phase 14 · 32 (Minimal Workbench), Phase 14 · 34 (Repo Memory)
-**Time:** ~45 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib) | **语言:** Python (标准库)
+**Prerequisites:** Phase 14 · 32 (Minimal Workbench), Phase 14 · 34 (Repo Memory) | **前置知识:** 见原文
+**Time:** ~45 minutes | **时间:** 见原文
 
 ## Learning Objectives | 学习目标
 
@@ -14,7 +14,7 @@
 - Persist the probe result so the agent reads it instead of re-running checks.
 - Fail loud, fast, and with one place to look when initialization fails.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 Open a session. The agent guesses the Python version. Guesses the test command. Lists the repo root five times to find the entry point. Tries to import a package that is not installed. Asks the user where the config file lives. By the time it makes a real edit, ten thousand tokens have gone to setup work that should have been a single script.
 
@@ -23,7 +23,7 @@ The fix is one initialization script that runs before the agent does anything el
 
 > **【中文解读】** 初始化脚本在 Agent 会话开始时设置环境和上下文。包括：(1) 环境探测——检查依赖、语言版本、工具链；(2) 项目分析——扫描文件结构、识别框架和约定；(3) 记忆加载——从上次会话恢复上下文。好的初始化脚本是 Agent 成功的前提。
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ```mermaid
 flowchart TD
@@ -54,15 +54,21 @@ flowchart TD
 
 A probe failure means halt and surface to the human. No "the agent will figure it out." The whole point of init is to refuse to start when the workbench is broken.
 
+> 初始化脚本为 Agent 会话设置起始条件。包括环境配置、工具加载、上下文初始化和安全策略设置。
+
 ### Idempotent
 
 Run it twice in a row. The second run should be a no-op except for a fresh timestamp. Idempotency is what lets you wire the script into CI, hooks, or a pre-task slash command.
+
+> 初始化脚本为 Agent 会话设置起始条件。包括环境配置、工具加载、上下文初始化和安全策略设置。
 
 ### Init versus startup rules
 
 Rules (Phase 14 · 33) describe what must be true to act. Init is the script that establishes that those rules can be checked. Rules without init become "be careful." Init without rules becomes a polished failure.
 
-## Build It | 动手构建
+> 初始化脚本为 Agent 会话设置起始条件。包括环境配置、工具加载、上下文初始化和安全策略设置。
+
+## Build It | 动手实现
 
 `code/main.py` implements `init_agent.py`:
 
@@ -78,9 +84,13 @@ python3 code/main.py
 
 The script prints the table of probes, writes `init_report.json`, and exits zero on the happy path or non-zero with a list of failed probes.
 
+> 初始化脚本为 Agent 会话设置起始条件。包括环境配置、工具加载、上下文初始化和安全策略设置。
+
 ## Production patterns in the wild
 
 Three patterns separate a useful init script from a ceremony.
+
+> 初始化脚本为 Agent 会话设置起始条件。包括环境配置、工具加载、上下文初始化和安全策略设置。
 
 **Last-known-good commit anchoring.** Probe the current commit against a `LKG` file written on the last successful merge. If the diff exceeds a budget (default 50 files), refuse to start and require a human to ratify the new baseline. This is what Cloudflare's AI Code Review uses to scope reviewer agents: every review session anchors against the same last-known-good and never compounds drift across sessions.
 
@@ -88,7 +98,7 @@ Three patterns separate a useful init script from a ceremony.
 
 **No network, no LLM, no surprises in the hot path.** Init probes are deterministic plumbing. A probe that calls an LLM to classify a failure or that hits an external service to check a license is not a probe; it is a workflow. If a probe takes longer than three seconds in a dry run, treat that as a workbench smell and either move it out of init or cache its result.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 In production:
 
@@ -98,24 +108,28 @@ In production:
 
 The init script is portable because it makes no calls to a specific framework. Bash, Make, or a tasks file can all wrap it.
 
-## Ship It | 部署上线
+> 初始化脚本为 Agent 会话设置起始条件。包括环境配置、工具加载、上下文初始化和安全策略设置。
+
+## Ship It | 产出物
 
 `outputs/skill-init-script.md` interviews the project, classifies its setup work into probes, and emits a project-specific `init_agent.py` plus a CI workflow that runs it before any agent step.
+
+> 初始化脚本为 Agent 会话设置起始条件。包括环境配置、工具加载、上下文初始化和安全策略设置。
 
 ## Exercises | 练习题
 
 1. Add a probe that diffs the current commit against the last-known-good commit and refuses to start if more than 50 files changed.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 2. Wire the script to write a `prereqs.lock` file and refuse to start if the lock is older than seven days.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 3. Add a `--fix` flag that auto-installs missing dev dependencies but never modifies runtime dependencies without approval.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 4. Move probes from hardcoded functions to a YAML registry. Defend the trade-off.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 5. Add a timing budget per probe. A probe that runs longer than three seconds is a workbench smell.
-   *思考并实践此练习*
+  中文翻译：思考并实践此练习。
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|---|
@@ -128,10 +142,15 @@ The init script is portable because it makes no calls to a specific framework. B
 ## Further Reading | 延伸阅读
 
 - [Anthropic, Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+  中文翻译：见原文。
 - [GitHub Actions, composite actions for setup](https://docs.github.com/en/actions/sharing-automations/creating-actions/creating-a-composite-action)
+  中文翻译：见原文。
 - [microservices.io, GenAI dev platform: guardrails](https://microservices.io/post/architecture/2026/03/09/genai-development-platform-part-1-development-guardrails.html) — pre-commit + CI checks as init
+  中文翻译：见原文。
 - [Augment Code, How to Build Your AGENTS.md (2026)](https://www.augmentcode.com/guides/how-to-build-agents-md) — init expectations
+  中文翻译：见原文。
 - [Codex Blog, Codex CLI Context Compaction](https://codex.danielvaughan.com/2026/03/31/codex-cli-context-compaction-architecture/) — session start as compaction-aware init
+  中文翻译：见原文。
 - Phase 14 · 33 — the rule set this script enables
 - Phase 14 · 34 — the state file this script seeds
 - Phase 14 · 38 — the verification gate the init script feeds
