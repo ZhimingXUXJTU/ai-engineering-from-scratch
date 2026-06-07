@@ -230,7 +230,7 @@
     el.id = PALETTE_ID;
     el.setAttribute('role', 'dialog');
     el.setAttribute('aria-modal', 'true');
-    el.setAttribute('aria-label', 'Search lessons and glossary');
+    el.setAttribute('aria-label', AIFS_I18N.t('cmd.searchLabel') || 'Search lessons and glossary');
 
     el.innerHTML =
       '<div class="cp-backdrop" id="cpBackdrop"></div>' +
@@ -243,7 +243,7 @@
             '<line x1="21" y1="21" x2="16.65" y2="16.65"/>' +
           '</svg>' +
           '<input class="cp-input" id="cpInput" type="search"' +
-          ' placeholder="Search lessons and glossary…"' +
+          ' placeholder="' + (AIFS_I18N.t('cmd.searchPlaceholder') || 'Search lessons and glossary\u2026') + '"' +
           ' autocomplete="off" autocorrect="off"' +
           ' autocapitalize="off" spellcheck="false"' +
           ' aria-label="Search" aria-autocomplete="list"' +
@@ -251,19 +251,19 @@
           '<kbd class="cp-kbd-esc" id="cpKbdEsc">Esc</kbd>' +
         '</div>' +
         '<ul class="cp-results" id="cpResults"' +
-        ' role="listbox" aria-label="Search results"></ul>' +
+        ' role="listbox" aria-label="' + (AIFS_I18N.t('cmd.resultsLabel') || 'Search results') + '"></ul>' +
         '<div class="cp-footer">' +
           '<span class="cp-footer-group">' +
             '<kbd>↑</kbd><kbd>↓</kbd>' +
-            '<span class="cp-footer-label">navigate</span>' +
+            '<span class="cp-footer-label">' + (AIFS_I18N.t('cmd.navigate') || 'navigate') + '</span>' +
           '</span>' +
           '<span class="cp-footer-group">' +
             '<kbd>↵</kbd>' +
-            '<span class="cp-footer-label">open</span>' +
+            '<span class="cp-footer-label">' + (AIFS_I18N.t('cmd.open') || 'open') + '</span>' +
           '</span>' +
           '<span class="cp-footer-group">' +
             '<kbd>Esc</kbd>' +
-            '<span class="cp-footer-label">close</span>' +
+            '<span class="cp-footer-label">' + (AIFS_I18N.t('cmd.close') || 'close') + '</span>' +
           '</span>' +
           '<span class="cp-footer-shortcut">' + shortcutLabel + '</span>' +
         '</div>' +
@@ -344,7 +344,7 @@
     if (!query) {
       list.innerHTML =
         '<li class="cp-empty" role="option" aria-disabled="true">' +
-        'Type to search 435 lessons, 489 outputs, and glossary terms' +
+        (AIFS_I18N.t('cmd.emptyState') || 'Type to search 435 lessons, 489 outputs, and glossary terms') +
         '</li>';
       _activeIdx = -1;
       return;
@@ -353,7 +353,7 @@
     if (results.length === 0) {
       list.innerHTML =
         '<li class="cp-empty" role="option" aria-disabled="true">' +
-        'No results for <em>' + escHtml(query) + '</em>' +
+        (AIFS_I18N.t('cmd.noResults') || 'No results for') + ' <em>' + escHtml(query) + '</em>' +
         '</li>';
       _activeIdx = -1;
       return;
@@ -371,7 +371,7 @@
         dest = r.lessonPath
           ? 'lesson.html?path=' + encodeURIComponent(r.lessonPath)
           : r.url;
-        chip = 'Phase ' + String(r.phaseId).padStart(2, '0');
+        chip = (AIFS_I18N.t('cmd.phase') || 'Phase ') + String(r.phaseId).padStart(2, '0');
       } else if (r.kind === 'artifact') {
         // Jump to the lesson that produced this artifact
         dest = r.lessonPath
@@ -384,7 +384,7 @@
         // Deep-link: pre-populate glossary search with the exact term name
         // so the user lands directly on the definition, not the full list.
         dest      = 'glossary.html?q=' + encodeURIComponent(r.name);
-        chip      = 'Glossary';
+        chip      = AIFS_I18N.t('cmd.glossary') || 'Glossary';
         chipClass += ' cp-item-chip--alt';
       }
 
@@ -395,7 +395,7 @@
         if (r.lang && r.lang !== '—') metaParts.push(r.lang);
       } else if (r.kind === 'artifact') {
         if (r.phaseId !== undefined && r.phaseId !== null) {
-          metaParts.push('Phase ' + String(r.phaseId).padStart(2, '0'));
+          metaParts.push((AIFS_I18N.t('cmd.phase') || 'Phase ') + String(r.phaseId).padStart(2, '0'));
         }
       }
       var meta = metaParts.join(' · '); // ·
