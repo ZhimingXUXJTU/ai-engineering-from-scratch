@@ -18,6 +18,8 @@
 - Build a local mock LLM-as-judge that scores model outputs on a 1-5 scale.
 - Aggregate the four evals into a single weighted report with per-task breakdown.
 
+> **【中文解读】** 评估流水线是模型开发不可或缺的部分。本课构建统一的评估管线：困惑度（语言建模质量）、精确匹配（短答案正确性）、Token F1（开放式相似度）和本地模拟 LLM-as-judge（定性评分）。四个评估维度覆盖发布模型需要的所有维度，汇总为加权报告。
+
 ## The Problem | 问题
 
 A single metric never describes a language model. Perplexity says how well the model fits the language distribution but says nothing about whether it answers questions. Exact-match says whether the model produces the gold string but punishes correct paraphrases. Token F1 forgives paraphrase but is fooled by lexical overlap with wrong content. LLM-as-judge captures qualitative dimensions but is expensive and stochastic.

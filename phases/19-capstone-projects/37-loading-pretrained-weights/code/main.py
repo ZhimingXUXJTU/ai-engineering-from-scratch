@@ -13,8 +13,12 @@ GPT-2 file and the loader works without modification.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：加载预训练权重——从 safetensors 文件读取 GPT-2 风格权重，映射预训练参数名
+到本地架构名（wte→tok_embed, h.N.attn.c_attn→blocks.N.attn.qkv），转置 conv1d 权重布局
+AI 对应：safetensors 是 HuggingFace 推广的安全权重格式（替代 pickle）；
+GPT-2 的 conv1d 权重布局与标准 nn.Linear 的转置关系是加载权重的经典坑点；
+HuggingFace transformers 的 from_pretrained() 方法封装了此映射逻辑；
+权重 tying 意味着 LM Head 不存储在文件中
 """
 
 from __future__ import annotations
@@ -51,7 +55,6 @@ class ModelConfig:
 
 
 class LayerNorm(nn.Module):
-    """LayerNorm"""
     def __init__(self, d_model: int, eps: float = 1e-5) -> None:
         super().__init__()
         self.eps = eps
@@ -61,11 +64,10 @@ class LayerNorm(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         mean = x.mean(dim=-1, keepdim=True)
         var = x.var(dim=-1, keepdim=True, unbiased=False)
-        return self.scale * (x - mean) / torch.sqrt(var + self.eps) + self.shift  # 返回结果
+        return self.scale * (x - mean) / torch.sqrt(var + self.eps) + self.shift
 
 
 class MultiHeadAttention(nn.Module):
-    """MultiHeadAttention"""
     def __init__(self, cfg: ModelConfig) -> None:
         super().__init__()
         if cfg.d_model % cfg.num_heads != 0:
@@ -96,11 +98,10 @@ class MultiHeadAttention(nn.Module):
         attn = F.softmax(scores, dim=-1)
         attn = self.attn_dropout(attn)
         out = (attn @ v).transpose(1, 2).contiguous().view(batch, seq, dim)
-        return self.resid_dropout(self.out_proj(out))  # 返回结果
+        return self.resid_dropout(self.out_proj(out))
 
 
 class FeedForward(nn.Module):
-    """FeedForward"""
     def __init__(self, cfg: ModelConfig) -> None:
         super().__init__()
         hidden = cfg.mlp_expansion * cfg.d_model
@@ -110,11 +111,10 @@ class FeedForward(nn.Module):
         self.dropout = nn.Dropout(cfg.dropout)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.dropout(self.fc2(self.act(self.fc1(x))))  # 返回结果
+        return self.dropout(self.fc2(self.act(self.fc1(x))))
 
 
 class TransformerBlock(nn.Module):
-    """TransformerBlock"""
     def __init__(self, cfg: ModelConfig) -> None:
         super().__init__()
         self.ln1 = LayerNorm(cfg.d_model)
@@ -125,11 +125,10 @@ class TransformerBlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x + self.attn(self.ln1(x))
         x = x + self.mlp(self.ln2(x))
-        return x  # 返回结果
+        return x
 
 
 class GPTModel(nn.Module):
-    """GPTModel"""
     def __init__(self, cfg: ModelConfig) -> None:
         super().__init__()
         self.cfg = cfg
@@ -158,7 +157,7 @@ class GPTModel(nn.Module):
         x = self.embed_dropout(tok + pos)
         for block in self.blocks:
             x = block(x)
-        return self.lm_head(self.final_ln(x))  # 返回结果
+        return self.lm_head(self.final_ln(x))
 
 
 @dataclass
@@ -171,7 +170,7 @@ class LoadReport:
     shape_mismatch: list[tuple[str, tuple[int, ...], tuple[int, ...]]] = field(default_factory=list)
 
     def summary(self) -> str:
-        return (  # 返回结果
+        return (
             f"loaded={len(self.loaded)} "
             f"missing={len(self.missing)} "
             f"unexpected={len(self.unexpected)} "
@@ -179,7 +178,7 @@ class LoadReport:
         )
 
     def ok(self) -> bool:
-        return not self.missing and not self.shape_mismatch  # 返回结果
+        return not self.missing and not self.shape_mismatch
 
 
 # Names that are stored transposed in published GPT-2 checkpoints.
@@ -210,12 +209,11 @@ def make_pretrained_to_local(num_layers: int) -> dict[str, str]:
         mapping[f"{prefix_src}.mlp.c_fc.bias"] = f"{prefix_dst}.mlp.fc1.bias"
         mapping[f"{prefix_src}.mlp.c_proj.weight"] = f"{prefix_dst}.mlp.fc2.weight"
         mapping[f"{prefix_src}.mlp.c_proj.bias"] = f"{prefix_dst}.mlp.fc2.bias"
-    return mapping  # 返回结果
+    return mapping
 
 
 def _needs_transpose(pretrained_name: str) -> bool:
-    """_needs_transpose"""
-    return any(pretrained_name.endswith(suffix) for suffix in CONV1D_SUFFIXES)  # 返回结果
+    return any(pretrained_name.endswith(suffix) for suffix in CONV1D_SUFFIXES)
 
 
 def load_safetensors(model: GPTModel, path: Path, verbose: bool = True) -> LoadReport:
@@ -266,7 +264,7 @@ def load_safetensors(model: GPTModel, path: Path, verbose: bool = True) -> LoadR
         expected = set(local_params.keys())
         for name in sorted(expected - seen_local):
             report.missing.append(name)
-        return report  # 返回结果
+        return report
 
     with torch.no_grad():
         for src_name, local_name, tensor in pending:
@@ -286,7 +284,7 @@ def load_safetensors(model: GPTModel, path: Path, verbose: bool = True) -> LoadR
     for name in sorted(expected - seen_local):
         report.missing.append(name)
 
-    return report  # 返回结果
+    return report
 
 
 def make_stub_safetensors(path: Path, cfg: ModelConfig, seed: int = 42) -> None:
@@ -299,7 +297,7 @@ def make_stub_safetensors(path: Path, cfg: ModelConfig, seed: int = 42) -> None:
     generator = torch.Generator().manual_seed(seed)
 
     def randn(*shape: int) -> torch.Tensor:
-        return torch.randn(*shape, generator=generator, dtype=torch.float32)  # 返回结果
+        return torch.randn(*shape, generator=generator, dtype=torch.float32)
 
     tensors: dict[str, torch.Tensor] = {}
     tensors["wte.weight"] = randn(cfg.vocab_size, cfg.d_model) * 0.02
@@ -335,7 +333,6 @@ def make_stub_safetensors(path: Path, cfg: ModelConfig, seed: int = 42) -> None:
 
 @torch.no_grad()
 def quick_generate(model: GPTModel, prompt: torch.Tensor, n: int, seed: int = 0) -> list[int]:
-    """quick_generate"""
     torch.manual_seed(seed)
     model.eval()
     tokens = prompt.clone()
@@ -344,16 +341,15 @@ def quick_generate(model: GPTModel, prompt: torch.Tensor, n: int, seed: int = 0)
         logits = model(window)
         next_token = torch.argmax(logits[:, -1, :], dim=-1, keepdim=True)
         tokens = torch.cat([tokens, next_token], dim=1)
-    return tokens.tolist()[0]  # 返回结果
+    return tokens.tolist()[0]
 
 
 def _state_fingerprint(model: GPTModel) -> float:
     """Sum of L2 norms across parameters; coarse fingerprint that changes on load."""
-    return float(sum(p.detach().norm().item() for p in model.parameters()))  # 返回结果
+    return float(sum(p.detach().norm().item() for p in model.parameters()))
 
 
 def demo() -> None:
-    """demo"""
     torch.manual_seed(0)
 
     cfg = ModelConfig(

@@ -7,8 +7,11 @@ Conceptual references:
 
 Stdlib only. Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Agent 线束循环契约——六状态确定性状态机（IDLE→PLANNING→EXECUTING→AWAITING_TOOL→
+REFLECTING→DONE）+ 十个 Hook 主题 + 十一个事件类型 + 预算控制 + pull 点让外部系统提供工具结果
+AI 对应：LangGraph (LangChain) 使用类似的有状态图执行模型；
+CrewAI 和 AutoGen 的 Agent 循环也基于状态机 + hook 架构；
+pull-based 工具调用（让宿主进程提供结果）是 Claude Code 和 MCP 工具调用的核心设计模式
 """
 
 from __future__ import annotations
@@ -21,7 +24,6 @@ from typing import Any, Callable, Iterable
 
 
 class State(str, Enum):
-    """State"""
     IDLE = "idle"
     PLANNING = "planning"
     EXECUTING = "executing"
@@ -64,18 +66,16 @@ class HookAbort(Exception):
 
 @dataclass
 class Event:
-    """Event"""
     type: str
     payload: dict
     ts: float
 
     def to_dict(self) -> dict:
-        return {"type": self.type, "payload": self.payload, "ts": self.ts}  # 返回结果
+        return {"type": self.type, "payload": self.payload, "ts": self.ts}
 
 
 @dataclass
 class Budget:
-    """Budget"""
     max_turns: int = 8
     max_tool_calls: int = 16
     max_wall_seconds: float = 30.0
@@ -84,21 +84,20 @@ class Budget:
     started_at: float = field(default_factory=time.time)
 
     def remaining_seconds(self) -> float:
-        return max(0.0, self.max_wall_seconds - (time.time() - self.started_at))  # 返回结果
+        return max(0.0, self.max_wall_seconds - (time.time() - self.started_at))
 
     def exceeded(self) -> str | None:
         if self.turns >= self.max_turns:
-            return "turns"  # 返回结果
+            return "turns"
         if self.tool_calls >= self.max_tool_calls:
-            return "tool_calls"  # 返回结果
+            return "tool_calls"
         if self.remaining_seconds() <= 0.0:
-            return "wall_clock"  # 返回结果
-        return None  # 返回结果
+            return "wall_clock"
+        return None
 
 
 @dataclass
 class Step:
-    """Step"""
     id: int
     description: str
     requires_tool: bool
@@ -118,7 +117,6 @@ class PullRequest:
 
 @dataclass
 class SessionResult:
-    """SessionResult"""
     state: State
     reason: str
     steps: list[Step]
@@ -126,7 +124,6 @@ class SessionResult:
 
 
 class HookRegistry:
-    """HookRegistry"""
     def __init__(self) -> None:
         self._subs: dict[str, list[Callable[[dict], Any]]] = {t: [] for t in HOOK_TOPICS}
 
@@ -139,7 +136,7 @@ class HookRegistry:
         results = []
         for fn in self._subs[topic]:
             results.append(fn(payload))
-        return results  # 返回结果
+        return results
 
 
 Planner = Callable[[str, list[Step]], list[Step]]
@@ -148,8 +145,8 @@ Planner = Callable[[str, list[Step]], list[Step]]
 def _default_planner(goal: str, history: list[Step]) -> list[Step]:
     """Deterministic stand-in planner. Returns a fixed three-step plan."""
     if history:
-        return []  # 返回结果
-    return [  # 返回结果
+        return []
+    return [
         Step(id=1, description=f"interpret goal: {goal}", requires_tool=False),
         Step(id=2, description="fetch user record", requires_tool=True,
              tool_name="db.get_user", tool_args={"id": 42}),
@@ -180,11 +177,11 @@ class HarnessLoop:
 
     @property
     def events(self) -> list[Event]:
-        return list(self._events)  # 返回结果
+        return list(self._events)
 
     @property
     def plan(self) -> list[Step]:
-        return list(self._plan)  # 返回结果
+        return list(self._plan)
 
     def _emit(self, etype: str, payload: dict) -> None:
         if etype not in EVENT_TYPES:
@@ -207,18 +204,18 @@ class HarnessLoop:
     def _check_budget(self) -> PullRequest | None:
         which = self.budget.exceeded()
         if which is None:
-            return None  # 返回结果
+            return None
         self._emit("budget.warn", {"limit": which})
         self.hooks.fire("on_budget_exceeded", {"limit": which, "budget": self.budget})
         self._reason = f"budget_exceeded:{which}"
         self._prev_state = self.state
-        return self._pause(self._reason)  # 返回结果
+        return self._pause(self._reason)
 
     def _pause(self, reason: str) -> PullRequest:
         self._emit("session.pause", {"reason": reason})
         self.hooks.fire("on_pause", {"reason": reason})
         self._transition(State.IDLE)
-        return PullRequest(reason=reason, state=self.state, payload={"reason": reason})  # 返回结果
+        return PullRequest(reason=reason, state=self.state, payload={"reason": reason})
 
     def run(self, goal: str) -> PullRequest | SessionResult:
         if self.state != State.IDLE:
@@ -226,7 +223,7 @@ class HarnessLoop:
         self._goal = goal
         self.budget.started_at = time.time()
         self._emit("session.start", {"goal": goal})
-        return self._step()  # 返回结果
+        return self._step()
 
     def resume(self, payload: dict | None = None) -> PullRequest | SessionResult:
         if self.state == State.IDLE and self._reason.startswith("budget_exceeded"):
@@ -237,12 +234,12 @@ class HarnessLoop:
             prev = self._prev_state
             self._prev_state = None
             if not self._plan:
-                return self._begin_plan()  # 返回结果
+                return self._begin_plan()
             if prev == State.EXECUTING:
                 self.state = State.EXECUTING
             else:
                 self.state = State.REFLECTING
-            return self._step()  # 返回结果
+            return self._step()
         if self.state == State.AWAITING_TOOL:
             if payload is None:
                 raise ValueError("resume from AWAITING_TOOL requires a payload")
@@ -256,7 +253,7 @@ class HarnessLoop:
                 self._emit("tool.result", {"step": current.id, "result": current.result})
             self.hooks.fire("after_tool_call", {"step": current})
             self._transition(State.REFLECTING)
-            return self._step()  # 返回结果
+            return self._step()
         raise RuntimeError(f"resume() unsupported from state {self.state.value}")
 
     def _begin_plan(self) -> PullRequest | SessionResult:
@@ -269,23 +266,23 @@ class HarnessLoop:
         self._cursor = 0
         self._emit("plan.commit", {"count": len(draft)})
         if not draft:
-            return self._complete("no_plan")  # 返回结果
+            return self._complete("no_plan")
         self._transition(State.EXECUTING)
-        return self._step()  # 返回结果
+        return self._step()
 
     def _step(self) -> PullRequest | SessionResult:
         if self.state == State.IDLE:
-            return self._begin_plan()  # 返回结果
+            return self._begin_plan()
         budget_hit = self._check_budget()
         if budget_hit is not None:
-            return budget_hit  # 返回结果
+            return budget_hit
         if self.state == State.REFLECTING:
             self._cursor += 1
             self.budget.turns += 1
             if self._cursor >= len(self._plan):
-                return self._complete("goal_met")  # 返回结果
+                return self._complete("goal_met")
             self._transition(State.EXECUTING)
-            return self._step()  # 返回结果
+            return self._step()
         if self.state != State.EXECUTING:
             raise RuntimeError(f"_step requires EXECUTING/REFLECTING, got {self.state.value}")
         step = self._plan[self._cursor]
@@ -299,13 +296,13 @@ class HarnessLoop:
                 self._emit("tool.error", {"step": step.id, "error": step.error})
                 self.hooks.fire("on_error", {"step": step, "error": step.error})
                 self._transition(State.REFLECTING)
-                return self._step()  # 返回结果
+                return self._step()
             self.budget.tool_calls += 1
             self._emit("tool.call", {"step": step.id, "tool": step.tool_name, "args": step.tool_args})
             self._transition(State.AWAITING_TOOL)
             self._emit("step.end", {"step_id": step.id, "outcome": "awaiting_tool"})
             self.hooks.fire("after_step", {"step": step, "outcome": "awaiting_tool"})
-            return PullRequest(  # 返回结果
+            return PullRequest(
                 reason="tool_call",
                 state=self.state,
                 payload={"tool": step.tool_name, "args": step.tool_args, "step_id": step.id},
@@ -314,18 +311,17 @@ class HarnessLoop:
         self._emit("step.end", {"step_id": step.id, "outcome": "ok"})
         self.hooks.fire("after_step", {"step": step, "outcome": "ok"})
         self._transition(State.REFLECTING)
-        return self._step()  # 返回结果
+        return self._step()
 
     def _complete(self, reason: str) -> SessionResult:
         self._emit("session.complete", {"reason": reason})
         self.hooks.fire("on_complete", {"reason": reason})
         self._transition(State.DONE)
         self._reason = reason
-        return SessionResult(state=self.state, reason=reason, steps=list(self._plan), events=list(self._events))  # 返回结果
+        return SessionResult(state=self.state, reason=reason, steps=list(self._plan), events=list(self._events))
 
 
 def _demo() -> None:
-    """_demo"""
     loop = HarnessLoop()
     fired: list[str] = []
     for topic in HOOK_TOPICS:

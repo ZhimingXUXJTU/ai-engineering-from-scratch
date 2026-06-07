@@ -7,8 +7,11 @@ the dispatcher, budget ledger, sandbox state machine, and verification gates.
 
 Run:  python main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：GitHub Issue-to-PR 异步云 Agent——调度器执行每仓库预算控制、GitHub App 作用域凭证、
+沙箱生命周期状态机（CLONE→INFER→AGENT→VERIFY→PR），验证门检查 CI 和覆盖率回归
+AI 对应：Sweep AI 和 Codegen (now Closed) 是 Issue-to-PR Agent 的商业化产品；
+GitHub App 的 installation token + scoped permissions 是安全的 API 访问标准；
+force-push 禁令和 main 分支写保护是生产 Agent 的安全基线
 """
 
 from __future__ import annotations
@@ -26,7 +29,6 @@ from enum import Enum, auto
 
 @dataclass
 class Task:
-    """Task"""
     task_id: int
     repo: str
     issue_num: int
@@ -40,7 +42,6 @@ class Task:
 
 @dataclass
 class BudgetLedger:
-    """BudgetLedger"""
     daily_dollar_cap: float = 50.0
     daily_pr_cap: int = 5
     per_task_dollar_cap: float = 20.0
@@ -49,7 +50,7 @@ class BudgetLedger:
 
     def permit(self, repo: str, estimated_cost: float) -> tuple[bool, str]:
         if estimated_cost > self.per_task_dollar_cap:
-            return False, f"task estimate ${estimated_cost:.2f} > cap ${self.per_task_dollar_cap}"  # 返回结果
+            return False, f"task estimate ${estimated_cost:.2f} > cap ${self.per_task_dollar_cap}"
         # Reserve against the worst-case per-task spend, not the estimate. The
         # agent loop in ``run_agent`` is allowed to run up to ``per_task_dollar_cap``
         # before tripping ``dollar_cap``, so admitting on ``estimated`` lets a
@@ -57,10 +58,10 @@ class BudgetLedger:
         # writes the actual spend so unused reservation auto-reconciles.
         worst_case = self.per_task_dollar_cap
         if self.spent_today[repo] + worst_case > self.daily_dollar_cap:
-            return False, f"daily $ cap for {repo} would be exceeded"  # 返回结果
+            return False, f"daily $ cap for {repo} would be exceeded"
         if self.prs_today[repo] >= self.daily_pr_cap:
-            return False, f"daily PR cap ({self.daily_pr_cap}) for {repo} reached"  # 返回结果
-        return True, "ok"  # 返回结果
+            return False, f"daily PR cap ({self.daily_pr_cap}) for {repo} reached"
+        return True, "ok"
 
     def record(self, repo: str, spent: float, opened_pr: bool) -> None:
         self.spent_today[repo] += spent
@@ -74,14 +75,13 @@ class BudgetLedger:
 
 @dataclass
 class InstallationToken:
-    """InstallationToken"""
     repo: str
     expires_at: float
     permissions: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     def mint(cls, repo: str) -> "InstallationToken":
-        return cls(repo=repo,  # 返回结果
+        return cls(repo=repo,
                    expires_at=time.time() + 3600,
                    permissions={"issues": "rw", "pull_requests": "rw",
                                 "contents": "rw", "workflows": "r"})
@@ -89,10 +89,10 @@ class InstallationToken:
     def can(self, action: str) -> bool:
         # hard policy: never force-push
         if action == "force_push":
-            return False  # 返回结果
+            return False
         if action.startswith("write:main"):
-            return False  # 返回结果
-        return True  # 返回结果
+            return False
+        return True
 
 
 # ---------------------------------------------------------------------------
@@ -100,7 +100,6 @@ class InstallationToken:
 # ---------------------------------------------------------------------------
 
 class SState(Enum):
-    """SState"""
     CLONE = auto()
     INFER = auto()
     AGENT = auto()
@@ -112,7 +111,6 @@ class SState(Enum):
 
 @dataclass
 class SandboxRun:
-    """SandboxRun"""
     task: Task
     state: SState = SState.CLONE
     turns: int = 0
@@ -130,7 +128,6 @@ class SandboxRun:
 # ---------------------------------------------------------------------------
 
 def run_agent(run: SandboxRun, difficulty: float, rng: random.Random,
-    """run_agent"""
               turn_cap: int = 20, dollar_cap: float = 20.0,
               minute_cap: float = 30.0) -> None:
     run.state = SState.AGENT
@@ -147,50 +144,48 @@ def run_agent(run: SandboxRun, difficulty: float, rng: random.Random,
         if run.turns >= turn_cap:
             run.failure = "turn_cap"
             run.state = SState.FAILED
-            return  # 返回结果
+            return
         if run.dollars >= dollar_cap:
             run.failure = "dollar_cap"
             run.state = SState.FAILED
-            return  # 返回结果
+            return
         if run.wall_min >= minute_cap:
             run.failure = "minute_cap"
             run.state = SState.FAILED
-            return  # 返回结果
+            return
 
         if rng.random() < per_turn_p:
             run.state = SState.VERIFY
-            return  # 返回结果
+            return
 
 
 def run_verify(run: SandboxRun, difficulty: float, rng: random.Random) -> None:
-    """run_verify"""
     flake = rng.random() < 0.05
     if flake:
         run.ci_green = False
         run.failure = "flaky_test"
         run.state = SState.FAILED
-        return  # 返回结果
+        return
     run.ci_green = True
     run.coverage_delta = rng.gauss(0.0, 0.6)
     if run.coverage_delta < -2.0:
         run.failure = "coverage_regression"
         run.state = SState.FAILED
-        return  # 返回结果
+        return
     run.state = SState.PR
 
 
 def open_pr(run: SandboxRun, token: InstallationToken) -> None:
-    """open_pr"""
     # Explicit runtime checks -- never use `assert` for a safety gate. `python -O`
     # strips asserts, which would let a denied or expired token still open a PR.
     if time.time() >= token.expires_at:
         run.failure = "token_expired"
         run.state = SState.FAILED
-        return  # 返回结果
+        return
     if not token.can("pull_request.open"):
         run.failure = "policy_denied"
         run.state = SState.FAILED
-        return  # 返回结果
+        return
     run.pr_opened = True
     run.state = SState.DONE
 
@@ -200,7 +195,6 @@ def open_pr(run: SandboxRun, token: InstallationToken) -> None:
 # ---------------------------------------------------------------------------
 
 def dispatch(task: Task, ledger: BudgetLedger, rng: random.Random) -> SandboxRun:
-    """dispatch"""
     difficulty = rng.uniform(0.3, 0.92)
     estimated = 2.0 + difficulty * 8.0
     allowed, reason = ledger.permit(task.repo, estimated)
@@ -208,7 +202,7 @@ def dispatch(task: Task, ledger: BudgetLedger, rng: random.Random) -> SandboxRun
         run = SandboxRun(task)
         run.failure = f"dispatcher: {reason}"
         run.state = SState.FAILED
-        return run  # 返回结果
+        return run
 
     token = InstallationToken.mint(task.repo)
     run = SandboxRun(task)
@@ -221,7 +215,7 @@ def dispatch(task: Task, ledger: BudgetLedger, rng: random.Random) -> SandboxRun
     if run.state == SState.PR:
         open_pr(run, token)
     ledger.record(task.repo, run.dollars, run.pr_opened)
-    return run  # 返回结果
+    return run
 
 
 # ---------------------------------------------------------------------------
@@ -229,7 +223,6 @@ def dispatch(task: Task, ledger: BudgetLedger, rng: random.Random) -> SandboxRun
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    """main"""
     rng = random.Random(9)
     ledger = BudgetLedger()
     repos = ["acme/widget", "acme/service", "acme/library"]

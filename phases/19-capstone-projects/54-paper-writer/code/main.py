@@ -6,8 +6,12 @@ Conceptual references:
 
 Stdlib only. Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：LaTeX 论文骨架生成器——自动生成论文结构 + 图表注入 + mock 散文生成器，
+从实验结果自动构建完整的学术论文草稿
+AI 对应：Sakana AI 的 The AI Scientist 自动生成完整的 LaTeX 论文；
+ChatGPT 和 Claude 被广泛用于辅助学术写作；
+Overleaf + LaTeX 是学术出版的标准工具链；
+图表注入确保实验可视化结果自动嵌入论文
 """
 
 from __future__ import annotations
@@ -25,7 +29,6 @@ class PaperValidationError(Exception):
 
 @dataclass
 class BibEntry:
-    """BibEntry"""
     key: str
     entry_type: str
     fields: dict
@@ -36,12 +39,11 @@ class BibEntry:
             safe = str(v).replace("{", "").replace("}", "")
             lines.append(f"  {k} = {{{safe}}},")
         lines.append("}")
-        return "\n".join(lines)  # 返回结果
+        return "\n".join(lines)
 
 
 @dataclass
 class Figure:
-    """Figure"""
     id: str
     path: str
     caption: str
@@ -49,12 +51,11 @@ class Figure:
 
     @property
     def label(self) -> str:
-        return f"fig:{self.id}"  # 返回结果
+        return f"fig:{self.id}"
 
 
 @dataclass
 class Section:
-    """Section"""
     id: str
     title: str
     body: str = ""
@@ -63,12 +64,11 @@ class Section:
 
     @property
     def label(self) -> str:
-        return f"sec:{self.id}"  # 返回结果
+        return f"sec:{self.id}"
 
 
 @dataclass
 class Paper:
-    """Paper"""
     title: str
     authors: list[str]
     abstract: str
@@ -81,7 +81,6 @@ ProseGenerator = Callable[[Section, Paper], str]
 
 
 def _validate(paper: Paper) -> None:
-    """_validate"""
     if not paper.title.strip():
         raise PaperValidationError("title is empty")
     if not paper.abstract.strip():
@@ -112,7 +111,6 @@ def _validate(paper: Paper) -> None:
 
 
 def _escape_latex(text: str) -> str:
-    """_escape_latex"""
     repl = {
         "\\": r"\textbackslash{}",
         "&": r"\&",
@@ -128,7 +126,7 @@ def _escape_latex(text: str) -> str:
     out_chars: list[str] = []
     for ch in text:
         out_chars.append(repl.get(ch, ch))
-    return "".join(out_chars)  # 返回结果
+    return "".join(out_chars)
 
 
 def render_latex(paper: Paper) -> str:
@@ -169,12 +167,11 @@ def render_latex(paper: Paper) -> str:
         lines.append("\\bibliography{references}")
 
     lines.append("\\end{document}")
-    return "\n".join(lines) + "\n"  # 返回结果
+    return "\n".join(lines) + "\n"
 
 
 def render_bibtex(paper: Paper) -> str:
-    """render_bibtex"""
-    return "\n\n".join(b.to_bibtex() for b in paper.bibliography) + ("\n" if paper.bibliography else "")  # 返回结果
+    return "\n\n".join(b.to_bibtex() for b in paper.bibliography) + ("\n" if paper.bibliography else "")
 
 
 class MockProseGenerator:
@@ -192,7 +189,7 @@ class MockProseGenerator:
         for c in section.cites:
             bits.append(f"This builds on prior work~\\cite{{{c}}}.")
         second = " ".join(bits) if bits else "We discuss implications below."
-        return first + "\n\n" + second  # 返回结果
+        return first + "\n\n" + second
 
 
 def read_experiment_manifest(manifests: Iterable[dict], paper_dir: str) -> list[Figure]:
@@ -220,19 +217,18 @@ def read_experiment_manifest(manifests: Iterable[dict], paper_dir: str) -> list[
                 rel = path
             fid = re.sub(r"[^a-zA-Z0-9]+", "-", f"{name}-{counter}").strip("-").lower()
             figs.append(Figure(id=fid, path=rel, caption=caption or name))
-    return figs  # 返回结果
+    return figs
 
 
 @dataclass
 class PaperWriter:
-    """PaperWriter"""
     prose: ProseGenerator
 
     def fill_prose(self, paper: Paper) -> Paper:
         for sec in paper.sections:
             if not sec.body:
                 sec.body = self.prose(sec, paper)
-        return paper  # 返回结果
+        return paper
 
     def write(self, paper: Paper, out_dir: str) -> dict:
         """Validate, fill prose, render, and write three files. Returns the manifest dict."""
@@ -268,7 +264,7 @@ class PaperWriter:
         }
         with open(man_path, "w", encoding="utf-8") as f:
             json.dump(manifest, f, indent=2, sort_keys=True)
-        return manifest  # 返回结果
+        return manifest
 
 
 def demo(out_dir: str | None = None) -> dict:
@@ -314,7 +310,7 @@ def demo(out_dir: str | None = None) -> dict:
         "results": "we present two ablations",
     })
     writer = PaperWriter(prose=prose)
-    return writer.write(paper, out_dir)  # 返回结果
+    return writer.write(paper, out_dir)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,11 @@
-"""Tests for HarnessLoop state machine, hooks, events, budget."""
+"""Agent Harness 循环契约测试 —— 验证状态机、钩子、事件和预算控制
+
+核心概念：
+  - HarnessLoop：Agent 执行循环的状态机（plan -> execute -> verify -> done）
+  - 钩子 (Hook)：在循环的特定阶段触发自定义逻辑（如日志、审批、中止）
+  - 预算控制：限制 Agent 的执行步数或时间，防止无限循环
+  - SessionResult：记录一次完整执行的结果和状态
+"""
 
 from __future__ import annotations
 

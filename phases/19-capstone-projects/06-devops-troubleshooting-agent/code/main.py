@@ -8,8 +8,11 @@ considered command is audit-logged. This scaffold implements both.
 
 Run:  python main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：DevOps 排障 Agent——K8s 知识图谱 + 遥测叠加边 + 根因假设排序（时效性 x 特异性 x 引用数）+
+默认只读工具面 + 破坏性命令需 HITL 人工审批 + 完整审计日志
+AI 对应：Kubernetes 的kubectl get/describe是只读诊断标准；ArgoCD rollback 是生产回滚标准；
+PagerDuty + Slack 审批门是 SRE 工作流核心；2026 年 AIOps Agent（如 Datadog Bits AI）
+采用此 read-first + approve-gate 架构
 """
 
 from __future__ import annotations
@@ -26,19 +29,17 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Node:
-    """Node"""
     kind: str               # "Pod" | "Deployment" | "Node" | "Service" | "Prom" | "Loki"
     name: str
     attrs: dict = field(default_factory=dict)
 
     @property
     def key(self) -> str:
-        return f"{self.kind}/{self.name}"  # 返回结果
+        return f"{self.kind}/{self.name}"
 
 
 @dataclass
 class Graph:
-    """Graph"""
     nodes: dict[str, Node] = field(default_factory=dict)
     edges: list[tuple[str, str, str]] = field(default_factory=list)  # (src, rel, dst)
 
@@ -51,11 +52,10 @@ class Graph:
     def neighbors(self, key: str) -> list[tuple[str, str]]:
         out = [(rel, dst) for s, rel, dst in self.edges if s == key]
         out += [(rel, src) for src, rel, dst in self.edges if dst == key]
-        return out  # 返回结果
+        return out
 
 
 def build_sample_cluster() -> Graph:
-    """build_sample_cluster"""
     g = Graph()
     dep = Node("Deployment", "checkout-api",
                {"revision": 42, "image": "checkout-api:v2.41", "deployed_at": "14m ago"})
@@ -77,7 +77,7 @@ def build_sample_cluster() -> Graph:
     g.link(svc.key, "EXPOSES", dep.key)
     g.link(dep.key, "OBSERVED_BY", prom.key)
     g.link(dep.key, "OBSERVED_BY", loki.key)
-    return g  # 返回结果
+    return g
 
 
 # ---------------------------------------------------------------------------
@@ -86,7 +86,6 @@ def build_sample_cluster() -> Graph:
 
 @dataclass
 class Hypothesis:
-    """Hypothesis"""
     title: str
     citations: list[str]
     recency_mins: int
@@ -96,7 +95,7 @@ class Hypothesis:
     def score(self) -> float:
         recency_w = max(0.0, 1.0 - self.recency_mins / 60.0)
         path_w = 1.0 / (1 + self.path_len)
-        return (recency_w * 0.35 +  # 返回结果
+        return (recency_w * 0.35 +
                 self.specificity * 0.35 +
                 min(len(self.citations), 5) / 5 * 0.2 +
                 path_w * 0.1)
@@ -145,7 +144,7 @@ def root_cause(g: Graph, alerted: str) -> list[Hypothesis]:
         path_len=4,
     ))
 
-    return sorted(hyps, key=lambda h: -h.score())  # 返回结果
+    return sorted(hyps, key=lambda h: -h.score())
 
 
 # ---------------------------------------------------------------------------
@@ -154,7 +153,6 @@ def root_cause(g: Graph, alerted: str) -> list[Hypothesis]:
 
 @dataclass
 class AuditEvent:
-    """AuditEvent"""
     ts: float
     tool: str
     args: dict
@@ -167,7 +165,6 @@ class AuditEvent:
 
 @dataclass
 class Agent:
-    """Agent"""
     graph: Graph
     audit: list[AuditEvent] = field(default_factory=list)
     read_only_tools: tuple = ("kubectl_get", "kubectl_describe", "promql", "logql", "traceql")
@@ -189,7 +186,7 @@ class Agent:
         else:
             ev.result = "blocked: unknown tool"
         self.audit.append(ev)
-        return ev  # 返回结果
+        return ev
 
 
 # ---------------------------------------------------------------------------
@@ -197,7 +194,6 @@ class Agent:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    """main"""
     g = build_sample_cluster()
     agent = Agent(graph=g)
 

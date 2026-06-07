@@ -7,8 +7,12 @@ Conceptual references:
 Stdlib + numpy (read of result lists). The t test math is pure stdlib.
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：结果评估器——改进检查 + 配对 t 检验 + 对数归一化 + 判定（verdict），
+使用统计学方法判断实验结果是否显著优于基线
+AI 对应：配对 t 检验是 A/B 测试和 ML 实验比较的标准统计方法；
+Google 的 Causal Impact 和 Microsoft 的 Experimentation Platform 使用类似框架；
+p-value 阈值（通常 0.05）是判断改进是否显著的标准；
+自动化研究 Agent（如 AI Scientist）使用此方法自动评估实验结果
 """
 
 from __future__ import annotations
@@ -42,7 +46,6 @@ class ExperimentResultLike:
 
 @dataclass
 class MetricSpec:
-    """MetricSpec"""
     name: str
     direction: str = HIGHER
     scale: str = LINEAR
@@ -56,7 +59,6 @@ class MetricSpec:
 
 @dataclass
 class Verdict:
-    """Verdict"""
     hypothesis_id: int
     metric: str
     direction: str
@@ -71,7 +73,7 @@ class Verdict:
     rationale: str
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "hypothesis_id": self.hypothesis_id,
             "metric": self.metric,
             "direction": self.direction,
@@ -124,8 +126,8 @@ def _lentz_betacf(a: float, b: float, x: float, max_iter: int = 200, eps: float 
         delta = d * c
         h *= delta
         if abs(delta - 1.0) < eps:
-            return h  # 返回结果
-    return h  # 返回结果
+            return h
+    return h
 
 
 def regularised_incomplete_beta(a: float, b: float, x: float) -> float:
@@ -133,26 +135,26 @@ def regularised_incomplete_beta(a: float, b: float, x: float) -> float:
     if x < 0.0 or x > 1.0:
         raise ValueError("x out of [0, 1]")
     if x == 0.0:
-        return 0.0  # 返回结果
+        return 0.0
     if x == 1.0:
-        return 1.0  # 返回结果
+        return 1.0
     log_bt = (
         math.lgamma(a + b) - math.lgamma(a) - math.lgamma(b)
         + a * math.log(x) + b * math.log(1.0 - x)
     )
     bt = math.exp(log_bt)
     if x < (a + 1.0) / (a + b + 2.0):
-        return bt * _lentz_betacf(a, b, x) / a  # 返回结果
-    return 1.0 - bt * _lentz_betacf(b, a, 1.0 - x) / b  # 返回结果
+        return bt * _lentz_betacf(a, b, x) / a
+    return 1.0 - bt * _lentz_betacf(b, a, 1.0 - x) / b
 
 
 def two_sided_t_p_value(t_stat: float, df: int) -> float:
     """Two sided p value for a t statistic with df degrees of freedom."""
     if df <= 0:
-        return 1.0  # 返回结果
+        return 1.0
     x = df / (df + t_stat * t_stat)
     p = regularised_incomplete_beta(df / 2.0, 0.5, x)
-    return max(0.0, min(1.0, p))  # 返回结果
+    return max(0.0, min(1.0, p))
 
 
 def paired_t_test(candidate: list[float], baseline: list[float]) -> tuple[float, float | None, int]:
@@ -162,16 +164,16 @@ def paired_t_test(candidate: list[float], baseline: list[float]) -> tuple[float,
     n = len(candidate)
     if n < 2:
         if n == 0:
-            return 0.0, None, 0  # 返回结果
-        return float(candidate[0] - baseline[0]), None, n  # 返回结果
+            return 0.0, None, 0
+        return float(candidate[0] - baseline[0]), None, n
     diffs = np.array(candidate) - np.array(baseline)
     mean_diff = float(diffs.mean())
     var_diff = float(diffs.var(ddof=1))
     if var_diff == 0.0:
-        return mean_diff, (0.0 if mean_diff != 0.0 else 1.0), n  # 返回结果
+        return mean_diff, (0.0 if mean_diff != 0.0 else 1.0), n
     t_stat = mean_diff / math.sqrt(var_diff / n)
     p = two_sided_t_p_value(t_stat, n - 1)
-    return mean_diff, p, n  # 返回结果
+    return mean_diff, p, n
 
 
 def _pair_by_seed(
@@ -200,33 +202,30 @@ def _pair_by_seed(
     shared = sorted(set(cand_map.keys()) & set(base_map.keys()))
     if not shared:
         raise PairingError("no shared seeds between candidate and baseline")
-    return [cand_map[s] for s in shared], [base_map[s] for s in shared]  # 返回结果
+    return [cand_map[s] for s in shared], [base_map[s] for s in shared]
 
 
 def _improvement(candidate_mean: float, baseline_mean: float, direction: str) -> float:
-    """_improvement"""
     denom = abs(baseline_mean) if baseline_mean != 0.0 else 1.0
     raw = (candidate_mean - baseline_mean) / denom
     if direction == LOWER:
-        return -raw  # 返回结果
-    return raw  # 返回结果
+        return -raw
+    return raw
 
 
 def _log_transform(values: list[float], scale: str) -> list[float]:
-    """_log_transform"""
     if scale != LOG:
-        return list(values)  # 返回结果
+        return list(values)
     out = []
     for v in values:
         if v <= 0.0:
             raise ValueError(f"log scale metric must be positive, got {v}")
         out.append(math.log(v))
-    return out  # 返回结果
+    return out
 
 
 @dataclass
 class EvaluatorConfig:
-    """EvaluatorConfig"""
     improvement_threshold: float = 0.02
     significance_threshold: float = 0.05
 
@@ -247,7 +246,7 @@ class Evaluator:
         metric_spec.validate()
         bad = [r for r in [*candidates, *baselines] if r.terminal != "ok"]
         if bad:
-            return self._failed_verdict(hypothesis_id, metric_spec, bad)  # 返回结果
+            return self._failed_verdict(hypothesis_id, metric_spec, bad)
         cand_vals, base_vals = _pair_by_seed(candidates, baselines, metric_spec.name)
         cand_t = _log_transform(cand_vals, metric_spec.scale)
         base_t = _log_transform(base_vals, metric_spec.scale)
@@ -258,7 +257,7 @@ class Evaluator:
         base_mean_t = float(np.mean(base_t))
         improvement = _improvement(cand_mean_t, base_mean_t, metric_spec.direction)
         verdict, rationale = self._verdict(improvement, p_value, n)
-        return Verdict(  # 返回结果
+        return Verdict(
             hypothesis_id=hypothesis_id,
             metric=metric_spec.name,
             direction=metric_spec.direction,
@@ -278,7 +277,7 @@ class Evaluator:
     ) -> Verdict:
         terminals = sorted({r.terminal for r in bad})
         rationale = f"runs failed with terminals {terminals}"
-        return Verdict(  # 返回结果
+        return Verdict(
             hypothesis_id=hypothesis_id,
             metric=metric_spec.name,
             direction=metric_spec.direction,
@@ -295,30 +294,29 @@ class Evaluator:
 
     def _verdict(self, improvement: float, p_value: float | None, n: int) -> tuple[str, str]:
         if abs(improvement) < self._cfg.improvement_threshold:
-            return "noise", (  # 返回结果
+            return "noise", (
                 f"improvement {improvement:.4f} is below threshold "
                 f"{self._cfg.improvement_threshold}"
             )
         if p_value is None:
-            return "noise", f"only {n} paired sample(s); cannot run significance test"  # 返回结果
+            return "noise", f"only {n} paired sample(s); cannot run significance test"
         if p_value > self._cfg.significance_threshold:
-            return "noise", (  # 返回结果
+            return "noise", (
                 f"p value {p_value:.4f} exceeds significance threshold "
                 f"{self._cfg.significance_threshold}"
             )
         if improvement > 0:
-            return "improved", (  # 返回结果
+            return "improved", (
                 f"improvement {improvement:.4f} significant at p={p_value:.4f}"
             )
-        return "regressed", (  # 返回结果
+        return "regressed", (
             f"regression {improvement:.4f} significant at p={p_value:.4f}"
         )
 
 
 def _demo() -> None:
-    """_demo"""
     def result(seed: int, perplexity: float) -> ExperimentResultLike:
-        return ExperimentResultLike(  # 返回结果
+        return ExperimentResultLike(
             spec_id=f"demo_{seed}",
             terminal="ok",
             metrics={"seed": seed, "perplexity": perplexity, "final_loss": math.log(perplexity)},

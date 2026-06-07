@@ -17,6 +17,8 @@ Every serious AI team in 2026 keeps a fine-tuning pipeline on tap. Not because t
 
 You will run an 8B base (Llama 3.3, Qwen3, or Gemma 3) through SFT then DPO on task-specific data, quantize for serving, and measure gains against lm-evaluation-harness, RewardBench-2, MT-Bench-v2, and MMLU-Pro. You will produce a model card under the 2026 Model Openness Framework. The point is reproducibility — one command reruns the whole pipeline end to end.
 
+> **【中文解读】** 2026 年每个严肃的 AI 团队都维护一个微调流水线。核心工具栈：Axolotl v0.8（多 GPU SFT）、TRL 0.15（DPO/GRPO）、Unsloth（快速单 GPU 迭代）、vLLM 0.7 + EAGLE-3（2-3 倍解码吞吐）。目标是可复现性——一条命令端到端重跑整个流水线，从 YAML 配置到可服务的模型端点，产出符合 2026 Model Openness Framework 的模型卡。
+
 ## Concept
 
 The pipeline has five stages. **Data**: dedup (MinHash / Datatrove), quality filter (Nemotron-CC style classifier), PII scrub, split-hygiene check against public benchmark contamination. **SFT**: Axolotl YAML, ZeRO-3 on 8xH100, cosine schedule, packed sequences, 2-3 epochs. **DPO or GRPO**: TRL config, 1 epoch, preference pairs either human-labeled or model-judged, beta tuning. **Quantize**: GPTQ + AWQ + GGUF for deployment flexibility. **Serve**: vLLM 0.7 with EAGLE-3 speculative heads (or SGLang with SpecForge), K8s deployment, HPA on queue-wait.

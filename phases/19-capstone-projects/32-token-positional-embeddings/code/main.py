@@ -10,8 +10,13 @@ Composes them via EmbeddingComposer for the transformer input.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Token 嵌入 + 位置编码 —— 三个核心模块：TokenEmbedding（词表大小 x d_model 查找表）、
+LearnedPositionalEmbedding（可学习的位置编码）、SinusoidalPositionalEmbedding（无参数的正弦/余弦编码），
+通过 EmbeddingComposer 组合为 Transformer 输入。
+
+AI 对应：Token 嵌入是所有 LLM 的基础。GPT 系列使用可学习位置编码，
+原始 Transformer 使用正弦位置编码，RoPE（旋转位置编码）被 Llama、Qwen 采用，
+ALiBi 被 MPT/BLOOM 采用。理解嵌入层是理解 Transformer 的入口。
 """
 
 from __future__ import annotations
@@ -51,7 +56,7 @@ class TokenEmbedding(nn.Module):
             raise TypeError(f"ids must be long tensor, got {ids.dtype}")
         if ids.dim() != 2:
             raise ValueError(f"ids must be (B, T), got shape {tuple(ids.shape)}")
-        return self.embedding(ids)  # 返回结果
+        return self.embedding(ids)
 
 
 class LearnedPositionalEmbedding(nn.Module):
@@ -81,7 +86,7 @@ class LearnedPositionalEmbedding(nn.Module):
                 f"seq_len {seq_len} exceeds max_context_length {self.max_context_length}"
             )
         positions = torch.arange(seq_len, device=self.embedding.weight.device)
-        return self.embedding(positions)  # 返回结果
+        return self.embedding(positions)
 
 
 class SinusoidalPositionalEmbedding(nn.Module):
@@ -114,7 +119,7 @@ class SinusoidalPositionalEmbedding(nn.Module):
         pe = torch.zeros(max_context_length, d_model, dtype=torch.float32)
         pe[:, 0::2] = torch.sin(angle)
         pe[:, 1::2] = torch.cos(angle)
-        return pe  # 返回结果
+        return pe
 
     def forward(self, seq_len: int) -> torch.Tensor:
         if seq_len < 1:
@@ -123,7 +128,7 @@ class SinusoidalPositionalEmbedding(nn.Module):
             raise ValueError(
                 f"seq_len {seq_len} exceeds max_context_length {self.max_context_length}"
             )
-        return self.pe[:seq_len]  # 返回结果
+        return self.pe[:seq_len]
 
 
 class EmbeddingComposer(nn.Module):
@@ -154,7 +159,7 @@ class EmbeddingComposer(nn.Module):
 
     @property
     def d_model(self) -> int:
-        return self.token_embedding.d_model  # 返回结果
+        return self.token_embedding.d_model
 
     def forward(self, ids: torch.Tensor) -> torch.Tensor:
         if ids.dim() != 2:
@@ -162,12 +167,11 @@ class EmbeddingComposer(nn.Module):
         seq_len = ids.shape[1]
         tok = self.token_embedding(ids)
         pos = self.positional_embedding(seq_len)
-        return tok + pos.unsqueeze(0)  # 返回结果
+        return tok + pos.unsqueeze(0)
 
 
 def count_parameters(module: nn.Module) -> int:
-    """count_parameters"""
-    return sum(p.numel() for p in module.parameters() if p.requires_grad)  # 返回结果
+    return sum(p.numel() for p in module.parameters() if p.requires_grad)
 
 
 def neighbour_cosine_curve(table: torch.Tensor, max_offset: int = 8) -> list[float]:
@@ -192,12 +196,11 @@ def neighbour_cosine_curve(table: torch.Tensor, max_offset: int = 8) -> list[flo
         b = unit[k:]
         dot = (a * b).sum(dim=1).mean().item()
         result.append(dot)
-    return result  # 返回结果
+    return result
 
 
 @dataclass
 class DemoConfig:
-    """DemoConfig"""
     vocab_size: int = 320
     d_model: int = 64
     max_context_length: int = 128
@@ -207,13 +210,11 @@ class DemoConfig:
 
 
 def _print_section(title: str) -> None:
-    """_print_section"""
     bar = "-" * len(title)
     print(f"\n{title}\n{bar}")
 
 
 def main() -> int:
-    """main"""
     cfg = DemoConfig()
     torch.manual_seed(cfg.seed)
 
@@ -274,7 +275,7 @@ def main() -> int:
         print(f"  caught: {e}")
 
     print("\nDemo OK.")
-    return 0  # 返回结果
+    return 0
 
 
 if __name__ == "__main__":

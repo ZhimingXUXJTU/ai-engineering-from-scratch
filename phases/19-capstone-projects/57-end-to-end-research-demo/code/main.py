@@ -9,8 +9,11 @@ Conceptual references:
 
 Stdlib + numpy only. Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：端到端自动研究演示——种子问题 → 调度器 → 实验运行 → 结果评估 →
+批评循环 → 论文撰写，完整运行自动化研究管线（Track C 毕业项目综合演示）
+AI 对应：Sakana AI 的 The AI Scientist (2023) 是首个端到端自动研究系统；
+Google DeepMind 的 FunSearch 和 co-scientist 也探索了自动化科学发现；
+此演示整合了 Phase 19 课程 50-56 的所有组件，展示了 AI Agent 自动研究的完整工作流
 """
 
 from __future__ import annotations
@@ -29,7 +32,6 @@ LESSON_ROOT = os.path.dirname(os.path.dirname(HERE))
 
 
 def _add(path: str) -> None:
-    """_add"""
     if path not in sys.path:
         sys.path.insert(0, path)
 
@@ -43,14 +45,13 @@ import importlib.util
 
 
 def _load_module(name: str, file_path: str):
-    """_load_module"""
     spec = importlib.util.spec_from_file_location(name, file_path)
     if spec is None or spec.loader is None:
         raise ImportError(f"cannot load {name} from {file_path}")
     mod = importlib.util.module_from_spec(spec)
     sys.modules[name] = mod
     spec.loader.exec_module(mod)
-    return mod  # 返回结果
+    return mod
 
 
 paper_writer_mod = _load_module(
@@ -98,7 +99,6 @@ class BestResultError(Exception):
 
 @dataclass
 class DemoReport:
-    """DemoReport"""
     scheduler_report: dict
     best_branch: str
     best_reward: float
@@ -107,7 +107,7 @@ class DemoReport:
     stop_reason: str
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "scheduler_report": self.scheduler_report,
             "best_branch": self.best_branch,
             "best_reward": self.best_reward,
@@ -119,7 +119,7 @@ class DemoReport:
 
 def make_seed_hypotheses() -> list[Hypothesis]:
     """Three seed hypotheses, one per research branch. Stand-in for lessons 50-53."""
-    return [  # 返回结果
+    return [
         Hypothesis(id="h-alpha-1", branch="alpha", payload={"q": "method-x"}),
         Hypothesis(id="h-beta-1", branch="beta", payload={"q": "method-y"}),
         Hypothesis(id="h-gamma-1", branch="gamma", payload={"q": "method-z"}),
@@ -139,21 +139,19 @@ def pick_best_branch(scheduler_report: SchedulerReport) -> tuple[str, float]:
         raise BestResultError("trigger list empty after lookup")
     triggered.sort(key=lambda b: (-b.mean, b.branch))
     best = triggered[0]
-    return best.branch, best.mean  # 返回结果
+    return best.branch, best.mean
 
 
 def _originality_for_reward(reward: float) -> str:
-    """_originality_for_reward"""
     if reward >= 0.8:
-        return "high"  # 返回结果
+        return "high"
     if reward >= 0.6:
-        return "medium"  # 返回结果
-    return "low"  # 返回结果
+        return "medium"
+    return "low"
 
 
 def build_mini_paper(branch: str, reward: float) -> MiniPaper:
-    """build_mini_paper"""
-    return MiniPaper(  # 返回结果
+    return MiniPaper(
         title=f"Auto-Research Findings on Branch {branch}",
         abstract=f"We summarise the best yielding branch {branch} from the auto-research loop.",
         sections=[
@@ -206,7 +204,7 @@ def mini_to_full_paper(mini: MiniPaper, branch: str) -> Paper:
             id=s.id, title=s.title, body=s.body,
             cites=list(s.cites), figure_refs=figure_refs,
         ))
-    return Paper(  # 返回结果
+    return Paper(
         title=mini.title,
         authors=["Auto-Research Demo"],
         abstract=mini.abstract,
@@ -255,7 +253,7 @@ async def _run_demo_async(out_dir: str, seed: int = 11) -> DemoReport:
     writer = PaperWriter(prose=prose)
     manifest = writer.write(full_paper, out_dir)
 
-    return DemoReport(  # 返回结果
+    return DemoReport(
         scheduler_report=sched_report.to_dict(),
         best_branch=branch,
         best_reward=reward,
@@ -266,15 +264,13 @@ async def _run_demo_async(out_dir: str, seed: int = 11) -> DemoReport:
 
 
 def run_demo(out_dir: str | None = None, seed: int = 11) -> DemoReport:
-    """run_demo"""
     if out_dir is None:
         out_dir = tempfile.mkdtemp(prefix="auto-research-demo-")
-    return asyncio.run(_run_demo_async(out_dir, seed=seed))  # 返回结果
+    return asyncio.run(_run_demo_async(out_dir, seed=seed))
 
 
 def demo() -> dict:
-    """demo"""
-    return run_demo().to_dict()  # 返回结果
+    return run_demo().to_dict()
 
 
 if __name__ == "__main__":

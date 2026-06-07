@@ -8,8 +8,11 @@ taxonomy dashboard. This scaffold implements both layers and runs a
 
 Run:  python main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：代码迁移 Agent 的双层架构——第一层确定性配方快速处理（OpenRewrite/libcst），
+第二层 Agent 循环处理剩余失败案例（有界预算），附带失败分类法仪表盘追踪迁移瓶颈
+AI 对应：OpenRewrite (Java) 和 libcst (Python) 是确定性代码迁移的工业标准工具；
+Devin 和 Claude Code 使用类似的 recipe-first + agent-fallback 两层架构；
+Meta 的 Glean 和 Sourcegraph 的 Batch Changes 也采用此范式进行大规模代码变更
 """
 
 from __future__ import annotations
@@ -35,7 +38,6 @@ FAILURE_CLASSES = [
 
 @dataclass
 class Repo:
-    """Repo"""
     name: str
     loc: int
     lang: str          # "java" | "python"
@@ -44,7 +46,6 @@ class Repo:
 
 @dataclass
 class Attempt:
-    """Attempt"""
     repo: Repo
     recipe_applied: int = 0
     agent_turns: int = 0
@@ -63,7 +64,7 @@ class Attempt:
 def run_recipes(repo: Repo) -> int:
     """Returns number of rewrites applied."""
     base = 20 + int(repo.loc / 500)
-    return int(base * (1 - 0.2 * repo.hardness))  # 返回结果
+    return int(base * (1 - 0.2 * repo.hardness))
 
 
 # ---------------------------------------------------------------------------
@@ -88,11 +89,11 @@ def agent_loop(attempt: Attempt, rng: random.Random) -> None:
         if attempt.agent_turns >= BUDGET_TURNS:
             attempt.status = "fail"
             attempt.failure_class = "budget_exhausted"
-            return  # 返回结果
+            return
         if attempt.wall_min >= BUDGET_MIN or attempt.cost_usd >= BUDGET_USD:
             attempt.status = "fail"
             attempt.failure_class = "budget_exhausted"
-            return  # 返回结果
+            return
 
         attempt.agent_turns += 1
         attempt.wall_min += per_turn_min
@@ -105,9 +106,9 @@ def agent_loop(attempt: Attempt, rng: random.Random) -> None:
             if attempt.coverage_final < attempt.coverage_base - 2.0:
                 attempt.status = "fail"
                 attempt.failure_class = "coverage_regression"
-                return  # 返回结果
+                return
             attempt.status = "pass"
-            return  # 返回结果
+            return
 
 
 # ---------------------------------------------------------------------------
@@ -129,8 +130,8 @@ def classify_failure(rng: random.Random) -> str:
     for cls, w in weights.items():
         acc += w
         if r <= acc:
-            return cls  # 返回结果
-    return "syntax_edge_case"  # 返回结果
+            return cls
+    return "syntax_edge_case"
 
 
 # ---------------------------------------------------------------------------
@@ -138,7 +139,6 @@ def classify_failure(rng: random.Random) -> str:
 # ---------------------------------------------------------------------------
 
 def migrate(repo: Repo, rng: random.Random) -> Attempt:
-    """migrate"""
     attempt = Attempt(repo=repo)
     attempt.recipe_applied = run_recipes(repo)
 
@@ -150,7 +150,7 @@ def migrate(repo: Repo, rng: random.Random) -> Attempt:
         attempt.status = "pass"
         attempt.wall_min = 3.0 + rng.random() * 4
         attempt.cost_usd = 0.30
-        return attempt  # 返回结果
+        return attempt
 
     # otherwise run the agent loop
     agent_loop(attempt, rng)
@@ -159,7 +159,7 @@ def migrate(repo: Repo, rng: random.Random) -> Attempt:
         # classify root cause of why the budget was exhausted
         if rng.random() < 0.75:
             attempt.failure_class = classify_failure(rng)
-    return attempt  # 返回结果
+    return attempt
 
 
 # ---------------------------------------------------------------------------
@@ -167,7 +167,6 @@ def migrate(repo: Repo, rng: random.Random) -> Attempt:
 # ---------------------------------------------------------------------------
 
 def synth_bench(rng: random.Random) -> list[Repo]:
-    """synth_bench"""
     bench: list[Repo] = []
     for i in range(50):
         lang = "java" if rng.random() < 0.6 else "python"
@@ -176,11 +175,10 @@ def synth_bench(rng: random.Random) -> list[Repo]:
                           loc=rng.randint(800, 40_000),
                           lang=lang,
                           hardness=hardness))
-    return bench  # 返回结果
+    return bench
 
 
 def main() -> None:
-    """main"""
     rng = random.Random(19)
     bench = synth_bench(rng)
 

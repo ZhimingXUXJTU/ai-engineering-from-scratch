@@ -11,8 +11,11 @@ The demo at the bottom pretrains a tiny transformer body briefly, then
 fine-tunes under both regimes and prints precision, recall, F1, and the
 confusion matrix for each. Exits 0 on success.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：分类器微调——Head-only（冻结 body 只训练分类头）vs Full FT（body + head 都训练）
+在垃圾邮件检测任务上对比精确率/召回率/F1/混淆矩阵，验证两种微调策略的效果差异
+AI 对应：BERT 的分类微调通常使用 Head-only 策略；GPT 的分类微调使用 Full FT；
+LoRA (Hu et al. 2021) 是 Full FT 的高效替代，只训练低秩适配器；
+HuggingFace 的 AutoModelForSequenceClassification 封装了此 head-swap 模式
 """
 
 from __future__ import annotations
@@ -48,10 +51,10 @@ class ByteTokenizer:
         while len(raw) < max_len:
             raw.append(self.PAD_ID)
             attn.append(0)
-        return raw, attn  # 返回结果
+        return raw, attn
 
     def decode(self, ids: Sequence[int]) -> str:
-        return bytes(i for i in ids if i < 256).decode("utf-8", errors="replace")  # 返回结果
+        return bytes(i for i in ids if i < 256).decode("utf-8", errors="replace")
 
 
 # ---------------------------------------------------------------------------
@@ -60,7 +63,6 @@ class ByteTokenizer:
 
 
 class MultiHeadAttention(nn.Module):
-    """MultiHeadAttention"""
     def __init__(self, hidden: int, heads: int):
         super().__init__()
         if hidden % heads != 0:
@@ -82,22 +84,20 @@ class MultiHeadAttention(nn.Module):
         # Replace nan rows (all-pad keys, never happens for valid input) with zeros.
         weights = torch.nan_to_num(weights, nan=0.0)
         ctx = (weights @ v).transpose(1, 2).contiguous().view(B, T, D)
-        return self.out(ctx)  # 返回结果
+        return self.out(ctx)
 
 
 class FeedForward(nn.Module):
-    """FeedForward"""
     def __init__(self, hidden: int, mlp_ratio: int = 4):
         super().__init__()
         self.fc1 = nn.Linear(hidden, hidden * mlp_ratio)
         self.fc2 = nn.Linear(hidden * mlp_ratio, hidden)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.fc2(F.gelu(self.fc1(x)))  # 返回结果
+        return self.fc2(F.gelu(self.fc1(x)))
 
 
 class Block(nn.Module):
-    """Block"""
     def __init__(self, hidden: int, heads: int):
         super().__init__()
         self.ln1 = nn.LayerNorm(hidden)
@@ -108,7 +108,7 @@ class Block(nn.Module):
     def forward(self, x: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
         x = x + self.attn(self.ln1(x), mask)
         x = x + self.ff(self.ln2(x))
-        return x  # 返回结果
+        return x
 
 
 class LMBody(nn.Module):
@@ -128,7 +128,7 @@ class LMBody(nn.Module):
         x = self.tok(ids) + self.pos(positions)
         for block in self.blocks:
             x = block(x, mask)
-        return self.ln_f(x)  # 返回结果
+        return self.ln_f(x)
 
 
 # ---------------------------------------------------------------------------
@@ -141,11 +141,10 @@ def mean_pool(hidden: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
     m = mask.unsqueeze(-1).to(hidden.dtype)
     summed = (hidden * m).sum(dim=1)
     counts = m.sum(dim=1).clamp(min=1.0)
-    return summed / counts  # 返回结果
+    return summed / counts
 
 
 class Classifier(nn.Module):
-    """Classifier"""
     def __init__(self, body: LMBody, num_classes: int = 2):
         super().__init__()
         self.body = body
@@ -155,7 +154,7 @@ class Classifier(nn.Module):
     def forward(self, ids: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
         h = self.body(ids, mask)
         pooled = mean_pool(h, mask)
-        return self.head(pooled)  # 返回结果
+        return self.head(pooled)
 
 
 class LMHead(nn.Module):
@@ -169,7 +168,7 @@ class LMHead(nn.Module):
 
     def forward(self, ids: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
         h = self.body(ids, mask)
-        return self.proj(h)  # 返回结果
+        return self.proj(h)
 
 
 # ---------------------------------------------------------------------------
@@ -183,21 +182,19 @@ def freeze_body(model: Classifier) -> int:
     for p in model.body.parameters():
         p.requires_grad = False
         n += 1
-    return n  # 返回结果
+    return n
 
 
 def unfreeze_body(model: Classifier) -> int:
-    """unfreeze_body"""
     n = 0
     for p in model.body.parameters():
         p.requires_grad = True
         n += 1
-    return n  # 返回结果
+    return n
 
 
 def trainable_params(model: nn.Module) -> int:
-    """trainable_params"""
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)  # 返回结果
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
 # ---------------------------------------------------------------------------
@@ -245,17 +242,15 @@ SLOTS = {
 
 
 def fill(template: str, rng: random.Random) -> str:
-    """fill"""
     out = template
     for key, options in SLOTS.items():
         marker = "{" + key + "}"
         if marker in out:
             out = out.replace(marker, rng.choice(options))
-    return out  # 返回结果
+    return out
 
 
 def make_dataset(n_per_class: int = 400, seed: int = 0) -> Tuple[List[str], List[int]]:
-    """make_dataset"""
     rng = random.Random(seed)
     texts: List[str] = []
     labels: List[int] = []
@@ -267,7 +262,7 @@ def make_dataset(n_per_class: int = 400, seed: int = 0) -> Tuple[List[str], List
     # Shuffle deterministically.
     order = list(range(len(texts)))
     rng.shuffle(order)
-    return [texts[i] for i in order], [labels[i] for i in order]  # 返回结果
+    return [texts[i] for i in order], [labels[i] for i in order]
 
 
 def stratified_split(
@@ -287,7 +282,7 @@ def stratified_split(
         test_idx.extend(idxs_copy[cut:])
     rng.shuffle(train_idx)
     rng.shuffle(test_idx)
-    return (  # 返回结果
+    return (
         [texts[i] for i in train_idx],
         [labels[i] for i in train_idx],
         [texts[i] for i in test_idx],
@@ -301,7 +296,6 @@ def stratified_split(
 
 
 class ClassificationDataset(Dataset):
-    """ClassificationDataset"""
     def __init__(self, texts: Sequence[str], labels: Sequence[int], tok: ByteTokenizer, max_len: int):
         self.texts = list(texts)
         self.labels = list(labels)
@@ -309,11 +303,11 @@ class ClassificationDataset(Dataset):
         self.max_len = max_len
 
     def __len__(self) -> int:
-        return len(self.texts)  # 返回结果
+        return len(self.texts)
 
     def __getitem__(self, idx: int):
         ids, mask = self.tok.encode(self.texts[idx], self.max_len)
-        return (  # 返回结果
+        return (
             torch.tensor(ids, dtype=torch.long),
             torch.tensor(mask, dtype=torch.long),
             torch.tensor(self.labels[idx], dtype=torch.long),
@@ -329,11 +323,11 @@ class LMDataset(Dataset):
         self.max_len = max_len
 
     def __len__(self) -> int:
-        return len(self.texts)  # 返回结果
+        return len(self.texts)
 
     def __getitem__(self, idx: int):
         ids, mask = self.tok.encode(self.texts[idx], self.max_len)
-        return (  # 返回结果
+        return (
             torch.tensor(ids, dtype=torch.long),
             torch.tensor(mask, dtype=torch.long),
         )
@@ -385,12 +379,11 @@ def pretrain_quick(
             epoch_loss += float(loss.item())
             n_batches += 1
         losses.append(epoch_loss / max(n_batches, 1))
-    return losses  # 返回结果
+    return losses
 
 
 @dataclass
 class TrainReport:
-    """TrainReport"""
     losses: List[float]
     final_loss: float
     trainable: int
@@ -422,7 +415,7 @@ def train_classifier(
             epoch_loss += float(loss.item())
             n_batches += 1
         losses.append(epoch_loss / max(n_batches, 1))
-    return TrainReport(losses=losses, final_loss=losses[-1], trainable=trainable_params(model))  # 返回结果
+    return TrainReport(losses=losses, final_loss=losses[-1], trainable=trainable_params(model))
 
 
 # ---------------------------------------------------------------------------
@@ -432,7 +425,6 @@ def train_classifier(
 
 @dataclass
 class Metrics:
-    """Metrics"""
     precision: float
     recall: float
     f1: float
@@ -442,7 +434,7 @@ class Metrics:
     tn: int
 
     def confusion(self) -> str:
-        return (  # 返回结果
+        return (
             "                pred ham   pred spam\n"
             f"  actual ham    {self.tn:>8d}   {self.fp:>8d}\n"
             f"  actual spam   {self.fn:>8d}   {self.tp:>8d}"
@@ -454,12 +446,11 @@ def precision_recall_f1(tp: int, fp: int, fn: int) -> Tuple[float, float, float]
     p = tp / (tp + fp) if (tp + fp) else 0.0
     r = tp / (tp + fn) if (tp + fn) else 0.0
     f1 = (2 * p * r) / (p + r) if (p + r) else 0.0
-    return p, r, f1  # 返回结果
+    return p, r, f1
 
 
 @torch.no_grad()
 def evaluate(model: Classifier, loader: DataLoader, positive: int = 1) -> Metrics:
-    """evaluate"""
     model.eval()
     tp = fp = fn = tn = 0
     for ids, mask, y in loader:
@@ -475,7 +466,7 @@ def evaluate(model: Classifier, loader: DataLoader, positive: int = 1) -> Metric
             else:
                 tn += 1
     p, r, f1 = precision_recall_f1(tp, fp, fn)
-    return Metrics(precision=p, recall=r, f1=f1, tp=tp, fp=fp, fn=fn, tn=tn)  # 返回结果
+    return Metrics(precision=p, recall=r, f1=f1, tp=tp, fp=fp, fn=fn, tn=tn)
 
 
 # ---------------------------------------------------------------------------
@@ -485,7 +476,6 @@ def evaluate(model: Classifier, loader: DataLoader, positive: int = 1) -> Metric
 
 @dataclass(frozen=True)
 class Config:
-    """Config"""
     vocab: int = ByteTokenizer.VOCAB
     hidden: int = 64
     heads: int = 4
@@ -501,7 +491,6 @@ class Config:
 
 
 def build_model(cfg: Config) -> Classifier:
-    """build_model"""
     torch.manual_seed(cfg.seed)
     body = LMBody(
         vocab=cfg.vocab,
@@ -510,12 +499,11 @@ def build_model(cfg: Config) -> Classifier:
         depth=cfg.depth,
         max_len=cfg.max_len,
     )
-    return Classifier(body, num_classes=2)  # 返回结果
+    return Classifier(body, num_classes=2)
 
 
 @dataclass
 class DemoReport:
-    """DemoReport"""
     head_only: Metrics
     full_ft: Metrics
     head_only_loss: float
@@ -525,11 +513,10 @@ class DemoReport:
 
     def passed(self) -> bool:
         # Both regimes should beat random (F1 > 0.5) on this fixture.
-        return self.head_only.f1 > 0.5 and self.full_ft.f1 > 0.5  # 返回结果
+        return self.head_only.f1 > 0.5 and self.full_ft.f1 > 0.5
 
 
 def run_demo(cfg: Config | None = None) -> int:
-    """run_demo"""
     cfg = cfg or Config()
     torch.manual_seed(cfg.seed)
     np.random.seed(cfg.seed)
@@ -616,8 +603,8 @@ def run_demo(cfg: Config | None = None) -> int:
     print(f"  full-FT:    trainable={report.full_ft_trainable:>6d} F1={report.full_ft.f1:.3f}")
     if not report.passed():
         print("ERROR: at least one regime did not beat random F1=0.5", file=sys.stderr)
-        return 1  # 返回结果
-    return 0  # 返回结果
+        return 1
+    return 0
 
 
 def _clone_body(body: LMBody) -> LMBody:
@@ -630,7 +617,7 @@ def _clone_body(body: LMBody) -> LMBody:
         max_len=body.max_len,
     )
     clone.load_state_dict(body.state_dict())
-    return clone  # 返回结果
+    return clone
 
 
 if __name__ == "__main__":

@@ -17,6 +17,8 @@ Single-agent coding harnesses hit a ceiling on large tasks. Not because any indi
 
 The failure surface is the handoff. Architect plans something the coders cannot implement. Coders produce conflicting diffs. Reviewer approves a hallucinated fix. Tester races a still-writing coder. You will build one of these teams, run it on 50 SWE-bench Pro issues, track every handoff, and publish the post-mortem.
 
+> **【中文解读】** 多 Agent 软件团队的失败面在于交接：架构师计划了编码者无法实现的内容、编码者产生冲突的 diff、评审者批准了幻觉修复、测试者与仍在编写的编码者竞争。你将构建这样的团队，在 50 个 SWE-bench Pro 问题上运行，追踪每次交接并发布事后分析。Token 放大是隐藏成本——40 轮单 Agent 运行会变成四个角色间 160 轮总交互。
+
 ## Concept
 
 Roles are typed agents. **Architect** (Claude Opus 4.7) reads the issue, writes a plan, and breaks it into subtasks with explicit interfaces. **Coders** (Claude Sonnet 4.7, N parallel instances, each in a `git worktree` + Daytona sandbox) implement subtasks independently. **Reviewer** (GPT-5.4) reads the merged diff and either approves or requests specific changes. **Tester** (Gemini 2.5 Pro) runs the test suite in isolation and reports pass/fail with artifacts.

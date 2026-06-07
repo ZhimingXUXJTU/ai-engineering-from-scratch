@@ -12,8 +12,12 @@ The demo at the bottom trains a small torch.nn.Linear model for 20 steps and
 injects a non-finite gradient on a specific step to exercise the skip path.
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：梯度裁剪 + 混合精度训练——全局 L2 范数裁剪（返回裁剪前后范数）+
+非有限梯度检测（NaN/Inf）+ AMP 训练步编排（autocast + GradScaler + AdamW）
+AI 对应：PyTorch AMP (Automatic Mixed Precision) 是 GPU 训练的标准优化；
+GradScaler 处理 float16 的数值下溢问题；梯度裁剪防止训练不稳定；
+NVIDIA 的 apex.amp 和 PyTorch 原生 amp 是混合精度训练的两种实现；
+非有限梯度跳过是训练大模型时的安全机制
 """
 
 from __future__ import annotations
@@ -53,7 +57,7 @@ class StepLog:
     scaler_scale: float
 
     def to_csv_row(self) -> list[str]:
-        return [  # 返回结果
+        return [
             str(self.step),
             f"{self.lr:.10f}",
             f"{self.grad_l2_pre_clip:.10f}",
@@ -84,8 +88,8 @@ def has_non_finite_grad(parameters: Iterable[torch.nn.Parameter]) -> bool:
             continue
         grad = param.grad.detach()
         if not torch.isfinite(grad).all().item():
-            return True  # 返回结果
-    return False  # 返回结果
+            return True
+    return False
 
 
 def compute_global_l2_norm(parameters: Iterable[torch.nn.Parameter]) -> float:
@@ -97,7 +101,7 @@ def compute_global_l2_norm(parameters: Iterable[torch.nn.Parameter]) -> float:
             continue
         grad = param.grad.detach()
         squared_sum += float(grad.pow(2).sum().item())
-    return math.sqrt(squared_sum)  # 返回结果
+    return math.sqrt(squared_sum)
 
 
 def clip_global_l2_norm(
@@ -115,14 +119,14 @@ def clip_global_l2_norm(
         raise ValueError("max_norm must be positive")
     pre_clip = compute_global_l2_norm(parameters)
     if not math.isfinite(pre_clip):
-        return pre_clip, pre_clip  # 返回结果
+        return pre_clip, pre_clip
     if pre_clip <= max_norm:
-        return pre_clip, pre_clip  # 返回结果
+        return pre_clip, pre_clip
     scale = max_norm / (pre_clip + 1e-12)
     for param in parameters:
         if param.grad is not None:
             param.grad.detach().mul_(scale)
-    return pre_clip, max_norm  # 返回结果
+    return pre_clip, max_norm
 
 
 class AmpTrainState:
@@ -173,15 +177,15 @@ class AmpTrainState:
 
     @property
     def log(self) -> list[StepLog]:
-        return list(self._log)  # 返回结果
+        return list(self._log)
 
     @property
     def skip_log(self) -> list[SkipLog]:
-        return list(self._skip_log)  # 返回结果
+        return list(self._skip_log)
 
     @property
     def skip_count(self) -> int:
-        return len(self._skip_log)  # 返回结果
+        return len(self._skip_log)
 
     def set_loss_fn(self, fn: Callable[[torch.Tensor, torch.Tensor], torch.Tensor]) -> None:
         self._loss_fn = fn
@@ -191,7 +195,7 @@ class AmpTrainState:
             group["lr"] = lr
 
     def _current_lr(self) -> float:
-        return float(self.optimizer.param_groups[0]["lr"])  # 返回结果
+        return float(self.optimizer.param_groups[0]["lr"])
 
     def step(
         self,
@@ -217,7 +221,7 @@ class AmpTrainState:
             # Skip without touching scaler.update(): we never called
             # scaler.scale(loss).backward() for this step, so calling update()
             # here would violate GradScaler's required call ordering.
-            return self._record_skip(  # 返回结果
+            return self._record_skip(
                 loss_value=float(loss.detach().cpu().item()),
                 reason="non_finite_loss",
                 pre_clip=0.0,
@@ -253,7 +257,7 @@ class AmpTrainState:
                 )
             )
             self.global_step += 1
-            return record  # 返回结果
+            return record
 
         pre_clip, post_clip = clip_global_l2_norm(list(self.model.parameters()), self.max_norm)
 
@@ -271,7 +275,7 @@ class AmpTrainState:
         )
         self._log.append(record)
         self.global_step += 1
-        return record  # 返回结果
+        return record
 
     def _record_skip(
         self,
@@ -303,7 +307,7 @@ class AmpTrainState:
         self.global_step += 1
         if update_scaler:
             self.scaler.update()
-        return record  # 返回结果
+        return record
 
 
 def rolling_skip_rate(log: Iterable[StepLog], window: int = 1000) -> list[float]:
@@ -319,7 +323,7 @@ def rolling_skip_rate(log: Iterable[StepLog], window: int = 1000) -> list[float]
         if len(skipped) > window:
             skipped = skipped[-window:]
         rates.append(sum(skipped) / len(skipped))
-    return rates  # 返回结果
+    return rates
 
 
 def write_step_log_csv(log: Iterable[StepLog], path: Path) -> None:
@@ -358,7 +362,7 @@ def build_toy_model(
     model = nn.Sequential(nn.Linear(in_dim, 32), nn.GELU(), nn.Linear(32, out_dim))
     inputs = torch.randn(8, in_dim)
     targets = torch.randn(8, out_dim)
-    return model, inputs, targets  # 返回结果
+    return model, inputs, targets
 
 
 def inject_inf_into_first_grad(model: nn.Module) -> None:
@@ -367,7 +371,7 @@ def inject_inf_into_first_grad(model: nn.Module) -> None:
     for param in model.parameters():
         if param.grad is not None:
             param.grad.data[...] = float("inf")
-            return  # 返回结果
+            return
 
 
 def run_demo() -> int:
@@ -393,7 +397,7 @@ def run_demo() -> int:
         f"skip_count={state.skip_count} "
         f"final_skip_rate={rolling_skip_rate(state.log, window=10)[-1]:.4f}"
     )
-    return 0  # 返回结果
+    return 0
 
 
 if __name__ == "__main__":

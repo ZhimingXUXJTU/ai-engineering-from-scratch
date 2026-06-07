@@ -3,8 +3,11 @@
 The collective tests spawn worker processes through torch.multiprocessing
 on the gloo backend; this works on CPU and does not require CUDA.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：DDP 封装器和 FSDP 分片的测试——在 gloo CPU 后端通过 torch.multiprocessing
+生成多进程验证 all_reduce 梯度同步和参数分片的正确性
+AI 对应：PyTorch 的分布式测试使用相同的 gloo + multiprocessing 模式；
+CI/CD 中分布式训练的测试通常在 CPU 上模拟多 GPU 环境；
+确保跨 rank 梯度一致性和分片参数完整性是分布式训练可靠性的基础
 """
 
 from __future__ import annotations
@@ -25,7 +28,6 @@ import main as ddp
 
 
 class HelperTests(unittest.TestCase):
-    """HelperTests"""
     def test_shard_for_rank_partitions_evenly(self):
         x = torch.arange(20)
         all_slices = []
@@ -45,7 +47,6 @@ class HelperTests(unittest.TestCase):
 
 
 class GradNormTests(unittest.TestCase):
-    """GradNormTests"""
     def test_grad_norm_zero_when_no_grads(self):
         model = ddp.make_model(4, 6, 3)
         norm = ddp._grad_norm(model)
@@ -63,7 +64,6 @@ class GradNormTests(unittest.TestCase):
 
 
 class DistributedDemoTests(unittest.TestCase):
-    """DistributedDemoTests"""
     def setUp(self):
         if not torch.distributed.is_available():
             self.skipTest("torch.distributed not available")
@@ -101,7 +101,6 @@ class DistributedDemoTests(unittest.TestCase):
 
 
 class OutputTests(unittest.TestCase):
-    """OutputTests"""
     def test_write_demo_round_trip(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / "demo.json"

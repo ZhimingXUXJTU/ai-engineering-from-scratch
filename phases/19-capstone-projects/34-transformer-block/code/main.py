@@ -9,8 +9,13 @@ modern decoder LLMs train without a warmup schedule.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Transformer Block（Pre-LN vs Post-LN）—— LayerNorm + 多头因果注意力 + 残差连接 +
+MLP + 残差连接。Pre-LN（先归一化再注意力）比 Post-LN 的梯度信号大一个数量级，
+这就是现代 LLM 不需要 warmup 调度就能训练的机制。
+
+AI 对应：GPT-2 使用 Post-LN（需要 warmup），GPT-3 之后所有主流 LLM 都切换到 Pre-LN。
+Llama、Qwen、Mistral 的每一层都是这个 block 结构。理解 Pre-LN vs Post-LN 的梯度差异
+是深度理解 Transformer 训练的关键。
 """
 
 from __future__ import annotations
@@ -54,7 +59,7 @@ class LayerNorm(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         mean = x.mean(dim=-1, keepdim=True)
         var = x.var(dim=-1, keepdim=True, unbiased=False)
-        return self.scale * (x - mean) / torch.sqrt(var + self.eps) + self.shift  # 返回结果
+        return self.scale * (x - mean) / torch.sqrt(var + self.eps) + self.shift
 
 
 class MultiHeadAttention(nn.Module):
@@ -111,7 +116,7 @@ class MultiHeadAttention(nn.Module):
         out = out.transpose(1, 2).contiguous().view(batch, seq, dim)
         out = self.out_proj(out)
         out = self.resid_dropout(out)
-        return out  # 返回结果
+        return out
 
 
 class FeedForward(nn.Module):
@@ -130,7 +135,7 @@ class FeedForward(nn.Module):
         x = self.act(x)
         x = self.fc2(x)
         x = self.dropout(x)
-        return x  # 返回结果
+        return x
 
 
 class TransformerBlock(nn.Module):
@@ -159,7 +164,7 @@ class TransformerBlock(nn.Module):
         else:
             x = self.ln1(x + self.attn(x))
             x = self.ln2(x + self.mlp(x))
-        return x  # 返回结果
+        return x
 
 
 class BlockStack(nn.Module):
@@ -176,7 +181,7 @@ class BlockStack(nn.Module):
         for block in self.blocks:
             x = block(x)
         x = self.final_ln(x)
-        return x  # 返回结果
+        return x
 
 
 def gradient_norm_at_embedding(stack: BlockStack, tokens: torch.Tensor) -> float:
@@ -191,8 +196,8 @@ def gradient_norm_at_embedding(stack: BlockStack, tokens: torch.Tensor) -> float
     loss.backward()
     grad = stack.embed.weight.grad
     if grad is None:
-        return 0.0  # 返回结果
-    return float(grad.norm().item())  # 返回结果
+        return 0.0
+    return float(grad.norm().item())
 
 
 def _set_eval_mode(stack: BlockStack) -> None:
@@ -201,7 +206,6 @@ def _set_eval_mode(stack: BlockStack) -> None:
 
 
 def demo() -> None:
-    """demo"""
     torch.manual_seed(0)
     cfg_pre = BlockConfig(
         d_model=192,

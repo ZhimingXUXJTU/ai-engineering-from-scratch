@@ -17,6 +17,8 @@ Regulated-domain RAG (legal contracts, clinical trial protocols, insurance polic
 
 The hard parts are not the model. They are jurisdiction-aware compliance (HIPAA, GDPR, SOC2), citation-level auditability, cost control (prompt caching buys 60-90% discount when hit rate is high), hallucination detection via RAGAS faithfulness, and drift detection when the source documents get updated without the index catching up. This capstone asks you to ship all of it on a 200-question golden set with a red-team suite alongside.
 
+> **【中文解读】** 受监管领域（法律合同、临床试验方案、保险政策）的 RAG 是 2026 年最常发布的生产形态。难点不在模型，而在：司法管辖合规（HIPAA、GDPR、SOC2）、引用级可审计性、成本控制（提示缓存在命中率高时提供 60-90% 折扣）、通过 RAGAS 忠实度检测幻觉、源文档更新而索引未同步时的漂移检测。
+
 ## Concept
 
 The pipeline has two sides. **Ingestion**: docling or Unstructured parses structured documents; ColPali handles visually rich ones; chunks get summaries, tags, and role-based access labels. Vectors go into pgvector + pgvectorscale (under 50M vectors) or Qdrant Cloud; sparse BM25 runs alongside. **Conversation**: LangGraph handles memory and multi-turn; each query runs hybrid retrieval, reranks with bge-reranker-v2-gemma-2b, synthesizes with Claude Sonnet 4.7 (prompt-cached), passes output through Llama Guard 4 and NeMo Guardrails, and emits a citation-anchored response.
