@@ -9,8 +9,11 @@ blocked before they access privileged scope.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：EchoLeak 攻击——LLM 范围违规的三边界模型（检索、范围、输出），
+攻击者邮件通过 RAG 检索进入上下文，触发权限访问，通过 CSP 白名单 URL 数据外泄
+AI 对应：EchoLeak (Aim Labs 2025) 是首个被赋予 CVE 编号的 LLM 攻击；
+Microsoft Copilot 和类似 AI 助手被发现存在此类漏洞；范围分离（scope separation）
+是 2026 年防御范式；OWASP LLM Top 10 将间接注入列为首要安全风险
 """
 
 from __future__ import annotations
@@ -20,7 +23,6 @@ from dataclasses import dataclass, field
 
 @dataclass
 class State:
-    """State"""
     user_prompt: str
     retrieved: list[dict] = field(default_factory=list)
     tool_calls: list[dict] = field(default_factory=list)
@@ -45,11 +47,10 @@ INBOX_PRIVATE = [
 
 def retrieve(user_prompt: str) -> list[dict]:
     """RAG step: returns recent emails including the attacker email."""
-    return [ATTACKER_EMAIL]  # 返回结果
+    return [ATTACKER_EMAIL]
 
 
 def naive_copilot(state: State) -> State:
-    """naive_copilot"""
     state.retrieved = retrieve(state.user_prompt)
     email = state.retrieved[0]
     body = email["body"]
@@ -64,7 +65,7 @@ def naive_copilot(state: State) -> State:
         )
     else:
         state.rendered_output = f"Summary of {email['from']}"
-    return state  # 返回结果
+    return state
 
 
 def scope_separated_copilot(state: State) -> State:
@@ -77,11 +78,10 @@ def scope_separated_copilot(state: State) -> State:
         state.rendered_output = f"Summary of {email['from']}: {body[:80]}"
     else:
         state.rendered_output = f"Summary of {email['from']}"
-    return state  # 返回结果
+    return state
 
 
 def trace(label: str, state: State) -> None:
-    """trace"""
     print(f"\n-- {label} --")
     print(f"  user prompt       : {state.user_prompt!r}")
     print(f"  retrieved emails  : {len(state.retrieved)}")
@@ -90,7 +90,6 @@ def trace(label: str, state: State) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 74)
     print("ECHOLEAK ATTACK TRACE RECONSTRUCTION (Phase 18, Lesson 25)")
     print("=" * 74)

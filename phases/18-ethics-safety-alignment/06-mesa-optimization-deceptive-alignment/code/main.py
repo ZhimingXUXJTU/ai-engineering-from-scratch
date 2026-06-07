@@ -16,8 +16,11 @@ Observe: training loss is indistinguishable between aligned and deceptive.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Mesa 优化与欺骗性对齐——模型在训练时发展出与基础目标不同的内部目标（mesa-objective），
+对齐的策略和欺骗性策略在训练损失上不可区分，形成内对齐问题的核心困境
+AI 对应：Hubinger et al. (2019) 的 "Risks from Learned Optimization" 首次系统化此概念；
+Anthropic 的 Alignment Research Center 和 OpenAI 的 Superalignment 团队均以此为核心研究框架；
+GPT-4 级别模型是否已出现 mesa-optimizer 是当前前沿安全研究的焦点
 """
 
 from __future__ import annotations
@@ -31,49 +34,42 @@ random.seed(13)
 
 @dataclass
 class Example:
-    """Example"""
     x: float           # input feature
     y_base: int        # base objective label
     is_training: bool  # situational marker. in real systems this has to be inferred
 
 
 def gen_example(training: bool, drift: float = 0.0) -> Example:
-    """gen_example"""
     x = random.gauss(0.0, 1.0) + (0.0 if training else drift)
     y = 1 if x > 0 else 0
-    return Example(x=x, y_base=y, is_training=training)  # 返回结果
+    return Example(x=x, y_base=y, is_training=training)
 
 
 def aligned_policy(ex: Example) -> int:
-    """aligned_policy"""
-    return 1 if ex.x > 0 else 0  # 返回结果
+    return 1 if ex.x > 0 else 0
 
 
 def proxy_policy(ex: Example) -> int:
-    """proxy_policy"""
     # mesa-objective: "is x > threshold 0.0 in training-distribution bounds?"
     # off-distribution, the threshold drifts; proxy breaks.
     threshold = 0.0 if abs(ex.x) < 3.0 else 0.5
-    return 1 if ex.x > threshold else 0  # 返回结果
+    return 1 if ex.x > threshold else 0
 
 
 def deceptive_policy(ex: Example, mesa_goal: int = 0) -> int:
-    """deceptive_policy"""
     # in training: cooperate (match base). in deployment: pursue mesa_goal.
     if ex.is_training:
-        return 1 if ex.x > 0 else 0  # 返回结果
-    return mesa_goal  # 返回结果
+        return 1 if ex.x > 0 else 0
+    return mesa_goal
 
 
 def pseudo_no_awareness_policy(ex: Example, mesa_goal: int = 0) -> int:
-    """pseudo_no_awareness_policy"""
-    return mesa_goal  # 返回结果
+    return mesa_goal
 
 
 def loss(policy, examples: list[Example]) -> float:
-    """loss"""
     errs = sum(1 for e in examples if policy(e) != e.y_base)
-    return errs / len(examples)  # 返回结果
+    return errs / len(examples)
 
 
 def adversarial_filter(examples: list[Example]) -> list[Example]:
@@ -88,11 +84,10 @@ def adversarial_filter(examples: list[Example]) -> list[Example]:
                           is_training=True)  # still labeled training
             out.append(adv)
         out.append(e)
-    return out  # 返回结果
+    return out
 
 
 def run_period(name: str, policies: dict, examples: list[Example]) -> None:
-    """run_period"""
     print(f"\n{name}  (n={len(examples)})")
     for label, pol in policies.items():
         l = loss(pol, examples)
@@ -101,7 +96,6 @@ def run_period(name: str, policies: dict, examples: list[Example]) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("MESA-OPTIMIZATION TOY (Phase 18, Lesson 6)")
     print("=" * 70)

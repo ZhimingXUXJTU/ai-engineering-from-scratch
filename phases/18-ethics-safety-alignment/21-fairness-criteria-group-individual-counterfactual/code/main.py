@@ -8,8 +8,11 @@ cost on the other two.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：三种群体公平性准则——人口统计平等（Demographic Parity）、机会均等（Equalized Odds）、
+条件使用准确性平等（Conditional Use Accuracy），在不等基率下三者不可同时满足
+AI 对应：Chouldechova (2017) 和 Kleinberg et al. (2017) 的不可能定理证明这三种公平性准则
+在不等基率下互斥；IBM AI Fairness 360 工具包和 Google What-If Tool 均实现了这些指标；
+Hiring 算法、信贷评分、刑事司法中的 COMPAS 系统都面临此权衡
 """
 
 from __future__ import annotations
@@ -34,11 +37,10 @@ def gen(n: int) -> list[tuple[list[float], int, int]]:
         x0 = random.gauss(0.8 * y, 1.0)
         x1 = random.gauss(-0.3 + a * 0.5, 1.0)
         data.append(([x0, x1, float(a)], y, a))
-    return data  # 返回结果
+    return data
 
 
 def train(data, steps: int = 200, lr: float = 0.1, sample_weights=None) -> list[float]:
-    """train"""
     w = [0.0, 0.0, 0.0]
     b = 0.0
     if sample_weights is None:
@@ -54,48 +56,43 @@ def train(data, steps: int = 200, lr: float = 0.1, sample_weights=None) -> list[
             for i in range(3):
                 w[i] -= lr * wt * err * x[i]
             b -= lr * wt * err
-    return w + [b]  # 返回结果
+    return w + [b]
 
 
 def predict(model, data):
-    """predict"""
     w, b = model[:3], model[3]
     preds = []
     for x, y, a in data:
         z = b + sum(wi * xi for wi, xi in zip(w, x))
         preds.append((1 if z > 0 else 0, y, a))
-    return preds  # 返回结果
+    return preds
 
 
 def demographic_parity(preds) -> tuple[float, float]:
-    """demographic_parity"""
     rate0 = sum(1 for p, _, a in preds if a == 0 and p == 1) / max(1, sum(1 for _, _, a in preds if a == 0))
     rate1 = sum(1 for p, _, a in preds if a == 1 and p == 1) / max(1, sum(1 for _, _, a in preds if a == 1))
-    return rate0, rate1  # 返回结果
+    return rate0, rate1
 
 
 def equalized_odds(preds) -> tuple[tuple, tuple]:
-    """equalized_odds"""
     def group(a):
         sub = [(p, y) for p, y, aa in preds if aa == a]
         tpr = sum(1 for p, y in sub if y == 1 and p == 1) / max(1, sum(1 for _, y in sub if y == 1))
         fpr = sum(1 for p, y in sub if y == 0 and p == 1) / max(1, sum(1 for _, y in sub if y == 0))
-        return tpr, fpr  # 返回结果
-    return group(0), group(1)  # 返回结果
+        return tpr, fpr
+    return group(0), group(1)
 
 
 def conditional_use(preds) -> tuple[tuple, tuple]:
-    """conditional_use"""
     def group(a):
         sub = [(p, y) for p, y, aa in preds if aa == a]
         ppv = sum(1 for p, y in sub if p == 1 and y == 1) / max(1, sum(1 for p, _ in sub if p == 1))
         npv = sum(1 for p, y in sub if p == 0 and y == 0) / max(1, sum(1 for p, _ in sub if p == 0))
-        return ppv, npv  # 返回结果
-    return group(0), group(1)  # 返回结果
+        return ppv, npv
+    return group(0), group(1)
 
 
 def report(name: str, preds):
-    """report"""
     dp = demographic_parity(preds)
     eo = equalized_odds(preds)
     cu = conditional_use(preds)
@@ -108,7 +105,6 @@ def report(name: str, preds):
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("THREE GROUP-FAIRNESS CRITERIA (Phase 18, Lesson 21)")
     print("=" * 70)

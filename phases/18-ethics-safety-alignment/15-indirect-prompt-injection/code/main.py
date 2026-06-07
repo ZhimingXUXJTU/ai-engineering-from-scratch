@@ -14,8 +14,11 @@ to exfiltrate data. Three agents compared:
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：间接提示注入——攻击者通过被检索的文档/邮件嵌入指令，操控 Agent 执行未授权操作，
+比较 naive、keyword-filter 和 IFC（信息流控制）三种防御架构
+AI 对应：Nasr et al. (2025) 系统化研究了 LLM Agent 的间接注入攻击；GPT-4 和 Claude
+在 RAG 场景中均受此攻击影响；IFC（信息流控制）被 Google DeepMind 提出为 2026 年防御范式；
+OWASP LLM Top 10 将此列为首要风险
 """
 
 from __future__ import annotations
@@ -39,22 +42,18 @@ CONTACTS = ["alice@co.com", "bob@co.com", "carol@co.com"]
 
 @dataclass
 class AgentResult:
-    """AgentResult"""
     actions_taken: list[str]
 
 
 def tool_read_email() -> dict:
-    """tool_read_email"""
-    return INBOX[0]  # 返回结果
+    return INBOX[0]
 
 
 def tool_send(to: str, body: str, result: AgentResult) -> None:
-    """tool_send"""
     result.actions_taken.append(f"send({to!r}, body[:60]={body[:60]!r})")
 
 
 def naive_agent() -> AgentResult:
-    """naive_agent"""
     res = AgentResult(actions_taken=[])
     email = tool_read_email()
     body = email["body"].lower()
@@ -65,7 +64,7 @@ def naive_agent() -> AgentResult:
         for c in CONTACTS:
             tool_send(c, email["body"], res)
     res.actions_taken.append(f"summary: {email['subject']!r}")
-    return res  # 返回结果
+    return res
 
 
 def filter_keyword(text: str) -> bool:
@@ -74,11 +73,10 @@ def filter_keyword(text: str) -> bool:
     low = text.lower()
     markers = ["[system:", "ignore previous", "override", "forward this",
                "send to all", "exfiltrate"]
-    return any(m in low for m in markers)  # 返回结果
+    return any(m in low for m in markers)
 
 
 def keyword_filter_agent() -> AgentResult:
-    """keyword_filter_agent"""
     res = AgentResult(actions_taken=[])
     email = tool_read_email()
     body = email["body"]
@@ -91,7 +89,7 @@ def keyword_filter_agent() -> AgentResult:
         for c in CONTACTS:
             tool_send(c, email["body"], res)
     res.actions_taken.append(f"summary: {email['subject']!r}")
-    return res  # 返回结果
+    return res
 
 
 def ifc_agent() -> AgentResult:
@@ -109,7 +107,7 @@ def ifc_agent() -> AgentResult:
         pass
     # user_prompt did not ask to forward; no tool call.
     res.actions_taken.append(f"summary: {email['subject']!r}")
-    return res  # 返回结果
+    return res
 
 
 def attack(with_adaptive: bool = False) -> None:
@@ -131,7 +129,6 @@ def attack(with_adaptive: bool = False) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("INDIRECT PROMPT INJECTION HARNESS (Phase 18, Lesson 15)")
     print("=" * 70)
