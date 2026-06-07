@@ -22,6 +22,9 @@
 
 You built RLHF in Lesson 07 and DPO in Lesson 08. Both depend on the same expensive input: human preference pairs. Anthropic's InstructGPT-era pipeline used roughly 33,000 comparisons. Llama 2 Chat used over 1.5 million. Claude 3 used more. This data is slow, expensive, and biased toward whatever the annotators happened to believe on the day they were rating.
 
+> **【中文解读】**
+> RLHF 和 DPO 都依赖人类偏好数据——昂贵、缓慢、有偏见。Constitutional AI 的核心洞察：让模型自己生成偏好标签。给它一列原则（"宪法"），让它批判自己的回复，然后在批判结果上训练。DeepSeek-R1 进一步推广：对于有可验证结果的任务（数学有标准答案、代码能通过测试），完全不需要人类偏好数据。2026 年前沿模型的对齐工作大部分是模型自己在做。
+
 The 2022 Constitutional AI paper asked a simple question. What if the model generates the preference labels itself? Give it a list of written principles -- the "constitution" -- and have it critique its own responses. The critiques become the training signal.
 
 In 2024, DeepSeek took the idea further. They showed that for any task with a verifiable outcome (math with a known answer, code that either passes tests or fails, a game that either wins or loses), you can skip the critic entirely. Generate many candidate solutions. Grade each one with a deterministic rule. Run a policy-gradient algorithm on the rewards. DeepSeek-R1 was trained this way with almost no human preference data and matched o1-class reasoning performance.
@@ -166,6 +169,11 @@ graph LR
 Most 2026 frontier pipelines run all four. CAI for safety layers. GRPO for the reasoning post-training pass. DPO for the preference polish. Small RLHF passes for residual behaviors that resist the other methods.
 
 ## Build It
+
+> **【中文解读】**
+> CAI 的实现分两步：先让模型自我批判（用原则评估自己的输出），然后在修正后的回复上做 SFT；再用模型自己产生的偏好对训练奖励模型，运行 PPO/DPO。GRPO 更简洁：每个 prompt 采样 G 个回复，用确定性规则打分，z-score 归一化后作为优势值，直接做策略梯度。DeepSeek-R1 训练中最令人惊讶的发现：只给结果奖励（不给过程奖励），模型自发学会了自我检查和回溯。
+
+> **【拓展：自我改进→推理模型】** DeepSeek-R1 的"顿悟时刻"是 2025 年最令人兴奋的发现之一——只给最终答案的对错奖励，模型自发发展出"等一下，让我重新检查"的推理行为。OpenAI 的 o1 也展示了类似现象。这表明推理能力可能不是需要专门训练的技能，而是在正确奖励信号下自然涌现的能力。
 
 The code implements three things in pure Python + numpy. A Constitutional AI self-critique loop. A rule-based reward checker for simple arithmetic. A minimal GRPO trainer that runs on a tiny language model from Lesson 04.
 
@@ -329,6 +337,19 @@ This lesson produces `outputs/skill-self-improvement-auditor.md`. Feed it a prop
 | Mode collapse | "The model stopped being diverse" | Post-training policy concentrates on a narrow region of the response space; measured as falling reward std across a group |
 | KL budget | "How far you can drift" | The total KL divergence from the reference model that the optimizer is allowed to accumulate before training stops |
 | R1 moment | "The model learned to backtrack" | DeepSeek's reported behavior where a policy trained only on outcome rewards spontaneously developed self-checking and backtracking in its chain-of-thought |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| Constitutional AI | "模型自我对齐" | 两阶段管线（自我批判 + RLAIF），用模型对宪法的自我判断替代大部分人类偏好标签 |
+| RLAIF | "没有人类的 RLHF" | 从 AI 反馈中强化学习——在模型自己生成的偏好上运行 PPO 或 DPO |
+| GRPO | "没有价值函数的 PPO" | 组相对策略优化——每个 prompt 采样 G 个回复，用 z-score 归一化的组奖励作为优势 |
+| ORM | "只看答案" | 结果奖励模型——只在最终答案上给一个标量奖励 |
+| PRM | "每步都奖" | 过程奖励模型——在每个中间推理步骤上给奖励 |
+| 规则奖励 | "确定性评分" | 返回二元或数值分数的验证器（正则、sympy、测试套件），无需学习模型 |
+| 拒绝采样微调 | "保留赢家，重训" | 采样多个回复，过滤到最高奖励的，加入 SFT 数据，重新训练 |
+| 模式坍塌 | "模型不再多样" | 训练后策略集中在响应空间的狭窄区域；表现为组内奖励标准差下降 |
+| KL 预算 | "能漂移多远" | 优化器允许从参考模型累积的总 KL 散度上限 |
+| R1 时刻 | "模型学会回溯" | DeepSeek 报告的行为：只给结果奖励训练的策略在思维链中自发发展出自我检查和回溯 |
 
 ## Further Reading
 

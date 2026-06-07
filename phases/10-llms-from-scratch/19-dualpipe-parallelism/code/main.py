@@ -1,12 +1,16 @@
-"""Pipeline schedule simulator — 1F1B vs Zero Bubble vs DualPipe vs DualPipeV.
+"""流水线调度模拟器 —— 1F1B vs Zero Bubble vs DualPipe vs DualPipeV 对比
 
-Teaching tool. Counts pipeline bubbles per schedule for given (P, micro_batches).
-Outputs:
-  - bubble fraction per schedule at fixed (P, micro_batches)
-  - scaling of bubbles as micro_batches grows
+核心概念：
+  - 流水线并行将模型按层分为 P 个 stage，数据像流水线一样依次通过
+  - "气泡"（bubble）是 GPU 空闲等待的时间——气泡越多，GPU 利用率越低
+  - 1F1B（one forward one backward）：经典调度，气泡率约 2(P-1)/(2M+2P-2)
+  - Zero Bubble：将反向传播拆分为 B+W 两部分，用 W 填充气泡
+  - DualPipe：从流水线两端同时注入 micro-batch，进一步减少气泡
+  - DualPipeV：DualPipe 的改进版，结合通信与计算重叠
 
-Not a production simulator. Forward/backward chunk costs are unit-normalized.
-Comm costs are modeled as overlap windows, not full kernel models.
+AI 对应：
+  - DeepSeek V3 使用 DualPipe 实现 63 个 stage 的流水线并行
+  - 流水线气泡率直接影响训练效率：1F1B 在 P=64 时气泡率约 6%，DualPipe 降至 < 1%
 """
 
 from __future__ import annotations

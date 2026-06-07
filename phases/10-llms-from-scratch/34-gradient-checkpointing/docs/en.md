@@ -15,6 +15,9 @@
 
 Training a transformer stores, for each layer, the inputs to every op that is differentiated in backward: the attention inputs, the Q/K/V projections, the softmax output, the FFN inputs, the norm outputs, and the residual stream. For a layer with hidden size `d`, sequence length `L`, batch `B`, this is on the order of `12 * B * L * d` floats per layer.
 
+> **【中文解读】**
+> 训练 Transformer 时，反向传播需要保存每一层的所有中间激活。64 层模型在 8K 序列长度下需要 51GB 激活——还没算 microbatch 和注意力 softmax 的 O(L^2) 中间结果。权重加优化器状态可能刚好放进 80GB 显存，但激活会把预算撑爆。梯度检查点的核心思路：丢弃大部分激活，反向传播时重新计算（用计算换显存）。朴素方法多花 33% FLOPs，选择性检查点只需多花 5%。
+
 For `d=8192, L=8192, B=1`, that's 800 MB/layer in BF16. A 64-layer model is 51 GB of activations — and that's before you multiply by microbatch size, before you add attention-softmax intermediates (`L^2` per head), and before you factor tensor-parallel partial copies.
 
 The two-sided bill: BF16 weights plus optimizer state might fit in 80GB, but activations push you past. Gradient checkpointing (aka activation recomputation) is the standard fix. Drop most activations; redo the forward during backward to get them back. Cost: extra FLOPs. Benefit: memory drops by the ratio of checkpoint segments to total layers.
@@ -113,6 +116,11 @@ All three give the same functional result. Wrappers are the standard idiom.
 - **FP8 recompute:** amax histories updated during recompute must match the original forward's, or the FP8 scale drifts. Most frameworks snapshot the scale.
 
 ## Build It
+
+> **【中文解读】**
+> 实现梯度检查点有三个模式：(1) 全检查点——每 sqrt(L) 层存一个输入，反向传播时重跑前向，多花 33% FLOPs；(2) 选择性检查点——只重算昂贵的注意力 softmax（O(L^2)），保留便宜的线性投影（O(L)），仅多花 5% FLOPs；(3) CPU 卸载——把激活搬到 CPU 内存，带宽有剩余时有效。PyTorch 的 `torch.utils.checkpoint` 和 Megatron-Core 的选择性重计算是生产环境的标准实现。
+
+> **【拓展：检查点→128K 上下文训练】** 128K 上下文训练时，注意力 softmax 的激活是 O(L^2)——每个头每个 batch 128K x 128K = 160 亿个 float。这是显存爆炸的主要来源。选择性检查点丢弃这些巨大的 softmax 中间结果，反向传播时用 FlashAttention 快速重算。没有选择性检查点，128K 上下文的预训练根本不可行。
 
 ### Step 1: A Toy Model With Segments
 
@@ -295,6 +303,19 @@ This lesson produces `outputs/prompt-activation-recompute-policy.md` — a promp
 | Activation offload | "Ship to CPU" | Move activations to CPU RAM across forward->backward; alternative to recompute |
 | sqrt-L rule | "The classical optimum" | For uniform-cost layers, optimal checkpoint spacing is sqrt(L) layers |
 | Attention-softmax volume | "The O(L^2) problem" | L^2 * heads * batch floats; dominates activation memory at long contexts |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| 梯度检查点 | "重做前向省显存" | 只保存段输入；反向传播时重算中间值以获取梯度支持张量 |
+| 激活重计算 | "检查点的同义词" | 同一技术的 HPC 风格名称 |
+| 段大小 (k) | "每几个检查点一层" | 中间值被丢弃并一起重物化的层数 |
+| 选择性检查点 | "Korthikanti 的技巧" | 只重算存储昂贵的激活（注意力 softmax）；保留便宜的 |
+| 全检查点 | "朴素版本" | 重算每个段中每层的中间值 |
+| 块检查点 | "粗粒度" | 整个 Transformer 块做检查点；最大粒度 |
+| FLOP 开销 | "计算税" | 每步额外 FLOPs = (重算 FLOPs) / (前向 + 反向 FLOPs)；朴素 33%，选择性 5% |
+| 激活卸载 | "搬到 CPU" | 前向→反向之间将激活移到 CPU 内存；重计算的替代方案 |
+| sqrt-L 规则 | "经典最优" | 对于均匀成本层，最优检查点间距是 sqrt(L) 层 |
+| 注意力 softmax 体积 | "O(L^2) 问题" | L^2 * 头数 * batch 个 float；长上下文时主导激活内存 |
 
 ## Further Reading
 

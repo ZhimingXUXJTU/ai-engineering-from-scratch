@@ -24,6 +24,9 @@ Your BPE tokenizer from Lesson 01 works on English text. Now throw Japanese at i
 
 It breaks.
 
+> **【中文解读】**
+> Lesson 01 的 BPE 只能处理英文。生产级分词器需要处理 Unicode（日语、emoji、中文）、空白归一化、特殊 token（`<bos>`、`<eos>`）、字节级回退（任何输入都能编码）。GPT-2 词表 50K，Llama 3 词表 128K——词表背后的合并表是在数百 GB 文本上训练的。分词器管线包含五个阶段：归一化→预分词→BPE 合并→特殊 token→token ID。
+
 Not because BPE is wrong -- because the implementation is incomplete. A production tokenizer handles raw bytes in any encoding, normalizes Unicode before splitting, manages special tokens that never get merged, chains pre-tokenization with subword splitting, and does all of this fast enough to not bottleneck a training pipeline processing 15 trillion tokens.
 
 GPT-2's tokenizer has 50,257 tokens. Llama 3 has 128,256. GPT-4 has roughly 100,000. These are not toy numbers. The merge tables behind those vocabularies were trained on hundreds of gigabytes of text, and the surrounding machinery -- normalization, pre-tokenization, special token injection, chat template formatting -- is what separates a tokenizer that handles "hello world" from one that handles the entire internet.
@@ -153,6 +156,11 @@ For perspective: tokenizing 15 trillion tokens for Llama 3 pre-training at 1 mil
 You are building in Python to understand the algorithm. In production, you would use a compiled implementation and only touch the Python wrapper.
 
 ## Build It
+
+> **【中文解读】**
+> 生产级分词器的关键实现细节：(1) 字节级编码——将任何字符映射到 256 个基础字节值，保证零未知 token；(2) 预分词正则——GPT-2 用特定正则在 BPE 前按词边界切分，防止跨词合并；(3) 特殊 token 注入——`<|endoftext|>` 等标记不参与 BPE 合并，由格式化层处理。
+
+> **【拓展：tiktoken→生产分词器】** tiktoken 是 OpenAI 开源的高性能分词器，用 Rust 编写 Python 绑定，每秒处理数百万 token。Llama 3 也基于 tiktoken 的 BPE 实现。Hugging Face 的 `tokenizers` 库提供了类似功能。选择 tiktoken 还是 sentencepiece 取决于模型——GPT 系列用 tiktoken，Llama 2 用 sentencepiece，Llama 3 转向 tiktoken。
 
 ### Step 1: Byte-Level Encoding
 
@@ -437,6 +445,17 @@ This lesson produces a prompt for building and debugging production tokenizers. 
 | Fertility | "Tokens per word" | Ratio of output tokens to input words -- 1.3 for English in GPT-4, 2-3 for Korean, higher means wasted context |
 | tiktoken | "OpenAI tokenizer" | Rust BPE implementation with Python bindings -- 10-100x faster than pure Python |
 | Merge table | "The vocabulary" | Ordered list of byte-pair merges learned during training -- this IS the tokenizer's learned knowledge |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| 字节级 BPE | "在字节上工作的分词器" | 基础词表为 256 个字节值的 BPE——处理任何输入无未知 token |
+| 预分词 | "BPE 前的分割" | 正则或规则分割，防止 BPE 跨词边界合并 |
+| NFKC 归一化 | "Unicode 清理" | 规范分解后兼容组合——连字"fi"变"fi"，全角"A"变"A" |
+| 聊天模板 | "消息如何变成 token" | 将角色/内容消息列表转换为扁平 token 序列的格式——因模型而异，必须匹配训练格式 |
+| 特殊 token | "控制 token" | 绕过 BPE 的保留 token ID——[BOS]、[EOS]、[PAD]、聊天标记——精确匹配而非合并 |
+| Fertility | "每词 token 数" | 输出 token 与输入词的比例——GPT-4 英语 1.3，韩语 2-3，越高越浪费上下文 |
+| tiktoken | "OpenAI 分词器" | Rust BPE 实现配 Python 绑定——比纯 Python 快 10-100 倍 |
+| 合并表 | "词表" | 训练时学到的有序字节对合并列表——这就是分词器学到的知识 |
 
 ## Further Reading
 

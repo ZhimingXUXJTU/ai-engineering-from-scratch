@@ -18,6 +18,8 @@
 - Explain why RLHF requires three models (SFT, reward, policy) and how the KL constraint prevents reward hacking
 - Evaluate the effect of RLHF by comparing response quality before and after preference optimization
 
+> **【中文解读】** 学习目标：1) 构建奖励模型——从人类偏好对（chosen vs rejected）学习评分；2) 实现 PPO 训练循环——用奖励模型优化语言模型策略；3) 理解为什么需要三个模型（SFT、奖励、策略）及 KL 约束如何防止奖励作弊；4) 对比 RLHF 前后的响应质量。
+
 ## The Problem
 
 Ask a model "Explain quantum computing" and it might produce:
@@ -32,6 +34,8 @@ SFT can't capture this distinction. It trains the model on "correct" responses, 
 
 RLHF solves this. It trains a reward model to predict which response a human would prefer, then uses that reward signal to push the language model toward higher-quality outputs. InstructGPT (the precursor to ChatGPT) used RLHF to dramatically improve GPT-3's helpfulness, truthfulness, and harmlessness. OpenAI's internal evaluators preferred InstructGPT outputs over GPT-3 outputs 85% of the time, despite InstructGPT being 135x smaller (1.3B vs 175B parameters).
 
+> **【中文解读】** 两个事实正确、语法正确的回答可能有巨大的有用性差异。SFT 无法捕捉"这个比那个更好"的判断——它把所有训练样本视为同等好。RLHF 通过训练奖励模型来预测人类偏好，再用这个奖励信号推动语言模型产生更高质量的输出。InstructGPT 的评估者在 85% 的情况下偏好 RLHF 后的输出，尽管模型小了 135 倍。
+
 ## The Concept
 
 ### The Three Stages
@@ -43,6 +47,8 @@ RLHF is not a single training run. It's a pipeline of three sequential stages, e
 **Stage 2: Reward Model.** Collect human preference data: show annotators two responses to the same prompt and ask "which is better?" Train a model to predict these preferences. The reward model takes (prompt, response) as input and outputs a scalar score.
 
 **Stage 3: PPO.** Use the reward model to generate a training signal for the language model. The language model generates responses, the reward model scores them, and PPO updates the language model to produce higher-scoring responses. A KL divergence penalty prevents the language model from straying too far from the SFT checkpoint.
+
+> **【中文解读】** RLHF 三阶段流水线：阶段 1（SFT）——在指令-响应对上训练基础模型，得到能遵循指令但不"知道"哪个回答更好的模型；阶段 2（奖励模型）——收集人类偏好数据，训练一个接受 (prompt, response) 输入、输出标量分数的评分模型；阶段 3（PPO）——语言模型生成响应，奖励模型打分，PPO 更新策略使模型产生更高分响应，KL 惩罚防止偏离 SFT 太远。
 
 ```mermaid
 graph TD

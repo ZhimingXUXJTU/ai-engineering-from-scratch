@@ -22,6 +22,9 @@
 
 Next-token prediction is the standard LLM training objective. Every hidden state is supervised to predict exactly one thing: the immediately following token. That is a surprisingly weak signal. Most of the information in a sequence extends beyond one token — structure, coherence, factuality, arithmetic flow. The model has to learn those by accumulating many one-token signals over trillions of tokens.
 
+> **【中文解读】**
+> 传统 LLM 的训练目标是"预测下一个 token"——每个隐藏状态只监督一个目标。这是非常稀疏的信号，模型需要万亿 token 才能学到结构、连贯性和算术逻辑。MTP 的思路：让每个隐藏状态同时预测多个未来 token。关键创新是 DeepSeek-V3 的"顺序"设计——每个预测深度条件化于上一个深度的输出，保持因果链，使得训练好的 MTP 模块可以直接用作投机解码的草稿器。
+
 MTP asks: what if every hidden state were supervised to predict multiple future tokens at once? Gloeckle et al. (Meta, 2024) showed this helps. Their implementation put several independent output heads on top of the backbone, each predicting a different offset. Parallel, simple, but the heads saw the same hidden state without any hierarchical refinement — and the predictions did not chain causally, so they could not be used for speculative decoding.
 
 DeepSeek-V3 (December 2024) re-designed MTP as sequential modules that keep the causal chain at each prediction depth. The model predicts `t+1` from `h_i^(0)`, then predicts `t+2` from a new hidden state `h_i^(1)` that combined `h_i^(0)` with the `E(t+1)` embedding, and so on. Each depth is its own small transformer block. The shared embedding and shared output head keep parameter overhead modest. At DeepSeek-V3's scale, 14B extra parameters across MTP modules on top of 671B main-model weights. That 2% overhead bought denser training signals AND a ready-made speculative-decoding draft at inference.
@@ -111,6 +114,11 @@ EAGLE trains a small draft model SEPARATELY after pre-training. MTP bakes the dr
 
 ## Build It
 
+> **【中文解读】**
+> MTP 模块的实现包含四个组件：共享嵌入表（与主模型共用）、投影矩阵 M_k（将上一层隐藏状态与下一个 token 嵌入组合）、独立 Transformer 块 T_k、共享输出头（与主模型 LM head 复用）。顺序设计的精髓：深度 k 的隐藏状态 h_i^(k) 是从 h_i^(k-1) 和 E(t_{i+k}) 计算得来，保持了因果链的完整性。
+
+> **【拓展：MTP→训练效率革命】** MTP 改变了"训练投资、推理回报"的经济学。训练时额外 10% 的计算开销换来两重收益：更密的训练信号让 MMLU/GSM8K 持续提升几个百分点，推理时 MTP 模块直接变成投机解码草稿器实现 1.8 倍吞吐提升。AMD 的 ROCm SGLang 教程已展示 DeepSeek-V3 MTP 投机解码的具体配置。这种"一次训练，终身加速"的设计思路值得每个做大模型训练的团队学习。
+
 `code/main.py` builds a single MTP module end to end: shared embedding, projection, transformer block, shared output head. It then computes the per-depth cross-entropy loss on a short synthetic sequence and prints the parameter count by component. A toy vocabulary of 32 tokens keeps the numbers readable.
 
 ### Step 1: shared embedding table
@@ -194,6 +202,19 @@ This lesson produces `outputs/skill-mtp-planner.md`. Given a pre-training run sp
 | Joint loss L_MTP | "Averaged extra losses" | Arithmetic mean of per-depth cross-entropy losses, scaled by `lambda` |
 | Acceptance rate at depth 1 | "How often MTP draft is right" | The rate at which the D=1 MTP module's top-1 prediction equals the main model's top-1 prediction; 80%+ on DeepSeek-V3 |
 | Lambda weighting | "Extra-loss importance" | Per-depth scaling factor; 0.3 at start of training, 0.1 later on DeepSeek-V3 |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| MTP 模块 | "额外损失块" | 预测主模型前方 k 个位置 token 的小型 Transformer 块加投影 |
+| 预测深度 | "哪个偏移" | 整数 k，模块 k 从位置 i 的前缀预测 t_{i+k} |
+| 并行 MTP | "Gloeckle 风格" | 同一骨干隐藏状态上的 D 个独立头，没有条件链 |
+| 顺序 MTP | "DeepSeek-V3 风格" | 每个模块条件化于上一深度的隐藏状态加上下一个 token 嵌入；保持因果链 |
+| 共享输出头 | "复用主头" | MTP 模块调用主模型的 LM head，不是单独的输出投影 |
+| 共享嵌入 | "复用主表" | 到处使用同一个词表嵌入表；没有重复参数 |
+| 投影矩阵 M_k | "组合隐藏 + 下一个 token" | 将前一层隐藏状态和目标 token 嵌入折叠到下一深度输入的 h x 2h 线性层 |
+| 联合损失 L_MTP | "平均额外损失" | 逐深度交叉熵损失的算术平均，乘以 lambda 缩放 |
+| 深度 1 接受率 | "MTP 草稿猜对的频率" | D=1 MTP 模块的 top-1 预测等于主模型 top-1 预测的频率；DeepSeek-V3 上 80%+ |
+| Lambda 权重 | "额外损失重要性" | 逐深度缩放因子；DeepSeek-V3 训练初期 0.3，后期 0.1 |
 
 ## Further Reading
 

@@ -22,6 +22,9 @@
 
 Attention is quadratic in sequence length. State space models are linear. That difference compounds: at 256k tokens, a Transformer attention map is 65B entries per head; an SSM's recurrent state is fixed-size regardless of sequence length.
 
+> **【中文解读】**
+> 注意力的计算量随序列长度平方增长，而状态空间模型（SSM）是线性的。256K token 时，Transformer 的注意力矩阵有 650 亿个元素，而 SSM 的状态大小是固定的——不管序列多长。但纯 SSM 模型在需要精确回忆的任务上不如 Transformer，因为 SSM 把历史压缩成固定状态，信息会泄漏。Jamba 的思路：把两者混合，用注意力层处理精确回忆，用 SSM 层处理大量廉价计算。
+
 Pure-SSM models (Mamba, Mamba-2) match Transformer perplexity at small scales but lag on state-tracking tasks and fail on some categories of in-context retrieval. The intuition: SSMs compress history into a fixed state, and when history is long, information leaks. Attention remembers everything exactly but pays quadratic cost.
 
 The obvious fix: use both. Put Transformer layers where exact recall matters. Use SSM layers elsewhere. Tune the ratio. Jamba is the first production-grade model to ship this hybrid recipe at scale (52B total, 12B active, 256k context, single 80GB GPU). Jamba 1.5 extends the family to 398B total / 94B active. Mamba-3 (ICLR 2026) is the current-best pure-SSM baseline that hybrids can be rebuilt around.
@@ -128,6 +131,11 @@ The 2026 landscape: pure-Transformer MoE dominates the frontier, but hybrids own
 
 ## Use It
 
+> **【中文解读】**
+> Jamba 的 1:7 比例（7 层 Mamba 配 1 层 Transformer）是 AI21 经过大量消融实验得出的最优解。太多注意力层（如 1:1）显存和速度退化；太少（如 1:15）则上下文检索失败。结果是 256K 上下文只需一张 80GB GPU，而同规模的纯 Transformer 的 KV cache 就要 128GB，根本放不下。
+
+> **【拓展：混合架构→边缘部署】** Jamba 的混合架构特别适合资源受限的部署场景。256K 上下文在单张 A100-80GB 上运行，使得长文档 RAG、全代码库理解等任务在中小团队可负担的硬件上成为可能。vLLM 和 SGLang 都已支持 Jamba 推理。
+
 `code/main.py` is a memory calculator for hybrid architectures. Given an SSM-Transformer ratio and a hidden-size / layer-count config, it computes:
 
 - KV cache at target context.
@@ -178,6 +186,19 @@ This lesson produces `outputs/skill-hybrid-picker.md`. Given a workload specific
 | MIMO | "Multi-input multi-output" | Mamba-3 innovation using matrix-valued projections instead of scalar per-feature |
 | Exponential-trapezoidal discretization | "Mamba-3's recurrence" | More expressive recurrence that subsumes Mamba-2's Euler-method discretization |
 | Hybrid architecture | "Mix attention and SSM" | Any model that interleaves Transformer and SSM layers; Jamba is the production archetype |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| 状态空间模型 (SSM) | "固定状态的递归" | 具有可学习递归 h_t = A h_{t-1} + B x_t 的层；每 token 恒定内存 |
+| 选择性 SSM | "Mamba 的技巧" | 数据依赖的 A、B、C 参数，在线性时间内赋予模型门控般的选择性 |
+| 注意力-Mamba 比例 | "多少个注意力层" | Jamba 中 l=8 意味着每 7 个 Mamba 层配 1 个注意力层 |
+| Jamba 块 | "8 层组" | 一个注意力 + 七个 Mamba + 隔层 MoE |
+| SSM 状态 | "隐藏缓冲区" | 替代 KV cache 的固定大小逐层状态 |
+| 256K 上下文 | "Jamba 的旗舰数字" | Jamba-1 在单张 80GB GPU 上适配的序列长度；纯 Transformer 在同规模做不到 |
+| Mamba-3 | "2026 纯 SSM" | 当前最佳纯 SSM 架构，复数状态 + MIMO；混合架构重建的基线 |
+| MIMO | "多输入多输出" | Mamba-3 创新使用矩阵值投影替代标量逐特征投影 |
+| 指数梯形离散化 | "Mamba-3 的递归" | 包含 Mamba-2 欧拉方法离散化的更具表达力的递归 |
+| 混合架构 | "混合注意力和 SSM" | 任何交替使用 Transformer 和 SSM 层的模型；Jamba 是生产级典型 |
 
 ## Further Reading
 

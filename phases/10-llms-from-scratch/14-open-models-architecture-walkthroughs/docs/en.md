@@ -22,6 +22,9 @@
 
 In Lesson 04 you wrote 350 lines of numpy and had a GPT-2-shaped model. Llama 3 405B has a 200-page technical report. Your instinct is that these are different beasts. They are not. The 200 pages describe the same object with five or six well-motivated modifications, plus a thousand implementation details about scaling. The skeleton -- embedding, transformer blocks, attention, MLP, norm, head -- is unchanged.
 
+> **【中文解读】**
+> GPT-2 和 2026 年的前沿模型之间只有六个旋钮不同：(1) RMSNorm 替代 LayerNorm——更快更简单；(2) RoPE 替代学习位置编码——支持外推到更长上下文；(3) SwiGLU 替代 GELU——每参数更好的困惑度；(4) GQA/MLA 替代全注意力——缩小 KV cache；(5) MoE 替代稠密 MLP——大参数小计算；(6) Pre-norm 固定不变。掌握这六个差异就能读懂任何新模型的架构。
+
 This lesson is a diff. For each major open model family, we list exactly what changed from GPT-2, why, and what it cost. When you are done you can read a fresh model card and mentally translate it back to the GPT-2 baseline.
 
 The practical payoff is that when Meta releases Llama 5 or DeepSeek releases V4, you will not need a new mental model. You will look at the config, see which of the well-known knobs moved, and know what the downstream implications are. The 2026 architectures are a finite toolbox. Each new model picks a different subset.
@@ -243,6 +246,11 @@ See `code/main.py` for the implementation.
 
 ## Use It
 
+> **【中文解读】**
+> 选模型的关键决策：单张 80GB GPU 选 Llama 3 8B 或 Mistral 7B；单节点（8x80GB）选 Llama 3 70B 或 Qwen 72B；追求极致能力接受 MoE 复杂度选 DeepSeek V3 或 Mixtral 8x22B。注意 Llama 3 8B 在 128K 上下文时 KV cache 就要 17.2GB——比模型权重（16GB）还大，这就是 GQA/MLA 存在的意义。
+
+> **【拓展：开源模型→模型选择】** 2026 年开源模型选择的关键是理解"六个旋钮"的权衡。DeepSeek-V3 用 MLA + MoE 实现 671B 参数但推理只需 37B 的算力；Llama 3 用 GQA 但保持稠密，推理更简单但 KV cache 更大。PyTorch 的 `torch.compile` 和 Hugging Face 的 `transformers` 库让切换模型变得简单，但理解架构差异才能做出正确选择。
+
 Run the calculator on Llama 3 8B, Mistral 7B, Mixtral 8x7B, and DeepSeek V3 configs bundled in the script. Compare the parameter breakdowns. Notice that the MoE models have a total param count that dwarfs the dense models but an active param count that is often smaller. Notice that DeepSeek V3's KV cache is smaller than Llama 3 405B's despite having more total parameters -- that is MLA in action.
 
 Then plug in a config for any model you have locally, read the summary, and decide whether it fits your GPU.
@@ -277,6 +285,19 @@ This lesson produces `outputs/skill-open-model-picker.md`. Given a deployment ta
 | YaRN | "Stretch RoPE" | Yet another RoPE extension — interpolates rotary angles to extend context from 8k to 128k+ at inference time |
 | Sliding-window attention | "Don't attend to everything" | Each token attends only to the last W tokens — caps attention cost at O(W) per token, used in Gemma 2 and early Mistral |
 | Active params | "What runs per token" | For MoE models, the parameter count that sees a forward pass per token (much smaller than total params) — governs per-token FLOPs |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| RMSNorm | "没有均值的 LayerNorm" | 只按均方根归一化，加可学习缩放——比 LayerNorm 更便宜且效果相当 |
+| RoPE | "旋转位置" | 将每个 Q 和 K 向量在二维对中按位置角度旋转——配合缩放技巧可外推超训练长度 |
+| SwiGLU | "新 MLP 激活" | 带 Swish 的门控线性单元：(xW1) * sigmoid(xW1) * xV——2024+ 开源模型标配 |
+| GQA | "中间路线注意力" | 分组查询注意力：G 组 Q 头共享一个 K 和 V 头——缩小 KV cache 但不损失 MQA 那么多精度 |
+| MLA | "DeepSeek 的注意力" | 多头潜在注意力：将 K/V 压缩到共享低秩隐变量，逐头解压——大模型最小 KV cache |
+| MoE | "稀疏专家" | 混合专家：每块 N 个 MLP，路由器每个 token 选 top-k——总参数巨大，激活参数小 |
+| Top-k 路由 | "每个 token 选 k 个专家" | 路由器计算每个专家的得分并激活最高的 k 个——典型 k 为 2（Mixtral）到 8（DeepSeek） |
+| YaRN | "拉伸 RoPE" | 另一种 RoPE 扩展——插值旋转角度将上下文从 8k 扩展到 128k+ |
+| 滑动窗口注意力 | "不全看" | 每个 token 只关注最近 W 个 token——将注意力成本限制为每 token O(W) |
+| 激活参数 | "每个 token 实际跑的" | MoE 模型中每个 token 经过前向传播的参数量——决定每 token 的 FLOPs |
 
 ## Further Reading
 

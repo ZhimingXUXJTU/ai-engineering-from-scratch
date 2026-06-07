@@ -1,12 +1,15 @@
-"""Jamba / Mamba-3 memory calculator — stdlib Python.
+"""Jamba / Mamba-3 混合 SSM-Transformer 显存计算器
 
-Computes KV cache, SSM state, and total attention-layer memory for a range
-of hybrid configurations: pure Transformer, Jamba 1:7, 1:3, 1:15, and pure
-SSM. Prints the comparison at 8k, 64k, 128k, 256k context.
+核心概念：
+  - Jamba 是 AI21 Labs 的混合架构模型：交替使用 Transformer 注意力层和 Mamba SSM 层
+  - Mamba (Selective State Space Model)：线性复杂度的序列建模，不需要 KV Cache
+  - 混合比例（如 1:7 表示每 1 个注意力层搭配 7 个 SSM 层）直接影响显存和计算量
+  - 纯 Transformer 在 256K 上下文时 KV Cache 巨大，混合架构通过减少注意力层来降低
 
-Numbers are illustrative, not exact production memory budgets. The point is
-to show why the hybrid ratio matters and where Jamba's 256k-on-80GB claim
-comes from.
+AI 对应：
+  - Jamba 1.5 在 256K 上下文下只需单张 80GB GPU 运行（纯 Transformer 做不到）
+  - 混合架构是长上下文推理的重要方向：SSM 负责高效长序列，Attention 负责精确定位
+  - 本文件计算不同混合比例在 8K/64K/128K/256K 上下文下的显存需求对比
 """
 
 from __future__ import annotations

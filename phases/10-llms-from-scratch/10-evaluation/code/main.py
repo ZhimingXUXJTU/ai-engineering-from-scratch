@@ -1,3 +1,18 @@
+"""LLM 评估框架 —— 全面衡量模型能力的工具集
+
+核心概念：
+  - 评估套件 (EvalSuite)：将测试用例 + 评分器组合，批量评估模型表现
+  - 评分指标：精确匹配 (exact match)、Token F1、LLM-as-Judge（用 LLM 评估 LLM）
+  - ELO 排名：通过成对比较建立模型能力排名（类似棋手排名系统）
+  - 困惑度 (Perplexity)：衡量语言模型对文本的"惊讶程度"，越低越好
+
+AI 对应：
+  - OpenAI 的 eval 框架、Anthropic 的 evals 仓库都使用类似架构
+  - Chatbot Arena (LMSYS) 使用 ELO 排名比较不同模型
+  - MMLU、HumanEval、TruthfulQA 等基准测试是 LLM 评估的标准
+  - GPT-4 在 MMLU 上约 86%，HumanEval 约 67%
+"""
+
 import json
 from collections import Counter
 
@@ -5,6 +20,7 @@ import numpy as np
 
 
 class EvalCase:
+    """单个评估用例：输入文本 + 期望输出 + 可选的元数据"""
     def __init__(self, input_text, expected, metadata=None):
         self.input_text = input_text
         self.expected = expected
@@ -12,6 +28,7 @@ class EvalCase:
 
 
 class EvalSuite:
+    """评估套件：批量运行测试用例并用多个评分器打分"""
     def __init__(self, name, cases, scorers):
         self.name = name
         self.cases = cases
@@ -34,10 +51,15 @@ class EvalSuite:
 
 
 def exact_match(prediction, expected):
+    """精确匹配评分：预测和期望完全相同（忽略大小写和空白）才得分"""
     return 1.0 if prediction.strip().lower() == expected.strip().lower() else 0.0
 
 
 def token_f1(prediction, expected):
+    """Token F1 评分：基于词级别精确率和召回率的调和平均
+
+    比精确匹配更宽容——部分匹配也能得到部分分数。
+    """
     pred_tokens = set(prediction.lower().split())
     exp_tokens = set(expected.lower().split())
     if not pred_tokens or not exp_tokens:
@@ -51,6 +73,10 @@ def token_f1(prediction, expected):
 
 
 def llm_judge_simulated(prediction, expected):
+    """模拟 LLM-as-Judge 评分：用词汇重叠度和长度惩罚近似 LLM 评判
+
+    真实系统中，这一步用 GPT-4 / Claude 来评判回复质量。
+    """
     pred_words = set(prediction.lower().split())
     exp_words = set(expected.lower().split())
     if not exp_words:
@@ -61,6 +87,11 @@ def llm_judge_simulated(prediction, expected):
 
 
 class ELOTracker:
+    """ELO 排名跟踪器：通过成对比较建立模型能力排名
+
+    每次比较后更新双方的 ELO 分数，最终排名反映模型的综合能力。
+    Chatbot Arena 就是这个原理——让用户在两个模型的回复中投票。
+    """
     def __init__(self, k=32, initial_rating=1500):
         self.ratings = {}
         self.k = k
@@ -103,6 +134,11 @@ class ELOTracker:
 
 
 def perplexity(log_probs):
+    """困惑度 (Perplexity)：衡量语言模型对文本的预测能力
+
+    PPL = exp(-1/N * sum(log P(token_i | context)))
+    PPL 越低说明模型越不"惊讶"，预测能力越强。GPT-4 在英文文本上约 PPL=15-20。
+    """
     if not log_probs:
         return float("inf")
     avg_neg_log_prob = -np.mean(log_probs)

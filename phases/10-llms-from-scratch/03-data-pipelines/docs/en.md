@@ -22,6 +22,9 @@
 
 You have a tokenizer. Now you need data.
 
+> **【中文解读】**
+> 训练 LLM 的关键不是架构，而是数据。Llama 3 用了 15.6 万亿 token，DeepSeek-V2 用了 8.1 万亿。Chinchilla 论文证明：给定计算预算，存在最优的参数量/训练 token 比例。2022 年大多数模型严重训练不足——参数太多，数据太少。你的数据管线决定了模型学到的是语言还是噪声。
+
 Not a dataset. Not a CSV file. Terabytes of text -- cleaned, deduplicated, filtered for quality, tokenized into fixed-length sequences, and served in randomized batches fast enough that your 8-GPU cluster never waits for the next batch.
 
 Most people think training an LLM is about the model architecture. It is not. Llama 3 used 15.6 trillion tokens. GPT-3 used 300 billion. DeepSeek-V2 used 8.1 trillion. The architecture across all three is roughly the same: stacked transformer blocks with attention and feedforward layers. The difference in output quality comes overwhelmingly from the data.
@@ -184,6 +187,11 @@ In practice, this means you should scale model size and dataset size roughly equ
 Llama 3 deliberately violates the Chinchilla law. Meta found that overtraining on more data -- far beyond the compute-optimal ratio -- produces better models for inference. The extra training cost is paid once, but the smaller model is cheaper to serve forever. This is sometimes called the "inference-optimal" scaling approach, and it has become the industry standard since 2024.
 
 ## Build It
+
+> **【中文解读】**
+> 数据管线的核心操作：(1) 清洗——去 HTML、归一化空白、过滤低质量内容；(2) 去重——MinHash + LSH 在 TB 级数据上检测近似重复，这是最重要的质量提升手段；(3) 流式处理——不能把 TB 级数据加载到内存，必须用 mmap 或流式读取；(4) 分块打乱——把 token 序列切成固定长度训练块，跨文档填充而非截断。
+
+> **【拓展：数据管线→模型质量】** Llama 3 的数据混合：50% 网页、25% 代码、13% 书籍和论文、8% 数学、4% 多语言。数据去重是最关键的单步操作——重复数据不仅浪费训练预算，还让模型记住特定内容，增加隐私泄露风险。GPT-4 的"幻觉"问题部分源于训练数据中的矛盾信息。Hugging Face 的 `datasets` 库和 datatrove 工具包是构建数据管线的常用工具。
 
 ### Step 1: Text Cleaning
 
@@ -440,6 +448,19 @@ This lesson produces a prompt for validating and debugging data quality in LLM t
 | Perplexity filter | "Quality scoring" | Use a small language model to score documents -- high perplexity means the text is unlike clean reference data |
 | Deduplication | "Removing copies" | Eliminating exact and near-duplicate documents -- typically removes 30-40% of raw web data |
 | Attention mask | "Which tokens to look at" | A binary mask that prevents attention across document boundaries in packed sequences |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| Common Crawl | "互联网" | 每月爬取网页的非营利组织——约 250TB 原始数据，大多数 LLM 训练数据的起点 |
+| MinHash | "某种哈希技巧" | 用固定大小签名估计集合间 Jaccard 相似度的技术——实现大规模近似重复检测 |
+| LSH | "局部敏感哈希" | 将相似项分组到同一桶的方法——将 O(n^2) 成对比较降到近线性 |
+| 序列打包 | "拼接文档" | 将多个文档放入固定长度序列并正确设置注意力掩码——消除填充浪费 |
+| Chinchilla 缩放 | "多训练数据" | 固定计算预算下，最优性能需要模型大小和训练 token 数大致同等缩放 |
+| Fertility | "每词 token 数" | 每词平均 token 数——GPT-4 英语 1.3，非拉丁文字更高 |
+| 数据混合 | "选择训练数据" | 代码/文本/数学/多语言数据的比例——没有公式，需要实验 |
+| 困惑度过滤 | "质量评分" | 用小型语言模型给文档打分——高困惑度意味着文本不像干净的参考数据 |
+| 去重 | "去副本" | 删除精确和近似重复的文档——通常去除原始网页数据的 30-40% |
+| 注意力掩码 | "看哪些 token" | 防止打包序列中文档间注意力的二元掩码 |
 
 ## Further Reading
 

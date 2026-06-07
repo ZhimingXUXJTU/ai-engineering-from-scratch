@@ -22,6 +22,9 @@
 
 Autoregressive decoding on a 70B model runs at maybe 35 tokens per second on an H100. The GPU is nowhere near saturated. Memory bandwidth is the ceiling: every token loads 70B of weights from HBM, does one step of arithmetic, and produces one float. The compute units sit mostly idle.
 
+> **【中文解读】**
+> 自回归解码的瓶颈不是计算能力，而是显存带宽——每个 token 都要加载全部 70B 参数，GPU 算力大量闲置。投机解码的核心思想：让一个便宜的小模型先猜 3-5 个 token，大模型一次性验证，猜对了就等于用一次大模型前向传播产生多个 token。关键定理（Leviathan）保证：输出分布与大模型直接采样完全相同，不是近似，是恒等。
+
 Speculative decoding turns that into a throughput problem you can actually solve. A cheap draft proposes `N` tokens in `N` small forward passes. The verifier runs once on the prefix plus all `N` drafts. If the verifier's distribution at position `i` agrees with the draft (in a statistical sense we will make precise), we accept; if not, we reject and sample a correction from the residual distribution. A single big-model forward produces up to `N+1` accepted tokens instead of one.
 
 The theorem that matters is Leviathan, Kalman, Matias (ICML 2023): the output distribution is identical to what sampling from the verifier directly would have produced. Not approximately. Identically. This is the entire reason speculative decoding is acceptable in production — it is a pure latency optimization with no quality tradeoff.
@@ -78,6 +81,11 @@ For EAGLE-2 tree search, the verifier runs attention with a non-causal mask that
 In 2026 production: vLLM and SGLang default to EAGLE-3 when available, EAGLE-2 otherwise. TensorRT-LLM has the fastest Medusa path for Meta and NVIDIA public models. llama.cpp ships vanilla draft for CPU deployments.
 
 ## Build It
+
+> **【中文解读】**
+> 实现投机解码需要五个核心组件：(1) 拒绝规则——以 min(1, q/p) 概率接受草稿 token；(2) 残差分布——拒绝时从 (q-p)+ 采样修正；(3) 奖励 token——全部接受时免费多采样一个；(4) KV cache 回滚——拒绝时截断缓存；(5) 分布验证——用卡方检验确认输出分布恒等。这些组件在 150 行代码内可以完整实现。
+
+> **【拓展：EAGLE→生产推理引擎】** vLLM 的 `--speculative-config` 参数直接支持 EAGLE-3。对于 Llama-3.3-70B，配合 EAGLE-3 草稿模型可以在 H100 上实现 3-5 倍加速。TensorRT-LLM 则对 Medusa 方案优化更好。选择哪种策略取决于模型架构和部署场景——代码生成任务接受率 90%+，创意写作因温度高而接受率下降。
 
 See `code/main.py`. This is the full Leviathan speculative loop with all the pieces: draft-of-N, verifier parallel pass, per-position rejection, residual sampling, bonus token, KV rollback, and empirical verification that the output distribution matches direct sampling from `q`.
 
@@ -174,6 +182,19 @@ This lesson produces `outputs/skill-eagle3-tuner.md`. Given an inference workloa
 | KV rollback | "undo rejected drafts" | Bookkeeping that resets the verifier's KV cache to the accepted-prefix length after a rejection |
 | Bonus token | "the free one" | When all `N` drafts accept, sample one extra from `q_{N+1}` at no additional verifier cost |
 | Tree attention | "verify many candidates at once" | Attention with a non-causal mask that respects the topology of a draft tree; computes `q_i` for every node in the tree in one forward pass |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| Leviathan 规则 | "min(1, q/p)" | 以 min(1, q(d)/p(d)) 概率接受/拒绝，配合残差采样保证输出分布恒等 |
+| 残差分布 | "(q-p)+ 归一化" | 将 (q-p) 负值截零后归一化——拒绝时的正确采样分布 |
+| 接受率 α | "草稿猜对的频率" | 每个 token 的期望伯努利成功概率；决定所有加速公式的核心参数 |
+| EAGLE-1 | "隐状态草稿" | 以验证器最后一层隐状态为输入的微型 Transformer 草稿（Li et al., 2024） |
+| EAGLE-2 | "动态草稿树" | EAGLE-1 加上候选延续树，一次验证器前向评估多条路径 |
+| EAGLE-3 | "训练时测试" | 去掉特征预测损失，直接训练 token 预测，训练时让草稿自回归输入 |
+| 训练时测试 (TTT) | "暴露偏差修正" | 训练时让草稿自回归运行，使训练和测试输入分布一致——计划采样的直接类比 |
+| KV 回滚 | "撤销被拒绝的草稿" | 拒绝后将验证器的 KV cache 重置为已接受前缀长度的簿记操作 |
+| 奖励 token | "白送的那个" | 所有 N 个草稿都被接受时，从 q_{N+1} 免费多采样一个 token |
+| 树注意力 | "一次验证多个候选" | 使用遵守草稿树拓扑的非因果掩码的注意力；一次前向计算树中每个节点的 q_i |
 
 ## Further Reading
 

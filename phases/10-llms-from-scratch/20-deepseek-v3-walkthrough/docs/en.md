@@ -22,6 +22,9 @@
 
 DeepSeek-V3 is the first frontier open model whose architecture is meaningfully different from the Llama family. Llama 3 405B is "GPT-2 with six knobs turned." DeepSeek-V3 is GPT-2 with all six knobs plus four more. Reading the Llama 3 config is a warmup for reading the DeepSeek config, but the deep structure — the shape of the attention block, the routing logic, the training-time objective — is different enough that you need a separate walkthrough.
 
+> **【中文解读】**
+> DeepSeek-V3 不只是"更大的 Llama"——它在架构层面有根本性创新。671B 总参数但只激活 37B（5.5%），意味着推理成本接近一个 37B 稠密模型，但拥有 671B 模型的知识容量。这个"大存储、小计算"的设计是 MoE 架构的终极目标。理解这个架构是理解 2025-2026 年大模型技术前沿的基础。
+
 The payoff of learning it: DeepSeek-V3's open-weights release shifted what "frontier capability" means in open models. The architecture is the blueprint many 2026 training runs are copying. Understanding it is table stakes for any role that touches frontier LLM training or inference.
 
 ## The Concept
@@ -145,6 +148,11 @@ DeepSeek-V4 (if it ships) is expected to keep MLA + MoE + MTP and add DSA (DeepS
 
 ## Use It
 
+> **【中文解读】**
+> DeepSeek-V3 的四大创新分别解决不同问题：MLA 将 KV cache 压缩到 GQA 的 1/4（128K 上下文只需 7.6GB vs 30.5GB），无辅助损失路由避免了 MoE 负载均衡的性能惩罚，MTP 让训练信号更密同时免费获得投机解码草稿器，DualPipe 在 2048 卡训练中消除流水线气泡。这些创新可以独立使用，但组合起来才形成了 DeepSeek-V3 的完整优势。
+
+> **【拓展：DeepSeek-V3→开源生态】** DeepSeek-V3 的权重完全开源，可以在 Hugging Face 上直接下载。vLLM 和 SGLang 都支持 DeepSeek-V3 推理。其 MoE + MLA 的组合使得在消费级硬件上运行 671B 模型成为可能——只需 ~40GB 显存（37B 激活参数）即可运行推理，远低于 Llama-3-405B 的需求。这是"平民化前沿能力"的典范。
+
 `code/main.py` is the parameter calculator specialized to DeepSeek-V3's shape. Run it, compare its output to the paper's numbers, and use it on hypothetical variants (256 experts vs 512, top-8 vs top-16, MLA rank 512 vs 1024).
 
 What to look at:
@@ -184,6 +192,19 @@ This lesson produces `outputs/skill-deepseek-v3-reader.md`. Given a DeepSeek-fam
 | DualPipe | "Bidirectional pipeline" | Training schedule that overlaps forward/backward compute with cross-node all-to-all |
 | Active parameter ratio | "Sparsity" | active_params / total_params; DeepSeek-V3 hits 5.5% |
 | FP8 training | "8-bit training" | Training storage and many compute ops in FP8; roughly halves memory vs BF16 at a small quality cost |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| MLA | "多头潜在注意力" | 将 K 和 V 压缩到共享低秩隐空间（kv_lora_rank，通常 512），逐头即时解压；KV cache 只存隐变量 |
+| kv_lora_rank | "MLA 压缩维度" | K 和 V 的共享隐空间大小；DeepSeek-V3 使用 512 |
+| 前 k 个稠密层 | "早期层保持稠密" | 前几个 MoE 模型层跳过 MoE 路由器，运行稠密 MLP 以保持稳定 |
+| num_experts_per_tok | "Top-k 路由" | 每个 token 激活多少路由专家；DeepSeek-V3 使用 8 |
+| 共享专家 | "常驻专家" | 不论路由结果都处理每个 token 的专家；DeepSeek-V3 使用 1 个 |
+| 无辅助损失路由 | "偏置调整负载均衡" | 训练中调整逐专家偏置项来保持专家负载均衡，不添加额外损失项 |
+| MTP 模块 | "额外预测头" | 从 h^(1) 和 E(t+1) 预测 t+2 的 Transformer 块；更密的训练信号 + 免费投机解码草稿 |
+| DualPipe | "双向流水线" | 将前向/后向计算与跨节点 all-to-all 重叠的训练调度 |
+| 激活参数比例 | "稀疏度" | 激活参数 / 总参数；DeepSeek-V3 达到 5.5% |
+| FP8 训练 | "8 位训练" | 以 FP8 进行训练存储和大部分计算；相比 BF16 约减半内存 |
 
 ## Further Reading
 

@@ -22,6 +22,9 @@
 
 Your LLM does not read English. It does not read any language. It reads numbers.
 
+> **【中文解读】**
+> "Hello, world!" 变成 [15496, 11, 995, 0]——这个转换由分词器完成，它不是中性的。分词器的质量直接决定上下文窗口的利用率。"unfortunately" 拆成 4 个 token 还是 1 个 token，等于上下文窗口缩水 75%。每次 API 调用按 token 计费，每生成一个 token 都消耗算力。分词不是预处理，它是架构的一部分。
+
 The gap between "Hello, world!" and [15496, 11, 995, 0] is the tokenizer. Every word, every space, every punctuation mark must be converted into an integer before a model can process it. This conversion is not neutral. It bakes assumptions into the model that cannot be undone later.
 
 Get this wrong and your model wastes capacity encoding common words with multiple tokens. "unfortunately" becomes four tokens instead of one. Your 128K context window just shrank by 75% for text heavy in multi-syllable words. Get it right and the same context window holds twice as much meaning. The difference between "this model handles code well" and "this model chokes on Python" often comes down to how the tokenizer was trained.
@@ -203,6 +206,11 @@ Tokenizers trained primarily on English are brutal to other languages. Korean te
 This is why Llama 3 quadrupled its vocabulary from 32K to 128K. More tokens dedicated to non-English scripts means fairer compression across languages.
 
 ## Build It
+
+> **【中文解读】**
+> 子词分词在词级和字符级之间找到平衡：常见词保持完整（"the" → 1 token），罕见词拆分为有意义的片段（"unhappiness" → ["un", "happi", "ness"]）。BPE 通过迭代合并最高频的字符对来构建词表，SentencePiece 使用 Unigram 模型做概率最优分割。词表大小是最关键的权衡：太大浪费嵌入参数，太小浪费上下文窗口。
+
+> **【拓展：分词器→多语言公平性】** GPT-2 的分词器对非英语语言极不友好——韩语平均 2-3 token/词，中文更差。这等于韩国用户的上下文窗口只有英语用户的一半，却付同样的价格。Llama 3 把词表从 32K 扩到 128K，专门增加了非英语脚本的 token，大幅改善了多语言压缩率。tiktoken 库可以直接对比不同模型的分词效率。
 
 ### Step 1: Character-Level Tokenizer
 
@@ -465,6 +473,19 @@ This lesson produces `outputs/prompt-tokenizer-analyzer.md` -- a reusable prompt
 | Merge table | "The tokenizer file" | Ordered list of pair merges learned during training -- this IS the tokenizer, and order matters |
 | Pre-tokenization | "Splitting on spaces" | Rules applied before subword tokenization: whitespace splitting, digit separation, punctuation handling |
 | Compression ratio | "How efficient the tokenizer is" | Tokens produced divided by input bytes -- lower means better compression and faster inference |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| Token | "一个词" | 模型词表中的一个单位——可以是字符、子词、词或多词块 |
+| BPE | "某种压缩" | 字节对编码——迭代合并最高频的相邻 token 对，直到达到目标词表大小 |
+| WordPiece | "BERT 的分词器" | 类似 BPE 但合并最大化似然比 count(AB)/(count(A)*count(B)) 而非原始频率 |
+| SentencePiece | "分词器库" | 语言无关的分词器，在原始 Unicode 上操作，支持 BPE 和 Unigram 算法 |
+| 词表大小 | "知道多少词" | 唯一 token 总数：GPT-2 有 50,257，BERT 有 30,522，Llama 3 有 128,256 |
+| Fertility | "分词效率" | 每词平均 token 数——衡量分词器跨语言效率（1.0 完美，3.0 意味着模型工作三倍） |
+| 字节级 BPE | "GPT 的分词器" | 在原始字节（0-255）上操作的 BPE，保证任何输入都没有未知 token |
+| 合并表 | "分词器文件" | 训练时学到的有序 pair 合并列表——这就是分词器，顺序很重要 |
+| 预分词 | "按空格分割" | 子词分词前应用的规则：空白分割、数字分离、标点处理 |
+| 压缩比 | "分词器效率" | 产生的 token 数除以输入字节数——越低越好，推理越快 |
 
 ## Further Reading
 

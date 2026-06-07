@@ -15,6 +15,9 @@
 
 Decode throughput for a 70B-class model on H100 is typically 40-80 tokens/second. Each token requires a full forward pass reading all model weights from HBM. You cannot make the model smaller without changing its output. You cannot increase batch size beyond memory. You're stuck — unless you can let the model output more than one token per forward pass.
 
+> **【中文解读】**
+> 70B 模型在 H100 上每秒只能生成 40-80 个 token，瓶颈是显存带宽——每次前向传播都要读取全部权重。投机解码的核心思路：让一个小模型（草稿模型）先猜 K 个 token，大模型（目标模型）一次性验证所有 K 个位置。如果猜对了，一次大模型前向传播就能产出 K+1 个 token。Leviathan 等人（2023）证明了这个方法的输出分布与直接从大模型采样完全相同。
+
 Autoregressive generation looks inherently serial: `x_{t+1} = sample(p(· | x_{1:t}))`. But there is a concurrency opportunity. If you had a cheap predictor that said "the next 4 tokens are probably [a, b, c, d]" you could verify all 5 positions in a **single forward pass of the big model** and accept the longest matching prefix.
 
 Leviathan, Kalai, Matias (2023, "Fast Inference from Transformers via Speculative Decoding") made this exact via a clever accept/reject rule that preserves the target model's sampling distribution. The same output distribution, 2-4× faster.
@@ -120,6 +123,11 @@ Production shops typically report 2-3× wall-clock speedup on chat, 3-5× on cod
 
 ## Build It
 
+> **【中文解读】**
+> 实现投机解码的关键步骤：草稿模型自回归生成 K 个 token 并记录每个 token 的概率 q(x)，目标模型一次性计算所有位置的概率 p(x)，然后逐个应用接受规则 r < p(x)/q(x)。全部接受时额外从目标模型采样一个"奖励 token"。EAGLE 进一步优化：用目标模型的隐藏状态作为草稿输入，并用树结构替代线性链，一次验证多条候选路径。
+
+> **【拓展：投机解码→代码生成】** 投机解码在代码生成场景表现最好，因为代码的预测性远高于自然语言——`def` 后面大概率跟函数名，`return` 后面跟表达式。生产数据显示代码生成的接受率可达 90%+，加速 3-5 倍。而创意写作（高温度采样）的接受率只有 50-60%，投机解码反而更慢。
+
 `code/main.py`:
 
 - A reference `speculative_decode(target, draft, prompt, K, temperature)` that implements the exact rejection rule and verifies it preserves the target's distribution (empirical KL < 0.01 vs plain target sampling).
@@ -198,6 +206,20 @@ This lesson produces `outputs/skill-speculative-tuning.md` — a skill that prof
 | Medusa heads | "Parallel heads" | K extra prediction heads on the target itself; no separate draft model |
 | EAGLE feature reuse | "Hidden-state draft" | Draft input is target's last hidden state, not raw tokens, shrinking the draft |
 | Test-time simulation loss | "EAGLE-3 training" | Train draft on outputs matching target's test-time distribution, not teacher forcing |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| 目标模型 | "大模型" | 你想要采样的慢速、高质量模型（p 分布） |
+| 草稿模型 | "投机者" | 小型、快速预测器（q 分布）；比目标小 5-30 倍 |
+| K / 草稿长度 | "前瞻" | 每次验证前猜测的 token 数 |
+| α / 接受率 | "命中率" | 草稿提议被接受的逐 token 概率 |
+| 精确拒绝规则 | "接受测试" | r < p/q 的比较，保持目标分布不变 |
+| 残差分布 | "修正后的 p-q" | (p - q)+ / \|\|(p - q)+\|\|_1，拒绝时的采样分布 |
+| 树形草稿 | "分支投机" | 草稿输出候选树，一次通过树结构注意力掩码验证 |
+| 树注意力掩码 | "拓扑掩码" | 编码树拓扑的因果掩码，每个节点只关注其祖先 |
+| Medusa 头 | "并行头" | 目标模型上的 K 个额外预测头；无需单独的草稿模型 |
+| EAGLE 特征复用 | "隐状态草稿" | 草稿输入是目标最后的隐藏状态而非原始 token |
+| 测试时模拟损失 | "EAGLE-3 训练" | 在匹配目标测试时分布的输出上训练草稿，而非教师强制 |
 
 ## Further Reading
 

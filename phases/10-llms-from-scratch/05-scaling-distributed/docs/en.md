@@ -22,6 +22,9 @@
 
 A 7B parameter model in FP16 needs 14GB just for the weights. Adam optimizer stores two additional copies of every parameter (first and second moment estimates). That is another 28GB. Gradients during backpropagation add 14GB more. You are at 56GB before a single activation is stored.
 
+> **【中文解读】**
+> 7B 模型的显存账单：权重 14GB + Adam 优化器状态 28GB + 梯度 14GB = 56GB，还没算激活值。A100 只有 80GB，留给激活的只有 24GB。70B 模型的权重就要 140GB，一张卡放不下。Llama 3 405B 在 16384 张 H100 上训练，成本约 1 亿美元。DeepSeek-V3 通过 MoE 架构（每次只激活一小部分参数）把成本降到 560 万美元。分布式训练不是选择题，而是必修课。
+
 An NVIDIA A100 has 80GB of memory.
 
 56GB out of 80GB consumed. That leaves 24GB for activations -- the intermediate values computed during the forward pass that must be kept alive for backpropagation. For a 2048-token sequence with a 4096-dimensional model, a single layer's activations use about 64MB. With 32 layers, you need 2GB per sample. A batch size of 8 requires 16GB. You have 24GB. A batch size of 12 blows up.
@@ -244,6 +247,11 @@ graph TD
 ```
 
 ## Build It
+
+> **【中文解读】**
+> 四种并行策略的核心区别：(1) 数据并行——每张卡一份模型副本，不同数据分片，梯度 all-reduce 同步；(2) 张量并行——把一个层的权重矩阵切到多卡，需要 NVLink 这种快速互联；(3) 流水线并行——不同层放在不同卡上，micro-batch 流水线填充气泡；(4) FSDP——每张卡只存 1/N 的权重/梯度/优化器状态，计算前 all-gather 恢复完整参数。PyTorch FSDP2 和 DeepSpeed ZeRO-3 是生产环境的标准实现。
+
+> **【拓展：分布式训练→成本优化】** DeepSeek-V3 用 2048 张 H800 训练 671B 模型只花了 560 万美元，而 Llama 3 405B 花了约 1 亿美元。差距来自三个方面：MoE 架构（每次只激活 37B 参数）、FP8 训练（比 BF16 省一半内存）、DualPipe（消除流水线气泡）。理解分布式训练策略是控制大模型训练成本的关键。
 
 ### Step 1: Simulate Data Parallelism
 
@@ -561,6 +569,19 @@ This lesson produces `outputs/prompt-distributed-training-planner.md` -- a promp
 | Reduce-scatter | "Sum and distribute" | Collective operation that reduces (sums) data and scatters different chunks to different GPUs -- used in FSDP for gradient sharding |
 | Mixed precision | "Train in half precision" | Use FP16/BF16 for forward/backward and FP32 for optimizer states -- saves ~25% memory, not 50%, because the optimizer dominates |
 | Pipeline bubble | "Idle time in the pipeline" | Fraction of time GPUs sit idle waiting for data from the previous stage -- reduced by using more micro-batches |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| 数据并行 | "每张卡一份模型" | 每张卡处理不同数据分片；每步后通过 all-reduce 平均梯度 |
+| 张量并行 | "一层切到多卡" | 分割权重矩阵，每张卡计算部分矩阵乘；需要快速 NVLink 互联 |
+| 流水线并行 | "不同层放不同卡" | 每张卡运行不同层组；数据以 micro-batch 流过流水线以减少气泡 |
+| FSDP | "全部切分" | 完全分片数据并行——每张卡持有 1/N 的权重、梯度和优化器状态；计算前 all-gather |
+| ZeRO | "DeepSpeed 版 FSDP" | 零冗余优化器三阶段：分片优化器（阶段1）+ 梯度（阶段2）+ 参数（阶段3） |
+| All-reduce | "跨卡平均" | 所有卡最终获得所有卡输入之和（或平均值）的集合操作——通常实现为 ring all-reduce |
+| All-gather | "从所有卡收集" | 所有卡最终获得所有卡数据拼接的集合操作——FSDP 中用于重建完整参数 |
+| Reduce-scatter | "求和并分发" | 对数据求和并分发不同块到不同卡的集合操作——FSDP 中用于梯度分片 |
+| 混合精度 | "半精度训练" | 前向/反向用 FP16/BF16，优化器状态用 FP32——节省约 25% 内存 |
+| 流水线气泡 | "流水线空闲时间" | GPU 等待前一阶段数据时空闲的时间比例——用更多 micro-batch 减少 |
 
 ## Further Reading
 
