@@ -23,6 +23,8 @@ Build an end-to-end assistant:
 
 Latency target: first TTS audio byte within 800 ms of the user finishing their utterance on a laptop CPU. Quality target: no missed words, no hallucinated subtitles on silence, no voice cloning leakage, no prompt injection success.
 
+> **【中文解读】** 语音助手管线七步：1) 麦克风采集（16kHz 单声道）；2) 用户语音起止检测；3) 流式转录；4) 传递转录文本给可调用工具的 LLM；5) 流式 TTS 生成；6) 音频回放；7) 用户打断时立即停止。延迟目标：用户说完后 800ms 内出首字节 TTS 音频（笔记本 CPU）。质量目标：不漏词、静音段不幻听、无声音克隆泄露、抗提示注入。
+
 ## The Concept
 
 ![Voice assistant pipeline: mic → VAD → STT → LLM+tools → TTS → speaker](../assets/voice-assistant.svg)

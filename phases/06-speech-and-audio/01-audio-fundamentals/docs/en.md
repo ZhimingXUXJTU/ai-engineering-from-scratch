@@ -23,6 +23,8 @@ Every bug in speech systems traces back to one of three questions:
 
 Get these right and the rest of Phase 6 is tractable. Get them wrong and even Whisper-Large-v4 produces garbage.
 
+> **【中文解读】** 语音系统的每一个 bug 都可以追溯到三个基本问题：1) 采样率——数据录制的采样率与模型期望的是否匹配？2) 混叠——信号是否在降采样前正确滤波？3) 表示形式——你在操作原始样本还是频率表示？这三个问题搞错一个，即使最先进的模型也会输出垃圾。这是整个 Phase 6 的基础。
+
 ## The Concept
 
 ![Waveform, sampling, DFT, and frequency bins visualized](../assets/audio-fundamentals.svg)

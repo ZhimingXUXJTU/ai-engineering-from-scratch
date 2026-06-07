@@ -19,6 +19,8 @@ Three distinct decisions a voice agent makes on every 20 ms chunk:
 
 The naive answer (energy threshold) fails on any noise — traffic, keyboards, crowd babble. The 2026 answer: Silero VAD (open, deep-learned) + a turn-detection model (semantic endpointing) + a VAD-calibrated silence hangover.
 
+> **【中文解读】** 语音活动检测（VAD）和轮流发言检测解决三个问题：1) 这一帧是语音吗？——VAD，逐帧二分类；2) 用户开始说话了吗？——起始检测；3) 用户说完了吗？——端点检测。能量阈值在任何噪声环境下都失败。2026 年的方案：Silero VAD（深度学习、开源）+ 轮次检测模型（语义端点）+ VAD 校准的静音悬停。
+
 ## The Concept
 
 ![VAD cascade: energy → Silero → turn-detector → flush trick](../assets/vad-turn-taking.svg)

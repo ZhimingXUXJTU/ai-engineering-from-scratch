@@ -23,6 +23,8 @@ Three formulations solve this:
 
 In 2026, SOTA WER on LibriSpeech test-clean is 1.4% (Parakeet-TDT-1.1B, NVIDIA) and 1.58% (Whisper-Large-v3-turbo). The differences are tiny; the deployment differences are huge.
 
+> **【中文解读】** 语音识别的核心挑战：音频帧与字符不是一一对应的——"okay" 可能占 200ms 或 1200ms，输出 token 数未知。三种解决方案：1) CTC——每帧输出 token 概率（含空白），解码时折叠重复和空白，非自回归，快速；2) RNN-T——结合编码器帧和前序 token 预测下一个 token，可流式处理；3) 注意力编码器-解码器——编码器压缩音频，解码器交叉注意力自回归生成 token（Whisper 方案）。
+
 ## The Concept
 
 ![Three ASR formulations: CTC, RNN-T, attention-encoder-decoder](../assets/asr-formulations.svg)

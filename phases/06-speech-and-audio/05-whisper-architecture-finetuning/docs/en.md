@@ -21,6 +21,8 @@ But Whisper is not a pipeline you can treat as a black box forever. Domain shift
 2. How to give it chunked, streaming, or long-form audio correctly.
 3. When to fine-tune and how.
 
+> **【中文解读】** Whisper（OpenAI 2022）是第一个"即插即用"的 ASR 模型——贴上音频就能得到文本，99 种语言，抗噪，笔记本可运行。但不能永远当黑盒用：领域偏移（专业术语、口音、专有名词、短片段、静音）会严重损害性能。你需要了解：1) 内部架构到底是什么；2) 如何正确处理分块/流式/长音频；3) 何时以及如何微调。
+
 ## The Concept
 
 ![Whisper encoder-decoder, tasks, chunked inference, fine-tune](../assets/whisper.svg)

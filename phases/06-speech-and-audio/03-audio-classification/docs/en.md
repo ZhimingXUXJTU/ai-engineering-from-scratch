@@ -15,6 +15,8 @@ You get a 10-second clip. You want to know: "what is it?" Urban sound (siren, dr
 
 The core difficulty is not the network. It is data. Audio datasets have brutal class imbalance, strong domain shift (clean vs noisy), and label noise (who decided "urban babble" vs "restaurant noise"?). The 80% of the problem is curation, augmentation, and evaluation, not swapping CNN for Transformer.
 
+> **【中文解读】** 音频分类的真正困难不在网络架构，而在数据：严重的类别不平衡、强烈的域偏移（干净 vs 嘈杂环境）、标签噪声。80% 的工作是数据策展、增强和评估，而不是选择 CNN 还是 Transformer。从 k-NN on MFCCs（1990 年代基线）到 AST（Audio Spectrogram Transformer）再到 BEATs（2023 自监督），架构在进步，但数据问题始终是核心。
+
 ## The Concept
 
 ![Audio classification ladder: k-NN on MFCCs to AST to BEATs](../assets/audio-classification.svg)

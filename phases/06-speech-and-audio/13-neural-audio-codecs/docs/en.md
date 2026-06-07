@@ -22,6 +22,8 @@ Two families have emerged:
 
 The 2024-2026 insight: **a pure reconstruction codec gives you blurry speech when you try to generate from text.** The LLM over codec tokens has to learn both language structure AND acoustic structure in the same codebook, which doesn't scale. Separating them — semantic codebook 0, acoustic codebooks 1-N — is what makes Moshi and Sesame CSM work.
 
+> **【中文解读】** 神经音频编解码器的两大路线：1) 重建优先（EnCodec、DAC）——优化感知音频质量，token 捕获一切包括说话人身份、音色、背景噪声；2) 语义优先（Mimi、SpeechTokenizer）——强制第一个码本编码语言学/音素内容（通过从 WavLM 蒸馏），后续码本编码声学细节。2024-2026 的关键洞察：纯重建编解码器在文本生成语音时会产生模糊语音——LLM 需要在同一码本中同时学习语言结构和声学结构，这不可扩展。分离语义码本 0 和声学码本 1-N 是 Moshi 和 Sesame CSM 成功的关键。
+
 ## The Concept
 
 ![Four codec landscape: EnCodec, DAC, SNAC (multi-scale), Mimi (semantic+acoustic)](../assets/codec-comparison.svg)

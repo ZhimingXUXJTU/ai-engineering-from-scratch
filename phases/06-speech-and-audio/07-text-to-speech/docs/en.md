@@ -23,6 +23,8 @@ Modern TTS pipelines look like this:
 
 In 2026 the acoustic + vocoder split blurs with end-to-end diffusion and flow-matching models. But the mental model of three parts still holds for debugging.
 
+> **【中文解读】** TTS 管线的三个阶段：1) 文本前端——文本规范化（日期、数字、邮件）、音素转换、韵律预测；2) 声学模型——文本到 Mel 频谱图（Tacotron 2、FastSpeech 2、VITS、F5-TTS）；3) 声码器——Mel 频谱到波形（WaveNet、HiFi-GAN、BigVGAN）。2026 年端到端扩散/Flow Matching 模型模糊了声学模型和声码器的界限，但三段式心智模型在调试时仍有用。
+
 ## The Concept
 
 ![Tacotron, FastSpeech, VITS, F5/Kokoro side-by-side](../assets/tts.svg)
