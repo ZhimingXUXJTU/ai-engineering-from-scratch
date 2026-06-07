@@ -4,8 +4,13 @@ Compute expected speedup and break-even alpha for EAGLE-3-style speculative
 decoding across a range of (alpha, K, verify_overhead, concurrency) points.
 Pedagogical — numbers track shape, not absolute latency.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：投机解码(Speculative Decoding)分析——EAGLE-3 风格，小模型(Drafter)生成 K 个候选 token，
+大模型(Target)一次验证，接受率 alpha 决定加速比，高并发下验证开销增大导致
+break-even alpha 上升（32 并发需 alpha>0.1，256 并发需 alpha>0.4）
+AI 对应：EAGLE (ETH Zurich/Salesforce) 是当前最快的投机解码方法，EAGLE-3 进一步优化
+draft 模型；Medusa (Together AI) 使用多 Head 并行预测；SpecInfer (UC Berkeley)
+实现投机推理服务；vLLM 内置 speculative decoding 支持；
+DeepSeek-V3 和 Llama 4 的推理部署使用投机解码加速
 """
 
 from __future__ import annotations
@@ -17,7 +22,6 @@ import statistics
 
 @dataclass
 class SpecPoint:
-    """SpecPoint"""
     alpha: float      # acceptance rate (0..1)
     k: int            # draft length
     verify_overhead: float  # fraction extra cost per target forward
@@ -33,15 +37,14 @@ def expected_speedup(p: SpecPoint) -> float:
     effective_overhead = p.verify_overhead * (1 + p.concurrency / 256)
     tokens_per_target = 1 + p.k * p.alpha
     cost_per_target = 1 + effective_overhead
-    return tokens_per_target / cost_per_target  # 返回结果
+    return tokens_per_target / cost_per_target
 
 
 def breakeven_alpha(k: int, verify_overhead: float, concurrency: int) -> float:
-    """breakeven_alpha"""
     effective_overhead = verify_overhead * (1 + concurrency / 256)
     # speedup = (1 + K*alpha) / (1 + eff_overhead) = 1
     # alpha = eff_overhead / K
-    return effective_overhead / k  # 返回结果
+    return effective_overhead / k
 
 
 def simulate_tail(p: SpecPoint, n_tokens: int = 1000, seed: int = 3) -> tuple[float, float]:
@@ -78,20 +81,18 @@ def simulate_tail(p: SpecPoint, n_tokens: int = 1000, seed: int = 3) -> tuple[fl
                 break
     latencies.sort()
     p99 = latencies[int(0.99 * len(latencies)) - 1]
-    return statistics.mean(latencies), p99  # 返回结果
+    return statistics.mean(latencies), p99
 
 
 def plain_tail(concurrency: int, n_tokens: int = 1000, seed: int = 5) -> tuple[float, float]:
-    """plain_tail"""
     rng = random.Random(seed)
     base = 8.0 * (1 + concurrency / 512)
     lats = [max(0.1, base + rng.gauss(0, base * 0.08)) for _ in range(n_tokens)]
     lats.sort()
-    return statistics.mean(lats), lats[int(0.99 * len(lats)) - 1]  # 返回结果
+    return statistics.mean(lats), lats[int(0.99 * len(lats)) - 1]
 
 
 def print_table(title: str, rows: list[tuple[str, float, float, float, float, float]]) -> None:
-    """print_table"""
     print(title)
     print("-" * 80)
     print(f"{'config':28} {'speedup':>8} {'be_alpha':>10} {'mean_ms':>10} {'p99_ms':>10}")
@@ -101,7 +102,6 @@ def print_table(title: str, rows: list[tuple[str, float, float, float, float, fl
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("TOY EAGLE-3 SPECULATIVE-DECODING ANALYZER")
     print("=" * 80)

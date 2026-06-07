@@ -21,6 +21,9 @@
 
 Classic serving treats each request's prompt as opaque. Even when 5,000 RAG requests all start with the same 2,000-token system prompt plus same retrieval preamble, vLLM prefills that 2,000-token prefix 5,000 times. The GPU does the same work over and over.
 
+> **【中文解读】**
+> RAG 和 Agent 工作负载中，大量请求共享相同前缀（系统提示、工具 schema、检索头部）。vLLM 每次都重新 prefill 整个前缀——GPU 做了 5000 次相同的计算。SGLang 的 RadixAttention 把 KV cache 存在基数树（radix tree）里，共享前缀只计算一次。调度器优先处理共享长前缀的请求，让热分支留在显存里。前缀重的 RAG 工作负载上，SGLang 比 vLLM 快 6.4 倍。
+
 The observation: prompts in agentic and RAG workloads share long prefixes almost always. System prompt, tool schemas, few-shot examples, retrieval headers, conversation history — all repeat across requests. If you stored the KV cache for that prefix once and reused it, you would not prefill it again.
 
 RadixAttention does exactly this. Tokens are indexed in a radix tree; each node owns KV blocks for the token sequence on its path from root. A new request walks the tree: any node whose token matches re-uses that node's KV blocks. Prefill cost becomes proportional to the "new" suffix, not the full prompt.
@@ -90,6 +93,11 @@ You can implement KV reuse as a kernel trick. SGLang's insight is that reuse onl
 The two systems are not strict competitors. In 2026 vLLM added prefix caching (`--enable-prefix-caching`) and a cache-aware router (vLLM Router in Rust). The gap closed but did not fully disappear — SGLang's whole stack is radix-first; vLLM grafted it on. For workloads dominated by prefix reuse, SGLang remains the default. For general-purpose serving without strong prefix patterns, vLLM remains equal or better.
 
 ## Use It | 使用方法
+
+> **【中文解读】**
+> RadixAttention 的关键前提是 prompt 模板顺序必须一致。如果你的请求有时是 `[system, tools, context, question]`，有时是 `[system, context, tools, question]`，基数树会把它们当成两条不同的前缀，缓存全部失效。把不可变内容（system、tools）放最前面，动态内容放最后。有一个实际案例：仅修复 prompt 顺序，缓存命中率从 7% 跳到 74%。
+
+> **【拓展：RadixAttention→RAG 生产优化】** 2026 年 SGLang 部署在 40 万+ GPU 上（xAI、LinkedIn、Cursor、Oracle、GCP、Azure、AWS）。对于 RAG 系统，RadixAttention 是最有效的推理优化之一——同一个文档+不同问题的请求共享前缀，prefill 成本降低 40 倍。vLLM 也添加了 `--enable-prefix-caching` 功能，但 SGLang 的全栈基数优先设计在重前缀场景下仍有优势。
 
 `code/main.py` implements a toy radix-tree KV cache plus a scheduler with two policies: FCFS and cache-aware. Runs the same workload through both, reports prefix-cache hit rate and throughput delta. Then runs a "scrambled ordering" workload to show the 6.4x collapse.
 

@@ -21,6 +21,9 @@
 
 You run Llama 3.3 70B on 8 H100s. Under mixed workload (long prompts + short outputs), GPUs idle during decode because most of the compute was spent on prefill. Under different workload (short prompts + long outputs), the opposite happens. Colocated prefill + decode means you over-provision both.
 
+> **【中文解读】**
+> Prefill 是计算密集型的（处理整个 prompt），decode 是显存带宽密集型的（每个 token 只做少量计算）。同一张 GPU 跑两者，总有一种资源被浪费——20-40% 的 GPU 时间浪费在错误的瓶颈上。分离式架构把 prefill 和 decode 分到不同的 GPU 池，通过 RDMA/InfiniBand 传输 KV cache。NVIDIA Dynamo 声称在 GB200 + DeepSeek-R1 上实现约 6 倍吞吐提升。每年 200 万美元的推理预算可以节省 30-40%。
+
 Budget impact: 20-40% of GPU time is wasted on the wrong resource. You are buying H100 compute to run memory-bound decode, or buying H100 HBM bandwidth to run compute-bound prefill. Both are expensive waste.
 
 Disaggregation splits prefill and decode onto separate pools sized for each's bottleneck. KV cache transfers from prefill pool to decode pool via high-bandwidth interconnect.
@@ -109,6 +112,11 @@ Benchmark numbers drift — NVIDIA and the inference stack post updated results 
 - KV transfer via NIXL: 20-80 ms for 4K-prompt KV on 70B FP8.
 
 ## Use It | 使用方法
+
+> **【中文解读】**
+> 分离式架构不适合所有场景：短 prompt（<512 token）+ 短输出的请求不值得 KV transfer 的开销。只有长 prompt + 长输出或大量并发请求时才划算。NVIDIA Dynamo 是 stack-above 方案（在 vLLM/SGLang/TRT-LLM 之上），llm-d 是 Kubernetes 原生方案（prefill/decode/router 作为独立 Service）。
+
+> **【拓展：分离式推理→下一代基础设施】** 分离式推理是 2026 年 LLM 基础设施的前沿方向。NVIDIA 的 GB200 NVL72 机架专门为 prefill/decode 分离设计，NVLink 带宽足够在 GPU 间传输 KV cache。Red Hat 的 llm-d 项目把这个能力带到了 Kubernetes 生态。对于大规模 MoE 模型（如 DeepSeek-V3），分离式推理可以节省 30-40% 的推理成本。
 
 `code/main.py` simulates colocated vs disaggregated serving. Reports throughput, cost per request, and the prompt-length crossover.
 

@@ -21,9 +21,14 @@
 
 You shipped an LLM feature. It works. You have no visibility into prompt failures, tool loops, latency regressions, cost spikes, or prompt-cache hit rate. You Google "LLM observability" and get eight tools all claiming they solve the same problem at three different price points.
 
+> **【中文解读】**
+> LLM 可观测性工具分两类：开发平台（LangSmith、Langfuse——集成监控、评估、prompt 管理、会话回放）和网关/遥测工具（Helicone、SigNoz、OpenLLMetry——专注追踪和指标）。2026 年常见的生产模式是：网关层（Helicone/Portkey 做代理和日志）+ 评估平台（Phoenix/TruLens 做 RAG 漂移检测），用 OpenTelemetry 串联。
+
 They don't solve the same problem. LangSmith answers "why did this LangGraph run fail?" Phoenix answers "is my RAG pipeline drifting?" Helicone answers "which app is burning tokens?" Langfuse answers "can I self-host the whole thing?" Different tools, different audiences.
 
 Picking involves four axes: stack (LangChain? raw SDK? multi-vendor?), license tolerance (MIT only? Elastic OK? commercial fine?), budget (free tier? $100/mo? $1000/mo?), and self-host (must? nice-to-have? never?).
+
+> **【中文解读】** LLM 可观测性工具不解决同一问题。LangSmith 回答"为什么这个 LangGraph 运行失败了"，Phoenix 回答"我的 RAG 管道是否在漂移"，Helicone 回答"哪个应用在烧 token"，Langfuse 回答"我能自托管吗"。选择涉及四个维度：技术栈、许可证容忍度、预算、自托管需求。
 
 ## The Concept | 概念
 
@@ -104,6 +109,11 @@ At >1M requests/day, full-trace retention costs more than the LLM calls. Sample 
 - OpenTelemetry GenAI conventions: 2025 shipping, 2026 widely adopted.
 
 ## Use It | 使用方法
+
+> **【中文解读】**
+> 选择可观测性工具的决策树：如果用 LangChain/LangGraph → LangSmith（$39/用户/月，集成最紧）；如果需要自托管 → Langfuse（MIT 许可，50K 事件/月免费）；如果只看 token 消耗和成本 → Helicone（代理模式，15 分钟部署，100K 请求/月免费）；如果关注 RAG 漂移和检索质量 → Phoenix（OpenTelemetry 原生，可视化最佳）。Arize AX 声称用零拷贝 Iceberg/Parquet 集成比单体可观测性便宜 100 倍。
+
+> **【拓展：可观测性→生产调试】** LLM 应用的故障模式与传统软件完全不同：prompt 注入、工具死循环、幻觉输出、RAG 检索漂移。LangSmith 的会话回放可以逐 token 重放 LLM 调用链，Phoenix 的 UMAP 可视化可以检测嵌入空间的漂移。OpenTelemetry 的 OpenLLMetry 语义约定让不同工具共享同一套追踪标准，是 2026 年 LLM 可观测性的事实标准。
 
 `code/main.py` simulates a 1M-trace day across retention strategies (100% ingest, sampling, sampling + errors). Reports storage cost and what's lost under each.
 

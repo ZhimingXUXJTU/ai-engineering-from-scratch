@@ -6,8 +6,13 @@ Models a 50k-document pipeline across four configurations:
   BATCH             : 50% discount, no cache
   BATCH + CACHE     : stacked (~10% of SYNC bill)
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Batch API 经济学——同步调用 vs 同步+缓存 vs 批量(50% 折扣) vs 批量+缓存
+(~10% 成本)，Prompt 缓存写入溢价(1.25x) vs 读取折扣(0.1x)，批量 API 牺牲延迟
+换取成本效率，叠加缓存可将总成本降至同步的 10%
+AI 对应：OpenAI Batch API 提供 50% 折扣（24 小时内返回）；Anthropic Message Batches
+提供类似折扣；Claude 的 prompt caching 将输入成本从 $3/M 降到 $0.30/M；
+夜间批量文档处理（summarization/classification）是 Batch API 的典型用例；
+GCP Vertex AI Batch Prediction 和 AWS Bedrock Batch 提供类似的批量推理服务
 """
 
 from __future__ import annotations
@@ -21,38 +26,33 @@ BATCH_DISCOUNT = 0.50
 
 
 def cost_sync(docs: int, prefix_tokens: int, per_doc_tokens: int, out_tokens: int) -> float:
-    """cost_sync"""
     cost = 0.0
     for _ in range(docs):
         cost += (prefix_tokens / 1e6) * BASE_INPUT
         cost += (per_doc_tokens / 1e6) * BASE_INPUT
         cost += (out_tokens / 1e6) * BASE_OUTPUT
-    return cost  # 返回结果
+    return cost
 
 
 def cost_sync_cache(docs: int, prefix_tokens: int, per_doc_tokens: int, out_tokens: int) -> float:
-    """cost_sync_cache"""
     cost = (prefix_tokens / 1e6) * CACHE_WRITE_5MIN
     for i in range(docs):
         if i > 0:
             cost += (prefix_tokens / 1e6) * CACHED_INPUT
         cost += (per_doc_tokens / 1e6) * BASE_INPUT
         cost += (out_tokens / 1e6) * BASE_OUTPUT
-    return cost  # 返回结果
+    return cost
 
 
 def cost_batch(docs: int, prefix_tokens: int, per_doc_tokens: int, out_tokens: int) -> float:
-    """cost_batch"""
-    return cost_sync(docs, prefix_tokens, per_doc_tokens, out_tokens) * BATCH_DISCOUNT  # 返回结果
+    return cost_sync(docs, prefix_tokens, per_doc_tokens, out_tokens) * BATCH_DISCOUNT
 
 
 def cost_batch_cache(docs: int, prefix_tokens: int, per_doc_tokens: int, out_tokens: int) -> float:
-    """cost_batch_cache"""
-    return cost_sync_cache(docs, prefix_tokens, per_doc_tokens, out_tokens) * BATCH_DISCOUNT  # 返回结果
+    return cost_sync_cache(docs, prefix_tokens, per_doc_tokens, out_tokens) * BATCH_DISCOUNT
 
 
 def run(label: str, docs: int, prefix: int, per_doc: int, output: int) -> None:
-    """run"""
     sc = cost_sync(docs, prefix, per_doc, output)
     scc = cost_sync_cache(docs, prefix, per_doc, output)
     bc = cost_batch(docs, prefix, per_doc, output)
@@ -66,7 +66,6 @@ def run(label: str, docs: int, prefix: int, per_doc: int, output: int) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("BATCH API ECONOMICS — stack batch with prompt caching for ~10% of sync bill")
     print("=" * 80)

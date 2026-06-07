@@ -4,8 +4,13 @@ Simulate a population of LLM requests with realistic right-skewed latency,
 apply a multi-constraint SLO, compute goodput, and show the GenAI-Perf
 vs LLMPerf TPOT calculation divergence on the same trace.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：推理服务的 Goodput 指标——多约束 SLO（TTFT + TPOT + E2E 同时满足）下的
+有效请求比例，GenAI-Perf vs LLMPerf 的 TPOT 计算差异（是否包含 TTFT），
+以及右偏延迟分布下 P99 才是用户体验的真实指标
+AI 对应：GenAI-Perf (NVIDIA) 和 LLMPerf (Ray Serve 社区) 是 LLM 推理基准测试的
+两大工具；Goodput 概念来自 Google SRE 书籍；TTFT (Time To First Token) 和
+TPOT (Time Per Output Token) 是 LLM 服务的关键 SLO 指标；
+OpenAI 和 Anthropic 的 SLA 都基于类似的延迟百分位数承诺
 """
 
 from __future__ import annotations
@@ -17,7 +22,6 @@ from dataclasses import dataclass
 
 @dataclass
 class RequestTrace:
-    """RequestTrace"""
     queue_ms: float
     prefill_ms: float
     decode_ms_per_token: list[float]      # per-token decode latency
@@ -25,25 +29,24 @@ class RequestTrace:
 
     @property
     def ttft_ms(self) -> float:
-        return self.queue_ms + self.prefill_ms  # 返回结果
+        return self.queue_ms + self.prefill_ms
 
     @property
     def e2e_ms(self) -> float:
-        return self.ttft_ms + sum(self.decode_ms_per_token)  # 返回结果
+        return self.ttft_ms + sum(self.decode_ms_per_token)
 
     def tpot_llmperf(self) -> float:
         """LLMPerf: include TTFT in ITL calculation."""
-        return self.e2e_ms / self.output_tokens  # 返回结果
+        return self.e2e_ms / self.output_tokens
 
     def tpot_genaiperf(self) -> float:
         """GenAI-Perf: ITL starts from token 2."""
         if self.output_tokens <= 1:
-            return 0.0  # 返回结果
-        return sum(self.decode_ms_per_token) / (self.output_tokens - 1)  # 返回结果
+            return 0.0
+        return sum(self.decode_ms_per_token) / (self.output_tokens - 1)
 
 
 def synth_workload(n: int = 1000, seed: int = 7, tail_spike_rate: float = 0.02) -> list[RequestTrace]:
-    """synth_workload"""
     rng = random.Random(seed)
     traces = []
     for _ in range(n):
@@ -59,17 +62,15 @@ def synth_workload(n: int = 1000, seed: int = 7, tail_spike_rate: float = 0.02) 
                 t *= rng.uniform(3, 8)              # tail spike
             decodes.append(t)
         traces.append(RequestTrace(queue, prefill, decodes, output_tokens))
-    return traces  # 返回结果
+    return traces
 
 
 def percentiles(values: list[float], ps: list[float]) -> list[float]:
-    """percentiles"""
     s = sorted(values)
-    return [s[min(len(s) - 1, int(p * len(s)))] for p in ps]  # 返回结果
+    return [s[min(len(s) - 1, int(p * len(s)))] for p in ps]
 
 
 def report_latency(label: str, traces: list[RequestTrace]) -> None:
-    """report_latency"""
     ttft = [t.ttft_ms for t in traces]
     tpot_llm = [t.tpot_llmperf() for t in traces]
     tpot_nv = [t.tpot_genaiperf() for t in traces]
@@ -90,17 +91,15 @@ def report_latency(label: str, traces: list[RequestTrace]) -> None:
 
 
 def goodput(traces: list[RequestTrace], slo_ttft: float, slo_tpot: float,
-    """goodput"""
             slo_e2e: float) -> float:
     good = 0
     for t in traces:
         if t.ttft_ms <= slo_ttft and t.tpot_genaiperf() <= slo_tpot and t.e2e_ms <= slo_e2e:
             good += 1
-    return good / len(traces)  # 返回结果
+    return good / len(traces)
 
 
 def main() -> None:
-    """main"""
     print("=" * 78)
     print("TOY GOODPUT CALCULATOR — inference SLOs and the measurement trap")
     print("=" * 78)

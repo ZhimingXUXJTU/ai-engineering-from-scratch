@@ -4,8 +4,13 @@ Models six providers (Fireworks, Together, Baseten, Modal, Replicate, Anyscale)
 on the same synthetic workload. Normalizes per-token vs per-minute vs per-prediction
 pricing so you can compare head-to-head.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：推理平台经济学对比——六家推理供应商（Fireworks、Together、Baseten、Modal、
+Replicate、Anyscale）的三种定价模型（按 token、按分钟、按预测）归一化比较，
+包含利用率盈亏平衡分析和冷启动惩罚量化
+AI 对应：Fireworks AI 以 FireAttention 内核和批量折扣著称；Together AI 提供 200+ 模型；
+Baseten 的 Truss 框架用于模型部署；Modal 是 Python 原生的无服务器 GPU 平台；
+Replicate 的按预测计费适合低频推理；Anyscale 基于 Ray 构建；
+vLLM 和 TensorRT-LLM 是这些平台底层的核心推理引擎
 """
 
 from __future__ import annotations
@@ -15,7 +20,6 @@ from dataclasses import dataclass
 
 @dataclass
 class Vendor:
-    """Vendor"""
     name: str
     model: str
     per_mtok_output: float | None   # $/M output tokens (None if not the model)
@@ -47,24 +51,23 @@ def cost_per_day(v: Vendor, tokens_per_day: int, predictions_per_day: int) -> fl
     the other.
     """
     if v.per_mtok_output is not None:
-        return (tokens_per_day / 1e6) * v.per_mtok_output  # 返回结果
+        return (tokens_per_day / 1e6) * v.per_mtok_output
     if v.per_minute is not None:
         saturated_minutes = tokens_per_day / v.tokens_per_minute
         minutes = max(saturated_minutes, v.min_reserved_minutes_per_day)
-        return minutes * v.per_minute  # 返回结果
+        return minutes * v.per_minute
     if v.per_prediction is not None:
-        return predictions_per_day * v.per_prediction  # 返回结果
-    return 0.0  # 返回结果
+        return predictions_per_day * v.per_prediction
+    return 0.0
 
 
 def effective_rate(v: Vendor, tokens_per_day: int, predictions_per_day: int) -> float:
     """Normalize to $/M tokens for cross-vendor comparison."""
     c = cost_per_day(v, tokens_per_day, predictions_per_day)
-    return (c / (tokens_per_day / 1e6)) if tokens_per_day else 0  # 返回结果
+    return (c / (tokens_per_day / 1e6)) if tokens_per_day else 0
 
 
 def run_scenario(label: str, tokens_per_day: int, predictions_per_day: int) -> None:
-    """run_scenario"""
     print(f"\n{label}")
     print(f"Workload: {tokens_per_day/1e6:.1f}M output tokens/day  |  {predictions_per_day} predictions/day")
     header = f"{'Vendor':12}  {'Model':22}  {'$/day':>8}  {'$/M tok':>10}  Notes"
@@ -77,7 +80,6 @@ def run_scenario(label: str, tokens_per_day: int, predictions_per_day: int) -> N
 
 
 def utilization_breakeven() -> None:
-    """utilization_breakeven"""
     print("\n" + "=" * 80)
     print("PER-TOKEN vs PER-MINUTE BREAK-EVEN — Fireworks (per-token) vs Baseten (per-min)")
     print("=" * 80)
@@ -94,7 +96,6 @@ def utilization_breakeven() -> None:
 
 
 def cold_start_penalty() -> None:
-    """cold_start_penalty"""
     print("\n" + "=" * 80)
     print("COLD START PENALTY — bursty workload")
     print("=" * 80)
@@ -105,7 +106,6 @@ def cold_start_penalty() -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("INFERENCE PLATFORM ECONOMICS — 2026 approximations")
     print("=" * 80)

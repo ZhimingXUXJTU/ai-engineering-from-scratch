@@ -21,6 +21,9 @@
 
 "Our throughput is 15,000 tokens per second." So what? If 40% of requests blew past 2 seconds end-to-end, users abandoned the session. Throughput alone does not tell you whether the product works.
 
+> **【中文解读】**
+> 推理质量看四个指标：TTFT（首 token 延迟，主要受 prefill 影响）、TPOT（每 token 生成时间，受显存带宽限制）、E2E（端到端延迟）、吞吐量。但真正重要的是 Goodput——同时满足所有 SLO 约束的请求比例。高吞吐但低 Goodput 等于失败。永远报告 P50/P90/P99 百分位数，不要只看均值。LLM 延迟分布严重右偏——P99 可能是均值的 10 倍。
+
 Inference has multiple axes of latency and each one fails differently. Prefill is compute-bound and scales with prompt length. Decode is memory-bound and scales with batch size. Queuing delay is an operational problem. Network is a physical-distance problem. You need distinct metrics for each, and you need percentiles, and you need a single composite that says "did the user get what they expected" — that is goodput.
 
 ## The Concept | 概念
@@ -104,6 +107,11 @@ Enterprise SLOs tighten TTFT (200-400 ms) and loosen E2E. The point is to write 
 - Publish with tool name, tool version, model, hardware, concurrency, prompt distribution.
 
 ## Use It | 使用方法
+
+> **【中文解读】**
+> 测量工具有陷阱：NVIDIA GenAI-Perf 计算 ITL 时排除 TTFT（从第 2 个 token 开始），LLMPerf 包含 TTFT（从第 1 个 token 开始）。同一个请求，两个工具报告的 TPOT 可能差一倍。所以永远要声明使用哪个工具、哪个版本、哪个定义。2026 年的参考数据：Llama-3.1-8B 在 TRT-LLM 上，均值 TTFT 162ms，均值 TPOT 7.33ms。
+
+> **【拓展：Goodput→生产 SLO】** Google、Meta 等公司的 LLM 服务都用 Goodput 作为核心 SLO 指标。MLPerf Inference v6.0 已经将 Goodput 纳入基准测试。对于面向用户的聊天产品，合理的 SLO 是 TTFT P99 <= 800ms、TPOT P99 <= 25ms、Goodput >= 99%。用 Prometheus + Grafana 监控这些百分位数，设置告警阈值。
 
 `code/main.py` is a toy goodput calculator. Generate a synthetic latency distribution, apply an SLO, and compute goodput. Also shows the GenAI-Perf vs LLMPerf TPOT difference on the same trace.
 

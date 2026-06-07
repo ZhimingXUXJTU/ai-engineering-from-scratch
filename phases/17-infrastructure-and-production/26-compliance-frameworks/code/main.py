@@ -3,8 +3,13 @@
 Given a control, print the frameworks it satisfies. Given a customer profile
 (geography + segment), print the required frameworks.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：跨框架合规映射——一个安全控制(如 access logging、encryption in transit、
+PII redaction)对应多个合规框架(ISO 27001、GDPR、HIPAA、SOC 2、PCI-DSS、EU AI Act)，
+以及按客户画像(地理区域+行业)确定所需合规框架
+AI 对应：EU AI Act (2026 年 8 月 2 日高风险系统强制执行，罚款高达 3500 万欧元或
+全球营收 7%)是 AI 系统最重要的新法规；SOC 2 Type II 是 B2B SaaS 的标准合规要求；
+ISO 42001 是 AI 管理体系的新标准；Colorado AI Act SB24-205 是美国最早的 AI 法规之一；
+HIPAA BAA 是医疗 AI 的必要前提
 """
 
 from __future__ import annotations
@@ -36,7 +41,6 @@ PROFILE_MAP = {
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("COMPLIANCE CONTROL MAP — one control, many frameworks")
     print("=" * 80)
