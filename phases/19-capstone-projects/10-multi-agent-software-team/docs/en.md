@@ -5,13 +5,13 @@
 > **【中文解读】** 本节是综合项目——构建多 Agent 软件团队，模拟完整的开发团队协作。
 
 
-**Type:** Capstone
-**Languages:** Python / TypeScript (agents), Shell (worktree scripts)
-**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 16 (multi-agent), Phase 17 (infrastructure)
-**Phases exercised:** P11 · P13 · P14 · P15 · P16 · P17
-**Time:** 40 hours
+**Type:** Capstone | **类型:** Capstone
+**Languages:** Python / TypeScript (agents), Shell (worktree scripts) | **语言:** Python / TypeScript (agents), Shell (worktree scripts)
+**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 16 (multi-agent), Phase 17 (infrastructure) | **前置知识:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 16 (multi-agent), Phase 17 (infrastructure)
+**Phases exercised:** P11 · P13 · P14 · P15 · P16 · P17 | **涉及阶段:** P11 · P13 · P14 · P15 · P16 · P17
+**Time:** 40 hours | **时间:** 40 hours
 
-## Problem
+## Problem | 问题引入
 
 > **【中文解读】** 本节阐述多 Agent 软件团队的核心问题。单 Agent 编码器在大型任务上遇到瓶颈——不是因为个体能力弱，而是 200k token 上下文无法同时容纳架构计划、四个并行代码切片、评审意见和测试输出。多 Agent 工厂将问题拆分：架构师规划、编码者在并行 worktree 中实现、评审者把关、测试者验证。失败面在交接处——架构师计划无法实现、编码者产生冲突 diff、评审者批准幻觉修复、测试者与编写者竞争。
 
@@ -19,9 +19,15 @@
 
 Single-agent coding harnesses hit a ceiling on large tasks. Not because any individual agent is weak, but because a 200k-token context cannot hold an architecture plan plus four parallel codebase slices plus reviewer commentary plus test output. Multi-agent factories split the problem: an architect owns the plan, coders own implementation in parallel worktrees, a reviewer gates, a tester verifies. SWE-AF's "factory" architecture, MetaGPT's roles, AutoGen's typed actor graph — all three framings describe the same shape.
 
+> 单 Agent 编码框架在大型任务上遇到天花板。不是因为任何单个 Agent 能力弱，而是因为 200k token 的上下文无法容纳架构计划加四个并行代码库切片加评审意见加测试输出。多 Agent 工厂将问题拆分：架构师拥有计划、编码者拥有并行 worktree 中的实现、评审者把关、测试者验证。SWE-AF 的"工厂"架构、MetaGPT 的角色、AutoGen 的类型化 Actor 图——三种框架描述了相同的形态。
+
+
 The failure surface is the handoff. Architect plans something the coders cannot implement. Coders produce conflicting diffs. Reviewer approves a hallucinated fix. Tester races a still-writing coder. You will build one of these teams, run it on 50 SWE-bench Pro issues, track every handoff, and publish the post-mortem.
 
-## Concept
+> 失败面在交接处。架构师计划了编码者无法实现的东西。编码者产生冲突的 diff。评审者批准了幻觉修复。测试者与仍在编写的编码者竞争。你将构建这样一个团队，在 50 个 SWE-bench Pro issue 上运行它，追踪每个交接，并发布事后分析。
+
+
+## Concept | 核心概念
 
 > **【中文解读】** 角色是类型化 Agent：架构师（Opus 4.7，读 issue 写计划并分解子任务）、编码者（Sonnet 4.7，N 个并行实例，各自在 git worktree + Daytona 沙箱中）、评审者（GPT-5.4，读合并 diff 批准或打回）、测试者（Gemini 2.5 Pro，独立运行测试套件）。通信通过共享任务板（文件/Redis），交接使用 A2A 协议类型化消息。协调关注点包括合并冲突解决、共享状态同步和评审者利益冲突避免。
 
@@ -29,9 +35,18 @@ The failure surface is the handoff. Architect plans something the coders cannot 
 
 Roles are typed agents. **Architect** (Claude Opus 4.7) reads the issue, writes a plan, and breaks it into subtasks with explicit interfaces. **Coders** (Claude Sonnet 4.7, N parallel instances, each in a `git worktree` + Daytona sandbox) implement subtasks independently. **Reviewer** (GPT-5.4) reads the merged diff and either approves or requests specific changes. **Tester** (Gemini 2.5 Pro) runs the test suite in isolation and reports pass/fail with artifacts.
 
+> 角色是类型化 Agent。**架构师**（Claude Opus 4.7）读取 issue、编写计划并将其分解为带显式接口的子任务。**编码者**（Claude Sonnet 4.7，N 个并行实例，各自在 `git worktree` + Daytona 沙箱中）独立实现子任务。**评审者**（GPT-5.4）读取合并的 diff 并批准或请求特定修改。**测试者**（Gemini 2.5 Pro）独立运行测试套件并报告通过/失败及制品。
+
+
 Communication is through a shared task board (file-backed or Redis). Each role consumes tasks it is permitted to handle. Handoffs are A2A-protocol-typed messages. Coordination concerns: merge-conflict resolution (coordinator role or automatic three-way merge), shared-state synchronization (the plan is frozen once coders start; replans are separate events), and reviewer gatekeeping (the reviewer cannot approve its own changes or changes it proposed).
 
+> 通信通过共享任务板（文件支持或 Redis）进行。每个角色消费它被允许处理的任务。交接是 A2A 协议类型化消息。协调关注点：合并冲突解决（协调者角色或自动三方合并）、共享状态同步（编码者开始后计划被冻结；重新规划是独立事件）和评审者把关（评审者不能批准自己的变更或它提议的变更）。
+
+
 Token amplification is the hidden cost. Every role boundary adds summary prompts and handoff context. A 40-turn single-agent run becomes 160 total turns across four roles. The rubric specifically weighs token efficiency vs single-agent baseline because the question is not "does multi-agent work" but "does it win per dollar."
+
+> Token 放大是隐含成本。每个角色边界增加摘要提示和交接上下文。40 轮单 Agent 运行变成四个角色的 160 总轮次。评分标准特别衡量 token 效率 vs 单 Agent 基线，因为问题不是"多 Agent 是否工作"而是"每美元是否更优"。
+
 
 ## Architecture | 架构
 
@@ -64,16 +79,24 @@ Coder A          Coder B          Coder C          Coder D          (4 parallel)
                                      -> fails?  -> route back to coder
 ```
 
-## Stack
+## Stack | 技术栈
 
 - Orchestration: LangGraph with shared state + per-agent sub-graphs
+  中文翻译：Orchestration: LangGraph with shared state + per-agent sub-graphs
 - Messaging: A2A protocol (Google 2025) for typed inter-agent messages
+  中文翻译：Messaging: A2A protocol (Google 2025) for typed inter-agent messages
 - Models: Opus 4.7 (architect), Sonnet 4.7 (coders), GPT-5.4 (reviewer), Gemini 2.5 Pro (tester)
+  中文翻译：Models: Opus 4.7 (architect), Sonnet 4.7 (coders), GPT-5.4 (reviewer), Gemini 2.5 Pro (tester)
 - Worktree isolation: `git worktree add` per coder + Daytona sandbox
+  中文翻译：Worktree isolation: `git worktree add` per coder + Daytona sandbox
 - Merge coordinator: custom three-way merge + LLM-mediated conflict resolution
+  中文翻译：Merge coordinator: custom three-way merge + LLM-mediated conflict resolution
 - Eval: SWE-bench Pro (50 issues), SWE-AF scenarios, HumanEval++ for unit tests
+  中文翻译：Eval: SWE-bench Pro (50 issues), SWE-AF scenarios, HumanEval++ for unit tests
 - Observability: Langfuse with role-tagged spans, per-agent token accounting
+  中文翻译：Observability: Langfuse with role-tagged spans, per-agent token accounting
 - Deployment: K8s with each role as a separate Deployment + HPA on backlog
+  中文翻译：Deployment: K8s with each role as a separate Deployment + HPA on backlog
 
 ## Build It | 动手构建
 
@@ -82,22 +105,31 @@ Coder A          Coder B          Coder C          Coder D          (4 parallel)
 > **【拓展：多 Agent 软件开发的产业实践】** Meta 的多人协作编程工具、Sourcegraph 的 Cody Team 模式、Devin 的多 Agent 架构都采用类似的"架构师 + 工人 + 审查者"模式。ChatDev 和 MetaGPT 的学术研究显示，多 Agent 协作在代码生成质量上优于单 Agent，关键因素是角色分离带来的上下文隔离。本课的 JSONL 任务板是这些系统核心通信协议的教育性简化。
 
 1. **Task board.** File-backed JSONL with typed messages: `plan_request`, `subtask`, `diff_ready`, `review_needed`, `test_needed`, `approved`, `rejected`, `replan_needed`. Agents subscribe to tags.
+   中文翻译：1. **Task board.** File-backed JSONL with typed messages: `plan_request`, `subtask`, `diff_ready`, `review_needed`, `test_needed`, `approved`, `rejected`, `replan_needed`. Agents subscribe to tags.
 
 2. **Architect.** Reads the GitHub issue, runs Opus 4.7 with a plan template requiring explicit subtask interfaces (files touched, public functions, test impact). Emits one `plan_request` with a DAG of subtasks.
+   中文翻译：2. **Architect.** Reads the GitHub issue, runs Opus 4.7 with a plan template requiring explicit subtask interfaces (files touched, public functions, test impact). Emits one `plan_request` with a DAG of subtasks.
 
 3. **Coders.** N parallel workers, each claims one subtask from the board. Each spawns a fresh `git worktree add` branch plus a Daytona sandbox. Implements the subtask. Emits `diff_ready` with the patch + test deltas.
+   中文翻译：3. **Coders.** N parallel workers, each claims one subtask from the board. Each spawns a fresh `git worktree add` branch plus a Daytona sandbox. Implements the subtask. Emits `diff_ready` with the patch + test deltas.
 
 4. **Merge coordinator.** On all-coders-done, three-way merges the N branches into a staging branch. LLM-mediated conflict resolution only when file-level overlap exists.
+   中文翻译：4. **Merge coordinator.** On all-coders-done, three-way merges the N branches into a staging branch. LLM-mediated conflict resolution only when file-level overlap exists.
 
 5. **Reviewer.** GPT-5.4 reads the merged diff. Cannot approve diffs it authored. Emits `approved` (no-op) or `review_feedback` with specific change requests routed back to the relevant coder.
+   中文翻译：5. **Reviewer.** GPT-5.4 reads the merged diff. Cannot approve diffs it authored. Emits `approved` (no-op) or `review_feedback` with specific change requests routed back to the relevant coder.
 
 6. **Tester.** Gemini 2.5 Pro runs the test suite in a clean sandbox. Captures artifacts. Emits `test_passed` or `test_failed` with stacktraces. Failed tests loop back to the coder owning the failing subtask.
+   中文翻译：6. **Tester.** Gemini 2.5 Pro runs the test suite in a clean sandbox. Captures artifacts. Emits `test_passed` or `test_failed` with stacktraces. Failed tests loop back to the coder owning the failing subtask.
 
 7. **Handoff accounting.** Every message crossing a role boundary gets a span in Langfuse with payload size and model used. Compute per-subtask token amplification (coder_tokens + reviewer_tokens + tester_tokens + architect_share / coder_tokens).
+   中文翻译：7. **Handoff accounting.** Every message crossing a role boundary gets a span in Langfuse with payload size and model used. Compute per-subtask token amplification (coder_tokens + reviewer_tokens + tester_tokens + architect_share / coder_tokens).
 
 8. **Eval.** Run on 50 SWE-bench Pro issues. Compare pass@1 and $-per-solved-issue against a single-agent baseline (one Sonnet 4.7 in a single worktree).
+   中文翻译：8. **Eval.** Run on 50 SWE-bench Pro issues. Compare pass@1 and $-per-solved-issue against a single-agent baseline (one Sonnet 4.7 in a single worktree).
 
 9. **Post-mortem.** For each failed issue, identify the handoff that broke (plan too vague, merge conflict, reviewer false-approve, tester flake). Produce a handoff-failure histogram.
+   中文翻译：9. **Post-mortem.** For each failed issue, identify the handoff that broke (plan too vague, merge conflict, reviewer false-approve, tester flake). Produce a handoff-failure histogram.
 
 ## Use It | 使用方法
 
@@ -120,6 +152,9 @@ $ team run --issue https://github.com/acme/widget/issues/842
 ## Ship It | 部署上线
 
 `outputs/skill-multi-agent-team.md` is the deliverable. Given an issue URL and parallelism level, the team produces a merge-ready PR with per-role token accounting.
+
+> `outputs/skill-multi-agent-team.md` 是交付物。给定 issue URL 和并行级别，团队产生一个可合并的 PR，附带每角色 token 计费。
+
 
 | Weight | Criterion | How it is measured |
 |:-:|---|---|

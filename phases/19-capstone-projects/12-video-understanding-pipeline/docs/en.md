@@ -5,13 +5,13 @@
 > **【中文解读】** 本节是综合项目——构建视频理解流水线，处理视频内容的 AI 分析。
 
 
-**Type:** Capstone
-**Languages:** Python (pipeline), TypeScript (UI)
-**Prerequisites:** Phase 4 (CV), Phase 6 (speech), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 17 (infrastructure)
-**Phases exercised:** P4 · P6 · P7 · P11 · P12 · P17
-**Time:** 30 hours
+**Type:** Capstone | **类型:** Capstone
+**Languages:** Python (pipeline), TypeScript (UI) | **语言:** Python (pipeline), TypeScript (UI)
+**Prerequisites:** Phase 4 (CV), Phase 6 (speech), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 17 (infrastructure) | **前置知识:** Phase 4 (CV), Phase 6 (speech), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 17 (infrastructure)
+**Phases exercised:** P4 · P6 · P7 · P11 · P12 · P17 | **涉及阶段:** P4 · P6 · P7 · P11 · P12 · P17
+**Time:** 30 hours | **时间:** 30 hours
 
-## Problem
+## Problem | 问题引入
 
 > **【中文解读】** 本节描述视频理解管道的核心挑战。长视频 QA 是 2026 年带宽需求最大的多模态问题。虽然 Gemini 2.5 Pro 可以原生读取 2 小时视频，但将 100 小时视频索引为可查询语料库仍需要场景级索引。生产级管道结合场景分割（TransNetV2/PySceneDetect）、每场景 VLM 描述、ASR 转录对齐和多向量索引。已知难题是计数和动作类问题的幻觉——本课程专门测量这类失败。
 
@@ -19,9 +19,15 @@
 
 Long-form video QA is the most bandwidth-hungry multimodal problem at 2026 scale. Gemini 2.5 Pro can read a 2-hour video natively, but ingesting 100 hours of video into a queryable corpus still requires a scene-level index. The production shape combines scene segmentation (TransNetV2 or PySceneDetect), per-scene captioning with a VLM (Gemini 2.5, Qwen3-VL-Max, or Molmo 2), transcript alignment (Whisper-v3-turbo with word timestamps), and a multi-vector index that stores caption, frame embedding, and transcript side by side. The query pipeline answers with (start, end) timestamps plus frame previews.
 
+> Long-form video QA is the most bandwidth-hungry multimodal problem at 2026 scale.
+
+
 Benchmarks are public (ActivityNet-QA, NeXT-GQA) plus your own 100-query custom set. Hallucination on counting and action-type questions is the known-hard failure class; the capstone explicitly measures it.
 
-## Concept
+> Benchmarks are public (ActivityNet-QA, NeXT-GQA) plus your own 100-query custom set.
+
+
+## Concept | 核心概念
 
 > **【中文解读】** 摄取时三条管道并行运行：场景分割（切分为场景）、VLM 描述（每场景生成描述+关键帧嵌入）、ASR 对齐（Whisper-v3-turbo 词级时间戳）。三条流按场景 ID 和时间范围合并，每场景三种向量存入 Qdrant 多向量索引。查询时自然语言问题同时检索三种向量，RRF 合并后用 TimeLens 时间定位适配器精炼窗口，VLM 合成器生成带时间戳引用的答案。
 
@@ -29,9 +35,18 @@ Benchmarks are public (ActivityNet-QA, NeXT-GQA) plus your own 100-query custom 
 
 Three pipelines run in parallel at ingest. **Scene segmentation** cuts the video into scenes. **VLM captioning** generates a caption per scene and a frame embedding from a keyframe. **ASR alignment** produces word-level timestamps. The three streams are joined by (scene_id, time range). Each scene gets three vector types in a multi-vector index (Qdrant): caption embedding, keyframe embedding, transcript embedding.
 
+> Three pipelines run in parallel at ingest.
+
+
 At query time, the natural-language question fires against all three vectors; results merge with RRF; a temporal-grounding adapter (TimeLens-style) refines the (start, end) window within the top scene. The VLM synthesizer (Gemini 2.5 Pro or Qwen3-VL-Max) takes query + top scenes + cropped frames and answers with cited timestamps and a frame preview.
 
+> At query time, the natural-language question fires against all three vectors; results merge with RRF; a temporal-grounding adapter (TimeLens-style) refines the (start, end) window within the top scene.
+
+
 The hallucination measurement matters. Counting ("how many people enter the room?") and action-type ("does the chef pour before stirring?") questions are notoriously unreliable. Report accuracy separately from descriptive questions.
+
+> hallucination measurement matters. Counting ("how many people enter the room?") and action-type ("does the chef pour before stirring?") questions are notoriously unreliable. Report accuracy separately from descriptive questions.
+
 
 ## Architecture | 架构
 
@@ -62,16 +77,24 @@ VLM synth: query + top scenes + frame previews
 answer + (start, end) timestamps + frame thumbs + citations
 ```
 
-## Stack
+## Stack | 技术栈
 
 - Scene segmentation: TransNetV2 (state-of-the-art 2024-26) or PySceneDetect
+  中文翻译：Scene segmentation: TransNetV2 (state-of-the-art 2024-26) or PySceneDetect
 - ASR: Whisper-v3-turbo via faster-whisper with word timestamps
+  中文翻译：ASR: Whisper-v3-turbo via faster-whisper with word timestamps
 - VLM captioner + answerer: Gemini 2.5 Pro or Qwen3-VL-Max or Molmo 2
+  中文翻译：VLM captioner + answerer: Gemini 2.5 Pro or Qwen3-VL-Max or Molmo 2
 - Temporal grounding: TimeLens-100K-trained adapter or VideoITG
+  中文翻译：Temporal grounding: TimeLens-100K-trained adapter or VideoITG
 - Index: Qdrant with multi-vector support (caption / frame / transcript)
+  中文翻译：Index: Qdrant with multi-vector support (caption / frame / transcript)
 - UI: Next.js 15 with HTML5 video player and scene thumbnails
+  中文翻译：UI: Next.js 15 with HTML5 video player and scene thumbnails
 - Eval: ActivityNet-QA, NeXT-GQA, custom 100-question hand-labeled set
+  中文翻译：Eval: ActivityNet-QA, NeXT-GQA, custom 100-question hand-labeled set
 - Hallucination benchmark: counting and action-type subsets with hand labels
+  中文翻译：Hallucination benchmark: counting and action-type subsets with hand labels
 
 ## Build It | 动手构建
 
@@ -80,22 +103,31 @@ answer + (start, end) timestamps + frame thumbs + citations
 > **【拓展：视频理解在 2026 年的前沿进展】** Google 的 Gemini 2.5 Pro 原生支持 1 小时视频输入，Claude 的视觉模式支持截图分析。Twelve Labs 的 Pegasus API 提供专用视频嵌入。关键挑战是时序理解——"第 3 分钟提到了什么"需要帧级别的对齐。本课的 keyframe + transcript + OCR 三流融合是工业级视频理解的标准架构，Netflix 和 YouTube 都采用类似的字幕+视觉多模态索引方案。
 
 1. **Ingest walker.** Accept YouTube URLs or local MP4s. Downscale to 720p if needed. Persist `{video_id, file_path}`.
+   中文翻译：1. **Ingest walker.** Accept YouTube URLs or local MP4s. Downscale to 720p if needed. Persist `{video_id, file_path}`.
 
 2. **Scene segmentation.** Run TransNetV2 or PySceneDetect to produce `[{scene_id, start_ms, end_ms, keyframe_path}]`. Target 100 hours: ~6k-8k scenes.
+   中文翻译：2. **Scene segmentation.** Run TransNetV2 or PySceneDetect to produce `[{scene_id, start_ms, end_ms, keyframe_path}]`. Target 100 hours: ~6k-8k scenes.
 
 3. **ASR pass.** Run Whisper-v3-turbo on audio; export word-level timestamps; split into per-scene transcript slices.
+   中文翻译：3. **ASR pass.** Run Whisper-v3-turbo on audio; export word-level timestamps; split into per-scene transcript slices.
 
 4. **VLM captioning.** Per scene, call Gemini 2.5 Pro (or Qwen3-VL-Max) with the keyframe and a short caption template. Produce caption + frame embedding.
+   中文翻译：4. **VLM captioning.** Per scene, call Gemini 2.5 Pro (or Qwen3-VL-Max) with the keyframe and a short caption template. Produce caption + frame embedding.
 
 5. **Multi-vector index.** Qdrant collection with three named vectors. Payload: `{video_id, scene_id, start_ms, end_ms, keyframe_url}`.
+   中文翻译：5. **Multi-vector index.** Qdrant collection with three named vectors. Payload: `{video_id, scene_id, start_ms, end_ms, keyframe_url}`.
 
 6. **Query.** Natural-language question fires three dense queries; merge with reciprocal rank fusion; top-k=5 scenes.
+   中文翻译：6. **Query.** Natural-language question fires three dense queries; merge with reciprocal rank fusion; top-k=5 scenes.
 
 7. **Temporal grounding.** Run TimeLens-style adapter on the top scene to refine the (start, end) window within the scene.
+   中文翻译：7. **Temporal grounding.** Run TimeLens-style adapter on the top scene to refine the (start, end) window within the scene.
 
 8. **VLM synth.** Call Gemini 2.5 Pro with query + top-3 scene clips (as images or short clips) + transcripts. Require `(video_id, start_ms, end_ms)` citations.
+   中文翻译：8. **VLM synth.** Call Gemini 2.5 Pro with query + top-3 scene clips (as images or short clips) + transcripts. Require `(video_id, start_ms, end_ms)` citations.
 
 9. **Eval.** Run ActivityNet-QA and NeXT-GQA. Build a 100-query custom set. Report overall accuracy + per-class breakdown (counting, action, descriptive).
+   中文翻译：9. **Eval.** Run ActivityNet-QA and NeXT-GQA. Build a 100-query custom set. Report overall accuracy + per-class breakdown (counting, action, descriptive).
 
 ## Use It | 使用方法
 
@@ -115,6 +147,9 @@ citations: [scene 3: 00:12-00:58]
 ## Ship It | 部署上线
 
 `outputs/skill-video-qa.md` is the deliverable. Given a YouTube URL or uploaded video, the pipeline indexes scenes and answers questions with timestamped citations.
+
+> `outputs/skill-video-qa.md` 是交付物. 给定 YouTube URL or uploaded video, pipeline indexes scenes and answers questions with timestamped citations.
+
 
 | Weight | Criterion | How it is measured |
 |:-:|---|---|

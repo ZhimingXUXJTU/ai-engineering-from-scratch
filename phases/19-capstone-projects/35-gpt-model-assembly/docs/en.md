@@ -5,18 +5,23 @@
 > **【中文解读】** 本节是综合项目——组装完整的 GPT 模型。
 
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 19 lessons 30 to 34
-**Time:** ~90 minutes
+**Type:** Build | **类型:** Build
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 19 lessons 30 to 34 | **前置知识:** Phase 19 lessons 30 to 34
+**Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标
 
 - Assemble the transformer block from lesson 34 into a full GPT model: token embedding, position embedding, N blocks, final LayerNorm, language model head.
+  中文翻译：Assemble the transformer block from lesson 34 into a full GPT model: token embedding, position embedding, N blocks, final LayerNorm, language model head.
 - Reproduce the 124 million parameter configuration: vocab 50257, context 1024, embedding 768, twelve heads, twelve layers.
+  中文翻译：Reproduce the 124 million parameter configuration: vocab 50257, context 1024, embedding 768, twelve heads, twelve layers.
 - Tie the language model head weights to the token embedding and explain why that saves ~38 million parameters at this scale.
+  中文翻译：Tie the language model head weights to the token embedding and explain why that saves ~38 million parameters at this scale.
 - Generate text from a prompt with multinomial sampling, temperature scaling, and top-k truncation, holding context length with a sliding window.
+  中文翻译：Generate text from a prompt with multinomial sampling, temperature scaling, and top-k truncation, holding context length with a sliding window.
 - Measure parameter count and forward pass cost against the 124M target.
+  中文翻译：Measure parameter count and forward pass cost against the 124M target.
 
 ## The Problem | 问题
 
@@ -25,6 +30,9 @@
 > **【拓展：GPT 模型家族的参数规模】** GPT-2 small (124M) -> GPT-2 medium (355M) -> GPT-2 large (774M) -> GPT-2 xl (1.5B) -> GPT-3 (175B) -> GPT-4 (估计 1.8T 稀疏 MoE)。LLaMA 系列走不同路线：LLaMA-1 (7B/13B/33B/65B)、LLaMA-2 (7B/13B/70B)、LLaMA-3 (8B/70B)。7B 级别的模型可以在消费级 GPU 上运行，是学习和实验的理想尺寸。 You need to turn token ids into vectors, mix in positional information, run them through the stack, and project back to vocabulary logits. Forget any one of those four steps and the model either fails to forward, drifts in position information, or cannot speak.
 
 The shape of the model also matters. The reference GPT-2 small is 124 million parameters at exactly the configuration above. The numbers are not magic. Vocab 50257 times embedding 768 is the token table. Position 1024 times 768 is the position table. Twelve blocks at roughly 7 million parameters each is 84 million. The final head reuses the token table by weight tying. Sum the pieces and you land on 124 million. Building a model whose parameter count does not match the reference is a sign you wired something wrong.
+
+> shape of the model also matters. The reference GPT-2 small is 124 million parameters at exactly the configuration above. The numbers are not magic. Vocab 50257 times embedding 768 is the token table. Position 1024 times 768 is the position table. Twelve blocks at roughly 7 million parameters each is 84 million. The final head reuses the token table by weight tying. Sum the pieces and you land on 124 million. Building a model whose parameter count does not match the reference is a sign you wired something wrong.
+
 
 ## The Concept | 概念
 
@@ -47,15 +55,24 @@ flowchart TB
 
 Token ids become token vectors. Position ids become position vectors. The two are added and sent through the stack. The final LayerNorm is the one piece outside the blocks that survives every modern variant. The LM head reuses the token embedding matrix, which is what weight tying means.
 
+> Token ids become token vectors.
+
+
 ### Weight tying
 
 > **【中文解读】** Token 嵌入形状 `(vocab, d_model)`，LM head 需要从 `d_model` 投影回 `vocab`，两者互为转置。权值绑定意味着使用同一个参数张量。在 vocab=50257、d_model=768 时，该矩阵 38M 参数。绑定后只付一次代价，且嵌入和 head 一起更新产生更干净的梯度信号。
 
 The token embedding has shape `(vocab, d_model)`. The language model head needs to project from `d_model` back to `vocab`. Those are transposes of each other. Tying the two means literally the same parameter tensor, used twice. At vocab 50257 and d_model 768, the matrix is 38 million parameters. Untied, you pay for it twice. Tied, you pay for it once and you also get a slightly cleaner gradient signal because the embedding and head update together.
 
+> token embedding has shape `(vocab, d_model)`. The language model head needs to project from `d_model` back to `vocab`. Those are transposes of each other. Tying the two means literally the same parameter tensor, used twice. At vocab 50257 and d_model 768, the matrix is 38 million parameters. Untied, you pay for it twice. Tied, you pay for it once and you also get a slightly cleaner gradient signal because the embedding and head update together.
+
+
 ### Position embedding is learned, not sinusoidal
 
 GPT-2 ships a learned position embedding. The position table is one parameter tensor of shape `(1024, 768)`. The model looks up position 0 through T-1 at every forward and adds the lookup to the token embedding. This is the simplest of the position schemes (RoPE, ALiBi, T5 relative bias are the alternatives) and it is what the 124M reference uses.
+
+> GPT-2 ships a learned position embedding.
+
 
 ### Generation: temperature, top-k, multinomial
 
@@ -64,6 +81,9 @@ GPT-2 ships a learned position embedding. The position table is one parameter te
 > **【拓展：高级采样策略】** 生产 LLM 常用更精细的采样策略：(1) Top-p (nucleus) 采样：选择累计概率达到 p 的最小 token 集合，比 top-k 更自适应；(2) Min-p 采样：以最高概率 token 为基准，只保留概率不低于其 p 倍的 token；(3) 重复惩罚：除以提示和历史中已出现 token 的 logit；(4) 上下文无关 grammar 约束（如 JSON mode）：通过 logit 掩码强制输出符合特定格式。
 
 Generation is autoregressive. At every step, the model returns logits over the full vocabulary at every position. You take the last position only, divide by temperature, optionally mask all but the top k logits to negative infinity, softmax to get probabilities, and sample one token from the resulting distribution.
+
+> Generation is autoregressive.
+
 
 ```mermaid
 flowchart LR
@@ -80,15 +100,23 @@ flowchart LR
 
 Three knobs, three different behaviors. Temperature near zero collapses to greedy. Temperature one matches the model's natural distribution. Top-k one is greedy. Top-k forty filters the long tail. The combinations matter; the next lesson on training uses generation as a qualitative eval signal.
 
+> Three knobs, three different behaviors.
+
+
 ## Build It | 动手构建
 
 `code/main.py` implements:
 
 - `class GPTConfig` dataclass with the 124M defaults: `vocab_size=50257`, `context_length=1024`, `d_model=768`, `num_heads=12`, `num_layers=12`, `mlp_expansion=4`, `dropout=0.1`, `use_bias=True`, `weight_tying=True`.
+  中文翻译：`class GPTConfig` dataclass with the 124M defaults: `vocab_size=50257`, `context_length=1024`, `d_model=768`, `num_heads=12`, `num_layers=12`, `mlp_expansion=4`, `dropout=0.1`, `use_bias=True`, `weight_tying=True`.
 - `class GPTModel` with token embedding, position embedding, embedding dropout, twelve `TransformerBlock`s, final LayerNorm, and an `lm_head` that ties to the token embedding when the flag is set.
+  中文翻译：`class GPTModel` with token embedding, position embedding, embedding dropout, twelve `TransformerBlock`s, final LayerNorm, and an `lm_head` that ties to the token embedding when the flag is set.
 - A `count_parameters` helper that returns the unique parameter count (so weight tying is honored in the count).
+  中文翻译：A `count_parameters` helper that returns the unique parameter count (so weight tying is honored in the count).
 - A `generate` function that does temperature, top-k, multinomial, and sliding window context.
+  中文翻译：A `generate` function that does temperature, top-k, multinomial, and sliding window context.
 - A demo that builds the model, prints the parameter count next to the reference 124M, and generates a short sequence from a fixed prompt to show the pipeline ends to end.
+  中文翻译：A demo that builds the model, prints the parameter count next to the reference 124M, and generates a short sequence from a fixed prompt to show the pipeline ends to end.
 
 Run it:
 
@@ -98,16 +126,27 @@ python3 code/main.py
 
 Output: parameter count alongside the 124M reference, generated token ids from a random prompt, and a confirmation that the LM head and token embedding share storage when tying is on.
 
+> Output: parameter count alongside the 124M reference, generated token ids from a random prompt, and a confirmation that the LM head and token embedding share storage when tying is on.
+
+
 To keep the demo fast, the script also runs a tiny config (`d_model=64`, `num_layers=2`) end to end and prints the generated token sequence inline. The 124M config is built but only its parameter count and one forward pass are exercised.
 
-## Stack
+> 到keep the demo fast, the script also runs a tiny config (`d_model=64`, `num_layers=2`) end to end and prints the generated token sequence inline. The 124M config is built but only its parameter count and one forward pass are exercised.
+
+
+## Stack | 技术栈
 
 - `torch` for the tensor math, autograd, and module plumbing.
+  中文翻译：`torch` for the tensor math, autograd, and module plumbing.
 - `code/main.py` reimplements the same block pattern from lesson 34 locally.
+  中文翻译：`code/main.py` reimplements the same block pattern from lesson 34 locally.
 
 ## Production patterns in the wild
 
 Three patterns make the difference between a model that runs and a model that ships.
+
+> Three patterns make the difference between a model that runs and a model that ships.（翻译）
+
 
 **Initialize the residual projections small.** The output projection of attention and the second linear of the MLP both feed directly into a residual add. Initializing those with the same standard deviation as every other linear gives a residual stream that grows with depth and pushes the final LayerNorm into a hot regime. Scale the std by `1 / sqrt(2 * num_layers)` for those two projections; the residual stream stays in a sane range through twelve layers.
 
@@ -118,9 +157,13 @@ Three patterns make the difference between a model that runs and a model that sh
 ## Use It | 使用方法
 
 - The model class in this lesson is the same shape as the one the next lesson trains.
+  中文翻译：The model class in this lesson is the same shape as the one the next lesson trains.
 - Replacing the learned position embedding with RoPE gets you the LLaMA family without touching the block or the head.
+  中文翻译：Replacing the learned position embedding with RoPE gets you the LLaMA family without touching the block or the head.
 - Replacing the GELU with SiLU and the LayerNorm with RMSNorm gets you the rest of the LLaMA family changes.
+  中文翻译：Replacing the GELU with SiLU and the LayerNorm with RMSNorm gets you the rest of the LLaMA family changes.
 - The generation function works with any logits source, not only this model. You can pull logits from a pretrained GPT-2 file in lesson 37 and reuse the same generation loop.
+  中文翻译：The generation function works with any logits source, not only this model. You can pull logits from a pretrained GPT-2 file in lesson 37 and reuse the same generation loop.
 
 ## Exercises | 练习题
 
@@ -143,7 +186,12 @@ Three patterns make the difference between a model that runs and a model that sh
 ## Further Reading | 延伸阅读
 
 - Phase 19 lesson 34 for the block this model stacks.
+  中文翻译：Phase 19 lesson 34 for the block this model stacks.
 - Phase 19 lesson 36 for the training loop that drives this model with cross entropy loss.
+  中文翻译：Phase 19 lesson 36 for the training loop that drives this model with cross entropy loss.
 - Phase 19 lesson 37 for loading pretrained GPT-2 weights into this exact architecture.
+  中文翻译：Phase 19 lesson 37 for loading pretrained GPT-2 weights into this exact architecture.
 - Phase 7 lesson 07 (GPT causal language modeling) for the math of next token prediction.
+  中文翻译：Phase 7 lesson 07 (GPT causal language modeling) for the math of next token prediction.
 - Phase 10 lesson 04 (pre training mini GPT) for the original training procedure on the same architecture.
+  中文翻译：Phase 10 lesson 04 (pre training mini GPT) for the original training procedure on the same architecture.

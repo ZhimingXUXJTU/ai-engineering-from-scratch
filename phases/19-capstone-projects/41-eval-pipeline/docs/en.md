@@ -5,18 +5,23 @@
 > **【中文解读】** 本节是 AI 工程的综合实战项目，整合前面学到的技术和方法。
 
 
-**Type:** Build
-**Languages:** Python (torch, numpy)
-**Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
-**Time:** ~90 minutes
+**Type:** Build | **类型:** Build
+**Languages:** Python (torch, numpy) | **语言:** Python (torch, numpy)
+**Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity) | **前置知识:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
+**Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标
 
 - Compute held-out perplexity with masked-token accounting on a tiny transformer.
+  中文翻译：Compute held-out perplexity with masked-token accounting on a tiny transformer.
 - Run an exact-match eval on short-form factual prompts.
+  中文翻译：Run an exact-match eval on short-form factual prompts.
 - Compute token-level F1 between predicted and reference strings with normalisation.
+  中文翻译：Compute token-level F1 between predicted and reference strings with normalisation.
 - Build a local mock LLM-as-judge that scores model outputs on a 1-5 scale.
+  中文翻译：Build a local mock LLM-as-judge that scores model outputs on a 1-5 scale.
 - Aggregate the four evals into a single weighted report with per-task breakdown.
+  中文翻译：Aggregate the four evals into a single weighted report with per-task breakdown.
 
 ## The Problem | 问题
 
@@ -25,6 +30,9 @@
 > **【拓展：LM 评估生态】** HuggingFace 的 `lm-eval-harness`（本课第 49 课的主题）是社区标准评估框架，支持 200+ 任务。EleutherAI 的 LM Evaluation Harness 使用类似的任务-指标-聚合架构。Open LLM Leaderboard 使用六项核心基准（ARC、HellaSwag、MMLU、TruthfulQA、Winogrande、GSM8K）排名模型。LLM-as-judge（如 GPT-4 judge）在 MT-Bench 和 Chatbot Arena 中广泛使用，但存在位置偏差和冗长偏差等已知问题。 Perplexity says how well the model fits the language distribution but says nothing about whether it answers questions. Exact-match says whether the model produces the gold string but punishes correct paraphrases. Token F1 forgives paraphrase but is fooled by lexical overlap with wrong content. LLM-as-judge captures qualitative dimensions but is expensive and stochastic.
 
 The pipeline you actually want has all four. Each eval covers a dimension the others miss. Each runs on a different subset of held-out data shaped for that metric. The final report shows the per-task numbers side by side and an aggregate, so a reviewer can see at a glance which trade-offs the model is making.
+
+> pipeline you actually want has all four. Each eval covers a dimension the others miss. Each runs on a different subset of held-out data shaped for that metric. The final report shows the per-task numbers side by side and an aggregate, so a reviewer can see at a glance which trade-offs the model is making.
+
 
 This lesson builds that pipeline, end to end, in one file.
 
@@ -45,31 +53,55 @@ flowchart LR
 
 Each eval is a function from `(model, dataset) -> EvalResult`. The result carries the metric value, per-example details for inspection, and a name for the aggregate. The pipeline composes them with a config that says which evals to run and how to weight them.
 
+> 每个eval is a function from `(model, dataset) -> EvalResult`. The result carries the metric value, per-example details for inspection, and a name for the aggregate. The pipeline composes them with a config that says which evals to run and how to weight them.
+
+
 ## Perplexity, properly counted
 
 > **【中文解读】** 困惑度是 `exp(每个 token 平均负对数似然)`。两个陷阱：(1) 均值必须在实际 token 位置上计算（排除 padding token），否则困惑度看起来比实际好；(2) 模型在位置 i 预测位置 i+1 的 token，偏一错误虽然 loss 仍能训练但指标变得无意义。本评估按批次累加 `-log p(token)` 和 token 计数，最后除以总计数，比按批次平均困惑度更数值稳定。
 
 Perplexity is `exp(mean negative log-likelihood per token)`. The implementation has two traps:
 
+> Perplexity is `exp(mean negative log-likelihood per token)`. The implementation has two traps:（翻译）
+
+
 - The mean must be over actual token positions, not over batch * sequence. Padding tokens have to be excluded from the denominator or perplexity will look better than it is.
+  中文翻译：The mean must be over actual token positions, not over batch * sequence. Padding tokens have to be excluded from the denominator or perplexity will look better than it is.
 - The model predicts the next token, so logits at position `i` predict the token at position `i+1`. Off-by-one mistakes here are silent: the loss still trains, but the metric becomes meaningless.
+  中文翻译：The model predicts the next token, so logits at position `i` predict the token at position `i+1`. Off-by-one mistakes here are silent: the loss still trains, but the metric becomes meaningless.
 
 The eval computes per-batch sums of `-log p(token)` over non-pad positions and a per-batch token count, then divides at the end. This is numerically safer than averaging per-batch perplexities (which under-weights short sequences) and matches the textbook definition.
+
+> eval computes per-batch sums of `-log p(token)` over non-pad positions and a per-batch token count, then divides at the end. This is numerically safer than averaging per-batch perplexities (which under-weights short sequences) and matches the textbook definition.
+
 
 ## Exact-match, with normalisation
 
 The harness normalises both the prediction and the reference before comparing:
 
+> HArness normalises both the prediction and the reference before comparing:（翻译）
+
+
 - Lowercase.
+  中文翻译：Lowercase.
 - Strip surrounding whitespace.
+  中文翻译：Strip surrounding whitespace.
 - Collapse internal whitespace runs to a single space.
+  中文翻译：Collapse internal whitespace runs to a single space.
 - Drop trailing terminal punctuation (`.`, `!`, `?`) if both sides differ only by punctuation.
+  中文翻译：Drop trailing terminal punctuation (`.`, `!`, `?`) if both sides differ only by punctuation.
 
 Normalisation makes exact-match useful in practice. A model that says `"Paris"` is right; one that says `"Paris."` is also right; one that says `"  paris  "` is also right. The metric still requires the answer to be the same string after normalisation.
+
+> Normalisation makes exact-match useful in practice.
+
 
 ## Token F1, the right way
 
 Token F1 is the harmonic mean of precision and recall computed over the bag-of-tokens. Steps:
+
+> Token F1 is the harmonic mean of precision and recall computed over the bag-of-tokens. Steps:（翻译）
+
 
 1. Normalise prediction and reference (same rules as exact-match).
 2. Split each into a list of tokens (whitespace tokenisation).
@@ -77,6 +109,9 @@ Token F1 is the harmonic mean of precision and recall computed over the bag-of-t
 4. Precision = `intersection_count / len(pred_tokens)`. Recall = `intersection_count / len(ref_tokens)`. F1 = harmonic mean.
 
 If both prediction and reference are empty, F1 is 1 (vacuous match). If only one is empty, F1 is 0. This pattern matches the SQuAD evaluation reference and produces stable numbers across paraphrases.
+
+> 如果both prediction and reference are empty, F1 is 1 (vacuous match). If only one is empty, F1 is 0. This pattern matches the SQuAD evaluation reference and produces stable numbers across paraphrases.
+
 
 ## Local Mock LLM-as-Judge
 
@@ -86,13 +121,24 @@ If both prediction and reference are empty, F1 is 1 (vacuous match). If only one
 
 A real judge is a frontier model behind an API. For this lesson the judge has to run offline. The mock judge is a deterministic scorer that takes an instruction, the model's prediction, and the reference, and returns a score in `{1, 2, 3, 4, 5}` plus a one-line rationale. The scoring rules are explicit:
 
+> 一个real judge is a frontier model behind an API. For this lesson the judge has to run offline. The mock judge is a deterministic scorer that takes an instruction, the model's prediction, and the reference, and returns a score in `{1, 2, 3, 4, 5}` plus a one-line rationale. The scoring rules are explicit:
+
+
 - 5 if normalised prediction equals normalised reference.
+  中文翻译：5 if normalised prediction equals normalised reference.
 - 4 if token F1 between prediction and reference is at least 0.8.
+  中文翻译：4 if token F1 between prediction and reference is at least 0.8.
 - 3 if token F1 is in `[0.5, 0.8)`.
+  中文翻译：3 if token F1 is in `[0.5, 0.8)`.
 - 2 if token F1 is in `[0.2, 0.5)`.
+  中文翻译：2 if token F1 is in `[0.2, 0.5)`.
 - 1 otherwise.
+  中文翻译：1 otherwise.
 
 This is not a real judge, but it has the right interface. Swap in a real model later by changing one function. The pipeline does not care.
+
+> 这个is not a real judge, but it has the right interface. Swap in a real model later by changing one function. The pipeline does not care.
+
 
 ```mermaid
 flowchart LR
@@ -107,12 +153,22 @@ flowchart LR
 
 The aggregate is a weighted mean of normalised eval scores. Each eval reports its own number in `[0, 1]`:
 
+> AGgregate is a weighted mean of normalised eval scores. Each eval reports its own number in `[0, 1]`:（翻译）
+
+
 - Perplexity: normalise as `1 / (1 + log(perplexity))`. A perplexity of 1 maps to 1, infinity maps to 0.
+  中文翻译：Perplexity: normalise as `1 / (1 + log(perplexity))`. A perplexity of 1 maps to 1, infinity maps to 0.
 - Exact-match: already in `[0, 1]`.
+  中文翻译：Exact-match: already in `[0, 1]`.
 - Token F1: already in `[0, 1]`.
+  中文翻译：Token F1: already in `[0, 1]`.
 - Judge: divide by 5.
+  中文翻译：Judge: divide by 5.
 
 Weights are configurable. The default mix is 0.2 perplexity, 0.3 exact-match, 0.3 token F1, 0.2 judge. The choice of weights is a product decision; the lesson exposes the knob so you can experiment.
+
+> Weights are configurable.
+
 
 ## Architecture | 架构
 
@@ -135,6 +191,9 @@ flowchart TD
 
 The `EvalSuite` is a thin orchestrator. Each individual eval is a free function that takes `(model, tokenizer, dataset, config)` and returns an `EvalResult`. The `Aggregator` collects results and produces the final report. The demo prints the table and writes a JSON copy that downstream CI can ingest.
 
+> `EvalSuite` is a thin orchestrator. Each individual eval is a free function that takes `(model, tokenizer, dataset, config)` and returns an `EvalResult`. The `Aggregator` collects results and produces the final report. The demo prints the table and writes a JSON copy that downstream CI can ingest.
+
+
 ## What you will build
 
 The implementation is one `main.py` plus tests.
@@ -154,13 +213,26 @@ The implementation is one `main.py` plus tests.
 
 The report has three layers. The top is the aggregate score. Below it are the four per-eval numbers. Below those are the per-example breakdowns for diagnostics. A failing CI run typically wants the aggregate, but a reviewer chasing a regression wants the per-example breakdown to see which inputs the model got wrong.
 
+> report has three layers. The top is the aggregate score. Below it are the four per-eval numbers. Below those are the per-example breakdowns for diagnostics. A failing CI run typically wants the aggregate, but a reviewer chasing a regression wants the per-example breakdown to see which inputs the model got wrong.
+
+
 The JSON dump uses stable keys so a CI dashboard can plot trend lines across versions. The pretty-printed table is for humans staring at the terminal after a training run.
+
+> JSON dump uses stable keys so a CI dashboard can plot trend lines across versions. The pretty-printed table is for humans staring at the terminal after a training run.
+
 
 ## Stretch goals
 
 - Add a calibration eval: do the model's softmax probabilities match its accuracy? Bucket predictions by confidence and report the empirical accuracy per bucket.
+  中文翻译：Add a calibration eval: do the model's softmax probabilities match its accuracy? Bucket predictions by confidence and report the empirical accuracy per bucket.
 - Add a robustness eval: tag each example with a perturbation (typo, paraphrase, distractor) and report metric drop per perturbation.
+  中文翻译：Add a robustness eval: tag each example with a perturbation (typo, paraphrase, distractor) and report metric drop per perturbation.
 - Replace the mock judge with a real model behind an HTTP call. The function signature does not change.
+  中文翻译：Replace the mock judge with a real model behind an HTTP call. The function signature does not change.
 - Add per-task weight learning: instead of fixed weights, fit weights to a target preference order over models.
+  中文翻译：Add per-task weight learning: instead of fixed weights, fit weights to a target preference order over models.
 
 The implementation gives you the four evals, the aggregator, and the report. Real evaluation pipelines layer many more dimensions on top; the pattern stays the same: one function per eval, one aggregator, one report.
+
+> implementation gives you the four evals, the aggregator, and the report. Real evaluation pipelines layer many more dimensions on top; the pattern stays the same: one function per eval, one aggregator, one report.
+

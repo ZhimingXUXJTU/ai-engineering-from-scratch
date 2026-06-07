@@ -5,13 +5,13 @@
 > **【中文解读】** 本节是综合项目——构建个人 AI 导师系统。
 
 
-**Type:** Capstone
-**Languages:** Python (backend, learner model), TypeScript (web app), SQL (curriculum graph via Postgres + Neo4j)
-**Prerequisites:** Phase 5 (NLP), Phase 6 (speech), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 14 (agents), Phase 17 (infrastructure), Phase 18 (safety)
-**Phases exercised:** P5 · P6 · P11 · P12 · P14 · P17 · P18
-**Time:** 30 hours
+**Type:** Capstone | **类型:** Capstone
+**Languages:** Python (backend, learner model), TypeScript (web app), SQL (curriculum graph via Postgres + Neo4j) | **语言:** Python (backend, learner model), TypeScript (web app), SQL (curriculum graph via Postgres + Neo4j)
+**Prerequisites:** Phase 5 (NLP), Phase 6 (speech), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 14 (agents), Phase 17 (infrastructure), Phase 18 (safety) | **前置知识:** Phase 5 (NLP), Phase 6 (speech), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 14 (agents), Phase 17 (infrastructure), Phase 18 (safety)
+**Phases exercised:** P5 · P6 · P11 · P12 · P14 · P17 · P18 | **涉及阶段:** P5 · P6 · P11 · P12 · P14 · P17 · P18
+**Time:** 30 hours | **时间:** 30 hours
 
-## Problem
+## Problem | 问题引入
 
 > **【中文解读】** 本节描述自适应辅导 AI 的核心挑战。2026 年自适应辅导已从教育技术研究走向消费产品。共同要素：多模态输入（打字/语音/拍照方程式）、苏格拉底教学法（先提问再讲解）、每次交互后更新的学习者模型、严格的年龄适宜安全过滤。核心挑战是有效性验证——需要 10 名学习者的两周前测/后测效果研究。
 
@@ -19,9 +19,15 @@
 
 Adaptive tutoring used to be an ed-tech research niche. By 2026 it is a consumer product. Khanmigo is deployed across most US school districts. Duolingo Max hit tens of millions of MAUs. Google's LearnLM / Gemini for Education powers tutoring in Google Classroom. Quizlet Q-Chat sits alongside flashcards. Synthesis Tutor hit virality with tutor-for-curious-kids. The common elements: multimodal input (type, speak, photograph equations), Socratic pedagogy (ask first, explain later), a learner model that updates after each interaction, and strict age-appropriate safety.
 
+> Adaptive tutoring used to be an ed-tech research niche.
+
+
 You will build one of these for a specific cohort. The measurement bar is an actual efficacy study: pre-test and post-test scores over two weeks with 10 learners. The voice loop must feel natural (capstone 03 sub-stack). The memory must be privacy-respecting. The safety filter must pass COPPA-aware red-team for K-12.
 
-## Concept
+> 你will build one of these for a specific cohort. The measurement bar is an actual efficacy study: pre-test and post-test scores over two weeks with 10 learners. The voice loop must feel natural (capstone 03 sub-stack). The memory must be privacy-respecting. The safety filter must pass COPPA-aware red-team for K-12.
+
+
+## Concept | 核心概念
 
 > **【中文解读】** 四大组件：辅导策略（苏格拉底循环——学习者求答案时反问引导问题，答对后推进下一概念，卡住时提供脚手架提示）、学习者模型（贝叶斯知识追踪，每次交互后更新课程节点的掌握概率）、课程图谱（Neo4j 中概念与先修关系图，策略沿图选择下一概念）、记忆（情节+语义存储，保存交互历史和偏好）。安全使用 Llama Guard 4 + 年龄适宜过滤器 + COPPA 记忆保留策略。
 
@@ -29,9 +35,18 @@ You will build one of these for a specific cohort. The measurement bar is an act
 
 Four components. **Tutor policy** is a Socratic loop: when the learner asks for the answer, the policy asks a leading question; when they get it right, it moves to the next concept; when they are stuck, it offers a scaffolded hint. **Learner model** is Bayesian knowledge tracing (or a simple variant) that updates mastery probability per curriculum node after each interaction. **Curriculum graph** is a Neo4j of concepts with prerequisite edges; the policy walks the graph to pick the next concept. **Memory** is an episodic + semantic store (agentmemory-style) holding past interactions, mistakes, and preferences.
 
+> Four components.
+
+
 The UX is multimodal. Text input for typed answers. Voice input via LiveKit + Whisper (reuse capstone 03). Photo input for math problems via dots.ocr or PaliGemma 2. Voice output via Cartesia Sonic-2. Safety uses Llama Guard 4 plus an age-appropriate filter (blocks adult content, violence, self-harm) and a COPPA-aware memory retention policy.
 
+> UX is multimodal. Text input for typed answers. Voice input via LiveKit + Whisper (reuse capstone 03). Photo input for math problems via dots.ocr or PaliGemma 2. Voice output via Cartesia Sonic-2. Safety uses Llama Guard 4 plus an age-appropriate filter (blocks adult content, violence, self-harm) and a COPPA-aware memory retention policy.
+
+
 The efficacy study is the deliverable. 10 learners, pre-test and post-test, two weeks. Report learning gain delta and confidence interval. Compare against a non-adaptive baseline (the same content delivered linearly without the tutor policy).
+
+> 是交付物。
+
 
 ## Architecture | 架构
 
@@ -71,17 +86,26 @@ learner device
     memory access guarded by learner ID scope
 ```
 
-## Stack
+## Stack | 技术栈
 
 - Subject choice: K-12 algebra or intro Python (pick one for depth)
+  中文翻译：Subject choice: K-12 algebra or intro Python (pick one for depth)
 - Tutor policy: LangGraph over Claude Sonnet 4.7 (with prompt caching)
+  中文翻译：Tutor policy: LangGraph over Claude Sonnet 4.7 (with prompt caching)
 - Learner model: Bayesian knowledge tracing (classic) or FSRS for spacing
+  中文翻译：Learner model: Bayesian knowledge tracing (classic) or FSRS for spacing
 - Curriculum graph: Neo4j of concepts + prerequisite edges + OER content
+  中文翻译：Curriculum graph: Neo4j of concepts + prerequisite edges + OER content
 - Memory: agentmemory-style persistent vector + episodic + semantic store
+  中文翻译：Memory: agentmemory-style persistent vector + episodic + semantic store
 - Voice: LiveKit Agents 1.0 + Cartesia Sonic-2 (reuse capstone 03 sub-stack)
+  中文翻译：Voice: LiveKit Agents 1.0 + Cartesia Sonic-2 (reuse capstone 03 sub-stack)
 - Photo math: dots.ocr or PaliGemma 2 for equation recognition
+  中文翻译：Photo math: dots.ocr or PaliGemma 2 for equation recognition
 - Safety: Llama Guard 4 + custom age-appropriate filter
+  中文翻译：Safety: Llama Guard 4 + custom age-appropriate filter
 - Eval: Bloom-level question generation, pre/post test harness, efficacy study tooling
+  中文翻译：Eval: Bloom-level question generation, pre/post test harness, efficacy study tooling
 
 ## Build It | 动手构建
 
@@ -90,22 +114,31 @@ learner device
 > **【拓展：AI 教育在 2026 年的突破】** Khan Academy 的 Khanmigo、Duolingo 的 AI 辅导、Coursera 的 AI 学习助手都采用类似架构。关键创新：1）IRT（Item Response Theory）模型精准定位学生知识盲区；2）Bloom 分类法确保问题覆盖记忆/理解/应用/分析/评价/创造六个层次；3）间隔重复算法（Anki 风格）优化长期记忆保持率。Meta 2025 年的研究显示，AI 辅导将学习效率提升约 30%，但完全自主 AI 导师在情感支持和动机维持方面仍不足。
 
 1. **Curriculum graph.** Build a Neo4j of 50-150 concept nodes (e.g., K-12 algebra from "number line" to "quadratic formula") with prerequisite edges. Attach OER content per node (Open Textbook, OpenStax).
+   中文翻译：1. **Curriculum graph.** Build a Neo4j of 50-150 concept nodes (e.g., K-12 algebra from "number line" to "quadratic formula") with prerequisite edges. Attach OER content per node (Open Textbook, OpenStax).
 
 2. **Learner model.** Initialize Bayesian knowledge tracing with priors: guess, slip, learn-rate. Update per-concept mastery after each interaction. Persist per learner.
+   中文翻译：2. **Learner model.** Initialize Bayesian knowledge tracing with priors: guess, slip, learn-rate. Update per-concept mastery after each interaction. Persist per learner.
 
 3. **Tutor policy.** LangGraph with nodes: `read_signal` (was the learner's answer correct / partial / stuck?), `select_concept` (walk curriculum graph picking the highest-priority concept), `scaffold` (Socratic prompt), `update_mastery`.
+   中文翻译：3. **Tutor policy.** LangGraph with nodes: `read_signal` (was the learner's answer correct / partial / stuck?), `select_concept` (walk curriculum graph picking the highest-priority concept), `scaffold` (Socratic prompt), `update_mastery`.
 
 4. **Memory.** Every interaction writes to an episodic store. Mistakes and preferences promote to semantic memory. COPPA-aware retention policy: auto-delete after 1 year, parent-accessible.
+   中文翻译：4. **Memory.** Every interaction writes to an episodic store. Mistakes and preferences promote to semantic memory. COPPA-aware retention policy: auto-delete after 1 year, parent-accessible.
 
 5. **Voice path.** LiveKit Agents worker attached to the tutor policy. ASR via Whisper-v3-turbo. TTS via Cartesia Sonic-2. Barge-in supported (reuse capstone 03 mechanics).
+   中文翻译：5. **Voice path.** LiveKit Agents worker attached to the tutor policy. ASR via Whisper-v3-turbo. TTS via Cartesia Sonic-2. Barge-in supported (reuse capstone 03 mechanics).
 
 6. **Photo-math path.** Upload or capture image; run dots.ocr or PaliGemma 2 to recognize the equation; feed to tutor as structured input.
+   中文翻译：6. **Photo-math path.** Upload or capture image; run dots.ocr or PaliGemma 2 to recognize the equation; feed to tutor as structured input.
 
 7. **Safety.** Every model output passes Llama Guard 4 + an age-appropriate filter (blocks self-harm, adult content, violence). Memory access scoped by learner ID; parental access surface for deletion.
+   中文翻译：7. **Safety.** Every model output passes Llama Guard 4 + an age-appropriate filter (blocks self-harm, adult content, violence). Memory access scoped by learner ID; parental access surface for deletion.
 
 8. **Efficacy study.** 10 learners, pre-test (standardized 30-question baseline), two weeks of tutor interaction (3 sessions/week), post-test. Compare against a non-adaptive baseline cohort of 10 learners on the same content.
+   中文翻译：8. **Efficacy study.** 10 learners, pre-test (standardized 30-question baseline), two weeks of tutor interaction (3 sessions/week), post-test. Compare against a non-adaptive baseline cohort of 10 learners on the same content.
 
 9. **Weekly progress reports.** Per learner, auto-generate a PDF summary of topics explored, mastery trajectories, and recommended next steps.
+   中文翻译：9. **Weekly progress reports.** Per learner, auto-generate a PDF summary of topics explored, mastery trajectories, and recommended next steps.
 
 ## Use It | 使用方法
 
@@ -124,6 +157,9 @@ learner: "6"
 ## Ship It | 部署上线
 
 `outputs/skill-ai-tutor.md` is the deliverable. A subject-specific adaptive tutor with multimodal input, a learner model, memory, safety, and measured efficacy.
+
+> `outputs/skill-ai-tutor.md` 是交付物. A subject-specific adaptive tutor with multimodal input, a learner model, memory, safety, and measured efficacy.
+
 
 | Weight | Criterion | How it is measured |
 |:-:|---|---|

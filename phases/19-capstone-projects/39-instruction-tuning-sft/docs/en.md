@@ -5,18 +5,23 @@
 > **【中文解读】** 本节是综合项目——实现指令微调 SFT。
 
 
-**Type:** Build
-**Languages:** Python (torch, numpy)
-**Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
-**Time:** ~90 minutes
+**Type:** Build | **类型:** Build
+**Languages:** Python (torch, numpy) | **语言:** Python (torch, numpy)
+**Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity) | **前置知识:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
+**Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标
 
 - Format paired instruction-response data into a single causal sequence with explicit boundary tokens.
+  中文翻译：Format paired instruction-response data into a single causal sequence with explicit boundary tokens.
 - Build a collate function that masks instruction tokens so cross-entropy only counts response tokens.
+  中文翻译：Build a collate function that masks instruction tokens so cross-entropy only counts response tokens.
 - Train a tiny transformer body under the SFT objective and watch the eval metric move.
+  中文翻译：Train a tiny transformer body under the SFT objective and watch the eval metric move.
 - Implement greedy and temperature-sampled generation that respects the response-start boundary.
+  中文翻译：Implement greedy and temperature-sampled generation that respects the response-start boundary.
 - Compute held-out exact-match on generated completions.
+  中文翻译：Compute held-out exact-match on generated completions.
 
 ## The Problem | 问题
 
@@ -26,13 +31,22 @@
 
 The SFT contract is a string template. Every training example becomes a single sequence with three regions:
 
+> SFT contract is a string template. Every training example becomes a single sequence with three regions:（翻译）
+
+
 ```text
 <INST> What is the capital of France? <RESP> The capital of France is Paris.
 ```
 
 The boundary tokens are special tokens reserved at training time. The model learns that everything after `<RESP>` is the response and the response is what gets graded. The base model's next-token objective still applies; it is just trained on a corpus where every example has this shape.
 
+> boundary tokens are special tokens reserved at training time. The model learns that everything after `<RESP>` is the response and the response is what gets graded. The base model's next-token objective still applies; it is just trained on a corpus where every example has this shape.
+
+
 But there is a catch. If you feed the entire sequence to a vanilla cross-entropy loss, you are training the model to also predict the instruction tokens. The instruction is given. You want zero gradient on those positions. The fix is the mask.
+
+> But there is a catch.
+
 
 ## The Concept | 概念
 
@@ -50,7 +64,13 @@ flowchart LR
 
 `ignore_index` is a feature of `torch.nn.functional.cross_entropy`. Any target position equal to `ignore_index` contributes zero loss and zero gradient. The convention in PyTorch is `-100`. The collate function builds two tensors per example: `input_ids` (the full sequence) and `labels` (a copy of `input_ids` with the instruction positions overwritten by `-100`).
 
+> `ignore_index` is a feature of `torch.
+
+
 The model sees the whole sequence during the forward pass; attention can attend to the instruction. The loss only counts response tokens. This is exactly what you want: condition on the instruction, predict the response.
+
+> model sees the whole sequence during the forward pass; attention can attend to the instruction. The loss only counts response tokens. This is exactly what you want: condition on the instruction, predict the response.
+
 
 ## The Data
 
@@ -58,33 +78,57 @@ The model sees the whole sequence during the forward pass; attention can attend 
 
 Two hundred instruction-response pairs are generated deterministically in `main.py`. They cover six task types:
 
+> Two hundred instruction-response pairs are generated deterministically in `main.py`. They cover six task types:（翻译）
+
+
 - factual single-shot (capital of X)
+  中文翻译：factual single-shot (capital of X)
 - arithmetic
+  中文翻译：arithmetic
 - list extraction
+  中文翻译：list extraction
 - one-sentence summary
+  中文翻译：one-sentence summary
 - code (print, sort)
+  中文翻译：code (print, sort)
 - definition
+  中文翻译：definition
 
 Each task has a templated instruction and a deterministic response. This is intentionally simple. Exact-match is brittle, and the lesson uses a fixture where the right answer is one specific string. Real SFT datasets need fuzzy metrics; the principle is identical.
 
+> 每个task has a templated instruction and a deterministic response. This is intentionally simple. Exact-match is brittle, and the lesson uses a fixture where the right answer is one specific string. Real SFT datasets need fuzzy metrics; the principle is identical.
+
+
 Splits are 160 train, 40 test. The test set covers all six task types so per-category exact-match can be reported.
+
+> Splits are 160 train, 40 test. The test set covers all six task types so per-category exact-match can be reported.（翻译）
+
 
 ## Tokenisation and Padding
 
 The tokeniser is byte-level with three reserved specials:
 
 - `INST_ID = 256`: marks the start of the instruction region.
+  中文翻译：`INST_ID = 256`: marks the start of the instruction region.
 - `RESP_ID = 257`: marks the boundary between instruction and response.
+  中文翻译：`RESP_ID = 257`: marks the boundary between instruction and response.
 - `PAD_ID = 258`: padding for variable-length batches.
+  中文翻译：`PAD_ID = 258`: padding for variable-length batches.
 
 The sequence is `[INST] inst_bytes [RESP] resp_bytes [PAD]*`. The collate function:
+
+> SEquence is `[INST] inst_bytes [RESP] resp_bytes [PAD]*`. The collate function:（翻译）
+
 
 1. Tokenises each example.
 2. Pads every example in the batch to the longest sequence in the batch.
 3. Builds `labels` = `input_ids` shifted by one (causal LM target), with:
    - The instruction region replaced by `-100`.
+     中文翻译：The instruction region replaced by `-100`.
    - The padding region replaced by `-100`.
+     中文翻译：The padding region replaced by `-100`.
    - The `RESP_ID` boundary position itself replaced by `-100` (you do not train the model to predict the boundary token; it predicts what follows).
+     中文翻译：The `RESP_ID` boundary position itself replaced by `-100` (you do not train the model to predict the boundary token; it predicts what follows).
 
 ```mermaid
 flowchart TD
@@ -96,6 +140,9 @@ flowchart TD
 ```
 
 The shift is the standard causal trick: position `i` of `input_ids` predicts position `i+1`, so `labels[i] = input_ids[i+1]` (with the final position dropped from the input and the first dropped from the target). The mask is applied after the shift to land on the right positions.
+
+> shift is the standard causal trick: position `i` of `input_ids` predicts position `i+1`, so `labels[i] = input_ids[i+1]` (with the final position dropped from the input and the first dropped from the target). The mask is applied after the shift to land on the right positions.
+
 
 ## Training
 
@@ -111,22 +158,42 @@ flowchart LR
 
 The loop is the standard PyTorch SFT loop. Adam, learning rate around 3e-4 to 1e-3, ten to twenty epochs on this fixture, no scheduler. The model is small enough (hidden 96, 2 blocks, max length 64) to train to convergence on CPU inside two minutes.
 
+> loop is the standard PyTorch SFT loop. Adam, learning rate around 3e-4 to 1e-3, ten to twenty epochs on this fixture, no scheduler. The model is small enough (hidden 96, 2 blocks, max length 64) to train to convergence on CPU inside two minutes.
+
+
 Every fifth epoch the loop runs a tiny eval pass on the held-out set and prints exact-match. Watching exact-match go from 0.0 at epoch one to something like 0.85 at epoch fifteen is the lesson's payoff: you can see the model learning the format and the answers at the same time.
+
+> 每个fifth epoch the loop runs a tiny eval pass on the held-out set and prints exact-match. Watching exact-match go from 0.0 at epoch one to something like 0.85 at epoch fifteen is the lesson's payoff: you can see the model learning the format and the answers at the same time.
+
 
 ## Generation
 
 At eval time the model gets the instruction prefix `[INST] inst_bytes [RESP]` and generates tokens until either:
 
+> At eval time the model gets the instruction prefix `[INST] inst_bytes [RESP]` and generates tokens until either:（翻译）
+
+
 - the sequence reaches `max_len`, or
+  中文翻译：the sequence reaches `max_len`, or
 - the model emits a special stop heuristic: two consecutive sentence-ending bytes (`.`, `!`, `?`).
+  中文翻译：the model emits a special stop heuristic: two consecutive sentence-ending bytes (`.`, `!`, `?`).
 
 The lesson ships greedy decoding plus an optional temperature sampler. Exact-match uses greedy because temperature would make the metric stochastic. Real systems often sample, then judge fuzzily; that pipeline is lesson 41.
+
+> 本课附带一个模拟语言模型。
+
 
 ## Exact-Match Evaluation
 
 Exact-match is the strictest text metric. The predicted response string is normalised (lowercase, strip whitespace, collapse double spaces) and compared to the reference response, normalised the same way. The metric is either 1 or 0 per example. The aggregate is the mean.
 
+> Exact-match is the strictest text metric.
+
+
 Real SFT pipelines complement exact-match with token-level F1 (lesson 41) and a judge model. Exact-match remains useful because it is unambiguous; if it says 0.7, exactly 70 percent of test instructions produced the gold response character for character.
+
+> Real SFT pipelines complement exact-match with token-level F1 (lesson 41) and a judge model.
+
 
 ## What you will build
 
@@ -148,11 +215,21 @@ The implementation is one `main.py` plus tests.
 
 Without the mask, the loss treats instruction tokens as targets. The model learns to predict the instruction. This is a different objective and produces a worse model in two ways. First, model capacity is wasted reconstructing inputs the user always provides. Second, the response loss is smaller in the gradient sum because instruction tokens outnumber response tokens in most batches; the optimiser's effective learning rate on the part you care about is lower than you intended. The mask is not a polish; it is the objective.
 
+> 不使用the mask, the loss treats instruction tokens as targets. The model learns to predict the instruction. This is a different objective and produces a worse model in two ways. First, model capacity is wasted reconstructing inputs the user always provides. Second, the response loss is smaller in the gradient sum because instruction tokens outnumber response tokens in most batches; the optimiser's effective learning rate on the part you care about is lower than you intended. The mask is not a polish; it is the objective.
+
+
 ## Stretch goals
 
 - Add a learning-rate warmup followed by cosine decay. SFT is more sensitive to LR than pretraining.
+  中文翻译：Add a learning-rate warmup followed by cosine decay. SFT is more sensitive to LR than pretraining.
 - Add per-token loss logging and plot the loss curve over training. Notice that early epochs are dominated by template tokens (`<RESP>`, common prefixes) and later epochs are dominated by the actual answer tokens.
+  中文翻译：Add per-token loss logging and plot the loss curve over training. Notice that early epochs are dominated by template tokens (`<RESP>`, common prefixes) and later epochs are dominated by the actual answer tokens.
 - Extend the eval to BLEU-1 or chrF. Exact-match underestimates models that produce a paraphrase with the same answer.
+  中文翻译：Extend the eval to BLEU-1 or chrF. Exact-match underestimates models that produce a paraphrase with the same answer.
 - Add a chat template with multi-turn formatting and train on a fixture that includes follow-ups.
+  中文翻译：Add a chat template with multi-turn formatting and train on a fixture that includes follow-ups.
 
 The implementation gives you the format contract, the mask, and the loop. The objective change from base model to instruction follower is one collate function.
+
+> implementation gives you the format contract, the mask, and the loop. The objective change from base model to instruction follower is one collate function.
+

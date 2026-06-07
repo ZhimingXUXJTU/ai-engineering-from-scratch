@@ -5,13 +5,13 @@
 > **【中文解读】** 本节是综合项目——构建宪法式安全线束。
 
 
-**Type:** Capstone
-**Languages:** Python (safety pipeline, red team), YAML (policy configs)
-**Prerequisites:** Phase 10 (LLMs from scratch), Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 18 (ethics, safety, alignment)
-**Phases exercised:** P10 · P11 · P13 · P14 · P18
-**Time:** 25 hours
+**Type:** Capstone | **类型:** Capstone
+**Languages:** Python (safety pipeline, red team), YAML (policy configs) | **语言:** Python (safety pipeline, red team), YAML (policy configs)
+**Prerequisites:** Phase 10 (LLMs from scratch), Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 18 (ethics, safety, alignment) | **前置知识:** Phase 10 (LLMs from scratch), Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 18 (ethics, safety, alignment)
+**Phases exercised:** P10 · P11 · P13 · P14 · P18 | **涉及阶段:** P10 · P11 · P13 · P14 · P18
+**Time:** 25 hours | **时间:** 25 hours
 
-## Problem
+## Problem | 问题引入
 
 > **【中文解读】** 本节描述 LLM 安全防护的核心挑战。2026 年前沿问题不是分类器是否有效（它们大致有效），而是如何正确组合它们——不过度拒绝也不留下明显漏洞。Llama Guard 4 处理英文策略违规、X-Guard 覆盖 132 种语言的多语言越狱、ShieldGemma-2 捕获图像提示注入、NVIDIA Nemotron 3 覆盖企业类别、Anthropic 宪法分类器在训练时而非服务时使用。
 
@@ -19,11 +19,20 @@
 
 The frontier of LLM safety in 2026 is not whether classifiers work (they do, roughly) but how to compose them correctly around a production app without over-refusing or leaving obvious holes. Llama Guard 4 handles English policy violations. X-Guard (132 languages) handles multilingual jailbreak. ShieldGemma-2 catches image-based prompt injection. NVIDIA Nemotron 3 Content Safety covers enterprise categories. Anthropic's Constitutional Classifiers are a separate approach used during training rather than serving.
 
+> frontier of LLM safety in 2026 is not whether classifiers work (they do, roughly) but how to compose them correctly around a production app without over-refusing or leaving obvious holes. Llama Guard 4 handles English policy violations. X-Guard (132 languages) handles multilingual jailbreak. ShieldGemma-2 catches image-based prompt injection. NVIDIA Nemotron 3 Content Safety covers enterprise categories. Anthropic's Constitutional Classifiers are a separate approach used during training rather than serving.
+
+
 Attack evolution matters too. PAIR and TAP automate jailbreak discovery. GCG runs gradient-based suffix attacks. Multi-turn and code-switch attacks exploit agent memory. Any deployed LLM needs a red-team range — garak and PyRIT are the canonical drivers — plus documented mitigations and CVSS-scored findings.
+
+> Attack evolution matters too.
+
 
 You will harden a target application (either an 8B instruction-tuned model or one of the RAG chatbots from other capstones), run 6+ attack families against it, and produce a before/after harmlessness measurement.
 
-## Concept
+> 你will harden a target application (either an 8B instruction-tuned model or one of the RAG chatbots from other capstones), run 6+ attack families against it, and produce a before/after harmlessness measurement.
+
+
+## Concept | 核心概念
 
 > **【中文解读】** 安全管道分五层：输入净化（去零宽字符、解码 base64/rot13、Unicode 规范化）→ 策略层（NeMo Guardrails v0.12 策略护栏）→ 分类器门控（Llama Guard 4 输入/X-Guard 非英文/ShieldGemma-2 图像）→ 目标模型 → 输出过滤（Llama Guard 4 输出/Presidio PII 脱敏/引用强制）。高风险输出进入 Slack 人工队列。宪法自审是训练时干预：1000 条有害尝试 → 模型起草 → 按宪法自审 → 重训练，测量前后无害性差异。
 
@@ -31,9 +40,18 @@ You will harden a target application (either an 8B instruction-tuned model or on
 
 The safety pipeline is five layers. **Input sanitize**: strip zero-width chars, decode base64/rot13, normalize Unicode. **Policy layer**: NeMo Guardrails v0.12 rails (off-domain, toxicity, PII extraction). **Classifier gate**: Llama Guard 4 on input, X-Guard on non-English, ShieldGemma-2 on image inputs. **Model**: the target LLM. **Output filter**: Llama Guard 4 on output, Presidio PII scrub, citation enforcement where applicable. **HITL tier**: outputs flagged high-risk go to a Slack queue.
 
+> safety pipeline is five layers. **Input sanitize**: strip zero-width chars, decode base64/rot13, normalize Unicode. **Policy layer**: NeMo Guardrails v0.12 rails (off-domain, toxicity, PII extraction). **Classifier gate**: Llama Guard 4 on input, X-Guard on non-English, ShieldGemma-2 on image inputs. **Model**: the target LLM. **Output filter**: Llama Guard 4 on output, Presidio PII scrub, citation enforcement where applicable. **HITL tier**: outputs flagged high-risk go to a Slack queue.
+
+
 The red-team range runs on a scheduler. PAIR and TAP autonomously discover jailbreaks. GCG runs gradient-based suffix attacks. ASCII / base64 / rot13 encoding attacks. Multi-turn attacks (persona adoption, memory exploitation). Code-switch attacks (mix English with Swahili or Thai). Each run produces a structured findings file with CVSS scoring and disclosure timeline.
 
+> red-team range runs on a scheduler. PAIR and TAP autonomously discover jailbreaks. GCG runs gradient-based suffix attacks. ASCII / base64 / rot13 encoding attacks. Multi-turn attacks (persona adoption, memory exploitation). Code-switch attacks (mix English with Swahili or Thai). Each run produces a structured findings file with CVSS scoring and disclosure timeline.
+
+
 The constitutional-self-critique run is a training-time intervention. Take 1k harmful-attempt prompts, have the model draft a response, critique it against a written constitution (do-not-harm rules), and retrain on the critique loop. Measure the before/after harmlessness delta on a held-out eval.
+
+> constitutional-self-critique run is a training-time intervention. Take 1k harmful-attempt prompts, have the model draft a response, critique it against a written constitution (do-not-harm rules), and retrain on the critique loop. Measure the before/after harmlessness delta on a held-out eval.
+
 
 ## Architecture | 架构
 
@@ -74,15 +92,22 @@ parallel:
 output: CVSS-scored findings + disclosure timeline + before/after harmlessness delta
 ```
 
-## Stack
+## Stack | 技术栈
 
 - Safety classifiers: Llama Guard 4, ShieldGemma-2, NVIDIA Nemotron 3 Content Safety, X-Guard
+  中文翻译：Safety classifiers: Llama Guard 4, ShieldGemma-2, NVIDIA Nemotron 3 Content Safety, X-Guard
 - Guardrail framework: NeMo Guardrails v0.12 + OPA
+  中文翻译：Guardrail framework: NeMo Guardrails v0.12 + OPA
 - Red-team drivers: garak (NVIDIA), PyRIT (Microsoft Azure), NVIDIA Aegis, promptfoo
+  中文翻译：Red-team drivers: garak (NVIDIA), PyRIT (Microsoft Azure), NVIDIA Aegis, promptfoo
 - Jailbreak agents: PAIR (Chao et al., 2023), Tree-of-Attacks (TAP), GCG suffix
+  中文翻译：Jailbreak agents: PAIR (Chao et al., 2023), Tree-of-Attacks (TAP), GCG suffix
 - Constitutional training: Anthropic-style self-critique loop + SFT on critiques
+  中文翻译：Constitutional training: Anthropic-style self-critique loop + SFT on critiques
 - PII scrub: Presidio
+  中文翻译：PII scrub: Presidio
 - Target: an 8B instruction-tuned model or one of the other capstones' RAG chatbots
+  中文翻译：Target: an 8B instruction-tuned model or one of the other capstones' RAG chatbots
 
 ## Build It | 动手构建
 
@@ -91,22 +116,31 @@ output: CVSS-scored findings + disclosure timeline + before/after harmlessness d
 > **【拓展：AI 安全评估在 2026 年的标准化进展】** NIST 的 AI RMF（风险管理框架）和 ISO/IEC 42001 成为 AI 安全评估的国际标准。MLCommons 的 Safety v0.5 benchmark 包含 CSB（儿童安全）、激进行为、自残等维度的标准测试集。Anthropic 的 Responsible Scaling Policy 和 OpenAI 的 Preparedness Framework 都要求在模型发布前通过类似本课的 10 类攻击测试。宪法 AI（Constitutional AI）是 Anthropic 的核心安全方法——模型根据预设原则自我批评和修订输出。
 
 1. **Target setup.** Stand up an 8B instruction-tuned model on vLLM (or reuse a RAG chatbot from another capstone). This is the app under test.
+   中文翻译：1. **Target setup.** Stand up an 8B instruction-tuned model on vLLM (or reuse a RAG chatbot from another capstone). This is the app under test.
 
 2. **Safety pipeline wrap.** Wire the five-layer pipeline around the target. Verify each layer is individually observable (span per layer in Langfuse).
+   中文翻译：2. **Safety pipeline wrap.** Wire the five-layer pipeline around the target. Verify each layer is individually observable (span per layer in Langfuse).
 
 3. **Classifier coverage.** Load Llama Guard 4, X-Guard (multilingual), ShieldGemma-2 (image). Run each on a small labeled set to establish baselines.
+   中文翻译：3. **Classifier coverage.** Load Llama Guard 4, X-Guard (multilingual), ShieldGemma-2 (image). Run each on a small labeled set to establish baselines.
 
 4. **Red-team scheduler.** Schedule garak, PyRIT, a PAIR agent, a TAP agent, a GCG runner, a multi-turn attacker, and a code-switch attacker. Each runs on a separate queue.
+   中文翻译：4. **Red-team scheduler.** Schedule garak, PyRIT, a PAIR agent, a TAP agent, a GCG runner, a multi-turn attacker, and a code-switch attacker. Each runs on a separate queue.
 
 5. **Attack suite.** Six attack families: (1) PAIR automated jailbreak, (2) TAP tree-of-attacks, (3) GCG gradient suffix, (4) ASCII / base64 / rot13 encoding, (5) multi-turn persona, (6) multilingual code-switch. Report success rate per family.
+   中文翻译：5. **Attack suite.** Six attack families: (1) PAIR automated jailbreak, (2) TAP tree-of-attacks, (3) GCG gradient suffix, (4) ASCII / base64 / rot13 encoding, (5) multi-turn persona, (6) multilingual code-switch. Report success rate per family.
 
 6. **Constitutional self-critique.** Curate 1k harmful-attempt prompts. For each, the target drafts a response. A critic LLM scores against a written constitution ("do no harm," "cite evidence," "refuse illegal requests"). Prompts where the critic objects get rewritten; the target fine-tunes on the critique-improved pairs. Measure before/after harmlessness on a held-out eval.
+   中文翻译：6. **Constitutional self-critique.** Curate 1k harmful-attempt prompts. For each, the target drafts a response. A critic LLM scores against a written constitution ("do no harm," "cite evidence," "refuse illegal requests"). Prompts where the critic objects get rewritten; the target fine-tunes on the critique-improved pairs. Measure before/after harmlessness on a held-out eval.
 
 7. **Over-refusal measurement.** Track false-positive rate on a benign prompt suite (e.g., XSTest). The target must stay helpful on benign questions.
+   中文翻译：7. **Over-refusal measurement.** Track false-positive rate on a benign prompt suite (e.g., XSTest). The target must stay helpful on benign questions.
 
 8. **CVSS scoring.** For each successful jailbreak, score on CVSS 4.0 (attack vector, complexity, impact). Produce a disclosure timeline and mitigation plan.
+   中文翻译：8. **CVSS scoring.** For each successful jailbreak, score on CVSS 4.0 (attack vector, complexity, impact). Produce a disclosure timeline and mitigation plan.
 
 9. **Range automation.** Everything above runs on a cron; findings write to a queue; over-refusal regression alerts fire to Slack.
+   中文翻译：9. **Range automation.** Everything above runs on a cron; findings write to a queue; over-refusal regression alerts fire to Slack.
 
 ## Use It | 使用方法
 
@@ -123,6 +157,9 @@ $ safety probe --model=target --family=PAIR --budget=50
 ## Ship It | 部署上线
 
 `outputs/skill-safety-harness.md` is the deliverable. A production-grade layered safety pipeline plus a reproducible red-team range with before/after harmlessness deltas.
+
+> `outputs/skill-safety-harness.md` 是交付物. A production-grade layered safety pipeline plus a reproducible red-team range with before/after harmlessness deltas.
+
 
 | Weight | Criterion | How it is measured |
 |:-:|---|---|
