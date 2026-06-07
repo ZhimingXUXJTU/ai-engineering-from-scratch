@@ -13,8 +13,12 @@ Builds:
 
 Exits 0 when the trained model beats the random baseline of 0.0 on the held-out set.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：指令微调 SFT——带 INST/RESP/PAD 特殊 token 的分词器 + 指令-响应对的 SFT 数据集 +
+collate 函数用 -100 屏蔽指令和 padding token 的损失 + 精确匹配指标评估
+AI 对应：InstructGPT 的 Stage 1 SFT 使用完全相同的指令-响应格式；
+Alpaca (Stanford) 使用 52K 指令数据进行 SFT 训练；
+Llama 2 Chat 的 SFT 数据中指令 token 不计入损失是标准做法；
+ChatML 格式 (<|im_start|>/<|im_end|>) 是 2026 年的主流对话模板
 """
 
 from __future__ import annotations
@@ -60,7 +64,7 @@ class InstructionTokenizer:
         ids = [self.INST_ID] + inst_bytes + [self.RESP_ID]
         resp_start = len(ids)
         ids.extend(resp_bytes[: max_len - len(ids)])
-        return ids, resp_start  # 返回结果
+        return ids, resp_start
 
     def encode_prefix(self, instruction: str, max_len: int) -> List[int]:
         """Encode just the instruction prefix for generation. Always keeps the
@@ -69,12 +73,12 @@ class InstructionTokenizer:
             raise ValueError("max_len must be >= 2 to fit INST and RESP")
         inst_bytes = list(instruction.encode("utf-8", errors="ignore"))[: max_len - 2]
         ids = [self.INST_ID] + inst_bytes + [self.RESP_ID]
-        return ids  # 返回结果
+        return ids
 
     def decode_response(self, ids: Sequence[int]) -> str:
         """Decode a generated response, dropping specials."""
         chunk = bytes(i for i in ids if i < 256)
-        return chunk.decode("utf-8", errors="replace")  # 返回结果
+        return chunk.decode("utf-8", errors="replace")
 
 
 # ---------------------------------------------------------------------------
@@ -83,7 +87,6 @@ class InstructionTokenizer:
 
 
 class CausalSelfAttention(nn.Module):
-    """CausalSelfAttention"""
     def __init__(self, hidden: int, heads: int, max_len: int):
         super().__init__()
         if hidden % heads != 0:
@@ -109,11 +112,10 @@ class CausalSelfAttention(nn.Module):
         weights = F.softmax(att, dim=-1)
         weights = torch.nan_to_num(weights, nan=0.0)
         ctx = (weights @ v).transpose(1, 2).contiguous().view(B, T, D)
-        return self.out(ctx)  # 返回结果
+        return self.out(ctx)
 
 
 class Block(nn.Module):
-    """Block"""
     def __init__(self, hidden: int, heads: int, max_len: int):
         super().__init__()
         self.ln1 = nn.LayerNorm(hidden)
@@ -126,11 +128,10 @@ class Block(nn.Module):
         x = x + self.attn(self.ln1(x), key_pad_mask)
         h = self.ln2(x)
         h = self.fc2(F.gelu(self.fc1(h)))
-        return x + h  # 返回结果
+        return x + h
 
 
 class TinyGPT(nn.Module):
-    """TinyGPT"""
     def __init__(self, vocab: int, hidden: int, heads: int, depth: int, max_len: int):
         super().__init__()
         self.tok = nn.Embedding(vocab, hidden)
@@ -146,7 +147,7 @@ class TinyGPT(nn.Module):
         x = self.tok(ids) + self.pos(positions)
         for blk in self.blocks:
             x = blk(x, key_pad_mask)
-        return self.head(self.ln_f(x))  # 返回结果
+        return self.head(self.ln_f(x))
 
 
 # ---------------------------------------------------------------------------
@@ -234,15 +235,14 @@ DEFINITIONS = [
 
 
 def _arithmetic_response(a: int, b: int, op: str) -> str:
-    """_arithmetic_response"""
     if op == "+":
-        return f"{a} + {b} = {a + b}"  # 返回结果
+        return f"{a} + {b} = {a + b}"
     if op == "-":
-        return f"{a} - {b} = {a - b}"  # 返回结果
+        return f"{a} - {b} = {a - b}"
     if op == "*":
-        return f"{a} * {b} = {a * b}"  # 返回结果
+        return f"{a} * {b} = {a * b}"
     if op == "/":
-        return f"{a} / {b} = {a // b}"  # 返回结果
+        return f"{a} / {b} = {a // b}"
     raise ValueError(f"unknown op {op}")
 
 
@@ -344,7 +344,7 @@ def make_dataset(seed: int = 0) -> Tuple[List[Dict[str, str]], List[str]]:
     # Total = 40 + 30 + 30 + 30 + 30 + 40 = 200. Shuffle and return.
     order = list(range(len(pairs)))
     rng.shuffle(order)
-    return [pairs[i] for i in order], [categories[i] for i in order]  # 返回结果
+    return [pairs[i] for i in order], [categories[i] for i in order]
 
 
 def split_dataset(
@@ -368,7 +368,7 @@ def split_dataset(
         test_idx.extend(idxs_copy[cut:])
     rng.shuffle(train_idx)
     rng.shuffle(test_idx)
-    return (  # 返回结果
+    return (
         [pairs[i] for i in train_idx],
         [cats[i] for i in train_idx],
         [pairs[i] for i in test_idx],
@@ -382,7 +382,6 @@ def split_dataset(
 
 
 class SFTDataset(Dataset):
-    """SFTDataset"""
     def __init__(
         self,
         pairs: Sequence[Dict[str, str]],
@@ -394,12 +393,12 @@ class SFTDataset(Dataset):
         self.max_len = max_len
 
     def __len__(self) -> int:
-        return len(self.pairs)  # 返回结果
+        return len(self.pairs)
 
     def __getitem__(self, idx: int) -> Tuple[List[int], int]:
         pair = self.pairs[idx]
         ids, resp_start = self.tok.encode_pair(pair["instruction"], pair["response"], self.max_len)
-        return ids, resp_start  # 返回结果
+        return ids, resp_start
 
 
 def sft_collate(
@@ -430,7 +429,7 @@ def sft_collate(
         input_ids.append(padded)
         labels.append(lbl)
         attn_mask.append(am)
-    return (  # 返回结果
+    return (
         torch.tensor(input_ids, dtype=torch.long),
         torch.tensor(labels, dtype=torch.long),
         torch.tensor(attn_mask, dtype=torch.long),
@@ -444,7 +443,7 @@ def shifted_loss(
     # Position i predicts position i+1 in labels.
     pred = logits[:, :-1, :].contiguous()
     target = labels[:, 1:].contiguous()
-    return F.cross_entropy(  # 返回结果
+    return F.cross_entropy(
         pred.view(-1, pred.size(-1)),
         target.view(-1),
         ignore_index=ignore_index,
@@ -458,7 +457,6 @@ def shifted_loss(
 
 @dataclass
 class SFTConfig:
-    """SFTConfig"""
     vocab: int = InstructionTokenizer.VOCAB
     hidden: int = 96
     heads: int = 4
@@ -471,14 +469,12 @@ class SFTConfig:
 
 
 def build_model(cfg: SFTConfig) -> TinyGPT:
-    """build_model"""
     torch.manual_seed(cfg.seed)
-    return TinyGPT(cfg.vocab, cfg.hidden, cfg.heads, cfg.depth, cfg.max_len)  # 返回结果
+    return TinyGPT(cfg.vocab, cfg.hidden, cfg.heads, cfg.depth, cfg.max_len)
 
 
 @dataclass
 class SFTReport:
-    """SFTReport"""
     losses: List[float] = field(default_factory=list)
     eval_em: List[float] = field(default_factory=list)
     final_em: float = 0.0
@@ -518,7 +514,7 @@ def train_sft(
             log(f"  epoch {ep:>3d}: loss={avg:.4f}")
     if eval_pairs is not None and tok is not None:
         report.final_em = exact_match_set(model, tok, eval_pairs, cfg.max_len)
-    return report  # 返回结果
+    return report
 
 
 @torch.no_grad()
@@ -563,7 +559,7 @@ def generate(
             and out_chars[-2] in sentence_ends
         ):
             break
-    return tok.decode_response(out_chars)  # 返回结果
+    return tok.decode_response(out_chars)
 
 
 # ---------------------------------------------------------------------------
@@ -572,16 +568,14 @@ def generate(
 
 
 def normalise(text: str) -> str:
-    """normalise"""
     s = text.lower().strip()
     while "  " in s:
         s = s.replace("  ", " ")
-    return s  # 返回结果
+    return s
 
 
 def exact_match(pred: str, gold: str) -> int:
-    """exact_match"""
-    return 1 if normalise(pred) == normalise(gold) else 0  # 返回结果
+    return 1 if normalise(pred) == normalise(gold) else 0
 
 
 @torch.no_grad()
@@ -592,12 +586,12 @@ def exact_match_set(
     max_len: int,
 ) -> float:
     if not pairs:
-        return 0.0  # 返回结果
+        return 0.0
     hits = 0
     for pair in pairs:
         pred = generate(model, tok, pair["instruction"], max_len=max_len)
         hits += exact_match(pred, pair["response"])
-    return hits / len(pairs)  # 返回结果
+    return hits / len(pairs)
 
 
 def per_category_em(
@@ -611,7 +605,7 @@ def per_category_em(
     for p, c in zip(pairs, cats):
         pred = generate(model, tok, p["instruction"], max_len=max_len)
         by_cat.setdefault(c, []).append(exact_match(pred, p["response"]))
-    return {c: sum(vs) / max(len(vs), 1) for c, vs in by_cat.items()}  # 返回结果
+    return {c: sum(vs) / max(len(vs), 1) for c, vs in by_cat.items()}
 
 
 # ---------------------------------------------------------------------------
@@ -620,7 +614,6 @@ def per_category_em(
 
 
 def run_demo(cfg: Optional[SFTConfig] = None) -> int:
-    """run_demo"""
     cfg = cfg or SFTConfig()
     torch.manual_seed(cfg.seed)
     np.random.seed(cfg.seed)
@@ -678,8 +671,8 @@ def run_demo(cfg: Optional[SFTConfig] = None) -> int:
 
     if report.final_em <= initial_em:
         print("ERROR: training did not improve EM over the untrained baseline", file=sys.stderr)
-        return 1  # 返回结果
-    return 0  # 返回结果
+        return 1
+    return 0
 
 
 if __name__ == "__main__":

@@ -14,8 +14,12 @@ an HTTP client, a local inference call, or a mock in tests.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：语言模型评估线束——JSONL 任务规范 + 五种评估指标（精确匹配/ROUGE-L F1/代码执行/
+多项选择准确率/子串包含）+ 可替换的模型适配器接口 + 排行榜 JSON 输出
+AI 对应：lm-eval-harness (EleutherAI) 是 LLM 评估的事实标准框架；
+HELM (Stanford CRFM) 使用类似的 task-spec + metric 架构；
+模型适配器接口允许评估任何模型（API/本地/mock）；MMLU、HumanEval、GSM8K
+等基准测试都通过此类线束运行
 """
 
 from __future__ import annotations
@@ -42,7 +46,6 @@ LEADERBOARD = OUT_DIR / "leaderboard.json"
 
 @dataclass
 class Example:
-    """Example"""
     id: str
     prompt: str
     targets: List[str]
@@ -52,7 +55,6 @@ class Example:
 
 @dataclass
 class TaskResult:
-    """TaskResult"""
     task: str
     metric: str
     score: float
@@ -64,7 +66,6 @@ class TaskResult:
 
 @dataclass
 class Leaderboard:
-    """Leaderboard"""
     schema: str
     timestamp: float
     overall_score: float
@@ -72,7 +73,6 @@ class Leaderboard:
 
 
 class ModelAdapter(Protocol):
-    """ModelAdapter"""
     def generate(self, prompts: Sequence[str]) -> List[str]:
         ...
 
@@ -92,36 +92,36 @@ class ToyAdapter:
     name = "toy.v1"
 
     def generate(self, prompts: Sequence[str]) -> List[str]:
-        return [self._answer(p) for p in prompts]  # 返回结果
+        return [self._answer(p) for p in prompts]
 
     def _answer(self, prompt: str) -> str:
         text = prompt.strip()
         if text.startswith("compute:"):
             expr = text[len("compute:"):].strip()
             try:
-                return str(safe_arith_eval(expr))  # 返回结果
+                return str(safe_arith_eval(expr))
             except Exception:
-                return ""  # 返回结果
+                return ""
         if text.startswith("summarize:"):
             body = text[len("summarize:"):].strip()
             sentences = re.split(r"(?<=[.!?])\s+", body)
-            return sentences[0] if sentences else body  # 返回结果
+            return sentences[0] if sentences else body
         if text.startswith("python:"):
             body = text[len("python:"):].strip()
             if "double" in body:
-                return "def f(x):\n    return x * 2\n"  # 返回结果
+                return "def f(x):\n    return x * 2\n"
             if "increment" in body:
-                return "def f(x):\n    return x + 1\n"  # 返回结果
+                return "def f(x):\n    return x + 1\n"
             if "square" in body:
-                return "def f(x):\n    return x * x\n"  # 返回结果
-            return "def f(x):\n    return x\n"  # 返回结果
+                return "def f(x):\n    return x * x\n"
+            return "def f(x):\n    return x\n"
         if text.startswith("choose:"):
             body = text[len("choose:"):].strip()
-            return body.split("|", 1)[0].strip()[:1].upper()  # 返回结果
+            return body.split("|", 1)[0].strip()[:1].upper()
         if text.startswith("write:"):
             body = text[len("write:"):].strip()
-            return body  # 返回结果
-        return text  # 返回结果
+            return body
+        return text
 
 
 _ARITH_OPS = {
@@ -140,52 +140,45 @@ _ARITH_OPS = {
 def safe_arith_eval(expr: str) -> float:
     """Evaluate a small arithmetic expression without exposing eval."""
     tree = ast.parse(expr, mode="eval")
-    return _safe_eval(tree.body)  # 返回结果
+    return _safe_eval(tree.body)
 
 
 def _safe_eval(node: ast.AST) -> float:
-    """_safe_eval"""
     if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
-        return node.value  # 返回结果
+        return node.value
     if isinstance(node, ast.BinOp) and type(node.op) in _ARITH_OPS:
-        return _ARITH_OPS[type(node.op)](_safe_eval(node.left), _safe_eval(node.right))  # 返回结果
+        return _ARITH_OPS[type(node.op)](_safe_eval(node.left), _safe_eval(node.right))
     if isinstance(node, ast.UnaryOp) and type(node.op) in _ARITH_OPS:
-        return _ARITH_OPS[type(node.op)](_safe_eval(node.operand))  # 返回结果
+        return _ARITH_OPS[type(node.op)](_safe_eval(node.operand))
     raise ValueError(f"unsafe node: {ast.dump(node)}")
 
 
 def normalize(s: str) -> str:
-    """normalize"""
-    return re.sub(r"\s+", " ", s.strip().lower())  # 返回结果
+    return re.sub(r"\s+", " ", s.strip().lower())
 
 
 def metric_exact_match(prediction: str, targets: List[str]) -> float:
-    """metric_exact_match"""
     norm_pred = normalize(prediction)
-    return 1.0 if any(normalize(t) == norm_pred for t in targets) else 0.0  # 返回结果
+    return 1.0 if any(normalize(t) == norm_pred for t in targets) else 0.0
 
 
 def metric_substring_contains(prediction: str, targets: List[str]) -> float:
-    """metric_substring_contains"""
     norm_pred = normalize(prediction)
-    return 1.0 if any(normalize(t) in norm_pred for t in targets) else 0.0  # 返回结果
+    return 1.0 if any(normalize(t) in norm_pred for t in targets) else 0.0
 
 
 def metric_multiple_choice(prediction: str, targets: List[str]) -> float:
-    """metric_multiple_choice"""
     pred = prediction.strip()[:1].upper()
-    return 1.0 if pred in {t.strip()[:1].upper() for t in targets} else 0.0  # 返回结果
+    return 1.0 if pred in {t.strip()[:1].upper() for t in targets} else 0.0
 
 
 def _tokens(s: str) -> List[str]:
-    """_tokens"""
-    return re.findall(r"[a-z0-9]+", s.lower())  # 返回结果
+    return re.findall(r"[a-z0-9]+", s.lower())
 
 
 def _lcs_length(a: List[str], b: List[str]) -> int:
-    """_lcs_length"""
     if not a or not b:
-        return 0  # 返回结果
+        return 0
     prev = [0] * (len(b) + 1)
     for ai in a:
         cur = [0] * (len(b) + 1)
@@ -195,14 +188,13 @@ def _lcs_length(a: List[str], b: List[str]) -> int:
             else:
                 cur[j + 1] = max(prev[j + 1], cur[j])
         prev = cur
-    return prev[-1]  # 返回结果
+    return prev[-1]
 
 
 def metric_rouge_l(prediction: str, targets: List[str]) -> float:
-    """metric_rouge_l"""
     pred = _tokens(prediction)
     if not pred:
-        return 0.0  # 返回结果
+        return 0.0
     best = 0.0
     for ref in targets:
         ref_toks = _tokens(ref)
@@ -218,7 +210,7 @@ def metric_rouge_l(prediction: str, targets: List[str]) -> float:
         f1 = 2 * prec * rec / (prec + rec)
         if f1 > best:
             best = f1
-    return best  # 返回结果
+    return best
 
 
 def metric_code_exec(prediction: str, targets: List[str], extras: Dict[str, object]) -> float:
@@ -232,16 +224,16 @@ def metric_code_exec(prediction: str, targets: List[str], extras: Dict[str, obje
     """
     pairs = extras.get("io_pairs") or []
     if not isinstance(pairs, list) or not pairs:
-        return 0.0  # 返回结果
+        return 0.0
     safe_globals = {"__builtins__": {"range": range, "len": len, "min": min, "max": max, "abs": abs, "int": int, "float": float}}
     local: Dict[str, object] = {}
     try:
         exec(prediction, safe_globals, local)
     except Exception:
-        return 0.0  # 返回结果
+        return 0.0
     fn = local.get("f")
     if not callable(fn):
-        return 0.0  # 返回结果
+        return 0.0
     correct = 0
     for pair in pairs:
         if not (isinstance(pair, list) and len(pair) == 2):
@@ -254,8 +246,8 @@ def metric_code_exec(prediction: str, targets: List[str], extras: Dict[str, obje
         if actual == expected:
             correct += 1
     if not pairs:
-        return 0.0  # 返回结果
-    return correct / len(pairs)  # 返回结果
+        return 0.0
+    return correct / len(pairs)
 
 
 METRIC_FNS: Dict[str, Callable[..., float]] = {
@@ -268,7 +260,6 @@ METRIC_FNS: Dict[str, Callable[..., float]] = {
 
 
 def load_task_jsonl(path: Path) -> List[Example]:
-    """load_task_jsonl"""
     examples: List[Example] = []
     with path.open("r", encoding="utf-8") as f:
         for line_num, raw in enumerate(f, start=1):
@@ -286,11 +277,10 @@ def load_task_jsonl(path: Path) -> List[Example]:
                 metric=obj["metric"],
                 extras=dict(obj.get("extras", {})),
             ))
-    return examples  # 返回结果
+    return examples
 
 
 def write_task_jsonl(examples: Iterable[Example], path: Path) -> None:
-    """write_task_jsonl"""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         for ex in examples:
@@ -313,7 +303,7 @@ def run_task(
     if batch_size <= 0:
         raise ValueError(f"batch_size must be > 0, got {batch_size}")
     if not examples:
-        return TaskResult(task=task_name, metric="none", score=0.0, correct=0, total=0)  # 返回结果
+        return TaskResult(task=task_name, metric="none", score=0.0, correct=0, total=0)
     metric = examples[0].metric
     assert all(ex.metric == metric for ex in examples), f"task {task_name} mixes metrics"
     metric_fn = METRIC_FNS[metric]
@@ -343,7 +333,7 @@ def run_task(
     latency_ms = (time.perf_counter() - start) * 1000.0
     score = correct_sum / total if total else 0.0
     correct_int = int(round(correct_sum))
-    return TaskResult(  # 返回结果
+    return TaskResult(
         task=task_name,
         metric=metric,
         score=score,
@@ -368,7 +358,7 @@ def run_leaderboard(
         overall = sum(r.score for r in results) / len(results)
     else:
         overall = 0.0
-    return Leaderboard(  # 返回结果
+    return Leaderboard(
         schema="leaderboard.v1",
         timestamp=time.time(),
         overall_score=overall,
@@ -406,13 +396,11 @@ def write_leaderboard(
 
 
 def build_arithmetic_task() -> List[Example]:
-    """build_arithmetic_task"""
     items = [("2 + 2", "4"), ("7 - 3", "4"), ("6 * 4", "24"), ("100 / 4", "25.0"), ("12 + 9", "21")]
-    return [Example(id=f"arith-{i:02d}", prompt=f"compute: {q}", targets=[a], metric="exact_match") for i, (q, a) in enumerate(items)]  # 返回结果
+    return [Example(id=f"arith-{i:02d}", prompt=f"compute: {q}", targets=[a], metric="exact_match") for i, (q, a) in enumerate(items)]
 
 
 def build_summary_task() -> List[Example]:
-    """build_summary_task"""
     items = [
         ("Cats are mammals. Mammals are warm blooded.", "cats are mammals"),
         ("Python uses indentation. Indentation defines blocks.", "python uses indentation"),
@@ -420,11 +408,10 @@ def build_summary_task() -> List[Example]:
         ("Storms approach the coast. Waves rise quickly.", "storms approach the coast"),
         ("Bread bakes at high heat. Crust forms last.", "bread bakes at high heat"),
     ]
-    return [Example(id=f"sum-{i:02d}", prompt=f"summarize: {p}", targets=[t], metric="rouge_l") for i, (p, t) in enumerate(items)]  # 返回结果
+    return [Example(id=f"sum-{i:02d}", prompt=f"summarize: {p}", targets=[t], metric="rouge_l") for i, (p, t) in enumerate(items)]
 
 
 def build_code_task() -> List[Example]:
-    """build_code_task"""
     items = [
         ("write a function f that doubles its input", "double", [[1, 2], [3, 6], [5, 10]]),
         ("write a function f that increments its input", "increment", [[1, 2], [5, 6], [10, 11]]),
@@ -432,7 +419,7 @@ def build_code_task() -> List[Example]:
         ("write a function f that doubles its input again", "double", [[7, 14], [9, 18]]),
         ("write a function f that increments its input again", "increment", [[0, 1], [2, 3]]),
     ]
-    return [  # 返回结果
+    return [
         Example(
             id=f"code-{i:02d}",
             prompt=f"python: {prompt}",
@@ -445,7 +432,6 @@ def build_code_task() -> List[Example]:
 
 
 def build_choice_task() -> List[Example]:
-    """build_choice_task"""
     items = [
         ("A | mammal, B | reptile, C | bird", ["A"]),
         ("A | apple, B | car, C | tree", ["A"]),
@@ -453,11 +439,10 @@ def build_choice_task() -> List[Example]:
         ("A | square, B | triangle, C | circle", ["A"]),
         ("A | bread, B | rock, C | leaf", ["A"]),
     ]
-    return [Example(id=f"mc-{i:02d}", prompt=f"choose: {q}", targets=t, metric="multiple_choice") for i, (q, t) in enumerate(items)]  # 返回结果
+    return [Example(id=f"mc-{i:02d}", prompt=f"choose: {q}", targets=t, metric="multiple_choice") for i, (q, t) in enumerate(items)]
 
 
 def build_generation_task() -> List[Example]:
-    """build_generation_task"""
     items = [
         ("hello world", ["hello"]),
         ("training language models", ["language"]),
@@ -465,11 +450,10 @@ def build_generation_task() -> List[Example]:
         ("gradient accumulation step", ["gradient"]),
         ("distributed parameter sharding", ["distributed"]),
     ]
-    return [Example(id=f"gen-{i:02d}", prompt=f"write: {p}", targets=t, metric="substring_contains") for i, (p, t) in enumerate(items)]  # 返回结果
+    return [Example(id=f"gen-{i:02d}", prompt=f"write: {p}", targets=t, metric="substring_contains") for i, (p, t) in enumerate(items)]
 
 
 def seed_fixture_tasks(target_dir: Path) -> Dict[str, Path]:
-    """seed_fixture_tasks"""
     target_dir.mkdir(parents=True, exist_ok=True)
     tasks = {
         "arithmetic": build_arithmetic_task(),
@@ -483,30 +467,27 @@ def seed_fixture_tasks(target_dir: Path) -> Dict[str, Path]:
         path = target_dir / f"{name}.jsonl"
         write_task_jsonl(examples, path)
         paths[name] = path
-    return paths  # 返回结果
+    return paths
 
 
 def load_all_tasks(task_dir: Path) -> Dict[str, List[Example]]:
-    """load_all_tasks"""
     tasks: Dict[str, List[Example]] = {}
     for path in sorted(task_dir.glob("*.jsonl")):
         tasks[path.stem] = load_task_jsonl(path)
-    return tasks  # 返回结果
+    return tasks
 
 
 def parse_args() -> argparse.Namespace:
-    """parse_args"""
     p = argparse.ArgumentParser()
     p.add_argument("--task-dir", type=Path, default=TASKS_DIR)
     p.add_argument("--out", type=Path, default=LEADERBOARD)
     p.add_argument("--batch-size", type=int, default=4)
     p.add_argument("--include-per-example", action="store_true")
     p.add_argument("--seed-fixtures", action="store_true")
-    return p.parse_args()  # 返回结果
+    return p.parse_args()
 
 
 def main() -> int:
-    """main"""
     args = parse_args()
     if args.seed_fixtures or not args.task_dir.exists() or not list(args.task_dir.glob("*.jsonl")):
         print(f"seeding fixture tasks into {args.task_dir}")
@@ -525,7 +506,7 @@ def main() -> int:
     for r in board.tasks:
         print(f"  {r.task:>16}  metric={r.metric:>18}  score={r.score:0.3f}  ({r.correct}/{r.total})  latency_ms={r.latency_ms:.1f}")
     print(f"wrote {args.out}")
-    return 0  # 返回结果
+    return 0
 
 
 if __name__ == "__main__":

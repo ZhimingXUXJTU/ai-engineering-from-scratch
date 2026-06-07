@@ -8,8 +8,11 @@ models the DAG, the artifact manifest, and the contamination check.
 
 Run:  python main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：端到端微调管线 DAG——数据清洗 → 污染检查 → SFT → DPO 偏好调优 → 量化(GPTQ/AWQ/GGUF) →
+vLLM+EAGLE-3 推理服务 → lm-eval-harness 评估 → Model Card 生成，每个阶段通过内容哈希追踪产物
+AI 对应：Axolotl 是最流行的开源微调框架；trl (HuggingFace) 实现了 DPO/IPO/KTO；
+vLLM + EAGLE-3 是 2026 年推测解码推理的标准栈；lm-eval-harness 是模型评估的工业标准；
+Datatrove + Nemotron-CC 是数据清洗的标准工具组合
 """
 
 from __future__ import annotations
@@ -27,7 +30,6 @@ from typing import Callable
 
 @dataclass
 class Artifact:
-    """Artifact"""
     name: str
     kind: str         # "dataset" | "checkpoint" | "quant" | "endpoint" | "report"
     payload: dict
@@ -36,22 +38,21 @@ class Artifact:
 
     def content_hash(self) -> str:
         blob = json.dumps(self.payload, sort_keys=True, default=str).encode()
-        return hashlib.sha256(blob).hexdigest()[:12]  # 返回结果
+        return hashlib.sha256(blob).hexdigest()[:12]
 
 
 @dataclass
 class Manifest:
-    """Manifest"""
     artifacts: dict[str, Artifact] = field(default_factory=dict)
 
     def add(self, a: Artifact) -> None:
         self.artifacts[a.name] = a
 
     def get(self, name: str) -> Artifact:
-        return self.artifacts[name]  # 返回结果
+        return self.artifacts[name]
 
     def summary(self) -> list[tuple[str, str, str, str]]:
-        return [(a.name, a.kind, a.content_hash(), a.produced_by)  # 返回结果
+        return [(a.name, a.kind, a.content_hash(), a.produced_by)
                 for a in self.artifacts.values()]
 
 
@@ -63,13 +64,12 @@ Stage = Callable[[Manifest, dict], Artifact]
 
 
 def stage_data(m: Manifest, cfg: dict) -> Artifact:
-    """stage_data"""
     raw_n = cfg.get("raw_examples", 300_000)
     dedup_ratio = 0.94
     qual_ratio = 0.91
     pii_ratio = 0.995
     kept = int(raw_n * dedup_ratio * qual_ratio * pii_ratio)
-    return Artifact("dataset", "dataset", {  # 返回结果
+    return Artifact("dataset", "dataset", {
         "raw_examples": raw_n,
         "after_dedup": int(raw_n * dedup_ratio),
         "after_quality": int(raw_n * dedup_ratio * qual_ratio),
@@ -79,13 +79,12 @@ def stage_data(m: Manifest, cfg: dict) -> Artifact:
 
 
 def stage_contamination(m: Manifest, cfg: dict) -> Artifact:
-    """stage_contamination"""
     ds = m.get("dataset")
     overlap = []
     for bench in ("MMLU-Pro", "MT-Bench-v2", "RewardBench-2"):
         # simulated MinHash check; real pipeline uses Datatrove MinHashLSH
         overlap.append({"bench": bench, "overlap_examples": 0})
-    return Artifact("contamination_check", "report", {  # 返回结果
+    return Artifact("contamination_check", "report", {
         "dataset_hash": ds.content_hash(),
         "overlaps": overlap,
         "status": "clean" if all(o["overlap_examples"] == 0 for o in overlap) else "dirty",
@@ -93,9 +92,8 @@ def stage_contamination(m: Manifest, cfg: dict) -> Artifact:
 
 
 def stage_sft(m: Manifest, cfg: dict) -> Artifact:
-    """stage_sft"""
     ds = m.get("dataset")
-    return Artifact("sft_checkpoint", "checkpoint", {  # 返回结果
+    return Artifact("sft_checkpoint", "checkpoint", {
         "base": cfg["base_model"],
         "dataset_hash": ds.content_hash(),
         "epochs": 3,
@@ -106,9 +104,8 @@ def stage_sft(m: Manifest, cfg: dict) -> Artifact:
 
 
 def stage_dpo(m: Manifest, cfg: dict) -> Artifact:
-    """stage_dpo"""
     sft = m.get("sft_checkpoint")
-    return Artifact("dpo_checkpoint", "checkpoint", {  # 返回结果
+    return Artifact("dpo_checkpoint", "checkpoint", {
         "from": sft.content_hash(),
         "epochs": 1,
         "beta": 0.08,
@@ -117,9 +114,8 @@ def stage_dpo(m: Manifest, cfg: dict) -> Artifact:
 
 
 def stage_quantize(m: Manifest, cfg: dict) -> Artifact:
-    """stage_quantize"""
     ckpt = m.get("dpo_checkpoint")
-    return Artifact("quants", "quant", {  # 返回结果
+    return Artifact("quants", "quant", {
         "from": ckpt.content_hash(),
         "gptq_int4_gb": 4.6,
         "awq_int4_gb": 4.8,
@@ -128,9 +124,8 @@ def stage_quantize(m: Manifest, cfg: dict) -> Artifact:
 
 
 def stage_serve(m: Manifest, cfg: dict) -> Artifact:
-    """stage_serve"""
     quants = m.get("quants")
-    return Artifact("endpoint", "endpoint", {  # 返回结果
+    return Artifact("endpoint", "endpoint", {
         "backend": "vLLM 0.7 + EAGLE-3",
         "quant": "GPTQ-INT4-Marlin",
         "eagle_acceptance": 0.74,
@@ -141,9 +136,8 @@ def stage_serve(m: Manifest, cfg: dict) -> Artifact:
 
 
 def stage_eval(m: Manifest, cfg: dict) -> Artifact:
-    """stage_eval"""
     ckpt = m.get("dpo_checkpoint")
-    return Artifact("eval_report", "report", {  # 返回结果
+    return Artifact("eval_report", "report", {
         "from": ckpt.content_hash(),
         "mmlu_pro_delta": 3.2,
         "mt_bench_v2_delta": 0.41,
@@ -153,8 +147,7 @@ def stage_eval(m: Manifest, cfg: dict) -> Artifact:
 
 
 def stage_model_card(m: Manifest, cfg: dict) -> Artifact:
-    """stage_model_card"""
-    return Artifact("model_card", "report", {  # 返回结果
+    return Artifact("model_card", "report", {
         "standard": "MOF 2026",
         "data_license_declared": True,
         "training_config_hash": m.get("sft_checkpoint").content_hash(),
@@ -181,18 +174,16 @@ PIPELINE: list[tuple[str, Stage]] = [
 
 
 def run_pipeline(cfg: dict) -> Manifest:
-    """run_pipeline"""
     m = Manifest()
     for name, stage_fn in PIPELINE:
         print(f"[{name:14s}] running...")
         art = stage_fn(m, cfg)
         m.add(art)
         print(f"[{name:14s}] -> artifact '{art.name}' hash={art.content_hash()}")
-    return m  # 返回结果
+    return m
 
 
 def main() -> None:
-    """main"""
     cfg = {
         "base_model": "llama-3.3-8b",
         "raw_examples": 300_000,

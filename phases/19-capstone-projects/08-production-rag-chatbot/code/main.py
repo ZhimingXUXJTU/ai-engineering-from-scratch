@@ -9,8 +9,11 @@ stub safety gate. The point is to show how the prefixes line up.
 
 Run:  python main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：生产级 RAG 聊天机器人——缓存感知的提示词组装（稳定前缀优先以命中 prompt cache）+
+角色+司法管辖区过滤的混合检索 + RRF 融合 + Llama Guard 安全门 + Presidio PII 脱敏 + 引用强制
+AI 对应：Anthropic 和 OpenAI 的 prompt caching 可对稳定前缀提供 60-80% 折扣；
+Llama Guard 4 是开源内容安全分类器；Microsoft Presidio 是 PII 脱敏的工业标准；
+在 GDPR/HIPAA/SOC2 等受监管领域，角色+管辖区过滤是必须的访问控制层
 """
 
 from __future__ import annotations
@@ -26,7 +29,6 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Chunk:
-    """Chunk"""
     doc_id: str
     section: str
     text: str
@@ -34,7 +36,7 @@ class Chunk:
     jurisdiction: str   # "GDPR" | "HIPAA" | "SOC2" | "any"
 
     def anchor(self) -> str:
-        return f"{self.doc_id} {self.section}"  # 返回结果
+        return f"{self.doc_id} {self.section}"
 
 
 CORPUS = [
@@ -61,8 +63,7 @@ CORPUS = [
 # ---------------------------------------------------------------------------
 
 def tokenize(s: str) -> list[str]:
-    """tokenize"""
-    return re.findall(r"\w+", s.lower())  # 返回结果
+    return re.findall(r"\w+", s.lower())
 
 
 def bm25_score(query: str, chunk: Chunk) -> float:
@@ -70,8 +71,8 @@ def bm25_score(query: str, chunk: Chunk) -> float:
     q = set(tokenize(query))
     c = tokenize(chunk.text + " " + chunk.section + " " + chunk.doc_id)
     if not q or not c:
-        return 0.0  # 返回结果
-    return sum(1.0 for w in c if w in q) / (1 + len(c) / 20)  # 返回结果
+        return 0.0
+    return sum(1.0 for w in c if w in q) / (1 + len(c) / 20)
 
 
 def dense_score(query: str, chunk: Chunk) -> float:
@@ -79,12 +80,11 @@ def dense_score(query: str, chunk: Chunk) -> float:
     q = set(tokenize(query))
     c = set(tokenize(chunk.text))
     if not q or not c:
-        return 0.0  # 返回结果
+        return 0.0
     return len(q & c) / max(1, len(q | c))  # Jaccard stand-in
 
 
 def retrieve(query: str, role: str, jurisdiction: str,
-    """retrieve"""
              corpus: list[Chunk], k: int = 5) -> list[tuple[Chunk, float]]:
     # enforce access policy up front  (critical in regulated domains)
     eligible = [c for c in corpus
@@ -99,7 +99,7 @@ def retrieve(query: str, role: str, jurisdiction: str,
         hits[c.anchor()] = hits.get(c.anchor(), 0.0) + 1 / (60 + rank + 1)
         anchors[c.anchor()] = c
     ranked = sorted(hits.items(), key=lambda x: -x[1])
-    return [(anchors[a], s) for a, s in ranked[:k]]  # 返回结果
+    return [(anchors[a], s) for a, s in ranked[:k]]
 
 
 # ---------------------------------------------------------------------------
@@ -131,11 +131,10 @@ class PromptLayout:
 
     def cache_key(self) -> str:
         prefix = self.system + "\n" + self.policy + "\n" + "\n".join(self.context)
-        return hashlib.sha256(prefix.encode()).hexdigest()[:16]  # 返回结果
+        return hashlib.sha256(prefix.encode()).hexdigest()[:16]
 
 
 class PromptCache:
-    """PromptCache"""
     def __init__(self) -> None:
         self.store: dict[str, int] = {}
         self.hits = 0
@@ -145,14 +144,14 @@ class PromptCache:
         if key in self.store:
             self.store[key] += 1
             self.hits += 1
-            return True  # 返回结果
+            return True
         self.store[key] = 1
         self.misses += 1
-        return False  # 返回结果
+        return False
 
     def hit_rate(self) -> float:
         total = self.hits + self.misses
-        return self.hits / total if total else 0.0  # 返回结果
+        return self.hits / total if total else 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -167,18 +166,17 @@ BLOCKED_PATTERNS = [
 
 
 def llama_guard_input(query: str) -> tuple[bool, str]:
-    """llama_guard_input"""
     for pat in BLOCKED_PATTERNS:
         if re.search(pat, query, re.IGNORECASE):
-            return False, f"blocked by Llama Guard 4: {pat}"  # 返回结果
-    return True, "ok"  # 返回结果
+            return False, f"blocked by Llama Guard 4: {pat}"
+    return True, "ok"
 
 
 def presidio_scrub(text: str) -> str:
     """Simple PII scrub stand-in: redact emails and SSN-shaped tokens."""
     text = re.sub(r"[\w.+-]+@[\w-]+\.[\w.-]+", "[email]", text)
     text = re.sub(r"\b\d{3}-\d{2}-\d{4}\b", "[ssn]", text)
-    return text  # 返回结果
+    return text
 
 
 # ---------------------------------------------------------------------------
@@ -186,11 +184,10 @@ def presidio_scrub(text: str) -> str:
 # ---------------------------------------------------------------------------
 
 def chat_turn(query: str, role: str, jurisdiction: str,
-    """chat_turn"""
               corpus: list[Chunk], cache: PromptCache) -> dict:
     ok, reason = llama_guard_input(query)
     if not ok:
-        return {"blocked": True, "reason": reason}  # 返回结果
+        return {"blocked": True, "reason": reason}
 
     hits = retrieve(query, role, jurisdiction, corpus, k=3)
     context = [f"[{c.anchor()}] {c.text}" for c, _ in hits]
@@ -212,7 +209,7 @@ def chat_turn(query: str, role: str, jurisdiction: str,
         answer = "I do not have confident citations for this question."
 
     answer = presidio_scrub(answer)
-    return {  # 返回结果
+    return {
         "blocked": False,
         "role": role,
         "jurisdiction": jurisdiction,
@@ -224,7 +221,6 @@ def chat_turn(query: str, role: str, jurisdiction: str,
 
 
 def main() -> None:
-    """main"""
     cache = PromptCache()
 
     print("=== analyst / GDPR ===")

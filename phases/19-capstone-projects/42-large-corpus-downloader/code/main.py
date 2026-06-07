@@ -9,8 +9,12 @@ The demo at the bottom builds a small synthetic corpus on disk, compresses it
 with Zstandard, exposes it via a file URL, downloads it through this module,
 and prints the manifest. Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：流式语料库下载器 + MinHash/LSH 去重 —— 从 URL 列表拉取压缩分片，流式解压 Zstandard，
+遍历 JSONL 文档，MinHash 指纹 + LSH 局部敏感哈希去重，写入分片清单。
+
+AI 对应：所有 LLM 预训练都需要大规模数据清洗。GPT-4 的训练数据经过
+MinHash/LSH 去重（Brown et al. 2020）。Common Crawl 的处理管线也采用相同技术。
+理解数据去重是理解 LLM 训练数据准备的关键步骤。
 """
 
 from __future__ import annotations
@@ -69,7 +73,7 @@ class ShardResult:
     sha256: str
 
     def to_manifest_row(self) -> dict[str, object]:
-        return asdict(self)  # 返回结果
+        return asdict(self)
 
 
 @dataclass
@@ -92,12 +96,12 @@ class CheckpointState:
     sha256_prefix_hex: str
 
     def to_json(self) -> str:
-        return json.dumps(asdict(self), sort_keys=True)  # 返回结果
+        return json.dumps(asdict(self), sort_keys=True)
 
     @classmethod
     def from_json(cls, text: str) -> "CheckpointState":
         data = json.loads(text)
-        return cls(  # 返回结果
+        return cls(
             url=str(data["url"]),
             verified_bytes=int(data["verified_bytes"]),
             expected_size=(int(data["expected_size"]) if data.get("expected_size") is not None else None),
@@ -116,7 +120,7 @@ def _hash_seed_pair(seed: int) -> tuple[int, int]:
     digest = hashlib.blake2b(seed.to_bytes(8, "little"), digest_size=16).digest()
     a = int.from_bytes(digest[:8], "little") | 1  # ensure a is non-zero
     b = int.from_bytes(digest[8:], "little")
-    return a, b  # 返回结果
+    return a, b
 
 
 class MinHasher:
@@ -136,23 +140,23 @@ class MinHasher:
 
         tokens = text.split()
         if len(tokens) < self.shingle_width:
-            return [" ".join(tokens)] if tokens else []  # 返回结果
+            return [" ".join(tokens)] if tokens else []
         shingles: list[str] = []
         for start in range(len(tokens) - self.shingle_width + 1):
             shingles.append(" ".join(tokens[start : start + self.shingle_width]))
-        return shingles  # 返回结果
+        return shingles
 
     @staticmethod
     def _hash_shingle(shingle: str) -> int:
         digest = hashlib.blake2b(shingle.encode("utf-8"), digest_size=8).digest()
-        return int.from_bytes(digest, "little")  # 返回结果
+        return int.from_bytes(digest, "little")
 
     def signature(self, text: str) -> list[int]:
         """Return the MinHash signature as a list of num_hashes 64-bit ints."""
 
         shingles = self.shingles(text)
         if not shingles:
-            return [MAX_UINT64] * self.num_hashes  # 返回结果
+            return [MAX_UINT64] * self.num_hashes
         shingle_hashes = [self._hash_shingle(s) for s in shingles]
         sig: list[int] = []
         for a, b in self._coefficients:
@@ -162,7 +166,7 @@ class MinHasher:
                 if candidate < best:
                     best = candidate
             sig.append(best)
-        return sig  # 返回结果
+        return sig
 
 
 class LSHIndex:
@@ -186,7 +190,7 @@ class LSHIndex:
 
     @staticmethod
     def _band_key(band: list[int]) -> bytes:
-        return hashlib.blake2b(b"".join(struct.pack("<Q", v) for v in band), digest_size=16).digest()  # 返回结果
+        return hashlib.blake2b(b"".join(struct.pack("<Q", v) for v in band), digest_size=16).digest()
 
     def query(self, signature: list[int]) -> str | None:
         """Return the doc id of a near-duplicate keeper or None."""
@@ -196,8 +200,8 @@ class LSHIndex:
             key = self._band_key(band)
             bucket = self._buckets[i].get(key)
             if bucket:
-                return bucket[0]  # 返回结果
-        return None  # 返回结果
+                return bucket[0]
+        return None
 
     def insert(self, doc_id: str, signature: list[int]) -> None:
         self._signatures[doc_id] = signature
@@ -212,7 +216,7 @@ class LSHIndex:
         sig_a = self._signatures[doc_a]
         sig_b = self._signatures[doc_b]
         agree = sum(1 for a, b in zip(sig_a, sig_b) if a == b)
-        return agree / self.num_hashes  # 返回结果
+        return agree / self.num_hashes
 
 
 class Dedup:
@@ -226,7 +230,7 @@ class Dedup:
         sig = self.hasher.signature(text)
         keeper = self.index.query(sig)
         if keeper is not None:
-            return DocVerdict(  # 返回结果
+            return DocVerdict(
                 shard_id=shard_id,
                 doc_index=doc_index,
                 verdict="near_duplicate",
@@ -234,7 +238,7 @@ class Dedup:
             )
         doc_id = f"{shard_id}:{doc_index}"
         self.index.insert(doc_id, sig)
-        return DocVerdict(shard_id=shard_id, doc_index=doc_index, verdict="keep")  # 返回结果
+        return DocVerdict(shard_id=shard_id, doc_index=doc_index, verdict="keep")
 
 
 class ZstdDocIterator:
@@ -280,15 +284,15 @@ class StreamingDownloader:
     def _paths_for(self, shard_id: str) -> tuple[Path, Path]:
         shard_path = self.cache_dir / f"{shard_id}.zst"
         checkpoint_path = self.cache_dir / f"{shard_id}.partial.json"
-        return shard_path, checkpoint_path  # 返回结果
+        return shard_path, checkpoint_path
 
     def _read_checkpoint(self, checkpoint_path: Path) -> CheckpointState | None:
         if not checkpoint_path.exists():
-            return None  # 返回结果
+            return None
         try:
-            return CheckpointState.from_json(checkpoint_path.read_text("utf-8"))  # 返回结果
+            return CheckpointState.from_json(checkpoint_path.read_text("utf-8"))
         except (json.JSONDecodeError, KeyError, ValueError):
-            return None  # 返回结果
+            return None
 
     def _write_checkpoint(self, checkpoint_path: Path, state: CheckpointState) -> None:
         tmp = checkpoint_path.with_suffix(".json.tmp")
@@ -297,20 +301,20 @@ class StreamingDownloader:
 
     def _verify_partial(self, shard_path: Path, state: CheckpointState) -> bool:
         if not shard_path.exists():
-            return False  # 返回结果
+            return False
         actual_size = shard_path.stat().st_size
         if actual_size != state.verified_bytes:
-            return False  # 返回结果
+            return False
         hasher = hashlib.sha256()
         with shard_path.open("rb") as fh:
             remaining = state.verified_bytes
             while remaining > 0:
                 buf = fh.read(min(self.chunk_bytes, remaining))
                 if not buf:
-                    return False  # 返回结果
+                    return False
                 hasher.update(buf)
                 remaining -= len(buf)
-        return hasher.hexdigest() == state.sha256_prefix_hex  # 返回结果
+        return hasher.hexdigest() == state.sha256_prefix_hex
 
     def download(self, plan: ShardPlan) -> ShardResult:
         parsed = urllib.parse.urlparse(plan.url)
@@ -399,7 +403,7 @@ class StreamingDownloader:
                 decompressed_bytes += len(chunk)
                 document_count += chunk.count(b"\n")
 
-        return ShardResult(  # 返回结果
+        return ShardResult(
             shard_id=plan.shard_id,
             url=plan.url,
             raw_bytes=resume_from,
@@ -420,7 +424,7 @@ class ShardPlanner:
         for index, url in enumerate(urls):
             shard_id = f"shard-{index:04d}"
             plans.append(ShardPlan(shard_id=shard_id, url=url))
-        return plans  # 返回结果
+        return plans
 
 
 class ManifestWriter:
@@ -448,15 +452,15 @@ class ManifestWriter:
         manifest_path.write_text(text, encoding="utf-8")
         lock_path = manifest_path.with_suffix(manifest_path.suffix + ".lock")
         lock_path.write_text(json.dumps({"manifest_sha256": manifest_sha}), encoding="utf-8")
-        return manifest_sha  # 返回结果
+        return manifest_sha
 
     @property
     def shards(self) -> list[dict[str, object]]:
-        return list(self._rows)  # 返回结果
+        return list(self._rows)
 
     @property
     def verdicts(self) -> list[dict[str, object]]:
-        return list(self._verdicts)  # 返回结果
+        return list(self._verdicts)
 
 
 def process_shard(
@@ -481,7 +485,7 @@ def process_shard(
                 duplicates += 1
     result = dataclasses.replace(result, kept_count=kept, duplicate_count=duplicates)
     manifest.add_shard(result)
-    return result  # 返回结果
+    return result
 
 
 def build_demo_corpus(directory: Path) -> list[str]:
@@ -511,11 +515,10 @@ def build_demo_corpus(directory: Path) -> list[str]:
         path = directory / f"corpus-{i:02d}.zst"
         path.write_bytes(compressed)
         urls.append(path.as_uri())
-    return urls  # 返回结果
+    return urls
 
 
 def run_demo() -> int:
-    """run_demo"""
     with tempfile.TemporaryDirectory() as raw_dir, tempfile.TemporaryDirectory() as cache_dir:
         corpus_dir = Path(raw_dir)
         cache_path = Path(cache_dir)
@@ -538,7 +541,7 @@ def run_demo() -> int:
         kept = sum(int(row["kept_count"]) for row in manifest.shards)
         dup = sum(int(row["duplicate_count"]) for row in manifest.shards)
         print(f"[manifest] sha256={manifest_sha[:12]} kept={kept} duplicates={dup}")
-    return 0  # 返回结果
+    return 0
 
 
 if __name__ == "__main__":

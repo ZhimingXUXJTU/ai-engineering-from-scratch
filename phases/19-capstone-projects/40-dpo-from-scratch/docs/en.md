@@ -18,6 +18,8 @@
 - Train the policy on `(prompt, chosen, rejected)` triples and watch the chosen log-prob rise relative to rejected.
 - Pin behaviour with tests on the loss math, the gradient sign, and the reference invariance.
 
+> **【中文解读】** DPO 将 RLHF 堆栈（奖励模型 + PPO）压缩为单一的监督损失，直接在偏好对上训练策略。本课从奖励差恒等式推导 DPO 损失，构建参考模型+策略模型对，计算逐 token 对数概率，在小型 Transformer 上用偏好数据训练。测试固定损失数学和梯度方向，确保实现与论文一致。
+
 ## The Problem | 问题
 
 You have an SFT model. It follows instructions, but its outputs are uneven; some completions are clear, some are wordy or wrong. You also have a small dataset of preference pairs: for the same prompt, a human marked one completion as chosen and the other as rejected.

@@ -17,6 +17,8 @@ Adaptive tutoring used to be an ed-tech research niche. By 2026 it is a consumer
 
 You will build one of these for a specific cohort. The measurement bar is an actual efficacy study: pre-test and post-test scores over two weeks with 10 learners. The voice loop must feel natural (capstone 03 sub-stack). The memory must be privacy-respecting. The safety filter must pass COPPA-aware red-team for K-12.
 
+> **【中文解读】** 2026 年自适应辅导已从教育技术研究变成消费产品。共同要素：多模态输入（打字、语音、拍照方程式）、苏格拉底教学法（先问后解释）、每次交互后更新的学习者模型、严格的适龄安全过滤。你将为特定群体构建一个这样的系统，测量标准是真实的效力研究：10 名学习者的两周前后测试成绩对比。
+
 ## Concept
 
 Four components. **Tutor policy** is a Socratic loop: when the learner asks for the answer, the policy asks a leading question; when they get it right, it moves to the next concept; when they are stuck, it offers a scaffolded hint. **Learner model** is Bayesian knowledge tracing (or a simple variant) that updates mastery probability per curriculum node after each interaction. **Curriculum graph** is a Neo4j of concepts with prerequisite edges; the policy walks the graph to pick the next concept. **Memory** is an episodic + semantic store (agentmemory-style) holding past interactions, mistakes, and preferences.

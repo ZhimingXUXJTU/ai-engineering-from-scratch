@@ -23,6 +23,10 @@ A new language model lands every week. The marketing claim is that it does well.
 
 Without a harness in your repo you compare two models by vibes. With a harness you compare them by score on a fixed task set with a fixed metric, on a JSON output you can diff. The harness is the contract between yesterday's run and today's run. Without it, regressions ship.
 
+> **【中文解读】** 评估线束（Evaluation Harness）是模型评估的基础设施：任务定义（JSONL 格式）、指标实现（精确匹配、ROUGE-L、可执行检查等）、批处理运行器和可复现的排行榜。没有线束就只能靠感觉比较模型，有线束就能在固定任务集和固定指标上量化对比。线束是昨天运行和今天运行之间的契约。
+
+> **【拓展：评估线束 → 生产实践】** 在生产环境中，评估线束是 CI/CD 管道的核心组件。每次模型更新或提示修改都应在固定评估集上运行线束，对比分数差异，防止回归。lm-eval-harness（EleutherAI）是这个思路的开源实现。
+
 The trap is over-fitting the harness to a single model. The fix is the same trap in reverse: the harness is small enough to read in fifteen minutes, the tasks are small enough to ship in the repo, the metrics are written from scratch so a colleague can audit them, and the adapter is the only place model-specific code lives. Swap the adapter, the leaderboard moves; swap the tasks, the leaderboard moves. Nothing else should move.
 
 ## The Concept | 概念

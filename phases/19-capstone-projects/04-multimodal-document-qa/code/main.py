@@ -8,8 +8,11 @@ loading a real ColQwen model. Includes DocPruner-style patch pruning.
 
 Run:  python main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：ColPali 风格的后期交互多模态检索——每个查询 token 与每个文档 patch 计算 MaxSim，
+无需 OCR 即可直接在视觉 patch 上做文档检索，配合 DocPruner patch 剪枝优化
+AI 对应：ColPali / ColQwen (Faysse et al. 2024) 是文档理解领域的突破性方法；
+DocPruner 通过 patch 剪枝将推理成本降低 50%；ViDoRe 基准测试验证了视觉优先检索优于
+传统 OCR + text 管线；M3DocRAG 扩展到多页推理场景
 """
 
 from __future__ import annotations
@@ -28,21 +31,18 @@ EMB_DIM = 16
 
 
 def tokenize(text: str) -> list[str]:
-    """tokenize"""
-    return re.findall(r"\w+", text.lower())  # 返回结果
+    return re.findall(r"\w+", text.lower())
 
 
 def hash_embed(tok: str) -> list[float]:
-    """hash_embed"""
     rnd = random.Random(hash(tok) & 0xFFFFFFFF)
     v = [rnd.gauss(0, 1) for _ in range(EMB_DIM)]
     n = math.sqrt(sum(x * x for x in v)) or 1.0
-    return [x / n for x in v]  # 返回结果
+    return [x / n for x in v]
 
 
 @dataclass
 class Page:
-    """Page"""
     doc_id: str
     page_num: int
     content_tokens: list[str]          # stand-in for page contents
@@ -63,7 +63,7 @@ def doc_prune(patches: list[list[float]], keep_fraction: float = 0.5) -> list[li
     scored = [(sum(abs(x) for x in p), p) for p in patches]
     scored.sort(key=lambda x: -x[0])
     keep_n = max(1, int(len(scored) * keep_fraction))
-    return [p for _, p in scored[:keep_n]]  # 返回结果
+    return [p for _, p in scored[:keep_n]]
 
 
 # ---------------------------------------------------------------------------
@@ -71,12 +71,10 @@ def doc_prune(patches: list[list[float]], keep_fraction: float = 0.5) -> list[li
 # ---------------------------------------------------------------------------
 
 def dot(a: list[float], b: list[float]) -> float:
-    """dot"""
-    return sum(x * y for x, y in zip(a, b))  # 返回结果
+    return sum(x * y for x, y in zip(a, b))
 
 
 def max_sim_score(query_tokens: list[list[float]],
-    """max_sim_score"""
                   doc_patches: list[list[float]]) -> float:
     """For every query token embedding, take max dot product against any
     doc patch; sum across query tokens. This is MaxSim / late interaction."""
@@ -88,7 +86,7 @@ def max_sim_score(query_tokens: list[list[float]],
             if s > best:
                 best = s
         total += best
-    return total  # 返回结果
+    return total
 
 
 # ---------------------------------------------------------------------------
@@ -97,7 +95,6 @@ def max_sim_score(query_tokens: list[list[float]],
 
 @dataclass
 class Index:
-    """Index"""
     pages: list[Page] = field(default_factory=list)
 
     def add(self, p: Page) -> None:
@@ -107,7 +104,7 @@ class Index:
         q_tokens = [hash_embed(t) for t in tokenize(query)]
         scored = [(pg, max_sim_score(q_tokens, pg.patches)) for pg in self.pages]
         scored.sort(key=lambda x: -x[1])
-        return scored[:k]  # 返回结果
+        return scored[:k]
 
 
 # ---------------------------------------------------------------------------
@@ -129,7 +126,6 @@ CORPUS = [
 
 
 def build_index(prune: bool = True) -> Index:
-    """build_index"""
     idx = Index()
     for doc, page, text in CORPUS:
         p = Page(doc_id=doc, page_num=page, content_tokens=tokenize(text))
@@ -137,11 +133,10 @@ def build_index(prune: bool = True) -> Index:
         if prune:
             p.patches = doc_prune(p.patches, keep_fraction=0.5)
         idx.add(p)
-    return idx  # 返回结果
+    return idx
 
 
 def main() -> None:
-    """main"""
     print("=== build index with DocPruner (50% patches) ===")
     idx = build_index(prune=True)
     print(f"pages indexed: {len(idx.pages)}")

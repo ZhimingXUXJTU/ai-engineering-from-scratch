@@ -7,8 +7,11 @@ Concept refs:
   - Symlink-safe path jail via realpath prefix check.
 The demo at the bottom runs a battery of allow/deny calls and exits zero.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：沙箱运行器——命令拒绝名单 + 符号链接安全的路径牢笼（realpath 前缀检查）+
+wall-clock 超时，确保 Agent 执行的 shell 命令无法逃逸沙箱或执行破坏性操作
+AI 对应：E2B (CodeSandbox) 和 Daytona 提供云端沙箱供 AI Agent 安全执行代码；
+Docker 的 read-only 文件系统和 gVisor 的用户空间内核是更底层的安全隔离；
+OpenAI Code Interpreter 和 Claude Artifacts 都使用沙箱化执行环境
 """
 
 from __future__ import annotations
@@ -112,10 +115,10 @@ class SandboxResult:
 
     @property
     def ok(self) -> bool:
-        return self.exit_code == 0 and not self.denied and not self.timed_out  # 返回结果
+        return self.exit_code == 0 and not self.denied and not self.timed_out
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "argv": self.argv,
             "exit_code": self.exit_code,
             "stdout_bytes": len(self.stdout),
@@ -153,51 +156,47 @@ class SandboxConfig:
 
 
 def _basename(executable: str) -> str:
-    """_basename"""
-    return os.path.basename(executable.strip())  # 返回结果
+    return os.path.basename(executable.strip())
 
 
 def _check_executable_denylist(argv: Sequence[str], cfg: SandboxConfig) -> str | None:
-    """_check_executable_denylist"""
     if not argv:
-        return "empty argv"  # 返回结果
+        return "empty argv"
     name = _basename(argv[0])
     if not name:
-        return f"executable {argv[0]!r} has no basename"  # 返回结果
+        return f"executable {argv[0]!r} has no basename"
     if name in cfg.denylist:
-        return f"executable {name!r} is on the denylist"  # 返回结果
-    return None  # 返回结果
+        return f"executable {name!r} is on the denylist"
+    return None
 
 
 def _check_argv_interpreter(argv: Sequence[str], cfg: SandboxConfig) -> str | None:
-    """_check_argv_interpreter"""
     if not argv:
-        return None  # 返回结果
+        return None
     name = _basename(argv[0])
     if name not in cfg.interpreter_block:
-        return None  # 返回结果
+        return None
     for arg in argv[1:]:
         for pat in INTERPRETER_FLAG_PATTERNS:
             if pat.match(arg):
-                return (  # 返回结果
+                return (
                     f"interpreter {name!r} invoked with refused flag {arg!r}; "
                     "use a script file instead of -c/-e"
                 )
-    return None  # 返回结果
+    return None
 
 
 def _check_shell_metachars(argv: Sequence[str], shell: bool) -> str | None:
-    """_check_shell_metachars"""
     if shell:
-        return None  # 返回结果
+        return None
     for arg in argv:
         for meta in SHELL_METACHARS:
             if meta in arg:
-                return (  # 返回结果
+                return (
                     f"argv contains shell metachar {meta!r} in {arg!r}; "
                     "set shell=True to opt in"
                 )
-    return None  # 返回结果
+    return None
 
 
 _PATH_HINT = re.compile(r"[/\\]|^\.{1,2}$")
@@ -213,14 +212,13 @@ def _looks_like_path(arg: str) -> bool:
     """
 
     if not arg:
-        return False  # 返回结果
+        return False
     if _PATH_HINT.search(arg):
-        return True  # 返回结果
-    return False  # 返回结果
+        return True
+    return False
 
 
 def _check_path_jail(argv: Sequence[str], cfg: SandboxConfig) -> str | None:
-    """_check_path_jail"""
     root = cfg.project_root
     for arg in argv[1:]:
         if not _looks_like_path(arg):
@@ -233,11 +231,11 @@ def _check_path_jail(argv: Sequence[str], cfg: SandboxConfig) -> str | None:
             candidate = os.path.join(root, candidate)
         resolved = os.path.realpath(candidate)
         if resolved != root and not resolved.startswith(root + os.sep):
-            return (  # 返回结果
+            return (
                 f"path argument {arg!r} resolves outside project root "
                 f"({resolved!r} not under {root!r})"
             )
-    return None  # 返回结果
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -246,11 +244,10 @@ def _check_path_jail(argv: Sequence[str], cfg: SandboxConfig) -> str | None:
 
 
 def truncate_stream(buf: bytes, max_bytes: int) -> tuple[bytes, bool]:
-    """truncate_stream"""
     if len(buf) <= max_bytes:
-        return buf, False  # 返回结果
+        return buf, False
     head = buf[:max_bytes]
-    return head + TRUNCATION_MARKER, True  # 返回结果
+    return head + TRUNCATION_MARKER, True
 
 
 # ---------------------------------------------------------------------------
@@ -283,19 +280,19 @@ class Sandbox:
             if reason is not None:
                 result.denied = True
                 result.reason = reason
-                return result  # 返回结果
+                return result
 
         shell_reason = _check_shell_metachars(argv_list, shell=shell)
         if shell_reason is not None:
             result.denied = True
             result.reason = shell_reason
-            return result  # 返回结果
+            return result
 
         path_reason = _check_path_jail(argv_list, self.config)
         if path_reason is not None:
             result.denied = True
             result.reason = path_reason
-            return result  # 返回结果
+            return result
 
         work_cwd = cwd or self.config.project_root
         real_cwd = os.path.realpath(work_cwd)
@@ -304,7 +301,7 @@ class Sandbox:
         ):
             result.denied = True
             result.reason = f"cwd {work_cwd!r} not under project root"
-            return result  # 返回结果
+            return result
 
         env: dict[str, str] = {}
         parent_env = os.environ
@@ -334,7 +331,7 @@ class Sandbox:
             stderr_buf, stderr_truncated = truncate_stream(
                 stderr_raw, self.config.max_output_bytes
             )
-            return SandboxResult(  # 返回结果
+            return SandboxResult(
                 argv=argv_list,
                 exit_code=TIMED_OUT_EXIT_CODE,
                 stdout=stdout_buf,
@@ -347,7 +344,7 @@ class Sandbox:
             )
         except FileNotFoundError as exc:
             elapsed = (time.perf_counter() - started) * 1000.0
-            return SandboxResult(  # 返回结果
+            return SandboxResult(
                 argv=argv_list,
                 exit_code=DENIED_EXIT_CODE,
                 stdout=b"",
@@ -366,7 +363,7 @@ class Sandbox:
         stderr_buf, stderr_truncated = truncate_stream(
             proc.stderr or b"", self.config.max_output_bytes
         )
-        return SandboxResult(  # 返回结果
+        return SandboxResult(
             argv=argv_list,
             exit_code=proc.returncode,
             stdout=stdout_buf,
@@ -385,21 +382,19 @@ class Sandbox:
 
 
 def find_executable(candidates: Iterable[str]) -> str | None:
-    """find_executable"""
     for name in candidates:
         path = _which(name)
         if path is not None:
-            return path  # 返回结果
-    return None  # 返回结果
+            return path
+    return None
 
 
 def _which(name: str) -> str | None:
-    """_which"""
     for entry in os.environ.get("PATH", "").split(os.pathsep):
         candidate = os.path.join(entry, name)
         if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
-            return candidate  # 返回结果
-    return None  # 返回结果
+            return candidate
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -417,11 +412,10 @@ def _seed_project_root() -> str:
     os.makedirs(sub, exist_ok=True)
     with open(os.path.join(sub, "main.py"), "w", encoding="utf-8") as fh:
         fh.write("print('main')\n")
-    return root  # 返回结果
+    return root
 
 
 def _print_outcome(label: str, result: SandboxResult) -> None:
-    """_print_outcome"""
     badge = (
         "OK"
         if result.ok
@@ -513,7 +507,7 @@ def run_demo() -> int:
             indent=2,
         )
     )
-    return 0  # 返回结果
+    return 0
 
 
 if __name__ == "__main__":

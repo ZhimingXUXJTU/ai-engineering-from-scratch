@@ -17,6 +17,8 @@ Coding agents became the dominant AI application category in 2026. Claude Code (
 
 You cannot reason about these agents from the outside. You have to build one, watch the loop crash on turn 47 when ripgrep returns 8MB of matches, and rebuild the truncation layer. That is the point of this capstone.
 
+> **【中文解读】** 编码 Agent 是 2026 年最主要的 AI 应用类别。所有主流产品（Claude Code、Cursor 3、OpenCode 等）的架构都相同：终端线束、权限工具面、沙箱和计划-行动-观察循环。大多数失败模式不是模型错误，而是工具循环不稳定、上下文污染、token 成本失控和破坏性文件系统操作。你必须亲手构建一个才能理解这些。
+
 ## Concept
 
 The harness has four surfaces. **Plan** maintains a TodoWrite-style state object that the model rewrites each turn. **Act** dispatches tool calls (read, edit, run, search, git). **Observe** captures stdout / stderr / exit codes, truncates, and feeds the summary back. **Recover** handles tool errors without blowing the context window or looping forever. The 2026 shape adds one more thing: **hooks**. `PreToolUse`, `PostToolUse`, `SessionStart`, `SessionEnd`, `UserPromptSubmit`, `Notification`, `Stop`, and `PreCompact` — configurable extension points where the operator injects policy, telemetry, and guardrails.

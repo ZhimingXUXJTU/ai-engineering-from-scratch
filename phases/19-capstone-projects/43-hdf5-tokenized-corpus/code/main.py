@@ -13,8 +13,11 @@ The demo at the bottom builds an in-memory corpus, tokenizes into shards, opens
 them via memory map, runs the dataloader for a few batches, and prints the
 per-batch shape and a checksum. Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：HDF5 分片 token 语料库——流式分词 + 可调整大小的 HDF5 数据集 + SWMR 模式 mmap 读取 +
+shards.json 索引 + 滑动窗口 DataLoader，支持大规模 token 语料的高效磁盘存储和随机访问
+AI 对应：HuggingFace datasets 使用 memory-mapped Arrow 格式实现类似功能；
+Pile (EleutherAI) 和 RedPajama 使用分片存储管理 TB 级语料；
+mmap 读取避免将整个语料加载到内存，是训练大模型的数据基础设施核心设计
 """
 
 from __future__ import annotations
@@ -57,7 +60,7 @@ class ShardWriteResult:
     sha256: str
 
     def to_dict(self) -> dict[str, object]:
-        return asdict(self)  # 返回结果
+        return asdict(self)
 
 
 @dataclass
@@ -72,7 +75,7 @@ class ShardIndexEntry:
     global_start: int
 
     def to_dict(self) -> dict[str, object]:
-        return asdict(self)  # 返回结果
+        return asdict(self)
 
 
 class Tokenizer:
@@ -94,13 +97,13 @@ class Tokenizer:
 
     def encode(self, text: str) -> list[int]:
         if not text:
-            return []  # 返回结果
+            return []
         data = text.encode("utf-8")
-        return [self.BYTE_OFFSET + b for b in data]  # 返回结果
+        return [self.BYTE_OFFSET + b for b in data]
 
     def decode(self, ids: Iterable[int]) -> str:
         byte_ids = [int(i) - self.BYTE_OFFSET for i in ids if int(i) >= self.BYTE_OFFSET]
-        return bytes(byte_ids).decode("utf-8", errors="replace")  # 返回结果
+        return bytes(byte_ids).decode("utf-8", errors="replace")
 
 
 class HDF5ShardWriter:
@@ -138,7 +141,7 @@ class HDF5ShardWriter:
             dtype=TOKEN_DTYPE,
         )
         self._file.swmr_mode = True
-        return self  # 返回结果
+        return self
 
     def __exit__(self, exc_type, exc, tb) -> None:
         try:
@@ -172,7 +175,7 @@ class HDF5ShardWriter:
         if self._dataset is None:
             raise RuntimeError("writer is not open")
         if not self._buffer:
-            return  # 返回结果
+            return
         size = len(self._buffer) if final else self.chunk_size
         chunk = np.asarray(self._buffer[:size], dtype=TOKEN_DTYPE)
         new_total = self._token_count + size
@@ -187,14 +190,14 @@ class HDF5ShardWriter:
 
     @property
     def token_count(self) -> int:
-        return self._token_count  # 返回结果
+        return self._token_count
 
     @property
     def document_count(self) -> int:
-        return self._document_count  # 返回结果
+        return self._document_count
 
     def result(self, shard_id: str) -> ShardWriteResult:
-        return ShardWriteResult(  # 返回结果
+        return ShardWriteResult(
             shard_id=shard_id,
             path=str(self.path),
             token_count=self._token_count,
@@ -225,7 +228,7 @@ class ShardedTokenizationPipeline:
             for text in documents:
                 writer.add_document(self.tokenizer.encode(text))
                 writer.add_boundary()
-        return writer.result(shard_id)  # 返回结果
+        return writer.result(shard_id)
 
     def write_corpus(self, shards: dict[str, Iterable[str]]) -> list[ShardIndexEntry]:
         entries: list[ShardIndexEntry] = []
@@ -251,7 +254,7 @@ class ShardedTokenizationPipeline:
             "shards": [entry.to_dict() for entry in entries],
         }
         index_path.write_text(json.dumps(body, sort_keys=True, indent=2), encoding="utf-8")
-        return entries  # 返回结果
+        return entries
 
 
 class MmapTokenStore:
@@ -286,7 +289,7 @@ class MmapTokenStore:
 
     @property
     def total_tokens(self) -> int:
-        return self._total_tokens  # 返回结果
+        return self._total_tokens
 
     def close(self) -> None:
         for file in self._files:
@@ -298,7 +301,7 @@ class MmapTokenStore:
         self._datasets = []
 
     def __enter__(self) -> "MmapTokenStore":
-        return self  # 返回结果
+        return self
 
     def __exit__(self, exc_type, exc, tb) -> None:
         self.close()
@@ -309,7 +312,7 @@ class MmapTokenStore:
         if stop > self._total_tokens:
             raise ValueError(f"stop ({stop}) exceeds total tokens ({self._total_tokens})")
         if stop == start:
-            return np.empty((0,), dtype=TOKEN_DTYPE)  # 返回结果
+            return np.empty((0,), dtype=TOKEN_DTYPE)
         out = np.empty((stop - start,), dtype=TOKEN_DTYPE)
         cursor = 0
         for entry, dataset in zip(self._entries, self._datasets):
@@ -330,7 +333,7 @@ class MmapTokenStore:
             raise RuntimeError(
                 f"slice read produced {cursor} tokens, expected {stop - start}"
             )
-        return out  # 返回结果
+        return out
 
 
 class SlidingWindowDataloader:
@@ -360,7 +363,7 @@ class SlidingWindowDataloader:
     def _sample_window(self) -> tuple[np.ndarray, np.ndarray]:
         start = self._random.randint(0, self._max_start)
         chunk = self.store.get_slice(start, start + self.window_size + 1)
-        return chunk[:-1], chunk[1:]  # 返回结果
+        return chunk[:-1], chunk[1:]
 
     def __iter__(self) -> Iterator[tuple[np.ndarray, np.ndarray]]:
         while True:
@@ -372,7 +375,7 @@ class SlidingWindowDataloader:
 
     def take(self, num_batches: int) -> list[tuple[np.ndarray, np.ndarray]]:
         iterator = iter(self)
-        return [next(iterator) for _ in range(num_batches)]  # 返回结果
+        return [next(iterator) for _ in range(num_batches)]
 
 
 class JSONLSource:
@@ -449,7 +452,7 @@ def tokenize_jsonl_path(
     tokenizer = Tokenizer()
     pipeline = ShardedTokenizationPipeline(tokenizer, output_dir=output_dir, chunk_size=chunk_size)
     source = JSONLSource(jsonl_path, text_field=text_field)
-    return pipeline.write_shard(shard_id, source)  # 返回结果
+    return pipeline.write_shard(shard_id, source)
 
 
 def load_index(index_path: Path) -> list[ShardIndexEntry]:
@@ -468,7 +471,7 @@ def load_index(index_path: Path) -> list[ShardIndexEntry]:
                 global_start=int(row["global_start"]),
             )
         )
-    return entries  # 返回结果
+    return entries
 
 
 def validate_corpus(index_entries: list[ShardIndexEntry]) -> list[str]:
@@ -483,7 +486,7 @@ def validate_corpus(index_entries: list[ShardIndexEntry]) -> list[str]:
             recomputed = hashlib.sha256(tokens.tobytes()).hexdigest()
             if recomputed != entry.sha256:
                 failures.append(entry.shard_id)
-    return failures  # 返回结果
+    return failures
 
 
 def build_demo_corpus() -> dict[str, list[str]]:
@@ -501,7 +504,7 @@ def build_demo_corpus() -> dict[str, list[str]]:
         "shard-0000": [long_repeat, long_repeat, long_repeat],
         "shard-0001": [long_repeat, long_repeat, long_repeat],
     }
-    return shards  # 返回结果
+    return shards
 
 
 def run_demo() -> int:
@@ -526,7 +529,7 @@ def run_demo() -> int:
         validation_failures = validate_corpus(entries)
         if validation_failures:
             print(f"[validate] failed: {validation_failures}")
-            return 1  # 返回结果
+            return 1
         print(f"[validate] all {len(entries)} shards match recorded sha256")
         with MmapTokenStore(entries) as store:
             loader = SlidingWindowDataloader(store, window_size=64, batch_size=4, seed=7)
@@ -536,7 +539,7 @@ def run_demo() -> int:
                     f"[batch] step={batch_index} shape={tuple(inputs.shape)} "
                     f"checksum={checksum:08x}"
                 )
-    return 0  # 返回结果
+    return 0
 
 
 if __name__ == "__main__":

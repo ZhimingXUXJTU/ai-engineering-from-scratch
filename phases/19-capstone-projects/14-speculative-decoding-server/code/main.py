@@ -9,8 +9,12 @@ math are observable end to end.
 
 Run:  python main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：推测解码的 draft/verify 调度器——轻量 draft 模型一次提议 k 个候选 token，
+大型 target 模型单次批量验证，接受匹配前缀并从 target 重采样被拒绝后的 token，
+扫描 draft 对齐率和 k 值对加速比的影响
+AI 对应：vLLM + EAGLE-3 是 2026 年最广泛部署的推测解码方案；
+Google 的 Medusa 和 DeepMind 的 SpecInfer 也使用类似 draft-verify 架构；
+当 draft 对齐率 > 80% 时，k=4 可获得 2-3x 推理加速
 """
 
 from __future__ import annotations
@@ -27,22 +31,20 @@ VOCAB = list("abcdefghij")
 
 
 def softmax_from(seed: int) -> list[float]:
-    """softmax_from"""
     rnd = random.Random(seed)
     weights = [rnd.random() for _ in VOCAB]
     total = sum(weights)
-    return [w / total for w in weights]  # 返回结果
+    return [w / total for w in weights]
 
 
 def sample(dist: list[float], rng: random.Random) -> int:
-    """sample"""
     r = rng.random()
     acc = 0.0
     for i, p in enumerate(dist):
         acc += p
         if r <= acc:
-            return i  # 返回结果
-    return len(dist) - 1  # 返回结果
+            return i
+    return len(dist) - 1
 
 
 # ---------------------------------------------------------------------------
@@ -51,12 +53,11 @@ def sample(dist: list[float], rng: random.Random) -> int:
 
 @dataclass
 class TargetModel:
-    """TargetModel"""
     calls: int = 0
     tokens_verified: int = 0
 
     def distribution(self, ctx_seed: int) -> list[float]:
-        return softmax_from(ctx_seed * 7 + 13)  # 返回结果
+        return softmax_from(ctx_seed * 7 + 13)
 
     def verify(self, draft_tokens: list[int], ctx_seed: int,
                rng: random.Random) -> tuple[list[int], int]:
@@ -77,7 +78,7 @@ class TargetModel:
         ctx = ctx_seed + len(accepted)
         dist = self.distribution(ctx)
         next_tok = sample(dist, rng)
-        return accepted, next_tok  # 返回结果
+        return accepted, next_tok
 
 
 # ---------------------------------------------------------------------------
@@ -86,7 +87,6 @@ class TargetModel:
 
 @dataclass
 class DraftModel:
-    """DraftModel"""
     calls: int = 0
     alignment: float = 0.80     # probability that draft picks what target would
 
@@ -101,7 +101,7 @@ class DraftModel:
                 draft_tokens.append(max(range(len(dist)), key=lambda i: dist[i]))
             else:
                 draft_tokens.append(sample(dist, rng))
-        return draft_tokens  # 返回结果
+        return draft_tokens
 
 
 # ---------------------------------------------------------------------------
@@ -110,7 +110,6 @@ class DraftModel:
 
 @dataclass
 class Metrics:
-    """Metrics"""
     generated: int = 0
     target_calls: int = 0
     draft_calls: int = 0
@@ -118,15 +117,14 @@ class Metrics:
 
     def acceptance_rate(self, k: int) -> float:
         if self.target_calls == 0:
-            return 0.0  # 返回结果
-        return self.accepted_sum / (self.target_calls * k)  # 返回结果
+            return 0.0
+        return self.accepted_sum / (self.target_calls * k)
 
     def tokens_per_target_call(self) -> float:
-        return self.generated / max(1, self.target_calls)  # 返回结果
+        return self.generated / max(1, self.target_calls)
 
 
 def speculative_decode(n_tokens: int, k: int, rng: random.Random,
-    """speculative_decode"""
                        target: TargetModel, draft: DraftModel) -> Metrics:
     m = Metrics()
     ctx_seed = 1
@@ -144,11 +142,10 @@ def speculative_decode(n_tokens: int, k: int, rng: random.Random,
         if m.generated < n_tokens:
             m.generated += 1     # resampled next_tok
             ctx_seed += 1
-    return m  # 返回结果
+    return m
 
 
 def baseline_decode(n_tokens: int, rng: random.Random,
-    """baseline_decode"""
                     target: TargetModel) -> Metrics:
     m = Metrics()
     ctx_seed = 1
@@ -159,7 +156,7 @@ def baseline_decode(n_tokens: int, rng: random.Random,
         _ = sample(dist, rng)
         m.generated += 1
         ctx_seed += 1
-    return m  # 返回结果
+    return m
 
 
 # ---------------------------------------------------------------------------
@@ -167,7 +164,6 @@ def baseline_decode(n_tokens: int, rng: random.Random,
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    """main"""
     n_tokens = 500
     print(f"=== decode {n_tokens} tokens, compare baseline vs speculative ===")
 

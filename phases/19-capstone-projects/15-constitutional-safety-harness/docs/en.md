@@ -19,6 +19,8 @@ Attack evolution matters too. PAIR and TAP automate jailbreak discovery. GCG run
 
 You will harden a target application (either an 8B instruction-tuned model or one of the RAG chatbots from other capstones), run 6+ attack families against it, and produce a before/after harmlessness measurement.
 
+> **【中文解读】** 2026 年 LLM 安全前沿不是分类器是否有效（它们大致有效），而是如何正确组合它们：Llama Guard 4 处理英文策略违规、X-Guard 处理多语言越狱、ShieldGemma-2 捕获图像提示注入、NVIDIA Nemotron 3 覆盖企业类别。攻击也在进化：PAIR/TAP 自动化越狱发现、GCG 运行梯度后缀攻击、多轮和代码切换攻击利用 Agent 记忆。安全管线是五层：输入清洗→策略层→分类器门控→模型→输出过滤。
+
 ## Concept
 
 The safety pipeline is five layers. **Input sanitize**: strip zero-width chars, decode base64/rot13, normalize Unicode. **Policy layer**: NeMo Guardrails v0.12 rails (off-domain, toxicity, PII extraction). **Classifier gate**: Llama Guard 4 on input, X-Guard on non-English, ShieldGemma-2 on image inputs. **Model**: the target LLM. **Output filter**: Llama Guard 4 on output, Presidio PII scrub, citation enforcement where applicable. **HITL tier**: outputs flagged high-risk go to a Slack queue.

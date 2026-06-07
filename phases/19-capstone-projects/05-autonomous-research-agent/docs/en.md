@@ -17,6 +17,8 @@ Autonomous research agents crossed a threshold in 2026. Sakana AI's AI-Scientist
 
 You learn the loop by implementing one against a seed idea in a narrow domain (for example, attention-sparsity ablations on a 100M-parameter transformer). The value is not in discovering something new on the first run. The value is in the infrastructure: the tree-search, the experiment sandbox, the writer-reviewer loop, the red-team report. The Sakana team documented sandbox-escape failures; your agent must pass the same red team.
 
+> **【中文解读】** 自主研究 Agent 在 2026 年跨越了门槛：Sakana AI 的 AI-Scientist-v2 在 Nature 发表了通过同行评审的生成论文。这些 Agent 的本质是"计划-执行-验证"循环在实验候选树上运行，配合成本上限、沙箱执行和自动评审。核心价值不在于首次运行发现新东西，而在于基础设施：树搜索、实验沙箱、写作-评审循环、红队报告。
+
 ## Concept
 
 The agent is a best-first tree search. Nodes are experiment specifications: (hypothesis, config, code, expected outcome). An expand step proposes children with small edits (swap optimizer, shift batch size, ablate a component). Each child runs in a fresh sandbox with a hard resource cap. Results feed back into a scoring function that ranks nodes by (novelty × quality × remaining budget). The tree grows until budget is exhausted, then the best branch is written up.
@@ -24,6 +26,8 @@ The agent is a best-first tree search. Nodes are experiment specifications: (hyp
 The writer is multimodal. It generates a LaTeX draft, compiles it, renders figures, and feeds the rendered PDF back into Claude Opus 4.7's vision mode for critique on layout, figure legibility, and claim-evidence alignment. A reviewer ensemble of five LLM judges emits NeurIPS-style scores (novelty, rigor, clarity, reproducibility, impact); if the average drops below threshold, the paper returns to the writer with critique.
 
 Safety is load-bearing. Every experiment runs in an E2B or Daytona sandbox with no network egress, bounded wall-clock, and pinned resource limits. The agent's code-generation step passes through a policy layer that blocks syscalls that escape the sandbox. The red-team report reproduces the Sakana-documented attack surface (fork bombs, filesystem escapes, LLM-written network calls).
+
+> **【中文解读】** 自主研究 Agent 的三个核心子系统：1) **最佳优先树搜索**——节点是实验规格（假设+配置+代码+预期结果），扩展步骤用小修改生成子节点，评分函数按（新颖性×质量×剩余预算）排序；2) **多模态写作器**——生成 LaTeX 草稿，编译后通过视觉模型审阅版面和图表清晰度，五个 LLM 评审发出 NeurIPS 风格评分；3) **安全层**——每个实验在 E2B/Daytona 沙箱中运行，禁止网络出口，策略层拦截沙箱逃逸的系统调用。
 
 ## Architecture | 架构
 
