@@ -19,6 +19,8 @@ Moshi (Kyutai, 2024-2026) asks a different question: what if there is no pipelin
 
 The answer is **full-duplex speech-to-speech**. Theoretical latency 160 ms (80 ms Mimi frame + 80 ms acoustic delay). Practical latency 200 ms on a single L4 GPU. That's half what a best-in-class pipelined voice agent achieves.
 
+> **【中文解读】** 传统语音 Agent 管线有 300-500ms 的延迟下限。Moshi（Kyutai 2024）提出不同的问题：如果没有管线会怎样？一个模型直接接收音频、输出音频，文本作为中间的"内心独白"而非必要阶段。这就是全双工语音到语音模型——理论延迟 160ms，单卡 L4 上实测 200ms，是最佳级联管线的一半。
+
 ## The Concept
 
 ![Moshi architecture: two parallel Mimi streams + inner-monologue text](../assets/moshi-hibiki.svg)

@@ -25,6 +25,8 @@ You want a voice assistant that feels alive. Human conversational turn-taking la
 
 Moshi (Kyutai, 2024) clocked 200 ms full-duplex. GPT-4o-realtime (2024) clocks ~320 ms. Cascaded pipelines in 2022 shipped at 2500 ms. The 10× improvement came from three techniques: (1) streaming everywhere, (2) asynchronous pipelining with partial results, (3) interruptible generation.
 
+> **【中文解读】** 实时语音 Agent 的延迟预算：麦克风采集 20ms + VAD 10ms + 流式 ASR 150ms + LLM 首 token 100ms + TTS 首块 100ms + 扬声器渲染 20ms = 总计约 400ms。2022 年级联管线延迟 2500ms，2024 年 Moshi 降到 200ms 全双工，GPT-4o-realtime 约 320ms。10 倍改进来自三个技术：1) 全流程流式处理；2) 异步管线 + 部分结果传递；3) 可中断生成。
+
 ## The Concept
 
 ![Streaming audio pipeline with ring buffer, VAD gate, interruption](../assets/real-time.svg)

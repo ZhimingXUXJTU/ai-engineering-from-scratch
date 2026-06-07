@@ -24,6 +24,8 @@ Both factor a waveform into (content, speaker, prosody) and recombine content fr
 
 Key constraint you now ship under in 2026: **watermarking and consent gates are legally required in the EU (AI Act, enforceable August 2026) and in California (AB 2905, effective 2025)**. Your pipeline must emit an inaudible watermark and refuse non-consensual clones.
 
+> **【中文解读】** 2026 年，5 秒音频就足以用消费级 GPU 高质量克隆任何人的声音。两个紧密相关的任务：语音克隆（文本 + 5 秒参考声音 → 该声音的音频）和语音转换（A 说话的音频 + B 的参考声音 → B 说的相同内容）。两者都将波形分解为（内容、说话人、韵律）再重新组合。2026 年的法律约束：EU AI Act（2026 年 8 月生效）和加州 AB 2905（2025 年生效）要求所有语音克隆管线嵌入不可听水印并拒绝非自愿克隆。
+
 ## The Concept
 
 ![Voice cloning vs conversion: factorize, swap speaker, recombine](../assets/voice-cloning.svg)

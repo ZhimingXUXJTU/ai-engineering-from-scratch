@@ -27,6 +27,8 @@ Every audio task has multiple metrics, each measuring a different axis. Using th
 | Audio language model | MMAU-Pro | LongAudioBench · AudioCaps FENSE |
 | Streaming S2S | latency P50/P95 | WER · MOS |
 
+> **【中文解读】** 音频任务各有不同的评估指标：ASR 用 WER（词错误率）；TTS 用 MOS/UTMOS（平均意见分）和 SECS（说话人嵌入余弦相似度）；语音克隆用 SECS + MOS + CER；说话人验证用 EER（等错误率）；语音分离用 DER（二值化错误率）。用错指标是模型在仪表盘上看起来好但在生产中表现差的常见原因。
+
 ## The Concept
 
 ![Audio evaluation matrix — metrics vs tasks vs 2026 leaderboards](../assets/eval-landscape.svg)

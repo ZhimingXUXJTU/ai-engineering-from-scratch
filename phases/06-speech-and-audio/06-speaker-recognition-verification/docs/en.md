@@ -19,6 +19,8 @@ Pre-2018: GMM-UBM + i-vectors. Reasonable EER but fragile to channel shift (phon
 
 The metric is **EER** — Equal Error Rate. Set your decision threshold so False Accept Rate = False Reject Rate. The crossover is EER. Used in every paper, every leaderboard, every procurement call.
 
+> **【中文解读】** 说话人识别的核心任务：验证（1:1，是否是声称的人）、辨认（1:N，是库中的哪个人）、开集识别（是否是未知说话人）。技术演进：GMM-UBM + i-vectors（2018 前）→ x-vectors + TDNN + 角度边际损失（2018-2022）→ ECAPA-TDNN + WavLM 嵌入（2022+）。核心评估指标是 EER（等错误率）——调整阈值使误接受率等于误拒绝率的交叉点。
+
 ## The Concept
 
 ![Enrollment + verification pipeline with embedding + cosine + EER](../assets/speaker-verification.svg)

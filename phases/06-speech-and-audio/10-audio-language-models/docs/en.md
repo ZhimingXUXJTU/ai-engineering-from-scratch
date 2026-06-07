@@ -22,6 +22,8 @@ You have 5 seconds of audio: dog barks, someone yells "stop!", then silence. Use
 
 A single model that answers all of these with one prompt is an **audio-language model** (LALM / ALM). Separate from pure ASR: LALMs produce free-form natural-language answers, not just transcripts.
 
+> **【中文解读】** 音频语言模型（LALM/ALM）用一个模型回答关于音频的所有问题——转录、语义推理、音乐分析、长音频检索。不同于纯 ASR 只输出转录文本，LALM 生成自由形式的自然语言答案。架构通常是：音频编码器 + 投影层 + LLM 解码器。这是 2024-2026 年语音 AI 的重要趋势——将音频理解和语言推理统一在一个模型中。
+
 ## The Concept
 
 ![Audio-language model: audio encoder + projector + LLM decoder](../assets/alm-architecture.svg)

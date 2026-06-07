@@ -19,6 +19,8 @@ Three related defenses:
 
 Detection handles adversaries who don't cooperate. Watermarking handles compliance — AI-generated audio should be identifiable as such. Both are required in 2026.
 
+> **【中文解读】** 音频安全的三个防御层：1) 反欺骗/深度伪造检测——判断音频是合成还是真实（ASVspoof 基准）；2) 音频水印——在生成音频中嵌入不可感知的信号，检测器可后续提取（AudioSeal、WavMark）；3) 认证来源——加密签名音频文件+元数据（C2PA/内容真实性倡议）。检测应对不合作的对手，水印应对合规——AI 生成的音频应可识别。两者在 2026 年都是必需的。
+
 ## The Concept
 
 ![Anti-spoofing vs watermarking vs provenance — three defense layers](../assets/spoofing-watermark.svg)

@@ -19,6 +19,8 @@ A spectrogram fixes this. It collapses the temporal detail where human perceptio
 
 Mel spectrograms push further. Humans perceive pitch logarithmically: 100 Hz vs 200 Hz sounds "the same distance apart" as 1000 Hz vs 2000 Hz. The mel scale warps the frequency axis to match. A mel-scaled spectrogram is the single most important feature in speech ML from 2010 through 2026.
 
+> **【中文解读】** 10 秒 16kHz 音频 = 160,000 个浮点数，与"狗叫"或"cat 这个词"的标签几乎完全不相关。原始波形信息存在但模型无法提取。频谱图的解决方案：将时间分辨率压缩到 10-25ms 窗口，保留哪些频率在哪个时间窗有能量。Mel 频谱进一步按照人类对音高的对数感知（100Hz vs 200Hz 感觉与 1000Hz vs 2000Hz 相同距离）扭曲频率轴。Mel 频谱图是 2010-2026 年语音 ML 中最重要的特征。
+
 ## The Concept
 
 ![Waveform to STFT to mel spectrogram to MFCC ladder](../assets/mel-features.svg)

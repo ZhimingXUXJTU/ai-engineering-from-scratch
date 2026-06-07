@@ -19,6 +19,8 @@ Text → a 30-second to 4-minute music clip, with lyrics, vocals, and structure.
 2. **Song generation (with vocals + lyrics).** "Country song about rainy Texas nights" → full song. Suno, Udio, YuE, ACE-Step.
 3. **Conditional / controllable.** Extend an existing clip, regenerate a bridge, swap genre, stem-separate, or inpaint. Udio's inpainting + stem separation is the 2026 feature to match.
 
+> **【中文解读】** 音乐生成的三个子问题：1) 器乐生成——"lo-fi hip-hop drums with warm keys" → 音频（MusicGen、Stable Audio）；2) 歌曲生成（含人声+歌词）——"德州的雨夜乡村歌曲" → 完整歌曲（Suno、Udio）；3) 条件化/可控生成——扩展现有片段、重新生成间奏、更换风格、分轨分离或修复。Udio 的修复 + 分轨是 2026 年的标杆功能。
+
 ## The Concept
 
 ![Music generation: token-LM vs diffusion, the 2026 model map](../assets/music-generation.svg)
