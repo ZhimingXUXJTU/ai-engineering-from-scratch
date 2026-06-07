@@ -5,8 +5,13 @@ every agent reads the others' answers and revises toward the weighted average.
 Convergence is logged per round. Agent policies are scripted, not LLM-backed --
 the point is the debate dynamics.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：多 Agent 辩论机制（Du et al. 2023），多个 Agent 各持不同初始答案，
+每轮读取他人答案后按置信度加权平均修正自身答案，经过多轮收敛到更准确的共识，
+前 1-3 轮效果最大、之后收益递减
+AI 对应：Du et al. "Improving Factuality and Reasoning in LLMs through Multiagent Debate"
+是多 Agent 辩论的奠基论文；OpenAI 的 Mixture of Agents (MoA) 使用类似的多模型迭代改进；
+Microsoft AutoGen 的 GroupChat 支持多 Agent 辩论模式；
+Anthropic Claude 的 "chain-of-thought + self-critique" 是单 Agent 内的类似机制
 """
 from __future__ import annotations
 
@@ -20,7 +25,6 @@ TRUE_ANSWER = 42.0
 
 @dataclass
 class DebateAgent:
-    """DebateAgent"""
     name: str
     answer: float
     confidence: float
@@ -44,17 +48,15 @@ def agreement_score(agents: list[DebateAgent], tol: float = 0.1) -> float:
     """Fraction of agents within tol of the mean."""
     mean = sum(a.answer for a in agents) / len(agents)
     agree = sum(1 for a in agents if abs(a.answer - mean) <= tol)
-    return agree / len(agents)  # 返回结果
+    return agree / len(agents)
 
 
 def error_vs_truth(agents: list[DebateAgent]) -> float:
-    """error_vs_truth"""
     mean = sum(a.answer for a in agents) / len(agents)
-    return abs(mean - TRUE_ANSWER)  # 返回结果
+    return abs(mean - TRUE_ANSWER)
 
 
 def run_debate(agents: list[DebateAgent], rounds: int, label: str) -> None:
-    """run_debate"""
     print(f"\n=== {label} ({rounds} rounds) ===")
     for a in agents:
         a.initial()
@@ -74,9 +76,8 @@ def run_debate(agents: list[DebateAgent], rounds: int, label: str) -> None:
 
 
 def fresh_team(seed: int) -> list[DebateAgent]:
-    """fresh_team"""
     random.seed(seed)
-    return [  # 返回结果
+    return [
         DebateAgent(name="A", answer=38.0, confidence=0.6),
         DebateAgent(name="B", answer=42.5, confidence=0.8),
         DebateAgent(name="C", answer=51.0, confidence=0.4),
@@ -85,11 +86,10 @@ def fresh_team(seed: int) -> list[DebateAgent]:
 
 def single_shot_majority(agents: list[DebateAgent]) -> float:
     """Control: majority on round-0 answers (self-consistency baseline)."""
-    return sum(a.answer for a in agents) / len(agents)  # 返回结果
+    return sum(a.answer for a in agents) / len(agents)
 
 
 def main() -> None:
-    """main"""
     print("Multi-agent debate (Du et al. 2023 style)")
     print("-" * 46)
     print(f"True answer: {TRUE_ANSWER}")

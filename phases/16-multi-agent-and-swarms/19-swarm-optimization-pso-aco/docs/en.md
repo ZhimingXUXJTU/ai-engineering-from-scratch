@@ -18,6 +18,8 @@ Classical bio-inspired optimization — PSO for continuous search spaces, ACO fo
 
 The same patterns apply to agent *routing* in multi-agent systems. An ACO-style pheromone trail records which agent worked best on which task-type, lets the router exploit the trail, and decays pheromones so routes can be rediscovered.
 
+> **【中文解读】** 生物启发优化在 LLM 时代的回归：PSO（粒子群优化）中每个粒子的"速度"是一个提示，LLM 生成下一个候选；Model Swarms 将每个 LLM 专家视为模型权重流形上的粒子，报告 13.3% 的平均提升。ACO（蚁群优化）用于 Agent 路由——信息素轨迹记录哪个 Agent 在哪种任务类型上效果最好，AMRO-S 实现了 4.7 倍加速。
+
 ## Concept
 
 ### PSO refresher (Kennedy & Eberhart 1995)

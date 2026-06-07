@@ -18,6 +18,8 @@ Beyond credit attribution, the field has turned to actual economic agents: Bitte
 
 This lesson treats agent economies as a specific problem family — credit attribution, mechanism design, and reputation — and builds each with the minimal math so the ideas stick.
 
+> **【中文解读】** Agent 经济的三个核心问题：1) **信用归因**——多 Agent 联合产出价值但需要单独奖励，Shapley 值提供了公平但计算昂贵的解决方案；2) **机制设计**——如何设计拍卖和定价机制使激励对齐；3) **声誉系统**——基于 DID 的链上声誉从确认贡献中累积。实际系统包括 Bittensor（TAO 子网奖励）、Fetch.ai/ASI（FET 代币）等。
+
 ## Concept
 
 ### The 5-layer agent-economy stack

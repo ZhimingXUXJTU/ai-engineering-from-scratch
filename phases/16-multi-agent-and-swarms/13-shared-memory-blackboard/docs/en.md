@@ -18,6 +18,8 @@ When one of the agents hallucinates and writes the hallucination to shared state
 
 This is memory poisoning. It is the second-most-documented failure family in the MAST taxonomy (Cemri et al., arXiv:2503.13657) and it is structural: any shared-memory design without provenance and an unwritable verifier will exhibit it eventually.
 
+> **【中文解读】** 多 Agent 系统需要共享事实的地方，但有三种方案各有缺陷：全部消息传递（重复拷贝）、全局日志（无限增长且易被污染）、按 Agent 投影视图（需要大量 schema 设计）。核心问题是**记忆污染**：一个 Agent 产生幻觉并将其写入共享状态，下游所有 Agent 将其视为事实。到人类发现时，推理链已经深入五层，根因是最早的第三条消息。任何没有来源追踪和不可篡改验证器的共享记忆设计最终都会遇到这个问题。
+
 ## Concept
 
 ### The two main topologies
@@ -33,6 +35,10 @@ agent-C ──write──▶ └────────────────
 ```
 
 **Blackboard with subscription.** Agents declare interest in topics; the substrate routes only relevant messages. CA-MCP (arXiv:2601.11595) and the Matrix decentralized framework (arXiv:2511.21686) use this. Scales further, but requires upfront schema design to make subscriptions meaningful.
+
+> **【中文解读】** 两种共享记忆拓扑：1) **全消息池**——每个 Agent 读写所有消息（AutoGen GroupChat、MetaGPT），简单透明但超过 ~10 个 Agent 就难以扩展；2) **带订阅的黑板**——Agent 声明感兴趣的主题，底层只路由相关消息（CA-MCP、Matrix 框架），扩展性更好但需要前期的 schema 设计。
+
+> **【拓展：记忆污染 → 生产防护】** 记忆污染是多 Agent 系统最隐蔽的失败模式。生产环境的三道防线：1) 来源追踪（provenance）——每条事实标注来源 Agent 和时间戳；2) 可验证性标记——区分"已验证"和"待验证"事实；3) 独立验证 Agent——不参与协作，专门检查共享状态中的事实准确性。
 
 ```
                    ┌─ topic: prices ──┐

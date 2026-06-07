@@ -4,8 +4,13 @@ Stdlib only. Scripted mapping from design attributes to one of three case
 studies (Anthropic Research, MetaGPT/ChatDev, OpenClaw/Moltbook) and the
 framework-of-choice recommendation.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：2026 SOTA 多 Agent 系统案例映射器——根据设计属性（任务类型、Agent 数量、
+验证需求、运行时长、角色区分、用户网络）将需求映射到最接近的参考案例
+（Anthropic Research / MetaGPT-ChatDev / OpenClaw-Moltbook）和框架推荐
+AI 对应：Anthropic Research (supervisor-worker) 是研究型多 Agent 系统的参考架构；
+MetaGPT (arXiv:2308.00352) 和 ChatDev (arXiv:2307.07924) 定义了 SOP 角色分解模式；
+框架生态包括 LangGraph、CrewAI、OpenAI Agents SDK (Swarm 后继)、
+Google ADK (A2A 原生)、Microsoft Agent Framework 等
 """
 from __future__ import annotations
 
@@ -14,7 +19,6 @@ from dataclasses import dataclass
 
 @dataclass
 class Design:
-    """Design"""
     name: str
     task_type: str          # "research" | "engineering" | "population" | "automation"
     n_agents_expected: int
@@ -60,20 +64,18 @@ FRAMEWORK_LANDSCAPE = [
 
 
 def map_to_case(d: Design) -> str:
-    """map_to_case"""
     if d.task_type == "population" or d.user_facing_network:
-        return "openclaw_moltbook"  # 返回结果
+        return "openclaw_moltbook"
     if d.task_type == "engineering" or d.roles_distinct:
-        return "metagpt_chatdev"  # 返回结果
+        return "metagpt_chatdev"
     if d.task_type == "research":
-        return "anthropic_research"  # 返回结果
+        return "anthropic_research"
     if d.verification_required and d.runtime_duration_hours >= 1:
-        return "anthropic_research"  # 返回结果
-    return "anthropic_research"  # 返回结果
+        return "anthropic_research"
+    return "anthropic_research"
 
 
 def print_case(key: str) -> None:
-    """print_case"""
     case = CASES[key]
     print(f"\n  closest case study: {case['name']}")
     print(f"  patterns to copy:")
@@ -84,7 +86,6 @@ def print_case(key: str) -> None:
 
 
 def print_landscape() -> None:
-    """print_landscape"""
     print("\n" + "=" * 78)
     print("FRAMEWORK LANDSCAPE — April 2026")
     print("=" * 78)
@@ -96,7 +97,6 @@ def print_landscape() -> None:
 
 
 def main() -> None:
-    """main"""
     designs = [
         Design("research-assistant", "research", 6, True, 2.0, False, False),
         Design("codegen-team", "engineering", 5, True, 1.0, True, False),

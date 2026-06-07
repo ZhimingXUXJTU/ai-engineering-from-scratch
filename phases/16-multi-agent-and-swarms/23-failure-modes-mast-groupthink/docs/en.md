@@ -16,6 +16,8 @@ Multi-agent systems fail 41-86.7% of the time on real tasks (Cemri et al. 2025 m
 
 The 2026 production practice is to treat failure modes as design inputs. Your architecture is not "good enough" until you can point to each MAST category and name the mitigation you deployed.
 
+> **【中文解读】** 多 Agent 系统在真实任务上的失败率高达 41-86.7%（Cemri et al. 2025，基于 7 个开源 MAS 的 1642 条执行轨迹）。这不是靠"加更多 Agent"就能解决的——失败有结构性原因。MAST 分类法将失败分为三类：**规格问题**（41.77%）——角色模糊、任务定义不清；**协调失败**（36.94%）——通信中断、状态不同步；**验证缺口**（21.30%）——缺失验证和质量检查。
+
 ## Concept
 
 ### MAST categories

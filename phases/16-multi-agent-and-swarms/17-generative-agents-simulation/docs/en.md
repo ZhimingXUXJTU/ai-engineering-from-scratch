@@ -16,6 +16,8 @@ Most multi-agent systems are tightly-scripted teams: planner plans, coder codes,
 
 The Smallville architecture is the benchmark for it. Until Park 2023, the best agent simulations were shallow script-followers; after it, the pattern is the default for generative agents in open worlds. If you build an agent simulation in 2026, you are either using Smallville's three components or explicitly justifying why you are not.
 
+> **【中文解读】** Smallville 架构（Park et al. 2023）是生成式 Agent 模拟的基准。25 个 Agent 在沙盒中通过三个组件自主生活：**记忆流**（自然语言日志）、**反思**（Agent 对自身记忆流的高级综合）、**规划**（日级行为+子计划）。标志性的"情人节派对"涌现：一个 Agent 想办派对，邀请通过人群传播，派对自发发生——24 个 Agent 从对此一无所知开始。消融实验表明三个组件缺一不可。
+
 ## Concept
 
 ### The three components

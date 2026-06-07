@@ -10,8 +10,12 @@ Runs the same three-agent pipeline (researcher -> writer -> reviewer) under
 three orchestrator types. Agents are scripted policies, not LLM calls -- the
 point is the coordination structure.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：多 Agent 四原语——Agent（角色+策略）、Handoff（交接）、SharedState（线程安全消息池）、
+Orchestrator（静态顺序/Handoff 驱动/LLM 选择三种编排模式），同一组 Agent 在不同编排器下
+执行流程截然不同，核心洞察是"协调结构决定系统行为"
+AI 对应：LangGraph 的 StateGraph 对应静态编排、OpenAI Swarm SDK 对应 Handoff 编排、
+AutoGen GroupChat 对应 LLM 动态选择 speaker；CrewAI 的 Crew.process (sequential/hierarchical)
+也实现类似的三种编排策略
 """
 from __future__ import annotations
 
@@ -25,7 +29,6 @@ Message = dict
 
 @dataclass
 class SharedState:
-    """SharedState"""
     messages: list[Message] = field(default_factory=list)
     _lock: threading.Lock = field(default_factory=threading.Lock)
 
@@ -35,19 +38,18 @@ class SharedState:
 
     def snapshot(self) -> list[Message]:
         with self._lock:
-            return list(self.messages)  # 返回结果
+            return list(self.messages)
 
     def last_by(self, name: str) -> Optional[Message]:
         with self._lock:
             for m in reversed(self.messages):
                 if m["from"] == name:
-                    return m  # 返回结果
-            return None  # 返回结果
+                    return m
+            return None
 
 
 @dataclass
 class Agent:
-    """Agent"""
     name: str
     system_prompt: str
     policy: Callable[[SharedState], Message]
@@ -55,33 +57,29 @@ class Agent:
     def run(self, state: SharedState) -> Message:
         msg = self.policy(state)
         msg.setdefault("from", self.name)
-        return msg  # 返回结果
+        return msg
 
 
 def researcher_policy(state: SharedState) -> Message:
-    """researcher_policy"""
     n = len([m for m in state.snapshot() if m["from"] == "researcher"])
     notes = f"note {n + 1}: FIPA-ACL ratified 2000; 20 performatives."
-    return {"content": notes, "handoff": "writer" if n == 0 else "done"}  # 返回结果
+    return {"content": notes, "handoff": "writer" if n == 0 else "done"}
 
 
 def writer_policy(state: SharedState) -> Message:
-    """writer_policy"""
     research = [m["content"] for m in state.snapshot() if m["from"] == "researcher"]
     draft = "Draft summarizing: " + " | ".join(research) if research else "Draft with no research yet."
-    return {"content": draft, "handoff": "reviewer"}  # 返回结果
+    return {"content": draft, "handoff": "reviewer"}
 
 
 def reviewer_policy(state: SharedState) -> Message:
-    """reviewer_policy"""
     last = state.last_by("writer")
     verdict = "approved" if last and "summarizing" in last["content"] else "needs revision"
-    return {"content": f"Review verdict: {verdict}.", "handoff": "done"}  # 返回结果
+    return {"content": f"Review verdict: {verdict}.", "handoff": "done"}
 
 
 def make_team() -> dict[str, Agent]:
-    """make_team"""
-    return {  # 返回结果
+    return {
         "researcher": Agent("researcher", "Gather facts.", researcher_policy),
         "writer": Agent("writer", "Draft from research.", writer_policy),
         "reviewer": Agent("reviewer", "Critique the draft.", reviewer_policy),
@@ -110,12 +108,12 @@ class HandoffOrchestrator:
         current = self.start
         for _ in range(max_steps):
             if current not in team:
-                return  # 返回结果
+                return
             msg = team[current].run(state)
             state.append(msg)
             nxt = msg.get("handoff", "done")
             if nxt == "done":
-                return  # 返回结果
+                return
             current = nxt
 
 
@@ -131,26 +129,24 @@ class LLMSelectorOrchestrator:
         current: Optional[str] = self.start
         for _ in range(max_steps):
             if current is None or current not in team:
-                return  # 返回结果
+                return
             msg = team[current].run(state)
             state.append(msg)
             current = self.selector(state, team)
 
 
 def round_robin_selector(state: SharedState, team: dict[str, Agent]) -> Optional[str]:
-    """round_robin_selector"""
     if not state.messages:
-        return None  # 返回结果
+        return None
     last = state.messages[-1]["from"]
     names = list(team.keys())
     idx = (names.index(last) + 1) % len(names)
     if len([m for m in state.messages if m["from"] == "reviewer"]) >= 1:
-        return None  # 返回结果
-    return names[idx]  # 返回结果
+        return None
+    return names[idx]
 
 
 def render_pool(label: str, state: SharedState) -> None:
-    """render_pool"""
     print(f"\n=== {label} ===")
     for i, m in enumerate(state.snapshot()):
         ho = f" -> {m['handoff']}" if "handoff" in m else ""
@@ -158,7 +154,6 @@ def render_pool(label: str, state: SharedState) -> None:
 
 
 def main() -> None:
-    """main"""
     print("Four multi-agent primitives demo")
     print("-" * 42)
 

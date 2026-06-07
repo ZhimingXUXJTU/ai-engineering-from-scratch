@@ -18,6 +18,8 @@ Without shared benchmarks, you cannot compare two multi-agent systems meaningful
 
 This lesson enumerates the five canonical 2026 benchmarks, names what each measures, and teaches you to read benchmark claims skeptically.
 
+> **【中文解读】** 多 Agent 评估的五大 2026 基准：MultiAgentBench/MARBLE（拓扑评估，图拓扑最适合研究）、COMMA（多模态非对称信息协调）、MedAgentBoard（医疗多 Agent）、AgentArch（企业 Agent 架构）、SWE-bench Pro（1865 题 41 仓库，前沿模型只得分 ~23%）。关键教训："仅通过 SWE-bench Verified 不是泛化能力的证据"——Verified 被训练语料部分污染后分数膨胀，Pro 是无污染的现实检验。
+
 ## Concept
 
 ### MultiAgentBench (MARBLE) — ACL 2025

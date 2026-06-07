@@ -1,4 +1,4 @@
-# Why Multi-Agent? | 多 Agent 为什么
+# Why Multi-Agent? | 为什么需要多 Agent
 
 > One agent hits a wall. The smart move is not a bigger agent - it is more agents.
 
@@ -17,6 +17,8 @@
 - Design a multi-agent system with clear role boundaries, shared state, and a communication contract
 - Analyze the tradeoffs of multi-agent complexity (latency, cost, debugging difficulty) versus single-agent simplicity
 
+> **【中文解读】** 学习目标：1) 识别单 Agent 天花板（上下文溢出、角色混乱、串行瓶颈）并解释何时应该拆分为多 Agent；2) 对比编排模式（流水线、并行扇出、监督者、层级）并为给定任务选择合适的模式；3) 设计具有清晰角色边界、共享状态和通信契约的多 Agent 系统；4) 分析多 Agent 复杂性与单 Agent 简洁性之间的权衡。
+
 ## The Problem | 问题
 
 You built a single agent in Phase 14. It works. It can read files, run commands, call APIs, and reason about results. Then you point it at a real codebase: 200 files, three languages, tests that depend on infrastructure, and a requirement to research external APIs before writing code.
@@ -28,6 +30,8 @@ This is the single-agent ceiling. You hit it every time a task requires:
 - **More context than fits in one window** - reading 50 files blows past 200k tokens
 - **Different expertise at different stages** - research requires different prompting than code generation
 - **Work that can happen in parallel** - why read three files sequentially when you can read them simultaneously?
+
+> **【中文解读】** 单 Agent 天花板：当你将 Agent 指向真实代码库时——200 个文件、三种语言、依赖基础设施的测试——它会在三个维度上崩溃：1) **上下文饱和**——工具调用结果堆积，关键细节丢失；2) **角色混乱**——一个系统提示试图覆盖研究+编码+审查+测试；3) **串行瓶颈**——三个文件串行读取而非并行。
 
 ## The Concept | 概念
 
@@ -71,6 +75,8 @@ Three things break:
 
 Split the work. Give each agent one job, one context window, and one system prompt tuned for that job:
 
+> **【中文解读】** 多 Agent 解决方案的核心原则：分工。每个 Agent 拥有：一个聚焦的系统提示（"你是代码审查员，唯一职责是发现 Bug"）、独立的上下文窗口（不被其他 Agent 的工作污染）、清晰的输入/输出契约。这样每个 Agent 都能在自己的专业领域发挥最大效能。
+
 ```
 ┌──────────────────────────────────────────────────────────┐
 │                    ORCHESTRATOR                          │
@@ -110,6 +116,8 @@ Each agent has:
 **Multi-agent coding teams (SWE-bench)** - top-performing systems on SWE-bench use a researcher that reads the codebase, a planner that designs the fix, and a coder that implements it. Single-agent systems score lower.
 
 **ChatGPT Deep Research** - spawns multiple search agents in parallel, each exploring a different angle, then synthesizes results.
+
+> **【拓展：多 Agent 实际系统】** Claude Code 通过 Task 工具生成子 Agent，保持父 Agent 上下文清洁；Devin 运行规划 Agent、编码 Agent 和浏览器 Agent；SWE-bench 排名靠前的系统使用研究员+规划师+编码员的组合；ChatGPT Deep Research 并行生成多个搜索 Agent 再综合结果。这些真实系统的共同点是：每个 Agent 有独立的上下文和聚焦的职责。
 
 ### The Spectrum
 
@@ -221,6 +229,10 @@ Multi-agent adds complexity. Every message between agents is a potential failure
 - Cost multiplies: each agent burns tokens independently
 
 Rule of thumb: if a task takes fewer than 20 tool calls and fits in 100k tokens, keep it single-agent.
+
+> **【中文解读】** 何时不要用多 Agent：多 Agent 增加复杂性——每个 Agent 边界都是有损压缩步骤，协调逻辑本身是 Bug 来源，延迟和成本成倍增加。经验法则：如果任务少于 20 次工具调用且数据量在 100k token 以内，保持单 Agent。
+
+> **【拓展：单 Agent vs 多 Agent 决策】** 决策依据：任务是否超出单上下文窗口？不同阶段是否需要不同的系统提示？是否存在可并行的独立子任务？如果三个问题都是"否"，保持单 Agent 更好。
 
 ## Build It | 动手构建
 
@@ -392,6 +404,8 @@ async function multiAgentApproach(task: string): Promise<AgentResult> {
 
 Each agent receives only the messages addressed to it. No context pollution. The researcher's 50k tokens of documentation reading never enter the reviewer's context.
 
+> **【中文解读】** 构建要点：单 Agent 方案的问题是上下文窗口随阶段增长，系统提示泛化无法针对每个阶段优化，且无法并行执行。多 Agent 方案中每个专家 Agent 有聚焦的系统提示、独立的上下文窗口，Agent 间通过显式消息传递协调，每个 Agent 只接收发送给自己的消息，避免了上下文污染。
+
 ### Step 4: Compare
 
 ```typescript
@@ -424,15 +438,15 @@ This lesson produces a reusable prompt for deciding when to go multi-agent. See 
 
 ## Key Terms | 关键术语
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Swarm | "A hive mind of AI agents" | A set of peer agents with shared state and no fixed leader. Behavior emerges from local interactions. |
-| Orchestrator | "The boss agent" | An agent whose tools include spawning and managing other agents. It plans and delegates but may not do the actual work. |
-| Coordinator | "The traffic cop" | A non-agent component (often just code, not an LLM) that routes messages between agents based on rules. |
-| Consensus | "The agents agree" | A protocol where multiple agents must reach agreement before proceeding. Used when conflicting outputs need resolution. |
-| Emergent behavior | "The agents figured it out themselves" | System-level patterns that arise from agent interactions but were not explicitly programmed. Can be useful or harmful. |
-| Fan-out / fan-in | "Map-reduce for agents" | Splitting a task across parallel agents (fan-out), then combining their results (fan-in). |
-| Message passing | "Agents talk to each other" | The communication mechanism between agents: structured data sent from one agent to another, replacing shared context windows. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Swarm | "A hive mind of AI agents" | A set of peer agents with shared state and no fixed leader. Behavior emerges from local interactions. | 群体：共享状态的对等 Agent 集合，无固定领导者，行为从局部交互中涌现 |
+| Orchestrator | "The boss agent" | An agent whose tools include spawning and managing other agents. It plans and delegates but may not do the actual work. | 编排者：工具包括生成和管理其他 Agent 的 Agent，负责规划和委派 |
+| Coordinator | "The traffic cop" | A non-agent component (often just code, not an LLM) that routes messages between agents based on rules. | 协调器：非 Agent 组件（通常只是代码），按规则路由 Agent 间的消息 |
+| Consensus | "The agents agree" | A protocol where multiple agents must reach agreement before proceeding. Used when conflicting outputs need resolution. | 共识：多个 Agent 必须达成一致才能继续的协议 |
+| Emergent behavior | "The agents figured it out themselves" | System-level patterns that arise from agent interactions but were not explicitly programmed. Can be useful or harmful. | 涌现行为：从 Agent 交互中产生的系统级模式，未被显式编程 |
+| Fan-out / fan-in | "Map-reduce for agents" | Splitting a task across parallel agents (fan-out), then combining their results (fan-in). | 扇出/扇入：将任务分发到并行 Agent，再合并结果 |
+| Message passing | "Agents talk to each other" | The communication mechanism between agents: structured data sent from one agent to another, replacing shared context windows. | 消息传递：Agent 间的通信机制，用结构化数据替代共享上下文窗口 |
 
 ## Further Reading | 延伸阅读
 

@@ -18,6 +18,8 @@ Riedl's 2025 finding is stricter: under controlled conditions, coordination only
 
 This lesson treats ToM as a specific capability (reasoning about beliefs about beliefs), builds a minimal ToM-aware agent, and measures what real coordination looks like vs. what prompt dressing looks like.
 
+> **【中文解读】** 多 Agent 协调看起来像魔法，但通常是提示工程的产物——有人告诉 Agent 要"协调"。Riedl 2025 的发现更严格：在受控条件下，协调只在 Agent 被提示推理**其他 Agent 的心智**（ToM）时才涌现。没有 ToM 提示，即使强模型也只表现出不经统计控制的协调模式。这对生产很重要：团队发布的"多 Agent 协调"功能往往是提示依赖且脆弱的。
+
 ## Concept
 
 ### What ToM means
@@ -31,6 +33,8 @@ For LLM agents, ToM orders map to:
 - **Second-order:** the agent models recursive beliefs. "Alice believes that Bob believes X."
 
 Li et al. 2023 found that first- and second-order ToM emerge in LLM agents in cooperative games but degrade with long horizon and unreliable communication.
+
+> **【中文解读】** 心智理论（ToM）的三个层次：**零阶**——不对他人建模，只根据自己观察行动；**一阶**——对每个其他 Agent 的信念建模，"Alice 相信 X"；**二阶**——递归建模信念，"Alice 相信 Bob 相信 X"。Li et al. 2023 发现 LLM Agent 在合作游戏中可以涌现一阶和二阶 ToM，但在长时间跨度上因上下文管理和幻觉而退化。
 
 ### The Sally-Anne test, in brief
 
