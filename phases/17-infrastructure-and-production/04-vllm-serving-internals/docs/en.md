@@ -22,6 +22,9 @@
 
 A naive PyTorch serve loop runs one request at a time: tokenize, prefill, decode until EOS, return. At one user this works. At one hundred, it is a queue of patient people. The obvious fix — static batching — pads every request to the longest prompt in the window, pads every decode to the longest expected output, and stalls the whole batch on the slowest sequence. You pay for padding you never use, and fast requests wait for slow ones.
 
+> **【中文解读】**
+> 朴素推理（一次一个请求）在百用户时完全不可用。静态批处理（等到凑齐一批）浪费大量 padding 和等待时间。vLLM 用三个创新解决这些问题：PagedAttention 借鉴操作系统虚拟内存分页，把 KV cache 碎片率从 60-80% 降到 4% 以下；连续批处理让请求在 decode 迭代间动态加入/退出，batch 永远充满真实工作；分块预填充把长 prompt 切成 ~512 token 的块，与 decode 交替执行，防止长 prompt 冻结所有正在生成的 token。
+
 vLLM solves three problems at once. PagedAttention stops KV cache fragmentation from eating 60-80% of GPU memory the way classic contiguous allocation does. Continuous batching lets requests join and leave the batch between each decode iteration, so the batch is always full of real work. Chunked prefill breaks a 32k-token prompt into ~512-token slices that interleave with decode, so a long prompt does not freeze every decode token on the GPU.
 
 The 2026 production default is all three on. You need to understand what each one does because the failure modes are all on the scheduler, not the model.

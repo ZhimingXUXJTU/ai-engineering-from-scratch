@@ -8,8 +8,14 @@ Compares three autoscaling strategies on the same bursty workload:
 Reports dropped requests, idle GPU-minutes, and composite score.
 Pedagogical: latencies and provisioning times are illustrative.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：GPU 三层自动扩缩容——Duty-Cycle（基于 GPU 利用率 HPA，会因为 duty-cycle 指标
+错过实际负载信号而丢请求）、Queue-Depth（基于请求队列深度，正确的扩缩容信号）、
+KAI Gang（拓扑感知的 Gang 调度，防止部分分配），Karpenter 比 Cluster Autoscaler 快 2x
+AI 对应：Kubernetes HPA (Horizontal Pod Autoscaler) 是标准的 Pod 扩缩容机制；
+Karpenter (AWS) 提供 ~50s 节点供应 vs Cluster Autoscaler 的 ~110s；
+KAI Scheduler (NSF-funded) 为 GPU 工作负载优化 Gang 调度；
+NVIDIA DCGM metrics 是 GPU 利用率监控的标准；
+Ray Serve 和 vLLM 的 autoscaling 使用类似的队列深度信号
 """
 
 from __future__ import annotations
@@ -32,7 +38,6 @@ TARGET_GPU_UTIL = 70          # duty-cycle target
 
 @dataclass
 class Request:
-    """Request"""
     arrived_at: float
     started_at: float | None = None
     completed_at: float | None = None
@@ -40,7 +45,6 @@ class Request:
 
 
 def make_workload(duration_sec: int = 3600, seed: int = 7) -> list[Request]:
-    """make_workload"""
     rng = random.Random(seed)
     reqs = []
     # simulate a morning burst: quiet 0-600, spike 600-1800, tail 1800-3600
@@ -54,11 +58,10 @@ def make_workload(duration_sec: int = 3600, seed: int = 7) -> list[Request]:
             rate = 1.2
         if rng.random() < rate / 10:
             reqs.append(Request(arrived_at=float(t)))
-    return reqs  # 返回结果
+    return reqs
 
 
 def simulate(strategy: str, reqs: list[Request]) -> dict:
-    """simulate"""
     replicas_ready = MIN_WARM_REPLICAS
     replicas_target = MIN_WARM_REPLICAS
     replica_available_at = {i: 0.0 for i in range(MIN_WARM_REPLICAS)}
@@ -144,7 +147,7 @@ def simulate(strategy: str, reqs: list[Request]) -> dict:
         sum(r.started_at - r.arrived_at for r in started) / len(started)
         if started else 0.0
     )
-    return {  # 返回结果
+    return {
         "strategy": strategy,
         "total": len(reqs),
         "completed": completed,
@@ -156,7 +159,6 @@ def simulate(strategy: str, reqs: list[Request]) -> dict:
 
 
 def report(row: dict) -> None:
-    """report"""
     print(f"{row['strategy']:14}  reqs={row['total']:4}  "
           f"done={row['completed']:4}  dropped={row['dropped']:3}  "
           f"mean_wait={row['mean_wait_s']:5.1f}s  "
@@ -164,7 +166,6 @@ def report(row: dict) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("GPU AUTOSCALING — three strategies on a bursty workload (1-hour sim)")
     print("=" * 80)

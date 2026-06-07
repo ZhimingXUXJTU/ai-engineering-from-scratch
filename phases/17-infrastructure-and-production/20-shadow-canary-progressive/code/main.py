@@ -3,8 +3,13 @@
 Progressively increases candidate traffic share and checks five gates at each
 step. Halts when any gate breaches. Supports injected regressions.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：金丝雀发布(Canary Rollout)——六阶段渐进放量（1%->10%->25%->50%->75%->100%），
+五道质量门（延迟 P99、单请求成本、错误率、输出长度 P99、差评率），任何指标超过
+阈值倍数即触发回滚，注入回归检测质量门的灵敏度
+AI 对应：金丝雀发布是 Kubernetes/Argo Rollouts 的标准部署策略；
+Anthropic 的 rainbow deployment 在多 Agent 系统中实现类似渐进发布；
+LaunchDarkly 和 Split.io 提供 feature flag 驱动的渐进发布；
+LLM 的"静默质量退化"（输出变长但语法正确）需要专门的输出长度门控
 """
 
 from __future__ import annotations
@@ -34,7 +39,6 @@ GATES = {
 
 @dataclass
 class Regression:
-    """Regression"""
     latency_mult: float = 1.0
     cost_mult: float = 1.0
     error_mult: float = 1.0
@@ -43,10 +47,9 @@ class Regression:
 
 
 def measure_stage(stage: float, reg: Regression, seed: int) -> dict:
-    """measure_stage"""
     rng = random.Random(seed)
     noise = lambda v: v * rng.uniform(0.92, 1.08)
-    return {  # 返回结果
+    return {
         "latency_p99_ms": noise(BASELINE["latency_p99_ms"] * reg.latency_mult),
         "cost_per_req": noise(BASELINE["cost_per_req"] * reg.cost_mult),
         "error_rate": noise(BASELINE["error_rate"] * reg.error_mult),
@@ -56,16 +59,14 @@ def measure_stage(stage: float, reg: Regression, seed: int) -> dict:
 
 
 def check_gates(metrics: dict) -> list[str]:
-    """check_gates"""
     breaches = []
     for k, mult in GATES.items():
         if metrics[k] > BASELINE[k] * mult:
             breaches.append(k)
-    return breaches  # 返回结果
+    return breaches
 
 
 def rollout(name: str, reg: Regression) -> None:
-    """rollout"""
     print(f"\n{name}")
     print(f"Regression: latency={reg.latency_mult}, cost={reg.cost_mult}, error={reg.error_mult}, len={reg.output_len_mult}, thumbs={reg.thumbs_down_mult}")
     for i, stage in enumerate(STAGES):
@@ -81,17 +82,15 @@ def rollout(name: str, reg: Regression) -> None:
               f"{status}")
         if breaches:
             print(f"  → ROLLBACK (policy flip, pinned model reverted)")
-            return  # 返回结果
+            return
     print("  → PROMOTED to 100%")
 
 
 def stage_seed(i: int) -> int:
-    """stage_seed"""
-    return 11 + i * 3  # 返回结果
+    return 11 + i * 3
 
 
 def main() -> None:
-    """main"""
     print("=" * 95)
     print("CANARY ROLLOUT — six stages, five gates, injected regressions")
     print("=" * 95)

@@ -10,8 +10,12 @@ The decode-throughput model is memory-bandwidth-limited: tokens/sec is
 proportional to HBM-bandwidth / bytes-per-token. Numbers are pedagogical
 illustrations of the shape of the 2026 Blackwell economics.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Blackwell GPU + TensorRT-LLM 经济学计算——H100 BF16 -> H100 FP8 -> B200 NVFP4 ->
+GB200 NVL72 的成本演进，四个加速源：HBM 带宽(2.4x)、NVFP4 权重精度(2x)、
+MTP 投机解码(1.8x)、Prefill/Decode 分离(2.5x)，综合约 7x 成本降低
+AI 对应：NVIDIA Blackwell B200/GB200 是 2024-2025 世代 GPU；NVFP4 是 Blackwell 新增的
+4-bit 浮点格式；TensorRT-LLM (NVIDIA) 是优化推理引擎；Dynamo 是 NVIDIA 的
+Prefill/Decode 分离调度器；DeepSeek-V3 和 Llama 4 的 MoE 架构特别受益于低精度推理
 """
 
 from __future__ import annotations
@@ -21,7 +25,6 @@ from dataclasses import dataclass
 
 @dataclass
 class Stack:
-    """Stack"""
     name: str
     hbm_gb: int               # per-GPU HBM
     hbm_bw_tbs: float         # HBM bandwidth in TB/s
@@ -42,7 +45,6 @@ STACKS = [
 
 
 def hbm_footprint_gb(params_b: float, active_b: float, seq_len: int, stack: Stack) -> tuple[float, float]:
-    """hbm_footprint_gb"""
     weight_gb = params_b * stack.weight_bits / 8
     # KV cache for a typical head config: num_layers * 2 * num_kv_heads * head_dim * seq_len * bytes/element
     # Use a representative 70B shape scaled by active param size
@@ -50,7 +52,7 @@ def hbm_footprint_gb(params_b: float, active_b: float, seq_len: int, stack: Stac
     kv_heads = 8
     head_dim = 128
     kv_gb = layers * 2 * kv_heads * head_dim * seq_len * (stack.kv_bits / 8) / 1e9
-    return weight_gb, kv_gb  # 返回结果
+    return weight_gb, kv_gb
 
 
 def decode_throughput(active_b: float, stack: Stack) -> float:
@@ -59,18 +61,16 @@ def decode_throughput(active_b: float, stack: Stack) -> float:
     """
     bytes_per_token = active_b * 1e9 * stack.weight_bits / 8
     raw_tokens_per_s = stack.hbm_bw_tbs * 1e12 / bytes_per_token
-    return raw_tokens_per_s * stack.mtp_factor * stack.disagg_factor  # 返回结果
+    return raw_tokens_per_s * stack.mtp_factor * stack.disagg_factor
 
 
 def cost_per_million_tokens(active_b: float, stack: Stack) -> float:
-    """cost_per_million_tokens"""
     tps = decode_throughput(active_b, stack)
     tokens_per_hour = tps * 3600
-    return stack.price_per_gpu_hour / tokens_per_hour * 1e6  # 返回结果
+    return stack.price_per_gpu_hour / tokens_per_hour * 1e6
 
 
 def print_stack(params_b: float, active_b: float, seq_len: int = 8192) -> None:
-    """print_stack"""
     print(f"Model: {params_b}B total, {active_b}B active, {seq_len:,} tokens context")
     print("-" * 90)
     print(f"{'stack':40} {'W GB':>7} {'KV GB':>7} {'tok/s':>9} {'$/M tok':>10}")
@@ -84,7 +84,6 @@ def print_stack(params_b: float, active_b: float, seq_len: int = 8192) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 90)
     print("TOY BLACKWELL + TRT-LLM ECONOMICS — memory-bandwidth-limited decode")
     print("=" * 90)

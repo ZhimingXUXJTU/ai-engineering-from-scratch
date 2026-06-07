@@ -8,8 +8,14 @@ Also show how scrambled prompt ordering collapses hit rate. Pedagogical
 constants — the shape matches the published numbers, not the absolute
 latencies.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：SGLang 的 RadixAttention——基于基数树(Radix Tree)的 KV cache 复用，
+将请求 prompt 按段（system/tools/doc/query）组织成树结构，共享前缀的请求复用
+已缓存的 KV block，FCFS vs Cache-Aware 调度器对比，打乱 prompt 前缀顺序会导致
+缓存命中率从 80%+ 崩塌到 <10%
+AI 对应：SGLang (LMSYS, UC Berkeley) 的 RadixAttention 是 KV cache 复用的核心创新；
+vLLM 的 Automatic Prefix Caching (APC) 实现类似功能；
+PagedAttention 是 KV cache 分页管理的基础（vLLM 论文）；
+在生产 RAG 系统中，固定 prompt 模板顺序是利用前缀缓存的关键最佳实践
 """
 
 from __future__ import annotations
@@ -24,21 +30,19 @@ BLOCK_TOKENS = 16
 
 
 def token_count(seg: str) -> int:
-    """token_count"""
     if seg == "SYSTEM":
-        return 2000  # 返回结果
+        return 2000
     if seg.startswith("DOC_"):
-        return 500  # 返回结果
+        return 500
     if seg.startswith("Q_"):
-        return 60  # 返回结果
+        return 60
     if seg == "TOOLS":
-        return 300  # 返回结果
-    return 100  # 返回结果
+        return 300
+    return 100
 
 
 @dataclass
 class Request:
-    """Request"""
     rid: int
     segments: list[str]
 
@@ -65,7 +69,7 @@ class RadixCache:
                 self.nodes[key][1] = self.time
             else:
                 break
-        return reused  # 返回结果
+        return reused
 
     def insert(self, segments: list[str]) -> None:
         """Insert any missing segments on the path, evicting LRU leaves if over budget."""
@@ -83,14 +87,13 @@ class RadixCache:
         leaves = [k for k in self.nodes if not any(
             other != k and other[: len(k)] == k for other in self.nodes)]
         if not leaves:
-            return False  # 返回结果
+            return False
         victim = min(leaves, key=lambda k: self.nodes[k][1])
         self.used -= self.nodes.pop(victim)[0]
-        return True  # 返回结果
+        return True
 
 
 def simulate(requests: list[Request], scheduler: str) -> dict:
-    """simulate"""
     cache = RadixCache()
 
     if scheduler == "CACHE_AWARE":
@@ -100,7 +103,7 @@ def simulate(requests: list[Request], scheduler: str) -> dict:
                 branch_count[tuple(r.segments[:i])] += 1
 
         def score(r: Request) -> int:
-            return max(branch_count[tuple(r.segments[:i])] * sum(  # 返回结果
+            return max(branch_count[tuple(r.segments[:i])] * sum(
                 token_count(s) for s in r.segments[:i])
                 for i in range(1, len(r.segments) + 1))
         order = sorted(requests, key=score, reverse=True)
@@ -116,7 +119,7 @@ def simulate(requests: list[Request], scheduler: str) -> dict:
         saved += reused
         cache.insert(r.segments)
 
-    return {  # 返回结果
+    return {
         "hit_rate": saved / total if total else 0,
         "saved": saved,
         "total": total,
@@ -125,7 +128,6 @@ def simulate(requests: list[Request], scheduler: str) -> dict:
 
 
 def workload_rag(n: int = 80, docs: int = 4, seed: int = 1) -> list[Request]:
-    """workload_rag"""
     rng = random.Random(seed)
     reqs = []
     for i in range(n):
@@ -133,7 +135,7 @@ def workload_rag(n: int = 80, docs: int = 4, seed: int = 1) -> list[Request]:
         q = f"Q_{i}"
         reqs.append(Request(i, ["SYSTEM", "TOOLS", doc, q]))
     rng.shuffle(reqs)
-    return reqs  # 返回结果
+    return reqs
 
 
 def workload_scrambled(n: int = 80, docs: int = 4, seed: int = 1) -> list[Request]:
@@ -147,17 +149,15 @@ def workload_scrambled(n: int = 80, docs: int = 4, seed: int = 1) -> list[Reques
         rng.shuffle(prefix)
         reqs.append(Request(i, prefix + [q]))
     rng.shuffle(reqs)
-    return reqs  # 返回结果
+    return reqs
 
 
 def report(label: str, res: dict) -> None:
-    """report"""
     print(f"{label:44}  hit_rate={res['hit_rate']:6.1%}   "
           f"saved={res['saved']:>6}/{res['total']:<6} tok   reqs={res['reqs']}")
 
 
 def main() -> None:
-    """main"""
     print("=" * 88)
     print("TOY RADIX CACHE — cache hit rate across schedulers and orderings")
     print("=" * 88)

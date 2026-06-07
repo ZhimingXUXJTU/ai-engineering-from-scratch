@@ -21,6 +21,9 @@
 
 You evaluated managed hyperscaler platforms. You decided you need a narrower, faster provider — Fireworks for latency, Together for breadth, Baseten for a fine-tuned custom model. Now you have six real choices and the pricing pages do not line up. Fireworks shows $/M tokens; Baseten shows $/minute; Modal shows $/second; Replicate shows $/prediction. You cannot compare them head-to-head without modeling the workload.
 
+> **【中文解读】**
+> 推理平台市场分为三个层次：定制芯片（Groq、Cerebras——5-10x 更快解码但更贵）、GPU 平台（Fireworks、Together、Baseten、Modal——在原始 GPU 租赁和超大规模云之间）、API 优先市场（Replicate、DeepInfra——按预测计费）。关键规则：持续利用率超过 30% 时，按分钟计费（Baseten、Modal）比按 token 计费（Fireworks、Together）更便宜。
+
 Worse, the business model behind each pricing page is different. Fireworks runs its own custom engine (FireAttention) on shared GPUs; the per-token rate reflects their utilization curve. Baseten gives you Truss + dedicated GPUs; per-minute reflects exclusivity. Modal is true Python serverless — per-second billing with sub-second cold starts. Same output (an LLM response), three different cost functions.
 
 This lesson models the six and tells you when each wins.
@@ -94,6 +97,11 @@ Every platform above vLLM and SGLang claims a custom engine. FireAttention, RayT
 - Per-minute beats per-token above ~30% sustained utilization.
 
 ## Use It | 使用方法
+
+> **【中文解读】**
+> 选平台的核心决策：追求最低延迟选 Fireworks（FireAttention 引擎号称比 vLLM 快 4x），追求模型覆盖广度选 Together（200+ 模型），追求企业合规选 Baseten（SOC 2 Type II + HIPAA），追求开发者体验选 Modal（纯 Python 装饰器部署），追求多模态选 Replicate（图像/视频/音频一站式）。2026 年 Fireworks 估值 40 亿美元，Baseten 50 亿美元。
+
+> **【拓展：推理经济学→创业决策】** 选择推理平台是 AI 创业的基础设施决策。按 token 计费适合突发流量（避免空闲付费），按分钟计费适合稳定高负载（饱和 GPU 更便宜）。Fireworks 的独特优势：LoRA 微调模型按基础模型价格计费，不像其他平台对微调模型加价。对于需要运行多个 LoRA 变体的产品（如个性化助手），这能节省大量成本。
 
 `code/main.py` compares the six vendors on a synthetic workload across pricing models. Reports $/day and effective $/M tokens. Run it to find the break-even between per-token and per-minute.
 

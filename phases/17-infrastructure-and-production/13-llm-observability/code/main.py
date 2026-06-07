@@ -3,8 +3,13 @@
 Simulates a 1M-trace day across retention strategies. Reports storage cost
 and what's lost under each. Pedagogical: costs are 2026 approximations.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：LLM 可观测性采样策略——100% 保留 vs 10% 随机采样 vs 5% 成功+100% 错误 vs
+1% 仅聚合，在 1M traces/天的规模下平衡存储成本（S3 vs Datadog 级平台）与信号保留，
+零拷贝(zero-copy)模式可降低 90%+ 的摄取成本
+AI 对应：Datadog、Grafana/Loki、LangSmith 是 LLM 可观测性的主流平台；
+Arize AX 提出零拷贝可观测性模式（直接在数据湖上查询）；OpenTelemetry 是
+分布式追踪的标准协议；LangFuse 是开源的 LLM 追踪平台；
+LLM 应用的 error rate 和 latency 分布与传统 Web 服务显著不同
 """
 
 from __future__ import annotations
@@ -21,7 +26,6 @@ ARIZE_AX_PER_GB = 0.005            # zero-copy claim
 
 @dataclass
 class Strategy:
-    """Strategy"""
     name: str
     sample_rate: float
     keep_errors: bool
@@ -38,7 +42,6 @@ STRATEGIES = [
 
 
 def simulate_day(strategy: Strategy, traces_per_day: int = 1_000_000) -> dict:
-    """simulate_day"""
     rng = random.Random(7)
     retained = 0
     lost = 0
@@ -56,7 +59,7 @@ def simulate_day(strategy: Strategy, traces_per_day: int = 1_000_000) -> dict:
             lost += 1
     bytes_retained = retained * BYTES_PER_TRACE
     gb = bytes_retained / 1e9
-    return {  # 返回结果
+    return {
         "name": strategy.name,
         "retained": retained,
         "lost": lost,
@@ -68,7 +71,6 @@ def simulate_day(strategy: Strategy, traces_per_day: int = 1_000_000) -> dict:
 
 
 def report(row: dict) -> None:
-    """report"""
     print(f"{row['name']:30}  retained={row['retained']:7}  "
           f"lost={row['lost']:7}  {row['gb_per_day']:6.2f} GB/day  "
           f"mono=${row['monolithic_month']:8.2f}  "
@@ -77,7 +79,6 @@ def report(row: dict) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 120)
     print("OBSERVABILITY SAMPLING — 1M traces/day, 2026 price approximations")
     print("=" * 120)

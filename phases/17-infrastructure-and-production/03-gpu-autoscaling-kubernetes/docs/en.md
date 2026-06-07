@@ -21,6 +21,9 @@
 
 Your team ships an LLM-serving service on Kubernetes. You set up HPA with `DCGM_FI_DEV_GPU_UTIL` as the signal. The service pins at 100% utilization during business hours. HPA never scales up — it already thinks you're full. You add a replica manually; TTFT drops. HPA still doesn't scale. The signal is lying to you.
 
+> **【中文解读】**
+> GPU 自动扩缩有三层，每层解决不同问题：(1) Karpenter 负责节点级扩缩——45-60 秒创建新节点（比 Cluster Autoscaler 快 40%）；(2) KAI Scheduler 负责调度——确保需要 8 GPU 的任务要么全部分配要么全部等待，避免"7 个 GPU 空等 1 个"的浪费；(3) 应用层自动扩缩——用队列深度和 KV cache 利用率代替 GPU 利用率作为信号。
+
 Separately, you use Cluster Autoscaler for nodes. A 1M-token prompt arrives at 2 a.m.; the cluster spends 3 minutes provisioning a node, and the request times out.
 
 Separately again, you deploy a 70B model requiring 8 GPUs across 2 nodes. The cluster has 7 GPUs free and 1 spread across 3 nodes. Cluster Autoscaler provisions a node for the 1 missing GPU. Seven nodes wait 4 minutes burning money while Kubernetes gets the last GPU up.
@@ -98,6 +101,11 @@ Cold-start mitigation (Phase 17 · 10) is where node provisioning time becomes u
 - Karpenter `WhenEmptyOrUnderutilized`: terminates running GPU jobs. Use `WhenEmpty + consolidateAfter: 1h` for inference.
 
 ## Use It | 使用方法
+
+> **【中文解读】**
+> 最大的陷阱是 Karpenter 默认的 `WhenEmptyOrUnderutilized` 策略——它会终止正在运行的 GPU 节点来迁移到更便宜的实例，导致推理请求失败和模型重新加载。安全设置是 `WhenEmpty + consolidateAfter: 1h`。另一个陷阱：`DCGM_FI_DEV_GPU_UTIL` 是占空比指标，100% 可能是 10 个请求也可能是 100 个请求，不能用作扩缩信号。
+
+> **【拓展：GPU 扩缩→成本控制】** GPU 是 AI 基础设施中最大的成本项。H100 每小时约 2-3 美元，一个 8 卡节点每天约 500 美元。错误的扩缩策略（扩得太慢导致请求超时，或缩得太快导致冷启动）直接浪费真金白银。Karpenter + KAI + 队列深度 HPA 的组合是 2026 年 Kubernetes 上 LLM 推理服务的最佳实践。
 
 `code/main.py` simulates a three-layer autoscaler on a bursty GPU workload. Compares naive HPA (duty cycle), queue-depth HPA, and KAI-gang-scheduled scaling. Reports unmet requests, idle-GPU minutes, and a composite score.
 

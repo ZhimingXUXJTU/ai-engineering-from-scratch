@@ -2,15 +2,20 @@
 
 Given hardware, scale, and workload, pick an engine with explanation.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：自托管 LLM 推理引擎决策树——按硬件(CPU/Apple Silicon/AMD/NVIDIA Hopper/Blackwell)、
+规模(单用户/小团队/生产/企业)、工作负载(通用聊天/Agentic 多轮/RAG 前缀复用/MoE)
+选择最优引擎：llama.cpp(CPU/边缘)、Ollama(开发)、vLLM(生产通用)、
+SGLang(Agentic/前缀密集)、TRT-LLM(Blackwell 吞吐优先)
+AI 对应：vLLM 是最广泛使用的开源推理引擎；SGLang 的 RadixAttention 在
+agentic 多轮场景中表现最优；TensorRT-LLM (NVIDIA) 在 Blackwell GPU 上吞吐最高；
+llama.cpp 是 CPU 和 Apple Silicon 的首选；Ollama 封装 llama.cpp 提供开箱即用体验；
+TGI (Hugging Face) 自 2025 年 12 月起进入维护模式
 """
 
 from __future__ import annotations
 
 
 def pick_engine(hardware: str, scale: str, workload: str) -> dict:
-    """pick_engine"""
     reasons = []
     engine = None
 
@@ -51,7 +56,7 @@ def pick_engine(hardware: str, scale: str, workload: str) -> dict:
 
     reasons.append("TGI is in maintenance mode since Dec 11, 2025 — default AWAY from TGI for new projects")
 
-    return {  # 返回结果
+    return {
         "hardware": hardware,
         "scale": scale,
         "workload": workload,
@@ -72,7 +77,6 @@ SCENARIOS = [
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("SELF-HOSTED ENGINE DECISION TREE — hardware / scale / workload")
     print("=" * 80)

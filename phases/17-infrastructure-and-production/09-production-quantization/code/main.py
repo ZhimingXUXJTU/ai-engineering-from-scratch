@@ -8,8 +8,14 @@ For a set of quantization formats and model sizes, compute:
 
 Formats are represented by effective weight bits and KV bits. Pedagogical.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：生产级量化格式对比——BF16(基准)、GGUF Q5/Q4(llama.cpp CPU/边缘)、
+GPTQ-Int4+Marlin(vLLM 多 LoRA)、AWQ-Int4+Marlin(INT4 最佳 Pass@1)、FP8(安全默认)、
+NVFP4+FP8 KV(Blackwell 激进)，分析权重内存 + KV cache 内存 + 激活内存的权衡
+AI 对应：GGUF 是 llama.cpp 的量化格式，广泛用于 CPU 和边缘推理；
+GPTQ (Frantar et al.) 和 AWQ (Lin et al.) 是主流的 4-bit 量化方法；
+Marlin 内核(vLLM)将 INT4 解码加速到接近 FP16 的速度；
+FP8 (NVIDIA H100+) 是推理的安全默认选择；
+NVFP4 是 Blackwell 世代的新格式，需要质量验证
 """
 
 from __future__ import annotations
@@ -19,7 +25,6 @@ from dataclasses import dataclass
 
 @dataclass
 class Format:
-    """Format"""
     name: str
     weight_bits: float
     kv_bits: float
@@ -39,7 +44,6 @@ FORMATS = [
 
 
 def memory_breakdown(params_b: float, fmt: Format,
-    """memory_breakdown"""
                      concurrency: int = 128, ctx: int = 2048) -> dict:
     weight_gb = params_b * fmt.weight_bits / 8
     # KV cache approximation: num_layers * 2 * kv_heads * head_dim * ctx * bytes/element
@@ -49,7 +53,7 @@ def memory_breakdown(params_b: float, fmt: Format,
     per_seq_kv_gb = layers * 2 * kv_heads * head_dim * ctx * (fmt.kv_bits / 8) / 1e9
     kv_total = per_seq_kv_gb * concurrency
     activations_gb = 0.05 * params_b       # rough constant
-    return {  # 返回结果
+    return {
         "weight": weight_gb,
         "kv": kv_total,
         "act": activations_gb,
@@ -60,22 +64,20 @@ def memory_breakdown(params_b: float, fmt: Format,
 def relative_throughput(fmt: Format) -> float:
     """Decode is memory-bandwidth-limited. Fewer weight bytes per token = higher throughput.
     Normalize to BF16 = 1.0."""
-    return 16 / fmt.weight_bits  # 返回结果
+    return 16 / fmt.weight_bits
 
 
 def gpu_check(total_gb: float) -> str:
-    """gpu_check"""
     if total_gb <= 80:
-        return "H100 80GB"  # 返回结果
+        return "H100 80GB"
     if total_gb <= 141:
-        return "H200 141GB"  # 返回结果
+        return "H200 141GB"
     if total_gb <= 192:
-        return "B200 192GB"  # 返回结果
-    return "MULTI-GPU"  # 返回结果
+        return "B200 192GB"
+    return "MULTI-GPU"
 
 
 def print_scenario(params_b: float, concurrency: int, ctx: int) -> None:
-    """print_scenario"""
     print(f"Model: {params_b}B params  |  concurrency {concurrency}  |  ctx {ctx}")
     print("-" * 98)
     print(f"{'format':36} {'W GB':>7} {'KV GB':>7} {'Act GB':>7} "
@@ -89,7 +91,6 @@ def print_scenario(params_b: float, concurrency: int, ctx: int) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 98)
     print("TOY QUANTIZATION CALCULATOR — memory and relative throughput by format")
     print("=" * 98)
