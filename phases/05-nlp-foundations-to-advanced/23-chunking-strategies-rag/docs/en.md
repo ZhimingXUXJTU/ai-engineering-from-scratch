@@ -23,6 +23,8 @@ Feb 2026 benchmarks show surprising results:
 
 The "obvious" answer (semantic chunking, 20% overlap, 1000 tokens) is often wrong. This lesson builds intuition for six strategies and tells you when to reach for which.
 
+> **【中文解读】** RAG 分块策略是检索质量的关键因素——影响程度不亚于嵌入模型的选择。2026 年基准测试的惊人发现：递归 512 token 分块比语义分块效果更好（69% vs 54%），SPLADE + Mistral-8B 上重叠没有可测量的收益。"显而易见"的答案（语义分块 + 20% 重叠 + 1000 token）往往是错的。本课构建六种策略的直觉。
+
 ## The Concept
 
 ![Six chunking strategies visualized on one passage](../assets/chunking.svg)

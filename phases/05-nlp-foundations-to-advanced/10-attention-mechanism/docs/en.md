@@ -17,6 +17,10 @@ Bahdanau, Cho, and Bengio published a three-line fix in 2014. Instead of giving 
 
 That is the whole idea. Transformers extended it. Self-attention applied it to a single sequence. Multi-head attention ran it in parallel. But the 2014 version already broke the bottleneck, and once you have it, the pivot to transformers is engineering, not conceptual.
 
+> **【中文解读】** 注意力机制的核心突破：不让解码器只看编码器的最终状态，而是保留所有编码器状态，在每步解码时动态计算加权平均。权重表示"解码器现在需要看编码器第 i 个位置多少"。这就是 Q/K/V 的原型。Bahdanau 注意力（2014）打破了瓶颈，Transformer 将其扩展为自注意力（self-attention）和多头注意力（multi-head attention），但核心概念没变。
+
+> **【拓展：注意力机制的通用性】** 注意力不仅是 Transformer 的核心，也是现代 AI 系统的通用原语。Cross-attention 用于多模态模型（如 CLIP 的图文对齐）、RAG 系统中的检索增强、扩散模型中的文本条件注入。理解 Q/K/V 的计算流程，就理解了这些系统的共同基础。
+
 ## The Concept
 
 ![Bahdanau attention: decoder queries all encoder states](../assets/attention.svg)

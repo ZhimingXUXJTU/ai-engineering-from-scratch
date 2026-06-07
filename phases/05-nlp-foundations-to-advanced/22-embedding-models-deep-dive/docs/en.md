@@ -23,6 +23,8 @@ Choosing an embedding in 2026 means picking across five axes:
 
 This lesson names the tradeoffs so you can pick on evidence, not on whatever was popular last quarter.
 
+> **【中文解读】** RAG 系统检索错误 40% 的原因很少是向量数据库或提示词，通常是嵌入模型。2026 年选择嵌入模型需要考虑五个维度：稠密 vs 稀疏 vs 多向量、语言覆盖范围、上下文长度、维度预算（100M 向量 x 3072 维 = $1300/月存储）、开源 vs 托管。Matryoshka 截断可以将存储减少 4 倍。
+
 ## The Concept
 
 ![Dense, sparse, and multi-vector embeddings](../assets/embedding-modes.svg)

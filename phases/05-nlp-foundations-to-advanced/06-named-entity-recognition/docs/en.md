@@ -17,6 +17,8 @@ NER is the workhorse underneath every structured extraction pipeline. Resume par
 
 This lesson walks the classical path (rule-based, HMM, CRF) into the modern one (BiLSTM-CRF, then transformers). Each step solves a specific limitation of the one before it. The pattern is the lesson.
 
+> **【中文解读】** 命名实体识别（NER）是信息抽取的基础——从文本中提取人名、地名、组织名等实体。应用场景包括简历解析、合规日志扫描、医疗记录匿名化、搜索查询理解、聊天机器人回答接地、法律合同提取。本课从经典方法（规则、HMM、CRF）走到现代方法（BiLSTM-CRF、Transformer），每一步解决上一步的局限。
+
 ## The Concept
 
 **BIO tagging** (or BILOU) turns entity extraction into a sequence-labeling problem. Label each token with `B-TYPE` (beginning of entity), `I-TYPE` (inside entity), or `O` (outside any entity).

@@ -17,6 +17,8 @@ Subword tokenization solves this. Common words stay single tokens. Rare words de
 
 Every frontier LLM in 2026 ships on one of three algorithms (BPE, Unigram, WordPiece), wrapped in one of three libraries (tiktoken, SentencePiece, HF Tokenizers). You cannot ship a language model without picking one.
 
+> **【中文解读】** 子词分词解决了词表溢出问题：常见词保持为单个 token，罕见词分解为有意义的片段。GPT 系列用 BPE（字节对编码），BERT 用 WordPiece，T5 用 SentencePiece（Unigram）。2026 年所有前沿 LLM 都使用这三种算法之一。选错分词器会导致模型无法正确处理多语言或专业术语。
+
 ## The Concept
 
 ![BPE vs Unigram vs WordPiece, character-by-character](../assets/subword-tokenization.svg)

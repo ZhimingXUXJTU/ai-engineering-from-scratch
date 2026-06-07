@@ -19,6 +19,8 @@ Abstractive summarization is a generation problem. A transformer produces new te
 
 This lesson builds both, with the failure mode each one owns.
 
+> **【中文解读】** 抽取式摘要（extractive）是排序问题——给每个句子打分，返回最高分的 k 句。输出总是语法正确的（原文摘抄），但可能遗漏分布在文章各处的信息。生成式摘要（abstractive）是生成问题——Transformer 根据输入生成新文本。输出流畅紧凑，但可能幻觉出原文没有的事实。两种方法的风险完全不同。
+
 ## The Concept
 
 ![Extractive TextRank vs abstractive transformer](../assets/summarization.svg)
