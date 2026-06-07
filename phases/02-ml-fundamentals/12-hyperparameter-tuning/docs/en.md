@@ -15,14 +15,15 @@
 - Design a hyperparameter tuning strategy that avoids overfitting the validation set through proper cross-validation
 
 
-> **【中文解读】**
-> 超参数是模型训练前设定的参数（如学习率、树深度），不能从数据中学到。网格搜索、随机搜索、贝叶斯优化是三种调参方法。sklearn 中的 GridSearchCV/Optuna。
+> **【中文解读】** 超参数是模型训练前设定的参数（如学习率、树深度），不能从数据中学到。网格搜索、随机搜索、贝叶斯优化是三种调参方法。sklearn 中的 GridSearchCV/Optuna。本节覆盖调参策略、学习率调度、早停和嵌套交叉验证。
 
 ## The Problem
 
 Your gradient boosting model has a learning rate, number of trees, max depth, min samples per leaf, subsample ratio, and column sample ratio. That is six hyperparameters. If each has 5 reasonable values, the grid has 5^6 = 15,625 combinations. Training each takes 10 seconds. That is 43 hours of compute to try them all.
 
 Grid search is the obvious approach and the worst one at scale. Random search does better with less compute. Bayesian optimization does even better by learning from past evaluations. Knowing which strategy to use, and which hyperparameters actually matter, saves days of wasted GPU time.
+
+> **【中文解读】** 6 个超参数各取 5 个值，网格搜索要试 5^6=15625 种组合，每种 10 秒就是 43 小时。网格搜索最直观但扩展性最差。随机搜索在相同预算下效果更好。贝叶斯优化通过学习历史评估结果来指导下一步搜索，效率最高。
 
 ## The Concept
 
@@ -58,6 +59,8 @@ Grid for 2 hyperparameters:
 
 Grid search has a fundamental flaw: if one hyperparameter matters and the other does not, most evaluations are wasted. You get only 3 unique values of the important parameter from 9 evaluations.
 
+> **【中文解读】** 网格搜索穷举所有组合，直观但指数增长：k 个超参数各 n 个值就是 n^k 次评估。致命缺陷：如果只有 1-2 个超参数真正重要，大量评估浪费在无关维度上。
+
 ### Random Search
 
 Random search samples hyperparameters from distributions instead of a grid. With the same budget of 9 evaluations, you get 9 unique values of each hyperparameter.
@@ -83,6 +86,8 @@ Why random beats grid (Bergstra & Bengio, 2012):
 - Grid search wastes evaluations on unimportant dimensions.
 - Random search covers the important dimensions more densely for the same budget.
 - At 60 random trials, you have a 95% chance of finding a point within 5% of the optimum (if one exists in the search space).
+
+> **【中文解读】** 随机搜索为什么比网格搜索好（Bergstra & Bengio, 2012）：大多数超参数只有 1-2 个真正重要（低有效维度），网格搜索在无关维度上浪费了大量评估。同样 9 次评估，随机搜索让每个重要维度都探索了 9 个不同值，而网格搜索只有 3 个。60 次随机试验就有 95% 概率找到距最优 5% 以内的点。
 
 ### Bayesian Optimization
 
@@ -111,6 +116,8 @@ The two key components:
 
 Bayesian optimization typically finds better hyperparameters than random search with 2-5x fewer evaluations. The overhead of fitting the surrogate model is negligible compared to training the actual model.
 
+> **【中文解读】** 贝叶斯优化利用历史评估结果来指导下一步搜索，核心两个组件：**代理模型**（通常用高斯过程，廉价评估且给出不确定性估计）和**采集函数**（平衡开发——搜索已知好的区域——和探索——搜索不确定性高的区域）。Expected Improvement（EI）和 Upper Confidence Bound（UCB）是常用采集函数。通常比随机搜索少 2-5 倍评估就能找到更好的超参数。
+
 ### Early Stopping
 
 Not every training run needs to finish. If a configuration is clearly bad after 10 epochs, stop it and move on. This is early stopping in the context of hyperparameter search.
@@ -121,6 +128,8 @@ Strategies:
 - **Hyperband:** Allocate small budgets to many configurations, then progressively increase budget for the best ones
 
 Hyperband is particularly effective. It starts 81 configurations with 1 epoch each, keeps the top third, gives them 3 epochs, keeps the top third, and so on. This finds good configurations 10-50x faster than evaluating all configs for the full budget.
+
+> **【中文解读】** 早停策略：不需要让每个配置都训练完。如果某个配置明显很差（10 轮后验证损失没改善），直接终止。Hyperband 特别高效：81 个配置各跑 1 轮，保留前 1/3 跑 3 轮，再保留前 1/3 跑 9 轮……比全部跑完快 10-50 倍。
 
 ### Learning Rate Schedulers
 
@@ -133,6 +142,8 @@ The learning rate is almost always the most important hyperparameter. Rather tha
 | Warmup + decay | Linear increase then cosine decay | Transformers |
 | One-cycle | Increase then decrease over one cycle | Fast convergence |
 | Reduce on plateau | Reduce by factor when metric stalls | Safe default |
+
+> **【中文解读】** 学习率几乎总是最重要的超参数。现代训练很少用固定学习率：余弦退火（cosine annealing）是现代默认选择；Transformer 用 warmup + 衰减（先线性增加再余弦下降）；One-cycle 在一个周期内先增后减，收敛快。
 
 ### Hyperparameter Importance
 
@@ -155,6 +166,8 @@ Not all hyperparameters matter equally. Research on random forests (Probst et al
 
 Tune the important ones first, leave the rest at defaults.
 
+> **【中文解读】** 超参数重要性排序：**高**——学习率（永远先调）、估计器数量/轮数（用早停代替调参）、正则化强度；**中**——最大深度/层数、每叶最小样本/权重衰减、子采样率；**低**——最大特征数、激活函数选择、批量大小。先调重要的，其余用默认值。
+
 ### Practical Strategy
 
 ```mermaid
@@ -173,6 +186,8 @@ The concrete workflow:
 3. **Analyze results.** Which hyperparameters correlate with performance? Narrow the search space.
 4. **Fine search.** Bayesian optimization or focused random search in the narrowed space. 50-100 trials.
 5. **Retrain on all training data** with the best hyperparameters found.
+
+> **【中文解读】** 实践策略：(1) 从库的默认值开始（通常是专家选的，已经 80% 了）；(2) 粗粒度随机搜索 20-50 次，用早停快速淘汰差的配置；(3) 分析哪些超参数与性能相关，缩窄搜索空间；(4) 在缩窄的空间中做贝叶斯优化或精细随机搜索 50-100 次；(5) 用最佳超参数在全量训练数据上重新训练。
 
 ### Cross-Validation Integration
 
@@ -533,28 +548,33 @@ Use `loguniform` from scipy for learning rate and regularization. Use `randint` 
 ## Exercises
 
 1. Run grid search and random search with the same total budget (e.g., 50 evaluations). Compare the best scores found. Run the experiment 10 times with different seeds. How often does random search win?
+   > **中文：** 在相同预算下比较网格搜索和随机搜索，重复 10 次不同种子。随机搜索赢了多少次？
 
 2. Implement Hyperband from scratch. Start with 81 configurations, each trained for 1 epoch. Keep the top 1/3 at each round and triple their budget. Compare total compute (sum of all epochs across all configs) to running 81 configs for the full budget.
+   > **中文：** 从零实现 Hyperband：81 个配置各跑 1 轮，每轮保留前 1/3 并三倍预算。比较总计算量与全部跑完的差距。
 
 3. Add a learning rate scheduler (cosine annealing) to the gradient boosting implementation from Lesson 11. Does it help compared to a fixed learning rate?
+   > **中文：** 给第 11 课的梯度提升实现添加余弦退火学习率调度，比较与固定学习率的效果。
 
 4. Use Optuna to tune a RandomForestClassifier on a real dataset (e.g., sklearn's breast cancer dataset). Use `optuna.visualization.plot_param_importances(study)` to see which hyperparameters matter most. Does it match the importance ranking from this lesson?
+   > **中文：** 用 Optuna 调优 RandomForestClassifier，用 `plot_param_importances` 查看超参数重要性，与本课的排名是否一致？
 
 5. Implement a simple acquisition function (Expected Improvement) and demonstrate exploration vs exploitation. Plot the surrogate model's mean and uncertainty, and show where EI chooses to evaluate next.
+   > **中文：** 实现期望改进（EI）采集函数，展示开发与探索的平衡，绘制代理模型的均值和不确定性。
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Hyperparameter | "A setting you choose" | A value set before training that controls the learning process, not learned from data |
-| Grid search | "Try every combination" | Exhaustive search over a specified parameter grid. Exponential cost. |
-| Random search | "Just sample randomly" | Sample hyperparameters from distributions. Covers important dimensions better than grid search. |
-| Bayesian optimization | "Smart search" | Uses a surrogate model of the objective to decide where to evaluate next, balancing exploration and exploitation |
-| Surrogate model | "A cheap approximation" | A model (usually Gaussian process) that approximates the expensive objective function from observed evaluations |
-| Acquisition function | "Where to look next" | Scores candidate points by balancing expected improvement with uncertainty. EI and UCB are common choices. |
-| Early stopping | "Stop wasting time" | Terminate training early when validation performance stops improving |
-| Hyperband | "Tournament bracket for configs" | Adaptive resource allocation: start many configs with small budgets, keep the best and increase their budgets |
-| Learning rate scheduler | "Change lr during training" | A function that adjusts the learning rate over the course of training for better convergence |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Hyperparameter | "A setting you choose" | A value set before training that controls the learning process, not learned from data | 超参数：训练前设定的控制学习过程的值 |
+| Grid search | "Try every combination" | Exhaustive search over a specified parameter grid. Exponential cost. | 网格搜索：穷举所有组合，指数级成本 |
+| Random search | "Just sample randomly" | Sample hyperparameters from distributions. Covers important dimensions better than grid search. | 随机搜索：从分布中采样，比网格更有效 |
+| Bayesian optimization | "Smart search" | Uses a surrogate model of the objective to decide where to evaluate next, balancing exploration and exploitation | 贝叶斯优化：用代理模型指导搜索，平衡开发与探索 |
+| Surrogate model | "A cheap approximation" | A model (usually Gaussian process) that approximates the expensive objective function from observed evaluations | 代理模型：高斯过程等廉价近似目标函数 |
+| Acquisition function | "Where to look next" | Scores candidate points by balancing expected improvement with uncertainty. EI and UCB are common choices. | 采集函数：决定下一个评估点，平衡改进期望与不确定性 |
+| Early stopping | "Stop wasting time" | Terminate training early when validation performance stops improving | 早停：验证性能不再改善时提前终止训练 |
+| Hyperband | "Tournament bracket for configs" | Adaptive resource allocation: start many configs with small budgets, keep the best and increase their budgets | Hyperband：锦标赛式资源分配，快 10-50 倍 |
+| Learning rate scheduler | "Change lr during training" | A function that adjusts the learning rate over the course of training for better convergence | 学习率调度：训练过程中动态调整学习率 |
 
 ## Further Reading
 

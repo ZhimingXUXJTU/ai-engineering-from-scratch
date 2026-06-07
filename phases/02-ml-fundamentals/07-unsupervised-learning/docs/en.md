@@ -15,8 +15,7 @@
 - Build an anomaly detection pipeline using clustering methods to flag points that deviate from normal patterns
 
 
-> **【中文解读】**
-> 无监督学习没有标签，目标是发现数据中的结构。K-Means 是最经典的聚类算法，DBSCAN 能发现任意形状的簇。sklearn 中的 KMeans/DBSCAN。客户分群、异常检测是典型应用。
+> **【中文解读】** 无监督学习没有标签，目标是发现数据中的结构。K-Means 是最经典的聚类算法，DBSCAN 能发现任意形状的簇。本节从零实现 K-Means、DBSCAN 和高斯混合模型（GMM），比较它们的优缺点和适用场景。
 
 ## The Problem
 
@@ -25,6 +24,8 @@ Every ML lesson so far has assumed labeled data: "here is an input, here is the 
 Unsupervised learning finds patterns without being told what to look for. It groups similar data points, discovers hidden structures, and surfaces anomalies. If supervised learning is learning from a textbook with an answer key, unsupervised learning is staring at raw data until the patterns reveal themselves.
 
 The catch: without labels, you cannot directly measure "right" or "wrong." You need different tools to evaluate whether the structure your algorithm found is meaningful.
+
+> **【中文解读】** 核心挑战：没有标签就无法直接衡量"对"或"错"。你需要不同的工具来评估算法发现的模式是否有意义。
 
 ## The Concept
 
@@ -58,6 +59,8 @@ Lloyd's algorithm:
 
 The objective function (inertia) measures the total squared distance from each point to its assigned centroid. K-Means minimizes this, but only finds a local minimum. Different initializations can give different results.
 
+> **【中文解读】** K-Means 的 Lloyd 算法：(1) 随机选 K 个中心 (2) 每个点归入最近中心 (3) 重新计算中心为簇内均值 (4) 重复直到稳定。目标函数（惯性）是点到所属中心的总平方距离，只保证局部最优，不同初始化可能得到不同结果。
+
 ### Choosing K
 
 Two standard methods:
@@ -82,6 +85,8 @@ Three types of points:
 DBSCAN connects core points that are within eps of each other into the same cluster. Border points join the cluster of a nearby core point. Noise points belong to no cluster.
 
 Strengths: finds clusters of any shape, automatically determines the number of clusters, identifies outliers. Weakness: struggles with clusters of varying densities.
+
+> **【中文解读】** DBSCAN 不假设球形簇也不需要预设 K：它找到密度高的区域作为簇，稀疏区域的点标记为噪声（异常值）。两个参数 eps（邻域半径）和 min_samples（最小点数）。优势：任意形状的簇、自动确定簇数、天然检测异常值。缺点：密度差异大的簇效果差。
 
 ### Hierarchical Clustering
 
@@ -109,6 +114,8 @@ GMM assumes the data is generated from a mixture of K Gaussian distributions, ea
 - **M-step**: update the mean, covariance, and mixing weight of each Gaussian to maximize the likelihood of the data
 
 GMM can model elliptical clusters (not just spherical like K-Means) and naturally handles overlapping clusters.
+
+> **【中文解读】** 高斯混合模型（GMM）用 K 个高斯分布的混合来建模数据。与 K-Means 的硬分配不同，GMM 给出软分配（每个点属于每个簇的概率）。EM 算法交替执行 E 步（算每个点属于每个高斯的概率）和 M 步（更新均值、协方差和混合权重）。GMM 能建模椭圆形簇和重叠簇。
 
 ### When to Use Which
 

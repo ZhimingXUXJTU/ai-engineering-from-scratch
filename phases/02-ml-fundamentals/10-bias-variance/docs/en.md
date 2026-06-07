@@ -15,8 +15,7 @@
 - Implement experiments that visualize the bias-variance tradeoff across models of increasing complexity
 
 
-> **【中文解读】**
-> 偏差（模型太简单欠拟合）vs 方差（模型太复杂过拟合）的平衡。正则化（L1/L2）、增加数据、降低模型复杂度是常用手段。理解偏差-方差权衡是调参的理论基础。
+> **【中文解读】** 偏差（模型太简单欠拟合）vs 方差（模型太复杂过拟合）的平衡。正则化（L1/L2）、增加数据、降低模型复杂度是常用手段。本节推导偏差-方差分解、学习曲线诊断、双重下降现象和实用策略。
 
 ## The Problem
 
@@ -25,6 +24,8 @@ You trained a model. It has some error on test data. Where does that error come 
 If your model is too simple (linear regression on a curved dataset), it will consistently miss the true pattern. That is bias. If your model is too complex (degree-20 polynomial on 15 data points), it will fit the training data perfectly but give wildly different predictions on new data. That is variance.
 
 You cannot minimize both at the same time for a fixed model capacity. Push bias down and variance goes up. Push variance down and bias goes up. Understanding this tradeoff is the single most useful diagnostic skill in machine learning. It tells you whether to make your model more complex or less complex, whether to get more data or engineer better features, whether to regularize more or less.
+
+> **【中文解读】** 模型误差的三个来源：偏差（系统性地偏离真相）、方差（对训练数据变化过于敏感）、不可约噪声（数据本身的噪声，无法消除）。模型太简单则偏差大，太复杂则方差大，两者不能同时最小化。这是 ML 中最有用的诊断工具。
 
 ## The Concept
 
@@ -42,6 +43,8 @@ High bias (underfitting):
   Gap between them: SMALL
 ```
 
+> **【中文解读】** 偏差 = 模型平均预测与真实值的差距。高偏差 = 模型太死板抓不住真实模式（如直线拟合抛物线）。表现：训练误差高、测试误差高、两者差距小。这是欠拟合。
+
 ### Variance: Sensitivity to Training Data
 
 Variance measures how much your predictions change when you train on different subsets of data. If small changes in the training set cause large changes in the model, variance is high.
@@ -55,6 +58,8 @@ High variance (overfitting):
   Test error: HIGH
   Gap between them: LARGE
 ```
+
+> **【中文解读】** 方差 = 模型预测对训练数据变化的敏感度。高方差 = 模型拟合了噪声而非信号（如 20 阶多项式穿过每个训练点但在点间剧烈震荡）。表现：训练误差低、测试误差高、两者差距大。这是过拟合。
 
 ### The Decomposition
 
@@ -75,6 +80,8 @@ where:
 - `y` is the observed label (true function plus noise)
 
 The noise term is irreducible. No model can do better than sigma^2 on noisy data. Your job is to find the right balance between bias^2 and variance.
+
+> **【中文解读】** 偏差-方差分解：期望误差 = 偏差^2 + 方差 + 不可约噪声。噪声项 sigma^2 无法消除——再好的模型也不能预测随机噪声。你的任务是在偏差和方差之间找平衡。
 
 ### Model Complexity vs Error
 
@@ -106,6 +113,8 @@ Regularization deliberately increases bias to reduce variance. It constrains the
 - **Early stopping:** Stops training before the model fully fits the training data.
 
 The regularization strength (lambda, dropout rate, number of epochs) directly controls where you sit on the bias-variance curve. More regularization means more bias, less variance.
+
+> **【中文解读】** 正则化故意增加偏差来降低方差：L2（岭回归）收缩权重、L1（Lasso）把部分权重压零做特征选择、Dropout 随机禁用神经元强制冗余表示、早停在模型完全拟合训练数据前停止。正则化强度直接控制你在偏差-方差曲线上的位置。
 
 ### Double Descent: The Modern Perspective
 

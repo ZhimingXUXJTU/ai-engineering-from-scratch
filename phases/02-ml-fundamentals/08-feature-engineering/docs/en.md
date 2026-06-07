@@ -15,8 +15,7 @@
 - Apply filter-based feature selection (variance threshold, correlation, mutual information) to reduce dimensionality
 
 
-> **【中文解读】**
-> 特征工程是把原始数据转化为模型能理解的特征——这是 ML 中最耗时的步骤。标准化、编码、交叉特征、多项式特征都是常用技巧。sklearn 中的 StandardScaler/OneHotEncoder。
+> **【中文解读】** 特征工程是把原始数据转化为模型能理解的特征——这是 ML 中最耗时的步骤。标准化、编码、交叉特征、多项式特征都是常用技巧。sklearn 中的 StandardScaler/OneHotEncoder。本节覆盖数值变换、类别编码、文本特征、缺失值处理和特征选择。
 
 ## The Problem
 
@@ -27,6 +26,8 @@ Then someone transforms the raw data into better features and a simple logistic 
 This happens constantly. In classical ML, the representation of the data matters more than the choice of algorithm. A house price model with "square footage" and "number of bedrooms" will beat a model with "address as a raw string" no matter how sophisticated the learner is. The algorithm can only work with what you give it.
 
 Feature engineering is the process of transforming raw data into representations that make patterns easier for models to find. Feature selection is the process of throwing away features that add noise without adding signal. Together, they are the highest-leverage activity in classical ML.
+
+> **【中文解读】** 核心洞察：换算法不如换特征。一个简单逻辑回归配好特征，可以打败精心调参的梯度提升集成。模型只能处理你给它的数据表示——"面积"和"卧室数"比"地址字符串"有效得多。特征工程 = 让模式更容易被发现；特征选择 = 扔掉只加噪声不加信号的特征。
 
 ## The Concept
 
@@ -57,6 +58,8 @@ Raw numbers are rarely model-ready. Common transforms:
 
 **Polynomial features:** Creates x^2, x^3, x1*x2 terms. Lets linear models capture non-linear relationships at the cost of more features.
 
+> **【中文解读】** 数值特征变换四件套：**缩放**（Min-Max 或 Z-score 标准化）让距离类算法（KNN、SVM）公平对待所有特征；**对数变换**压缩右偏分布（收入、人口），把乘法关系变成加法；**分箱**把连续值变成类别，适用于阶梯式关系；**多项式特征**生成 x^2、x1*x2 项，让线性模型能捕捉非线性关系，代价是特征数爆炸。
+
 ### Categorical Features
 
 Models need numbers. Categories need encoding.
@@ -66,6 +69,8 @@ Models need numbers. Categories need encoding.
 **Label encoding:** Maps each category to an integer: red=0, blue=1, green=2. Introduces false ordering (the model might think green > blue > red). Only appropriate for tree-based models that split on individual values.
 
 **Target encoding:** Replaces each category with the mean of the target variable for that category. Powerful but dangerous: high risk of data leakage. Must be computed only on training data and applied to test data.
+
+> **【中文解读】** 类别编码三种方式：**One-hot** 为每个类别创建一列二值特征，低基数效果好但高基数会爆炸；**Label encoding** 映射为整数，引入虚假排序（模型可能以为 green>blue>red），只适合树模型；**Target encoding** 用该类别的目标均值替代，效果强大但有数据泄漏风险——必须只在训练集上计算，再应用到测试集。
 
 ### Text Features
 
@@ -79,6 +84,8 @@ IDF(word) = log(total docs / docs containing word)
 TF-IDF = TF * IDF
 ```
 
+> **【中文解读】** 文本特征两种表示：**词袋模型**（Count Vectorizer）统计每个词在文档中出现的次数；**TF-IDF** 在词频基础上乘以逆文档频率，让常见词（"the"）权重低，稀有区分性词权重高。TF-IDF 在文本分类中几乎总是优于原始词频。
+
 ### Missing Values
 
 Real data has holes. Strategies:
@@ -88,6 +95,8 @@ Real data has holes. Strategies:
 - **Mode imputation:** For categorical features
 - **Indicator column:** Add a binary column "was_this_missing" before imputing. The fact that data is missing can itself be informative
 - **Forward/backward fill:** For time series data
+
+> **【中文解读】** 缺失值处理策略：数据少且随机缺失时删行；均值/中位数填充简单但中位数更抗异常值；众数填充用于类别特征；加一个"是否缺失"的指示列——缺失本身可能是信息；时间序列用前向/后向填充。
 
 ### Feature Interaction
 
@@ -107,6 +116,8 @@ More features is not always better. Irrelevant features add noise, increase trai
 - Recursive feature elimination: train, remove least important feature, repeat
 
 **Why selection matters:** A model with 10 good features will usually outperform a model with 10 good features and 90 noisy ones. The noisy features give the model opportunities to overfit on training data patterns that do not generalize.
+
+> **【中文解读】** 特征选择三类方法：**过滤法**（建模前）——去掉高相关冗余特征、用互信息衡量特征与目标的相关性、去掉方差太小的特征；**包装法**（基于模型）——L1 正则化把无关特征权重压到零、递归特征消除逐步删最不重要的。10 个好特征通常胜过 10 个好特征加 90 个噪声特征，因为噪声给模型过拟合的机会。
 
 ## Build It
 
@@ -560,22 +571,27 @@ This lesson produces:
 ## Exercises
 
 1. Add robust scaling (using median and interquartile range instead of mean and standard deviation) to the numerical transforms. Compare it to standard scaling on data with extreme outliers.
+   > **中文：** 添加鲁棒缩放（用中位数和四分位距替代均值和标准差）。在有极端异常值的数据上比较它和标准缩放的效果。
+
 2. Implement leave-one-out target encoding: for each row, compute the target mean excluding that row's own target value. Show how this reduces overfitting compared to naive target encoding.
+   > **中文：** 实现留一法目标编码：对每行，计算排除该行自身目标值后的目标均值。展示它如何比朴素目标编码减少过拟合。
+
 3. Build an automated feature selection pipeline that combines variance threshold, correlation filtering, and mutual information ranking. Apply it to the housing dataset and compare model performance (use a simple linear regression) with all features vs selected features.
+   > **中文：** 构建自动化特征选择管道，结合方差阈值、相关性过滤和互信息排序。应用于房价数据集，比较使用全部特征和选择后特征的模型性能。
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Feature engineering | "Making new columns" | Transforming raw data into representations that expose patterns to the model |
-| Standardization | "Making it normal" | Subtracting the mean and dividing by standard deviation so the feature has mean=0 and std=1 |
-| One-hot encoding | "Making dummy variables" | Creating one binary column per category, where exactly one column is 1 for each row |
-| Target encoding | "Using the answer to encode" | Replacing each category with the average target value for that category, with smoothing to prevent overfitting |
-| TF-IDF | "Fancy word counts" | Term Frequency times Inverse Document Frequency: words weighted by how distinctive they are across the corpus |
-| Imputation | "Filling in blanks" | Replacing missing values with estimated values (mean, median, mode, or model-predicted) |
-| Feature selection | "Throwing out bad columns" | Removing features that add noise or redundancy, keeping only those with signal about the target |
-| Mutual information | "How much one thing tells you about another" | A measure of the reduction in uncertainty about variable Y gained by observing variable X |
-| Data leakage | "Accidentally cheating" | Using information during training that would not be available at prediction time, giving falsely optimistic results |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Feature engineering | "Making new columns" | Transforming raw data into representations that expose patterns to the model | 特征工程：把原始数据转化为模型能发现模式的表示 |
+| Standardization | "Making it normal" | Subtracting the mean and dividing by standard deviation so the feature has mean=0 and std=1 | 标准化：减均值除标准差，使特征均值为 0 标准差为 1 |
+| One-hot encoding | "Making dummy variables" | Creating one binary column per category, where exactly one column is 1 for each row | One-hot 编码：每个类别一列二值特征 |
+| Target encoding | "Using the answer to encode" | Replacing each category with the average target value for that category, with smoothing to prevent overfitting | 目标编码：用类别对应的目标均值替代，有数据泄漏风险 |
+| TF-IDF | "Fancy word counts" | Term Frequency times Inverse Document Frequency: words weighted by how distinctive they are across the corpus | TF-IDF：词频乘逆文档频率，稀有词权重高 |
+| Imputation | "Filling in blanks" | Replacing missing values with estimated values (mean, median, mode, or model-predicted) | 插补：用估计值替换缺失值 |
+| Feature selection | "Throwing out bad columns" | Removing features that add noise or redundancy, keeping only those with signal about the target | 特征选择：去除噪声和冗余特征 |
+| Mutual information | "How much one thing tells you about another" | A measure of the reduction in uncertainty about variable Y gained by observing variable X | 互信息：衡量知道 X 后对 Y 不确定性的减少 |
+| Data leakage | "Accidentally cheating" | Using information during training that would not be available at prediction time, giving falsely optimistic results | 数据泄漏：训练时用了预测时不可能获得的信息 |
 
 ## Further Reading
 
