@@ -1,16 +1,16 @@
-"""Phase 13 Lesson 13 - MCP async Tasks (SEP-1686) with durable state.
+"""MCP 异步任务 (SEP-1686) —— 带持久化状态的长时间运行工具
 
-Simulates a long-running generate_report tool:
-  - tools/call with _meta.task.required returns immediately with taskId
-  - worker thread updates progress in a filesystem-backed task store
-  - tasks/status polls progress
-  - tasks/result returns the final payload
-  - tasks/cancel signals the worker to stop
-  - crash recovery marks in-flight tasks as failed on reload
+核心概念：
+  - MCP (Model Context Protocol) 的异步任务扩展：处理需要长时间运行的工具调用
+  - 异步模式：tools/call 立即返回 taskId，客户端通过轮询 tasks/status 获取进度
+  - 持久化存储：任务状态保存在文件系统，即使服务重启也能恢复
+  - 任务生命周期：pending -> running -> completed/failed/cancelled
+  - 崩溃恢复：重启时将 in-flight 任务标记为 failed
 
-Stdlib only.
-
-Run: python code/main.py
+AI 对应：
+  - Claude 的工具调用就使用类似的异步任务模式（如长时间代码分析）
+  - MCP 是 Anthropic 提出的 AI Agent 工具调用协议，正在成为行业标准
+  - 异步任务是构建实用 AI Agent 的基础：真实任务（代码生成、数据分析）通常需要秒级到分钟级
 """
 
 from __future__ import annotations
