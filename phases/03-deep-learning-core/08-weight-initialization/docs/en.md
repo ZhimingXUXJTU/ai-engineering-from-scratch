@@ -16,6 +16,8 @@
 - Demonstrate the symmetry problem with zero initialization and explain why random scale alone is insufficient
 - Match the correct initialization strategy to the activation function: Xavier for sigmoid/tanh, Kaiming for ReLU/GELU
 
+> **【中文解读】** 本章学习目标：从零实现四种初始化策略，理解 Xavier 和 Kaiming 初始化背后的方差推导，通过 50 层网络实验验证不同初始化的效果。初始化是最被低估的决策——错了，训练还没开始就已经失败了。
+
 ## The Problem
 
 Initialize all weights to zero. Nothing learns. Every neuron computes the same function, receives the same gradient, and updates identically. After 10,000 epochs, your 512-neuron hidden layer is still 512 copies of the same neuron. You paid for 512 parameters and got 1.
@@ -26,6 +28,8 @@ Initialize them randomly from a standard normal distribution. Works for 3 layers
 
 Weight initialization is the most underrated decision in deep learning. Architecture gets papers. Optimizers get blog posts. Initialization gets a footnote. But get it wrong and nothing else matters -- your network is dead before training begins.
 
+> **【中文解读】** 初始化问题：全零初始化导致所有神经元学到相同的功能（对称性问题）；随机初始化方差太大会爆炸（10 层后值达 1e15），方差太小会消失（50 层后信号归零）。正确初始化让 50 层网络的信号传播和 3 层一样稳定。
+
 ## The Concept
 
 ### The Symmetry Problem
@@ -35,6 +39,8 @@ Every neuron in a layer has the same structure: multiply inputs by weights, add 
 You're stuck. The network has hundreds of parameters, but they all move in lockstep. This is called symmetry, and random initialization is the brute-force way to break it. Each neuron starts at a different point in weight space, so each learns a different feature.
 
 But "random" is not enough. The *scale* of the randomness determines whether the network trains.
+
+> **【中文解读】** 对称性问题：零初始化导致所有神经元计算相同输出、接收相同梯度、做相同更新。512 个神经元变成 512 个相同的副本。随机初始化打破对称，但随机的"尺度"才是决定网络能否训练的关键。
 
 ### Variance Propagation Through Layers
 
@@ -55,6 +61,8 @@ If Var(w) = 1 and fan_in = 512, the output variance is 512x the input variance. 
 If Var(w) = 0.001, the output variance shrinks by 0.001 * 512 = 0.512 per layer. After 10 layers: 0.512^10 = 0.00013. Your signal has vanished.
 
 The goal: choose Var(w) so that Var(z) = Var(x). Signal magnitude stays constant across layers.
+
+> **【中文解读】** 方差传播分析：一层加权求和 z = w1*x1 + ... + wn*xn 中，输出方差 = fan_in * Var(w) * Var(x)。如果 Var(w)=1 且 fan_in=512，输出方差是输入的 512 倍，10 层后爆炸到 1.2e27。目标：选择 Var(w) 使 Var(z) = Var(x)，即信号幅度在层间保持恒定。
 
 ### Xavier/Glorot Initialization
 
@@ -78,6 +86,8 @@ w ~ Normal(0, sqrt(2 / (fan_in + fan_out)))
 
 This works because sigmoid and tanh are roughly linear near zero, where properly initialized activations live. The variance stays stable through dozens of layers.
 
+> **【中文解读】** Xavier/Glorot 初始化：为 sigmoid/tanh 设计的初始化方案，Var(w) = 2/(fan_in + fan_out)。关键推导：同时保持前向和反向传播的方差恒定。sigmoid/tanh 在零附近近似线性，所以初始化好的激活值能保持方差稳定。
+
 ### Kaiming/He Initialization
 
 ReLU kills half the outputs (everything negative becomes zero). The effective fan_in is halved because on average half the inputs are zeroed. Xavier init doesn't account for this -- it underestimates the variance needed.
@@ -95,6 +105,10 @@ w ~ Normal(0, sqrt(2 / fan_in))
 ```
 
 The factor of 2 compensates for ReLU zeroing half the activations. Without it, the signal shrinks by ~0.5x per layer. With 50 layers: 0.5^50 = 8.8e-16. Kaiming init prevents this.
+
+> **【中文解读】** Kaiming/He 初始化：为 ReLU 设计的初始化方案，Var(w) = 2/fan_in。ReLU 将一半输出置零，有效的 fan_in 减半。Xavier 初始化没有考虑这一点——它会低估所需方差。Kaiming 的因子 2 补偿了 ReLU 的零化效果。PyTorch 的 nn.Linear 默认就用 Kaiming uniform 初始化。
+
+> **【拓展：初始化与 GELU 的关系】** GPT/LLaMA 使用 GELU 激活函数，虽然 GELU 的数学形式与 ReLU 不同，但在实践中 Kaiming 初始化仍然适用。HuggingFace 的 Transformer 模型大多用正态分布的 Kaiming 初始化。
 
 ### Transformer Initialization
 
@@ -360,18 +374,18 @@ This lesson produces:
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Weight initialization | "Set starting weights randomly" | The strategy for choosing initial weight values that determines whether a network can train at all |
-| Symmetry breaking | "Make neurons different" | Using random initialization to ensure neurons learn distinct features instead of computing identical functions |
-| Fan-in | "Number of inputs to a neuron" | The number of incoming connections, which determines how input variance accumulates in the weighted sum |
-| Fan-out | "Number of outputs from a neuron" | The number of outgoing connections, relevant for maintaining gradient variance during backpropagation |
-| Xavier/Glorot init | "The sigmoid initialization" | Var(w) = 2/(fan_in + fan_out), designed to preserve variance through sigmoid and tanh activations |
-| Kaiming/He init | "The ReLU initialization" | Var(w) = 2/fan_in, accounts for ReLU zeroing half the activations |
-| Variance propagation | "How signals grow or shrink through layers" | The mathematical analysis of how activation variance changes layer by layer based on weight scale |
-| Residual scaling | "GPT-2's init trick" | Scaling residual connection weights by 1/sqrt(2N) to prevent variance growth through N transformer layers |
-| Dead network | "Nothing trains" | A network where poor initialization causes all gradients to be zero or all activations to saturate |
-| Exploding activations | "Values go to infinity" | When weight variance is too high, causing activation magnitudes to grow exponentially through layers |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Weight initialization | "Set starting weights randomly" | The strategy for choosing initial weight values that determines whether a network can train at all | 权重初始化 |
+| Symmetry breaking | "Make neurons different" | Using random initialization to ensure neurons learn distinct features instead of computing identical functions | 对称性打破 |
+| Fan-in | "Number of inputs to a neuron" | The number of incoming connections, which determines how input variance accumulates in the weighted sum | 输入连接数 |
+| Fan-out | "Number of outputs from a neuron" | The number of outgoing connections, relevant for maintaining gradient variance during backpropagation | 输出连接数 |
+| Xavier/Glorot init | "The sigmoid initialization" | Var(w) = 2/(fan_in + fan_out), designed to preserve variance through sigmoid and tanh activations | Xavier 初始化，适用于 sigmoid/tanh |
+| Kaiming/He init | "The ReLU initialization" | Var(w) = 2/fan_in, accounts for ReLU zeroing half the activations | Kaiming 初始化，适用于 ReLU/GELU |
+| Variance propagation | "How signals grow or shrink through layers" | The mathematical analysis of how activation variance changes layer by layer based on weight scale | 方差传播分析 |
+| Residual scaling | "GPT-2's init trick" | Scaling residual connection weights by 1/sqrt(2N) to prevent variance growth through N transformer layers | 残差缩放，GPT-2 的初始化技巧 |
+| Dead network | "Nothing trains" | A network where poor initialization causes all gradients to be zero or all activations to saturate | 死亡网络，无法训练 |
+| Exploding activations | "Values go to infinity" | When weight variance is too high, causing activation magnitudes to grow exponentially through layers | 激活值爆炸 |
 
 ## Further Reading
 
