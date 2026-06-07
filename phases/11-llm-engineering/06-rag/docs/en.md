@@ -19,6 +19,8 @@
 - Explain why RAG is preferred over fine-tuning for knowledge-grounded applications (cost, freshness, attribution)
 - Evaluate RAG quality using retrieval metrics (precision, recall) and generation metrics (faithfulness, relevance)
 
+> **【中文解读】** 学习目标：1) 构建完整 RAG 管道——文档加载、分块、嵌入、向量存储、检索和生成；2) 用向量数据库实现语义搜索；3) 理解为什么 RAG 优于微调用于知识密集型应用（成本、时效性、可追溯性）；4) 用检索指标和生成指标评估 RAG 质量。
+
 ## The Problem
 
 You build a chatbot for your company. A customer asks "What's the refund policy for enterprise plans?" The LLM responds with a generic answer about typical SaaS refund policies. The actual policy, buried in a 200-page internal wiki, says enterprise customers get a 60-day window with pro-rated refunds. The LLM has never seen this document. It cannot know what it was not trained on.
@@ -26,6 +28,8 @@ You build a chatbot for your company. A customer asks "What's the refund policy 
 Fine-tuning is one solution. Take the LLM, train it on your internal docs, and deploy the updated model. This works but has serious problems. Fine-tuning costs thousands of dollars in compute. The model becomes stale the moment a document changes. You have no way to know which source the model drew from. And if the company acquires another product line next month, you fine-tune again.
 
 RAG is the other solution. Leave the model untouched. When a question comes in, search your document store for relevant passages, paste them into the prompt before the question, and let the model answer using those passages as context. The document store can be updated in minutes. You can see exactly which documents were retrieved. The model itself never changes. This is why RAG is the dominant pattern in production: it's cheaper, fresher, more auditable, and works with any LLM.
+
+> **【中文解读】** 微调的局限：成本高（数千美元）、文档更新后模型立刻过时、无法追溯来源。RAG 的优势：模型不变，检索相关文档注入提示，文档可实时更新、来源可追溯。这就是为什么 RAG 是生产环境的主导模式——更便宜、更新鲜、更可审计。
 
 ## The Concept
 

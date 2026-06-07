@@ -18,6 +18,8 @@
 - Build a tree-of-thought prompt that explores multiple reasoning paths and selects the best one
 - Measure the accuracy improvement from zero-shot vs few-shot vs CoT on a standard benchmark
 
+> **【中文解读】** 学习目标：1) 实现少样本提示——选择和格式化示例以最大化任务准确率；2) 应用链式思考（CoT）提升多步问题准确率；3) 构建思维树提示探索多条推理路径并选择最优；4) 对比零样本 vs 少样本 vs CoT 的准确率提升。
+
 ## The Problem
 
 You build a math tutoring app. Your prompt says: "Solve this word problem." GPT-5 gets it right 94% of the time on GSM8K, the standard grade-school math benchmark. You think you already peaked. You do not — chain-of-thought still adds 3-4 points.
@@ -27,6 +29,8 @@ Add five words -- "Let's think step by step" -- and accuracy jumps to 91%. Add a
 This is not a hack. It is how reasoning works. Humans do not solve multi-step problems in one mental leap. Neither do transformers. When you force a model to generate intermediate tokens, those tokens become part of the context for the next token. Each reasoning step feeds the next. The model literally computes its way to the answer.
 
 But "think step by step" is the beginning, not the end. What if you sampled five reasoning paths and took a majority vote? What if you let the model explore a tree of possibilities, evaluating and pruning branches? What if you interleaved reasoning with tool use? These are not hypotheticals. They are published techniques with measured improvements, and you will build all of them in this lesson.
+
+> **【中文解读】** 加五个词"Let's think step by step"，准确率从 78% 跳到 91%；加上几个示例，达到 95%。同一模型、同一温度、同一 API 成本。这不是 hack，而是推理的本质——强制模型生成中间 token，这些 token 成为下一步的上下文，模型通过逐步计算得出答案。更高级的技术包括多数投票（自我一致性）和思维树（探索多条推理路径）。
 
 ## The Concept
 

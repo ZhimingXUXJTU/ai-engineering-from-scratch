@@ -19,6 +19,8 @@
 - Build observability into the application: request logging, cost tracking, latency percentiles, and error rate dashboards
 - Deploy the application with health checks, rate limiting, and a fallback strategy for provider outages
 
+> **【中文解读】** 学习目标：1) 将 Phase 11 所有组件整合为单一生产服务；2) 实现流式输出、优雅错误处理和请求超时管理；3) 构建可观测性（日志、成本追踪、延迟百分位）；4) 部署健康检查、限流和模型降级链。
+
 ## The Problem
 
 Building an LLM feature takes an afternoon. Shipping an LLM product takes months.
@@ -35,6 +37,8 @@ The gap is not intelligence. It is infrastructure. Your prototype calls OpenAI, 
 Every LLM application in production today -- Perplexity, Cursor, ChatGPT, Notion AI -- solved these problems. Not by being smarter about prompts. By being rigorous about engineering.
 
 This is the capstone. You will build a complete production LLM service that integrates prompt management (L01-02), embeddings and vector search (L04-07), function calling (L09), evaluation (L10), caching (L11), guardrails (L12), streaming, error handling, observability, and cost tracking. One service. Every component wired together.
+
+> **【中文解读】** 原型调用 API 获得响应只需一下午，但上线生产级产品需要数月。差距不在智能而在基础设施：上下文溢出、重复请求的冗余 API 调用、凌晨 2 点的 500 错误、模型的危险 SQL 输出、月账单暴增、8 秒的响应延迟——这些都是 Perplexity、Cursor、ChatGPT 已经解决过的工程问题。
 
 ## The Concept
 
@@ -68,6 +72,8 @@ The request enters through an API gateway that handles authentication and rate l
 
 Seven components. Each one is a lesson you already completed. The engineering is in the wiring.
 
+> **【中文解读】** 生产架构的请求流程：客户端 → API 网关（认证+限流）→ 输入护栏 → 提示路由（模板选择）→ 语义缓存（命中则直接返回）→ LLM 调用（流式）→ 输出护栏 → 评估日志 → 成本追踪 → 流式响应。七个组件各自对应前面课程中的内容，工程挑战在于如何将它们正确地连接在一起。
+
 ### The Stack
 
 | Component | Lesson | Technology | Purpose |
@@ -86,6 +92,10 @@ Seven components. Each one is a lesson you already completed. The engineering is
 ### Streaming: Why It Matters
 
 A GPT-5 response with 500 output tokens takes 3-8 seconds to fully generate. Without streaming, the user stares at a spinner for the entire duration. With streaming, the first token arrives in 200-500ms. The total time is the same. The perceived latency drops by 90%.
+
+> **【中文解读】** 流式输出（SSE）将感知延迟降低 90%：首 token 到达时间从 3-8 秒降至 200-500ms。总时间不变，但用户体验大幅提升。SSE 是默认选择——OpenAI、Anthropic、Google 都通过 SSE 流式传输。WebSocket 适用于双向需求（语音、实时协作）。
+
+### Error Handling: The Three Layers
 
 ```mermaid
 sequenceDiagram
@@ -134,6 +144,10 @@ Give up: return fallback response
 
 **Layer 3: Application failures.** A downstream service is unreachable, the vector store is slow, a guardrail throws an exception. Solution: graceful degradation. If RAG context is unavailable, proceed without it. If the cache is down, bypass it. Never let a secondary system crash the primary flow.
 
+> **【中文解读】** 三层错误处理：Layer 1——API 故障（429/500/超时），用指数退避+抖动重试；Layer 2——模型输出错误（格式错误/幻觉），用修正后的提示重试；Layer 3——应用故障（向量存储/缓存不可用），优雅降级。降级链：Claude Sonnet → GPT-4o → GPT-4o-mini → 缓存响应 → "服务暂时不可用"。用户始终能得到响应。
+
+### Observability: What to Measure
+
 | Failure | Retry? | Fallback | User Impact |
 |---------|--------|----------|-------------|
 | API 429 (rate limit) | Yes, with backoff | Queue the request | "Processing, please wait..." |
@@ -174,6 +188,10 @@ You cannot improve what you cannot see. Every production LLM app needs three pil
 
 Your prompt is not finished when it works. It is finished when you have data proving it outperforms the alternative.
 
+> **【中文解读】** A/B 测试提示的两种模式：影子模式（shadow mode）——对新提示运行 100% 流量但仅记录结果不展示给用户；百分比推出——先分配 10% 流量到新提示，质量稳定后逐步提升到 25%→50%→100%。使用用户 ID 的确定性哈希（而非随机选择）确保每个用户在同一实验中获得一致体验。
+
+### Real Architecture Examples
+
 **Shadow mode.** Run a new prompt on 100% of traffic but only log the results -- do not show them to users. Compare quality metrics against the current prompt. No user risk, full data.
 
 **Percentage rollout.** Route 10% of traffic to the new prompt. Monitor metrics. If quality holds, increase to 25%, then 50%, then 100%. If quality drops, instant rollback.
@@ -205,6 +223,8 @@ Use a deterministic hash of the user ID, not random selection. This ensures each
 
 ### Scaling
 
+> **【中文解读】** 扩展四个阶段：0-1K DAU 单台 FastAPI 服务器（$50/月），1K-10K DAU 异步+缓存+队列（$500/月），10K-100K DAU 水平扩展+K8s（$5K/月），100K+ DAU 多区域+模型路由（$50K+/月）。关键原则：异步一切（永不阻塞 Web 服务器线程）、连接池复用 HTTP 连接、LLM 应用是 I/O 密集型而非 CPU 密集型。
+
 | Scale | Architecture | Infra |
 |-------|-------------|-------|
 | 0-1K DAU | Single FastAPI server, sync calls | 1 VM, $50/month |
@@ -220,6 +240,10 @@ Key scaling patterns:
 - **Horizontal scaling.** LLM apps are I/O bound, not CPU bound. A single async server handles 100+ concurrent requests. Scale servers, not cores.
 
 ### Cost Projection
+
+> **【中文解读】** 成本预估示例：1 万 DAU、每人每天 5 次查询、平均 1500 输入/400 输出 token，35% 缓存命中率→月 LLM 成本约 $7,556（含缓存节省的 $4,070/月）。无缓存则需 $11,625/月。这解释了为什么 L11（缓存）如此重要。
+
+> **【拓展：成本优化策略】** 实际生产中的成本优化组合拳：语义缓存（35%+ 命中率）、提示缓存（Anthropic/OpenAI 的前缀缓存）、模型路由（简单任务用小模型、复杂任务用大模型）、批量处理（非实时任务用 Batch API 降本 50%）、量化（INT4 推理成本降 4 倍）。
 
 Before you ship, estimate your monthly cost. This spreadsheet decides if your business model works.
 
@@ -244,6 +268,10 @@ Without caching, the same traffic costs $11,625/month. A 35% cache hit rate save
 ### The Deployment Checklist
 
 15 items. Ship nothing until every box is checked.
+
+> **【中文解读】** 部署检查清单 15 项：API 密钥存环境变量（非代码）、用户级限流、输入/输出护栏、语义缓存、流式输出、指数退避、降级链、结构化日志+请求 ID、成本追踪、健康检查端点、token 上限、超时设置、CORS 配置、100 并发负载测试通过。
+
+## Build It
 
 | # | Item | Category |
 |---|------|----------|
@@ -1127,18 +1155,18 @@ It also produces `outputs/skill-production-checklist.md` -- a decision framework
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| API Gateway | "The frontend" | The entry point that handles authentication, rate limiting, CORS, and request routing before any LLM logic runs |
-| Prompt Router | "Template selector" | Logic that picks the right prompt template based on request type, A/B experiment assignment, and user context |
-| Semantic Cache | "Smart cache" | A cache keyed by embedding similarity rather than exact string match -- two differently-phrased identical questions return the same cached response |
-| SSE (Server-Sent Events) | "Streaming" | A unidirectional HTTP protocol where the server pushes events to the client -- used by OpenAI, Anthropic, and Google for token-by-token delivery |
-| Exponential Backoff | "Retry logic" | Waiting 1s, 2s, 4s, 8s between retries (doubling each time) with random jitter to prevent all clients retrying simultaneously |
-| Fallback Chain | "Model cascade" | An ordered list of models tried in sequence -- when the primary fails, fall through to cheaper or more available alternatives |
-| Graceful Degradation | "Partial failure handling" | When a secondary component fails (cache, RAG, guardrails), the system continues with reduced functionality rather than crashing |
-| Cost Per Request | "Unit economics" | The total LLM spend (input tokens + output tokens at model pricing) for a single user request -- the number that determines if your business model works |
-| Shadow Mode | "Dark launch" | Running a new prompt or model on real traffic but only logging results, not showing them to users -- risk-free A/B testing |
-| Health Check | "Readiness probe" | An endpoint that returns the status of all dependencies (cache, LLM availability, guardrails) -- used by load balancers and Kubernetes to route traffic |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| API Gateway | "The frontend" | The entry point that handles authentication, rate limiting, CORS, and request routing before any LLM logic runs | API 网关，认证+限流入口 |
+| Prompt Router | "Template selector" | Logic that picks the right prompt template based on request type, A/B experiment assignment, and user context | 提示路由，模板选择器 |
+| Semantic Cache | "Smart cache" | A cache keyed by embedding similarity rather than exact string match -- two differently-phrased identical questions return the same cached response | 语义缓存，基于嵌入相似度 |
+| SSE (Server-Sent Events) | "Streaming" | A unidirectional HTTP protocol where the server pushes events to the client -- used by OpenAI, Anthropic, and Google for token-by-token delivery | 服务端推送事件，流式传输 |
+| Exponential Backoff | "Retry logic" | Waiting 1s, 2s, 4s, 8s between retries (doubling each time) with random jitter to prevent all clients retrying simultaneously | 指数退避+抖动，重试策略 |
+| Fallback Chain | "Model cascade" | An ordered list of models tried in sequence -- when the primary fails, fall through to cheaper or more available alternatives | 降级链，模型级联 |
+| Graceful Degradation | "Partial failure handling" | When a secondary component fails (cache, RAG, guardrails), the system continues with reduced functionality rather than crashing | 优雅降级，部分故障处理 |
+| Cost Per Request | "Unit economics" | The total LLM spend (input tokens + output tokens at model pricing) for a single user request -- the number that determines if your business model works | 单请求成本，单位经济学 |
+| Shadow Mode | "Dark launch" | Running a new prompt or model on real traffic but only logging results, not showing them to users -- risk-free A/B testing | 影子模式，无风险 A/B 测试 |
+| Health Check | "Readiness probe" | An endpoint that returns the status of all dependencies (cache, LLM availability, guardrails) -- used by load balancers and Kubernetes to route traffic | 健康检查，就绪探针 |
 
 ## Further Reading
 

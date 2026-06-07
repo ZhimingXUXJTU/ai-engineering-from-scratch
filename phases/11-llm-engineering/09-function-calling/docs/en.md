@@ -19,6 +19,8 @@
 - Build a multi-turn agent loop that chains multiple function calls to answer complex queries
 - Handle function calling edge cases: parallel tool calls, error propagation, and preventing infinite tool loops
 
+> **【中文解读】** 学习目标：1) 实现函数调用循环——定义工具 schema、解析模型的工具调用 JSON、执行函数、返回结果；2) 设计清晰描述和类型化参数的工具 schema；3) 构建多轮 Agent 循环链式调用多个函数；4) 处理并行工具调用、错误传播和防止无限循环。
+
 ## The Problem
 
 You build a chatbot. A user asks: "What's the weather in Tokyo right now?"
