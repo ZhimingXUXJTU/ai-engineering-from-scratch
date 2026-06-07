@@ -102,6 +102,11 @@ while True:
 
 ## Use It | 使用方法
 
+> **【中文解读】**
+> vLLM 的生产部署通常启用全部三个优化。关键参数：`--max-model-len` 控制最大上下文长度，`--gpu-memory-utilization` 控制 KV cache 预分配比例（默认 0.9），`--enable-chunked-prefill` 控制分块预填充。vLLM v0.18.0 有一个已知问题：同时启用所有优化时可能出现调度冲突，需要根据工作负载调优。
+
+> **【拓展：vLLM→生产部署】** vLLM 是 2026 年最流行的开源 LLM 推理引擎，PagedAttention 论文是系统领域被引用最多的论文之一。TensorRT-LLM 在性能上可能更快，但 vLLM 的开源生态和易用性使其成为大多数团队的首选。
+
 `code/main.py` simulates a vLLM-style scheduler with toggleable features. Run it to see:
 
 - `NAIVE` mode: one request at a time, no batching.
