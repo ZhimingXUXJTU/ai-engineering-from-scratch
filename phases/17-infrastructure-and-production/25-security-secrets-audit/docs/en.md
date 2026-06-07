@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了安全密钥审计——LLM 服务中的密钥管理和安全审计。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, toy PII-scrubber + audit-log writer)
-**Prerequisites:** Phase 17 · 19 (AI Gateways), Phase 17 · 13 (Observability)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, toy PII-scrubber + audit-log writer) | **语言:** Python
+**Prerequisites:** Phase 17 · 19 (AI Gateways), Phase 17 · 13 (Observability) | **前置知识:** Phase 17 · 19 (AI Gateways), Phase 17 · 13 (Observability)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
 
 - Enumerate the four secret-management anti-patterns (config files in VCS, hardcoded env, spreadsheets, static keys) and name their replacements.
+  中文翻译：Enumerate the four secret-management anti-patterns (config files in VCS, hardcoded env, spreadsheets, static keys) and name their replacements.
 - Explain the AI-gateway-pulls-from-vault pattern as 2026 production standard.
+  中文翻译：Explain the AI-gateway-pulls-from-vault pattern as 2026 production standard.
 - Implement a PII scrubber with consistent tokenization (same value → same placeholder) so semantics survive.
+  中文翻译：Implement a PII scrubber with consistent tokenization (same value → same placeholder) so semantics survive.
 - Name the 2026 Vercel supply-chain incident and what it taught about CI/CD credential hygiene.
+  中文翻译：Name the 2026 Vercel supply-chain incident and what it taught about CI/CD credential hygiene.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** LLM 服务的安全需要解决三个向量：(1) 凭证管理——实习生提交 `.env` 含 API keys，已在 git 历史中，轮换流程是"Slack 群发，更新 40 个配置文件，重新部署所有服务——8 小时后只有一半服务上线"；(2) PII 泄露——用户提示包含"My SSN is 123-45-6789"，直接发送到 OpenAI，虽然有 BAA 但内部政策要求发送前脱敏；(3) 网络出口——EKS 集群的 LLM Pod 可以访问任何互联网主机，有人通过 DNS 查询到攻击者控制的域名外泄数据。
 
@@ -31,7 +35,7 @@ Separately, your EKS cluster's LLM pod can reach any internet host. Someone exfi
 
 Security for LLM services has to address all three vectors. Vault-backed credentials. PII scrubbing. Network egress filtering. Audit logs.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Centralized vault + IAM-role pull
 
@@ -116,23 +120,33 @@ Supply-chain attack: compromised CI/CD credentials exfiltrated env vars across t
 - Vercel 2026: CI/CD creds compromised → thousands of customer env vars leaked.
 - Audit log retention: SOC 2 = 1 year, HIPAA = 6 years.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` implements a toy PII scrubber with consistent tokenization and an append-only audit log.
 
-## Ship It | 部署上线
+> `code/main.py` implements a toy PII scrubber with consistent tokenization and an append-only audit log.
+
+> `code/main.py` implements a toy PII scrubber with consistent tokenization and an append-only audit log.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-llm-security-plan.md`. Given regulatory scope and current state, plans the vault migration, scrubber, egress, audit log.
+
+> 本课产出 `outputs/skill-llm-security-plan.md`. Given regulatory scope and current state, plans the vault migration, scrubber, egress, audit log.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Send two prompts referencing the same SSN. Confirm both get the same placeholder.
+   中文翻译：Run `code/main.py`. Send two prompts referencing the same SSN. Confirm both get the same placeholder.
 2. Design the network egress policy for a vLLM-on-EKS deployment calling OpenAI + Anthropic + Weaviate.
+   中文翻译：Design the network egress policy for a vLLM-on-EKS deployment calling OpenAI + Anthropic + Weaviate.
 3. You discover a key in git history (2 years old). What's the correct response — rotate the key, scrub history, or both? Justify.
+   中文翻译：You discover a key in git history (2 years old). What's the correct response — rotate the key, scrub history, or both? Justify.
 4. Your audit log grows 10 GB/day. Design retention tiers (hot 30d, warm 12mo, cold 6yr).
+   中文翻译：Your audit log grows 10 GB/day. Design retention tiers (hot 30d, warm 12mo, cold 6yr).
 5. Argue whether reverse-tokenization (substituting real values back into LLM response) is worth the complexity versus keeping placeholders visible.
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

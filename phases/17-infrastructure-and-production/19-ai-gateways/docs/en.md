@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了 AI 网关——LLM 请求的路由、负载均衡和安全网关。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, toy gateway-routing simulator)
-**Prerequisites:** Phase 17 · 01 (Managed LLM Platforms), Phase 17 · 16 (Model Routing)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, toy gateway-routing simulator) | **语言:** Python
+**Prerequisites:** Phase 17 · 01 (Managed LLM Platforms), Phase 17 · 16 (Model Routing) | **前置知识:** Phase 17 · 01 (Managed LLM Platforms), Phase 17 · 16 (Model Routing)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
 
 - Enumerate the six core gateway features (routing, fallback, retries, rate limits, secrets, observability, guardrails).
+  中文翻译：Enumerate the six core gateway features (routing, fallback, retries, rate limits, secrets, observability, guardrails).
 - Map four 2026 gateways (LiteLLM, Portkey, Kong AI, Bifrost) to scale ceilings and use cases.
+  中文翻译：Map four 2026 gateways (LiteLLM, Portkey, Kong AI, Bifrost) to scale ceilings and use cases.
 - Cite the Kong benchmark (228% vs Portkey, 859% vs LiteLLM) and explain why it matters for >500 RPS.
+  中文翻译：Cite the Kong benchmark (228% vs Portkey, 859% vs LiteLLM) and explain why it matters for >500 RPS.
 - Choose self-hosted vs managed given data residency and ops budget.
+  中文翻译：Choose self-hosted vs managed given data residency and ops budget.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** AI 网关位于应用和模型提供商之间，解决的核心问题是多供应商统一管理。产品同时调用 OpenAI、Anthropic 和自托管 Llama，每个提供商有不同的 SDK、错误模型、速率限制和认证方案。网关层将所有这些统一为一个 OpenAI 兼容的 API，提供故障转移、统一凭证存储、统一可观测性和按租户速率限制。
 
@@ -27,7 +31,7 @@ Your product calls OpenAI, Anthropic, and a self-hosted Llama. Each provider has
 
 Reinventing this at the app layer couples every service to every provider. A gateway layer consolidates it into one process with one API (typically OpenAI-compatible) that fans out to providers.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Six core features
 
@@ -107,23 +111,33 @@ Phase 17 · 13 (observability) + 16 (model routing) + 19 (gateways) are the same
 - Kong pricing: $100/model/month, 5 max on Plus tier.
 - Cloudflare/Vercel: 1-3 ms overhead at the edge.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates gateway routing with fallback across 3 providers under 429/5xx injection. Reports latency, retry rate, and fallback hit rate.
 
-## Ship It | 部署上线
+> `code/main.py` simulates gateway routing with fallback across 3 providers under 429/5xx injection. Reports latency, retry rate, and fallback hit rate.
+
+> `code/main.py` simulates gateway routing with fallback across 3 providers under 429/5xx injection. Reports latency, retry rate, and fallback hit rate.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-gateway-picker.md`. Given scale, ops posture, compliance, latency budget, picks a gateway.
+
+> 本课产出 `outputs/skill-gateway-picker.md`. Given scale, ops posture, compliance, latency budget, picks a gateway.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Configure fallback from OpenAI→Anthropic→self-hosted. What's the expected hit rate at 5% provider error rate?
+   中文翻译：Run `code/main.py`. Configure fallback from OpenAI→Anthropic→self-hosted. What's the expected hit rate at 5% provider error rate?
 2. Your SLA is TTFT P99 < 200 ms on a 300 ms baseline. Which gateways stay within budget?
+   中文翻译：Your SLA is TTFT P99 < 200 ms on a 300 ms baseline. Which gateways stay within budget?
 3. A healthcare customer requires self-hosted + PII redaction + audit. Pick Portkey OSS or Kong.
+   中文翻译：A healthcare customer requires self-hosted + PII redaction + audit. Pick Portkey OSS or Kong.
 4. Compare LiteLLM vs Kong: at what RPS ceiling should a team migrate?
+   中文翻译：Compare LiteLLM vs Kong: at what RPS ceiling should a team migrate?
 5. Design a rate-limit policy for a multi-tenant SaaS: free tier, trial tier, paid tier. Token-bucket or sliding-window?
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

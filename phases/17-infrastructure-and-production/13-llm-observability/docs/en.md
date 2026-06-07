@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了 LLM 可观测性——监控和调试 LLM 推理服务的工具和方法。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, toy trace-sampling simulator)
-**Prerequisites:** Phase 17 · 08 (Inference Metrics), Phase 14 (Agent Engineering)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, toy trace-sampling simulator) | **语言:** Python
+**Prerequisites:** Phase 17 · 08 (Inference Metrics), Phase 14 (Agent Engineering) | **前置知识:** Phase 17 · 08 (Inference Metrics), Phase 14 (Agent Engineering)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
 
 - Distinguish development platforms (bundled: evals + prompts + sessions) from gateway/telemetry tools (traces + metrics only).
+  中文翻译：Distinguish development platforms (bundled: evals + prompts + sessions) from gateway/telemetry tools (traces + metrics only).
 - Map six major tools (Langfuse, LangSmith, Phoenix, Arize AX, Helicone, Opik) to their licensing, pricing, and sweet-spot use cases.
+  中文翻译：Map six major tools (Langfuse, LangSmith, Phoenix, Arize AX, Helicone, Opik) to their licensing, pricing, and sweet-spot use cases.
 - Explain the OpenTelemetry-glue pattern that lets you combine a gateway tool with a separate eval platform.
+  中文翻译：Explain the OpenTelemetry-glue pattern that lets you combine a gateway tool with a separate eval platform.
 - Name the 2026 cost differentiator (Arize AX's zero-copy approach vs monolithic ingest) and state the rough 100x multiplier.
+  中文翻译：Name the 2026 cost differentiator (Arize AX's zero-copy approach vs monolithic ingest) and state the rough 100x multiplier.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** LLM 可观测性工具分为两类：(1) 开发平台（LangSmith、Langfuse、Opik）——捆绑监控、评估、提示管理、会话回放；(2) 网关/遥测工具（Helicone、SigNoz、OpenLLMetry、Phoenix）——专注于遥测采集。选择涉及四个维度：技术栈（LangChain？原始 SDK？）、许可证（MIT only？商业可接受？）、预算、自托管需求。
 
@@ -29,7 +33,7 @@ They don't solve the same problem. LangSmith answers "why did this LangGraph run
 
 Picking involves four axes: stack (LangChain? raw SDK? multi-vendor?), license tolerance (MIT only? Elastic OK? commercial fine?), budget (free tier? $100/mo? $1000/mo?), and self-host (must? nice-to-have? never?).
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Two categories
 
@@ -115,23 +119,33 @@ At >1M requests/day, full-trace retention costs more than the LLM calls. Sample 
 - Arize AX claim: ~100x cheaper than monolithic at scale.
 - OpenTelemetry GenAI conventions: 2025 shipping, 2026 widely adopted.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates a 1M-trace day across retention strategies (100% ingest, sampling, sampling + errors). Reports storage cost and what's lost under each.
 
-## Ship It | 部署上线
+> `code/main.py` simulates a 1M-trace day across retention strategies (100% ingest, sampling, sampling + errors). Reports storage cost and what's lost under each.
+
+> `code/main.py` simulates a 1M-trace day across retention strategies (100% ingest, sampling, sampling + errors). Reports storage cost and what's lost under each.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-observability-stack.md`. Given stack, scale, budget, license posture, picks the tool(s).
+
+> 本课产出 `outputs/skill-observability-stack.md`. Given stack, scale, budget, license posture, picks the tool(s).
 
 ## Exercises | 练习题
 
 1. Your team on LangChain wants OSS self-hosted observability. Pick Langfuse or Opik and justify.
+   中文翻译：Your team on LangChain wants OSS self-hosted observability. Pick Langfuse or Opik and justify.
 2. At 5M traces/day with Datadog quotes $150K/month, compute break-even for Arize AX.
+   中文翻译：At 5M traces/day with Datadog quotes $150K/month, compute break-even for Arize AX.
 3. Design an OpenTelemetry GenAI attribute set your org's guideline should mandate on every LLM call.
+   中文翻译：Design an OpenTelemetry GenAI attribute set your org's guideline should mandate on every LLM call.
 4. Argue whether Phoenix alone is sufficient for production. When does it not suffice?
+   中文翻译：Argue whether Phoenix alone is sufficient for production. When does it not suffice?
 5. Helicone is 20ms proxy overhead. At P99 TTFT 300 ms, is that acceptable? What if SLA is 100 ms?
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

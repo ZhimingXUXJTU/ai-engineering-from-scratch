@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了合规框架——LLM 服务需要满足的法规和合规要求。
 
 
-**Type:** Learn
-**Languages:** (Python optional — compliance is policy + process, not code)
-**Prerequisites:** Phase 17 · 25 (Security), Phase 17 · 13 (Observability)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** (Python optional — compliance is policy + process, not code) | **语言:** Python
+**Prerequisites:** Phase 17 · 25 (Security), Phase 17 · 13 (Observability) | **前置知识:** Phase 17 · 25 (Security), Phase 17 · 13 (Observability)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
 
 - Enumerate the seven 2026 frameworks relevant to LLM products and match each to a customer segment.
+  中文翻译：Enumerate the seven 2026 frameworks relevant to LLM products and match each to a customer segment.
 - Cite the EU AI Act enforcement timeline (in force August 2024; high-risk enforcement August 2026) and the two-tier fine ceiling (€15M / 3% for high-risk obligations, €35M / 7% for prohibited practices).
+  中文翻译：Cite the EU AI Act enforcement timeline (in force August 2024; high-risk enforcement August 2026) and the two-tier fine ceiling (€15M / 3% for high-risk obligations, €35M / 7% for prohibited practices).
 - Explain why post-processing PII cleanup is not enough for GDPR and name real-time inference-layer redaction as the defensible standard.
+  中文翻译：Explain why post-processing PII cleanup is not enough for GDPR and name real-time inference-layer redaction as the defensible standard.
 - Describe cross-framework control mapping (e.g., access control maps to ISO 27001 A.5.15-5.18 + GDPR Art. 32 + HIPAA §164.312(a)).
+  中文翻译：Describe cross-framework control mapping (e.g., access control maps to ISO 27001 A.5.15-5.18 + GDPR Art. 32 + HIPAA §164.312(a)).
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 多框架覆盖是 2026 年企业交易的入场券。企业客户的采购要求 SOC 2 Type II、GDPR、HIPAA BAA、ISO 27001 和"EU AI Act 合规声明"。这不是 LLM 特有问题——是企业 SaaS 问题加上 LLM 特定的叠加层。采购团队 2026 年想要的是一个矩阵（框架×控制），而不是一个 PDF。
 
@@ -27,7 +31,7 @@ An enterprise customer's procurement asks for SOC 2 Type II, GDPR, HIPAA BAA, IS
 
 Multi-framework coverage is not an LLM problem — it's an enterprise-SaaS problem, with LLM-specific overlays. Procurement teams in 2026 want a matrix with a row per framework and a column per control, not a PDF.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### The seven frameworks
 
@@ -111,23 +115,31 @@ OpenAI maintains SOC 2 Type 2, ISO/IEC 27001:2022, ISO/IEC 27701:2019, GDPR/CCPA
 - SOC 2 Type II window: 6-12 months of operated controls.
 - Colorado AI Act effective date: June 30, 2026 (delayed from February 2026 by SB25B-004).
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` is a compliance-mapping spreadsheet in Python — given a control, lists frameworks it satisfies.
 
-## Ship It | 部署上线
+> `code/main.py` is a compliance-mapping spreadsheet in Python — given a control, lists frameworks it satisfies.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-compliance-matrix.md`. Given customer segment and geography, specifies required frameworks and controls.
+
+> 本课产出 `outputs/skill-compliance-matrix.md`. Given customer segment and geography, specifies required frameworks and controls.
 
 ## Exercises | 练习题
 
 1. Your first enterprise customer requires SOC 2 Type II, HIPAA BAA, EU AI Act statement. What is the minimum viable compliance posture to win the deal?
+   中文翻译：Your first enterprise customer requires SOC 2 Type II, HIPAA BAA, EU AI Act statement. What is the minimum viable compliance posture to win the deal?
 2. Classify three hypothetical LLM products under EU AI Act risk tiers. What changes at high-risk?
+   中文翻译：Classify three hypothetical LLM products under EU AI Act risk tiers. What changes at high-risk?
 3. You accidentally sent PHI to a provider without BAA. Walk through the incident response.
+   中文翻译：You accidentally sent PHI to a provider without BAA. Walk through the incident response.
 4. Argue whether ISO 42001 is "necessary in 2026" for a mid-market AI vendor.
+   中文翻译：Argue whether ISO 42001 is "necessary in 2026" for a mid-market AI vendor.
 5. Map your LLM audit log fields (Phase 17 · 25) to at least three framework controls.
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

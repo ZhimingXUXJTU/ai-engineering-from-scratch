@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了影子/金丝雀/渐进式部署——LLM 服务安全上线的部署策略。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, toy canary-progression simulator)
-**Prerequisites:** Phase 17 · 13 (Observability), Phase 17 · 21 (A/B Testing)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, toy canary-progression simulator) | **语言:** Python
+**Prerequisites:** Phase 17 · 13 (Observability), Phase 17 · 21 (A/B Testing) | **前置知识:** Phase 17 · 13 (Observability), Phase 17 · 21 (A/B Testing)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
 
 - Distinguish shadow mode (zero-impact compare), canary (live traffic progressive), and A/B (stability-confirmed comparison).
+  中文翻译：Distinguish shadow mode (zero-impact compare), canary (live traffic progressive), and A/B (stability-confirmed comparison).
 - Enumerate five LLM-specific canary metrics (latency, cost/request, error/refusal, output-length distribution, user feedback).
+  中文翻译：Enumerate five LLM-specific canary metrics (latency, cost/request, error/refusal, output-length distribution, user feedback).
 - Explain why LLM non-determinism (up to 15%) changes what "stable" means in a rollout.
+  中文翻译：Explain why LLM non-determinism (up to 15%) changes what "stable" means in a rollout.
 - Design a rollback path that takes seconds (policy flip) not hours (redeploy).
+  中文翻译：Design a rollback path that takes seconds (policy flip) not hours (redeploy).
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** LLM 部署结合了软件部署中最难的部分：没有单元测试、模糊的失败模式、延迟的信号。正确的序列是：(1) 影子模式——将生产请求复制到候选模型，日志对比，零用户影响；(2) 金丝雀发布——10%→25%→50%→75%→100% 渐进流量切换，每个阶段有门控指标；(3) A/B 测试——稳定性确认后的对比。回滚速度是决定性的——策略标志翻转（30 秒）vs 重新部署（3 小时）。
 
@@ -27,7 +31,7 @@ You ship a new model. Offline evals show 3% accuracy gain. You flip it on in pro
 
 Every piece of that was avoidable. Shadow mode would have caught the 40% cost spike before any user saw it. Canary would have stopped at 10% when thumbs-down moved. Policy-flag rollback would have taken 30 seconds. The discipline is what fills in the gap between "offline evals look good" and "real users are happy."
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Shadow mode
 
@@ -104,23 +108,33 @@ If the new model is distinctly different (different behavior, different cost cur
 - Cost gate: >20% above baseline is a breach.
 - Rollback: seconds, not hours.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates a canary rollout with injected regressions. Reports which stage the rollout halts at and which gate triggered.
 
-## Ship It | 部署上线
+> `code/main.py` simulates a canary rollout with injected regressions. Reports which stage the rollout halts at and which gate triggered.
+
+> `code/main.py` simulates a canary rollout with injected regressions. Reports which stage the rollout halts at and which gate triggered.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-rollout-runbook.md`. Given candidate model, baseline, and risk tolerance, designs shadow→canary→100% plan.
+
+> 本课产出 `outputs/skill-rollout-runbook.md`. Given candidate model, baseline, and risk tolerance, designs shadow→canary→100% plan.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Inject a 25% cost regression. At which stage does the canary halt?
+   中文翻译：Run `code/main.py`. Inject a 25% cost regression. At which stage does the canary halt?
 2. Your new model has 3% accuracy gain offline but cost/request is +18%. Is it a ship? Depends on the policy — write both paths.
+   中文翻译：Your new model has 3% accuracy gain offline but cost/request is +18%. Is it a ship? Depends on the policy — write both paths.
 3. Design a rollback that takes under 60 seconds end-to-end. List the required infrastructure.
+   中文翻译：Design a rollback that takes under 60 seconds end-to-end. List the required infrastructure.
 4. Non-determinism shows ±7% on your eval. Set canary gates so you don't false-alarm. What multipliers do you use?
+   中文翻译：Non-determinism shows ±7% on your eval. Set canary gates so you don't false-alarm. What multipliers do you use?
 5. Shadow mode catches a 40% cost spike before canary. Write the alert rule that fires in shadow.
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

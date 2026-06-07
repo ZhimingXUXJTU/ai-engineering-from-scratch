@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了多区域 KV 局部性——跨区域部署 LLM 时的 KV Cache 优化策略。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, toy prefix-cache-aware router simulator)
-**Prerequisites:** Phase 17 · 04 (vLLM Serving), Phase 17 · 06 (SGLang RadixAttention)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, toy prefix-cache-aware router simulator) | **语言:** Python
+**Prerequisites:** Phase 17 · 04 (vLLM Serving), Phase 17 · 06 (SGLang RadixAttention) | **前置知识:** Phase 17 · 04 (vLLM Serving), Phase 17 · 06 (SGLang RadixAttention)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
 
 - Explain why round-robin load balancing breaks cached inference and quantify the TTFT penalty.
+  中文翻译：解释为什么轮询负载均衡破坏缓存推理，并量化 TTFT 惩罚。
 - Diagram a cache-aware router: inputs (KV-cache events), algorithm (prefix-hash match), tie-breaker (GPU utilization).
+  中文翻译：绘制缓存感知路由器：输入（KV 缓存事件）、算法（前缀哈希匹配）、决胜（GPU 利用率）。
 - Name the 32% DR failure driver for LLMs (missing tokenizer files / quantization configs) and state a three-file DR checklist.
+  中文翻译：说出 LLM 32% DR 失败的原因（缺失分词器文件/量化配置）并陈述三文件 DR 检查清单。
 - Distinguish commercial cross-region offerings (Bedrock CRI, GKE Multi-Cluster Gateway) from KV-aware routing.
+  中文翻译：区分商业跨区域产品（Bedrock CRI、GKE Multi-Cluster Gateway）与 KV 感知路由。
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 多区域 LLM 服务的三个核心问题：(1) 缓存路由——轮询负载均衡破坏了 KV Cache 局部性，导致缓存命中率从 70% 跌到 8%；(2) DR 卫生——32% 的 LLM DR 失败是因为团队备份了权重但忘记了分词器文件或量化配置；(3) 数据驻留——GDPR 要求 EU 用户数据不能离开 EU，cache-aware router 不能为了前缀匹配将巴黎用户的请求路由到 us-east-1。
 
@@ -31,7 +35,7 @@ Separately, your team has a DR plan. You back up model weights to S3 cross-regio
 
 Multi-region LLM serving is a cache problem, a routing problem, and a DR-hygiene problem — not a load-balancer problem.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Cache-aware routing
 
@@ -102,23 +106,33 @@ EU customer PHI cannot leave EU. If your cache-aware router sends a Paris-origin
 - DR failure: 32% miss tokenizer/quant configs.
 - JPMorgan us-east-1 failover Nov 2024: 22 minutes (30-min SLA).
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates three routing strategies (round-robin, cache-aware regional, cache-aware global) on a multi-region workload. Reports cache hit rate, TTFT P50/P99, and cross-region bill.
 
-## Ship It | 部署上线
+> `code/main.py` simulates three routing strategies (round-robin, cache-aware regional, cache-aware global) on a multi-region workload. Reports cache hit rate, TTFT P50/P99, and cross-region bill.
+
+> `code/main.py` simulates three routing strategies (round-robin, cache-aware regional, cache-aware global) on a multi-region workload. Reports cache hit rate, TTFT P50/P99, and cross-region bill.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-multi-region-router.md`. Given regions, residency constraints, and SLA, designs a routing plan.
+
+> 本课产出 `outputs/skill-multi-region-router.md`. Given regions, residency constraints, and SLA, designs a routing plan.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. At what prompt length does cross-region routing beat local-only routing, given 75 ms RTT?
+   中文翻译：Run `code/main.py`. At what prompt length does cross-region routing beat local-only routing, given 75 ms RTT?
 2. Your cache hit rate drops from 70% to 12%. Diagnose three possible causes and the observables that would confirm each.
+   中文翻译：Your cache hit rate drops from 70% to 12%. Diagnose three possible causes and the observables that would confirm each.
 3. Design a DR manifest for a 70B AWQ-quantized model served in vLLM with 5 LoRA adapters. List every file and config.
+   中文翻译：Design a DR manifest for a 70B AWQ-quantized model served in vLLM with 5 LoRA adapters. List every file and config.
 4. Argue whether Bedrock cross-region inference is "enough" for a fintech with strict TTFT SLOs. Cite specific behaviors.
+   中文翻译：Argue whether Bedrock cross-region inference is "enough" for a fintech with strict TTFT SLOs. Cite specific behaviors.
 5. A Paris-origin request matches a prefix in us-east-1. Do you route it? Write the policy.
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

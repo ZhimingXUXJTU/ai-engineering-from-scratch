@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了模型路由——根据任务复杂度动态选择不同模型的成本优化策略。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, toy cascading router simulator)
-**Prerequisites:** Phase 17 · 01 (Managed LLM Platforms), Phase 17 · 19 (AI Gateways)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, toy cascading router simulator) | **语言:** Python
+**Prerequisites:** Phase 17 · 01 (Managed LLM Platforms), Phase 17 · 19 (AI Gateways) | **前置知识:** Phase 17 · 01 (Managed LLM Platforms), Phase 17 · 19 (AI Gateways)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
 
 - Explain model cascading: cheap-first with confidence check, escalate on low confidence.
+  中文翻译：Explain model cascading: cheap-first with confidence check, escalate on low confidence.
 - Enumerate the four routing signals (task classification, prompt length, embedding similarity to known-hard set, self-confidence from first-pass).
+  中文翻译：Enumerate the four routing signals (task classification, prompt length, embedding similarity to known-hard set, self-confidence from first-pass).
 - Compute expected blended cost at target routing split and quality loss tolerance.
+  中文翻译：Compute expected blended cost at target routing split and quality loss tolerance.
 - Name the drift-monitoring metric (online quality gate) that catches cheap-model creep.
+  中文翻译：Name the drift-monitoring metric (online quality gate) that catches cheap-model creep.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 模型路由的核心洞察：70% 的查询是简单的（"巴黎几点了？""改写这句话"），可以用 Haiku 级别的模型以 3% 的成本完美处理。只有 30% 需要 GPT-5 级别的推理能力。将 70% 路由到廉价模型，30% 路由到前沿模型，可以在相同产品质量下降低约 65% 的账单。关键挑战是构建路由器而不降低质量。
 
@@ -27,7 +31,7 @@ Your service costs $80k/month on GPT-5. Your analytics show 70% of queries are s
 
 If you route the 70% to cheap and 30% to expensive, your bill drops ~65% at the same product quality. This is routing. The trick is building the broker without regressing quality.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Four routing signals
 
@@ -88,23 +92,33 @@ Gate routes by online quality metrics:
 - GPT-4-level 2022 vs 2026: ~$20/M → ~$0.40/M.
 - Cascade latency impact: ~1.2x median, ~2x escalated (~10% of traffic).
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates pre-route, cascade, and ensemble on a mixed workload. Reports blended cost, quality loss, and escalation rate.
 
-## Ship It | 部署上线
+> `code/main.py` simulates pre-route, cascade, and ensemble on a mixed workload. Reports blended cost, quality loss, and escalation rate.
+
+> `code/main.py` simulates pre-route, cascade, and ensemble on a mixed workload. Reports blended cost, quality loss, and escalation rate.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-router-plan.md`. Given workload and quality budget, picks a routing pattern and signals.
+
+> 本课产出 `outputs/skill-router-plan.md`. Given workload and quality budget, picks a routing pattern and signals.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. At what accuracy floor does cascade beat pre-route?
+   中文翻译：Run `code/main.py`. At what accuracy floor does cascade beat pre-route?
 2. Your user base is 30% enterprise (complex queries), 70% free tier (simple). Design the routing split. What online metric gates it?
+   中文翻译：Your user base is 30% enterprise (complex queries), 70% free tier (simple). Design the routing split. What online metric gates it?
 3. A route drops quality by 2% but saves 40%. Is that a ship? Depends on product — argue both.
+   中文翻译：A route drops quality by 2% but saves 40%. Is that a ship? Depends on product — argue both.
 4. Implement a confidence check using logprobs from OpenAI / Anthropic APIs. What's the threshold you start with?
+   中文翻译：Implement a confidence check using logprobs from OpenAI / Anthropic APIs. What's the threshold you start with?
 5. Over six months, escalation rate climbs from 8% to 22%. Diagnose three causes and the fix for each.
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

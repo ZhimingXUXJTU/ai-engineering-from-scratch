@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了自托管推理服务选型——vLLM、TGI、llama.cpp 等框架的对比和选择。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, engine-decision tree walker)
-**Prerequisites:** All Phase 17 lessons covering engines (04, 06, 07, 09, 18)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, engine-decision tree walker) | **语言:** Python
+**Prerequisites:** All Phase 17 lessons covering engines (04, 06, 07, 09, 18) | **前置知识:** All Phase 17 lessons covering engines (04, 06, 07, 09, 18)
+**Time:** ~45 minutes | **时间:** ~45 minutes
 
 ## Learning Objectives | 学习目标
 
 - Pick an engine given hardware (CPU / AMD / NVIDIA Hopper / Blackwell), scale (1 user / 100 / 10,000), and workload (general chat / agent / long-context).
+  中文翻译：Pick an engine given hardware (CPU / AMD / NVIDIA Hopper / Blackwell), scale (1 user / 100 / 10,000), and workload (general chat / agent / long-context).
 - Name the 2026 TGI maintenance-mode status (December 11, 2025) and why it biases new projects toward vLLM or SGLang.
+  中文翻译：Name the 2026 TGI maintenance-mode status (December 11, 2025) and why it biases new projects toward vLLM or SGLang.
 - Describe the dev/staging/prod pipeline using the same GGUF or HF weights throughout.
+  中文翻译：Describe the dev/staging/prod pipeline using the same GGUF or HF weights throughout.
 - Explain why "CPU only" forces llama.cpp and "AMD" excludes TRT-LLM.
+  中文翻译：Explain why "CPU only" forces llama.cpp and "AMD" excludes TRT-LLM.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 自托管推理引擎的选择取决于三个维度：硬件（CPU / AMD / NVIDIA Hopper / Blackwell）、规模（1 用户 / 100 / 10,000）、工作负载（通用聊天 / Agent / 长上下文）。2025 年 12 月 11 日 HuggingFace TGI 进入维护模式（仅 bug fix），这使得新项目应默认远离 TGI，转向 vLLM 或 SGLang。2026 年的流水线模式是：开发用 Ollama，预发布用 llama.cpp，生产用 vLLM 或 SGLang——全程使用相同的 GGUF/HF 权重。
 
@@ -27,7 +31,7 @@ Your team starts a new self-hosted LLM project. One engineer says Ollama, anothe
 
 In 2026 the choice tree matters: hardware first, scale second, workload third. And one specific 2025 event — TGI entering maintenance mode December 11 — changes the default for new projects.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### The five engines
 
@@ -102,25 +106,33 @@ Phase 17 · 01 (managed hyperscalers), · 02 (inference platforms) cover managed
 - SGLang production footprint: 400,000+ GPUs.
 - Ollama throughput gap vs llama.cpp: 15-30% slower; 3x under prod load.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` is a decision-tree walker: given hardware + scale + workload, picks an engine and explains why.
 
-## Ship It | 部署上线
+> `code/main.py` is a decision-tree walker: given hardware + scale + workload, picks an engine and explains why.
+
+## Ship It | 产出物
 
 > **【拓展：自托管 vs 托管的决策】** 自托管 vs 托管是独立的决策。自托管的理由：(1) 数据驻留——数据不能离开组织；(2) 自定义微调——LoRA/QLoRA 适配器需要本地部署；(3) 大规模总拥有成本——年推理支出超过 $5M 时自托管通常更经济；(4) 领域模型不在托管平台上可用。Phase 17·01（托管 hyperscaler）和 ·02（推理平台）覆盖了托管选项。2026 年的混合模式也很常见：实验层用托管（快速迭代），生产层用自托管（成本控制）。
 
 This lesson produces `outputs/skill-engine-picker.md`. Given constraints, picks an engine and writes the migration plan.
 
+> 本课产出 `outputs/skill-engine-picker.md`. Given constraints, picks an engine and writes the migration plan.
+
 ## Exercises | 练习题
 
 1. Run `code/main.py` with your hardware / scale / workload. Does the output match your intuition?
+   中文翻译：Run `code/main.py` with your hardware / scale / workload. Does the output match your intuition?
 2. Your infra is 12 H100s and 8 MI300X AMD. What engine? Why is TRT-LLM off the table?
+   中文翻译：Your infra is 12 H100s and 8 MI300X AMD. What engine? Why is TRT-LLM off the table?
 3. A team wants to use TGI in 2026 because "it's what we know." Argue the migration case.
+   中文翻译：A team wants to use TGI in 2026 because "it's what we know." Argue the migration case.
 4. Ollama dev to vLLM prod: what changes in quantization, configuration, and observability?
+   中文翻译：Ollama dev to vLLM prod: what changes in quantization, configuration, and observability?
 5. RAG product with P99 prefix length 8K and high reuse across tenants. Pick an engine and stack it with Phase 17 · 11 + 18.
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

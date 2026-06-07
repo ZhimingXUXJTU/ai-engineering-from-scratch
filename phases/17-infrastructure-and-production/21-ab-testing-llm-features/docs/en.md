@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了 LLM 特性的 AB 测试——科学评估 LLM 功能变更效果的方法。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, toy sequential test simulator)
-**Prerequisites:** Phase 17 · 13 (Observability), Phase 17 · 20 (Progressive Deployment)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, toy sequential test simulator) | **语言:** Python
+**Prerequisites:** Phase 17 · 13 (Observability), Phase 17 · 20 (Progressive Deployment) | **前置知识:** Phase 17 · 13 (Observability), Phase 17 · 20 (Progressive Deployment)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
 
 - Distinguish evals ("can the model do the job") from A/B tests ("do users care").
+  中文翻译：Distinguish evals ("can the model do the job") from A/B tests ("do users care").
 - Enumerate three testable axes (prompt, model, parameters) and pick the metric for each.
+  中文翻译：Enumerate three testable axes (prompt, model, parameters) and pick the metric for each.
 - Explain CUPED, sequential testing, and Benjamini-Hochberg multiple-comparison corrections.
+  中文翻译：Explain CUPED, sequential testing, and Benjamini-Hochberg multiple-comparison corrections.
 - Pick Statsig or GrowthBook based on warehouse-SQL posture and corporate acquisition stance.
+  中文翻译：Pick Statsig or GrowthBook based on warehouse-SQL posture and corporate acquisition stance.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 传统 A/B 测试不是为非确定性 LLM 构建的。关键区分：评估（evals）回答"模型能做这件事吗？"，A/B 测试回答"用户在乎吗？"两者都是必需的——凭感觉上线（vibes check）的时代已经结束。2026 年可测试的三个维度：提示工程（措辞）、模型选择（GPT-4 vs GPT-3.5 vs OSS；准确率 vs 成本 vs 延迟）、生成参数（temperature、top-p）。
 
@@ -27,7 +31,7 @@ You hand-tuned a system prompt. It feels better. You ship it. Conversion changes
 
 Evals answer whether the model can do a task on a labeled set. They do not answer whether users prefer the output. Only a controlled online experiment answers that, and only if the experiment has enough power, controls for non-determinism, and corrects for multiple comparisons.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Evals vs A/B tests
 
@@ -103,23 +107,33 @@ Every senior engineer can name a feature that was shipped because "it feels bett
 - CUPED variance reduction: 30-70%.
 - LLM non-determinism → +30-50% sample-size buffer.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates a sequential A/B test with fixed and sequential boundaries. Shows how sequential lets you stop early.
 
-## Ship It | 部署上线
+> `code/main.py` simulates a sequential A/B test with fixed and sequential boundaries. Shows how sequential lets you stop early.
+
+> `code/main.py` simulates a sequential A/B test with fixed and sequential boundaries. Shows how sequential lets you stop early.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-ab-plan.md`. Given feature change, workload, baseline, picks platform, gates, sample size.
+
+> 本课产出 `outputs/skill-ab-plan.md`. Given feature change, workload, baseline, picks platform, gates, sample size.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. For an expected 5% lift with baseline 3% conversion, what sample size to 80% power?
+   中文翻译：Run `code/main.py`. For an expected 5% lift with baseline 3% conversion, what sample size to 80% power?
 2. Pick Statsig or GrowthBook for a healthcare-regulated on-prem customer.
+   中文翻译：Pick Statsig or GrowthBook for a healthcare-regulated on-prem customer.
 3. Design an A/B that tests GPT-4 vs GPT-3.5 on cost-per-resolved-ticket. What's the primary metric, guardrail metric, secondary?
+   中文翻译：Design an A/B that tests GPT-4 vs GPT-3.5 on cost-per-resolved-ticket. What's the primary metric, guardrail metric, secondary?
 4. Your canary passes but A/B shows -1.2% conversion. Do you ship? Write the escalation criteria.
+   中文翻译：Your canary passes but A/B shows -1.2% conversion. Do you ship? Write the escalation criteria.
 5. Apply CUPED to a pre-period with 60% of the variance of post. Compute the effective-sample-size boost.
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

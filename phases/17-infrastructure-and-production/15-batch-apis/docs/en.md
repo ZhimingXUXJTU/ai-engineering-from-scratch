@@ -5,19 +5,23 @@
 > **【中文解读】** 本节介绍了批处理 API——大规模异步处理 LLM 请求的接口和优化。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, toy batch-vs-sync cost simulator)
-**Prerequisites:** Phase 17 · 14 (Prompt & Semantic Caching)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, toy batch-vs-sync cost simulator) | **语言:** Python
+**Prerequisites:** Phase 17 · 14 (Prompt & Semantic Caching) | **前置知识:** Phase 17 · 14 (Prompt & Semantic Caching)
+**Time:** ~45 minutes | **时间:** ~45 minutes
 
 ## Learning Objectives | 学习目标
 
 - Name the three provider batch APIs (OpenAI, Anthropic, Google) and the common 50% discount + 24h turnaround guarantees.
+  中文翻译：Name the three provider batch APIs (OpenAI, Anthropic, Google) and the common 50% discount + 24h turnaround guarantees.
 - Compute the cost for stacking batch + cached-input on an overnight classification workload and compare to synchronous-uncached baseline.
+  中文翻译：Compute the cost for stacking batch + cached-input on an overnight classification workload and compare to synchronous-uncached baseline.
 - Triage a workload into interactive / semi-interactive / batch and justify the lane.
+  中文翻译：Triage a workload into interactive / semi-interactive / batch and justify the lane.
 - Name the two traps: partial interactivity (user expects faster than 24h) and output-schema drift (batch file format differs per provider).
+  中文翻译：Name the two traps: partial interactivity (user expects faster than 24h) and output-schema drift (batch file format differs per provider).
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 批处理 API 是 LLM 成本工具箱中最便宜的杠杆——每个主要提供商都提供 50% 折扣 + 24 小时周转的异步批处理接口。叠加缓存后，隔夜工作负载可降至同步-未缓存成本的约 10%。但大多数团队不使用它——原因是组织性的：团队认为"实时"处理，而 SLA 实际上是"到早上"。
 
@@ -29,7 +33,7 @@ The batch gets you 50% off. You also enable prompt caching on the system prompt 
 
 Batch is the cheapest lever in the LLM cost toolkit that nobody pulls. The reason is mostly organizational: teams think "real-time" when the SLA actually is "by morning." This lesson is about not leaving 90% of the bill on the table.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### The three batch APIs
 
@@ -92,23 +96,33 @@ Writing "one batch client" across providers means adapter code per provider. Gat
 - Stacked batch + cached input: ~10% of sync uncached cost.
 - Workload triage rule: if 24h latency acceptable, always batch.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` computes costs across sync, sync+cache, batch, and batch+cache for a 50k-document workload. Reports savings in $ and percent.
 
-## Ship It | 部署上线
+> `code/main.py` computes costs across sync, sync+cache, batch, and batch+cache for a 50k-document workload. Reports savings in $ and percent.
+
+> `code/main.py` computes costs across sync, sync+cache, batch, and batch+cache for a 50k-document workload. Reports savings in $ and percent.
+
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-batch-triager.md`. Given workload characteristics, triages into interactive/semi/batch and estimates savings.
+
+> 本课产出 `outputs/skill-batch-triager.md`. Given workload characteristics, triages into interactive/semi/batch and estimates savings.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. For a 100k-doc pipeline with 3K-token system prompt and 500-token output, compute the savings of full stack (batch + cache) vs sync baseline.
+   中文翻译：Run `code/main.py`. For a 100k-doc pipeline with 3K-token system prompt and 500-token output, compute the savings of full stack (batch + cache) vs sync baseline.
 2. Pick three features in a real product you know. Triage each into interactive/semi/batch.
+   中文翻译：Pick three features in a real product you know. Triage each into interactive/semi/batch.
 3. A user complains their report took 3 hours. Was that a batch mis-triage or a legitimate interactive? Write the decision criterion.
+   中文翻译：A user complains their report took 3 hours. Was that a batch mis-triage or a legitimate interactive? Write the decision criterion.
 4. Your batch API return SLA is 24h but P99 is 20 hours. How do you communicate this to the user — what is the downstream system behavior on the edge case?
+   中文翻译：Your batch API return SLA is 24h but P99 is 20 hours. How do you communicate this to the user — what is the downstream system behavior on the edge case?
 5. Compute break-even: at what shared-prefix length does batch + cache become cheaper than running overnight on your own reserved GPU?
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|

@@ -7,19 +7,23 @@
 
 > Caching happens at two layers. L2 (provider-level) prompt/prefix caching reuses attention KV for repeated prefixes — Anthropic's prompt-caching docs advertise up to 90% cost reduction and 85% latency reduction on long prompts; for Claude 3.5 Sonnet cache reads are $0.30/M vs $3.00/M fresh with a 5-minute TTL and a 2x write premium for the 1-hour TTL option (docs.anthropic.com, 2026-04). OpenAI prompt caching applies automatically for prompts ≥1024 tokens and prices cached input at roughly a 90% discount vs fresh (platform.openai.com, 2026-04); the exact per-model cached rate depends on the live rate card. L1 (app-level) semantic caching skips the LLM entirely on embedding similarity hits. Vendor "95% accuracy" refers to match correctness, not hit rate — reported production hit rates range from 10% (open-ended chat) up to 70% (structured FAQ); neither provider publishes an official baseline, so treat these as community telemetry rather than guarantees. The production pitfalls: parallelization kills caching (N parallel requests issued before the first cache write can inflate spend several-fold), and dynamic content inside the prefix prevents cache hits entirely. ProjectDiscovery reported moving from 7% to 74% hit rate (2025-11) by moving dynamic text out of the cacheable prefix.
 
-**Type:** Learn
-**Languages:** Python (stdlib, toy two-layer cache simulator)
-**Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 06 (SGLang RadixAttention)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, toy two-layer cache simulator) | **语言:** Python
+**Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 06 (SGLang RadixAttention) | **前置知识:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 06 (SGLang RadixAttention)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
 
 - Distinguish L2 prompt/prefix caching (KV reuse at provider) from L1 semantic caching (LLM bypass on similar prompts).
+  中文翻译：Distinguish L2 prompt/prefix caching (KV reuse at provider) from L1 semantic caching (LLM bypass on similar prompts).
 - Explain Anthropic's `cache_control` explicit marking and the two TTL options (5-min vs 1-hour) with their price multipliers.
+  中文翻译：Explain Anthropic's `cache_control` explicit marking and the two TTL options (5-min vs 1-hour) with their price multipliers.
 - Compute expected monthly savings given hit rate, prompt/response mix, and token prices.
+  中文翻译：Compute expected monthly savings given hit rate, prompt/response mix, and token prices.
 - Name the parallelization anti-pattern that inflates bills by 5-10x and the dynamic-content anti-pattern that collapses hit rate.
+  中文翻译：Name the parallelization anti-pattern that inflates bills by 5-10x and the dynamic-content anti-pattern that collapses hit rate.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 提示缓存有两个常见的失败模式：(1) 并行化反模式——Agent 发出 10 个并行工具调用，所有请求在第一个 cache write 完成前到达，10 次写入、0 次读取，账单膨胀 5-10x；(2) 动态内容反模式——系统提示中包含当前时间、请求 ID 等动态内容，每个请求都唯一，缓存命中率 0%。修复方法：将静态内容放缓存前缀，动态内容放缓存边界之后。
 
@@ -31,7 +35,7 @@ Separately, your agent runs ten parallel tool calls per user question. All ten a
 
 Caching is a protocol, not a flag. Two layers, two different failure modes.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### L2 — provider prompt/prefix caching
 
@@ -108,25 +112,35 @@ Pricing points are captured 2026-04 from the linked vendor docs and drift every 
 - ProjectDiscovery: 7% → 74% hit rate by moving dynamic out of prefix (project blog, 2025-11).
 - Parallelization anti-pattern: typical reports of 5–10x bill inflation when N parallel requests miss the first cache write.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates L1 + L2 caching on mixed workloads. Reports hit rates, bill, and shows the parallelization penalty.
 
-## Ship It | 部署上线
+> `code/main.py` simulates L1 + L2 caching on mixed workloads. Reports hit rates, bill, and shows the parallelization penalty.
+
+> `code/main.py` simulates L1 + L2 caching on mixed workloads. Reports hit rates, bill, and shows the parallelization penalty.
+
+## Ship It | 产出物
 
 > **【拓展：缓存 + 批处理叠加优化】** 缓存与批处理 API（Phase 17·15）的叠加效果：批处理 API 50% 折扣 + 缓存输入 ~10x 折扣 = 约 10% 的同步-未缓存成本。隔夜分类、标注和报告生成工作负载可以通过叠加这两种优化降至基准的约 10%。关键是将提示模板视为缓存键——修复排序、移出动态内容，这是最容易被忽视但最有效的优化。
 
 This lesson produces `outputs/skill-cache-auditor.md`. Given prompt template and traffic, audits cacheability and recommends restructure.
 
+> 本课产出 `outputs/skill-cache-auditor.md`. Given prompt template and traffic, audits cacheability and recommends restructure.
+
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Toggle the parallelization flag. How much does the bill change?
+   中文翻译：Run `code/main.py`. Toggle the parallelization flag. How much does the bill change?
 2. Your system prompt has a date. Move it out. Show before/after hit rate math.
+   中文翻译：Your system prompt has a date. Move it out. Show before/after hit rate math.
 3. Calculate break-even for 1-hour TTL (2x write) vs 5-minute TTL (1.25x write) given your request arrival rate.
+   中文翻译：Calculate break-even for 1-hour TTL (2x write) vs 5-minute TTL (1.25x write) given your request arrival rate.
 4. Semantic cache at 0.95 threshold hits 20%. At 0.85 it hits 50% but you see incorrect cached responses. Pick the right threshold and justify.
+   中文翻译：Semantic cache at 0.95 threshold hits 20%. At 0.85 it hits 50% but you see incorrect cached responses. Pick the right threshold and justify.
 5. You batch 10 parallel sub-queries per user question. Rewrite for cache-friendliness without adding end-to-end latency.
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
