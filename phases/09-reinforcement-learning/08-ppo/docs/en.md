@@ -21,6 +21,10 @@ Trust Region Policy Optimization (TRPO, Schulman 2015) was the first fix: constr
 
 PPO (Schulman et al. 2017) replaces the hard trust-region constraint with a simple clipped objective. One extra line of code. Ten epochs per rollout. No conjugate gradients. Good-enough theoretical guarantees. Nine years later it is still the default policy-gradient algorithm for everything from MuJoCo to RLHF.
 
+> **【中文解读】** A2C 是 on-policy 的——梯度要求从当前策略采样数据，更新一次后数据就变成 off-policy 了。Rollout 很贵（Atari 上 8 环境 × 128 步需要十几秒），扔掉太浪费。TRPO（2015）用 KL 散度硬约束每次更新的幅度，理论上干净但需要共轭梯度求解。PPO（2017）用裁剪目标函数替代硬约束——只需多一行代码，每次 rollout 可以训练 10 个 epoch，无需共轭梯度。九年后仍然是 MuJoCo 到 RLHF 的默认策略梯度算法。
+
+> **【拓展：PPO 是 RLHF 的核心优化器】** ChatGPT、Claude、Gemini 等所有对齐 LLM 都在 RLHF 阶段使用 PPO 优化语言模型。PPO 的裁剪机制确保语言模型不会偏离初始 SFT 模型太远，防止"奖励黑客"现象。2026 年 DPO 在某些场景替代了 PPO，但 PPO 仍是从可验证奖励训练推理模型的首选。
+
 ## The Concept
 
 ![PPO clipped surrogate objective: ratio clipping at 1 ± ε](../assets/ppo.svg)

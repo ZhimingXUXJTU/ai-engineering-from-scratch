@@ -1,9 +1,25 @@
+"""马尔可夫决策过程 (MDP) —— 强化学习的基础框架
+
+核心概念：
+  - MDP 四元组：(S, A, P, R)——状态集、动作集、转移概率、奖励函数
+  - 状态 (State)：智能体当前所处的位置/情况（本例中是 4x4 网格中的坐标）
+  - 动作 (Action)：智能体可以选择的操作（上下左右移动）
+  - 奖励 (Reward)：每一步的即时反馈（本例中每步 -1，鼓励尽快到达终点）
+  - 策略 (Policy)：在每个状态选择动作的规则（确定性或随机性）
+  - 价值函数 (Value Function)：从某状态出发，遵循某策略能获得的期望累积奖励
+
+AI 对应：
+  - MDP 是 RLHF 的数学基础：LLM 生成 token 的过程可以建模为 MDP
+  - ChatGPT 的 RLHF 训练：状态=已生成的 token 序列，动作=下一个 token，奖励=人类偏好分数
+  - 价值迭代、策略迭代、Q-learning 等经典 RL 算法都建立在 MDP 框架之上
+"""
+
 import random
 
 
-GRID = 4
-TERMINAL = (3, 3)
-ACTIONS = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}
+GRID = 4           # 4x4 网格世界
+TERMINAL = (3, 3)  # 终点在右下角
+ACTIONS = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}  # 动作到位移的映射
 
 
 def all_states():

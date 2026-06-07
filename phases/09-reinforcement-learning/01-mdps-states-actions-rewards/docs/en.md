@@ -19,6 +19,8 @@ Supervised learning gives you `(x, y)` pairs and asks you to fit a function. Rei
 
 You cannot learn from this stream until you formalize it. "What I saw," "what I did," "what happened next," "how good that was" — each has to become an object you can reason about. That formalization is a Markov Decision Process. Every RL algorithm in this phase, including the RLHF and GRPO loops at the end, optimizes over this shape.
 
+> **【中文解读】** 强化学习与监督学习的根本区别：没有 (x, y) 标签对，只有状态、动作和标量奖励的流。国际象棋机器人、库存管理器、交易代理、PPO 训练推理模型——四个完全不同的领域都归结为同一个数学对象：马尔可夫决策过程（MDP）。MDP 的五个要素：状态集 S、动作集 A、转移函数 P、奖励函数 R、折扣因子 γ。本阶段所有 RL 算法（包括 RLHF 和 GRPO）都在这个框架上优化。
+
 ## The Concept
 
 ![Markov decision process: states, actions, transitions, rewards, discount](../assets/mdp.svg)

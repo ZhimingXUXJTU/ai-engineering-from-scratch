@@ -21,6 +21,8 @@ RLHF (Christiano et al. 2017; Ouyang et al. 2022) converts preferences into a re
 
 In 2026 the PPO step is mostly replaced by DPO (Phase 10 · 08) because it is cheaper and nearly as good for alignment tuning. But the *reward model* piece still underlies every Best-of-N sampler, every RL-from-verifiable-rewards pipeline, and every reasoning model using a process reward model. Understand RLHF and you understand the entire alignment stack.
 
+> **【中文解读】** 预训练的语言模型能写出语法正确的英文，但也会撒谎、跑题、不会拒绝不当请求。无法用更多预训练来修复——网络文本就是问题所在。RLHF 三步流程：1) SFT（监督微调）让模型学会对话格式；2) RM（奖励模型）从人类偏好数据中学习"哪个回答更好"的标量奖励；3) PPO 用奖励模型优化语言模型。这是 ChatGPT、Claude、Gemini 的核心对齐配方。2026 年 DPO 在对齐微调中部分替代了 PPO，但奖励模型仍是 Best-of-N 采样、可验证奖励训练、推理模型过程奖励的基础。
+
 ## The Concept
 
 ![Three-stage RLHF: SFT, RM training on pairwise prefs, PPO with KL penalty](../assets/rlhf.svg)
