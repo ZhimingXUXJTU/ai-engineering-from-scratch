@@ -26,6 +26,8 @@ A camera produces a 2D image. A LIDAR produces a set of 3D points with no orderi
 
 The two representations dominate for different reasons. Point clouds are what sensors give you for free. NeRFs and their successors (3D Gaussian splatting, neural SDFs) are what you get when you ask a neural network to learn a scene.
 
+> **【中文解读】** 3D 视觉的两种表示各有优势：点云是传感器（LiDAR、深度相机）直接给出的，NeRF 是通过神经网络学习场景得到的。几乎所有高价值机器人任务都需要 3D 理解：抓取、避障、导航、AR 遮挡、3D 内容捕获。理解 NeRF 的原理是理解 3D Gaussian Splatting 的前提。
+
 ## The Concept
 
 ### Point clouds

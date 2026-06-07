@@ -26,6 +26,8 @@ Self-supervised learning is the answer. A modern self-supervised ViT trained on 
 
 The conceptual shift is that the pretext task — the thing the model is trained to do — does not have to be the downstream task. What matters is that it forces the model to learn useful features. Predict the colour of grayscale images, rotate images and ask the model to classify the rotation, mask patches and reconstruct them — all have worked. The three approaches that scale are contrastive learning, teacher-student distillation, and masked reconstruction.
 
+> **【中文解读】** 自监督视觉学习的核心思想：代理任务（pretext task）不需要是下游任务，重要的是它迫使模型学习有用的特征。三种可规模化的方法：SimCLR（对比学习——同一图像的两个增强版本应在嵌入空间中接近）、DINO（自蒸馏——教师-学生网络学习语义分割级特征）、MAE（掩码自编码器——遮盖 75% 的 patch 然后重建）。DINOv2 和 MAE 是当前生产默认的视觉特征提取器。
+
 ## The Concept
 
 ### Three families

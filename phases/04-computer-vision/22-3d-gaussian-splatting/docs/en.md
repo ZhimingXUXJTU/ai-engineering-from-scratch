@@ -18,6 +18,8 @@
 - Implement a 2D Gaussian splatting rasterizer from scratch using `alpha` compositing, then show how the 3D case projects to the same loop
 - Use `nerfstudio`, `gsplat`, or `SuperSplat` to reconstruct a scene from 20-50 photos and export to the `KHR_gaussian_splatting` glTF extension or the OpenUSD 26.03 `UsdVolParticleField3DGaussianSplat` schema
 
+> **【中文解读】** 本章学习目标：理解 3DGS 如何取代 NeRF 成为 3D 重建的生产标配，掌握每个高斯的六种参数，从零实现 2D 高斯光栅化器，并学会用 nerfstudio 等工具从照片重建场景。
+
 ## The Problem
 
 A NeRF stores a scene as the weights of an MLP. Every rendered pixel is hundreds of MLP queries along a ray. Training takes hours, rendering takes seconds, and the weights cannot be edited — if you want to move a chair inside a scene, you have to retrain.
@@ -25,6 +27,8 @@ A NeRF stores a scene as the weights of an MLP. Every rendered pixel is hundreds
 3D Gaussian Splatting (Kerbl, Kopanas, Leimkühler, Drettakis, SIGGRAPH 2023) replaced all of that. A scene is an explicit set of 3D Gaussians. Rendering is GPU rasterisation at 100+ fps. Training takes minutes. Editing is direct: translate a subset of Gaussians and you have moved the chair. By 2026 the Khronos Group has ratified a glTF extension for Gaussian splats, OpenUSD 26.03 ships a Gaussian splat schema, Zillow and Apartments.com render real estate with them, and most new research papers on 3D reconstruction are variants on the core 3DGS idea.
 
 The mental model is simple, the math has enough moving parts that most introductions start at rasterisation and skip past the projections and spherical harmonics. This lesson builds the whole thing — a 2D version first, then the 3D extension.
+
+> **【中文解读】** NeRF 将场景存储为 MLP 权重，渲染每个像素需要沿光线做数百次 MLP 查询，训练数小时、渲染数秒，且无法编辑。3DGS 用显式的 3D 高斯集合表示场景，GPU 光栅化渲染达 100+ fps，训练只需几分钟，直接编辑即可移动物体。到 2026 年 Khronos 已批准 glTF 扩展，OpenUSD 支持高斯泼溅 schema。
 
 ## The Concept
 
@@ -43,6 +47,8 @@ SH coefficients  c_lm       (3 * (L+1)^2,)   view-dependent colour
 Rotation + scale build a 3x3 covariance: `Sigma = R S S^T R^T`. That is the shape of the Gaussian in 3D. Spherical harmonics let the colour change with viewing direction — specular highlights, subtle sheen, view-dependent glow — without storing per-view textures. With SH degree 3 you get 16 coefficients per colour channel, 48 floats per Gaussian for colour alone.
 
 A scene typically has 1-5 million Gaussians. Each stores roughly 60 floats (3 + 4 + 3 + 1 + 48 + misc). That is 240 MB for a five-million-Gaussian scene — far smaller than the equivalent point cloud with per-point texture, and an order of magnitude smaller than a NeRF's MLP weights re-rendered at high resolution.
+
+> **【中文解读】** 每个 3D 高斯携带六种参数：位置（3D 坐标）、旋转（四元数）、缩放（3 轴）、不透明度（sigmoid 后的 [0,1] 值）、球谐系数（视角相关颜色）。旋转+缩放构建 3D 协方差矩阵确定高斯形状。球谐函数让颜色随视角变化（如高光、微光），3 阶球谐每通道 16 个系数。一个典型场景有 100-500 万个高斯，约 240MB 存储。
 
 ### Rasterisation, not ray marching
 

@@ -26,6 +26,8 @@ The stakes are concrete. Genie 3 generates playable environments from a single i
 
 This lesson is the "big picture" lesson for Phase 4. It connects image generation, video understanding, and agentic reasoning into the architecture pattern dominant research is moving toward.
 
+> **【中文解读】** 世界模型是 Phase 4 的"大局观"课程，连接了图像生成、视频理解和智能推理。核心概念：视频 DiT（时空 patch + 3D 位置编码）、动作条件生成（将动作作为条件输入视频模型）、VLM 规划 → 视频模拟 → 逆动力学输出动作的机器人管线。
+
 ## The Concept
 
 ### Three families of world-modelling

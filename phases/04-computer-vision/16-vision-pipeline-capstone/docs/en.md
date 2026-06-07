@@ -16,6 +16,8 @@
 - Benchmark the end-to-end pipeline and identify the first bottleneck (usually preprocessing, then the detector)
 - Ship a minimal FastAPI service that accepts an image upload, runs the pipeline, and returns detections with classifications
 
+> **【中文解读】** 本章学习目标：设计一个生产级视觉流水线——检测 + 分类 + 结构化输出 + 服务层。这是将 ML 原型变成产品的关键步骤：每个模型接口都可能引入 bug，每个坐标变换和归一化都可能静默失败。
+
 ## The Problem
 
 Individual vision models are useful; vision products are chains of them. A retail shelf audit is a detector plus a product classifier plus a price-OCR pipeline. Autonomous driving is a 2D detector plus a 3D detector plus a segmenter plus a tracker plus a planner. A medical pre-screen is a segmenter plus a region classifier plus a clinician UI.

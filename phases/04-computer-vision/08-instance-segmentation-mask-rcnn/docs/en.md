@@ -18,6 +18,8 @@
 - Use the torchvision `maskrcnn_resnet50_fpn_v2` pretrained model for production-quality instance masks and read its output format correctly
 - Fine-tune Mask R-CNN on a small custom dataset by replacing the box and mask heads and keeping the backbone frozen
 
+> **【中文解读】** 本章学习目标：理解 Mask R-CNN 的端到端架构（骨干网络 → FPN → RPN → RoIAlign → 检测头 + 掩码头），从零实现 RoIAlign，使用 torchvision 预训练模型，以及在自定义数据集上微调 Mask R-CNN。
+
 ## The Problem
 
 Semantic segmentation gives you one mask per class. Instance segmentation gives you one mask per object, even when two objects share a class. Counting individuals, tracking across frames, and measuring things (the bounding box of each brick in a wall, each cell in a microscope image) all demand instance segmentation.

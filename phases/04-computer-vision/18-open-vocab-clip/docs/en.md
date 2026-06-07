@@ -26,6 +26,8 @@ CLIP (Radford et al., OpenAI 2021) showed that training on 400M (image, caption)
 
 That capability — zero-shot transfer — is why every modern vision system starts with a CLIP-family checkpoint. Detection (Grounding DINO, OWL-ViT), segmentation (CLIPSeg, SAM), retrieval, content moderation, VLMs, and text-to-image generation all build on CLIP-style joint embeddings.
 
+> **【中文解读】** 传统分类器是闭词汇的——1000 类 ImageNet 模型只能预测 1000 个标签。CLIP 在 4 亿（图像，描述）对上训练后，能在推理时分类任意类别集，只需用自然语言描述新类别。这就是零样本迁移。它是检测（Grounding DINO）、分割（SAM）、检索、内容审核、VLM 和文本生成图像的共同基础。
+
 ## The Concept
 
 ### Two towers
