@@ -15,8 +15,7 @@
 - Build a softmax regression model for multi-class classification and evaluate threshold tuning tradeoffs
 
 
-> **【中文解读】**
-> 逻辑回归是二分类的基石——用 Sigmoid 函数将线性输出映射到 [0,1] 的概率。虽然叫回归，但它是分类器。sklearn 中的 LogisticRegression。信用卡欺诈检测、疾病诊断都可用逻辑回归。
+> **【中文解读】** 逻辑回归是二分类的基石——用 Sigmoid 函数将线性输出映射到 [0,1] 的概率。虽然叫回归，但它是分类器。本节从零实现 Sigmoid、二元交叉熵、梯度下降更新、多分类 Softmax 和评估指标。
 
 ## The Problem
 
@@ -25,6 +24,8 @@ You want to predict whether a tumor is malignant or benign given its size. You t
 Logistic regression solves this. It takes the same linear combination (wx + b) and passes it through the sigmoid function, which squashes any number into the range (0, 1). The output is a probability. You set a threshold (usually 0.5) and make a decision.
 
 This is one of the most widely used algorithms in practice. Despite its name, logistic regression is a classification algorithm, not a regression algorithm. The name comes from the logistic (sigmoid) function it uses.
+
+> **【中文解读】** 核心问题：线性回归输出无界数值（-0.5, 1.7），不适合分类。逻辑回归把线性输出 wx+b 通过 Sigmoid 函数压缩到 (0,1) 区间，输出概率，再用阈值（通常 0.5）做决策。
 
 ## The Concept
 
@@ -44,6 +45,8 @@ Classification needs a function that:
 - Creates a sharp transition (a decision boundary)
 - Is not distorted by outliers far from the boundary
 
+> **【中文解读】** 线性回归做分类的三个问题：输出不在 [0,1] 范围内（不是概率）；一个极端异常值会拉歪整条线；没有清晰的决策边界。分类需要一个输出有界、过渡锐利、不受远处异常值影响的函数。
+
 ### The Sigmoid Function
 
 The sigmoid function does exactly this:
@@ -60,6 +63,8 @@ Properties:
 - The function is smooth and differentiable everywhere
 
 The derivative has a convenient form: sigmoid'(z) = sigmoid(z) * (1 - sigmoid(z)). This makes gradient computation efficient.
+
+> **【中文解读】** Sigmoid 函数：sigmoid(z) = 1/(1+e^{-z})。z 正大时趋近 1，负大时趋近 0，z=0 时为 0.5。输出始终在 (0,1)。导数形式优美：sigmoid'(z) = sigmoid(z)*(1-sigmoid(z))，使得梯度计算高效。
 
 ### Logistic Regression = Linear Model + Sigmoid
 
@@ -92,6 +97,8 @@ Why this works:
 
 This loss function is convex for logistic regression, guaranteeing a single global minimum.
 
+> **【中文解读】** 为什么不用 MSE？因为 MSE+Sigmoid 的代价曲面非凸，有多个局部最小值。二元交叉熵（log loss）= -[y*log(p) + (1-y)*log(1-p)]。预测正确时 loss 接近 0，预测错误时 loss 趋向无穷大。关键优势：对逻辑回归是凸函数，保证有唯一全局最小值。
+
 ### Gradient Descent for Logistic Regression
 
 The gradients for binary cross-entropy with sigmoid have a clean form:
@@ -102,6 +109,8 @@ dL/db = (1/n) * sum(p - y)
 ```
 
 These look identical to the linear regression gradients. The difference is that p = sigmoid(wx + b) instead of p = wx + b. The sigmoid introduces the nonlinearity, but the gradient update rule stays the same.
+
+> **【中文解读】** 逻辑回归的梯度形式与线性回归惊人地相似：dL/dw = (1/n)*sum((p-y)*x)。唯一区别是 p=sigmoid(wx+b) 而不是 p=wx+b。Sigmoid 引入了非线性，但梯度更新规则不变。
 
 ```mermaid
 flowchart TD
@@ -124,6 +133,8 @@ w1*x1 + w2*x2 + b = 0
 
 Points on one side get classified as 1, points on the other side as 0. Logistic regression always produces a linear decision boundary. If you need a curved boundary, you either add polynomial features or use a nonlinear model.
 
+> **【中文解读】** 决策边界是 wx+b=0 这条线（二维时）或超平面。线的一侧预测为 1，另一侧为 0。逻辑回归只能产生线性决策边界——需要非线性边界时，要么加多项式特征，要么用非线性模型。
+
 ### Multi-Class Classification with Softmax
 
 Binary logistic regression handles two classes. For k classes, use the softmax function:
@@ -141,6 +152,8 @@ Loss = -(1/n) * sum(sum(y_k * log(p_k)))
 ```
 
 where y_k is 1 for the true class and 0 for all others (one-hot encoding).
+
+> **【中文解读】** 多分类用 Softmax 替代 Sigmoid：每个类别有权重向量，计算各类分数 z_i，Softmax 把分数转为概率（所有类概率之和为 1）。损失函数变成分类交叉熵。预测类别就是概率最高的那个。
 
 ### Evaluation Metrics
 
@@ -505,20 +518,25 @@ This lesson produces:
 ## Exercises
 
 1. Generate a dataset that is NOT linearly separable (e.g., two concentric circles). Train logistic regression and observe its failure. Then add polynomial features (x1^2, x2^2, x1*x2) and train again. Show that the accuracy improves.
+   > **中文：** 生成非线性可分数据（如同心圆），训练逻辑回归观察失败，再加多项式特征 (x1^2, x2^2, x1*x2) 重新训练，展示精度提升。
+
 2. Implement a multi-class confusion matrix for the 3-class softmax model. Compute per-class precision and recall. Which class is hardest to classify?
+   > **中文：** 为 3 分类 Softmax 模型实现多类混淆矩阵，计算每类的精确率和召回率。哪个类最难分？
+
 3. Build an ROC curve from scratch. For 100 threshold values from 0 to 1, compute the true positive rate and false positive rate. Calculate the AUC (area under the curve) using the trapezoidal rule.
+   > **中文：** 从零构建 ROC 曲线：100 个阈值下计算 TPR 和 FPR，用梯形法则计算 AUC。
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Logistic regression | "Regression for classification" | A linear model followed by a sigmoid function that outputs class probabilities |
-| Sigmoid function | "The S-curve" | The function 1/(1+e^(-z)) that maps any real number to the range (0, 1) |
-| Binary cross-entropy | "Log loss" | The loss function -[y*log(p) + (1-y)*log(1-p)] that penalizes confident wrong predictions severely |
-| Decision boundary | "The dividing line" | The surface where the model's output probability equals 0.5, separating predicted classes |
-| Softmax | "Multi-class sigmoid" | A function that converts a vector of scores into probabilities that sum to 1 |
-| Precision | "How many selected are relevant" | TP / (TP + FP), the fraction of positive predictions that are actually positive |
-| Recall | "How many relevant are selected" | TP / (TP + FN), the fraction of actual positives that the model correctly identifies |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Logistic regression | "Regression for classification" | A linear model followed by a sigmoid function that outputs class probabilities | 逻辑回归：线性模型 + Sigmoid，输出分类概率 |
+| Sigmoid function | "The S-curve" | The function 1/(1+e^(-z)) that maps any real number to the range (0, 1) | Sigmoid 函数：将任意实数映射到 (0,1) 的 S 形曲线 |
+| Binary cross-entropy | "Log loss" | The loss function -[y*log(p) + (1-y)*log(1-p)] that penalizes confident wrong predictions severely | 二元交叉熵：惩罚自信但错误的预测 |
+| Decision boundary | "The dividing line" | The surface where the model's output probability equals 0.5, separating predicted classes | 决策边界：模型输出 0.5 的分界面 |
+| Softmax | "Multi-class sigmoid" | A function that converts a vector of scores into probabilities that sum to 1 | Softmax：将分数转为概率（总和为 1） |
+| Precision | "How many selected are relevant" | TP / (TP + FP), the fraction of positive predictions that are actually positive | 精确率：预测为正中实际为正的比例 |
+| Recall | "How many relevant are selected" | TP / (TP + FN), the fraction of actual positives that the model correctly identifies | 召回率：实际为正中被正确识别的比例 |
 | F1 score | "Balanced accuracy" | The harmonic mean of precision and recall: 2*P*R / (P+R) |
 | Confusion matrix | "The error breakdown" | A table showing TP, TN, FP, FN counts for each class pair |
 | Threshold | "The cutoff" | The probability value above which the model predicts class 1 (default 0.5, tunable) |

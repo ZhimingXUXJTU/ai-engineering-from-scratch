@@ -15,8 +15,7 @@
 - Explain how Ridge regression (L2 regularization) prevents overfitting by penalizing large weights
 
 
-> **【中文解读】**
-> 线性回归是最简单的预测模型——用一条直线（或超平面）拟合数据。它也是最简单的神经网络：一个没有隐藏层、没有激活函数的网络。sklearn 中的 LinearRegression/Ridge/Lasso。金融中的因子模型就是线性回归。
+> **【中文解读】** 线性回归是最简单的预测模型——用一条直线（或超平面）拟合数据。它也是最简单的神经网络：一个没有隐藏层、没有激活函数的网络。sklearn 中的 LinearRegression/Ridge/Lasso。本节从零实现梯度下降和正规方程两种求解方式，覆盖多元回归、多项式回归和岭回归预览。
 
 ## The Problem
 
@@ -25,6 +24,8 @@ You have data: house sizes and their sale prices. You want to predict the price 
 Linear regression gives you that line. More importantly, it introduces the entire ML training loop: define a model, define a cost function, optimize the parameters. Every ML algorithm follows this same pattern. Master it here with the simplest case, and you will recognize it everywhere.
 
 This is not just for simple problems. Linear regression is used in production systems for demand forecasting, A/B test analysis, financial modeling, and as a baseline for every regression task.
+
+> **【中文解读】** 线性回归不只是教科书例子，它引入了整个 ML 训练循环：定义模型、定义损失函数、优化参数。每个 ML 算法都遵循这个模式。掌握最简单的情况，你就能在所有更复杂的算法中认出这个模式。
 
 ## The Concept
 
@@ -49,6 +50,8 @@ Or in vector form: `y = w^T * x + b`
 
 The goal: find the values of w and b that make the predicted y as close as possible to the actual y across all training examples.
 
+> **【中文解读】** 模型公式 y=wx+b：w 是权重（斜率），b 是偏置（截距）。多元特征时变成 y=w^T*x+b。目标是找到让预测值最接近真实值的 w 和 b。
+
 ### The Cost Function (Mean Squared Error)
 
 How do you measure "as close as possible"? You need a single number that captures how wrong your predictions are. The most common choice is Mean Squared Error (MSE):
@@ -60,6 +63,8 @@ MSE = (1/n) * sum((y_predicted - y_actual)^2)
 Why squared? Two reasons. First, it penalizes large errors more than small errors (an error of 10 is 100x worse than an error of 1, not 10x). Second, the squared function is smooth and differentiable everywhere, which makes optimization straightforward.
 
 The cost function creates a surface. For a single weight w and bias b, the MSE surface looks like a bowl (a convex paraboloid). The bottom of the bowl is where MSE is minimized. Training means finding that bottom.
+
+> **【中文解读】** MSE 损失函数衡量预测有多错。用平方有两个原因：(1) 大误差被更严厉地惩罚（误差 10 不是差 10 倍而是 100 倍）；(2) 平方函数处处光滑可微，优化简单。MSE 曲面是个碗（凸抛物面），碗底就是最优解。
 
 ### Gradient Descent
 
@@ -94,6 +99,8 @@ b = b - learning_rate * dMSE/db
 
 The learning rate controls step size. Too large: you overshoot the minimum and diverge. Too small: training takes forever. Typical starting values: 0.01, 0.001, or 0.0001.
 
+> **【中文解读】** 梯度下降沿碗壁往下走：计算预测 -> 算 MSE -> 算梯度 -> 沿梯度反方向更新参数。梯度告诉你"往哪走"和"走多远"。学习率控制步长：太大跳过最小值甚至发散，太小收敛太慢。
+
 ### The Normal Equation (Closed-Form Solution)
 
 For linear regression specifically, there is a direct formula that gives the optimal weights without any iteration:
@@ -103,6 +110,8 @@ w = (X^T * X)^(-1) * X^T * y
 ```
 
 This inverts a matrix to solve for w in one step. It works perfectly for small datasets. For large datasets (millions of rows or thousands of features), gradient descent is preferred because matrix inversion is O(n^3) in the number of features.
+
+> **【中文解读】** 正规方程 w=(X^T*X)^(-1)*X^T*y 是线性回归的封闭解——一步到位，无需迭代。小数据集很好用，但矩阵求逆的复杂度是 O(n^3)，特征数上千或数据百万级时，梯度下降更实际。
 
 ### Multiple Linear Regression
 
@@ -116,6 +125,8 @@ Everything works the same: MSE is the cost function, gradient descent updates al
 
 Feature scaling matters here. If one feature ranges from 0 to 1 and another ranges from 0 to 1,000,000, gradient descent will struggle because the cost surface becomes elongated. Standardize features (subtract mean, divide by standard deviation) before training.
 
+> **【中文解读】** 多元线性回归用超平面代替直线，所有原理相同。关键细节：特征缩放。如果一个特征范围 [0,1]，另一个 [0,1000000]，梯度下降会步履维艰（代价曲面被拉长）。训练前务必标准化。
+
 ### Polynomial Regression
 
 What if the relationship is not linear? You can still use linear regression by creating polynomial features:
@@ -127,6 +138,8 @@ y = w1*x + w2*x^2 + w3*x^3 + b
 This is still "linear" regression because the model is linear in the weights (w1, w2, w3). You are just using nonlinear features of x.
 
 Higher-degree polynomials can fit more complex curves but risk overfitting. A degree-10 polynomial will pass through every point in a 10-point dataset but predict poorly on new data.
+
+> **【中文解读】** 多项式回归用非线性特征（x^2, x^3...）但仍然是"线性"回归——对权重 w 是线性的。高阶多项式能拟合更复杂的曲线但容易过拟合：10 阶多项式能穿过 10 个数据点的每一个，但预测新数据时表现很差。
 
 ### R-Squared Score
 
@@ -150,6 +163,8 @@ Cost = MSE + lambda * sum(w_i^2)
 ```
 
 The penalty term discourages large weights. The hyperparameter lambda controls the tradeoff: higher lambda means smaller weights and more regularization. This is covered in depth in a later lesson. For now, know that it exists and why it helps.
+
+> **【中文解读】** 岭回归（L2 正则化）在 MSE 基础上加惩罚项 lambda*sum(w_i^2)，抑制大权重。lambda 越大权重越小，正则化越强。这能有效防止过拟合，后续课程会深入讲解。
 
 ## Build It
 
@@ -520,25 +535,30 @@ This lesson produces:
 ## Exercises
 
 1. Implement batch gradient descent, stochastic gradient descent (SGD), and mini-batch gradient descent. Compare convergence speed on the same dataset. Which converges fastest? Which has the smoothest cost curve?
+   > **中文：** 实现批量梯度下降、随机梯度下降（SGD）和小批量梯度下降，比较收敛速度。哪个最快？哪个代价曲线最平滑？
+
 2. Generate data from a cubic function (y = ax^3 + bx^2 + cx + d + noise). Fit polynomials of degree 1, 3, and 10. Compare training R^2 and test R^2. At what degree does overfitting become obvious?
+   > **中文：** 从三次函数生成数据，拟合 1、3、10 阶多项式。比较训练 R^2 和测试 R^2，几阶时过拟合变得明显？
+
 3. Implement Lasso regression (L1 regularization: penalty = alpha * sum(|w_i|)). Train on the multi-feature housing data. Compare which weights go to zero vs Ridge. Why does L1 produce sparse solutions while L2 does not?
+   > **中文：** 实现 Lasso 回归（L1 正则化），比较多特征数据上哪些权重变为零（对比岭回归）。为什么 L1 产生稀疏解而 L2 不会？
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Linear regression | "Draw a line through data" | Find weight w and bias b that minimize the sum of squared differences between wx+b and actual y values |
-| Cost function | "How bad the model is" | A function that maps model parameters to a single number measuring prediction error, which optimization minimizes |
-| Mean squared error | "Average of squared errors" | (1/n) * sum of (predicted - actual)^2, penalizing large errors disproportionately |
-| Gradient descent | "Walk downhill" | Iteratively adjust parameters in the direction that reduces the cost function, using partial derivatives |
-| Learning rate | "Step size" | A scalar that controls how much parameters change per gradient descent step |
-| Normal equation | "Solve it directly" | The closed-form solution w = (X^T X)^-1 X^T y that gives optimal weights without iteration |
-| R-squared | "How good the fit is" | The fraction of variance in y explained by the model, ranging from negative infinity to 1.0 |
-| Feature scaling | "Make features comparable" | Transforming features to similar ranges (e.g., zero mean, unit variance) so gradient descent converges faster |
-| Regularization | "Penalize complexity" | Adding a term to the cost function that shrinks weights, preventing overfitting |
-| Ridge regression | "L2 regularization" | Linear regression with a penalty of lambda * sum(w_i^2) added to MSE |
-| Polynomial regression | "Fitting curves with linear math" | Linear regression on polynomial features (x, x^2, x^3, ...), still linear in the weights |
-| Overfitting | "Memorizing training data" | Using a model so complex that it fits noise in training data and fails on new data |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Linear regression | "Draw a line through data" | Find weight w and bias b that minimize the sum of squared differences between wx+b and actual y values | 线性回归：找最佳拟合直线（或超平面） |
+| Cost function | "How bad the model is" | A function that maps model parameters to a single number measuring prediction error, which optimization minimizes | 代价函数：衡量预测误差的单值指标 |
+| Mean squared error | "Average of squared errors" | (1/n) * sum of (predicted - actual)^2, penalizing large errors disproportionately | 均方误差：平方误差的平均，大误差惩罚更重 |
+| Gradient descent | "Walk downhill" | Iteratively adjust parameters in the direction that reduces the cost function, using partial derivatives | 梯度下降：沿梯度反方向迭代更新参数 |
+| Learning rate | "Step size" | A scalar that controls how much parameters change per gradient descent step | 学习率：控制每步更新幅度 |
+| Normal equation | "Solve it directly" | The closed-form solution w = (X^T X)^-1 X^T y that gives optimal weights without iteration | 正规方程：一步求最优权重的封闭解 |
+| R-squared | "How good the fit is" | The fraction of variance in y explained by the model, ranging from negative infinity to 1.0 | R 方：模型解释的方差比例 |
+| Feature scaling | "Make features comparable" | Transforming features to similar ranges (e.g., zero mean, unit variance) so gradient descent converges faster | 特征缩放：统一特征范围加速收敛 |
+| Regularization | "Penalize complexity" | Adding a term to the cost function that shrinks weights, preventing overfitting | 正则化：惩罚复杂度防止过拟合 |
+| Ridge regression | "L2 regularization" | Linear regression with a penalty of lambda * sum(w_i^2) added to MSE | 岭回归：加 L2 惩罚的线性回归 |
+| Polynomial regression | "Fitting curves with linear math" | Linear regression on polynomial features (x, x^2, x^3, ...), still linear in the weights | 多项式回归：对多项式特征做线性回归 |
+| Overfitting | "Memorizing training data" | Using a model so complex that it fits noise in training data and fails on new data | 过拟合：模型太复杂，记住了训练噪声 |
 
 ## Further Reading
 

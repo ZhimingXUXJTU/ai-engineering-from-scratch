@@ -15,8 +15,7 @@
 - Identify common evaluation mistakes including data leakage, wrong metric selection, and test set contamination
 
 
-> **【中文解读】**
-> 模型评估回答模型到底好不好。准确率、精确率、召回率、F1、AUC-ROC 是分类指标；MSE、MAE、R^2 是回归指标。交叉验证防止过拟合评估。sklearn 中的 cross_val_score/classification_report。
+> **【中文解读】** 模型评估回答"模型到底好不好"这个问题。准确率、精确率、召回率、F1、AUC-ROC 是分类指标；MSE、MAE、R^2 是回归指标。交叉验证防止过拟合评估。sklearn 中的 `cross_val_score`/`classification_report` 是常用工具。本节重点是：选错指标会让坏模型看起来好，选错数据划分会让模型作弊。
 
 ## The Problem
 
@@ -25,6 +24,8 @@ You trained a model. It gets 95% accuracy on your data. Is it good?
 Maybe. Maybe not. If 95% of your data belongs to one class, a model that always predicts that class gets 95% accuracy while being completely useless. If you evaluated on the same data you trained on, the 95% number is meaningless because the model just memorized the answers. If your dataset has a time component and you randomly shuffled before splitting, your model might be using future data to predict the past.
 
 Model evaluation is where most ML projects go wrong. The wrong metric makes a bad model look good. The wrong split lets a model cheat. The wrong comparison makes you pick the worse model. Getting evaluation right is not optional. It is the difference between a model that works in production and one that fails the moment it sees real data.
+
+> **【中文解读】** 95% 准确率可能是假象：如果数据 95% 属于一个类，永远猜那个类就能达到 95%。如果用训练数据来评估，模型只是"背答案"。如果时间序列数据随机打乱，模型可能用未来预测过去。评估做错了，后面的全白费。
 
 ## The Concept
 
@@ -51,6 +52,8 @@ Three splits, three purposes:
 - **Test set**: touched exactly once, at the very end, to report final performance. If you look at test performance and then go back to change your model, it is no longer a test set. It has become a second validation set.
 
 The test set is your hold-out guarantee that the reported performance reflects how the model will do on truly unseen data.
+
+> **【中文解读】** 三分天下：训练集（模型学习用）、验证集（调超参、选模型用）、测试集（只碰一次，报告最终性能）。测试集是"一次性"的——看了测试性能再回去改模型，它就不再是测试集了，变成了第二个验证集。这是评估中最容易犯的错误之一。
 
 ### K-Fold Cross-Validation
 
@@ -93,6 +96,8 @@ K=5 or K=10 are standard choices. Every data point gets used for validation exac
 
 **Stratified K-fold**: preserves the class distribution in each fold. If your dataset is 70% class A and 30% class B, each fold will have roughly the same ratio. This is important for imbalanced datasets where a random split might put all minority samples in one fold.
 
+> **【中文解读】** K 折交叉验证解决小数据集上单次划分评估不稳定的问题：数据分成 K 份，轮流用每份做验证、其余做训练，最后取平均。K=5 或 10 是标准选择。分层 K 折确保每折中的类别比例与整体一致——这对不平衡数据至关重要，否则某折可能几乎没有少数类样本。
+
 ### Classification Metrics
 
 **Confusion matrix**: the foundation. For binary classification:
@@ -110,6 +115,10 @@ From this matrix, all other metrics follow:
 - **F1 score** = 2 * precision * recall / (precision + recall). Harmonic mean of precision and recall. Balances both when neither clearly dominates.
 - **AUC-ROC**: Area Under the Receiver Operating Characteristic curve. Plots true positive rate vs false positive rate at various classification thresholds. AUC = 0.5 means random guessing, AUC = 1.0 means perfect separation. Threshold-independent: it measures how well the model ranks positives above negatives, regardless of the cutoff you pick.
 
+> **【中文解读】** 混淆矩阵是所有分类指标的起点：TP（真正例）、FP（假正例）、TN（真负例）、FN（假负例）。**精确率**关注"预测为正的有多少是对的"——垃圾邮件过滤场景，误判正常邮件为垃圾的代价高；**召回率**关注"实际为正的有多少被找到"——癌症筛查场景，漏诊的代价高。F1 是两者的调和平均。AUC-ROC 衡量模型排序能力，与阈值无关：0.5 等于瞎猜，1.0 是完美。
+
+> **【拓展：精确率 vs 召回率的权衡】** 这是一对矛盾：提高精确率通常会降低召回率，反之亦然。选择哪个取决于业务代价：医疗诊断优先召回率（宁可误报不能漏诊），垃圾邮件过滤优先精确率（宁可放过不能误杀）。
+
 ### Regression Metrics
 
 - **MSE** (Mean Squared Error) = mean((y_true - y_pred)^2). Penalizes large errors quadratically. Sensitive to outliers.
@@ -117,12 +126,16 @@ From this matrix, all other metrics follow:
 - **MAE** (Mean Absolute Error) = mean(|y_true - y_pred|). Treats all errors linearly. More robust to outliers than MSE.
 - **R-squared** = 1 - SS_res / SS_tot, where SS_res = sum((y_true - y_pred)^2) and SS_tot = sum((y_true - y_mean)^2). Fraction of variance explained by the model. R^2 = 1.0 is perfect. R^2 = 0.0 means the model is no better than always predicting the mean. R^2 can be negative if the model is worse than the mean.
 
+> **【中文解读】** 回归指标四件套：MSE 对大误差二次惩罚（对异常值敏感）；RMSE 开根号后与目标变量同单位（更直观）；MAE 线性惩罚误差（对异常值更鲁棒）；R^2 衡量模型解释了多少方差——1.0 完美，0.0 等同于永远预测均值，负数说明比均值还差。选择建议：数据有异常值用 MAE，否则用 RMSE，但始终报告 R^2。
+
 ### Learning Curves
 
 Plot training and validation scores as a function of training set size:
 
 - **High bias (underfitting)**: both curves converge to a low score. Adding more data will not help. You need a more complex model.
 - **High variance (overfitting)**: training score is high but validation score is much lower. The gap between them is large. Adding more data should help.
+
+> **【中文解读】** 学习曲线绘制训练/验证分数随训练集大小的变化。高偏差（欠拟合）：两条线都收敛到低分，加数据没用，需要更复杂的模型。高方差（过拟合）：训练分高但验证分低，差距大，加数据应该有帮助。这是诊断模型问题最实用的工具之一。
 
 ### Validation Curves
 
@@ -133,6 +146,8 @@ Plot training and validation scores as a function of a hyperparameter:
 - At high complexity: training score stays high but validation score drops (overfitting)
 
 The optimal hyperparameter value is where the validation score peaks.
+
+> **【中文解读】** 验证曲线绘制训练/验证分数随超参数的变化。低复杂度时两者都低（欠拟合），合适复杂度时两者都高且接近，高复杂度时训练分高但验证分下降（过拟合）。最优超参数在验证分峰值处。
 
 ### Common Evaluation Mistakes
 
@@ -145,6 +160,8 @@ The optimal hyperparameter value is where the validation score peaks.
 **Not using stratified splits**: with imbalanced data, a random split might put very few minority samples in the validation fold, giving unstable estimates.
 
 **Testing too often**: every time you look at test performance and adjust, you overfit to the test set. The test set is single-use.
+
+> **【中文解读】** 五大评估陷阱：**数据泄漏**（分割前在全数据上做标准化、时间序列用了未来数据）——必须先分割再预处理；**类别不平衡**（99% 合法交易的欺诈检测中，准确率无意义）——用 F1 或 AUC-ROC；**选错指标**（医疗场景应优化召回率而非准确率）；**不用分层分割**（不平衡数据随机划分可能让某折没有少数类）；**过度测试**（每次看测试结果就调模型，等于对测试集过拟合）。
 
 ## Build It
 
@@ -647,6 +664,8 @@ scores = cross_val_score(model, X, y, cv=StratifiedKFold(5), scoring="f1")
 
 The from-scratch versions show exactly what cross-validation does (no magic, just for-loops and index tracking), how each metric is computed (just counting TP/FP/TN/FN), and why stratification matters (preserving class ratios in each fold). The library versions add parallelism, more scoring options, and integration with pipelines.
 
+> **【中文解读】** sklearn 把评估流程标准化了：`cross_val_score` 配合 `StratifiedKFold` 一行搞定分层交叉验证，`classification_report` 一次性输出所有分类指标。手写版本的价值在于理解原理——交叉验证无非是 for 循环加索引管理，每个指标无非是统计 TP/FP/TN/FN。
+
 ## Ship It
 
 This lesson produces:
@@ -655,22 +674,27 @@ This lesson produces:
 ## Exercises
 
 1. Implement precision-recall curves: plot precision vs recall at different thresholds. Compute the average precision (area under the PR curve). Compare the PR curve to the ROC curve on an imbalanced dataset and explain when each is more informative.
+   > **中文：** 实现精确率-召回率曲线：在不同阈值下绘制精确率 vs 召回率。计算平均精确率（PR 曲线下面积）。在不平衡数据集上比较 PR 曲线和 ROC 曲线，解释各自更适用的场景。
+
 2. Build a nested cross-validation loop: the outer loop evaluates model performance, the inner loop tunes hyperparameters. Use it to compare two models fairly without leaking validation data into the evaluation.
+   > **中文：** 构建嵌套交叉验证：外层循环评估模型性能，内层循环调超参数。用它在不泄漏验证数据到评估中的前提下公平比较两个模型。
+
 3. Implement a permutation test for model comparison: shuffle the labels, retrain, and measure performance. Repeat 100 times to build a null distribution. Compute the p-value for the observed model performance against this distribution.
+   > **中文：** 实现排列检验来比较模型：打乱标签，重新训练并测量性能。重复 100 次构建零假设分布。计算观测性能相对于该分布的 p 值。
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Overfitting | "Memorizing the training data" | The model captures noise in the training data, performing well on training but poorly on unseen data |
-| Cross-validation | "Testing on different subsets" | Systematically rotating which portion of data is used for validation, averaging results across all rotations |
-| Precision | "How many predicted positives are correct" | TP / (TP + FP): the fraction of positive predictions that are actually positive |
-| Recall | "How many actual positives we found" | TP / (TP + FN): the fraction of actual positives that were correctly identified |
-| AUC-ROC | "How well the model separates classes" | The area under the curve of true positive rate vs false positive rate across all thresholds, from 0.5 (random) to 1.0 (perfect) |
-| R-squared | "How much variance is explained" | 1 - (sum of squared residuals / total sum of squares): the fraction of target variance captured by the model |
-| Data leakage | "The model cheated" | Using information during training that would not be available at prediction time, leading to optimistic evaluation |
-| Learning curve | "How performance changes with more data" | A plot of training and validation scores vs training set size, revealing underfitting or overfitting |
-| Stratified split | "Keeping class ratios balanced" | Splitting data so each subset has the same proportion of each class as the full dataset |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Overfitting | "Memorizing the training data" | The model captures noise in the training data, performing well on training but poorly on unseen data | 过拟合：模型记住了训练数据的噪声，训练好但泛化差 |
+| Cross-validation | "Testing on different subsets" | Systematically rotating which portion of data is used for validation, averaging results across all rotations | 交叉验证：轮流用不同子集做验证，取平均，评估更稳定 |
+| Precision | "How many predicted positives are correct" | TP / (TP + FP): the fraction of positive predictions that are actually positive | 精确率：预测为正的样本中有多少是真正的正例 |
+| Recall | "How many actual positives we found" | TP / (TP + FN): the fraction of actual positives that were correctly identified | 召回率：实际为正的样本中有多少被正确识别 |
+| AUC-ROC | "How well the model separates classes" | The area under the curve of true positive rate vs false positive rate across all thresholds, from 0.5 (random) to 1.0 (perfect) | AUC-ROC：衡量模型区分正负类的能力，与阈值无关 |
+| R-squared | "How much variance is explained" | 1 - (sum of squared residuals / total sum of squares): the fraction of target variance captured by the model | R 方：模型解释的目标变量方差比例 |
+| Data leakage | "The model cheated" | Using information during training that would not be available at prediction time, leading to optimistic evaluation | 数据泄漏：训练时使用了预测时不可能获得的信息 |
+| Learning curve | "How performance changes with more data" | A plot of training and validation scores vs training set size, revealing underfitting or overfitting | 学习曲线：训练/验证分数随数据量的变化，诊断欠拟合/过拟合 |
+| Stratified split | "Keeping class ratios balanced" | Splitting data so each subset has the same proportion of each class as the full dataset | 分层分割：保持每个子集中的类别比例与整体一致 |
 
 ## Further Reading
 
