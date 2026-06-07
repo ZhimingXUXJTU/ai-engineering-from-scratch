@@ -16,6 +16,8 @@
 - Explain why warmup is necessary for Adam-based optimizers and how it stabilizes early training
 - Compare convergence speed across all five schedules on the same task and select the appropriate one for a given training budget
 
+> **【中文解读】** 本章学习目标：从零实现五种学习率调度策略（常数、阶梯衰减、余弦退火、warmup+余弦、1cycle），理解为什么 Adam 需要预热，掌握现代大模型的标准配置（Llama 3 用 3e-4 峰值 + 2000 步 warmup + 余弦衰减）。
+
 ## The Problem
 
 Set the learning rate to 0.1. Training diverges -- loss jumps to infinity in 3 steps. Set it to 0.0001. Training crawls -- after 100 epochs, the model has barely moved from random. Set it to 0.01. Training works for 50 epochs, then the loss oscillates around a minimum it can never reach because the steps are too large.
@@ -25,6 +27,8 @@ The optimal learning rate is not a constant. It changes during training. Early o
 Every major model published in the last three years uses a learning rate schedule. Llama 3 used peak lr=3e-4 with 2000 warmup steps and cosine decay to 3e-5. GPT-3 used lr=6e-4 with warmup over 375 million tokens. These are not arbitrary choices. They are the result of extensive hyperparameter sweeps that cost millions of dollars.
 
 You need to understand schedules because the defaults will not work for your problem. When you fine-tune a pretrained model, the right schedule is different than training from scratch. When you increase batch size, the warmup period needs to change. When training breaks at step 10,000, you need to know whether it's a schedule problem or something else.
+
+> **【中文解读】** 最优学习率不是常数：训练初期需要大步覆盖参数空间，训练后期需要小步精确收敛。90% 准确率和 95% 准确率的差距往往只在于调度策略。所有近期发布的大模型都用学习率调度——Llama 3、GPT-3 的配置都是经过耗资数百万美元的超参数搜索得到的。
 
 ## The Concept
 
@@ -37,6 +41,8 @@ lr(t) = lr_0
 ```
 
 Rarely optimal. It's either too high for the end of training (oscillation around the minimum) or too low for the beginning (wasted compute on tiny steps). Works fine for small models and debugging. A terrible choice for anything that trains for more than an hour.
+
+> **【中文解读】** 常数学习率：最简单的方案，选一个值用到底。几乎不可能是最优的——要么对训练后期太大（在最小值附近震荡），要么对训练初期太小（浪费计算）。只适合小模型和调试。
 
 ### Step Decay
 
@@ -64,6 +70,8 @@ At t=0, the cosine term is 1, so lr = lr_max. At t=T, the cosine term is -1, so 
 
 This is the default for most modern training runs. No hyperparameters to tune beyond lr_max and lr_min. The cosine shape matches the empirical observation that most learning happens in the middle of training -- you want reasonable step sizes during that critical period.
 
+> **【中文解读】** 余弦退火（Cosine Annealing）：从最大学习率平滑衰减到最小值，遵循余弦曲线。不需要调超参数（只需 lr_max 和 lr_min）。余弦形状符合经验观察——大部分学习发生在训练中期，这时需要合理的步长。这是现代训练的默认选择。
+
 ### Warmup: Why You Start Small
 
 Adam and other adaptive optimizers maintain running estimates of gradient mean and variance. At step 0, these estimates are initialized to zero. The first few gradient updates are based on garbage statistics. If your learning rate is large during this period, the model takes huge, poorly-directed steps.
@@ -75,6 +83,10 @@ lr(t) = lr_max * (t / warmup_steps)     for t < warmup_steps
 ```
 
 Typical warmup: 1-5% of total training steps. Llama 3 trained for ~1.8 trillion tokens and warmed up for 2000 steps. GPT-3 warmed up over 375 million tokens.
+
+> **【中文解读】** 预热（Warmup）：Adam 等自适应优化器维护梯度均值和方差的运行估计。第 0 步时这些估计初始化为零，前几步的梯度更新基于垃圾统计量。如果此时学习率很大，模型会走巨大的、方向错误的步。Warmup 从极小的学习率线性增长到目标值，等 Adam 的统计量稳定后再使用完整学习率。典型 warmup 占总步数的 1-5%。
+
+> **【拓展：Warmup 在 Transformer 中的关键性】** Transformer 特别需要 warmup，因为 self-attention 的梯度在训练初期非常不稳定。没有 warmup 时，早期的梯度爆炸/消失可能导致整个训练崩溃。BERT 用 10K 步 warmup，GPT-3 用 375M token 的 warmup。
 
 ### Linear Warmup + Cosine Decay
 
@@ -89,6 +101,8 @@ else:
 ```
 
 This is what Llama, GPT, PaLM, and most modern transformers use. The warmup prevents early instability. The cosine decay settles the model into a good minimum.
+
+> **【中文解读】** 线性预热 + 余弦衰减：现代大模型的标准配置。先用线性 warmup 稳定训练，再用余弦衰减收敛到好的最小值。Llama、GPT、PaLM 都用这个组合。HuggingFace 的 `get_cosine_schedule_with_warmup` 是微调脚本中最常用的调度器。
 
 ### 1cycle Policy
 
@@ -408,18 +422,18 @@ This lesson produces:
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Learning rate | "How fast the model learns" | The scalar that multiplies the gradient to determine the parameter update size |
-| Schedule | "Change the LR over time" | A function that maps training step to learning rate, designed to optimize convergence |
-| Warmup | "Start with a small LR" | Linearly ramping the LR from near-zero to the target value over the first N steps to stabilize optimizer statistics |
-| Cosine annealing | "Smooth LR decay" | Decreasing the LR following a cosine curve from lr_max to lr_min over training |
-| Step decay | "Drop LR at milestones" | Multiplying the LR by a factor (usually 0.1) at fixed epoch intervals |
-| 1cycle policy | "Up then down" | Leslie Smith's method of ramping LR up then down in a single cycle for faster convergence |
-| LR range test | "Find the best learning rate" | Training briefly while increasing LR to find the value where loss starts diverging |
-| Cosine with warm restarts | "Reset and repeat" | Periodically resetting the LR to lr_max and decaying again (SGDR) |
-| Eta min | "The floor for the LR" | The minimum learning rate that the schedule decays to |
-| Peak learning rate | "The maximum LR" | The highest LR reached during training, typically after warmup |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Learning rate | "How fast the model learns" | The scalar that multiplies the gradient to determine the parameter update size | 学习率，控制参数更新步长 |
+| Schedule | "Change the LR over time" | A function that maps training step to learning rate, designed to optimize convergence | 学习率调度策略 |
+| Warmup | "Start with a small LR" | Linearly ramping the LR from near-zero to the target value over the first N steps to stabilize optimizer statistics | 预热，从小学习率线性增长 |
+| Cosine annealing | "Smooth LR decay" | Decreasing the LR following a cosine curve from lr_max to lr_min over training | 余弦退火 |
+| Step decay | "Drop LR at milestones" | Multiplying the LR by a factor (usually 0.1) at fixed epoch intervals | 阶梯衰减 |
+| 1cycle policy | "Up then down" | Leslie Smith's method of ramping LR up then down in a single cycle for faster convergence | 1cycle 策略，先升后降 |
+| LR range test | "Find the best learning rate" | Training briefly while increasing LR to find the value where loss starts diverging | 学习率范围测试 |
+| Cosine with warm restarts | "Reset and repeat" | Periodically resetting the LR to lr_max and decaying again (SGDR) | 带热重启的余弦退火 |
+| Eta min | "The floor for the LR" | The minimum learning rate that the schedule decays to | 最小学习率下限 |
+| Peak learning rate | "The maximum LR" | The highest LR reached during training, typically after warmup | 峰值学习率 |
 
 ## Further Reading
 

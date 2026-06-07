@@ -16,6 +16,8 @@
 - Wire all components into a working training loop that trains a 4-layer network on circle classification
 - Map each component of your framework to its PyTorch equivalent (nn.Module, nn.Sequential, optim.Adam, DataLoader)
 
+> **【中文解读】** 本章学习目标：用约 500 行纯 Python 构建一个完整的深度学习框架。核心是理解 Module 抽象——所有层都有 forward/backward/parameters 三个方法。完成后你将完全理解 PyTorch 中 nn.Module、nn.Sequential、optim.Adam、DataLoader 的设计原理。
+
 ## The Problem
 
 You have ten lessons of building blocks scattered across separate files. A `Value` class here, a training loop there, weight initialization in another file, learning rate schedules in yet another. To train a network, you copy-paste from five different lessons and wire them together by hand.
@@ -25,6 +27,8 @@ That is what frameworks solve. PyTorch gives you `nn.Module`, `nn.Sequential`, `
 You are going to build the same thing in ~500 lines of Python. No numpy. No external dependencies. A framework that can define any feedforward network, train it with SGD or Adam, batch the data, apply dropout and batch normalization, use any activation, and schedule the learning rate.
 
 When you finish, you will understand exactly what happens when you write `model = nn.Sequential(...)` in PyTorch. You will understand why `model.train()` and `model.eval()` exist. You will understand why `optimizer.zero_grad()` is a separate call. You will understand all of it, because you built all of it.
+
+> **【中文解读】** 框架解决的问题：把前面课程中分散的 Value 类、训练循环、权重初始化、学习率调度等组件整合成统一的系统。PyTorch 的 nn.Module、Sequential、DataLoader 不是魔法，而是组织代码的模式。构建自己的框架后，你将理解 PyTorch 每一行代码背后的原理。
 
 ## The Concept
 
@@ -38,21 +42,33 @@ Every layer in PyTorch inherits from `nn.Module`. A Module has three responsibil
 
 A Linear layer is a Module. A ReLU activation is a Module. A dropout layer is a Module. A batch normalization layer is a Module. They all have the same interface.
 
+> **【中文解读】** Module 抽象：每个层都是 Module，都有 forward()（计算输出）、backward()（计算梯度）、parameters()（返回可训练参数）三个方法。这是组合模式（Composite Pattern）的经典应用——单个层是 Module，由多个层组成的 Sequential 也是 Module，接口统一。
+
 ### Sequential Container
 
 `nn.Sequential` chains Modules. Forward pass: feed data through Module 1, then Module 2, then Module 3. Backward pass: reverse the chain. The container itself is a Module -- it has forward(), parameters(), and backward(). This is the composite pattern: a sequence of Modules is itself a Module.
+
+> **【中文解读】** Sequential 容器：将多个 Module 串联。前向传播从左到右依次执行，反向传播从右到左依次执行。容器本身也是 Module——这就是组合模式，序列即模块。PyTorch 中的 `nn.Sequential(...)` 做的就是这件事。
 
 ### Training vs Evaluation Mode
 
 Dropout randomly zeroes neurons during training but passes everything through during evaluation. Batch normalization uses batch statistics during training but running averages during evaluation. The `train()` and `eval()` methods toggle this behavior. Every Module has a `training` flag.
 
+> **【中文解读】** 训练/评估模式：Dropout 训练时随机将神经元置零，评估时全部通过；BatchNorm 训练时用当前 batch 的统计量，评估时用累积的运行平均值。`train()` 和 `eval()` 方法切换这个行为。忘记切换是深度学习中最常见的 bug 之一。
+
 ### Optimizer
 
 The optimizer updates parameters using their gradients. SGD: `param -= lr * grad`. Adam: maintains momentum and variance estimates, then updates. The optimizer does not know about the network architecture -- it only sees a flat list of parameters and their gradients.
 
+> **【中文解读】** 优化器：只看参数和梯度的扁平列表，不知道网络结构。SGD 直接 `param -= lr * grad`；Adam 维护动量和方差估计来调整更新步长。这种解耦设计意味着你可以自由组合任意模型架构和任意优化器。
+
+> **【拓展：为什么 zero_grad() 是单独调用】** PyTorch 默认累加梯度（方便实现梯度累积等高级技巧），所以每次迭代前必须手动清零。如果你的框架也采用累加设计，就要理解这个设计选择背后的权衡。
+
 ### DataLoader
 
 Batching matters for two reasons. First, you cannot fit the entire dataset in memory for large problems. Second, mini-batch gradient descent provides noise that helps escape local minima. The DataLoader splits data into batches and optionally shuffles between epochs.
+
+> **【中文解读】** DataLoader：将数据分成批次，每个 epoch 可选洗牌。分批处理有两个原因：(1) 大数据集无法一次性装入内存；(2) 小批量梯度下降的噪声有助于跳出局部最优。PyTorch 的 DataLoader 还支持多进程并行加载，可以成倍加速训练。
 
 ### Framework Architecture
 
@@ -150,6 +166,8 @@ classDiagram
 ```
 
 ## Build It
+
+> **【中文解读】** 实践部分：分 10 步构建完整框架——从 Module 基类开始，逐步添加 Linear 层、激活函数、Dropout、BatchNorm、Sequential 容器、损失函数、SGD/Adam 优化器、DataLoader，最后训练一个 4 层网络做圆形分类。
 
 ### Step 1: Module Base Class
 
@@ -631,6 +649,8 @@ def train():
 
 ## Use It
 
+> **【中文解读】** 使用部分：将你的框架与 PyTorch 做一一对应。两者结构几乎完全一致——Sequential、Linear、ReLU、BCELoss、Adam、zero_grad、backward、step、train、eval，每个概念都一一对应。区别在于 PyTorch 自动处理 autograd、支持 GPU、经过了多年优化，但骨架是一样的。
+
 Here is the PyTorch equivalent of what you just built:
 
 ```python
@@ -689,18 +709,18 @@ This lesson produces:
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Module | "A layer" | The base abstraction in a framework -- anything with forward(), backward(), and parameters() |
-| Sequential | "Stack layers in order" | A container that chains modules, applying them in sequence for forward and reverse for backward |
-| Forward pass | "Run the network" | Computing the output by passing input through each module in order |
-| Backward pass | "Compute gradients" | Propagating the loss gradient through each module in reverse to compute parameter gradients |
-| Parameters | "The trainable weights" | All values in the network that the optimizer can update -- weights and biases |
-| Optimizer | "The thing that updates weights" | An algorithm that uses gradients to update parameters, implementing SGD, Adam, or other rules |
-| DataLoader | "The thing that feeds data" | An iterator that splits a dataset into batches, optionally shuffling between epochs |
-| Training mode | "model.train()" | A flag that enables stochastic behavior like dropout and batch normalization with batch stats |
-| Evaluation mode | "model.eval()" | A flag that disables dropout and uses running statistics for batch normalization |
-| Zero grad | "Clear the gradients" | Resetting all parameter gradients to zero before computing the next batch's gradients |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Module | "A layer" | The base abstraction in a framework -- anything with forward(), backward(), and parameters() | 模块，框架的基础抽象 |
+| Sequential | "Stack layers in order" | A container that chains modules, applying them in sequence for forward and reverse for backward | 顺序容器，串联多个模块 |
+| Forward pass | "Run the network" | Computing the output by passing input through each module in order | 前向传播 |
+| Backward pass | "Compute gradients" | Propagating the loss gradient through each module in reverse to compute parameter gradients | 反向传播 |
+| Parameters | "The trainable weights" | All values in the network that the optimizer can update -- weights and biases | 可训练参数 |
+| Optimizer | "The thing that updates weights" | An algorithm that uses gradients to update parameters, implementing SGD, Adam, or other rules | 优化器 |
+| DataLoader | "The thing that feeds data" | An iterator that splits a dataset into batches, optionally shuffling between epochs | 数据加载器 |
+| Training mode | "model.train()" | A flag that enables stochastic behavior like dropout and batch normalization with batch stats | 训练模式 |
+| Evaluation mode | "model.eval()" | A flag that disables dropout and uses running statistics for batch normalization | 评估模式 |
+| Zero grad | "Clear the gradients" | Resetting all parameter gradients to zero before computing the next batch's gradients | 梯度清零 |
 
 ## Further Reading
 

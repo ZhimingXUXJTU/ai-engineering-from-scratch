@@ -16,6 +16,8 @@
 - Convert your from-scratch mini framework components to their PyTorch equivalents
 - Profile and compare training speed between your pure-Python framework and PyTorch on the same task
 
+> **【中文解读】** 本章学习目标：掌握 PyTorch 的核心抽象——Tensor、autograd、nn.Module，并用它们在 MNIST 上训练一个 3 层 MLP。重点是理解你的迷你框架和 PyTorch 之间的一一对应关系，以及 GPU 加速和混合精度训练。
+
 ## The Problem
 
 You have a working mini framework. Linear layers, ReLU, dropout, batch norm, Adam, a DataLoader, a training loop. It trains a 4-layer network on a circle classification problem in pure Python.
@@ -28,6 +30,8 @@ Speed is not the only gap. Your framework has no GPU support. No automatic diffe
 
 PyTorch fills every one of these gaps. And it does so while keeping the exact same mental model you already built: Module, forward(), parameters(), backward(), optimizer.step(). The concepts transfer one-to-one. The syntax is nearly identical. The difference is that PyTorch wraps a decade of systems engineering behind the same interface you designed from scratch.
 
+> **【中文解读】** 你的迷你框架和 PyTorch 的差距：(1) 速度慢 500 倍（纯 Python 循环 vs C++/CUDA 内核）；(2) 没有 GPU 支持；(3) 没有自动微分（你手写了每个模块的 backward）；(4) 没有序列化、分布式训练、混合精度。PyTorch 填补了所有这些空白，但保持了完全相同的心智模型。
+
 ## The Concept
 
 ### Why PyTorch Won
@@ -39,6 +43,10 @@ PyTorch launched in 2017 with a different philosophy: eager execution. You write
 By 2020, the market had spoken. PyTorch's share in ML research papers went from 7% (2017) to over 75% (2022). Meta, Google DeepMind, OpenAI, Anthropic, and Hugging Face all use PyTorch as their primary framework. TensorFlow 2.x adopted eager execution in response -- tacit admission that PyTorch's design was correct.
 
 The lesson: developer experience compounds. A framework that is 10% slower but 50% faster to debug wins every time.
+
+> **【中文解读】** PyTorch 为什么赢了 TensorFlow：2015 年 TensorFlow 用静态计算图，先建图再运行，调试靠看图可视化。2017 年 PyTorch 用 eager execution（即时执行），print() 能用、pdb 能用、if/else 能用在 forward 里。到 2022 年 PyTorch 在 ML 研究论文中的份额超过 75%。教训：开发者体验的复利效应——调试快 50% 比运行快 10% 更重要。
+
+> **【拓展：即时执行 vs 图模式】** PyTorch 的即时执行让调试变得自然，但牺牲了一些优化空间。PyTorch 2.0 引入了 `torch.compile()` 来弥补这个差距——保留即时执行的调试体验，同时获得图模式的优化速度。这是当前 PyTorch 生态最重要的方向之一。
 
 ### Tensors
 
@@ -85,6 +93,8 @@ x.unsqueeze(0)     # add dimension: (1, 2, 3, 4)
 x.squeeze()        # remove size-1 dimensions
 ```
 
+> **【中文解读】** Tensor（张量）：多维数组，三个关键属性——shape（维度）、dtype（精度和内存）、device（CPU/GPU）。dtype 选择很重要：float32 是默认，float16 用于混合精度，bfloat16 用于 LLM 训练（与 float32 范围相同但精度更低），int8 用于量化推理。reshape 操作是 O(1) 的，只改元数据不改数据。
+
 ### Autograd
 
 Your mini framework required you to implement backward() for every module. PyTorch does not. It records every operation on tensors into a directed acyclic graph (the computational graph) and then traverses that graph in reverse to compute gradients automatically.
@@ -117,6 +127,8 @@ Three rules of autograd:
 1. Only leaf tensors with `requires_grad=True` accumulate gradients
 2. Gradients accumulate by default -- call `optimizer.zero_grad()` before each backward pass
 3. `torch.no_grad()` disables gradient tracking (use during evaluation)
+
+> **【中文解读】** Autograd（自动微分）：你在迷你框架中为每个模块手写了 backward()，PyTorch 不需要。它在正向传播时记录所有操作到计算图中，调用 .backward() 时自动反向遍历计算梯度。三条规则：(1) 只有 requires_grad=True 的叶子张量累积梯度；(2) 梯度默认累加，每次迭代前要 zero_grad()；(3) 评估时用 torch.no_grad() 禁用梯度追踪以节省内存。
 
 ### nn.Module
 
@@ -154,6 +166,8 @@ Key building blocks:
 | nn.Embedding(vocab, dim) | Lookup table | vocab * dim |
 | nn.LayerNorm(dim) | Per-sample normalization | 2 * dim |
 
+> **【中文解读】** nn.Module：PyTorch 中所有神经网络组件的基类。你在 Lesson 10 已经构建了相同的抽象。PyTorch 的版本增加了自动参数注册（在 __init__ 中赋值就自动注册）、递归模块发现、设备管理和 state_dict 序列化。关键构建块：Linear 做线性变换，Conv2d 做卷积，BatchNorm/LayerNorm 做归一化，Dropout 做正则化，Embedding 做查表。
+
 ### Loss Functions and Optimizers
 
 PyTorch ships production-ready versions of everything you built.
@@ -169,6 +183,8 @@ PyTorch ships production-ready versions of everything you built.
 | nn.CTCLoss() | Sequence alignment | Log probabilities |
 
 Note: `CrossEntropyLoss` combines `LogSoftmax` + `NLLLoss` internally. Pass raw logits, not softmax outputs. This is a common mistake that produces wrong gradients silently.
+
+> **【中文解读】** 损失函数和优化器：CrossEntropyLoss 内部已经包含了 LogSoftmax + NLLLoss，所以传入原始 logits（未经 softmax）即可。传入 softmax 后的输出是常见错误，会产生错误的梯度。优化器选择：SGD 适合 CNN，Adam 是默认选择，AdamW 适合 Transformer 和微调。
 
 **Optimizers** (from `torch.optim`):
 
@@ -216,6 +232,10 @@ for epoch in range(num_epochs):
 
 Five lines inside the batch loop. Five lines that trained GPT-4, Stable Diffusion, and LLaMA. The architecture changes. The data changes. These five lines do not.
 
+> **【中文解读】** 训练循环：PyTorch 中永恒的五步模式——zero_grad → forward → loss → backward → step。架构在变，数据在变，这五行不变。GPT-4、Stable Diffusion、LLaMA 都用同样的循环训练。你在迷你框架中已经写过完全相同的逻辑。
+
+> **【拓展：分布式训练的循环变化】** 在多 GPU 分布式训练中，这五步会增加梯度同步（all-reduce），但核心模式不变。PyTorch 的 DistributedDataParallel (DDP) 和 FSDP 都是对这个基本循环的扩展。
+
 ### Dataset and DataLoader
 
 PyTorch's `Dataset` is an abstract class with two methods: `__len__` and `__getitem__`. `DataLoader` wraps it with batching, shuffling, and multi-process data loading.
@@ -238,6 +258,8 @@ loader = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=4)
 ```
 
 `num_workers=4` spawns 4 processes to load data in parallel while the GPU trains on the current batch. On disk-bound workloads (large images, audio), this alone can double training speed.
+
+> **【中文解读】** Dataset 和 DataLoader：Dataset 只需实现 __len__ 和 __getitem__，DataLoader 在此基础上添加批处理、洗牌和多进程数据加载。num_workers=4 会启动 4 个进程并行加载数据，在磁盘 IO 受限的场景（大图片、音频）中可以让训练速度翻倍。
 
 ### GPU Training
 
@@ -269,6 +291,10 @@ for inputs, targets in loader:
     scaler.update()
     optimizer.zero_grad()
 ```
+
+> **【中文解读】** GPU 训练和混合精度：model.to("cuda") 将所有参数移到 GPU，每个 batch 的数据也要 .to(device)。混合精度训练用 float16 做前向和反向传播（速度翻倍、内存减半），同时保持 float32 的主权重确保数值稳定。在 A100、H100 等现代 GPU 上效果最显著。
+
+> **【拓展：混合精度为什么重要】** 大模型训练（如 GPT-4、LLaMA）几乎全部使用混合精度。float16 将内存占用减半、吞吐量翻倍，但有些操作（如 softmax、loss 计算）仍需要 float32 的精度。GradScaler 的作用是在 loss 缩放后反向传播，防止 float16 的梯度下溢。
 
 ### Comparison: Mini Framework vs PyTorch vs JAX
 
@@ -513,18 +539,18 @@ This lesson produces two artifacts:
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|----------------|----------------------|
-| Tensor | "A multi-dimensional array" | A typed, device-aware array with automatic differentiation support baked into every operation |
-| Autograd | "Automatic backprop" | A tape-based system that records operations during forward pass, then replays them in reverse to compute exact gradients |
-| nn.Module | "A layer" | The base class for any differentiable computation block -- registers parameters, supports nesting, handles train/eval modes |
-| state_dict | "The model weights" | An OrderedDict mapping parameter names to tensors -- the portable, serializable representation of a trained model |
-| .backward() | "Compute gradients" | Traverse the computational graph in reverse, computing and accumulating gradients for every leaf tensor with requires_grad=True |
-| .to(device) | "Move to GPU" | Recursively transfer all parameters and buffers to the specified device (CPU, CUDA, MPS) |
-| DataLoader | "The data pipeline" | An iterator that batches, shuffles, and optionally parallelizes data loading from a Dataset |
-| Mixed precision | "Use float16" | Train with float16 forward/backward for speed while keeping float32 master weights for numerical stability |
-| Eager execution | "Run it now" | Operations execute immediately when called, not deferred to a later compilation step -- the core design choice that differentiates PyTorch from TF 1.x |
-| zero_grad | "Reset gradients" | Set all parameter gradients to zero before the next backward pass, since PyTorch accumulates gradients by default |
+| Term | What people say | What it actually means | 中文释义 |
+|------|----------------|----------------------|---------|
+| Tensor | "A multi-dimensional array" | A typed, device-aware array with automatic differentiation support baked into every operation | 张量，带自动微分的多维数组 |
+| Autograd | "Automatic backprop" | A tape-based system that records operations during forward pass, then replays them in reverse to compute exact gradients | 自动微分引擎 |
+| nn.Module | "A layer" | The base class for any differentiable computation block -- registers parameters, supports nesting, handles train/eval modes | 神经网络模块基类 |
+| state_dict | "The model weights" | An OrderedDict mapping parameter names to tensors -- the portable, serializable representation of a trained model | 状态字典，模型的可移植表示 |
+| .backward() | "Compute gradients" | Traverse the computational graph in reverse, computing and accumulating gradients for every leaf tensor with requires_grad=True | 反向传播计算梯度 |
+| .to(device) | "Move to GPU" | Recursively transfer all parameters and buffers to the specified device (CPU, CUDA, MPS) | 将张量/模型移到指定设备 |
+| DataLoader | "The data pipeline" | An iterator that batches, shuffles, and optionally parallelizes data loading from a Dataset | 数据加载器 |
+| Mixed precision | "Use float16" | Train with float16 forward/backward for speed while keeping float32 master weights for numerical stability | 混合精度训练 |
+| Eager execution | "Run it now" | Operations execute immediately when called, not deferred to a later compilation step -- the core design choice that differentiates PyTorch from TF 1.x | 即时执行模式 |
+| zero_grad | "Reset gradients" | Set all parameter gradients to zero before the next backward pass, since PyTorch accumulates gradients by default | 梯度清零 |
 
 ## Further Reading
 
