@@ -5,20 +5,22 @@
 > **【中文解读】** 本节介绍了 CAIS/CAISI 的社会风险评估——AI 系统对社会的潜在影响和风险分析。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, four-risk inventory and mitigation matcher)
-**Prerequisites:** Phase 15 · 19 (RSP), Phase 15 · 20 (PF + FSF)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, four-risk inventory and mitigation matcher) | **语言:** Python (stdlib, four-risk inventory and mitigation matcher)
+**Prerequisites:** Phase 15 · 19 (RSP), Phase 15 · 20 (PF + FSF) | **前置知识:** Phase 15 · 19 (RSP), Phase 15 · 20 (PF + FSF)
+**Time:** ~45 minutes | **时间:** ~45 minutes
 
-## The Problem | 问题
+## The Problem | 问题引入
 
-Lessons 19 and 20 covered lab-internal scaling policies. Lesson 21 covered independent capability evaluation. This lesson covers the third perspective: civil society and government organizations who shape public discussion and regulatory baseline for catastrophic AI risk.
+Lessons 19 and 20 covered lab-internal scaling policies. Lesson 21 covered independent capability evaluation. This lesson covers the third perspective: civil society and government organizations.
+
+> 第 19 和 20 课涵盖了实验室内部扩展政策。第 21 课涵盖了独立能力评估。本课涵盖第三个视角：民间社会和政府组织。 This lesson covers the third perspective: civil society and government organizations who shape public discussion and regulatory baseline for catastrophic AI risk.
 
 Two distinct entities matter. CAIS is a non-profit research org that publishes frameworks for thinking about AI risk and coordinates public statements. CAISI is a US-government center within NIST that runs voluntary agreements with labs and unclassified capability evaluations. The names rhyme; the missions do not overlap. A practitioner should know both.
 
 The practical content: CAIS's four-risk framework is the most widely cited societal-scale-risk taxonomy in the literature. Safety culture and organizational risk are one of those four, and this is the one most directly under a practitioner's control. SB-53 (California) would be the first US state-level catastrophic-risk regulation if signed; the bill's framing matters because state-level regulation has historically led federal action in US tech policy.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### CAIS — Center for AI Safety
 
@@ -40,7 +42,9 @@ This is not the only taxonomy; it is the most cited. The categories are not mutu
 
 ### Where organizational risk lives
 
-Of the four categories, organizational risk is the most actionable for practitioners. A lab's safety culture, audit rigor, defense layering, and information security decide whether their model ships with the controls of Lessons 10–18 actually in place, or whether those controls are checklist items nobody verified.
+Of the four categories, organizational risk is the most actionable for practitioners.
+
+> 在四个类别中，组织风险对从业者来说最具可操作性。 A lab's safety culture, audit rigor, defense layering, and information security decide whether their model ships with the controls of Lessons 10–18 actually in place, or whether those controls are checklist items nobody verified.
 
 The concrete organizational-risk levers:
 
@@ -70,7 +74,9 @@ If signed, it would be the first US state-level catastrophic-risk regulation. Re
 
 ### Societal-scale risk is not a single-layer problem
 
-The running theme of Phase 15 — defense in depth — applies at the societal layer too. No single organization, regulation, or framework closes catastrophic risk. The ecosystem functions only when:
+The running theme of Phase 15 — defense in depth — applies at the societal layer too. No single organization, regulation, or framework closes catastrophic risk.
+
+> 第 15 阶段的贯穿主题——深度防御——也适用于社会层。没有单一的组织、法规或框架能关闭灾难性风险。 No single organization, regulation, or framework closes catastrophic risk. The ecosystem functions only when:
 
 - Labs ship scaling policies (Lessons 19, 20).
 - External evaluators produce measurements (Lesson 21).
@@ -80,11 +86,11 @@ The running theme of Phase 15 — defense in depth — applies at the societal l
 
 This is the final synthesis for the phase: every previous lesson is one layer in a stack whose completeness matters more than any single layer's strength.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` implements a small risk-inventory tool. Given a proposed deployment, it tags the deployment against the four-risk categories and returns a mitigation checklist. It's a reading aid for the framework, not a substitute for human judgment.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-societal-risk-review.md` reviews a deployment for societal-scale-risk posture: which of the four categories it touches, what mitigations are in place, what the organizational-risk exposure is.
 
@@ -100,7 +106,7 @@ This is the final synthesis for the phase: every previous lesson is one layer in
 
 5. Sketch a 2028 version of the four-risk framework that reflects one year of additional capability and one year of additional deployment experience. What would you add, remove, or regroup?
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |---|---|---|

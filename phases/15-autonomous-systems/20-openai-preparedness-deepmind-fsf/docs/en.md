@@ -5,20 +5,24 @@
 > **【中文解读】** 本节介绍了各前沿 AI 实验室的安全框架——Anthropic RSP、OpenAI Preparedness、DeepMind FSF。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, three-framework decision-table diff tool)
-**Prerequisites:** Phase 15 · 19 (Anthropic RSP)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, three-framework decision-table diff tool) | **语言:** Python (stdlib, three-framework decision-table diff tool)
+**Prerequisites:** Phase 15 · 19 (Anthropic RSP) | **前置知识:** Phase 15 · 19 (Anthropic RSP)
+**Time:** ~45 minutes | **时间:** ~45 minutes
 
-## The Problem | 问题
+## The Problem | 问题引入
 
-Lesson 19 read Anthropic's scaling policy closely. This lesson completes the picture by reading OpenAI's and DeepMind's. The three documents are cousin artifacts addressing the same question — when should a frontier lab pause or gate a model — and they converge on a small set of categories and diverge in specific places that matter.
+Lesson 19 read Anthropic's scaling policy closely. This lesson completes the picture by reading OpenAI's and DeepMind's.
 
-The convergence: all three label long-range autonomy as a capability class worth tracking. All three acknowledge deceptive behavior (alignment faking, sandbagging) as a specific class of risk. All three have an internal review body. The divergence: OpenAI splits categories into "Tracked" (mandatory mitigation) and "Research" (no automatic trigger). DeepMind folds autonomy into two domains rather than naming it separately. The lab names Tracked vs Research, or Critical vs Moderate, or Tier-1 vs Tier-2; the operational consequence of which bucket a capability lives in is different across labs.
+> 第 19 课仔细阅读了 Anthropic 的扩展政策。本课通过阅读 OpenAI 和 DeepMind 的政策来完成全景。 by reading OpenAI's and DeepMind's. The three documents are cousin artifacts addressing the same question — when should a frontier lab pause or gate a model — and they converge on a small set of categories and diverge in specific places that matter.
+
+The convergence: all three label long-range autonomy as a capability class worth tracking. All three acknowledge deceptive behavior as a specific class of risk.
+
+> 收敛点：三者都将长程自主标记为值得跟踪的能力类别。 All three acknowledge deceptive behavior (alignment faking, sandbagging) as a specific class of risk. All three have an internal review body. The divergence: OpenAI splits categories into "Tracked" (mandatory mitigation) and "Research" (no automatic trigger). DeepMind folds autonomy into two domains rather than naming it separately. The lab names Tracked vs Research, or Critical vs Moderate, or Tier-1 vs Tier-2; the operational consequence of which bucket a capability lives in is different across labs.
 
 Reading them together is the useful exercise. The same capability can be "mandatory mitigation" at Anthropic, "monitored but not triggering" at OpenAI, and "tracked in a specific domain" at DeepMind. The policy posture matters.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### OpenAI Preparedness Framework v2 (April 2025)
 
@@ -56,7 +60,9 @@ The autonomy framing differs from OpenAI's. DeepMind does not keep "Autonomy" as
 
 Sandbagging (a model strategically underperforming on evaluations) is in OpenAI's Research Categories. Anthropic's RSP v3.0 addresses it via the evaluation-context gap (Lesson 1). DeepMind addresses it via deceptive alignment monitoring in FSF v3.
 
-If a model sandbags on evaluations, every framework's capability thresholds are underestimated. The framework works only if the measurement works. This is why external measurement (Lesson 21, METR) and adversarial evaluation are necessary in addition to lab self-assessment.
+If a model sandbags on evaluations, every framework's capability thresholds are underestimated.
+
+> 如果模型在评估中装傻，每个框架的能力阈值都被低估了。 The framework works only if the measurement works. This is why external measurement (Lesson 21, METR) and adversarial evaluation are necessary in addition to lab self-assessment.
 
 ### The policy-reading skill
 
@@ -65,11 +71,11 @@ If a model sandbags on evaluations, every framework's capability thresholds are 
 - Cadence: is the policy updated on a declared schedule, or only after specific events? Declared cadence is stronger.
 - Independence: is external review mandatory or optional? Anthropic partners with Apollo and US AI Safety Institute; OpenAI with METR; DeepMind with internal SAG primarily.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` implements a small decision-table diff tool. Given a capability (autonomy, deceptive alignment, R&D automation, cyber uplift, etc.), it outputs how each of the three policies classifies the capability, and what mitigations trigger. It's a reading aid, not a policy tool.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-cross-policy-diff.md` produces a cross-policy comparison for a specific capability, using the three frameworks as reference.
 
@@ -85,7 +91,7 @@ If a model sandbags on evaluations, every framework's capability thresholds are 
 
 5. Compare the three policies on a specific capability (your choice). Name which policy's classification you find most rigorous and which least. Justify with source text.
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |---|---|---|

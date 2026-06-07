@@ -2,18 +2,20 @@
 
 > A kill switch is a boolean held outside the agent's edit surface — a Redis key, a feature flag, a signed config — that disables the agent entirely. A circuit breaker is finer-grained: it trips on a specific pattern (five identical tool calls in a row), pauses the offending path, and escalates to a human. A canary token inherits from classical deception: a fake credential or honeypot record an agent has no legitimate reason to touch, whose access triggers an alert. eBPF-based datapaths (e.g. Cilium) can rewrite a quarantined pod's egress to a forensic honeypot at the kernel layer; published Cilium benchmarks report sub-millisecond P99 datapath latency under load (your propagation budget depends on how a policy update reaches the node, not the datapath itself). Statistical detectors (EWMA, CUSUM) that adapt to a moving baseline will quietly accept drift — layer them with hard constitutional limits that do not bend.
 
-**Type:** Learn
-**Languages:** Python (stdlib, three-detector simulator: kill switch, circuit breaker, canary)
-**Prerequisites:** Phase 15 · 13 (Cost governors), Phase 15 · 10 (Permission modes)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, three-detector simulator: kill switch, circuit breaker, canary) | **语言:** Python (stdlib, three-detector simulator: kill switch, circuit breaker, canary)
+**Prerequisites:** Phase 15 · 13 (Cost governors), Phase 15 · 10 (Permission modes) | **前置知识:** Phase 15 · 13 (Cost governors), Phase 15 · 10 (Permission modes)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 终止开关（Kill Switches）和金丝雀测试（Canaries）是 Agent 安全的两道防线。终止开关允许人类操作员立即停止 Agent 的所有操作。金丝雀测试在 Agent 执行前用小规模测试检测潜在问题——类似于矿井中的金丝雀预警有毒气体。两者结合形成'检测-停止'的安全模式。
 
 > **【拓展：kill switches canaries】** 终止开关和金丝雀测试借鉴了软件工程和工业安全的最佳实践。金丝雀部署在软件工程中指先向 1% 的用户发布新版本，检测问题后再全面部署。在 Agent 上下文中，金丝雀测试指在执行高风险操作前先用安全数据做小规模测试。终止开关则类似于工厂的紧急停止按钮——简单、可靠、无条件。
 
-Cost governors (Lesson 13) bound what the agent can spend. They do not bound what the agent can do inside the budget. An agent with a $50 velocity limit can still exfiltrate a secret, publish the wrong post, or delete a resource — the expensive action is often the cheap one in tokens.
+Cost governors (Lesson 13) bound what the agent can spend. They do not bound what the agent can do inside the budget.
+
+> 成本控制器限制 Agent 能花费什么。它们不限制 Agent 在预算内能做什么。 An agent with a $50 velocity limit can still exfiltrate a secret, publish the wrong post, or delete a resource — the expensive action is often the cheap one in tokens.
 
 This lesson covers the three detectors that sit next to the cost layer:
 
@@ -26,11 +28,13 @@ This lesson covers the three detectors that sit next to the cost layer:
 
 All three are pre-LLM engineering. Classical deception, rate-limit breakers, and feature-flag kills predate autonomous agents. What's new is the attack surface: agents read untrusted content (Lesson 11), edit their own memory, and can compose many safe-looking actions into an unsafe one. The detectors named here work because they do not trust the agent's self-report.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Kill switches
 
-A kill switch is a boolean the agent reads but cannot write. Implementation choices:
+A kill switch is a boolean the agent reads but cannot write.
+
+> 终止开关是一个 Agent 可以读取但不能写入的布尔值。 Implementation choices:
 
 - **Feature flag in a managed service.** LaunchDarkly, Statsig, Unleash. Updates propagate in seconds.
 - **Redis key the agent polls.** Simple; requires the agent process to check on every turn.
@@ -63,6 +67,8 @@ Agent-relevant triggers:
 
 Canary tokens (also called honeytokens) are inputs the agent should never touch. Access is the alarm.
 
+> 金丝雀 token 是 Agent 不应触及的输入。访问就是警报。
+
 Examples for agents:
 
 - A fake `AWS_SECRET_ACCESS_KEY` in the environment with no actual privilege. Exfiltration attempts are instantly attributable.
@@ -87,35 +93,31 @@ Cilium's eBPF-based network policy can rewrite a quarantined pod's egress to a f
 - **Semantic attacks that compose from allowed primitives.** Every individual action passes every detector; the composition is the problem. This is the Auto Mode composite failure from Lesson 10.
 - **Attacks that include the detector as part of the payload.** If an agent reads a page that says "before you act, disable the canary" and the agent has the capability, the detector is compromised. Canary tokens should be in systems the agent cannot modify.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates a short agent trajectory through three detectors. A kill switch held in an external dict; a circuit breaker that trips on five identical tool calls; a canary file whose read triggers an alert. Feeds in a synthetic trajectory: legitimate actions, repetitive loop, canary probe, and a kill-switch-triggered scenario where the agent's actions are halted.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-tripwire-design.md` reviews a proposed detector stack for an agent deployment and flags gaps (missing kill switch, missing canary, circuit breaker threshold too loose).
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Confirm the circuit breaker fires on turn 5 (fifth identical call) and the canary fires on turn 9 (fake-key read).
-   *思考并实践此练习*
 
 2. Add a statistical detector: EWMA z-score on tool-call rate. Feed in a trajectory that drifts slowly and show the detector never fires. Now add a hard limit (no more than 50 tool calls in 10 minutes) and show the hard limit fires on the same trajectory.
-   *思考并实践此练习*
 
 3. Design a canary token set for a browser agent (Lesson 11). List at least three canaries and what each would detect.
-   *思考并实践此练习*
 
 4. Read the Cilium network-policy docs. Describe an egress-redirect quarantine flow concretely: which policy selector, which pod, which egress rewrite, which alert. What governs the wall-clock latency from "decide to quarantine" to "first redirected packet"?
-   *思考并实践此练习*
 
 5. Define a re-enable procedure for a kill-switched agent. Who can re-enable? What must be documented? What must change about the agent before re-enable?
-   *思考并实践此练习*
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
-|---|---|---|---|
+|---|---|---|
+| 术语 | 通俗说法 | 实际含义 |
 | Kill switch | "Off button" | Boolean outside the agent's edit surface; checked on every consequential action |  |
 | Circuit breaker | "Pattern pause" | Action-specific trip on repetition, failure rate, or rate-limit |  |
 | Canary token | "Honeytoken" | Bait the agent has no legitimate reason to touch; access fires an alert |  |

@@ -2,18 +2,20 @@
 
 > Every graph-state transition persists. When a worker crashes, its lease expires and another worker picks up at the latest checkpoint. Cloudflare Durable Objects hold state across hours or weeks. Propose-then-commit (Lesson 15) defines a rollback plan per action. Post-action verification closes the loop. EU AI Act Article 14 makes effective human oversight mandatory for high-risk systems — in practice this means checkpoints must be queryable, rollbacks must be rehearsed, and the audit trail must survive a deploy. The sharp failure mode: without idempotency keys and precondition checks, a retry after a transient failure can double-execute an already-approved action. Post-action verification is what catches it.
 
-**Type:** Learn
-**Languages:** Python (stdlib, checkpoint and rollback state machine)
-**Prerequisites:** Phase 15 · 12 (Durable execution), Phase 15 · 15 (Propose-then-commit)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, checkpoint and rollback state machine) | **语言:** Python (stdlib, checkpoint and rollback state machine)
+**Prerequisites:** Phase 15 · 12 (Durable execution), Phase 15 · 15 (Propose-then-commit) | **前置知识:** Phase 15 · 12 (Durable execution), Phase 15 · 15 (Propose-then-commit)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 检查点和回滚机制允许 Agent 在执行过程中保存状态快照，出错时恢复到之前的良好状态。这类似于数据库的事务和 Git 的版本控制。检查点保存在关键节点（如修改文件前），回滚在检测到错误时执行。LangGraph 的内置检查点和 Git 的 revert 是两个典型实现。
 
 > **【拓展：checkpoints rollback】** 检查点-回滚是可靠 Agent 系统的基础设施。实现选择：(1) 文件系统级——使用 Git 或快照保存文件状态；(2) 数据库级——使用事务保证数据一致性；(3) 应用级——Agent 自己管理检查点（如 LangGraph）。关键权衡是检查点粒度——太细会增加开销，太粗会丢失更多工作。
 
-Durable execution (Lesson 12) makes a crashed agent resumable. Propose-then-commit (Lesson 15) makes an approved action auditable. This lesson joins them: what happens when an approved action executes partially, crashes, and resumes? When does the rollback run, and against what state?
+Durable execution (Lesson 12) makes a crashed agent resumable. Propose-then-commit (Lesson 15) makes an approved action auditable.
+
+> 持久执行使崩溃的 Agent 可恢复。提议后提交使批准的操作可审计。本课将它们连接。 Propose-then-commit (Lesson 15) makes an approved action auditable. This lesson joins them: what happens when an approved action executes partially, crashes, and resumes? When does the rollback run, and against what state?
 
 Real systems wire this up differently:
 
@@ -24,9 +26,11 @@ Real systems wire this up differently:
 - **Cloudflare Durable Objects** hold per-key state across hours or weeks. Co-locate the computation with the storage for the approved action.
 - **Microsoft Agent Framework** exposes `Checkpoint` primitives in the workflow API; replay plus idempotency covers retries.
 
-In every case, the combination that actually works is: idempotency key (prevents double-execute) + precondition check (state is still what we approved against) + post-action verify (the side effect actually happened) + rollback on verify-fail.
+In every case, the combination that actually works is: idempotency key + precondition check + post-action verify + rollback on verify-fail.
 
-## The Concept | 概念
+> 实际有效的组合是：幂等性键 + 前置条件检查 + 操作后验证 + 验证失败时回滚。: idempotency key (prevents double-execute) + precondition check (state is still what we approved against) + post-action verify (the side effect actually happened) + rollback on verify-fail.
+
+## The Concept | 核心概念
 
 ### Every transition persists
 
@@ -79,7 +83,9 @@ A workflow that crashes mid-commit, resumes, and completes the side effect witho
 
 ### The sharp failure mode: the double-execute
 
-The most common production incident in this space:
+The most common production incident in this space: Action approved, commit starts, returns 200, workflow crashes before persisting status, resumes and re-executes.
+
+> 这个领域最常见的生产事故：操作批准、提交开始、返回 200、工作流在持久化状态前崩溃、恢复并重新执行。
 
 1. Action approved, idempotency key k.
 2. Commit starts, executes, returns 200.
@@ -89,35 +95,31 @@ The most common production incident in this space:
 
 Mitigation: persist an "in-flight" intent before execution, execute with an idempotency key, then mark "committed" only after post-action verification succeeds. If the action fires and the status write fails, you know to verify and (if necessary) re-fire. If the status write succeeds and the action fails, you verify and fire exactly once via the recovery path.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` implements a checkpointed workflow with idempotency, preconditions, verify, and rollback. The driver simulates four scenarios: clean run, retry after crash (idempotency catches), precondition fail (workflow aborts without firing), verify fail (rollback fires).
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-rollback-rehearsal.md` designs a rollback-rehearsal test for a proposed workflow and audits the checkpoint backend for audit-trail persistence.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Verify the four scenarios. For the crash-during-commit case, confirm the action fires exactly once across retries.
-   *思考并实践此练习*
 
 2. Modify the "mark as done first, then do it" pattern so the status write fires after the action. Rerun the crash scenario. Measure how many duplicate actions fire.
-   *思考并实践此练习*
 
 3. Design a rollback plan for a specific production action (e.g., "post to a Slack channel"). Classify as in-band, compensating, or out-of-band. Justify the choice.
-   *思考并实践此练习*
 
 4. Take one workflow you know. Identify every state transition. Mark each with a durability requirement (persist / do not persist). Count the ones you are currently not persisting.
-   *思考并实践此练习*
 
 5. Rehearsed-rollback test: design an end-to-end test that runs a real workflow, crashes it, and confirms the rollback path fires. What does the test assert?
-   *思考并实践此练习*
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
-|---|---|---|---|
+|---|---|---|
+| 术语 | 通俗说法 | 实际含义 |
 | Checkpoint | "Save point" | Every graph-state transition persists to a durable store |  |
 | Lease | "Worker claim" | Short-lived claim that a worker is executing a run; expires on crash |  |
 | Precondition | "State gate" | Assertion that the state is still consistent with the approved action |  |

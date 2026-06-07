@@ -5,20 +5,22 @@
 > **【中文解读】** 本节介绍了 METR 外部评估——独立第三方对 AI 系统能力和风险的评估。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib, logistic-fit horizon estimator)
-**Prerequisites:** Phase 15 · 01 (Long-horizon agents), Phase 15 · 19 (RSP)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, logistic-fit horizon estimator) | **语言:** Python (stdlib, logistic-fit horizon estimator)
+**Prerequisites:** Phase 15 · 01 (Long-horizon agents), Phase 15 · 19 (RSP) | **前置知识:** Phase 15 · 01 (Long-horizon agents), Phase 15 · 19 (RSP)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
-## The Problem | 问题
+## The Problem | 问题引入
 
-Scaling policies (Lessons 19, 20) are only as useful as the measurements they reference. "AI R&D-4 threshold" and "Long-range Autonomy" are defined in policy prose; they become actionable only when specific evaluations produce specific numbers.
+Scaling policies (Lessons 19, 20) are only as useful as the measurements they reference.
+
+> 扩展政策的用处仅与它们引用的测量一样。 "AI R&D-4 threshold" and "Long-range Autonomy" are defined in policy prose; they become actionable only when specific evaluations produce specific numbers.
 
 METR is the 2024–2026 external evaluation organization that has defined many of those numbers. They evaluate frontier models — often pre-release, under NDA with labs — and publish methodology afterward. The Time Horizon 1.1 benchmark (January 2026) is their headline artifact: a single scalar that compresses capability into a human-legible unit ("this model can do the kind of task an expert spends X hours on at 50% reliability").
 
 The lesson is partly about the methodology (how a horizon is computed) and partly about the interpretation (why a horizon is an upper bound, not a deployment prediction). The two skills belong together. A team that understands how the horizon is fit is much harder to fool with a bad vendor claim than a team that just sees "14 hours" on a slide.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### METR background
 
@@ -64,11 +66,15 @@ Those are the specific numbers the rest of Phase 15 references. They are cited i
 - **Eval-context gaming**: Lesson 1. Models behave differently in tests. The 2026 International AI Safety Report documents this empirically.
 - **No legitimate user variance**: benchmark prompts are structured. Real users produce ambiguous, context-dependent requests.
 
-The horizon is the capability ceiling under favorable conditions. Deployment reliability is a different number, lower, and teams must measure their own distribution to know it.
+The horizon is the capability ceiling under favorable conditions. Deployment reliability is a different number, lower.
+
+> 时间线是有利条件下的能力上限。部署可靠性是不同的数字，更低。 Deployment reliability is a different number, lower, and teams must measure their own distribution to know it.
 
 ### The external-evaluator case
 
-External evaluation matters because internal labs have incentives to optimize metrics they report. METR's independence — a 501(c)(3) with a declared methodology and peer-reviewed papers — is the structural mitigation. It is not sufficient alone (labs still control what METR sees), but it is strictly better than no external evaluation.
+External evaluation matters because internal labs have incentives to optimize metrics they report.
+
+> 外部评估之所以重要，是因为内部实验室有优化报告指标的动力。 METR's independence — a 501(c)(3) with a declared methodology and peer-reviewed papers — is the structural mitigation. It is not sufficient alone (labs still control what METR sees), but it is strictly better than no external evaluation.
 
 ### How to use horizon numbers in practice
 
@@ -76,11 +82,11 @@ External evaluation matters because internal labs have incentives to optimize me
 - **As a trend indicator**: doubling time tells you how long the current practice will remain safe even without new mitigations.
 - **As a prior**: a horizon of 14 hours is a starting point. Adjust down for your task distribution, your tooling quality, and your deployment context.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` implements a logistic fit of task-success vs log(expert time), given a synthetic result set. It reports the 50% horizon (METR's headline), 10% horizon (conservative), and 90% horizon (optimistic). Also demonstrates what changes when the success rate is artificially inflated by eval-context gaming.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-horizon-interpretation.md` reviews a vendor's horizon claim and produces a gap analysis between benchmark claim and deployment reality.
 
@@ -96,7 +102,7 @@ External evaluation matters because internal labs have incentives to optimize me
 
 5. Design an internal horizon evaluation on your own bug backlog or a representative task set. Describe the data collection, the fit, and what the output tells you. Compare to METR numbers.
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
 |---|---|---|

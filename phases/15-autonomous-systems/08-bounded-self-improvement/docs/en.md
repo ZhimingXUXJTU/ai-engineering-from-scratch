@@ -2,27 +2,33 @@
 
 > Research has converged on four primitives for bounding a self-improvement loop. Formal invariants that must hold across every edit. Alignment anchors that cannot be modified. Multi-objective constraints where every dimension (safety, fairness, robustness) must hold, not just performance. Regression detection that pauses the loop when historical metrics suggest capability loss. None of them is a proof of safety — information-theoretic results (Kolmogorov complexity, Lob's theorem) bound what any system can prove about its own successors. They are mitigations that raise the cost of silent failure.
 
-**Type:** Learn
-**Languages:** Python (stdlib, bounded-loop with invariant check)
-**Prerequisites:** Phase 15 · 07 (RSI), Phase 15 · 04 (DGM)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, bounded-loop with invariant check) | **语言:** Python (stdlib, bounded-loop with invariant check)
+**Prerequisites:** Phase 15 · 07 (RSI), Phase 15 · 04 (DGM) | **前置知识:** Phase 15 · 07 (RSI), Phase 15 · 04 (DGM)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
-## The Problem | 问题
+## The Problem | 问题引入
 
-Lesson 7's race simulator showed that small rate differences compound into large gaps. Lesson 4's DGM case study showed that loops can actively game their own evaluators. Both results point to the same engineering question: what constraints can you put on a self-improvement loop such that the constraints cannot be silently weakened by the loop itself?
+Lesson 7's race simulator showed that small rate differences compound into large gaps. Lesson 4's DGM case study showed that loops can actively game their own evaluators.
+
+> 第 7 课的竞赛模拟器显示小的速率差异会复合成大差距。第 4 课的 DGM 案例显示循环可以主动博弈自己的评估器。 Lesson 4's DGM case study showed that loops can actively game their own evaluators. Both results point to the same engineering question: what constraints can you put on a self-improvement loop such that the constraints cannot be silently weakened by the loop itself?
 
 The ICLR 2026 RSI Workshop summary (openreview.net/pdf?id=OsPQ6zTQXV) identifies four such primitives. Anthropic's RSP v3.0 (Lesson 19) and DeepMind's FSF v3 (Lesson 20) both reference them in capability thresholds. The Meta HyperAgents work and community frameworks like SAHOO (March 2026) implement subsets in production.
 
 
 > **【中文解读】** 有界自我改进探讨 AI 系统在安全边界内改进自身能力的可能性和限制。核心问题：(1) 改进循环是否可验证——系统能否证明改进后的版本等价或更优？(2) 边界如何定义——哪些方面的改进是允许的？(3) 是否存在收敛保证——改进是否会收敛到某个上限？
 
-The honest framing: these are mitigations. Information-theoretic results bound what any system can prove about its own successor, and no current design closes the problem formally. A well-bounded loop is safer than an unbounded one, not safe in absolute terms.
+The honest framing: these are mitigations. Information-theoretic results bound what any system can prove about its own successor, and no current design closes the problem formally.
 
-## The Concept | 概念
+> 诚实的框架：这些是缓解措施。信息论结果限制了任何系统对其自身后继者能证明的内容。 Information-theoretic results bound what any system can prove about its own successor, and no current design closes the problem formally. A well-bounded loop is safer than an unbounded one, not safe in absolute terms.
+
+## The Concept | 核心概念
 
 ### Primitive 1: formal invariants
 
-An invariant is a property that must hold before and after every self-modification. Examples:
+An invariant is a property that must hold before and after every self-modification.
+
+> 不变量是每次自我修改前后必须成立的属性。例如：输出分布以固定宪法头为条件；没有工具调用到达未授权端点。 Examples:
 
 - Output distribution is conditioned on a fixed constitution header (Lesson 17).
 - No tool call goes to an unauthorized endpoint.
@@ -35,7 +41,9 @@ The hard part is choosing invariants that are necessary for safety and computabl
 
 ### Primitive 2: alignment anchors
 
-An alignment anchor is an immutable representation of the loop's core objective, pinned outside the loop's edit surface. Examples:
+An alignment anchor is an immutable representation of the loop's core objective, pinned outside the loop's edit surface.
+
+> 对齐锚点是循环核心目标的不可变表示，固定在循环编辑面之外。锚点的作用是防止目标漂移。, pinned outside the loop's edit surface. Examples:
 
 - A constitutional text (Lesson 17) that is loaded from a read-only location on every invocation.
 - An evaluator in a separate repository with independent access control.
@@ -47,7 +55,9 @@ The subtle failure mode: an anchor the loop cannot edit can still be reinterpret
 
 ### Primitive 3: multi-objective constraints
 
-A loop that optimizes a single scalar score will find shortcuts. A loop that must simultaneously satisfy multiple hard constraints has fewer shortcuts available. Typical axes:
+A loop that optimizes a single scalar score will find shortcuts. A loop that must simultaneously satisfy multiple hard constraints has fewer shortcuts available.
+
+> 优化单一标量分数的循环会找到捷径。必须同时满足多个硬约束的循环可用的捷径更少。 A loop that must simultaneously satisfy multiple hard constraints has fewer shortcuts available. Typical axes:
 
 - Performance (task-level benchmark)
 - Safety (red-team evaluations, refusal rate on known-bad)
@@ -79,35 +89,31 @@ Suppose an agent proposes an edit. The gating stack:
 
 All four must pass for the edit to land. Any single failure pauses the loop.
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` runs a bounded self-improvement loop on the DGM-style toy from Lesson 4, but with the four primitives layered on top. Each primitive can be enabled or disabled individually. The demonstration is that each primitive catches a specific failure class, and that removing any one of them lets that failure class through.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-bounded-loop-review.md` audits a proposed bounded loop and scores which of the four primitives it actually implements versus claims to.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py` with all primitives enabled. Confirm the loop still improves on the primary metric without letting the hack win.
-   *思考并实践此练习*
 
 2. Disable regression detection. Construct an input where this leads to silent capability loss being accepted.
-   *思考并实践此练习*
 
 3. Disable the multi-objective constraint. Show the loop converges on the performance axis while a safety axis drops.
-   *思考并实践此练习*
 
 4. Design an alignment anchor for a coding agent. What text, stored where, checked how?
-   *思考并实践此练习*
 
 5. Read the ICLR 2026 RSI Workshop summary. Pick one of the four primitives and propose a concrete improvement to the current state of the art.
-   *思考并实践此练习*
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
-|---|---|---|---|
+|---|---|---|
+| 术语 | 通俗说法 | 实际含义 |
 | Invariant | "Always-true property" | A property checked by external code before and after every edit |  |
 | Alignment anchor | "Pinned objective" | Immutable core-goal representation outside the loop's edit surface |  |
 | Multi-objective constraint | "All axes must hold" | Performance, safety, fairness, robustness — all required |  |

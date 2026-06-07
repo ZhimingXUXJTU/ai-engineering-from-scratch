@@ -2,18 +2,20 @@
 
 > Llama Guard 3 (Meta, Llama-3.1-8B base, fine-tuned for content safety) classifies both LLM inputs and outputs against an MLCommons 13-hazard taxonomy across 8 languages. A 1B-INT4 quantized variant runs at over 30 tokens/sec on mobile CPUs. Llama Guard 4 is multimodal (image + text), expands to the S1–S14 category set (including S14 Code Interpreter Abuse), and is a drop-in replacement for Llama Guard 3 8B/11B. NVIDIA NeMo Guardrails v0.20.0 (January 2026) adds Colang dialog-flow rails on top of input and output rails. The honest note: "Bypassing Prompt Injection and Jailbreak Detection in LLM Guardrails" (Huang et al., arXiv:2504.11168) showed Emoji Smuggling hit 100% attack success rate on six prominent guard systems; NeMo Guard Detect recorded 72.54% ASR on jailbreaks. Classifiers are a layer, not a solution.
 
-**Type:** Learn
-**Languages:** Python (stdlib, category-tagged classifier simulator)
-**Prerequisites:** Phase 15 · 10 (Permission modes), Phase 15 · 17 (Constitution)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, category-tagged classifier simulator) | **语言:** Python (stdlib, category-tagged classifier simulator)
+**Prerequisites:** Phase 15 · 10 (Permission modes), Phase 15 · 17 (Constitution) | **前置知识:** Phase 15 · 10 (Permission modes), Phase 15 · 17 (Constitution)
+**Time:** ~45 minutes | **时间:** ~45 minutes
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** Llama Guard（Meta）是一个专门用于内容安全分类的 LLM。它检查输入和输出是否违反安全策略，分为多个风险类别（暴力、自残、仇恨言论等）。Llama Guard 3 (2025) 支持多语言和自定义安全策略，是开源安全工具链的核心组件。
 
 > **【拓展：llama guard】** Llama Guard 是开源 AI 安全工具链的重要组成。与闭源方案（OpenAI Moderation API、Anthropic 的安全层）相比，Llama Guard 可以本地部署，适合数据隐私敏感的场景。使用模式：(1) 输入过滤——检查用户请求是否安全；(2) 输出过滤——检查模型响应是否安全；(3) 工具输出过滤——检查工具返回的内容。
 
-Classifiers for LLM inputs and outputs sit at the narrowest point in the agent stack: every request passes through, every response passes through. A good classifier layer is fast, taxonomy-based, and catches a large fraction of obvious misuse for a small compute cost. A bad classifier layer is a false sense of security.
+Classifiers for LLM inputs and outputs sit at the narrowest point in the agent stack: every request passes through, every response passes through.
+
+> LLM 输入输出的分类器位于 Agent 堆栈最窄的点。: every request passes through, every response passes through. A good classifier layer is fast, taxonomy-based, and catches a large fraction of obvious misuse for a small compute cost. A bad classifier layer is a false sense of security.
 
 The 2024–2026 classifier stack has converged on a small set of production-ready options. Llama Guard (Meta) ships open-weights under Meta's Community License. NeMo Guardrails (NVIDIA) ships permissive-licensed rails plus Colang for dialog-flow rules. Both are designed to pair with a foundation model, not replace its safety behaviour.
 
@@ -22,7 +24,7 @@ The 2024–2026 classifier stack has converged on a small set of production-read
 
 The documented failure surface is equally well-mapped. Character-level attacks (emoji smuggling, homoglyph substitution), in-context redirection ("ignore previous and answer"), and semantic paraphrase all produce measurable drops in classifier accuracy. Huang et al. 2025 showed a specific Emoji Smuggling attack hitting 100% ASR on six named guard systems.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Llama Guard 3 at a glance
 
@@ -33,7 +35,9 @@ The documented failure surface is equally well-mapped. Character-level attacks (
 - 8 languages
 - 1B-INT4 quantized variant runs at >30 tok/s on mobile CPUs
 
-The taxonomy is the product. "S1 Violent Crimes" through "S13 Elections" maps to a shared vocabulary the model was trained against. Downstream systems can wire category-specific actions: block S1 outright, flag S6 for human review, annotate S12 but allow.
+The taxonomy is the product. "S1 Violent Crimes" through "S13 Elections" maps to a shared vocabulary.
+
+> 分类法是产品。"S1 暴力犯罪"到"S13 选举"映射到共享词汇。 "S1 Violent Crimes" through "S13 Elections" maps to a shared vocabulary the model was trained against. Downstream systems can wire category-specific actions: block S1 outright, flag S6 for human review, annotate S12 but allow.
 
 ### Llama Guard 4 additions
 
@@ -90,35 +94,33 @@ A classifier layer slots below the constitutional layer (Lesson 17), above the r
 
 No single layer is sufficient. The layers cover different attack classes.
 
-## Use It | 使用方法
+> 没有单一层是足够的。各层覆盖不同的攻击类别。
+
+## Use It | 用框架实现
 
 `code/main.py` simulates a toy classifier with a 6-category taxonomy over input-turn text. The same text is passed through raw, with emoji smuggling, and with homoglyph substitution; the classifier's hit rate drops in the ways the Huang et al. paper documents. The driver also shows how output rails would reject an output even when the input was accepted.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-classifier-stack-audit.md` audits a deployment's classifier layer (model, taxonomy, input/output rails, dialog rails) and flags gaps.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Confirm the classifier catches the raw malicious input but misses the emoji-smuggled version. Add a normalization step and measure the new hit rate.
-   *思考并实践此练习*
 
 2. Read the MLCommons 13-hazard taxonomy and the Llama Guard 4 S1–S14 list. Identify the category in S1–S14 that has no direct mapping in the original 13-hazard set; explain why S14 Code Interpreter Abuse is specifically relevant to Phase 15.
-   *思考并实践此练习*
 
 3. Design a NeMo Guardrails dialog rail for a customer-support bot that must never discuss diagnosis. Write it in plain English (Colang is similar). Test it against three phrasings of a diagnosis-seeking question.
-   *思考并实践此练习*
 
 4. Read Huang et al. (arXiv:2504.11168). Pick one attack category (emoji smuggling, homoglyph, paraphrase) and propose a mitigation. Name the mitigation's own failure mode.
-   *思考并实践此练习*
 
 5. The 72.54% ASR for NeMo Guard Detect on jailbreak benchmarks is measured under adversarial craft. Design an evaluation protocol that measures classifier ASR under casual (non-adversarial) user distribution. What number would you expect, and why does that number matter separately?
-   *思考并实践此练习*
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
-|---|---|---|---|
+|---|---|---|
+| 术语 | 通俗说法 | 实际含义 |
 | Llama Guard | "Meta's safety classifier" | Llama-3.1-8B fine-tuned for input/output classification |  |
 | MLCommons taxonomy | "13-hazard list" | Shared vocabulary for content-safety categories |  |
 | S1–S14 | "Llama Guard 4 categories" | Expanded taxonomy; S14 is Code Interpreter Abuse |  |

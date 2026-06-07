@@ -2,18 +2,20 @@
 
 > Production long-horizon agents do not run in `while True`. Every LLM call becomes an activity with checkpoint, retry, and replay. Temporal's OpenAI Agents SDK integration went GA March 2026. Claude Code Routines (Anthropic) runs scheduled Claude Code invocations without a persistent local process. Sessions pause on human-input, survive deploys, and resume from the latest checkpoint keyed by `thread_id`. Behind the new ergonomics sits an old pattern — workflow orchestration — with one new input: LLM calls as non-deterministic activities that must be deterministically replayed on recovery.
 
-**Type:** Learn
-**Languages:** Python (stdlib, minimal durable-execution state machine)
-**Prerequisites:** Phase 15 · 10 (Permission modes), Phase 15 · 01 (Long-horizon agents)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, minimal durable-execution state machine) | **语言:** Python (stdlib, minimal durable-execution state machine)
+**Prerequisites:** Phase 15 · 10 (Permission modes), Phase 15 · 01 (Long-horizon agents) | **前置知识:** Phase 15 · 10 (Permission modes), Phase 15 · 01 (Long-horizon agents)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 持久执行确保 Agent 任务在故障后能恢复。传统 Agent 在内存中运行，进程崩溃意味着从头开始。持久执行将状态保存到外部存储（数据库、文件系统），任何时刻都可以从最近的检查点恢复。Temporal 和 LangGraph 是实现持久执行的两个主流框架。
 
 > **【拓展：durable execution】** 持久执行对长时间运行的 Agent 至关重要。如果一个需要运行 2 小时的 Agent 在第 90 分钟崩溃，没有持久执行就意味着重新开始。Temporal 通过事件溯源实现持久工作流，LangGraph 通过检查点实现持久状态图。2026 年的最佳实践是每个重要步骤后自动保存检查点。
 
-Consider an agent that runs for four hours. It calls three tools, prompts the user twice, and makes forty LLM calls. Halfway through, the host it is running on reboots. What happens?
+Consider an agent that runs for four hours. It calls three tools, prompts the user twice, and makes forty LLM calls. Halfway through, the host it is running on reboots.
+
+> 考虑一个运行四小时的 Agent。它调用三个工具、提示用户两次、进行 40 次 LLM 调用。中途，运行它的主机重启了。 It calls three tools, prompts the user twice, and makes forty LLM calls. Halfway through, the host it is running on reboots. What happens?
 
 - In a naive `while True` loop: everything is lost. The run restarts from scratch. The three tool calls (with real side effects) execute again. The user is prompted again for things they already approved. Forty LLM calls are re-billed.
 - With durable execution: the run resumes from the most recent checkpoint. Already-completed activities are not re-executed; their results are replayed from the durable log. The user does not re-approve things they already approved. The LLM calls already made are not re-billed.
@@ -25,7 +27,7 @@ This is the same pattern workflow engines have shipped for a decade (Temporal, C
 
 The running theme of the lesson: long-horizon reliability decays (METR observes a "35-minute degradation" — success rate drops roughly quadratically with horizon). Durable execution enables runs that are longer than the reliability profile supports, which is a new way to fail safely if the design is right and unsafely if the design is wrong.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### Activities, workflows, and replay
 
@@ -63,7 +65,9 @@ Propose-then-commit (Lesson 15) requires a durable "waiting on human" state. The
 
 ### The 35-minute degradation
 
-METR observed that every agent class measured shows reliability decay beyond ~35 minutes of continuous operation. Doubling the task duration roughly quadruples the failure rate. Durable execution does not fix this; it lets you run longer than the reliability profile supports. The safe pattern is to combine durability with checkpoints that require fresh HITL on re-entry, and with budget kill switches (Lesson 13) that cap total compute regardless of wall-clock time.
+METR observed that every agent class measured shows reliability decay beyond ~35 minutes of continuous operation.
+
+> METR 观察到每个测量的 Agent 类别在约 35 分钟连续运行后都显示可靠性衰减。 Doubling the task duration roughly quadruples the failure rate. Durable execution does not fix this; it lets you run longer than the reliability profile supports. The safe pattern is to combine durability with checkpoints that require fresh HITL on re-entry, and with budget kill switches (Lesson 13) that cap total compute regardless of wall-clock time.
 
 ### When durable execution is the wrong answer
 
@@ -71,7 +75,7 @@ METR observed that every agent class measured shows reliability decay beyond ~35
 - Strictly read-only information retrieval.
 - Tasks where correctness requires end-to-end within one context window (some reasoning tasks; some one-shot generation).
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` implements a minimal durable-execution engine in stdlib Python. It supports:
 
@@ -81,31 +85,27 @@ METR observed that every agent class measured shows reliability decay beyond ~35
 
 The driver simulates a three-activity workflow, crashes halfway through, and shows (a) a naive retry re-executing everything versus (b) a replay running only the missing activity.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-durable-execution-review.md` reviews a proposed long-running agent deployment for correct durable-execution shape: activities, determinism, checkpoint backend, human-input state, and HITL-on-resume policy.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Observe the difference in activity-execution count between naive retry and replay. Change the crash point and show the replay count changes accordingly.
-   *思考并实践此练习*
 
 2. Convert the toy engine to use `thread_id` explicitly. Simulate two concurrent sessions sharing the engine and confirm their event logs do not collide.
-   *思考并实践此练习*
 
 3. Take one activity in the toy engine. Introduce a non-determinism (a wall-clock timestamp inside a workflow decision). Demonstrate the divergence on replay. Explain how real engines handle this (side-effect registration, `Workflow.now()` APIs).
-   *思考并实践此练习*
 
 4. Read the LangChain "Runtime behind production deep agents" post. List every state that the runtime persists and name which failure mode each covers.
-   *思考并实践此练习*
 
 5. Design a checkpoint policy for a 6-hour autonomous coding task. Where do you checkpoint? What does resume-on-crash look like? What requires fresh HITL?
-   *思考并实践此练习*
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
-|---|---|---|---|
+|---|---|---|
+| 术语 | 通俗说法 | 实际含义 |
 | Workflow | "Agent's script" | Deterministic orchestration code; replayable from event log |  |
 | Activity | "A step" | Non-deterministic unit (LLM call, tool call); logged before and after |  |
 | Event log | "The backing store" | Durable record of every state transition |  |

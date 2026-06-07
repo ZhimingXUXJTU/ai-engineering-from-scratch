@@ -2,27 +2,31 @@
 
 > ChatGPT agent (July 2025) merged Operator and deep research into one browser/terminal agent and set BrowseComp SOTA at 68.9%. OpenAI shut Operator down August 31, 2025 — consolidation at the product layer. Anthropic's Vercept acquisition moved Claude Sonnet on OSWorld from under 15% to 72.5%. WebArena-Verified (ServiceNow, ICLR 2026) fixed 11.3 percentage points of false-negative rate in the original WebArena and shipped the 258-task Hard subset. The numbers are real. So is the attack surface: OpenAI's head of preparedness stated publicly that indirect prompt injection into browser agents "is not a bug that can be fully patched." Documented 2025–2026 attacks: Tainted Memories (Atlas CSRF), HashJack (Cato Networks), and one-click hijacks in Perplexity Comet.
 
-**Type:** Learn
-**Languages:** Python (stdlib, indirect prompt-injection attack surface model)
-**Prerequisites:** Phase 15 · 10 (Permission modes), Phase 15 · 01 (Long-horizon agents)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, indirect prompt-injection attack surface model) | **语言:** Python (stdlib, indirect prompt-injection attack surface model)
+**Prerequisites:** Phase 15 · 10 (Permission modes), Phase 15 · 01 (Long-horizon agents) | **前置知识:** Phase 15 · 10 (Permission modes), Phase 15 · 01 (Long-horizon agents)
+**Time:** ~45 minutes | **时间:** ~45 minutes
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 浏览器 Agent 通过操作 Web 浏览器完成任务——导航、点击、输入、阅读。核心价值是通用性：任何有 Web 界面的服务都可以被操作，无需 API。代表性系统包括 Anthropic 的 Computer Use 和 Browser Use（开源）。挑战包括页面加载延迟、动态内容处理和 CAPTCHA 绕过。
 
 > **【拓展：browser agents】** 浏览器 Agent 是 2025-2026 年的重要突破。与 API-first Agent 相比，浏览器 Agent 的优势是不需要服务提供商的支持——只要有网页就能操作。劣势是速度慢（每步需要渲染和截屏）和脆弱性（页面布局变化会破坏 Agent 的操作）。主要应用包括 Web 测试、数据采集和自动化工作流。
 
-A browser agent is a long-horizon agent that reads untrusted content and takes consequential actions. Every page the agent visits is an input the user did not write. Every form on every page is a potential command channel. The 2025–2026 attack corpus shows this is not hypothetical: Tainted Memories lets an attacker bind malicious instructions to the agent's memory via a crafted page; HashJack hides commands in URL fragments the agent visits; Perplexity Comet hijacks hit in a single click.
+A browser agent is a long-horizon agent that reads untrusted content and takes consequential actions.
 
-The defensive picture is uncomfortable. OpenAI's head of preparedness said the quiet part loud: indirect prompt injection "is not a bug that can be fully patched." This is because the attack lives in the agent's reading-vs-acting boundary, which is architecturally fuzzy — every token the model reads could, in principle, be read as an instruction.
+> 浏览器 Agent 是一种读取不受信任内容并采取有后果行动的长程 Agent。 Every page the agent visits is an input the user did not write. Every form on every page is a potential command channel. The 2025–2026 attack corpus shows this is not hypothetical: Tainted Memories lets an attacker bind malicious instructions to the agent's memory via a crafted page; HashJack hides commands in URL fragments the agent visits; Perplexity Comet hijacks hit in a single click.
+
+The defensive picture is uncomfortable. OpenAI's head of preparedness said the quiet part loud: indirect prompt injection "is not a bug that can be fully patched."
+
+> 防御形势令人不安。OpenAI 准备度负责人公开表示：间接提示注入"不是一个可以完全修补的 bug"。 OpenAI's head of preparedness said the quiet part loud: indirect prompt injection "is not a bug that can be fully patched." This is because the attack lives in the agent's reading-vs-acting boundary, which is architecturally fuzzy — every token the model reads could, in principle, be read as an instruction.
 
 
 > **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
 
 This lesson names the attack surface, names the benchmark landscape (BrowseComp, OSWorld, WebArena-Verified), and models a minimal indirect-prompt-injection scenario so you can reason about real defenses in Lessons 14 and 18.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### The 2026 landscape, in one paragraph per system
 
@@ -56,7 +60,9 @@ Different axes. A high BrowseComp score says the agent finds facts; it does not 
 
 ### Why "not fully patchable"
 
-The attack is isomorphic to the agent's capability. The agent must read untrusted content to do its job. Any content the agent reads could contain instructions. Any instructions the agent follows could be misaligned with the user's actual request. Defenses (trust boundaries, classifiers, tool allowlists, HITL on consequential actions) raise the cost of the attack and reduce its blast radius. They do not close the class.
+The attack is isomorphic to the agent's capability.
+
+> 攻击与 Agent 的能力是同构的。Agent 必须读取不受信任的内容才能完成工作。 The agent must read untrusted content to do its job. Any content the agent reads could contain instructions. Any instructions the agent follows could be misaligned with the user's actual request. Defenses (trust boundaries, classifiers, tool allowlists, HITL on consequential actions) raise the cost of the attack and reduce its blast radius. They do not close the class.
 
 This is the same reasoning pattern as Lob's theorem (Lesson 8): the agent cannot prove the next token is safe; it can only set up a system where unsafe tokens are more detectable.
 
@@ -69,35 +75,31 @@ This is the same reasoning pattern as Lob's theorem (Lesson 8): the agent cannot
 - **HITL on consequential actions.** Propose-then-commit pattern (Lesson 15).
 - **Canary tokens on memory.** If a memory entry fires, the user sees it (Lesson 14).
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` models a tiny browser-agent run against three synthetic pages. One page is benign, one has a direct prompt-injection blob in visible text, one has a URL-fragment injection (not visible but inside the agent's context). The script shows (a) what a naïve agent would do, (b) what a read/write boundary catches, (c) what a sanitizer catches, (d) what neither catches.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-browser-agent-trust-boundary.md` scopes a proposed browser-agent deployment: which trust zones it touches, what it is authorized to write, and which defenses must be in place before the first run.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Identify which attack the sanitizer catches but the read/write boundary does not, and which attack only the read/write boundary catches.
-   *思考并实践此练习*
 
 2. Extend the sanitizer to detect one class of HashJack-style URL-fragment injection. Measure the false-positive rate on benign URLs with legitimate fragments.
-   *思考并实践此练习*
 
 3. Pick one real browser-agent workflow you know (e.g., "book a flight"). List every read and every write. Mark which writes need HITL and why.
-   *思考并实践此练习*
 
 4. Read the WebArena-Verified ICLR 2026 paper. Identify one category of task where the original WebArena's scoring was unreliable and explain how the Verified subset resolves it.
-   *思考并实践此练习*
 
 5. Design a memory canary for a browser-agent setting. What would you store, where, and what triggers the alarm?
-   *思考并实践此练习*
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
-|---|---|---|---|
+|---|---|---|
+| 术语 | 通俗说法 | 实际含义 |
 | Indirect prompt injection | "Bad page text" | Untrusted content in a page the agent reads contains instructions the agent executes |  |
 | Tainted Memories | "Memory attack" | Agent writes an attacker-supplied instruction to durable memory; triggered next session |  |
 | HashJack | "URL fragment attack" | Payload hidden in URL fragment / query string is in the agent's context but not visibly rendered |  |
