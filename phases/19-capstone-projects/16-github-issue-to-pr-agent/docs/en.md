@@ -5,13 +5,13 @@
 > **【中文解读】** 本节是综合项目——构建 GitHub Issue 到 PR 的自动化 Agent。
 
 
-**Type:** Capstone
-**Languages:** Python (agent), TypeScript (GitHub App), YAML (Actions)
-**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 17 (infrastructure)
-**Phases exercised:** P11 · P13 · P14 · P15 · P17
-**Time:** 30 hours
+**Type:** Capstone | **类型:** Capstone
+**Languages:** Python (agent), TypeScript (GitHub App), YAML (Actions) | **语言:** Python (agent), TypeScript (GitHub App), YAML (Actions)
+**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 17 (infrastructure) | **前置知识:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 17 (infrastructure)
+**Phases exercised:** P11 · P13 · P14 · P15 · P17 | **涉及阶段:** P11 · P13 · P14 · P15 · P17
+**Time:** 30 hours | **时间:** 30 hours
 
-## Problem
+## Problem | 问题引入
 
 > **【中文解读】** 本节描述异步云端编码 Agent 的核心挑战。与交互式编码 Agent（Capstone 01）不同，这里 UX 是一个 GitHub 标签——标注 `@agent fix this` 后，工作器在云沙箱中启动，克隆仓库、运行测试、编辑文件、验证并开 PR。工程挑战包括：环境复现（从零构建无缓存开发镜像）、测试抖动、凭据范围控制、每日每仓库预算强制和禁止 force-push。
 
@@ -19,9 +19,15 @@
 
 The async cloud coding agent is a separate product category from interactive coding agents (capstone 01). The UX is a GitHub label. You label an issue `@agent fix this`, a worker spins up in a cloud sandbox, clones the repo, runs tests, edits files, verifies, and opens a PR with the agent's rationale in the body. No interactive loop, no terminal. AWS Remote SWE Agents, Cursor Background Agents, OpenAI Codex cloud, Google Jules, and Factory Droids all converge on this.
 
+> async cloud coding agent is a separate product category from interactive coding agents (capstone 01). The UX is a GitHub label. You label an issue `@agent fix this`, a worker spins up in a cloud sandbox, clones the repo, runs tests, edits files, verifies, and opens a PR with the agent's rationale in the body. No interactive loop, no terminal. AWS Remote SWE Agents, Cursor Background Agents, OpenAI Codex cloud, Google Jules, and Factory Droids all converge on this.
+
+
 The engineering challenges are concrete: environment reproduction (the agent has to build the repo from scratch without a cached dev image), flaky tests (must be re-run or isolated), credential scoping (a GitHub App with minimal fine-grained permissions), budget enforcement per repo per day, and no-force-push policy. The capstone measures pass rate, cost, and safety vs the hosted alternatives.
 
-## Concept
+> engineering challenges are concrete: environment reproduction (the agent has to build the repo from scratch without a cached dev image), flaky tests (must be re-run or isolated), credential scoping (a GitHub App with minimal fine-grained permissions), budget enforcement per repo per day, and no-force-push policy. The capstone measures pass rate, cost, and safety vs the hosted alternatives.
+
+
+## Concept | 核心概念
 
 > **【中文解读】** 触发通过 GitHub webhook（issue 标签或 PR 评论），调度器将任务入队到 ECS Fargate 或 Lambda。工作器将仓库拉入 Daytona/E2B 沙箱，使用从仓库推断的通用 Dockerfile。Agent 运行 mini-swe-agent 循环（读代码→提议修复→打补丁→运行测试）。完整 CI 通过后才开 PR，覆盖率下降超过阈值时标记 `needs-review`。安全通过 GitHub App 短期 token + 分支保护 + 工作器级文件编辑白名单实现。
 
@@ -29,9 +35,18 @@ The engineering challenges are concrete: environment reproduction (the agent has
 
 The trigger is a GitHub webhook (issue label or PR comment). A dispatcher enqueues work to ECS Fargate or Lambda. The worker pulls the repo into a Daytona or E2B sandbox with a generic Dockerfile inferred from the repo (language, framework). The agent runs a mini-swe-agent or SWE-agent v2 loop against Claude Opus 4.7 or GPT-5.4-Codex. It iterates: read code, propose fix, apply patch, run tests.
 
+> trigger is a GitHub webhook (issue label or PR comment). A dispatcher enqueues work to ECS Fargate or Lambda. The worker pulls the repo into a Daytona or E2B sandbox with a generic Dockerfile inferred from the repo (language, framework). The agent runs a mini-swe-agent or SWE-agent v2 loop against Claude Opus 4.7 or GPT-5.4-Codex. It iterates: read code, propose fix, apply patch, run tests.
+
+
 Verification is the gating step. Full CI must pass in the sandbox before the PR opens. Coverage delta is computed; if negative beyond a threshold, the PR opens but gets labeled `needs-review`. The agent posts the rationale as the PR description plus an `@agent` thread the reviewer can ping for follow-ups.
 
+> Verification is the gating step.
+
+
 Safety is scoped through two different GitHub surfaces: the App provides a short-lived installation token with `workflows: read` and narrow repo contents/PR scopes; branch protection (not app permissions) enforces "no direct writes to `main`" and "no force-push" — the app is never added to the bypass list. Path-scoped read-only access to `.github/workflows` is not a real GitHub App primitive, so the agent's allow-list on file edits has to enforce that at the worker. Budget ceilings per repo per day are enforced at the dispatcher (e.g., max 5 PRs per repo per day, $20 per PR).
+
+> Safety is scoped through two different GitHub surfaces: the App provides a short-lived installation token with `workflows: read` and narrow repo contents/PR scopes; branch protection (not app permissions) enforces "no direct writes to `main`" and "no force-push" — the app is never added to the bypass list.
+
 
 ## Architecture | 架构
 
@@ -65,16 +80,24 @@ GitHub issue labeled `@agent fix` or PR comment
     operator reviews; can @-mention agent for follow-ups
 ```
 
-## Stack
+## Stack | 技术栈
 
 - Trigger: GitHub App with fine-grained token; webhook receiver via Lambda or Fly.io
+  中文翻译：Trigger: GitHub App with fine-grained token; webhook receiver via Lambda or Fly.io
 - Worker: ECS Fargate task (or GitHub Actions self-hosted runner)
+  中文翻译：Worker: ECS Fargate task (or GitHub Actions self-hosted runner)
 - Sandbox: Daytona devcontainer or E2B sandbox per task
+  中文翻译：Sandbox: Daytona devcontainer or E2B sandbox per task
 - Agent loop: mini-swe-agent baseline or SWE-agent v2 over Claude Opus 4.7 / GPT-5.4-Codex
+  中文翻译：Agent loop: mini-swe-agent baseline or SWE-agent v2 over Claude Opus 4.7 / GPT-5.4-Codex
 - Retrieval: tree-sitter repo-map + ripgrep
+  中文翻译：Retrieval: tree-sitter repo-map + ripgrep
 - Verification: full CI in-sandbox + coverage delta gate
+  中文翻译：Verification: full CI in-sandbox + coverage delta gate
 - Observability: Langfuse with per-PR trace archive linked from the PR body
+  中文翻译：Observability: Langfuse with per-PR trace archive linked from the PR body
 - Budget: per-repo daily dollar ceiling; max PRs per repo per day
+  中文翻译：Budget: per-repo daily dollar ceiling; max PRs per repo per day
 
 ## Build It | 动手构建
 
@@ -83,22 +106,31 @@ GitHub issue labeled `@agent fix` or PR comment
 > **【拓展：GitHub Copilot Autofix 和 SWE-Agent 的自动化 PR 实践】** GitHub 的 Copilot Autofix（2024 年 GA）自动为安全漏洞生成修复 PR。SWE-Agent（Princeton）在 SWE-bench 上达到 50%+ 通过率。OpenHands（原 OpenDevin）的 CodeAct Agent 将 Issue 到 PR 的流程完全自动化。关键挑战是分支策略和 CI 集成——Agent 创建的 PR 必须通过项目的 CI 检查，但 CI 本身可能依赖 Agent 修改的代码。本课的分支保护和工作流限制设计解决了这个自举问题。
 
 1. **GitHub App.** Fine-grained installation token: issues read+write, pull_requests write, contents read+write, workflows read. Branch protection (the only surface that can do this) enforces "no direct push to `main`" and "no force-push"; the app is not in the bypass list. The worker enforces "no writes under `.github/workflows`" as an allow-list check on the proposed diff, since GitHub App permissions are not path-scoped.
+   中文翻译：1. **GitHub App.** Fine-grained installation token: issues read+write, pull_requests write, contents read+write, workflows read. Branch protection (the only surface that can do this) enforces "no direct push to `main`" and "no force-push"; the app is not in the bypass list. The worker enforces "no writes under `.github/workflows`" as an allow-list check on the proposed diff, since GitHub App permissions are not path-scoped.
 
 2. **Webhook receiver.** Lambda function accepts issue label / PR comment webhooks. Filters by label `@agent fix this`. Enqueues to SQS.
+   中文翻译：2. **Webhook receiver.** Lambda function accepts issue label / PR comment webhooks. Filters by label `@agent fix this`. Enqueues to SQS.
 
 3. **Dispatcher.** Pops tasks from SQS. Enforces per-repo per-day budget. Spins up an ECS Fargate task with the repo URL, issue body, and a fresh Daytona sandbox.
+   中文翻译：3. **Dispatcher.** Pops tasks from SQS. Enforces per-repo per-day budget. Spins up an ECS Fargate task with the repo URL, issue body, and a fresh Daytona sandbox.
 
 4. **Environment inference.** Detect language (Python, Node, Go, Rust) and package manager (uv, pnpm, go mod, cargo). Generate a Dockerfile on the fly if one does not exist.
+   中文翻译：4. **Environment inference.** Detect language (Python, Node, Go, Rust) and package manager (uv, pnpm, go mod, cargo). Generate a Dockerfile on the fly if one does not exist.
 
 5. **Agent loop.** mini-swe-agent or SWE-agent v2 with Claude Opus 4.7. Tools: ripgrep, tree-sitter repo-map, read_file, edit_file, run_tests, git. Hard limits: $20 cost, 30 min wall-clock, 30 agent turns.
+   中文翻译：5. **Agent loop.** mini-swe-agent or SWE-agent v2 with Claude Opus 4.7. Tools: ripgrep, tree-sitter repo-map, read_file, edit_file, run_tests, git. Hard limits: $20 cost, 30 min wall-clock, 30 agent turns.
 
 6. **Verification.** After the loop concludes, run the full test suite in-sandbox. Compute coverage delta via jacoco / coverage.py. If CI red: halt, do not open PR. If coverage drops more than 2%: open PR with `needs-review` label.
+   中文翻译：6. **Verification.** After the loop concludes, run the full test suite in-sandbox. Compute coverage delta via jacoco / coverage.py. If CI red: halt, do not open PR. If coverage drops more than 2%: open PR with `needs-review` label.
 
 7. **PR posting.** Push the agent branch. Open PR via GitHub API with: title, rationale, diff summary, trace URL, cost, turns.
+   中文翻译：7. **PR posting.** Push the agent branch. Open PR via GitHub API with: title, rationale, diff summary, trace URL, cost, turns.
 
 8. **Credential hygiene.** Worker runs with a short-lived GitHub App installation token. Logs are scrubbed for secrets before archival.
+   中文翻译：8. **Credential hygiene.** Worker runs with a short-lived GitHub App installation token. Logs are scrubbed for secrets before archival.
 
 9. **Eval.** 30 seeded internal issues of varying difficulty. Measure pass rate, PR quality (diff size, style, coverage), cost, latency. Compare with Cursor Background Agents and AWS Remote SWE Agents on the same issues.
+   中文翻译：9. **Eval.** 30 seeded internal issues of varying difficulty. Measure pass rate, PR quality (diff size, style, coverage), cost, latency. Compare with Cursor Background Agents and AWS Remote SWE Agents on the same issues.
 
 ## Use It | 使用方法
 
@@ -117,6 +149,9 @@ GitHub issue labeled `@agent fix` or PR comment
 ## Ship It | 部署上线
 
 `outputs/skill-issue-to-pr.md` is the deliverable. A GitHub App + async cloud worker that turns labeled issues into review-ready PRs with bounded cost and scoped credentials.
+
+> `outputs/skill-issue-to-pr.md` 是交付物. A GitHub App + async cloud worker that turns labeled issues into review-ready PRs with bounded cost and scoped credentials.
+
 
 | Weight | Criterion | How it is measured |
 |:-:|---|---|

@@ -5,13 +5,13 @@
 > **【中文解读】** 本节是综合项目——构建 LLM 可观测性仪表板，实时监控 Agent 性能和成本。
 
 
-**Type:** Capstone
-**Languages:** TypeScript (UI), Python / TypeScript (ingest + evals), SQL (ClickHouse)
-**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 17 (infrastructure), Phase 18 (safety)
-**Phases exercised:** P11 · P13 · P17 · P18
-**Time:** 25 hours
+**Type:** Capstone | **类型:** Capstone
+**Languages:** TypeScript (UI), Python / TypeScript (ingest + evals), SQL (ClickHouse) | **语言:** TypeScript (UI), Python / TypeScript (ingest + evals), SQL (ClickHouse)
+**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 17 (infrastructure), Phase 18 (safety) | **前置知识:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 17 (infrastructure), Phase 18 (safety)
+**Phases exercised:** P11 · P13 · P17 · P18 | **涉及阶段:** P11 · P13 · P17 · P18
+**Time:** 25 hours | **时间:** 25 hours
 
-## Problem
+## Problem | 问题引入
 
 > **【中文解读】** 本节描述 LLM 可观测性的核心需求。2026 年每个运行生产流量的 AI 团队都需要一个可观测性平台：成本归因、幻觉检测、漂移监控、越狱信号、SLO 仪表盘、PII 泄漏告警。开源方案（Langfuse、Phoenix、OpenLLMetry）已统一到 OpenTelemetry GenAI 语义约定作为摄取模式。核心挑战是：给定一个故意注入的回归（提示开始产生 PII），仪表盘在 5 分钟内捕获并告警。
 
@@ -19,9 +19,15 @@
 
 Every AI team running production traffic in 2026 keeps an observability plane alongside the model. Cost attribution. Hallucination detection. Drift monitoring. Jailbreak signal. SLO dashboards. PII leak alerts. The open-source references — Langfuse, Phoenix, OpenLLMetry — converged on OpenTelemetry GenAI semantic conventions as the ingest schema. You can now instrument OpenAI, Anthropic, Google, LangChain, LlamaIndex, and vLLM with one SDK and ship compatible spans.
 
+> 每个AI team running production traffic in 2026 keeps an observability plane alongside the model. Cost attribution. Hallucination detection. Drift monitoring. Jailbreak signal. SLO dashboards. PII leak alerts. The open-source references — Langfuse, Phoenix, OpenLLMetry — converged on OpenTelemetry GenAI semantic conventions as the ingest schema. You can now instrument OpenAI, Anthropic, Google, LangChain, LlamaIndex, and vLLM with one SDK and ship compatible spans.
+
+
 You will build a self-hosted dashboard that ingests from at least four SDK families, runs a small set of eval jobs over sampled traces, detects drift, and alerts. The measurement bar: given a deliberately injected regression (a prompt that starts producing PII), the dashboard catches it and fires an alert in under five minutes.
 
-## Concept
+> 你will build a self-hosted dashboard that ingests from at least four SDK families, runs a small set of eval jobs over sampled traces, detects drift, and alerts. The measurement bar: given a deliberately injected regression (a prompt that starts producing PII), the dashboard catches it and fires an alert in under five minutes.
+
+
+## Concept | 核心概念
 
 > **【中文解读】** 摄取通过 OTLP HTTP，SDK 产生 GenAI 语义约定 span（gen_ai.system、gen_ai.request.model、input/output tokens 等）。Span 存入 ClickHouse 做列式分析，元数据存入 Postgres。评估作业对采样追踪运行 DeepEval（忠实度/毒性/答案相关性）、RAGAS（检索指标）和自定义 LLM 评委（PII 泄漏/策略违规）。漂移检测监控嵌入空间分布变化（PSI 或 KL 散度），告警通过 Prometheus Alertmanager 路由到 Slack/PagerDuty。
 
@@ -29,9 +35,18 @@ You will build a self-hosted dashboard that ingests from at least four SDK famil
 
 Ingest is OTLP HTTP. The SDK produces GenAI-semconv spans: `gen_ai.system`, `gen_ai.request.model`, `gen_ai.usage.input_tokens`, `gen_ai.response.id`, `llm.prompts`, `llm.completions`. Spans land in ClickHouse for columnar analytics; metadata (users, sessions, apps) lands in Postgres.
 
+> Ingest is OTLP HTTP.
+
+
 Evals run as batch jobs over sampled traces. DeepEval scores faithfulness, toxicity, and answer relevance. RAGAS scores retrieval metrics when the trace carries retrieval context. Custom LLM-judges run domain-specific checks (PII leak, off-policy response). Eval runs write back to the same ClickHouse as eval spans linked to the parent trace.
 
+> Evals run as batch jobs over sampled traces.
+
+
 Drift detection watches embedding-space distributions over time (PSI or KL divergence on prompt embeddings) plus eval-score trends. Alerts feed Prometheus Alertmanager and then Slack / PagerDuty. The UI is Next.js 15 with Recharts.
+
+> Drift detection watches embedding-space distributions over time (PSI or KL divergence on prompt embeddings) plus eval-score trends.
+
 
 ## Architecture | 架构
 
@@ -63,16 +78,24 @@ production apps:
    Next.js 15 dashboard (Recharts)
 ```
 
-## Stack
+## Stack | 技术栈
 
 - Ingest: OpenTelemetry SDKs + GenAI semantic conventions; OTLP HTTP transport
+  中文翻译：Ingest: OpenTelemetry SDKs + GenAI semantic conventions; OTLP HTTP transport
 - Collector: OpenTelemetry Collector with tail-sampling processor (for cost control)
+  中文翻译：Collector: OpenTelemetry Collector with tail-sampling processor (for cost control)
 - Storage: ClickHouse for spans, Postgres for metadata, S3 for raw event archive
+  中文翻译：Storage: ClickHouse for spans, Postgres for metadata, S3 for raw event archive
 - Evals: DeepEval, RAGAS 0.2, Arize Phoenix evaluator pack, custom LLM-judge
+  中文翻译：Evals: DeepEval, RAGAS 0.2, Arize Phoenix evaluator pack, custom LLM-judge
 - Drift: PSI / KL on pooled prompt embeddings (sentence-transformers) weekly
+  中文翻译：Drift: PSI / KL on pooled prompt embeddings (sentence-transformers) weekly
 - Alerting: Prometheus Alertmanager -> Slack / PagerDuty
+  中文翻译：Alerting: Prometheus Alertmanager -> Slack / PagerDuty
 - UI: Next.js 15 App Router + Recharts + server actions
+  中文翻译：UI: Next.js 15 App Router + Recharts + server actions
 - SDKs supported out of the box: OpenAI, Anthropic, Google GenAI, LangChain, LlamaIndex, vLLM
+  中文翻译：SDKs supported out of the box: OpenAI, Anthropic, Google GenAI, LangChain, LlamaIndex, vLLM
 
 ## Build It | 动手构建
 
@@ -81,22 +104,31 @@ production apps:
 > **【拓展：LLM 可观测性在 2026 年的关键指标】** Braintrust、Langfuse、Helicone 等平台追踪的核心指标：1）token 成本（input/output/推理 分别计费）；2）幻觉率（通过自动验证或用户反馈检测）；3）P50/P95/P99 延迟（特别是首 token 延迟 TTFT）；4）工具调用成功率（Agent 场景特有）；5）用户满意度（thumbs up/down 或 implicit signal）。本课的 ClickHouse + Grafana 架构是这些平台的开源自建替代。
 
 1. **Collector config.** OpenTelemetry Collector with the OTLP HTTP receiver, a tail-sampler keeping 100% of errored traces and 10% of successes, and exporters to ClickHouse and S3.
+   中文翻译：1. **Collector config.** OpenTelemetry Collector with the OTLP HTTP receiver, a tail-sampler keeping 100% of errored traces and 10% of successes, and exporters to ClickHouse and S3.
 
 2. **ClickHouse schema.** Table `spans` with columns mirroring GenAI semconv: `gen_ai_system`, `gen_ai_request_model`, `input_tokens`, `output_tokens`, `latency_ms`, `prompt_hash`, `trace_id`, `parent_span_id`, plus JSON bag for long payloads. Add secondary indexes by user_id and app_id.
+   中文翻译：2. **ClickHouse schema.** Table `spans` with columns mirroring GenAI semconv: `gen_ai_system`, `gen_ai_request_model`, `input_tokens`, `output_tokens`, `latency_ms`, `prompt_hash`, `trace_id`, `parent_span_id`, plus JSON bag for long payloads. Add secondary indexes by user_id and app_id.
 
 3. **SDK coverage test.** Write a small client app using each SDK (OpenAI, Anthropic, Google, LangChain, LlamaIndex, vLLM) with OpenLLMetry auto-instrument. Verify each produces canonical GenAI spans that land in ClickHouse.
+   中文翻译：3. **SDK coverage test.** Write a small client app using each SDK (OpenAI, Anthropic, Google, LangChain, LlamaIndex, vLLM) with OpenLLMetry auto-instrument. Verify each produces canonical GenAI spans that land in ClickHouse.
 
 4. **Eval jobs.** A scheduled job reads last-15-min sampled traces and runs DeepEval faithfulness, toxicity, and answer relevance. Outputs are eval spans linked to the parent trace.
+   中文翻译：4. **Eval jobs.** A scheduled job reads last-15-min sampled traces and runs DeepEval faithfulness, toxicity, and answer relevance. Outputs are eval spans linked to the parent trace.
 
 5. **Custom LLM-judge.** A PII-leak judge: given a response, call a guard LLM to score likelihood of PII leak. High-score responses land in a triage queue.
+   中文翻译：5. **Custom LLM-judge.** A PII-leak judge: given a response, call a guard LLM to score likelihood of PII leak. High-score responses land in a triage queue.
 
 6. **Drift detection.** Weekly job computes PSI between this week's pooled prompt embeddings and the trailing 4-week baseline. If PSI above threshold, alert.
+   中文翻译：6. **Drift detection.** Weekly job computes PSI between this week's pooled prompt embeddings and the trailing 4-week baseline. If PSI above threshold, alert.
 
 7. **Dashboard.** Next.js 15 with pages: overview (spans/sec, cost/user, p95 latency), traces (search + waterfall), evals (faithfulness trend, toxicity), drift (PSI over time), alerts.
+   中文翻译：7. **Dashboard.** Next.js 15 with pages: overview (spans/sec, cost/user, p95 latency), traces (search + waterfall), evals (faithfulness trend, toxicity), drift (PSI over time), alerts.
 
 8. **Alerting chain.** Prometheus exporter reads eval score aggregates and latency percentiles; Alertmanager routes to Slack for warnings and PagerDuty for critical breaches.
+   中文翻译：8. **Alerting chain.** Prometheus exporter reads eval score aggregates and latency percentiles; Alertmanager routes to Slack for warnings and PagerDuty for critical breaches.
 
 9. **Regression probe.** Inject a bug: the evaluated chatbot starts leaking fake SSNs 1% of the time. Measure MTTR: from bug deployed to Slack alert.
+   中文翻译：9. **Regression probe.** Inject a bug: the evaluated chatbot starts leaking fake SSNs 1% of the time. Measure MTTR: from bug deployed to Slack alert.
 
 ## Use It | 使用方法
 
@@ -112,6 +144,9 @@ $ curl -X POST https://my-otel-collector/v1/traces -d @trace.json
 ## Ship It | 部署上线
 
 `outputs/skill-llm-observability.md` is the deliverable. Given an LLM application, the dashboard ingests its traces, runs evals, alerts on drift, and surfaces cost/user breakdown in Next.js.
+
+> `outputs/skill-llm-observability.md` 是交付物. 给定n LLM application, dashboard ingests its traces, runs evals, alerts on drift, and surfaces cost/user breakdown in Next.js.
+
 
 | Weight | Criterion | How it is measured |
 |:-:|---|---|

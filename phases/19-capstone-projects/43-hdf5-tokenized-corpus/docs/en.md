@@ -5,17 +5,21 @@
 > **【中文解读】** 本节是 AI 工程的综合实战项目，整合前面学到的技术和方法。
 
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 19 lessons 30-37
-**Time:** ~90 minutes
+**Type:** Build | **类型:** Build
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 19 lessons 30-37 | **前置知识:** Phase 19 lessons 30-37
+**Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标
 
 - Stream documents into a resizable HDF5 integer dataset with deterministic chunking.
+  中文翻译：Stream documents into a resizable HDF5 integer dataset with deterministic chunking.
 - Shard the write across multiple HDF5 files so failure is bounded and parallelism is possible.
+  中文翻译：Shard the write across multiple HDF5 files so failure is bounded and parallelism is possible.
 - Read tokens back through HDF5's page-cache-backed chunked layout so the dataloader copies into batch buffers only at batch time.
+  中文翻译：Read tokens back through HDF5's page-cache-backed chunked layout so the dataloader copies into batch buffers only at batch time.
 - Implement a sliding-window dataloader that emits fixed-length training sequences with explicit packing rules.
+  中文翻译：Implement a sliding-window dataloader that emits fixed-length training sequences with explicit packing rules.
 
 ## The Problem | 问题
 
@@ -25,7 +29,13 @@
 
 HDF5 fits because it offers a chunked, resizable, integer-only dataset whose chunks are page-cache friendly at read time. The trainer asks for a slice of `tokens[3,200,000 : 3,200,8192]` and HDF5 copies the requested hyperslab from the page cache into a freshly allocated NumPy array. The cost is one open file handle and a chunk-sized page-cache footprint per worker, which is negligible compared to the cost of decoding JSONL.
 
+> HDF5 fits because it offers a chunked, resizable, integer-only dataset whose chunks are page-cache friendly at read time.
+
+
 The build problem is making the write side honest. Resizable datasets are easy to misuse: write one document at a time and the HDF5 file is fragmented to the point of unusable. Write all documents in one resize and a process death loses the whole shard. The right discipline is buffer-then-extend, with a buffer size that matches the chunk size, and a sharded write that splits the workload across files so a crash loses at most one shard.
+
+> build problem is making the write side honest. Resizable datasets are easy to misuse: write one document at a time and the HDF5 file is fragmented to the point of unusable. Write all documents in one resize and a process death loses the whole shard. The right discipline is buffer-then-extend, with a buffer size that matches the chunk size, and a sharded write that splits the workload across files so a crash loses at most one shard.
+
 
 ## The Concept | 概念
 
@@ -49,9 +59,15 @@ flowchart TD
 
 The token dataset is created with `maxshape=(None,)` and a fixed `chunks=(chunk_size,)`. Writing proceeds by buffering tokens in a NumPy array of length `chunk_size`. When the buffer fills, the dataset is resized by exactly `chunk_size` and the buffer is written into the new range. At end-of-shard the residual buffer is written into a final partial range. Every write is contiguous and chunk-aligned except the last one, which the reader is told to truncate at the recorded `token_count` in the shard's HDF5 attributes.
 
+> token dataset is created with `maxshape=(None,)` and a fixed `chunks=(chunk_size,)`. Writing proceeds by buffering tokens in a NumPy array of length `chunk_size`. When the buffer fills, the dataset is resized by exactly `chunk_size` and the buffer is written into the new range. At end-of-shard the residual buffer is written into a final partial range. Every write is contiguous and chunk-aligned except the last one, which the reader is told to truncate at the recorded `token_count` in the shard's HDF5 attributes.
+
+
 ### Sharded write
 
 A single HDF5 file is a single point of failure. The pipeline writes shards in parallel: each input shard from Phase 19 lesson 42 produces one HDF5 output shard. A `shards.json` index records, per shard, the file path, the token count, the document count, and a sha256 over the tokens. The trainer reads `shards.json` to compute global offsets and to validate the corpus.
+
+> 一个single HDF5 file is a single point of failure. The pipeline writes shards in parallel: each input shard from Phase 19 lesson 42 produces one HDF5 output shard. A `shards.json` index records, per shard, the file path, the token count, the document count, and a sha256 over the tokens. The trainer reads `shards.json` to compute global offsets and to validate the corpus.
+
 
 ### Memory-mapped read
 
@@ -59,21 +75,35 @@ A single HDF5 file is a single point of failure. The pipeline writes shards in p
 
 At training time each worker opens its share of HDF5 files in `swmr=True` mode and asks for `tokens[start:stop]`. HDF5's chunk layout makes this a page-cache-backed read once the chunk is hot. The worker never materialises the whole file: the slice is copied into the dataloader's batch buffer, which the dataloader then copies into a pinned-memory training tensor at batch time. The hot path has one syscall per chunk transition; everything else is RAM access.
 
+> At training time each worker opens its share of HDF5 files in `swmr=True` mode and asks for `tokens[start:stop]`.
+
+
 ### Sliding-window dataloader
 
 The dataloader is the only stage that knows about training-sequence length. It picks a random start index in the global token stream, reads `window_size + 1` tokens, and returns `(input, target) = (tokens[:-1], tokens[1:])`. Document boundaries are not enforced: a window may straddle two documents, with an explicit `boundary_token_id` between them so the model learns to use the separator. This is the standard packing rule; it is also the rule a beginner forgets, ending up with a corpus that is 8 percent training boundary tokens and 92 percent natural text.
+
+> dataloader is the only stage that knows about training-sequence length. It picks a random start index in the global token stream, reads `window_size + 1` tokens, and returns `(input, target) = (tokens[:-1], tokens[1:])`. Document boundaries are not enforced: a window may straddle two documents, with an explicit `boundary_token_id` between them so the model learns to use the separator. This is the standard packing rule; it is also the rule a beginner forgets, ending up with a corpus that is 8 percent training boundary tokens and 92 percent natural text.
+
 
 ## Build It | 动手构建
 
 `code/main.py` implements:
 
 - `Tokenizer` - a byte-level deterministic tokenizer good enough for the demo. The interface is `encode(text) -> list[int]` and `vocab_size`.
+  中文翻译：`Tokenizer` - a byte-level deterministic tokenizer good enough for the demo. The interface is `encode(text) -> list[int]` and `vocab_size`.
 - `HDF5ShardWriter` - opens a resizable integer dataset, buffers tokens to chunk size, resizes and writes in fixed-size strides, records `token_count` and `sha256` as HDF5 attributes on close.
+  中文翻译：`HDF5ShardWriter` - opens a resizable integer dataset, buffers tokens to chunk size, resizes and writes in fixed-size strides, records `token_count` and `sha256` as HDF5 attributes on close.
 - `ShardedTokenizationPipeline` - iterates input documents, routes them to a writer, and emits a `shards.json` index.
+  中文翻译：`ShardedTokenizationPipeline` - iterates input documents, routes them to a writer, and emits a `shards.json` index.
 - `MmapTokenStore` - opens shard files for memory-mapped reads, computes global offsets, exposes a single `get_slice(start, stop)` API.
+  中文翻译：`MmapTokenStore` - opens shard files for memory-mapped reads, computes global offsets, exposes a single `get_slice(start, stop)` API.
 - `SlidingWindowDataloader` - picks random windows from the global stream and yields `(input_ids, target_ids)` NumPy arrays.
+  中文翻译：`SlidingWindowDataloader` - picks random windows from the global stream and yields `(input_ids, target_ids)` NumPy arrays.
 
 A demo at the bottom of the file builds a tiny in-memory corpus, tokenizes into two shards, opens them via memory map, runs the dataloader for 10 batches, and prints the per-batch shape and a checksum.
+
+> 一个demo at the bottom of the file builds a tiny in-memory corpus, tokenizes into two shards, opens them via memory map, runs the dataloader for 10 batches, and prints the per-batch shape and a checksum.
+
 
 Run it:
 
@@ -100,12 +130,18 @@ The script exits zero and prints batch checksums.
 Production patterns:
 
 - **One HDF5 per source shard.** The downloader (lesson 42) emits one shard per URL; tokenization (this lesson) emits one HDF5 per source shard. The 1:1 mapping makes resume and partial-failure recovery trivial.
+  中文翻译：**One HDF5 per source shard.** The downloader (lesson 42) emits one shard per URL; tokenization (this lesson) emits one HDF5 per source shard. The 1:1 mapping makes resume and partial-failure recovery trivial.
 - **Boundary token id.** The boundary token is part of the tokenizer vocab and is the only token the dataloader injects. The training loss masks the boundary token if the model is supposed to ignore it; otherwise it learns to use it as a sequence separator.
+  中文翻译：**Boundary token id.** The boundary token is part of the tokenizer vocab and is the only token the dataloader injects. The training loss masks the boundary token if the model is supposed to ignore it; otherwise it learns to use it as a sequence separator.
 - **`shards.json` as the source of truth.** Adding a new shard means writing the HDF5, computing its sha256, and appending an entry. The trainer reads the file once at startup and never touches the directory listing.
+  中文翻译：**`shards.json` as the source of truth.** Adding a new shard means writing the HDF5, computing its sha256, and appending an entry. The trainer reads the file once at startup and never touches the directory listing.
 
 ## Ship It | 部署上线
 
 `outputs/skill-hdf5-tokenized-corpus.md` would, on a real project, describe which tokenizer feeds the pipeline, what chunk size matches the trainer's window, where `shards.json` lives in version control, and how dataloader workers are sharded across files. This lesson ships the engine.
+
+> `outputs/skill-hdf5-tokenized-corpus.
+
 
 ## Exercises | 练习题
 
@@ -131,5 +167,8 @@ Production patterns:
 - [h5py user guide](https://docs.h5py.org/en/stable/) - Python bindings for HDF5
 - [NumPy memory mapping](https://numpy.org/doc/stable/reference/generated/numpy.memmap.html) - the read-side primitive HDF5 exposes through h5py
 - Phase 19 · 42 - the downloader whose output this lesson tokenizes
+  中文翻译：Phase 19 · 42 - the downloader whose output this lesson tokenizes
 - Phase 19 · 44 - the cosine schedule that consumes this dataloader
+  中文翻译：Phase 19 · 44 - the cosine schedule that consumes this dataloader
 - Phase 19 · 45 - the AMP loop that wraps the training step
+  中文翻译：Phase 19 · 45 - the AMP loop that wraps the training step

@@ -5,17 +5,21 @@
 > **【中文解读】** 本节是 AI 工程的综合实战项目，整合前面学到的技术和方法。
 
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 19 lessons 30-37
-**Time:** ~90 minutes
+**Type:** Build | **类型:** Build
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 19 lessons 30-37 | **前置知识:** Phase 19 lessons 30-37
+**Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标
 
 - Stream remote shards with `urllib` and decompress with `zstandard` without buffering the whole file in memory.
+  中文翻译：Stream remote shards with `urllib` and decompress with `zstandard` without buffering the whole file in memory.
 - Resume partial downloads by issuing HTTP `Range` requests against a verified byte offset.
+  中文翻译：Resume partial downloads by issuing HTTP `Range` requests against a verified byte offset.
 - Build a MinHash signature per document and bucket it with LSH so near-duplicates collide.
+  中文翻译：Build a MinHash signature per document and bucket it with LSH so near-duplicates collide.
 - Emit a shard manifest with content hash, byte size, document count, and dedup verdict.
+  中文翻译：Emit a shard manifest with content hash, byte size, document count, and dedup verdict.
 
 ## The Problem | 问题
 
@@ -25,7 +29,13 @@
 
 Resume is an HTTP problem. The server has to honour `Range`, the client has to track verified offset against an on-disk record, and the verified offset has to survive process death. If the offset and the file diverge by even one byte the resumed download writes garbage and the corpus is corrupted in a way that only shows up during tokenization.
 
+> Resume is an HTTP problem.
+
+
 Deduplication is a signature problem. Exact-hash dedup misses near-duplicates: the same Wikipedia article shows up with three different boilerplate footers, the same code file with a different license header, the same blog post with a tracking parameter on every link. MinHash plus LSH catches these at sub-linear cost. The cost is one signature per document and one bucket lookup per signature.
+
+> Deduplication is a signature problem.
+
 
 ## The Concept | 概念
 
@@ -50,9 +60,15 @@ flowchart TD
 
 The standard-library `urllib.request.urlopen` returns a file-like object. Wrap it in a `zstandard.ZstdDecompressor().stream_reader` and the bytes flow from the network through the decompressor into the document iterator without ever materialising the compressed shard or the decompressed shard in memory. The only memory cost is the line buffer, the MinHash signature for the current document, and the LSH index.
 
+> standard-library `urllib.request.urlopen` returns a file-like object. Wrap it in a `zstandard.ZstdDecompressor().stream_reader` and the bytes flow from the network through the decompressor into the document iterator without ever materialising the compressed shard or the decompressed shard in memory. The only memory cost is the line buffer, the MinHash signature for the current document, and the LSH index.
+
+
 ### Resume with `Range`
 
 The downloader writes two files per shard: the shard itself and a `.partial.json` checkpoint. The checkpoint records `verified_bytes`, `expected_size`, `sha256_prefix` (computed over the first `verified_bytes` bytes), and the source URL. On startup the downloader reads the checkpoint, recomputes `sha256_prefix` over the on-disk bytes, and only resumes if the recomputed hash matches. If the hash is wrong the partial is discarded and the download restarts from byte zero. Silent corruption is impossible because the verified bytes are checked, not assumed.
+
+> downloader writes two files per shard: the shard itself and a `.partial.json` checkpoint. The checkpoint records `verified_bytes`, `expected_size`, `sha256_prefix` (computed over the first `verified_bytes` bytes), and the source URL. On startup the downloader reads the checkpoint, recomputes `sha256_prefix` over the on-disk bytes, and only resumes if the recomputed hash matches. If the hash is wrong the partial is discarded and the download restarts from byte zero. Silent corruption is impossible because the verified bytes are checked, not assumed.
+
 
 ### MinHash plus LSH
 
@@ -60,25 +76,44 @@ The downloader writes two files per shard: the shard itself and a `.partial.json
 
 MinHash estimates the Jaccard similarity of two sets in fixed space. For a document the set is the shingles (overlapping n-grams) of its text. The signature is `k` minimum hash values, one per independent hash function. Two documents with Jaccard similarity `s` have a probability `s` of agreeing on any single component of the signature.
 
+> MinHash estimates the Jaccard similarity of two sets in fixed space.
+
+
 LSH then groups the `k` components into `b` bands of `r` rows each, where `k = b * r`. Two documents collide in at least one band with probability `1 - (1 - s^r)^b`, which is a sharp threshold around the value of `s` you tune `(b, r)` to. The threshold for typical corpus dedup is `s = 0.8`, which the LSH research literature reaches with `k = 128`, `b = 32`, `r = 4`.
+
+> LSH then groups the `k` components into `b` bands of `r` rows each, where `k = b * r`.
+
 
 ### Shard manifest as a contract
 
 The downloader's only durable output is the manifest. The manifest holds, per shard, the URL, the decompressed byte count, the document count, the unique document count after dedup, and the sha256 of the final shard file. Downstream tokenization reads the manifest, not the directory listing. If a shard is missing or its sha256 is wrong, the manifest tells the next stage to refuse to start. The manifest is the deciding edge between "the data is downloaded" and "the data is downloaded and verifiable".
+
+> downloader's only durable output is the manifest. The manifest holds, per shard, the URL, the decompressed byte count, the document count, the unique document count after dedup, and the sha256 of the final shard file. Downstream tokenization reads the manifest, not the directory listing. If a shard is missing or its sha256 is wrong, the manifest tells the next stage to refuse to start. The manifest is the deciding edge between "the data is downloaded" and "the data is downloaded and verifiable".
+
 
 ## Build It | 动手构建
 
 `code/main.py` implements:
 
 - `ShardPlanner` - reads a list of shard URLs and produces planned manifest entries.
+  中文翻译：`ShardPlanner` - reads a list of shard URLs and produces planned manifest entries.
 - `StreamingDownloader` - opens a `urllib` stream with optional `Range`, writes to a temporary file, updates the `.partial.json` checkpoint on every chunk, and verifies the sha256 prefix on resume.
+  中文翻译：`StreamingDownloader` - opens a `urllib` stream with optional `Range`, writes to a temporary file, updates the `.partial.json` checkpoint on every chunk, and verifies the sha256 prefix on resume.
 - `ZstdDocIterator` - wraps the file-like stream in `zstandard.ZstdDecompressor` and yields one document per line.
+  中文翻译：`ZstdDocIterator` - wraps the file-like stream in `zstandard.ZstdDecompressor` and yields one document per line.
 - `MinHasher` - produces a `k`-component signature for a string using a fixed family of hash seeds.
+  中文翻译：`MinHasher` - produces a `k`-component signature for a string using a fixed family of hash seeds.
 - `LSHIndex` - buckets signatures by band and reports collisions.
+  中文翻译：`LSHIndex` - buckets signatures by band and reports collisions.
 - `Dedup` - combines hasher and index to label each document `keep` or `near_duplicate` along with the matching shard id.
+  中文翻译：`Dedup` - combines hasher and index to label each document `keep` or `near_duplicate` along with the matching shard id.
 - `ManifestWriter` - collects per-shard stats and writes `manifest.json`.
+  中文翻译：`ManifestWriter` - collects per-shard stats and writes `manifest.json`.
 
 A demo at the bottom of the file builds a small synthetic corpus on disk, compresses it with `zstandard`, downloads it through a `file://` URL, deduplicates, and prints the manifest.
+
+> 一个demo at the bottom of the file builds a small synthetic corpus on disk, compresses it with `zstandard`, downloads it through a `file://` URL, deduplicates, and prints the manifest.
+
 
 Run it:
 
@@ -105,12 +140,18 @@ The script exits zero and prints a manifest summary.
 Production patterns:
 
 - **Resume on every CI run.** CI runners are ephemeral. The downloader has to assume a fresh disk on every run and recover from cache or remote. `--cache-dir` is a first-class flag.
+  中文翻译：**Resume on every CI run.** CI runners are ephemeral. The downloader has to assume a fresh disk on every run and recover from cache or remote. `--cache-dir` is a first-class flag.
 - **Dedup before tokenization.** Tokenization is expensive. Running it twice on the same document is twice the cost for the same loss curve. Dedup is upstream of tokenization, not downstream.
+  中文翻译：**Dedup before tokenization.** Tokenization is expensive. Running it twice on the same document is twice the cost for the same loss curve. Dedup is upstream of tokenization, not downstream.
 - **Manifest as merge gate.** The training run reads the manifest sha256 from a pinned commit. A new dataset version requires a new manifest commit. The link between code and data is git, not folklore.
+  中文翻译：**Manifest as merge gate.** The training run reads the manifest sha256 from a pinned commit. A new dataset version requires a new manifest commit. The link between code and data is git, not folklore.
 
 ## Ship It | 部署上线
 
 `outputs/skill-corpus-downloader.md` would, on a real project, describe which URLs feed the downloader, how the checkpoint directory is laid out, what shingle width and `(k, b, r)` triple the dedup uses, and where the manifest lives in version control. This lesson ships the engine.
+
+> `outputs/skill-corpus-downloader.
+
 
 ## Exercises | 练习题
 
@@ -137,5 +178,8 @@ Production patterns:
 - [MinHash](https://en.wikipedia.org/wiki/MinHash) - the signature family this lesson uses
 - [Locality-sensitive hashing](https://en.wikipedia.org/wiki/Locality-sensitive_hashing) - the banding scheme behind the dedup threshold
 - Phase 19 · 43 - the HDF5 tokenized corpus the downloader feeds
+  中文翻译：Phase 19 · 43 - the HDF5 tokenized corpus the downloader feeds
 - Phase 19 · 44 - the cosine schedule that trains on the corpus
+  中文翻译：Phase 19 · 44 - the cosine schedule that trains on the corpus
 - Phase 19 · 45 - the AMP loop that consumes the schedule
+  中文翻译：Phase 19 · 45 - the AMP loop that consumes the schedule

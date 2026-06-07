@@ -5,17 +5,22 @@
 > **【中文解读】** 本节是综合项目——构建结果评估器。
 
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 19 Track A lessons 20-29
-**Time:** ~90 minutes
+**Type:** Build | **类型:** Build
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 19 Track A lessons 20-29 | **前置知识:** Phase 19 Track A lessons 20-29
+**Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标
 - Compare a candidate run against a baseline using direction aware improvement and a fixed threshold.
+  中文翻译：Compare a candidate run against a baseline using direction aware improvement and a fixed threshold.
 - Run a paired t test from scratch over per seed metrics and read the resulting p value.
+  中文翻译：Run a paired t test from scratch over per seed metrics and read the resulting p value.
 - Normalise log scaled metrics so a downstream report can blend them with linear metrics.
+  中文翻译：Normalise log scaled metrics so a downstream report can blend them with linear metrics.
 - Emit a per hypothesis verdict that the orchestrator can attach to the queue from lesson fifty.
+  中文翻译：Emit a per hypothesis verdict that the orchestrator can attach to the queue from lesson fifty.
 - Keep every step pure so the same inputs always produce the same verdict.
+  中文翻译：Keep every step pure so the same inputs always produce the same verdict.
 
 ## Why a paired test
 
@@ -25,7 +30,13 @@
 
 A single number from the runner does not say whether the change is real. The same configuration with a different seed gives a different perplexity. The change might be noise. The right comparison is paired: the same seeds with the same data, ran once with the candidate and once with the baseline. Each seed contributes a difference. The mean of those differences is the effect. The standard error of those differences is the noise floor.
 
+> 一个single number from the runner does not say whether the change is real. The same configuration with a different seed gives a different perplexity. The change might be noise. The right comparison is paired: the same seeds with the same data, ran once with the candidate and once with the baseline. Each seed contributes a difference. The mean of those differences is the effect. The standard error of those differences is the noise floor.
+
+
 The lesson implements the test from scratch. There is no `scipy.stats`. The math is small enough to read in one screen.
+
+> LEsson implements the test from scratch. There is no `scipy.stats`. The math is small enough to read in one screen.（翻译）
+
 
 ```text
 diffs    = [a_i - b_i for i in seeds]
@@ -38,11 +49,17 @@ p_value  = two_sided_p(t_stat, df)
 
 The two sided p value uses a regularised incomplete beta function. The lesson ships a small implementation that uses the Lentz continued fraction. The whole thing is sixty lines of stdlib math.
 
+> two sided p value uses a regularised incomplete beta function. The lesson ships a small implementation that uses the Lentz continued fraction. The whole thing is sixty lines of stdlib math.
+
+
 ## Direction aware improvement
 
 > **【中文解读】** 有些指标上升为好（准确率、吞吐量），有些下降为好（损失、困惑度、墙钟时间）。评估器对每个指标携带方向字段：`higher_is_better` 时改进 = (candidate - baseline) / |baseline|；`lower_is_better` 时改进 = (baseline - candidate) / |baseline|。改进是带符号的，负值在 higher_is_better 上意味着候选更差。固定阈值（默认 2%）决定变化是否大到值得报告。
 
 Some metrics improve when they go up (accuracy, throughput). Others improve when they go down (loss, perplexity, wall time). The evaluator carries a `direction` field on each metric.
+
+> Some metrics improve when they go up (accuracy, throughput).
+
 
 ```text
 if direction == "higher_is_better":
@@ -53,7 +70,13 @@ elif direction == "lower_is_better":
 
 Improvement is signed. A negative improvement on a higher is better metric means the candidate is worse. The verdict path reads the sign and the magnitude together.
 
+> Improvement is signed.
+
+
 A flat threshold (`improvement_threshold=0.02`, two percent) decides whether the change is large enough to call. Below that the verdict is "noise" regardless of the p value; the loop is not interested in changes the user could not measure.
+
+> 一个flat threshold (`improvement_threshold=0.02`, two percent) decides whether the change is large enough to call. Below that the verdict is "noise" regardless of the p value; the loop is not interested in changes the user could not measure.
+
 
 ## Architecture | 架构
 
@@ -73,13 +96,22 @@ flowchart TD
 
 The evaluator runs three independent computations and joins them in the verdict path. Each computation is a pure function with no shared state.
 
+> evaluator runs three independent computations and joins them in the verdict path. Each computation is a pure function with no shared state.
+
+
 ## Log normalisation
 
 > **【中文解读】** 困惑度是损失的指数——损失下降 0.1 在困惑度上是更大的下降。直接比较困惑度可以，但在单一报告中与线性指标混合需要归一化。本课对 `scale="log"` 的指标取自然对数后计算改进，阈值在对数空间应用。困惑度从 32 降到 28 在 lower_is_better 下是 `log(28) - log(32) = -0.133`，远超 2% 阈值。
 
 Perplexity is exponential in loss. A 0.1 drop in loss is a much larger drop in perplexity. Comparing perplexity directly across two configurations is fine, but blending it with linear metrics in a single report requires normalisation.
 
+> Perplexity is exponential in loss.
+
+
 The lesson normalises any metric whose `scale` field is `"log"` by taking the natural log before computing the improvement. The threshold is then applied in log space. A perplexity drop from 32 to 28 is `log(28) - log(32) = -0.133` on a lower is better metric, which is well above the two percent threshold.
+
+> lesson normalises any metric whose `scale` field is `"log"` by taking the natural log before computing the improvement. The threshold is then applied in log space. A perplexity drop from 32 to 28 is `log(28) - log(32) = -0.133` on a lower is better metric, which is well above the two percent threshold.
+
 
 ```text
 if scale == "log":
@@ -92,11 +124,20 @@ else:
 
 Metrics with `scale="linear"` (default) skip the transform. The same code path handles both.
 
+> Metrics with `scale="linear"` (default) skip the transform. The same code path handles both.（翻译）
+
+
 ## Per seed paired test
 
 The runner from lesson fifty-two emits one final metrics blob per run. For the paired test the evaluator needs one blob per seed for the candidate and one per seed for the baseline. The orchestrator runs the same experiment under both configurations across a list of seeds and hands the evaluator two lists of `ExperimentResult` records.
 
+> runner from lesson fifty-two emits one final metrics blob per run. For the paired test the evaluator needs one blob per seed for the candidate and one per seed for the baseline. The orchestrator runs the same experiment under both configurations across a list of seeds and hands the evaluator two lists of `ExperimentResult` records.
+
+
 The evaluator pairs them by seed (the seed lives in `result.metrics["seed"]`) and walks the requested metric. If the seeds do not match across the two lists, the evaluator raises a `PairingError`. The orchestrator should re run.
+
+> evaluator pairs them by seed (the seed lives in `result.metrics["seed"]`) and walks the requested metric. If the seeds do not match across the two lists, the evaluator raises a `PairingError`. The orchestrator should re run.
+
 
 ## The Verdict shape
 
@@ -132,15 +173,27 @@ The verdict path is a small decision table:
 
 Rationale is a one line human readable sentence the orchestrator can log against the hypothesis id.
 
+> Rationale is a one line human readable sentence the orchestrator can log against the hypothesis id.（翻译）
+
+
 ## How to read the code
 
 `code/main.py` defines `MetricSpec`, `Verdict`, `Evaluator`, the t statistic and incomplete beta helpers, and a deterministic demo. The t test is implemented in pure stdlib math; numpy is used only to read the metrics list and compute means and variances.
 
+> `code/main.
+
+
 `code/tests/test_evaluator.py` covers the improved path, the regressed path, the noise path (small improvement), the noise path (low n), the failed terminal path, the log normalised path, the t test against a known reference value, and the pairing error.
+
+> `code/tests/test_evaluator.
+
 
 ## Where this slots in
 
 Lesson fifty produced the hypothesis queue. Lesson fifty-one filtered out anything the literature settled. Lesson fifty-two ran the experiment under candidate and baseline configurations across seeds. Lesson fifty-three reads those runs and writes the verdict. The orchestrator stitches the four together:
+
+> Lesson fifty produced the hypothesis queue.
+
 
 ```text
 for hypothesis in queue:
@@ -156,3 +209,6 @@ for hypothesis in queue:
 ```
 
 That orchestrator is not in this lesson; the four lessons compose into it without any glue beyond the dataclasses each one defines.
+
+> That orchestrator is not in this lesson; the four lessons compose into it without any glue beyond the dataclasses each one defines.
+

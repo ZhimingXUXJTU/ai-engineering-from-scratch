@@ -5,18 +5,23 @@
 > **【中文解读】** 本节是综合项目——实现分类器微调。
 
 
-**Type:** Build
-**Languages:** Python (torch, numpy)
-**Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
-**Time:** ~90 minutes
+**Type:** Build | **类型:** Build
+**Languages:** Python (torch, numpy) | **语言:** Python (torch, numpy)
+**Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity) | **前置知识:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
+**Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标
 
 - Replace a language-model head with a classification head without re-initialising the body.
+  中文翻译：Replace a language-model head with a classification head without re-initialising the body.
 - Implement two training regimes: frozen body (head-only) and full fine-tuning, sharing one training loop.
+  中文翻译：Implement two training regimes: frozen body (head-only) and full fine-tuning, sharing one training loop.
 - Build a tokeniser-aware data pipeline that pads, masks padding, and pools attention output.
+  中文翻译：Build a tokeniser-aware data pipeline that pads, masks padding, and pools attention output.
 - Compute precision, recall, F1, and a confusion matrix from raw logits.
+  中文翻译：Compute precision, recall, F1, and a confusion matrix from raw logits.
 - Reason about the trade-off between parameter count, training time, and head-room.
+  中文翻译：Reason about the trade-off between parameter count, training time, and head-room.
 
 ## The Problem | 问题
 
@@ -26,9 +31,18 @@
 
 The wrong option is to train a fresh classifier from scratch on 800 examples. The body of the pretrained model already encodes useful structure: word identity, position, simple co-occurrence. Throwing it away wastes the compute that built it.
 
+> wrong option is to train a fresh classifier from scratch on 800 examples. The body of the pretrained model already encodes useful structure: word identity, position, simple co-occurrence. Throwing it away wastes the compute that built it.
+
+
 The two right options are head swap with the body frozen, and head swap with the body trainable. Head-only training is fast, almost free in memory, and rarely overfits with this little data. Full fine-tuning is slower, can overfit on small data, but reaches higher accuracy when the downstream domain drifts from the pretraining corpus.
 
+> two right options are head swap with the body frozen, and head swap with the body trainable. Head-only training is fast, almost free in memory, and rarely overfits with this little data. Full fine-tuning is slower, can overfit on small data, but reaches higher accuracy when the downstream domain drifts from the pretraining corpus.
+
+
 This lesson builds both, so you can compare them on the same fixture.
+
+> 本课构建该契约。
+
 
 ## The Concept | 概念
 
@@ -43,14 +57,25 @@ flowchart LR
 
 The model is a function `f_theta(tokens) -> hidden_states`. The head is a function `g_phi(hidden) -> logits`. Swapping heads means keeping `theta` and replacing `g_phi`. The body's parameters are the expensive part. The head is a single linear layer.
 
+> model is a function `f_theta(tokens) -> hidden_states`. The head is a function `g_phi(hidden) -> logits`. Swapping heads means keeping `theta` and replacing `g_phi`. The body's parameters are the expensive part. The head is a single linear layer.
+
+
 Two trainable parameter sets matter:
 
 - `theta` (the body): tens of thousands of weights per attention block.
+  中文翻译：`theta` (the body): tens of thousands of weights per attention block.
 - `phi` (the head): `hidden_dim * num_classes` weights plus a bias.
+  中文翻译：`phi` (the head): `hidden_dim * num_classes` weights plus a bias.
 
 In head-only training you compute gradients against `phi` and zero them against `theta`. PyTorch lets you do this by setting `requires_grad=False` on body parameters. The optimiser then sees only the head and the body stays frozen.
 
+> 在head-only training you compute gradients against `phi` and zero them against `theta`. PyTorch lets you do this by setting `requires_grad=False` on body parameters. The optimiser then sees only the head and the body stays frozen.
+
+
 In full fine-tuning you let gradients flow back through the whole stack. The body's weights drift to fit the classification objective. The risk is catastrophic forgetting on small data: the body's pretraining gets washed out by overfitting noise.
+
+> 在full fine-tuning you let gradients flow back through the whole stack. The body's weights drift to fit the classification objective. The risk is catastrophic forgetting on small data: the body's pretraining gets washed out by overfitting noise.
+
 
 ## The Pooling Question
 
@@ -58,11 +83,20 @@ In full fine-tuning you let gradients flow back through the whole stack. The bod
 
 A classifier needs one vector per sequence, not one vector per token. Three common choices:
 
+> A classifier needs one vector per sequence, not one vector per token. Three common choices:（翻译）
+
+
 - **Mean pool**: average the hidden states across the sequence, weighted by the attention mask.
+  中文翻译：**Mean pool**: average the hidden states across the sequence, weighted by the attention mask.
 - **CLS pool**: prepend a special token and use only its output. This is what BERT does.
+  中文翻译：**CLS pool**: prepend a special token and use only its output. This is what BERT does.
 - **Last-token pool**: use the last non-padding token. This is what GPT-class classifiers do.
+  中文翻译：**Last-token pool**: use the last non-padding token. This is what GPT-class classifiers do.
 
 This lesson uses mean pooling with explicit attention-mask weighting. It is the simplest, gives a stable signal across sequence lengths, and does not require pretraining a CLS token.
+
+> 这个lesson uses mean pooling with explicit attention-mask weighting. It is the simplest, gives a stable signal across sequence lengths, and does not require pretraining a CLS token.
+
 
 ```mermaid
 flowchart LR
@@ -77,24 +111,43 @@ flowchart LR
 
 Eight hundred SMS messages, balanced 400 spam and 400 ham, are generated deterministically in `code/main.py`. The generator uses a fixed seed, picks templates and substitutes slot fillers, and emits messages between 5 and 25 tokens long. Real datasets have noise this fixture does not. The point of the fixture is reproducibility.
 
+> Eight hundred SMS messages, balanced 400 spam and 400 ham, are generated deterministically in `code/main.
+
+
 The data splits 80/20: 640 train, 160 test. Splits are stratified so the test set keeps the 50/50 balance. A held-out set with a known balance lets precision and recall be read as honest numbers.
+
+> data splits 80/20: 640 train, 160 test. Splits are stratified so the test set keeps the 50/50 balance. A held-out set with a known balance lets precision and recall be read as honest numbers.
+
 
 ## The Metrics
 
 Binary classification with class 1 as the positive class (spam). Counts are:
 
+> Binary classification with class 1 as the positive class (spam). Counts are:（翻译）
+
+
 - `TP`: predicted spam, was spam.
+  中文翻译：`TP`: predicted spam, was spam.
 - `FP`: predicted spam, was ham.
+  中文翻译：`FP`: predicted spam, was ham.
 - `FN`: predicted ham, was spam.
+  中文翻译：`FN`: predicted ham, was spam.
 - `TN`: predicted ham, was ham.
+  中文翻译：`TN`: predicted ham, was ham.
 
 The three headline metrics:
 
 - `precision = TP / (TP + FP)`. Of the messages flagged spam, what fraction actually are?
+  中文翻译：`precision = TP / (TP + FP)`. Of the messages flagged spam, what fraction actually are?
 - `recall = TP / (TP + FN)`. Of the actual spam, what fraction did the model flag?
+  中文翻译：`recall = TP / (TP + FN)`. Of the actual spam, what fraction did the model flag?
 - `F1 = 2 * P * R / (P + R)`. The harmonic mean of the two.
+  中文翻译：`F1 = 2 * P * R / (P + R)`. The harmonic mean of the two.
 
 A confusion matrix prints the four counts as a 2x2 grid. The demo writes this to stdout for both training regimes.
+
+> A confusion matrix prints the four counts as a 2x2 grid. The demo writes this to stdout for both training regimes.（翻译）
+
 
 ## Architecture | 架构
 
@@ -113,9 +166,15 @@ flowchart TD
 
 The body is a deliberately tiny transformer: vocab 260, hidden 64, 4 heads, 2 blocks, max sequence 32. It is small enough to train both regimes to convergence inside ninety seconds on CPU. It is not pretrained in the lesson; instead, the `pretrain_quick` helper does five epochs of LM training on the same fixture's text to give the body a non-trivial starting point. This keeps the lesson self-contained.
 
+> body is a deliberately tiny transformer: vocab 260, hidden 64, 4 heads, 2 blocks, max sequence 32. It is small enough to train both regimes to convergence inside ninety seconds on CPU. It is not pretrained in the lesson; instead, the `pretrain_quick` helper does five epochs of LM training on the same fixture's text to give the body a non-trivial starting point. This keeps the lesson self-contained.
+
+
 ## What you will build
 
 The implementation is one `main.py` plus one test module (`code/tests/test_main.py`).
+
+> IMplementation is one `main.py` plus one test module (`code/tests/test_main.py`).（翻译）
+
 
 1. `ByteTokenizer`: maps bytes to ids, reserves a pad id.
 2. `Block`: a transformer block with multi-head attention and a feed-forward layer. Pre-norm.
@@ -133,12 +192,24 @@ The implementation is one `main.py` plus one test module (`code/tests/test_main.
 
 The head-only regime usually trains faster and underfits more gracefully. On this fixture you typically see precision near 0.9 and recall near 0.85 after twenty epochs of head-only training. Full fine-tuning takes about three times longer and lands within a couple of points either way, depending on the random seed.
 
+> head-only regime usually trains faster and underfits more gracefully. On this fixture you typically see precision near 0.9 and recall near 0.85 after twenty epochs of head-only training. Full fine-tuning takes about three times longer and lands within a couple of points either way, depending on the random seed.
+
+
 The lesson does not pick a winner. It teaches you to read the numbers and the cost. On 800 examples and a tiny body, head-only is the right call. On 80,000 examples and a bigger body, full fine-tuning starts to pay off. The contract you take from this lesson is the API: the same `train_classifier` function handles both, and the toggle is one call.
+
+> lesson does not pick a winner. It teaches you to read the numbers and the cost. On 800 examples and a tiny body, head-only is the right call. On 80,000 examples and a bigger body, full fine-tuning starts to pay off. The contract you take from this lesson is the API: the same `train_classifier` function handles both, and the toggle is one call.
+
 
 ## Stretch goals
 
 - Add a third regime that unfreezes only the last block. This is sometimes called partial fine-tuning. It costs less than full FT and learns more than head-only.
+  中文翻译：Add a third regime that unfreezes only the last block. This is sometimes called partial fine-tuning. It costs less than full FT and learns more than head-only.
 - Add a learning-rate scheduler. A cosine schedule on the head plus a smaller constant rate on the body is a common production setup.
+  中文翻译：Add a learning-rate scheduler. A cosine schedule on the head plus a smaller constant rate on the body is a common production setup.
 - Replace mean pooling with a learned attention pool: a small attention layer with one learned query. This often beats mean pool on longer sequences.
+  中文翻译：Replace mean pooling with a learned attention pool: a small attention layer with one learned query. This often beats mean pool on longer sequences.
 
 The implementation gives you the hooks. The tests pin the contract. The numbers are yours to push.
+
+> IMplementation gives you the hooks. The tests pin the contract. The numbers are yours to push.（翻译）
+

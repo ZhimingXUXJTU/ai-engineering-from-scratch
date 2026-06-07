@@ -5,17 +5,21 @@
 > **【中文解读】** 本节是综合项目——构建 Agent 线束循环和契约验证系统。
 
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 19 lessons 42 to 45
-**Time:** ~90 minutes
+**Type:** Build | **类型:** Build
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 19 lessons 42 to 45 | **前置知识:** Phase 19 lessons 42 to 45
+**Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标
 
 - Define a task as a JSONL file with `prompt`, `targets`, `metric`, and optional `extras` per example.
+  中文翻译：Define a task as a JSONL file with `prompt`, `targets`, `metric`, and optional `extras` per example.
 - Implement five metrics: exact match, rouge-l F1, executable check, multiple choice, and substring contains.
+  中文翻译：Implement five metrics: exact match, rouge-l F1, executable check, multiple choice, and substring contains.
 - Build a runner that batches examples per task and dispatches to a swappable model adapter.
+  中文翻译：Build a runner that batches examples per task and dispatches to a swappable model adapter.
 - Emit a leaderboard JSON with per-task scores, latency, and an overall average that is reproducible.
+  中文翻译：Emit a leaderboard JSON with per-task scores, latency, and an overall average that is reproducible.
 
 ## The Problem | 问题
 
@@ -25,9 +29,18 @@
 
 A new language model lands every week. The marketing claim is that it does well. The honest question is: well at what? The honest answer is the leaderboard you wrote yourself, because the vendor's leaderboard is the one they tuned to.
 
+> 一个new language model lands every week. The marketing claim is that it does well. The honest question is: well at what? The honest answer is the leaderboard you wrote yourself, because the vendor's leaderboard is the one they tuned to.
+
+
 Without a harness in your repo you compare two models by vibes. With a harness you compare them by score on a fixed task set with a fixed metric, on a JSON output you can diff. The harness is the contract between yesterday's run and today's run. Without it, regressions ship.
 
+> 不使用a harness in your repo you compare two models by vibes. With a harness you compare them by score on a fixed task set with a fixed metric, on a JSON output you can diff. The harness is the contract between yesterday's run and today's run. Without it, regressions ship.
+
+
 The trap is over-fitting the harness to a single model. The fix is the same trap in reverse: the harness is small enough to read in fifteen minutes, the tasks are small enough to ship in the repo, the metrics are written from scratch so a colleague can audit them, and the adapter is the only place model-specific code lives. Swap the adapter, the leaderboard moves; swap the tasks, the leaderboard moves. Nothing else should move.
+
+> trap is over-fitting the harness to a single model. The fix is the same trap in reverse: the harness is small enough to read in fifteen minutes, the tasks are small enough to ship in the repo, the metrics are written from scratch so a colleague can audit them, and the adapter is the only place model-specific code lives. Swap the adapter, the leaderboard moves; swap the tasks, the leaderboard moves. Nothing else should move.
+
 
 ## The Concept | 概念
 
@@ -52,6 +65,9 @@ Every example is one JSONL line:
 
 For metrics that need scoring helpers, `extras` carries the side payload:
 
+> For metrics that need scoring helpers, `extras` carries the side payload:（翻译）
+
+
 ```json
 {
   "id": "code-00",
@@ -63,6 +79,9 @@ For metrics that need scoring helpers, `extras` carries the side payload:
 ```
 
 A task is a `.jsonl` file under `outputs/tasks/`. The file name is the task name. All examples in a file share a metric.
+
+> 一个task is a `.jsonl` file under `outputs/tasks/`. The file name is the task name. All examples in a file share a metric.
+
 
 ### The five fixture tasks
 
@@ -82,13 +101,24 @@ A task is a `.jsonl` file under `outputs/tasks/`. The file name is the task name
 
 Every metric is a function from `(prediction, targets, extras) -> float in [0.0, 1.0]`. The harness averages the per-example scores to get a task score, then averages task scores to get the overall. The metric functions are tiny:
 
+> 每个metric is a function from `(prediction, targets, extras) -> float in [0.0, 1.0]`. The harness averages the per-example scores to get a task score, then averages task scores to get the overall. The metric functions are tiny:
+
+
 - `exact_match`: lowercase, collapse whitespace, equality.
+  中文翻译：`exact_match`: lowercase, collapse whitespace, equality.
 - `substring_contains`: same normalization, substring test.
+  中文翻译：`substring_contains`: same normalization, substring test.
 - `multiple_choice`: first character uppercased.
+  中文翻译：`multiple_choice`: first character uppercased.
 - `rouge_l`: LCS length divided by lengths of prediction and reference, F1 of precision and recall.
+  中文翻译：`rouge_l`: LCS length divided by lengths of prediction and reference, F1 of precision and recall.
 - `code_exec`: execute the prediction in a restricted namespace, call `f(x)` on every input-output pair, count matches.
+  中文翻译：`code_exec`: execute the prediction in a restricted namespace, call `f(x)` on every input-output pair, count matches.
 
 The code_exec metric runs the prediction in a stripped builtins namespace. The lesson's test asserts that `import os` blows up because `os` is not in the namespace; you cannot reach the filesystem from a code prediction.
+
+> code_exec metric runs the prediction in a stripped builtins namespace. The lesson's test asserts that `import os` blows up because `os` is not in the namespace; you cannot reach the filesystem from a code prediction.
+
 
 ### The model adapter
 
@@ -103,9 +133,15 @@ class ModelAdapter(Protocol):
 
 The adapter is the seam. The lesson ships `ToyAdapter`, a deterministic pattern matcher that returns the right answer for every prompt in the five fixture tasks. A real adapter calls the model and returns its output. The harness does not care which.
 
+> adapter is the seam. The lesson ships `ToyAdapter`, a deterministic pattern matcher that returns the right answer for every prompt in the five fixture tasks. A real adapter calls the model and returns its output. The harness does not care which.
+
+
 ### The runner
 
 `run_task` batches `batch_size` prompts at a time and dispatches to the metric function. `run_leaderboard` walks every task and averages. `write_leaderboard` emits JSON with a schema string so future format changes do not silently break dashboards.
+
+> `run_task` batches `batch_size` prompts at a time and dispatches to the metric function.
+
 
 ```mermaid
 flowchart LR
@@ -124,21 +160,36 @@ flowchart LR
 
 `seed_fixture_tasks(target_dir)` writes the five `.jsonl` files. The first run of `main.py` seeds them when the directory is empty.
 
+> `seed_fixture_tasks(target_dir)` writes the five `.
+
+
 ### Step 2: load tasks
 
 `load_all_tasks(task_dir)` reads every `.jsonl` and returns a dict from task name to a list of `Example` records. Comment lines starting with `#` and blank lines are skipped so contributors can annotate the files.
+
+> `load_all_tasks(task_dir)` reads every `.
+
 
 ### Step 3: implement metrics
 
 Each metric is a small function with a unit test. The lesson's test suite includes 13 cases covering normalization, partial overlap, code execution, and unsafe code rejection.
 
+> 每个metric is a small function with a unit test. The lesson's test suite includes 13 cases covering normalization, partial overlap, code execution, and unsafe code rejection.
+
+
 ### Step 4: write the runner
 
 `run_task` iterates batches and produces a `TaskResult` with score, correct count, total count, and latency. `run_leaderboard` walks all tasks and produces a `Leaderboard` with the overall average.
 
+> `run_task` iterates batches and produces a `TaskResult` with score, correct count, total count, and latency.
+
+
 ### Step 5: emit JSON
 
 `write_leaderboard` serializes the board. The `--include-per-example` flag dumps the per-example records so you can diff predictions against the previous run when scores move.
+
+> `write_leaderboard` serializes the board.
+
 
 Run it:
 
@@ -147,6 +198,9 @@ python3 code/main.py
 ```
 
 The script seeds the fixtures on first run, scores them with the toy adapter (which gets every fixture right), and writes `outputs/leaderboard.json`. Overall score is 1.0 with the toy adapter; the stub adapter test in `test_main.py` shows the same harness produces 0.0 when the adapter cannot answer.
+
+> script seeds the fixtures on first run, scores them with the toy adapter (which gets every fixture right), and writes `outputs/leaderboard.json`. Overall score is 1.0 with the toy adapter; the stub adapter test in `test_main.py` shows the same harness produces 0.0 when the adapter cannot answer.
+
 
 ## Use It | 使用方法
 
@@ -172,15 +226,27 @@ class HttpAdapter:
 
 Swap `ToyAdapter` for `HttpAdapter` at the top of `main()`. The harness, the tasks, the metrics, and the leaderboard stay the same.
 
+> Swap `ToyAdapter` for `HttpAdapter` at the top of `main()`.
+
+
 Three patterns to enforce when shipping the harness in a real project:
 
+> Three patterns to enforce when shipping the harness in a real project:（翻译）
+
+
 - **Pin the task files.** The leaderboard.json carries hash-pinned task content or it carries the JSONLs alongside; otherwise the score moves when the task file does, and you cannot tell which.
+  中文翻译：**Pin the task files.** The leaderboard.json carries hash-pinned task content or it carries the JSONLs alongside; otherwise the score moves when the task file does, and you cannot tell which.
 - **Diff predictions, not just scores.** The `--include-per-example` flag lets you see what the model said the day the score dropped.
+  中文翻译：**Diff predictions, not just scores.** The `--include-per-example` flag lets you see what the model said the day the score dropped.
 - **Cap the batch size.** Real adapters have rate limits. A small batch size keeps the harness compatible across vendors.
+  中文翻译：**Cap the batch size.** Real adapters have rate limits. A small batch size keeps the harness compatible across vendors.
 
 ## Ship It | 部署上线
 
 `outputs/skill-lm-eval-harness.md` carries the recipe: JSONL task spec, five metrics, swappable adapter, batched runner, leaderboard JSON with schema string. The task files in `outputs/tasks/` are the fixtures; copy them into a real project as starters.
+
+> `outputs/skill-lm-eval-harness.
+
 
 ## Exercises | 练习题
 
@@ -203,7 +269,12 @@ Three patterns to enforce when shipping the harness in a real project:
 ## Further Reading | 延伸阅读
 
 - The original lm-evaluation-harness for the production reference, much larger but the same shape.
+  中文翻译：The original lm-evaluation-harness for the production reference, much larger but the same shape.
 - HuggingFace's lighteval for an alternative implementation of the same contract.
+  中文翻译：HuggingFace's lighteval for an alternative implementation of the same contract.
 - Phase 19 lesson 46 covers the gradient accumulation patterns used in the training stack the harness scores.
+  中文翻译：Phase 19 lesson 46 covers the gradient accumulation patterns used in the training stack the harness scores.
 - Phase 19 lesson 47 covers the checkpoint format you score against; pin the checkpoint hash in the leaderboard.
+  中文翻译：Phase 19 lesson 47 covers the checkpoint format you score against; pin the checkpoint hash in the leaderboard.
 - Phase 19 lesson 48 covers the distributed training stack that produced the model under test.
+  中文翻译：Phase 19 lesson 48 covers the distributed training stack that produced the model under test.

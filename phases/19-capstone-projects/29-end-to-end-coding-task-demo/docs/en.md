@@ -5,18 +5,23 @@
 > **【中文解读】** 本节是综合项目——端到端研究演示的完整集成。
 
 
-**Type:** Build
-**Languages:** Python (stdlib)
-**Prerequisites:** Phase 19 · 25 (verification gates), Phase 19 · 26 (sandbox), Phase 19 · 27 (eval harness), Phase 19 · 28 (observability), Phase 14 · 38 (verification gates), Phase 14 · 41 (workbench for real repos), Phase 14 · 42 (agent workbench capstone)
-**Time:** ~90 minutes
+**Type:** Build | **类型:** Build
+**Languages:** Python (stdlib) | **语言:** Python (stdlib)
+**Prerequisites:** Phase 19 · 25 (verification gates), Phase 19 · 26 (sandbox), Phase 19 · 27 (eval harness), Phase 19 · 28 (observability), Phase 14 · 38 (verification gates), Phase 14 · 41 (workbench for real repos), Phase 14 · 42 (agent workbench capstone) | **前置知识:** Phase 19 · 25 (verification gates), Phase 19 · 26 (sandbox), Phase 19 · 27 (eval harness), Phase 19 · 28 (observability), Phase 14 · 38 (verification gates), Phase 14 · 41 (workbench for real repos), Phase 14 · 42 (agent workbench capstone)
+**Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标
 
 - Compose the gate chain, sandbox, eval harness, and span builder into a single agent loop.
+  中文翻译：Compose the gate chain, sandbox, eval harness, and span builder into a single agent loop.
 - Implement a deterministic policy that uses read_file, run_tests, and write_file to fix a fixture bug.
+  中文翻译：Implement a deterministic policy that uses read_file, run_tests, and write_file to fix a fixture bug.
 - Enforce a global step budget plus an observation token budget across an end-to-end run.
+  中文翻译：Enforce a global step budget plus an observation token budget across an end-to-end run.
 - Emit complete OTel GenAI traces and Prometheus metrics for the full run.
+  中文翻译：Emit complete OTel GenAI traces and Prometheus metrics for the full run.
 - Verify the agent solves the fixture in fewer than 12 steps with zero gate trips on legal tools.
+  中文翻译：Verify the agent solves the fixture in fewer than 12 steps with zero gate trips on legal tools.
 
 ## The Problem | 问题
 
@@ -24,9 +29,18 @@
 
 Most agent demos work in isolation: a sandbox by itself, an eval harness by itself, a span emitter by itself. They look fine. Compose them and the seams show.
 
+> Most agent demos work in isolation: a sandbox by itself, an eval harness by itself, a span emitter by itself.
+
+
 The gate chain says ALLOW but the sandbox refuses for a reason the chain did not anticipate. The eval harness records a pass but the OTel spans say the gate refused a tool the agent claims it used. The Prometheus counter is incremented twice when it should be incremented once. The observation budget is exceeded but the agent kept going because the budget was tracked in the chain and the sandbox didn't know.
 
+> gate chain says ALLOW but the sandbox refuses for a reason the chain did not anticipate. The eval harness records a pass but the OTel spans say the gate refused a tool the agent claims it used. The Prometheus counter is incremented twice when it should be incremented once. The observation budget is exceeded but the agent kept going because the budget was tracked in the chain and the sandbox didn't know.
+
+
 This lesson is the integration test for the whole track. The agent has to do four things in order: read the project, run the tests, identify the bug from the test failure, write the fix, rerun the tests, and stop. Every operation goes through the gate chain. Every tool execution goes through the sandbox. Every step is wrapped in a span. The eval harness scores the whole thing at the end.
+
+> 这个lesson is the integration test for the whole track. The agent has to do four things in order: read the project, run the tests, identify the bug from the test failure, write the fix, rerun the tests, and stop. Every operation goes through the gate chain. Every tool execution goes through the sandbox. Every step is wrapped in a span. The eval harness scores the whole thing at the end.
+
 
 ## The Concept | 概念
 
@@ -46,17 +60,38 @@ The agent's policy is a state machine. Five states.
 
 `SURVEY`: the agent reads the project listing. The next state is RUN_TESTS.
 
+> `SURVEY`: the agent reads the project listing. The next state is RUN_TESTS.（翻译）
+
+
 `RUN_TESTS`: the agent runs the test command. If the tests pass, the state machine halts with success. Otherwise the next state is INSPECT.
+
+> `RUN_TESTS`: the agent runs the test command.
+
 
 `INSPECT`: the agent reads the failing source file. The next state is FIX.
 
+> `INSPECT`: the agent reads the failing source file. The next state is FIX.（翻译）
+
+
 `FIX`: the agent writes the corrected file. The next state is VERIFY.
+
+> `FIX`: the agent writes the corrected file. The next state is VERIFY.（翻译）
+
 
 `VERIFY`: the agent runs the test command again. If the tests pass, halt success. Otherwise halt with failure.
 
+> `VERIFY`: the agent runs the test command again. If the tests pass, halt success. Otherwise halt with failure.（翻译）
+
+
 Each state corresponds to a tool call. Each tool call passes through the gate chain. If a tool call is denied, the agent reports the refusal in the trace and halts.
 
+> 每个state corresponds to a tool call. Each tool call passes through the gate chain. If a tool call is denied, the agent reports the refusal in the trace and halts.
+
+
 The fixture bug is an off-by-one in `fizz.py`. The deterministic policy detects the bug from the test failure message via a regex and emits the corrected file. Replacing the policy with an LLM does not change the harness contract.
+
+> fixture bug is an off-by-one in `fizz.py`. The deterministic policy detects the bug from the test failure message via a regex and emits the corrected file. Replacing the policy with an LLM does not change the harness contract.
+
 
 ## Architecture | 架构
 
@@ -76,6 +111,9 @@ flowchart TD
 
 The lesson is self-contained. Each prior-lesson primitive is reimplemented at minimal scale in `main.py` (gate, sandbox, ledger, span) so the lesson runs without importing siblings. The names match lessons 25-28 exactly so the conceptual mapping is unambiguous.
 
+> lesson is self-contained. Each prior-lesson primitive is reimplemented at minimal scale in `main.py` (gate, sandbox, ledger, span) so the lesson runs without importing siblings. The names match lessons 25-28 exactly so the conceptual mapping is unambiguous.
+
+
 ## What you will build
 
 `main.py` ships:
@@ -89,13 +127,22 @@ The lesson is self-contained. Each prior-lesson primitive is reimplemented at mi
 
 The bundled fixture is the same shape as lesson 27's task structure: a buggy file and a tests file. The test failure message contains enough information for the deterministic policy to identify the fix. A real LLM would do the same job, slower and with broader recall, but it would not change the harness's expectations.
 
+> bundled fixture is the same shape as lesson 27's task structure: a buggy file and a tests file. The test failure message contains enough information for the deterministic policy to identify the fix. A real LLM would do the same job, slower and with broader recall, but it would not change the harness's expectations.
+
+
 ## Why the policy is not an LLM
 
 > **【中文解读】** 使用确定性策略替代 LLM 的原因有三：(1) 无需 API 密钥和网络调用；(2) 消除随机性，测试可以断言精确的步骤数；(3) 本课关注的是线束（harness）本身而非策略。LLM 通过相同的接口（policy seam）插入，不改变任何线束契约。
 
 A real LLM requires an API key, a network call, and unverifiable stochasticity. The harness is the part the lesson cares about. Subbing in a deterministic policy lets the lesson run on any developer laptop with zero external dependencies and lets the test suite assert exact-step counts.
 
+> 一个real LLM requires an API key, a network call, and unverifiable stochasticity. The harness is the part the lesson cares about. Subbing in a deterministic policy lets the lesson run on any developer laptop with zero external dependencies and lets the test suite assert exact-step counts.
+
+
 The lesson's policy is a strict subset of what an LLM agent does. The policy reads the repo, sees the failing test, identifies the line, and emits a fix. An LLM goes through the same loop with the same harness contract; the bookkeeping is identical.
+
+> lesson's policy is a strict subset of what an LLM agent does. The policy reads the repo, sees the failing test, identifies the line, and emits a fix. An LLM goes through the same loop with the same harness contract; the bookkeeping is identical.
+
 
 ## What the demo asserts
 
@@ -103,21 +150,33 @@ The lesson's policy is a strict subset of what an LLM agent does. The policy rea
 
 The end-to-end demo asserts five things at exit time, and the test suite reasserts them programmatically.
 
+> ENd-to-end demo asserts five things at exit time, and the test suite reasserts them programmatically.（翻译）
+
+
 The policy solved the fixture in fewer than 12 steps.
 
 The observation budget was never exceeded.
 
 Zero gate denials fired on legal tools. (The agent never invented a denied tool name.)
 
+> Zero gate denials fired on legal tools. (The agent never invented a denied tool name.)（翻译）
+
+
 Every step has a corresponding span in the traces.jsonl.
 
 The Prometheus exposition contains a `tools_called_total{tool="read_file"}` entry and a `tool_latency_ms` histogram.
+
+> PRometheus exposition contains a `tools_called_total{tool="read_file"}` entry and a `tool_latency_ms` histogram.（翻译）
+
 
 ## How this composes with the rest of Track A
 
 > **【中文解读】** 本课是 Track A 的集成测试。Lesson 25 编写了 Gate Chain，Lesson 26 编写了沙箱，Lesson 27 编写了评估线束，Lesson 28 编写了可观测性，Lesson 29 证明它们作为系统协同工作。替换确定性策略为真实模型、替换夹具为真实仓库、替换 JSONL 为 OTLP，即构成生产级 Agent 线束。
 
 This lesson is the integration. Lesson 25 wrote the gate chain. Lesson 26 wrote the sandbox. Lesson 27 wrote the eval harness. Lesson 28 wrote the observability. Lesson 29 proves they work as a system. A real agent harness extends from here: swap the deterministic policy for a model, swap the bundled fixture for a real-repo task, swap the JSONL exporter for OTLP.
+
+> 这个lesson is the integration. Lesson 25 wrote the gate chain. Lesson 26 wrote the sandbox. Lesson 27 wrote the eval harness. Lesson 28 wrote the observability. Lesson 29 proves they work as a system. A real agent harness extends from here: swap the deterministic policy for a model, swap the bundled fixture for a real-repo task, swap the JSONL exporter for OTLP.
+
 
 ## Running it | 运行
 
@@ -128,3 +187,6 @@ python3 -m pytest code/tests/ -v
 ```
 
 The demo prints a per-step trace, the final eval report, and the Prometheus exposition. Exit code is zero. The tests cover the policy state transitions, the gate refusals on synthetic tool calls, the end-to-end run on the bundled fixture, and the step-budget invariants.
+
+> demo prints a per-step trace, the final eval report, and the Prometheus exposition. Exit code is zero. The tests cover the policy state transitions, the gate refusals on synthetic tool calls, the end-to-end run on the bundled fixture, and the step-budget invariants.
+

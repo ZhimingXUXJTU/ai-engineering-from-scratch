@@ -5,18 +5,23 @@
 > **【中文解读】** 本节是综合项目——加载预训练权重。
 
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 19 lessons 30 to 36
-**Time:** ~90 minutes
+**Type:** Build | **类型:** Build
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 19 lessons 30 to 36 | **前置知识:** Phase 19 lessons 30 to 36
+**Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标
 
 - Read a safetensors file with the `safetensors` Python library and inspect the tensor names and shapes.
+  中文翻译：Read a safetensors file with the `safetensors` Python library and inspect the tensor names and shapes.
 - Map each pretrained parameter name onto a parameter inside the lesson 35 GPT model.
+  中文翻译：Map each pretrained parameter name onto a parameter inside the lesson 35 GPT model.
 - Handle the two name conventions that differ between published GPT-2 weights and the model in this track: `wte/wpe/h.N.attn.c_attn/c_proj` and `mlp.c_fc/c_proj` versus the locally named `tok_embed/pos_embed/blocks.N.attn.qkv/out_proj` and `mlp.fc1/fc2`.
+  中文翻译：Handle the two name conventions that differ between published GPT-2 weights and the model in this track: `wte/wpe/h.N.attn.c_attn/c_proj` and `mlp.c_fc/c_proj` versus the locally named `tok_embed/pos_embed/blocks.N.attn.qkv/out_proj` and `mlp.fc1/fc2`.
 - Detect and refuse a shape mismatch with a clear error before any weight assignment happens.
+  中文翻译：Detect and refuse a shape mismatch with a clear error before any weight assignment happens.
 - Generate a short continuation with the loaded weights and confirm the tokens come from the loaded distribution, not the randomly initialized one.
+  中文翻译：Generate a short continuation with the loaded weights and confirm the tokens come from the loaded distribution, not the randomly initialized one.
 
 ## The Problem | 问题
 
@@ -25,6 +30,9 @@
 > **【拓展：HuggingFace 权重加载生态】** HuggingFace 的 `transformers` 库是权重加载的事实标准，支持 200+ 种模型架构。`from_pretrained()` 自动处理名称映射、形状检查、权重转置和 dtype 转换。`safetensors` 格式（本课使用）比传统 pickle 更安全（不执行任意代码）和更快（零拷贝加载）。GGUF 格式（用于 llama.cpp）支持量化权重，将 7B 模型的内存占用从 14GB 降到 4GB。AutoGPTQ 和 AutoAWQ 提供训练后量化方案。 They carry the names the original implementation used. The pretrained file has `transformer.h.0.attn.c_attn.weight` of shape `(2304, 768)`; your model expects `blocks.0.attn.qkv.weight` of shape `(2304, 768)` (which is the same matrix in a different layout convention) or your model uses `nn.Linear` which stores the matrix transposed. The same parameter shows up with three subtly different identities (name, shape, byte layout) and the loader has to reconcile all three.
 
 A loader that copies blindly puts the right tensor in the wrong place and you get a model that generates nonsense. A loader that refuses to copy when the shape differs but logs nothing leaves you guessing which tensor failed to land. The loader in this lesson is explicit: every assignment is logged, every shape is checked, and a `LoadReport` summarizes hits, misses, and shape mismatches so you can read what happened.
+
+> 一个loader that copies blindly puts the right tensor in the wrong place and you get a model that generates nonsense. A loader that refuses to copy when the shape differs but logs nothing leaves you guessing which tensor failed to land. The loader in this lesson is explicit: every assignment is logged, every shape is checked, and a `LoadReport` summarizes hits, misses, and shape mismatches so you can read what happened.
+
 
 ## The Concept | 概念
 
@@ -42,6 +50,9 @@ flowchart LR
 ```
 
 The name mapper is just a function from string to string. The shape check is one if. The assignment happens inside `torch.no_grad()` so autograd does not track the load. The report holds the outcome of every name.
+
+> name mapper is just a function from string to string. The shape check is one if. The assignment happens inside `torch.no_grad()` so autograd does not track the load. The report holds the outcome of every name.
+
 
 ### The GPT-2 naming convention
 
@@ -70,6 +81,9 @@ Published GPT-2 weights live under names like:
 
 Two surprises to plan for. The `c_attn`, `c_proj`, `c_fc` linears are stored with the matrix transposed relative to what `nn.Linear.weight` expects. The loader transposes during assignment. The LM head is not in the file at all; the model relies on weight tying with `wte`, so the head is set by aliasing once `wte` lands.
 
+> Two surprises to plan for.
+
+
 ### The local naming convention
 
 The model in this track uses descriptive names:
@@ -95,9 +109,15 @@ The model in this track uses descriptive names:
 
 The mapping is a fixed function. The lesson ships it as a dict that the loader iterates.
 
+> MApping is a fixed function. The lesson ships it as a dict that the loader iterates.（翻译）
+
+
 ### The stub fixture
 
 Real GPT-2 weights are 0.5 GB. The demo does not download them; it generates a small safetensors fixture at first run, with the exact GPT-2 naming convention and shapes appropriate to a 12-block model at d_model 192 instead of 768. The fixture has the right structure to exercise every code path in the loader. Swap the fixture for the real file and the loader works without modification.
+
+> Real GPT-2 weights are 0.
+
 
 ## Build It | 动手构建
 
@@ -108,10 +128,15 @@ Real GPT-2 weights are 0.5 GB. The demo does not download them; it generates a s
 `code/main.py` implements:
 
 - A small replica of the lesson 35 `GPTModel` so this lesson is self contained.
+  中文翻译：A small replica of the lesson 35 `GPTModel` so this lesson is self contained.
 - `make_pretrained_to_local(num_layers)` which expands the per-layer entries.
+  中文翻译：`make_pretrained_to_local(num_layers)` which expands the per-layer entries.
 - `load_safetensors(model, path)` which iterates names, maps them, checks shape, transposes the conv1d-style weights, and assigns under `torch.no_grad()`. Returns a `LoadReport`.
+  中文翻译：`load_safetensors(model, path)` which iterates names, maps them, checks shape, transposes the conv1d-style weights, and assigns under `torch.no_grad()`. Returns a `LoadReport`.
 - `make_stub_safetensors(path, cfg)` which generates a fixture file with the exact pretrained naming convention.
+  中文翻译：`make_stub_safetensors(path, cfg)` which generates a fixture file with the exact pretrained naming convention.
 - A demo that creates `outputs/gpt2-stub.safetensors` on first run, builds a fresh model, captures one generated continuation from random init, loads the stub, captures another continuation, prints both, and verifies the two are different (the load actually changed the model).
+  中文翻译：A demo that creates `outputs/gpt2-stub.safetensors` on first run, builds a fresh model, captures one generated continuation from random init, loads the stub, captures another continuation, prints both, and verifies the two are different (the load actually changed the model).
 
 Run it:
 
@@ -121,11 +146,17 @@ python3 code/main.py
 
 Output: the fixture path, a per-name load log, a `LoadReport` summary, a continuation before the load, a continuation after the load, and a shape mismatch on a single intentionally bad tensor injected into the fixture so the failure path is exercised.
 
-## Stack
+> Output: the fixture path, a per-name load log, a `LoadReport` summary, a continuation before the load, a continuation after the load, and a shape mismatch on a single intentionally bad tensor injected into the fixture so the failure path is exercised.
+
+
+## Stack | 技术栈
 
 - `safetensors` for the on disk format and a streaming reader.
+  中文翻译：`safetensors` for the on disk format and a streaming reader.
 - `torch` for the model and the assignment math.
+  中文翻译：`torch` for the model and the assignment math.
 - No `transformers`, no `huggingface_hub`, no network calls.
+  中文翻译：No `transformers`, no `huggingface_hub`, no network calls.
 
 ## Production patterns in the wild
 
@@ -140,8 +171,11 @@ Output: the fixture path, a per-name load log, a `LoadReport` summary, a continu
 ## Use It | 使用方法
 
 - The loader works for any safetensors file that uses the pretrained naming convention. Real GPT-2 files (small / medium / large / xl) work without code changes; only the model config differs.
+  中文翻译：The loader works for any safetensors file that uses the pretrained naming convention. Real GPT-2 files (small / medium / large / xl) work without code changes; only the model config differs.
 - The same pattern extends to LLaMA, Mistral, Qwen weights once you update the name map. The shape checks and the report stay identical.
+  中文翻译：The same pattern extends to LLaMA, Mistral, Qwen weights once you update the name map. The shape checks and the report stay identical.
 - Sanity generation after a load is a quick gate: if the post-load samples look like the pre-load samples, the load did not change the model, which means the mapping silently missed every tensor.
+  中文翻译：Sanity generation after a load is a quick gate: if the post-load samples look like the pre-load samples, the load did not change the model, which means the mapping silently missed every tensor.
 
 ## Exercises | 练习题
 
@@ -164,6 +198,10 @@ Output: the fixture path, a per-name load log, a `LoadReport` summary, a continu
 ## Further Reading | 延伸阅读
 
 - Phase 19 lesson 35 for the architecture that receives the weights.
+  中文翻译：Phase 19 lesson 35 for the architecture that receives the weights.
 - Phase 19 lesson 36 for the training loop that produces a checkpoint of the same shape.
+  中文翻译：Phase 19 lesson 36 for the training loop that produces a checkpoint of the same shape.
 - Phase 10 lesson 11 (quantization) for what to do with the loaded weights when memory is tight.
+  中文翻译：Phase 10 lesson 11 (quantization) for what to do with the loaded weights when memory is tight.
 - Phase 10 lesson 13 (building a complete LLM pipeline) for the full lifecycle around load and inference.
+  中文翻译：Phase 10 lesson 13 (building a complete LLM pipeline) for the full lifecycle around load and inference.

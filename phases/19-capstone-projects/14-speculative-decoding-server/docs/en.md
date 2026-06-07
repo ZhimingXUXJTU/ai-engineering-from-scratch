@@ -5,13 +5,13 @@
 > **【中文解读】** 本节是综合项目——构建推测解码服务器。
 
 
-**Type:** Capstone
-**Languages:** Python (serving), C++ / CUDA (kernel inspection), YAML (configs)
-**Prerequisites:** Phase 3 (deep learning), Phase 7 (transformers), Phase 10 (LLMs from scratch), Phase 17 (infrastructure)
-**Phases exercised:** P3 · P7 · P10 · P17
-**Time:** 30 hours
+**Type:** Capstone | **类型:** Capstone
+**Languages:** Python (serving), C++ / CUDA (kernel inspection), YAML (configs) | **语言:** Python (serving), C++ / CUDA (kernel inspection), YAML (configs)
+**Prerequisites:** Phase 3 (deep learning), Phase 7 (transformers), Phase 10 (LLMs from scratch), Phase 17 (infrastructure) | **前置知识:** Phase 3 (deep learning), Phase 7 (transformers), Phase 10 (LLMs from scratch), Phase 17 (infrastructure)
+**Phases exercised:** P3 · P7 · P10 · P17 | **涉及阶段:** P3 · P7 · P10 · P17
+**Time:** 30 hours | **时间:** 30 hours
 
-## Problem
+## Problem | 问题引入
 
 > **【中文解读】** 本节描述推测解码服务器的工程挑战。2026 年推测解码已成为标配——EAGLE-3 草稿头在目标模型隐状态上训练，预测 N 个 token 前瞻，目标模型一次验证。60-80% 的接受率转化为 2-3 倍端到端吞吐提升。关键工艺在服务运维而非模型：接受率随流量分布漂移、拒绝时的尾延迟比无推测更差、$/1M tokens 对比 API 价格是可信度杠杆。
 
@@ -19,9 +19,15 @@
 
 Speculative decoding became a commodity in 2026. EAGLE-3 draft heads train on the target model's hidden states and predict N tokens ahead; the target model verifies in a single pass. Acceptance rates of 60-80% translate to 2-3x end-to-end throughput. vLLM 0.7 integrates this natively. SGLang + SpecForge gives you the training pipeline. Red Hat's Speculators publishes aligned drafts for Llama 3.3 70B, Qwen3-Coder-30B MoE, GPT-OSS-120B.
 
+> Speculative decoding became a commodity in 2026.
+
+
 The craft is in the serving operations, not the model. Acceptance rate drifts with the traffic distribution (ShareGPT vs code vs domain data). Tail latency under rejection is worse than without speculation — you must report p99 at multiple batch sizes, not just steady-state tokens/sec. Cost per 1M tokens vs Anthropic / OpenAI API is the credibility lever.
 
-## Concept
+> craft is in the serving operations, not the model. Acceptance rate drifts with the traffic distribution (ShareGPT vs code vs domain data). Tail latency under rejection is worse than without speculation — you must report p99 at multiple batch sizes, not just steady-state tokens/sec. Cost per 1M tokens vs Anthropic / OpenAI API is the credibility lever.
+
+
+## Concept | 核心概念
 
 > **【中文解读】** 推测解码分两层：草稿模型（EAGLE-3 头/ngram/小型对齐模型）每步提出 k 个候选 token，目标模型一次验证全部 k 个——接受的前缀替换贪心路径。接受率取决于草稿-目标对齐度和输入分布。EAGLE-3 在大多数流量上优于 ngram，P-EAGLE 支持并行推测的更深层草稿树。部署使用 vLLM 0.7，每 GPU 一个副本，FP8/INT4 量化控制内存。
 
@@ -29,9 +35,18 @@ The craft is in the serving operations, not the model. Acceptance rate drifts wi
 
 Speculative decoding has two layers. A **draft** model (EAGLE-3 head, ngram, or smaller target-aligned model) proposes k candidate tokens per step. The **target** model verifies all k in one pass; any prefix accepted replaces the greedy path. Acceptance rate depends on draft-target alignment and the input distribution.
 
+> Speculative decoding has two layers.
+
+
 EAGLE-3 beats ngram drafts on most traffic. P-EAGLE runs parallel speculation for deeper draft trees. The trade-off: P99 latency on rejection is higher because the verify pass is larger. The serving config must report batch-size-bucketed latency to surface this.
 
+> EAGLE-3 beats ngram drafts on most traffic.
+
+
 Deployment is Kubernetes. vLLM 0.7 runs one replica per GPU or tensor-parallel shard. HPA autoscales on queue-wait rather than CPU. FP8 (Marlin) and INT4 (AWQ) quants keep GPU memory inside an H100 / H200 envelope. The end-to-end report is throughput, acceptance rate, p50/p99 at batch 1/8/32, and $/1M tokens.
+
+> Deployment is Kubernetes.
+
 
 ## Architecture | 架构
 
@@ -59,16 +74,24 @@ Prometheus metrics: throughput, acceptance rate, queue wait, latency p50/p99
 HPA on queue-wait metric
 ```
 
-## Stack
+## Stack | 技术栈
 
 - Serving: vLLM 0.7 or SGLang 0.4
+  中文翻译：Serving: vLLM 0.7 or SGLang 0.4
 - Speculative methods: EAGLE-3 draft heads, P-EAGLE parallel speculation, ngram fallback
+  中文翻译：Speculative methods: EAGLE-3 draft heads, P-EAGLE parallel speculation, ngram fallback
 - Draft training: SpecForge (SGLang) or Red Hat Speculators
+  中文翻译：Draft training: SpecForge (SGLang) or Red Hat Speculators
 - Target models: Llama 3.3 70B, Qwen3-Coder-30B MoE, GPT-OSS-120B
+  中文翻译：Target models: Llama 3.3 70B, Qwen3-Coder-30B MoE, GPT-OSS-120B
 - Quantization: FP8 (Marlin), INT4 AWQ
+  中文翻译：Quantization: FP8 (Marlin), INT4 AWQ
 - Deployment: Kubernetes + NVIDIA device plugin; HPA on queue-wait metric
+  中文翻译：Deployment: Kubernetes + NVIDIA device plugin; HPA on queue-wait metric
 - Eval: ShareGPT, MT-Bench-v2, GSM8K, HumanEval for domain-spread acceptance measurement
+  中文翻译：Eval: ShareGPT, MT-Bench-v2, GSM8K, HumanEval for domain-spread acceptance measurement
 - Reference: TensorRT-LLM speculative decoding for a vendor baseline
+  中文翻译：Reference: TensorRT-LLM speculative decoding for a vendor baseline
 
 ## Build It | 动手构建
 
@@ -77,22 +100,31 @@ HPA on queue-wait metric
 > **【拓展：投机解码在 2026 年推理优化中的地位】** 投机解码（Speculative Decoding）是 LLM 推理延迟优化的核心技术。vLLM 0.7+、TensorRT-LLM、Anthropic 的推理服务都采用此技术。原理：小模型快速生成 K 个候选 token，大模型一次前向传播验证所有候选——接受的 token 免费（无额外延迟），拒绝的 token 被丢弃。EAGLE-3（Red Hat）使用特征级预测而非 token 级，接受率提升到 85%+。实测在 H100 上，70B 模型的 TTFT（首 token 延迟）降低 40-60%。
 
 1. **Target model prep.** Pick Llama 3.3 70B. Quantize to FP8 via Marlin. Deploy under vLLM 0.7 on 1xH100 (or 2x tensor-parallel).
+   中文翻译：1. **Target model prep.** Pick Llama 3.3 70B. Quantize to FP8 via Marlin. Deploy under vLLM 0.7 on 1xH100 (or 2x tensor-parallel).
 
 2. **Draft source.** Pull an aligned EAGLE-3 draft head from Red Hat Speculators (or train one via SpecForge). Load into vLLM's speculative-decoding config.
+   中文翻译：2. **Draft source.** Pull an aligned EAGLE-3 draft head from Red Hat Speculators (or train one via SpecForge). Load into vLLM's speculative-decoding config.
 
 3. **Baseline numbers.** Before speculation: tokens/s at batch 1/8/32, p50/p99 latency, GPU utilization. Publish.
+   中文翻译：3. **Baseline numbers.** Before speculation: tokens/s at batch 1/8/32, p50/p99 latency, GPU utilization. Publish.
 
 4. **Enable EAGLE-3.** Flip config; rerun the same benchmark. Report speedup, acceptance rate, p99 tail-latency delta.
+   中文翻译：4. **Enable EAGLE-3.** Flip config; rerun the same benchmark. Report speedup, acceptance rate, p99 tail-latency delta.
 
 5. **P-EAGLE.** Enable parallel speculation; measure deeper draft tree vs serial EAGLE-3. Report the inflection where P-EAGLE helps vs hurts.
+   中文翻译：5. **P-EAGLE.** Enable parallel speculation; measure deeper draft tree vs serial EAGLE-3. Report the inflection where P-EAGLE helps vs hurts.
 
 6. **Domain traffic.** Run ShareGPT vs HumanEval vs domain-specific traffic through the same server. Measure acceptance rate per distribution. Identify when drafts drift.
+   中文翻译：6. **Domain traffic.** Run ShareGPT vs HumanEval vs domain-specific traffic through the same server. Measure acceptance rate per distribution. Identify when drafts drift.
 
 7. **Second target model.** Run the same pipeline on Qwen3-Coder-30B MoE. Draft is trickier (MoE routing noise). Report.
+   中文翻译：7. **Second target model.** Run the same pipeline on Qwen3-Coder-30B MoE. Draft is trickier (MoE routing noise). Report.
 
 8. **K8s HPA.** Deploy under K8s with HPA tracking `queue_wait_ms`. Demonstrate scale-out when load triples.
+   中文翻译：8. **K8s HPA.** Deploy under K8s with HPA tracking `queue_wait_ms`. Demonstrate scale-out when load triples.
 
 9. **Cost comparison.** Compute $/1M tokens vs Anthropic Claude Sonnet 4.7 and OpenAI GPT-5.4 on the same eval. Publish.
+   中文翻译：9. **Cost comparison.** Compute $/1M tokens vs Anthropic Claude Sonnet 4.7 and OpenAI GPT-5.4 on the same eval. Publish.
 
 ## Use It | 使用方法
 
@@ -107,6 +139,9 @@ $ curl https://infer.example.com/v1/chat/completions -d '{"messages":[...]}'
 ## Ship It | 部署上线
 
 `outputs/skill-inference-server.md` describes the deliverable. A measured serving stack with speculative decoding, a full benchmark report, and a K8s deployment.
+
+> 描述了交付物。
+
 
 | Weight | Criterion | How it is measured |
 |:-:|---|---|

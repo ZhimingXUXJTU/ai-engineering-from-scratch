@@ -5,18 +5,23 @@
 > **【中文解读】** 本节是综合项目——从零实现 DPO（直接偏好优化）。
 
 
-**Type:** Build
-**Languages:** Python (torch, numpy)
-**Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
-**Time:** ~90 minutes
+**Type:** Build | **类型:** Build
+**Languages:** Python (torch, numpy) | **语言:** Python (torch, numpy)
+**Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity) | **前置知识:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
+**Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标
 
 - Derive the DPO loss as a sigmoid over a scaled log-ratio difference and connect it to the implicit reward.
+  中文翻译：Derive the DPO loss as a sigmoid over a scaled log-ratio difference and connect it to the implicit reward.
 - Build a reference model + policy model pair with a frozen reference and a trainable policy.
+  中文翻译：Build a reference model + policy model pair with a frozen reference and a trainable policy.
 - Compute sequence-level log-probabilities under both models, masking prompt tokens.
+  中文翻译：Compute sequence-level log-probabilities under both models, masking prompt tokens.
 - Train the policy on `(prompt, chosen, rejected)` triples and watch the chosen log-prob rise relative to rejected.
+  中文翻译：Train the policy on `(prompt, chosen, rejected)` triples and watch the chosen log-prob rise relative to rejected.
 - Pin behaviour with tests on the loss math, the gradient sign, and the reference invariance.
+  中文翻译：Pin behaviour with tests on the loss math, the gradient sign, and the reference invariance.
 
 ## The Problem | 问题
 
@@ -26,7 +31,13 @@
 
 The classical RLHF answer is a two-stage pipeline. Train a reward model on the preferences. Optimise the policy against the reward with PPO. This works but is expensive: two models in memory during PPO, KL control to keep the policy near the reference, reward hacking when the reward model is brittle.
 
+> classical RLHF answer is a two-stage pipeline. Train a reward model on the preferences. Optimise the policy against the reward with PPO. This works but is expensive: two models in memory during PPO, KL control to keep the policy near the reference, reward hacking when the reward model is brittle.
+
+
 DPO replaces both stages with a single supervised loss. The reward model never exists explicitly. The policy is trained directly on the preference pairs, with an explicit KL penalty toward the SFT reference. Same optimal solution under the Bradley-Terry preference model, far less code.
+
+> DPO replaces both stages with a single supervised loss.
+
 
 ## The Concept | 概念
 
@@ -34,17 +45,26 @@ DPO replaces both stages with a single supervised loss. The reward model never e
 
 Start from the Bradley-Terry model. Given a prompt `x` and two completions `y_w` (chosen) and `y_l` (rejected), the probability the human prefers `y_w` is
 
+> Start from the Bradley-Terry model.
+
+
 ```text
 P(y_w > y_l | x) = sigmoid( r(x, y_w) - r(x, y_l) )
 ```
 
 where `r` is some latent reward function. RLHF first fits `r` from preferences, then trains a policy `pi` to maximise `r` with a KL anchor:
 
+> where `r` is some latent reward function.
+
+
 ```text
 max_pi   E_{x, y~pi} [ r(x, y) ] - beta * KL(pi || pi_ref)
 ```
 
 The DPO derivation observes that the optimal policy `pi*` under this objective has a closed form in terms of `r`:
+
+> DPO derivation observes that the optimal policy `pi*` under this objective has a closed form in terms of `r`:（翻译）
+
 
 ```text
 pi*(y | x) = (1/Z(x)) * pi_ref(y | x) * exp( r(x, y) / beta )
@@ -58,12 +78,18 @@ r(x, y) = beta * ( log pi*(y | x) - log pi_ref(y | x) ) + beta * log Z(x)
 
 The `log Z(x)` term is the same for both `y_w` and `y_l` (it depends on `x`, not `y`), so it cancels when you compute the preference difference:
 
+> `log Z(x)` term is the same for both `y_w` and `y_l` (it depends on `x`, not `y`), so it cancels when you compute the preference difference:
+
+
 ```text
 r(x, y_w) - r(x, y_l) = beta * ( log pi_theta(y_w|x) - log pi_ref(y_w|x)
                                 - log pi_theta(y_l|x) + log pi_ref(y_l|x) )
 ```
 
 Substitute into the Bradley-Terry sigmoid and take negative log likelihood over preference pairs:
+
+> Substitute into the Bradley-Terry sigmoid and take negative log likelihood over preference pairs:（翻译）
+
 
 ```text
 L_DPO(theta) = - E_{(x, y_w, y_l)} [
@@ -73,6 +99,9 @@ L_DPO(theta) = - E_{(x, y_w, y_l)} [
 ```
 
 This is the loss. It is a sigmoid over a single scalar per example, computed from four log-probabilities. No separate reward model. No PPO. No KL term in the loss; the KL constraint is baked into the closed-form derivation.
+
+> 这个is the loss. It is a sigmoid over a single scalar per example, computed from four log-probabilities. No separate reward model. No PPO. No KL term in the loss; the KL constraint is baked into the closed-form derivation.
+
 
 ```mermaid
 flowchart LR
@@ -94,11 +123,17 @@ flowchart LR
 
 A useful sanity check before any training run. Take the gradient with respect to `log pi_theta(y_w | x)`:
 
+> A useful sanity check before any training run. Take the gradient with respect to `log pi_theta(y_w | x)`:（翻译）
+
+
 ```text
 d L_DPO / d log pi_theta(y_w | x) = - beta * (1 - sigmoid(z))
 ```
 
 where `z` is the argument to the sigmoid. This is negative for all `z`, which means: increasing the policy's log-probability of the chosen completion decreases the loss. Symmetrically, the gradient with respect to `log pi_theta(y_l | x)` is positive: increasing the rejected log-probability increases the loss. Training pushes the chosen up and the rejected down. The reference is frozen; it does not move.
+
+> where `z` is the argument to the sigmoid.
+
 
 ## The Data
 
@@ -106,21 +141,36 @@ where `z` is the argument to the sigmoid. This is negative for all `z`, which me
 
 Twelve preference triples ship with the lesson. Each is `(prompt, chosen, rejected)`. The chosen completion is short and precise. The rejected is wordy, off-topic, or wrong. The pairs cover the same task families as lesson 39 (capital, arithmetic, list) so a policy that started from an SFT base has a reasonable starting point.
 
+> Twelve preference triples ship with the lesson.
+
+
 The fixture is intentionally small. DPO works on tens of thousands of pairs in production; here, the point is that the loss math and the loop run end-to-end on a tiny dataset and the chosen-versus-rejected log-prob gap visibly grows.
+
+> fixture is intentionally small. DPO works on tens of thousands of pairs in production; here, the point is that the loss math and the loop run end-to-end on a tiny dataset and the chosen-versus-rejected log-prob gap visibly grows.
+
 
 ## Reference Invariance
 
 A DPO implementation has to handle the reference model carefully. The reference is the SFT model frozen in place. Three properties have to hold:
 
+> 一个DPO implementation has to handle the reference model carefully. The reference is the SFT model frozen in place. Three properties have to hold:
+
+
 - The reference parameters never receive gradients.
+  中文翻译：The reference parameters never receive gradients.
 - The reference log-probabilities never change between epochs.
+  中文翻译：The reference log-probabilities never change between epochs.
 - The policy starts from the same weights as the reference. (The optimal `theta` is the reference plus a learned update; initialising the policy as a copy of the reference is the well-defined start.)
+  中文翻译：The policy starts from the same weights as the reference. (The optimal `theta` is the reference plus a learned update; initialising the policy as a copy of the reference is the well-defined start.)
 
 The implementation enforces these by:
 
 - Wrapping the reference in `torch.no_grad()` during forward passes.
+  中文翻译：Wrapping the reference in `torch.no_grad()` during forward passes.
 - Setting `requires_grad=False` on every reference parameter.
+  中文翻译：Setting `requires_grad=False` on every reference parameter.
 - Constructing the policy via `policy.load_state_dict(reference.state_dict())` after the reference is built.
+  中文翻译：Constructing the policy via `policy.load_state_dict(reference.state_dict())` after the reference is built.
 
 ## Architecture | 架构
 
@@ -141,6 +191,9 @@ flowchart TD
 
 The model is the same TinyGPT used in lesson 39 (decoder-only, causal, byte tokeniser). The reference and policy share the architecture; the policy's weights drift from the reference under training while the reference stays fixed.
 
+> model is the same TinyGPT used in lesson 39 (decoder-only, causal, byte tokeniser). The reference and policy share the architecture; the policy's weights drift from the reference under training while the reference stays fixed.
+
+
 ## What you will build
 
 The implementation is one `main.py` plus tests.
@@ -160,11 +213,21 @@ The implementation is one `main.py` plus tests.
 
 DPO is mathematically equivalent to RLHF under the Bradley-Terry preference model, up to the parameterisation of the reward. The implicit reward `r(x, y) = beta * (log pi(y|x) - log pi_ref(y|x))` is identifiable from preferences up to a function of `x`, which cancels in the difference. The closed-form policy lets you skip the explicit reward model. The KL constraint is enforced structurally: any deviation of `pi` from `pi_ref` makes the log-ratio larger, and the sigmoid saturates, which damps the gradient when the policy moves too far. The reference is your safety net.
 
+> DPO is mathematically equivalent to RLHF under the Bradley-Terry preference model, up to the parameterisation of the reward.
+
+
 ## Stretch goals
 
 - Add a length normalisation to the log-probability sum: divide by completion length. Length bias is a known DPO failure mode where the model preferentially chooses shorter completions because their log-probabilities are larger in absolute terms.
+  中文翻译：Add a length normalisation to the log-probability sum: divide by completion length. Length bias is a known DPO failure mode where the model preferentially chooses shorter completions because their log-probabilities are larger in absolute terms.
 - Add the IPO variant of the loss: replace the sigmoid + log with `(z - 1)^2`. Compare convergence on the fixture.
+  中文翻译：Add the IPO variant of the loss: replace the sigmoid + log with `(z - 1)^2`. Compare convergence on the fixture.
 - Add a label-smoothing parameter that interpolates between the hard chosen-rejected label and a uniform 0.5.
+  中文翻译：Add a label-smoothing parameter that interpolates between the hard chosen-rejected label and a uniform 0.5.
 - Replace the reference with a smaller cheaper model (knowledge distillation flavour).
+  中文翻译：Replace the reference with a smaller cheaper model (knowledge distillation flavour).
 
 The implementation gives you the loss, the reference invariance, and the training loop. The math is the lesson. The code makes the math concrete.
+
+> implementation gives you the loss, the reference invariance, and the training loop. The math is the lesson. The code makes the math concrete.
+

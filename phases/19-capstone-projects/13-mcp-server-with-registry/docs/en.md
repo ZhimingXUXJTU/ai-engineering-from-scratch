@@ -5,13 +5,13 @@
 > **【中文解读】** 本节是综合项目——构建带注册中心的 MCP 服务器。
 
 
-**Type:** Capstone
-**Languages:** Python (server, via FastMCP) or TypeScript (@modelcontextprotocol/sdk), Go (registry service)
-**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools and MCP), Phase 14 (agents), Phase 17 (infrastructure), Phase 18 (safety)
-**Phases exercised:** P11 · P13 · P14 · P17 · P18
-**Time:** 25 hours
+**Type:** Capstone | **类型:** Capstone
+**Languages:** Python (server, via FastMCP) or TypeScript (@modelcontextprotocol/sdk), Go (registry service) | **语言:** Python (server, via FastMCP) or TypeScript (@modelcontextprotocol/sdk), Go (registry service)
+**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools and MCP), Phase 14 (agents), Phase 17 (infrastructure), Phase 18 (safety) | **前置知识:** Phase 11 (LLM engineering), Phase 13 (tools and MCP), Phase 14 (agents), Phase 17 (infrastructure), Phase 18 (safety)
+**Phases exercised:** P11 · P13 · P14 · P17 · P18 | **涉及阶段:** P11 · P13 · P14 · P17 · P18
+**Time:** 25 hours | **时间:** 25 hours
 
-## Problem
+## Problem | 问题引入
 
 > **【中文解读】** 本节描述 MCP 服务器生产化的核心挑战。MCP 已成为工具使用的通用语言——Claude Code、Cursor 3、Amp、OpenCode、Gemini CLI 都消费 MCP 服务器。挑战不在编写服务器（FastMCP 很简单），而在企业级部署：每租户 OAuth 范围、OPA 策略对破坏性工具的门控、StreamableHTTP 无状态水平扩展、注册中心发现和每工具调用审计日志。
 
@@ -19,9 +19,15 @@
 
 MCP became the tool-use lingua franca. Claude Code, Cursor 3, Amp, OpenCode, Gemini CLI, and every managed agent now consume MCP servers. The production challenges are not authoring servers (FastMCP makes that easy) but deploying them at scale with enterprise requirements: per-tenant OAuth scopes, OPA policy on destructive tools, StreamableHTTP stateless scaling, a registry for discovery, audit logs per tool call. Pinterest's internal MCP ecosystem and the AAIF Registry spec set the 2026 bar.
 
+> MCP became the tool-use lingua franca.
+
+
 You will build an MCP server exposing 10 internal tools (Postgres read-only, S3 listing, Jira, Linear, Datadog, etc.), a registry UI for platform discovery, and a human-approval gate for destructive tools. The load test demonstrates StreamableHTTP horizontal scaling. The audit trail satisfies an enterprise security review.
 
-## Concept
+> 你will build an MCP server exposing 10 internal tools (Postgres read-only, S3 listing, Jira, Linear, Datadog, etc.), a registry UI for platform discovery, and a human-approval gate for destructive tools. The load test demonstrates StreamableHTTP horizontal scaling. The audit trail satisfies an enterprise security review.
+
+
+## Concept | 核心概念
 
 > **【中文解读】** MCP 2026 修订版强制 StreamableHTTP 作为默认传输：单个 HTTP 端点接受 JSON-RPC 请求、流式响应、支持长连接通知。无状态意味着可在负载均衡器后水平扩展。授权使用 OAuth 2.1 按工具范围控制（jira:read、s3:list、postgres:query:readonly），高风控工具需要 `approved:by:human` 范围（通过 Slack 审批卡提升）。注册中心是独立服务，轮询各服务器的 `.well-known/mcp-capabilities` 文档，验证并索引。
 
@@ -29,9 +35,18 @@ You will build an MCP server exposing 10 internal tools (Postgres read-only, S3 
 
 MCP 2026 revision mandates StreamableHTTP as the default transport. Unlike the earlier stdio-and-SSE shape, StreamableHTTP is stateless by default: a single HTTP endpoint accepts JSON-RPC requests, streams responses, and supports long-lived connections for notifications. Stateless means horizontally scalable behind a load balancer.
 
+> MCP 2026 revision mandates StreamableHTTP as the default transport.
+
+
 Authorization is OAuth 2.1 with per-tool scopes. A token carries scopes like `jira:read`, `s3:list`, `postgres:query:readonly`. The MCP server checks scopes at tool-call time, not just session start. For high-risk tools, the server rejects any call whose scope is not elevated to `approved:by:human` within the last N minutes — that elevation comes from a Slack review card.
 
+> Authorization is OAuth 2.
+
+
 The registry is a separate service. Every MCP server exposes a `.well-known/mcp-capabilities` document with its tool manifest, transport URL, auth requirements. The registry polls, validates, and indexes. Platform teams use the registry UI to see what tools are available, what scopes they need, and which teams own them.
+
+> registry is a separate service. Every MCP server exposes a `.well-known/mcp-capabilities` document with its tool manifest, transport URL, auth requirements. The registry polls, validates, and indexes. Platform teams use the registry UI to see what tools are available, what scopes they need, and which teams own them.
+
 
 ## Architecture | 架构
 
@@ -66,16 +81,24 @@ Postgres    S3 listing  Jira       Linear     Datadog
      UI: search / validate / enable-disable / ownership
 ```
 
-## Stack
+## Stack | 技术栈
 
 - Server framework: FastMCP (Python) or `@modelcontextprotocol/sdk` (TypeScript)
+  中文翻译：Server framework: FastMCP (Python) or `@modelcontextprotocol/sdk` (TypeScript)
 - Transport: StreamableHTTP over HTTPS (stateless)
+  中文翻译：Transport: StreamableHTTP over HTTPS (stateless)
 - Auth: OAuth 2.1 with workload identity via SPIFFE / SPIRE
+  中文翻译：Auth: OAuth 2.1 with workload identity via SPIFFE / SPIRE
 - Policy: OPA / Rego rules per tool; policy decision service per request
+  中文翻译：Policy: OPA / Rego rules per tool; policy decision service per request
 - Registry: self-hosted, consumes `.well-known/mcp-capabilities` manifests
+  中文翻译：Registry: self-hosted, consumes `.well-known/mcp-capabilities` manifests
 - Human approval: Slack interactive message for destructive tools
+  中文翻译：Human approval: Slack interactive message for destructive tools
 - Deployment: AWS ECS Fargate or Fly.io, one server per tenant or shared with tenant scoping
+  中文翻译：Deployment: AWS ECS Fargate or Fly.io, one server per tenant or shared with tenant scoping
 - Audit: structured JSONL per-tenant bucket with per-call lineage
+  中文翻译：Audit: structured JSONL per-tenant bucket with per-call lineage
 
 ## Build It | 动手构建
 
@@ -84,22 +107,31 @@ Postgres    S3 listing  Jira       Linear     Datadog
 > **【拓展：MCP 注册中心在企业级部署中的角色】** Model Context Protocol 的注册中心是企业 AI 治理的核心组件。它解决三个问题：1）工具发现（Agent 知道有哪些工具可用）；2）权限控制（基于角色的工具访问）；3）版本管理（工具 schema 变更的向后兼容性）。Anthropic 的 Claude Enterprise 和 Microsoft 的 Copilot Studio 都实现了类似的工具注册中心。本课的 10 工具面是企业级 MCP 部署的标准起点。
 
 1. **Tool surface.** Expose 10 internal tools: Postgres read-only query, S3 list objects, Jira search/fetch, Linear search/fetch, Datadog metric query, PagerDuty on-call lookup, GitHub read-only, Notion search, Slack search, Salesforce read. Each tool has a typed schema and a scope label.
+   中文翻译：1. **Tool surface.** Expose 10 internal tools: Postgres read-only query, S3 list objects, Jira search/fetch, Linear search/fetch, Datadog metric query, PagerDuty on-call lookup, GitHub read-only, Notion search, Slack search, Salesforce read. Each tool has a typed schema and a scope label.
 
 2. **FastMCP server.** Mount the tools. Configure StreamableHTTP transport. Add a middleware for OAuth token introspection and scope enforcement.
+   中文翻译：2. **FastMCP server.** Mount the tools. Configure StreamableHTTP transport. Add a middleware for OAuth token introspection and scope enforcement.
 
 3. **OPA policy.** Rego policy per tool: what scopes permit invocation, what PII redaction applies, what payload-size caps apply. Decision service called on every tool call.
+   中文翻译：3. **OPA policy.** Rego policy per tool: what scopes permit invocation, what PII redaction applies, what payload-size caps apply. Decision service called on every tool call.
 
 4. **Registry service.** Separate Go or TS service that polls `.well-known/mcp-capabilities` from registered servers, validates with JSON Schema, and exposes a list / search / validate / enable-disable UI.
+   中文翻译：4. **Registry service.** Separate Go or TS service that polls `.well-known/mcp-capabilities` from registered servers, validates with JSON Schema, and exposes a list / search / validate / enable-disable UI.
 
 5. **Capability manifest.** Each server exposes `.well-known/mcp-capabilities` with: tool list, auth requirements, transport URL, owner team, SLO.
+   中文翻译：5. **Capability manifest.** Each server exposes `.well-known/mcp-capabilities` with: tool list, auth requirements, transport URL, owner team, SLO.
 
 6. **Destructive tool separation.** Tools that mutate state (Jira create, Linear create, Postgres write) live on a second MCP server with a stricter auth flow: tokens must have a `approved:by:human` scope elevated via Slack card within 15 minutes.
+   中文翻译：6. **Destructive tool separation.** Tools that mutate state (Jira create, Linear create, Postgres write) live on a second MCP server with a stricter auth flow: tokens must have a `approved:by:human` scope elevated via Slack card within 15 minutes.
 
 7. **Audit log.** Append-only JSONL per tenant: `{timestamp, user, tool, args_redacted, response_redacted, outcome}`. PII redaction via Presidio before write.
+   中文翻译：7. **Audit log.** Append-only JSONL per tenant: `{timestamp, user, tool, args_redacted, response_redacted, outcome}`. PII redaction via Presidio before write.
 
 8. **Load test.** 100 concurrent clients on StreamableHTTP. Demonstrate horizontal scaling by adding a second replica; show the load balancer redistributing without session stickiness.
+   中文翻译：8. **Load test.** 100 concurrent clients on StreamableHTTP. Demonstrate horizontal scaling by adding a second replica; show the load balancer redistributing without session stickiness.
 
 9. **Conformance tests.** Run the official MCP conformance suite against both servers. Pass all mandatory sections.
+   中文翻译：9. **Conformance tests.** Run the official MCP conformance suite against both servers. Pass all mandatory sections.
 
 ## Use It | 使用方法
 
@@ -117,6 +149,9 @@ response:    { "result": { "rows": [[1]] } }
 ## Ship It | 部署上线
 
 `outputs/skill-mcp-server.md` describes the deliverable. A production-grade MCP server + registry + audit layer for internal tools with OAuth 2.1 scopes and OPA gating.
+
+> 描述了交付物。
+
 
 | Weight | Criterion | How it is measured |
 |:-:|---|---|

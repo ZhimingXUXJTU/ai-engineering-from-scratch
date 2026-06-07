@@ -5,17 +5,22 @@
 > **【中文解读】** 本节是综合项目——构建计划-执行控制流。
 
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 13 lessons 01-07, Phase 14 lesson 01
-**Time:** ~90 minutes
+**Type:** Build | **类型:** Build
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 13 lessons 01-07, Phase 14 lesson 01 | **前置知识:** Phase 13 lessons 01-07, Phase 14 lesson 01
+**Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标
 - Represent a plan as an ordered list of typed steps so the executor can reason about progress and outcome.
+  中文翻译：Represent a plan as an ordered list of typed steps so the executor can reason about progress and outcome.
 - Execute steps sequentially with a controlled failure handoff back to the planner.
+  中文翻译：Execute steps sequentially with a controlled failure handoff back to the planner.
 - Replan from the current cursor with the prior error in the context so the next plan is informed.
+  中文翻译：Replan from the current cursor with the prior error in the context so the next plan is informed.
 - Emit a plan diff on each revision so a downstream tracer or UI can show why the plan changed.
+  中文翻译：Emit a plan diff on each revision so a downstream tracer or UI can show why the plan changed.
 - Enforce two budgets: a hard step ceiling and a hard replan ceiling.
+  中文翻译：Enforce two budgets: a hard step ceiling and a hard replan ceiling.
 
 ## Plan and execute, not chain-of-thought
 
@@ -25,7 +30,13 @@
 
 A chain-of-thought agent emits tokens and lets the loop guess where the tool call ends. A plan-and-execute agent emits a structured plan first, then executes each step deterministically. The plan is data the harness can introspect. The execution is the harness running that data through a dispatcher.
 
+> 一个chain-of-thought agent emits tokens and lets the loop guess where the tool call ends. A plan-and-execute agent emits a structured plan first, then executes each step deterministically. The plan is data the harness can introspect. The execution is the harness running that data through a dispatcher.
+
+
 Two pieces. A planner that produces a plan. An executor that runs the plan. The interesting work is what happens when the executor hits a failure. Three options:
+
+> Two pieces.
+
 
 ```text
 1. Abort         (return failed, surface the error)
@@ -51,6 +62,9 @@ Step
 
 `expected_outcome` is a short sentence the planner emits alongside the step. It is not enforced by the executor. It is for two things: the replanner reads it when revising the plan; the event stream emits it so a tracer can show "this step was supposed to do X."
 
+> `expected_outcome` is a short sentence the planner emits alongside the step.
+
+
 ## The planner shape
 
 > **【拓展：Plan-and-Execute 在 Claude 和 GPT-4 中的实践】** Claude 的 tool_use 模式和 GPT-4 的 function_calling 本质上都是单步 Plan-Execute。但 Devin、SWE-Agent 等产品级 Agent 采用了多步规划：先将用户需求分解为子任务（规划），再逐步执行（执行），失败时重新规划。这种架构的工程挑战在于如何将失败信息有效传递给重新规划器——本课通过 `last_error` 参数和 `history` 列表解决了这个问题。
@@ -62,11 +76,20 @@ def planner(goal: str, history: list[Step], last_error: str | None) -> list[Step
 
 A pure function. `goal` is the user goal. `history` is the steps already executed (with results and errors filled in). `last_error` is None on the first call and the most recent failure message on every subsequent call. The planner returns the next plan starting from the cursor.
 
+> 一个pure function. `goal` is the user goal. `history` is the steps already executed (with results and errors filled in). `last_error` is None on the first call and the most recent failure message on every subsequent call. The planner returns the next plan starting from the cursor.
+
+
 The planner does not know about the executor. It does not know about retries. It does not know about timeouts. It produces a plan. That is all.
+
+> planner does not know about the executor. It does not know about retries. It does not know about timeouts. It produces a plan. That is all.
+
 
 ## The executor
 
 The executor is a small state machine. Each step runs through the dispatcher. The outcome is one of three things: success, failure-replannable, failure-fatal. Replannable failures hand back to the planner. Fatal failures (budget exceeded, replan ceiling hit) return a `FAILED` session result.
+
+> executor is a small state machine. Each step runs through the dispatcher. The outcome is one of three things: success, failure-replannable, failure-fatal. Replannable failures hand back to the planner. Fatal failures (budget exceeded, replan ceiling hit) return a `FAILED` session result.
+
 
 ```mermaid
 stateDiagram-v2
@@ -89,6 +112,9 @@ stateDiagram-v2
 
 When the planner returns a new plan after a failure, the executor emits a `plan.diff` event with three fields.
 
+> When the planner returns a new plan after a failure, the executor emits a `plan.diff` event with three fields.（翻译）
+
+
 ```text
 removed: list of step ids that were in the old plan and are not in the new
 added  : list of step ids in the new plan that were not in the old
@@ -97,17 +123,29 @@ revised: list of step ids whose tool_name or args changed
 
 A tracer or UI can render this as a strikethrough on the removed steps and a highlight on the added ones. The point is not the diff format. The point is that revision is a visible event, not a silent rewrite.
 
+> 一个tracer or UI can render this as a strikethrough on the removed steps and a highlight on the added ones. The point is not the diff format. The point is that revision is a visible event, not a silent rewrite.
+
+
 ## Two budgets, both hard
 
 > **【中文解读】** 两个硬性预算约束：`max_steps`（默认 12）限制整个会话的总步骤执行数，包括重新规划后的步骤；`max_replans`（默认 5）限制规划器被重新调用的次数。规划器连续 5 次返回相同的错误计划会被预算上限捕获。预算不仅是成本控制，更是防止 Agent 陷入死循环的安全阀。
 
 `max_steps` caps total step executions across the whole session, including replans. Default is twelve. A linear five-step plan that replans twice and adds three steps each time hits sixteen executions and would exceed the budget. The executor will refuse the replan and return FAILED.
 
+> `max_steps` caps total step executions across the whole session, including replans.
+
+
 `max_replans` caps the number of times the planner is called after the first plan. Default is five. This is the more important limit. A planner that returns the same broken plan five times in a row would otherwise loop until the step budget catches it. Capping replans makes the failure faster and the reason clearer.
+
+> `max_replans` caps the number of times the planner is called after the first plan.
+
 
 ## The deterministic planner in this lesson
 
 We do not call a model in this lesson. The lesson ships a deterministic planner that picks a plan based on `last_error`.
+
+> 我们do not call a model in this lesson. The lesson ships a deterministic planner that picks a plan based on `last_error`.
+
 
 ```text
 last_error is None    -> emit a four-step plan
@@ -117,6 +155,9 @@ otherwise             -> return [] (signals nothing to replan)
 ```
 
 This is enough to test the executor's behavior on every transition path: success, replan-once, replan-twice, replan-exhaustion, and step-budget exhaustion.
+
+> 这个is enough to test the executor's behavior on every transition path: success, replan-once, replan-twice, replan-exhaustion, and step-budget exhaustion.
+
 
 ## Result shape
 
@@ -131,14 +172,29 @@ SessionResult
 
 The harness loop from lesson twenty can read this directly. The dispatcher from lesson twenty-three is what executes each step. The registry from lesson twenty-one validates each step's args. The transport from lesson twenty-two would surface this whole flow over JSON-RPC to a model client.
 
+> harness loop from lesson twenty can read this directly. The dispatcher from lesson twenty-three is what executes each step. The registry from lesson twenty-one validates each step's args. The transport from lesson twenty-two would surface this whole flow over JSON-RPC to a model client.
+
+
 ## How to read the code
 
 `code/main.py` defines `PlanExecuteAgent`, `Step`, `PlanDiff`, `SessionResult`, and the deterministic planner. The executor is a single `run(goal)` method that returns a `SessionResult`. The plan diff is computed by comparing step ids and `(tool_name, args)` tuples.
 
+> `code/main.
+
+
 `code/tests/test_agent.py` covers a linear success, a mid-plan failure that replans once, replan exhaustion that returns `failed:replan_budget`, step-budget exhaustion, and the plan-diff event format.
+
+> `code/tests/test_agent.
+
 
 ## Going further
 
 Two extensions you will want once you wire this to a real model. First, partial-plan caching: when a plan succeeds for the first three of six steps and then fails, you do not want to re-run the first three. The executor already keeps history; the planner just needs to read it. Second, parallel branches: the current executor is strictly sequential. A planner that emits an independent branch (`gather_step` instead of `next_step`) can run two tool calls concurrently through the dispatcher.
 
+> Two extensions you will want once you wire this to a real model.
+
+
 Both add real complexity. Both are easier to add once the linear executor is pinned. That is what this lesson does.
+
+> Both add real complexity. Both are easier to add once the linear executor is pinned. That is what this lesson does.（翻译）
+

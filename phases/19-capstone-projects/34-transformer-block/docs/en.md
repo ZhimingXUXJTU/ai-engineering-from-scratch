@@ -5,18 +5,23 @@
 > **【中文解读】** 本节是综合项目——实现 Transformer 块。
 
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 19 lessons 30 to 33 (tokenizer, embeddings, attention math, batched data loader)
-**Time:** ~90 minutes
+**Type:** Build | **类型:** Build
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 19 lessons 30 to 33 (tokenizer, embeddings, attention math, batched data loader) | **前置知识:** Phase 19 lessons 30 to 33 (tokenizer, embeddings, attention math, batched data loader)
+**Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标
 
 - Build a transformer block in PyTorch from the four moving pieces: LayerNorm, multi head causal attention, residual connections, position wise MLP.
+  中文翻译：Build a transformer block in PyTorch from the four moving pieces: LayerNorm, multi head causal attention, residual connections, position wise MLP.
 - Place the LayerNorms in two configurations (pre-LN and post-LN) and explain why one trains stably without warmup.
+  中文翻译：Place the LayerNorms in two configurations (pre-LN and post-LN) and explain why one trains stably without warmup.
 - Implement causal masking inside the multi head attention so token `i` cannot see tokens `j > i`.
+  中文翻译：Implement causal masking inside the multi head attention so token `i` cannot see tokens `j > i`.
 - Track gradient flow through both variants on a 12 layer stack and read the result without hand waving.
+  中文翻译：Track gradient flow through both variants on a 12 layer stack and read the result without hand waving.
 - Reuse the block as a drop-in unit when the next lesson assembles a 124 million parameter GPT.
+  中文翻译：Reuse the block as a drop-in unit when the next lesson assembles a 124 million parameter GPT.
 
 ## The Problem | 问题
 
@@ -26,9 +31,15 @@
 
 The fix is mechanical once you see it. The block has exactly two residual paths and exactly two normalization positions. Choose the positions correctly and the rest of the stack is just bookkeeping.
 
+> fix is mechanical once you see it. The block has exactly two residual paths and exactly two normalization positions. Choose the positions correctly and the rest of the stack is just bookkeeping.
+
+
 ## The Concept | 概念
 
 Every decoder only transformer block is a function that takes a tensor of shape `(batch, sequence, embedding)` and returns a tensor of the same shape. Inside, two sublayers do the work.
+
+> 每个decoder only transformer block is a function that takes a tensor of shape `(batch, sequence, embedding)` and returns a tensor of the same shape. Inside, two sublayers do the work.
+
 
 ```mermaid
 flowchart TB
@@ -45,7 +56,13 @@ flowchart TB
 
 This is the pre-LN variant. The LayerNorm sits inside the residual branch, before the sublayer. The residual connection carries the unnormalized signal forward.
 
+> 这个is the pre-LN variant. The LayerNorm sits inside the residual branch, before the sublayer. The residual connection carries the unnormalized signal forward.
+
+
 The post-LN variant moves the LayerNorm to after the residual add.
+
+> POst-LN variant moves the LayerNorm to after the residual add.（翻译）
+
 
 ```mermaid
 flowchart TB
@@ -62,15 +79,24 @@ flowchart TB
 
 Shape is identical. Training behavior is not. With post-LN, the gradient that flows back through the residual path must pass through the LayerNorm. At depth twelve and learning rate `3e-4`, that gradient shrinks fast enough to need a warmup schedule. Pre-LN leaves the residual path unnormalized, so gradients propagate cleanly to the embedding layer. Pre-LN is the configuration GPT-2 onward ships with for that reason.
 
+> Shape is identical.
+
+
 ### Causal multi head attention
 
 > **【中文解读】** 注意力子层将输入投影为 Q、K、V 三个张量，每个从 `(B, T, D)` 重塑为 `(B, H, T, D/H)`。计算 `softmax(Q K^T / sqrt(d_k))` 并应用因果掩码（上三角设为负无穷），然后乘以 V。头拼接回 `(B, T, D)` 后再做一次输出投影。因果掩码是唯一使模型成为 decoder 的组件——忘记掩码等于训练一个作弊的模型。
 
 The attention sublayer projects the input three ways into query, key, value tensors. Each is reshaped from `(B, T, D)` to `(B, H, T, D/H)` where `H` is the head count. Scaled dot product attention computes `softmax(Q K^T / sqrt(d_k))` per head, masks the upper triangle to negative infinity, applies the mask via softmax, then multiplies by `V`. Heads are concatenated back into a single `(B, T, D)` tensor and projected once more. The mask is the only piece that makes the model causal. Forget the mask and you train a model that cheats.
 
+> attention sublayer projects the input three ways into query, key, value tensors. Each is reshaped from `(B, T, D)` to `(B, H, T, D/H)` where `H` is the head count. Scaled dot product attention computes `softmax(Q K^T / sqrt(d_k))` per head, masks the upper triangle to negative infinity, applies the mask via softmax, then multiplies by `V`. Heads are concatenated back into a single `(B, T, D)` tensor and projected once more. The mask is the only piece that makes the model causal. Forget the mask and you train a model that cheats.
+
+
 ### The MLP
 
 The position wise MLP applies the same two layer network to every token independently. The hidden width is four times the embedding width, the activation is GELU, and a dropout follows the second linear. No tokens talk to each other inside the MLP. All token mixing happens in attention.
+
+> position wise MLP applies the same two layer network to every token independently. The hidden width is four times the embedding width, the activation is GELU, and a dropout follows the second linear. No tokens talk to each other inside the MLP. All token mixing happens in attention.
+
 
 ### Residual connections do two things
 
@@ -78,15 +104,23 @@ The position wise MLP applies the same two layer network to every token independ
 
 They make the gradient path additive across depth, which keeps the gradient norm in scale through twelve layers. They also let each block learn an additive update to the running representation rather than a full replacement. Both effects are why the block scales.
 
+> They make the gradient path additive across depth, which keeps the gradient norm in scale through twelve layers.
+
+
 ## Build It | 动手构建
 
 `code/main.py` implements:
 
 - `class LayerNorm` with learnable scale and shift, biased eps, applied per token vector.
+  中文翻译：`class LayerNorm` with learnable scale and shift, biased eps, applied per token vector.
 - `class MultiHeadAttention` with `num_heads`, `head_dim = d_model // num_heads`, fused QKV projection, registered causal mask, attention and residual dropout.
+  中文翻译：`class MultiHeadAttention` with `num_heads`, `head_dim = d_model // num_heads`, fused QKV projection, registered causal mask, attention and residual dropout.
 - `class FeedForward` with two linear layers, GELU activation, dropout.
+  中文翻译：`class FeedForward` with two linear layers, GELU activation, dropout.
 - `class TransformerBlock` with a `pre_ln` flag that toggles between the two variants.
+  中文翻译：`class TransformerBlock` with a `pre_ln` flag that toggles between the two variants.
 - A demo that builds a 6 layer pre-LN stack and a 6 layer post-LN stack with identical inputs and prints (a) output shape, (b) gradient norm at the embedding after one backward pass.
+  中文翻译：A demo that builds a 6 layer pre-LN stack and a 6 layer post-LN stack with identical inputs and prints (a) output shape, (b) gradient norm at the embedding after one backward pass.
 
 Run it:
 
@@ -96,10 +130,15 @@ python3 code/main.py
 
 Output: shape check on both stacks, gradient norms side by side. The pre-LN stack's embedding gradient is order of magnitude larger than the post-LN stack at the same learning rate, which is the empirical signal pre-LN trains without warmup.
 
-## Stack
+> Output: shape check on both stacks, gradient norms side by side.
+
+
+## Stack | 技术栈
 
 - `torch` for the tensor math, autograd, and `nn.Module` plumbing.
+  中文翻译：`torch` for the tensor math, autograd, and `nn.Module` plumbing.
 - No `transformers`, no pretrained weights. The block is implemented from primitives.
+  中文翻译：No `transformers`, no pretrained weights. The block is implemented from primitives.
 
 ## Production patterns in the wild
 
@@ -114,8 +153,11 @@ Output: shape check on both stacks, gradient norms side by side. The pre-LN stac
 ## Use It | 使用方法
 
 - The block in this lesson plugs straight into the GPT assembly in lesson 35 without modification.
+  中文翻译：The block in this lesson plugs straight into the GPT assembly in lesson 35 without modification.
 - The pre-LN variant is what every modern open weights LLM uses. The post-LN variant is what the original 2017 attention paper used. Knowing both is enough to read any decoder architecture you will encounter.
+  中文翻译：The pre-LN variant is what every modern open weights LLM uses. The post-LN variant is what the original 2017 attention paper used. Knowing both is enough to read any decoder architecture you will encounter.
 - Swap the GELU for SiLU and you have the LLaMA family activation. Swap the LayerNorm for RMSNorm and you have the LLaMA family normalization. Same skeleton.
+  中文翻译：Swap the GELU for SiLU and you have the LLaMA family activation. Swap the LayerNorm for RMSNorm and you have the LLaMA family normalization. Same skeleton.
 
 ## Exercises | 练习题
 
@@ -137,6 +179,10 @@ Output: shape check on both stacks, gradient norms side by side. The pre-LN stac
 ## Further Reading | 延伸阅读
 
 - Phase 7 lesson 02 (self attention from scratch) for the attention math underneath this block.
+  中文翻译：Phase 7 lesson 02 (self attention from scratch) for the attention math underneath this block.
 - Phase 7 lesson 05 (full transformer) for the encoder decoder version of the same skeleton.
+  中文翻译：Phase 7 lesson 05 (full transformer) for the encoder decoder version of the same skeleton.
 - Phase 10 lesson 04 (pre training mini GPT) for the training procedure that this block plugs into.
+  中文翻译：Phase 10 lesson 04 (pre training mini GPT) for the training procedure that this block plugs into.
 - Phase 19 lesson 35 (this track) which stacks twelve of these blocks into a GPT model.
+  中文翻译：Phase 19 lesson 35 (this track) which stacks twelve of these blocks into a GPT model.
