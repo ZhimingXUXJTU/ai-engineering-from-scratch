@@ -15,8 +15,7 @@
 - Distinguish statistical significance from practical significance using effect size measures
 
 
-> **【中文解读】**
-> 统计学告诉你模型是真的有效还是运气好。A/B 测试评估新模型、Bootstrap 构建置信区间、假设检验判断差异显著性——这些是 ML 实验评估的基础。
+> **【中文解读】** 统计学告诉你模型是真的有效还是运气好。A/B 测试评估新模型、Bootstrap 构建置信区间、假设检验判断差异显著性——这些是 ML 实验评估的基础。本节覆盖描述统计、相关性、假设检验（t 检验、卡方检验）、Bootstrap 和多重比较问题。
 
 ## The Problem
 
@@ -27,6 +26,8 @@ Model B did not actually outperform Model A. The 0.02 difference was noise. Your
 This happens constantly. Kaggle leaderboard shakeups. Papers that fail to reproduce. A/B tests that declare winners based on a few hundred samples. The root cause is always the same: someone skipped the statistics.
 
 Statistics gives you the tools to distinguish signal from noise. It tells you when a difference is real, how confident you should be, and how much data you need before you can trust a result. Every ML pipeline, every model comparison, every experiment needs statistics. Without it, you are guessing.
+
+> **【中文解读】** 核心问题：模型 A 得分 0.87，模型 B 得分 0.89，就部署 B？三周后生产指标反而更差。0.02 的差异可能只是噪声。统计给你工具区分信号与噪声：差异是否真实、置信度多高、需要多少数据才能信任结果。
 
 ## The Concept
 
@@ -88,6 +89,8 @@ Sample variance:     s^2     = (1/(n-1)) * sum((x_i - x_bar)^2)
 
 In practice: if n is large (thousands of samples), the difference is negligible. If n is small (dozens of samples), it matters.
 
+> **【中文解读】** 描述统计把数据压缩为几个关键数字：均值（中心趋势）、中位数（不受异常值影响的中心）、标准差（离散程度）、四分位距（IQR，更鲁棒的离散度量）、偏度（对称性）和峰度（尾部厚度）。数据探索第一步永远是看这些数字。
+
 ### Correlation: How Variables Move Together
 
 Correlation measures the strength and direction of a linear relationship between two variables.
@@ -113,6 +116,8 @@ Pearson assumes the relationship is linear and both variables are roughly normal
 2. Compute Pearson correlation on the ranks
 
 Spearman catches any monotonic relationship, not just linear.
+
+> **【中文解读】** Pearson 相关系数衡量线性关联强度（-1 到 1），但对异常值敏感。Spearman 用秩替代原始值，捕捉单调关系（包括非线性）。关键警告：相关性不等于因果关系，且 r=0 只说明没有线性关系，可能有强烈的非线性关系。
 If y = x^3, Pearson gives r < 1 but Spearman gives rho = 1.
 ```
 
@@ -161,6 +166,8 @@ Properties:
 
 **Connection to correlation.** The correlation matrix is the covariance matrix of standardized variables (each divided by its standard deviation). Correlation normalizes covariance so all values fall in [-1, 1].
 
+> **【中文解读】** 协方差矩阵编码所有变量对之间的线性关系：对角线是方差（每个变量自身的离散程度），非对角线是协方差（变量间如何共同变化）。PCA 就是对协方差矩阵做特征分解。相关矩阵是标准化后的协方差矩阵，所有值在 [-1,1]。
+
 ### Hypothesis Testing
 
 Hypothesis testing is a framework for making decisions under uncertainty. You start with a claim, collect data, and determine if the data is consistent with the claim.
@@ -202,6 +209,8 @@ is a 95% probability the true mean is in this specific interval.
 ```
 
 The width of the confidence interval tells you about precision. Wide intervals mean high uncertainty. Narrow intervals mean your estimate is precise (but not necessarily accurate, if your data is biased).
+
+> **【中文解读】** 假设检验的框架：零假设 H0（没有差异）vs 备择假设 H1（有差异）。p 值是在 H0 为真时观察到当前或更极端结果的概率。p<0.05 就拒绝 H0。置信区间给出估计的精度范围。关键误解：95% 置信区间不是说真值有 95% 概率在这个区间内——而是说重复实验 100 次，95 次的区间会包含真值。
 
 ### The t-test
 
@@ -335,6 +344,8 @@ Conservative but simple. Works when tests are independent.
 
 In ML, this matters when you compare a model across multiple metrics, test many hyperparameter configurations, or evaluate on multiple datasets.
 
+> **【中文解读】** 多重比较问题：做 20 个独立检验，每个显著性水平 0.05，至少一个假阳性的概率 = 1 - (0.95)^20 = 64%。Bonferroni 校正简单粗暴：把 alpha 除以检验次数 m，但太保守。ML 中比较多指标、多超参数配置、多数据集时都会遇到这个问题。
+
 ### Bootstrap Methods
 
 Bootstrapping estimates the sampling distribution of a statistic by resampling your data with replacement. No assumptions about the underlying distribution required.
@@ -384,6 +395,8 @@ Sort the B bootstrap statistics
 ```
 
 This is more robust than the paired t-test because it makes no distributional assumptions.
+
+> **【中文解读】** Bootstrap 方法：有放回地重采样 B 次（通常 1000+），每次计算统计量，用分布的分位数构建置信区间。优势：不需要假设分布形状，对任何统计量（均值、中位数、AUC 等）都适用。模型比较时，对测试指标做 Bootstrap，如果差异的 95% CI 不包含零，差异显著。
 
 ### Parametric vs Non-parametric Tests
 
