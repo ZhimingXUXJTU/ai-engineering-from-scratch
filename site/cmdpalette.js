@@ -246,7 +246,7 @@
           ' placeholder="' + (AIFS_I18N.t('cmd.searchPlaceholder') || 'Search lessons and glossary\u2026') + '"' +
           ' autocomplete="off" autocorrect="off"' +
           ' autocapitalize="off" spellcheck="false"' +
-          ' aria-label="Search" aria-autocomplete="list"' +
+          ' aria-label="' + (AIFS_I18N.t('cmd.searchLabel') || 'Search') + '" aria-autocomplete="list"' +
           ' aria-controls="cpResults">' +
           '<kbd class="cp-kbd-esc" id="cpKbdEsc">Esc</kbd>' +
         '</div>' +

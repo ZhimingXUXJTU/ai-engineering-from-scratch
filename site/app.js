@@ -242,7 +242,7 @@
       if (userComplete) statusClass = 'complete';
 
       html += '<div class="modal-lesson' + (userComplete ? ' user-done' : '') + '">';
-      html += '<span class="modal-lesson-status ' + statusClass + '"' + (userComplete ? ' title="You completed this lesson"' : '') + '></span>';
+      html += '<span class="modal-lesson-status ' + statusClass + '"' + (userComplete ? ' title="' + (AIFS_I18N.t('app.youCompleted') || 'You completed this lesson') + '"' : '') + '></span>';
       if (l.url) {
         html += '<a href="' + l.url + '" target="_blank" rel="noopener">' + escapeHtml(l.name) + '</a>';
       } else {
@@ -254,7 +254,7 @@
           html += '<span class="lesson-summary-zh">' + zhLessons[i].name + '</span>';
         }
       }
-      html += '<span class="modal-lesson-type" data-type="' + escapeHtml(l.type) + '"' + (l.combines ? ' title="Combines: ' + escapeHtml(l.combines) + '"' : '') + '>' + escapeHtml(l.type) + '</span>';
+      html += '<span class="modal-lesson-type" data-type="' + escapeHtml(l.type) + '"' + (l.combines ? ' title="' + (AIFS_I18N.t('app.combines') || 'Combines: ') + escapeHtml(l.combines) + '"' : '') + '>' + escapeHtml(l.type) + '</span>';
       html += '<span class="modal-lesson-lang">' + escapeHtml(l.lang) + '</span>';
 
       var actionHtml = '';
