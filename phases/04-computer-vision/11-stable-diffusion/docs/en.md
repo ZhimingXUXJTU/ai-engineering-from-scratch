@@ -18,6 +18,8 @@
 - Use `diffusers` to generate images, run image-to-image, inpainting, and ControlNet-guided generation
 - Fine-tune Stable Diffusion with LoRA on a small custom dataset and load the LoRA adapter at inference
 
+> **【中文解读】** 本章学习目标：理解 Stable Diffusion 的五个组件（VAE、文本编码器、U-Net、调度器、安全检查器），解释潜在扩散为什么能减少 48 倍计算，使用 diffusers 库生成图像，以及用 LoRA 微调 Stable Diffusion。
+
 ## The Problem
 
 Training a DDPM directly on 512x512 RGB images is expensive. Every training step backprops through a U-Net that sees 3x512x512 = 786,432 input values, and sampling takes 50+ forward passes through that same U-Net. At the quality level of Stable Diffusion 1.5 (released 2022), pixel-space diffusion would need roughly 256 GPU-months of training and 10-30 seconds per image on a consumer GPU.

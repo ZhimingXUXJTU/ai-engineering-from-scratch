@@ -18,6 +18,8 @@
 - Implement a tiny DiT block and a rectified-flow training loop, both under 100 lines
 - Distinguish model variants (SD3, FLUX.1-dev, FLUX.1-schnell, Z-Image, Qwen-Image) by architecture, parameter count, and licensing
 
+> **【中文解读】** 本章学习目标：理解从 U-Net DDPM 到 Diffusion Transformer 的架构演进，掌握整流流（Rectified Flow）的原理——用直线路径替代弯曲的扩散路径，采样步数从 1000 降至 20。这是 2026 年文本生成图像的核心技术栈。
+
 ## The Problem
 
 Lesson 10 built a DDPM with a U-Net denoiser. That recipe dominated 2020-2023: U-Net + beta schedule + noise-prediction loss. It produced Stable Diffusion 1.5 and 2.1 and DALL-E 2.
@@ -25,6 +27,8 @@ Lesson 10 built a DDPM with a U-Net denoiser. That recipe dominated 2020-2023: U
 Every 2026 state-of-the-art text-to-image model has moved past it. Stable Diffusion 3, FLUX, SD4, Z-Image, Qwen-Image, Hunyuan-Image — none use a U-Net. They use Diffusion Transformers (DiT). SD3 and FLUX also swap the DDPM noise schedule for rectified flow, which straightens the path from noise to data and enables 1-4 step inference with consistency or distilled variants.
 
 The shift matters because it is the reason diffusion-based image generation became controllable, prompt-accurate (SD3/SD4 solved text rendering), and production-fast. Understanding DiT + rectified flow is understanding the 2026 generative-image stack.
+
+> **【中文解读】** Lesson 10 构建的 DDPM + U-Net 在 2020-2023 占主导。但 2026 年所有 SOTA 文本生成图像模型（SD3、FLUX、SD4）都不用 U-Net 了，改用 Diffusion Transformer（DiT），并用整流流替代 DDPM 噪声调度，实现 1-4 步推理。这是图像生成领域近年来最重要的架构转变。
 
 ## The Concept
 

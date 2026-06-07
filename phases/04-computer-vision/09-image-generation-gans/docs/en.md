@@ -18,6 +18,8 @@
 - Stabilise GAN training with the three standard tricks: non-saturating loss, spectral norm, TTUR (two-timescale update rule)
 - Read training curves that distinguish healthy convergence from mode collapse, oscillation, and discriminator-wins-completely
 
+> **【中文解读】** 本章学习目标：理解 GAN 的极小极大博弈，实现 DCGAN 生成 32x32 图像，掌握稳定 GAN 训练的三种技巧（非饱和损失、谱归一化、双时间尺度更新），识别模式崩塌等训练失败模式。
+
 ## The Problem
 
 Classification teaches a network to map images to labels. Generation inverts the problem: sample new images that look like they came from the same distribution. There is no "correct" output you can diff against; there is only a distribution you want to mimic.

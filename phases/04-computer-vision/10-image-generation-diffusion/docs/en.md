@@ -18,6 +18,8 @@
 - Build a time-conditioned U-Net (small enough to train on CPU) that predicts the noise for any timestep
 - Explain the difference between DDPM and DDIM sampling, and when each is appropriate (Lesson 23 covers flow matching and rectified flow in depth)
 
+> **【中文解读】** 本章学习目标：推导前向加噪过程、实现 DDPM 训练目标（回归每步添加的噪声）、构建时间条件 U-Net（预测噪声）、区分 DDPM 和 DDIM 采样。这是 Stable Diffusion、DALL-E、Midjourney 等图像生成工具的核心原理。
+
 ## The Problem
 
 GANs generate one-shot: noise in, image out, one forward pass. They are fast and hard to train. Diffusion models generate iteratively: start from pure noise, denoise in small steps, image emerges. They are slow and easy to train. For the last five years the latter property has dominated: any small team can train a diffusion model and get reasonable samples; GAN training is a craft you learn over years of failed runs.
@@ -25,6 +27,8 @@ GANs generate one-shot: noise in, image out, one forward pass. They are fast and
 Beyond training stability, diffusion's iterative structure is what unlocks everything modern image generation does: text conditioning, inpainting, image editing, super-resolution, controllable style. Each step of the sampling loop is a place to inject a new constraint. That hook is why Stable Diffusion, Imagen, DALL-E 3, Midjourney, and every controllable image model you will use are all diffusion-based.
 
 This lesson builds the minimal DDPM: forward noising, backward denoising, training loop. The next lesson (Stable Diffusion) wires it into a production system with a VAE, a text encoder, and classifier-free guidance.
+
+> **【中文解读】** GAN 一步生成（快但难训练），扩散模型迭代去噪（慢但易训练）。扩散模型的迭代结构是现代图像生成的基础：每个采样步骤都是一个注入约束的地方——文本条件、图像编辑、超分辨率、风格控制。Stable Diffusion、DALL-E 3、Midjourney 全部基于扩散。
 
 ## The Concept
 

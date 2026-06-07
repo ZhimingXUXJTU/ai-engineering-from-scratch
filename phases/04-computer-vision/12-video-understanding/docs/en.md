@@ -26,6 +26,8 @@ The core question for every video architecture is: when does temporal structure 
 
 This lesson is deliberately shorter than the static-image lessons. The core image machinery is already in place, and video understanding is mostly about the temporal story: sampling, modelling, and aggregating.
 
+> **【中文解读】** 视频理解的核心挑战：如何建模时间维度。30 秒 30fps 的视频有 900 帧，简单逐帧分类再聚合在运动可见的场景有效，但在运动定义动作的任务上失败。三种架构方案（2D+池化、3D 卷积、时空 Transformer）在计算成本和预训练策略上有不同权衡。
+
 ## The Concept
 
 ### The three architectural families

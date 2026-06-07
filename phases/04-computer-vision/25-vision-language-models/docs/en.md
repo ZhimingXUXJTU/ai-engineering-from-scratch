@@ -26,6 +26,8 @@ Vision-Language Models (VLMs) — Qwen3-VL, InternVL3.5, LLaVA-Next, GLM-4.6V �
 
 The trio of pieces (ViT, projector, LLM) is the standard. The differences between models are in which ViT, which projector, which LLM, the training data, and the alignment recipe. Once you understand the pattern, swapping any component is mechanical.
 
+> **【中文解读】** CLIP 只能做相似度打分，不能生成文本。VLM（Qwen3-VL、InternVL3.5、LLaVA-Next 等）将 CLIP 系列图像编码器接到完整语言模型上，实现图像问答、视觉推理等能力。三件套（ViT + 投影器 + LLM）是标准架构，模型间差异在于各组件的选择和训练数据。
+
 ## The Concept
 
 ### The ViT-MLP-LLM architecture

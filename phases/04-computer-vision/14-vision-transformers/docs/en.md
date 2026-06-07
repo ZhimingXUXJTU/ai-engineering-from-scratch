@@ -18,6 +18,8 @@
 - Compare ViT, Swin, and ConvNeXt on their architectural priors (none, local window attention, conv backbone)
 - Fine-tune a pretrained ViT on a small dataset using `timm` and the standard linear-probe / fine-tune recipe
 
+> **【中文解读】** 本章学习目标：从零实现 ViT（patch 嵌入、位置编码、class token、Transformer 编码器），理解 ViT 为什么需要大规模预训练数据，以及 DeiT/MAE 如何解决这个问题。ViT 是 GPT-4V、CLIP、SAM 等多模态模型的视觉编码器基础。
+
 ## The Problem
 
 For a decade, convolution was synonymous with computer vision. CNNs had strong inductive biases — locality, translation equivariance — that nobody thought you could replace. Then Dosovitskiy et al. (2020) showed that a plain transformer applied to flattened image patches, with no convolutional machinery at all, could match or beat the best CNNs at scale.
