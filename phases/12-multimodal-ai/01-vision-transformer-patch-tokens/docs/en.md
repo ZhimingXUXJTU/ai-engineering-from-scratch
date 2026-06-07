@@ -18,6 +18,8 @@
 - Name the three upgrades that took ViT from 2020 research to 2026 production: self-supervised pretraining (DINO / MAE), register tokens, and native-resolution packing.
 - Pick between CLS pooling, mean pooling, and register tokens for a downstream task.
 
+> **【中文解读】** 学习目标：1) 将 HxWx3 图像转换为带位置编码的 patch token 序列；2) 计算 ViT 的序列长度、参数量和 FLOPs；3) 了解 ViT 从 2020 到 2026 的三大升级：自监督预训练（DINO/MAE）、寄存器 token、原生分辨率打包；4) 选择 CLS 池化、均值池化或寄存器 token。
+
 ## The Problem
 
 Transformers operate on sequences of vectors. Text is already a sequence (bytes or tokens). An image is a 2D grid of pixels with three color channels — not a sequence. If you flatten every pixel, a 224x224 RGB image becomes 150,528 tokens, and self-attention at that length is a non-starter (quadratic in sequence length).

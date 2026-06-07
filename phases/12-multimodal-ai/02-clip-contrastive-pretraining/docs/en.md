@@ -18,6 +18,8 @@
 - Run zero-shot ImageNet classification by constructing text templates (`a photo of a {class}`) and taking argmax over cosine similarity.
 - Name the four levers CLIP / SigLIP pretraining gives you: batch size, temperature, prompt template, data quality.
 
+> **【中文解读】** 学习目标：1) 从互信息推导 InfoNCE 损失并实现数值稳定的向量化版本；2) 解释为什么 sigmoid 逐对损失（SigLIP）可扩展到 batch 32768+；3) 用文本模板构造实现零样本 ImageNet 分类；4) 掌握 CLIP/SigLIP 预训练的四个调节杆：批量大小、温度、提示模板、数据质量。
+
 ## The Problem
 
 Pre-CLIP vision was supervised. Collect labeled datasets (ImageNet: 1.2M images, 1000 classes), train a CNN, ship it. Labels are expensive, labels bias to what labelers can agree on, and labels do not transfer to new tasks without finetuning.
