@@ -6,8 +6,13 @@ Scientist's real behavior. Runs many trials and reports the distribution
 of outcomes, including the critical "polished paper with flawed
 experiment" class.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：AI Scientist v2 研究循环模拟 —— 将科研流程建模为状态机，配置每阶段失败概率
+（源自 Beel et al. 2025 对 AI Scientist 真实行为的分析）。运行大量试验报告结果分布，
+特别关注"论文漂亮但实验有缺陷"这一危险类别。
+
+AI 对应：AI Scientist（Sakana AI，2024）是第一个端到端自动科研系统，从文献检索到
+论文撰写完全自动化。v2 改进了实验验证环节。核心教训：自动化科研的最大风险不是失败，
+而是"看似成功的错误结果"—— 论文格式完美但实验不可复现。
 """
 
 from __future__ import annotations
@@ -22,7 +27,6 @@ DEFAULT_SEED = 42
 
 @dataclass
 class LoopConfig:
-    """LoopConfig"""
     # Probability an idea is mislabeled as novel when it is not.
     novelty_mislabel: float = 0.25
     # Probability an experiment fails from coding errors (Beel et al. ~0.42).
@@ -41,7 +45,6 @@ class LoopConfig:
 
 @dataclass
 class Outcome:
-    """Outcome"""
     submitted: bool
     has_novelty_flaw: bool
     has_experiment_flaw: bool
@@ -51,7 +54,6 @@ class Outcome:
 
 
 def run_one(cfg: LoopConfig) -> Outcome:
-    """run_one"""
     # Idea generation always succeeds in this toy.
     has_novelty_flaw = random.random() < cfg.novelty_mislabel
 
@@ -60,7 +62,7 @@ def run_one(cfg: LoopConfig) -> Outcome:
     if failed:
         recovered = random.random() < cfg.retry_recovery
         if not recovered:
-            return Outcome(  # 返回结果
+            return Outcome(
                 submitted=False,
                 has_novelty_flaw=has_novelty_flaw,
                 has_experiment_flaw=True,
@@ -84,7 +86,7 @@ def run_one(cfg: LoopConfig) -> Outcome:
 
     # Writeup stage.
     if random.random() > cfg.writeup_success:
-        return Outcome(  # 返回结果
+        return Outcome(
             submitted=False,
             has_novelty_flaw=has_novelty_flaw,
             has_experiment_flaw=has_experiment_flaw,
@@ -95,7 +97,7 @@ def run_one(cfg: LoopConfig) -> Outcome:
 
     # Internal reviewer.
     if random.random() > cfg.internal_review_accept:
-        return Outcome(  # 返回结果
+        return Outcome(
             submitted=False,
             has_novelty_flaw=has_novelty_flaw,
             has_experiment_flaw=has_experiment_flaw,
@@ -110,7 +112,7 @@ def run_one(cfg: LoopConfig) -> Outcome:
     # stage hid it. This makes the two buckets exhaustive over submitted
     # papers (polished_ok + polished_but_flawed == len(submitted)).
     polished_but_flawed = has_experiment_flaw or has_novelty_flaw
-    return Outcome(  # 返回结果
+    return Outcome(
         submitted=True,
         has_novelty_flaw=has_novelty_flaw,
         has_experiment_flaw=has_experiment_flaw,
@@ -121,7 +123,6 @@ def run_one(cfg: LoopConfig) -> Outcome:
 
 
 def report(n: int, cfg: LoopConfig) -> None:
-    """report"""
     outs = [run_one(cfg) for _ in range(n)]
 
     submitted = [o for o in outs if o.submitted]
@@ -158,7 +159,6 @@ def report(n: int, cfg: LoopConfig) -> None:
 
 
 def main() -> None:
-    """main"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--experiment-failure", type=float, default=None,
                         help="override LoopConfig.experiment_failure for the baseline run")

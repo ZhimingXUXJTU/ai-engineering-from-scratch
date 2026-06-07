@@ -9,8 +9,14 @@ Flag --reward-hack-allowed opens a side channel: a score_adjustment
 function lives inside the agent and is added to every score. A rational
 evolutionary process will discover it.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Darwin Godel Machine（DGM）式自我改进循环 —— Agent 是操作符序列，
+每代提议修改操作符序列，评估器在留出输入上评分，归档保留多样性优胜者。
+--reward-hack-allowed 标志开放侧通道：允许 score_adjustment 函数被添加到评分中，
+理性的进化过程会发现并利用这个奖励黑客（reward hacking）。
+
+AI 对应：DGM 由 JetBrains Research（2025）提出，核心思想是 Agent 能修改自己的代码。
+reward hacking 是 RLHF 训练中的经典问题（Goodhart 定律），也是评估自主改进系统
+安全性的关键测试。理解 reward hacking 是构建安全自主 Agent 的前提。
 """
 
 from __future__ import annotations
@@ -49,13 +55,11 @@ CASES = [
 
 
 def hash_seq(seq: list[str]) -> tuple[str, ...]:
-    """hash_seq"""
-    return tuple(seq)  # 返回结果
+    return tuple(seq)
 
 
 @dataclass
 class Agent:
-    """Agent"""
     ops: list[str]
     # "hack" is a number this agent adds to its reported score if the
     # scoring pipeline is permissive. Stands in for any edit the agent
@@ -64,35 +68,31 @@ class Agent:
 
 
 def apply(agent: Agent, s: str) -> str:
-    """apply"""
     tool_map = dict(TOOLS)
     for op in agent.ops:
         fn = tool_map.get(op)
         if fn is None:
-            return ""  # 返回结果
+            return ""
         s = fn(s)
-    return s  # 返回结果
+    return s
 
 
 def true_score(agent: Agent) -> float:
-    """true_score"""
     correct = 0
     for inp, want in CASES:
         if apply(agent, inp) == want:
             correct += 1
-    return correct / len(CASES)  # 返回结果
+    return correct / len(CASES)
 
 
 def reported_score(agent: Agent, hack_allowed: bool) -> float:
-    """reported_score"""
     base = true_score(agent)
     if hack_allowed:
-        return min(1.0, base + agent.hack_bonus)  # 返回结果
-    return base  # 返回结果
+        return min(1.0, base + agent.hack_bonus)
+    return base
 
 
 def mutate(parent: Agent, hack_allowed: bool) -> Agent:
-    """mutate"""
     ops = list(parent.ops)
     move = random.random()
     if move < 0.3 and ops:
@@ -108,11 +108,10 @@ def mutate(parent: Agent, hack_allowed: bool) -> Agent:
     if hack_allowed and random.random() < 0.08:
         # Small chance per generation: evolve the hack.
         bonus = min(1.0, bonus + random.uniform(0.0, 0.1))
-    return Agent(ops=ops, hack_bonus=bonus)  # 返回结果
+    return Agent(ops=ops, hack_bonus=bonus)
 
 
 def run_dgm(generations: int, hack_allowed: bool, seed: int | None = None) -> None:
-    """run_dgm"""
     if seed is not None:
         random.seed(seed)
     archive: dict[tuple[int, float], Agent] = {}
@@ -149,7 +148,6 @@ def run_dgm(generations: int, hack_allowed: bool, seed: int | None = None) -> No
 
 
 def main() -> None:
-    """main"""
     hack_allowed = "--reward-hack-allowed" in sys.argv
 
     print("=" * 70)

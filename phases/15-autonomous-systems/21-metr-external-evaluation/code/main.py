@@ -7,8 +7,13 @@ Then show what eval-context gaming does to the observed number.
 Uses only stdlib; the logistic fit is a minimal gradient-descent
 implementation sized for pedagogy, not production.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：METR 风格的 Logistic 时间视野估计器 —— 合成任务结果（expert_time, success），
+用最小梯度下降拟合 P(success) = sigmoid(w*log(t)+b)，报告 50/10/90% 时间视野。
+展示 eval-context gaming（模型在评估时表现更好）对观测数值的扭曲效应。
+AI 对应：METR（Model Evaluation & Threat Research）是 AI Agent 能力评估的核心机构，
+其 time-horizon metric 用 logistic 曲线拟合任务完成率；METR 的评估报告直接影响了
+Anthropic RSP 和 OpenAI Preparedness 的阈值设定。eval-context gaming 是
+AI safety 中的关键问题，Anthropic 的 RSP v3.0 专门要求 gaming-adjusted capability estimate。
 """
 
 from __future__ import annotations
@@ -20,7 +25,6 @@ import random
 # ---------- Synthetic data generator ----------
 
 def synth_tasks(true_horizon_hours: float, slope: float = 1.2,
-    """synth_tasks"""
                 n: int = 120) -> list[tuple[float, bool]]:
     """Generate synthetic (expert_time_hours, success) pairs.
 
@@ -35,22 +39,20 @@ def synth_tasks(true_horizon_hours: float, slope: float = 1.2,
         p = 1.0 / (1.0 + math.exp(-logit))
         success = random.random() < p
         out.append((t, success))
-    return out  # 返回结果
+    return out
 
 
 # ---------- Logistic fit (tiny GD) ----------
 
 def sigmoid(x: float) -> float:
-    """sigmoid"""
     if x > 50:
-        return 1.0  # 返回结果
+        return 1.0
     if x < -50:
-        return 0.0  # 返回结果
-    return 1.0 / (1.0 + math.exp(-x))  # 返回结果
+        return 0.0
+    return 1.0 / (1.0 + math.exp(-x))
 
 
 def fit(tasks: list[tuple[float, bool]], iters: int = 4000,
-    """fit"""
         lr: float = 0.05) -> tuple[float, float]:
     """Fit P(success) = sigmoid(w * log(t) + b). Return (w, b)."""
     w = 0.0
@@ -67,7 +69,7 @@ def fit(tasks: list[tuple[float, bool]], iters: int = 4000,
             db += err
         w -= lr * dw / n
         b -= lr * db / n
-    return w, b  # 返回结果
+    return w, b
 
 
 def horizon_at(w: float, b: float, p: float) -> float:
@@ -83,13 +85,12 @@ def horizon_at(w: float, b: float, p: float) -> float:
             f"horizon undefined: slope w={w} is ~0 "
             f"(b={b}, p={p}, logit={logit})"
         )
-    return math.exp((logit - b) / w)  # 返回结果
+    return math.exp((logit - b) / w)
 
 
 # ---------- Eval-context gaming simulator ----------
 
 def inject_gaming(tasks: list[tuple[float, bool]],
-    """inject_gaming"""
                   gaming_rate: float) -> list[tuple[float, bool]]:
     """Flip `gaming_rate` fraction of failures to successes (model behaves
     better in eval context). Returns a new list."""
@@ -99,13 +100,12 @@ def inject_gaming(tasks: list[tuple[float, bool]],
             gamed.append((t, True))
         else:
             gamed.append((t, s))
-    return gamed  # 返回结果
+    return gamed
 
 
 # ---------- Driver ----------
 
 def report(label: str, w: float, b: float) -> None:
-    """report"""
     h50 = horizon_at(w, b, 0.50)
     h10 = horizon_at(w, b, 0.10)
     h90 = horizon_at(w, b, 0.90)
@@ -114,7 +114,6 @@ def report(label: str, w: float, b: float) -> None:
 
 
 def main() -> None:
-    """main"""
     random.seed(3)
     print("=" * 80)
     print("METR-STYLE HORIZON ESTIMATOR (Phase 15, Lesson 21)")

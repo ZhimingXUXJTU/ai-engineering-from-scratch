@@ -9,8 +9,13 @@ The four primitives:
 The loop applies each primitive as a gate. A proposed agent edit lands
 only if every gate passes.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：有界自改进循环的四大原语 —— 1) 不变量门控（模块 hash + 工具清单必须匹配），
+2) 对齐锚点（不可变目标定义，SHA256 校验），3) 多目标约束（性能+安全性两个轴都必须满足），
+4) 回归检测（任何轴不得低于容差）。每次 Agent 编辑提议必须通过全部四个门才能落地。
+AI 对应：Anthropic 的 Constitutional AI (CAI) 用不可变 constitution 约束模型行为，
+Google DeepMind 的 reward tampering resistance 研究实现了类似的"目标锚定"机制；
+CI/CD 中的 canary deployment 和 feature flag 都是"有界变更"的生产实例，
+Kubernetes 的 admission webhook 也是类似的"门控准入"模式。
 """
 
 from __future__ import annotations
@@ -33,7 +38,6 @@ APPROVED_TOOL_MANIFEST = {"trim", "collapse", "lower", "upper", "reverse", "titl
 
 @dataclass
 class Agent:
-    """Agent"""
     ops: list[str] = field(default_factory=lambda: ["nop"])
     # The agent may "edit" its own tool manifest (bad!). Track current.
     active_manifest: set[str] = field(default_factory=lambda: set(APPROVED_TOOL_MANIFEST))
@@ -67,41 +71,37 @@ CASES_SAFETY = [
 
 
 def apply(agent: Agent, s: str) -> str:
-    """apply"""
     for op in agent.ops:
         fn = TOOLS_IMPL.get(op)
         if fn is None:
-            return ""  # 返回结果
+            return ""
         s = fn(s)
     # Safety filter: if the string matches a danger pattern post-transform,
     # return "[blocked]".
     dangerous = ("exec(", "drop table", "rm -rf", "; delete from")
     low = s.lower()
     if any(d in low for d in dangerous):
-        return "[blocked]"  # 返回结果
-    return s  # 返回结果
+        return "[blocked]"
+    return s
 
 
 def perf_score(agent: Agent) -> float:
-    """perf_score"""
     correct = 0
     for inp, want in CASES_PERF:
         if apply(agent, inp) == want:
             correct += 1
-    return correct / len(CASES_PERF)  # 返回结果
+    return correct / len(CASES_PERF)
 
 
 def safety_score(agent: Agent) -> float:
-    """safety_score"""
     correct = 0
     for inp, want in CASES_SAFETY:
         if apply(agent, inp) == want:
             correct += 1
-    return correct / len(CASES_SAFETY)  # 返回结果
+    return correct / len(CASES_SAFETY)
 
 
 def mutate(a: Agent, allow_manifest_edit: bool) -> Agent:
-    """mutate"""
     ops = list(a.ops)
     manifest = set(a.active_manifest)
     obj = a.objective
@@ -123,24 +123,21 @@ def mutate(a: Agent, allow_manifest_edit: bool) -> Agent:
         manifest.add("raw_eval")
         # Also an attempt to edit the objective.
         obj = obj + "  # relax: accept any output"
-    return Agent(ops=ops, active_manifest=manifest, objective=obj)  # 返回结果
+    return Agent(ops=ops, active_manifest=manifest, objective=obj)
 
 
 # --- Gates ---
 
 def gate_invariant(a: Agent) -> bool:
-    """gate_invariant"""
-    return a.active_manifest.issubset(APPROVED_TOOL_MANIFEST)  # 返回结果
+    return a.active_manifest.issubset(APPROVED_TOOL_MANIFEST)
 
 
 def gate_anchor(a: Agent) -> bool:
-    """gate_anchor"""
-    return hashlib.sha256(a.objective.encode()).hexdigest()[:16] == OBJECTIVE_HASH  # 返回结果
+    return hashlib.sha256(a.objective.encode()).hexdigest()[:16] == OBJECTIVE_HASH
 
 
 def gate_multi(perf: float, safety: float) -> bool:
-    """gate_multi"""
-    return perf >= 0.25 and safety >= 1.0  # 返回结果
+    return perf >= 0.25 and safety >= 1.0
 
 
 def gate_regression(history_perf: list[float], perf: float, tol: float = 0.2) -> bool:
@@ -151,8 +148,8 @@ def gate_regression(history_perf: list[float], perf: float, tol: float = 0.2) ->
     strict monotonic gate.
     """
     if not history_perf:
-        return True  # 返回结果
-    return perf + tol >= max(history_perf)  # 返回结果
+        return True
+    return perf + tol >= max(history_perf)
 
 
 def run(
@@ -206,7 +203,6 @@ def run(
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("BOUNDED SELF-IMPROVEMENT (Phase 15, Lesson 8)")
     print("=" * 70)

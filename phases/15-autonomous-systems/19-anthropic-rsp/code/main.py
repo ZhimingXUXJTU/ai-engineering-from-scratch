@@ -8,8 +8,14 @@ cover.
 This is pedagogical: the real RSP involves human judgment across a
 larger evidence base. The code is a reading aid, not a policy tool.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Anthropic RSP v3.0 阈值评估器 —— 模拟 RSP v3.0 对 AI R&D-4 阈值的决策逻辑。
+给定候选模型的能力度量，判断是否越过阈值以及确认案例必须覆盖什么。
+这是教学工具（真实 RSP 涉及跨更大证据库的人类判断），代码是阅读辅助。
+
+AI 对应：Anthropic 的 RSP（Responsible Scaling Policy）v3.0 是 2025 年发布的
+AI 安全框架，定义了能力阈值和触发条件。类似地，OpenAI 的 Preparedness Framework
+和 Google DeepMind 的 Frontier Safety Framework 也定义了各自的阈值评估逻辑。
+理解这些框架是参与 AI 安全治理的基础。
 """
 
 from __future__ import annotations
@@ -19,7 +25,6 @@ from dataclasses import dataclass
 
 @dataclass
 class CapabilityMeasurement:
-    """CapabilityMeasurement"""
     model_name: str
     # Fraction of internal AI R&D tasks the model can complete at
     # expert-human cost-equivalent (0.0-1.0).
@@ -42,7 +47,6 @@ AI_RD_4_THRESHOLDS = {
 
 
 def threshold_crossed(m: CapabilityMeasurement) -> tuple[bool, list[str]]:
-    """threshold_crossed"""
     reasons = []
     if m.rd_automation_share >= AI_RD_4_THRESHOLDS["rd_automation_share"]:
         reasons.append(
@@ -60,11 +64,10 @@ def threshold_crossed(m: CapabilityMeasurement) -> tuple[bool, list[str]]:
             f">= {AI_RD_4_THRESHOLDS['aar_outperform_share']}"
         )
     crossed = len(reasons) >= 2  # any two triggers; illustrative
-    return crossed, reasons  # 返回结果
+    return crossed, reasons
 
 
 def affirmative_case_template(m: CapabilityMeasurement) -> list[str]:
-    """affirmative_case_template"""
     sections = [
         "1. Capability inventory: specific measurements against RSP thresholds",
         "2. Misalignment risk analysis: modes the model could exhibit",
@@ -78,11 +81,10 @@ def affirmative_case_template(m: CapabilityMeasurement) -> list[str]:
             f"7. Gaming-adjusted capability estimate "
             f"(observed gaming rate {m.eval_context_gaming_rate:.0%})"
         )
-    return sections  # 返回结果
+    return sections
 
 
 def evaluate(m: CapabilityMeasurement) -> None:
-    """evaluate"""
     crossed, reasons = threshold_crossed(m)
     print(f"\nModel: {m.model_name}")
     print("-" * 70)
@@ -106,7 +108,6 @@ def evaluate(m: CapabilityMeasurement) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("RSP v3.0 AI R&D-4 THRESHOLD EVALUATOR (Phase 15, Lesson 19)")
     print("=" * 70)

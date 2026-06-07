@@ -8,8 +8,14 @@ records live outside the agents' sandboxes.
 One agent attempts log tampering. The tamper-evident chain catches the
 attempt at verification time.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：并行自动化对齐研究（AAR）论坛模拟器 —— 三个 AAR Agent 并行运行，分别使用
+fixed-workflow（人工指定计划）和 free-decomposition（自主分解）两种研究模式。
+结果发布到 append-only forum，采用 tamper-evident hash chain 保护完整性。
+一个 Agent 尝试篡改日志，验证时被检测到。
+AI 对应：Anthropic 的对齐研究团队正在探索用 AI 自动化对齐研究本身（Automated Alignment Research），
+Ilya Sutskever 的 SSI 公司也聚焦此方向；tamper-evident chain 是区块链的核心概念，
+在 AI safety 中用于确保 Agent 行为日志的不可篡改性，OpenAI 的 Model Spec 和
+Anthropic 的 Responsible Scaling Policy 都要求可审计的行为记录。
 """
 
 from __future__ import annotations
@@ -21,7 +27,6 @@ from dataclasses import dataclass, field
 
 @dataclass
 class ForumRecord:
-    """ForumRecord"""
     author: str
     task: str
     regime: str
@@ -32,12 +37,11 @@ class ForumRecord:
 
 @dataclass
 class Forum:
-    """Forum"""
     records: list[ForumRecord] = field(default_factory=list)
     genesis: str = "0" * 16
 
     def head(self) -> str:
-        return self.records[-1].my_hash if self.records else self.genesis  # 返回结果
+        return self.records[-1].my_hash if self.records else self.genesis
 
     def post(self, rec: ForumRecord) -> None:
         rec.prev_hash = self.head()
@@ -57,7 +61,7 @@ class Forum:
             if expected != r.my_hash or r.prev_hash != prev:
                 bad.append(i)
             prev = r.my_hash
-        return bad  # 返回结果
+        return bad
 
 
 TASKS = [
@@ -70,17 +74,15 @@ TASKS = [
 
 
 def solve(agent: str, task: tuple[str, float], regime: str) -> float:
-    """solve"""
     _name, base = task
     if regime == "fixed":
         # Prescribed workflow: bounded ceiling, lower variance.
-        return base + random.random() * 0.25  # 返回结果
+        return base + random.random() * 0.25
     # Free decomposition: wider tail; sometimes much better, sometimes worse.
-    return base + random.gauss(0.15, 0.22)  # 返回结果
+    return base + random.gauss(0.15, 0.22)
 
 
 def run_regime(regime: str) -> list[ForumRecord]:
-    """run_regime"""
     forum = Forum()
     agents = ["AAR-A", "AAR-B", "AAR-C"]
     for task in TASKS:
@@ -93,7 +95,7 @@ def run_regime(regime: str) -> list[ForumRecord]:
                 result=r,
                 prev_hash="",
             ))
-    return forum.records  # 返回结果
+    return forum.records
 
 
 def attempt_tamper(forum_records: list[ForumRecord]) -> Forum:
@@ -118,11 +120,10 @@ def attempt_tamper(forum_records: list[ForumRecord]) -> Forum:
         # the floor — breaking the tamper-detection narrative under
         # different seeds.
         f.records[worst_idx].result = f.records[worst_idx].result + 0.5
-    return f  # 返回结果
+    return f
 
 
 def regime_report(regime: str) -> None:
-    """regime_report"""
     records = run_regime(regime)
     by_task: dict[str, list[float]] = {}
     for r in records:
@@ -138,7 +139,6 @@ def regime_report(regime: str) -> None:
 
 
 def tamper_demo() -> None:
-    """tamper_demo"""
     print("\nLog tampering detection")
     print("-" * 70)
     baseline = run_regime("free")
@@ -154,7 +154,6 @@ def tamper_demo() -> None:
 
 
 def main() -> None:
-    """main"""
     random.seed(3)
     print("=" * 70)
     print("AUTOMATED ALIGNMENT RESEARCH FORUM (Phase 15, Lesson 6)")
