@@ -1,7 +1,16 @@
-"""Show-o masked-discrete-diffusion sampler — stdlib.
+"""Show-O 离散扩散采样器 —— 掩码离散去噪过程演示
 
-16 tokens, K=8 vocab, T=8 steps, cosine schedule. Mock "transformer" logits so
-the sampling loop is the focus, not the model. Prints the mask evolution.
+核心概念：
+  - Show-O 是统一理解与生成的多模态模型，使用离散扩散而非自回归生成
+  - 离散扩散：从全掩码序列开始，逐步"去掩码"（类似连续扩散的去噪过程）
+  - 余弦调度 (cosine schedule)：控制每一步的掩码比例，从 1.0 逐步降到 0.0
+  - 置信度采样：每步选择模型最不确定的位置进行去掩码
+  - T 步扩散可以并行生成所有 token，而自回归需要 N 步（N >> T）
+
+AI 对应：
+  - 离散扩散是图像/文本生成的新方向，相比自回归更适合并行生成
+  - MDLM (Masked Diffusion Language Model) 使用类似方法做文本生成
+  - 本实现在 16 token / 8 词表的小规模上演示完整的掩码去噪采样过程
 """
 
 from __future__ import annotations
