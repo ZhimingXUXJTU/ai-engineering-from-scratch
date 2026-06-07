@@ -19,6 +19,8 @@
 - Build a semantic search index that retrieves documents by meaning rather than exact keyword match
 - Evaluate embedding quality using retrieval benchmarks (precision@k, recall) and choose the right embedding model for your task
 
+> **【中文解读】** 学习目标：1) 用 API 和开源模型生成文本嵌入并计算余弦相似度；2) 解释嵌入如何解决关键词搜索无法处理的词汇不匹配问题；3) 构建按语义而非关键词检索的搜索索引；4) 用检索基准评估嵌入质量并选择合适模型。
+
 ## The Problem
 
 You have 10,000 support tickets. A customer writes "my payment didn't go through." You need to find similar past tickets. Keyword search finds tickets containing "payment" and "didn't go through." It misses "transaction failed," "charge was declined," and "billing error." These tickets describe the exact same problem with completely different words.
