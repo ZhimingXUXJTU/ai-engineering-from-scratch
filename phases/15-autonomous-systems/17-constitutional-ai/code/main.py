@@ -9,8 +9,13 @@ Models Anthropic's January 2026 Claude Constitution tier hierarchy:
 Hardcoded prohibitions refuse regardless of tier scoring; soft-coded
 defaults resolve by tier weight.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Anthropic Constitutional AI 四层优先级解析器 —— safety > ethics > guidelines > helpfulness，
+硬编码禁令（生物武器/CSAM/关键基础设施攻击）无条件拒绝，软编码规则通过层级权重解析冲突。
+高优先级层违反即阻断，低层冲突触发修改而非拒绝。
+AI 对应：Anthropic 的 Constitutional AI (CAI) 是 Claude 模型对齐的核心技术，其四层宪法结构
+直接映射到 Claude 3.5 的行为规范；Google DeepMind 的 Gemini safety filters、
+OpenAI 的 Model Spec 和 Meta 的 Llama Guard 都采用类似的分层优先级设计。
+RLHF/DPO 训练中，constitutional rules 被编码为 reward model 的硬约束。
 """
 
 from __future__ import annotations
@@ -36,7 +41,6 @@ HARDCODED_PROHIBITIONS = (
 
 @dataclass
 class TierScore:
-    """TierScore"""
     safety: int    # 1-5, higher = principle is violated more
     ethics: int
     guidelines: int
@@ -44,33 +48,31 @@ class TierScore:
 
 
 def hardcoded_block(action: str) -> str | None:
-    """hardcoded_block"""
     low = action.lower()
     for rule in HARDCODED_PROHIBITIONS:
         if rule in low:
-            return rule  # 返回结果
-    return None  # 返回结果
+            return rule
+    return None
 
 
 def resolve(action: str, score: TierScore) -> tuple[str, str]:
-    """resolve"""
     # Layer 1: hardcoded prohibitions
     block = hardcoded_block(action)
     if block:
-        return "refuse", f"hardcoded prohibition: {block}"  # 返回结果
+        return "refuse", f"hardcoded prohibition: {block}"
 
     # Layer 2: four-tier priority. Higher tier wins on conflict.
     # We interpret a violation score of >= 3 as blocking at that tier.
     if score.safety >= 3:
-        return "refuse", f"safety violation (score={score.safety})"  # 返回结果
+        return "refuse", f"safety violation (score={score.safety})"
     if score.ethics >= 3:
-        return "refuse", f"ethics violation (score={score.ethics})"  # 返回结果
+        return "refuse", f"ethics violation (score={score.ethics})"
     if score.guidelines >= 3:
-        return "modify", f"guideline conflict (score={score.guidelines}); modify"  # 返回结果
+        return "modify", f"guideline conflict (score={score.guidelines}); modify"
 
     # Helpfulness is lowest priority; by this point we already cleared
     # higher tiers. Proceed.
-    return "allow", "all higher tiers clear; helpfulness respected"  # 返回结果
+    return "allow", "all higher tiers clear; helpfulness respected"
 
 
 # ---------- Cases ----------
@@ -96,7 +98,6 @@ CASES = [
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("FOUR-TIER PRIORITY RESOLVER (Phase 15, Lesson 17)")
     print("=" * 80)

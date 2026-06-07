@@ -5,8 +5,13 @@ deployment against the CAIS four-risk categories (malicious use, AI
 races, organizational risks, rogue AIs) and return a mitigation checklist.
 Pedagogical only; the framework requires human judgment for real use.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：CAIS 四维社会风险评估器 —— 对部署场景打标签：malicious_use（恶意使用）、
+ai_races（AI 竞赛）、organizational_risks（组织风险）、rogue_ais（失控 AI）。
+每种风险类别关联一个缓解措施清单（引用本课程前面所有安全课程的工具和技术）。
+AI 对应：CAIS（Center for AI Safety）和 CAISI（其政策分支）提出的四维风险框架是
+AI 治理讨论的核心分类法；Anthropic 的 RSP 主要覆盖 rogue_ais 和 organizational_risks，
+OpenAI 的 Preparedness 侧重 malicious_use，DeepMind 的 FSF 关注 ai_races。
+本课将整个 Phase 15 的安全工具链串联为一个统一的评估-缓解框架。
 """
 
 from __future__ import annotations
@@ -16,7 +21,6 @@ from dataclasses import dataclass
 
 @dataclass
 class Deployment:
-    """Deployment"""
     name: str
     public_facing: bool
     handles_harmful_capabilities: bool   # e.g. bio/cyber uplift possible?
@@ -54,7 +58,6 @@ MITIGATIONS = {
 
 
 def tag(d: Deployment) -> list[str]:
-    """tag"""
     tags = []
     if d.handles_harmful_capabilities and d.public_facing:
         tags.append("malicious_use")
@@ -71,11 +74,10 @@ def tag(d: Deployment) -> list[str]:
     # Rogue AI risk grows with autonomy horizon.
     if d.agent_autonomy_hours >= 4.0:
         tags.append("rogue_ais")
-    return tags  # 返回结果
+    return tags
 
 
 def report(d: Deployment) -> None:
-    """report"""
     tags = tag(d)
     print(f"\nDeployment: {d.name}")
     print("-" * 70)
@@ -98,7 +100,6 @@ def report(d: Deployment) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("CAIS FOUR-RISK INVENTORY (Phase 15, Lesson 22)")
     print("=" * 70)

@@ -8,8 +8,13 @@ MAP-elites grid keeps diverse candidates: cell keyed by (expression depth,
 constant magnitude bucket). Without a held-out split the loop overfits
 aggressively; with one the best candidate generalizes.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：AlphaEvolve 式进化编码循环 —— 用 LLM 提议的表达式变异 + 确定性评估器 +
+MAP-elites 多样性网格进行符号回归。展示训练集 vs 留出集的过拟合问题：
+无留出集时进化循环激进过拟合，有留出集时最优候选能泛化。
+
+AI 对应：AlphaEvolve（Google DeepMind，2025）用进化搜索 + LLM 优化数学算法和代码。
+其核心思路：LLM 生成候选变异，确定性评估器筛选，多样性保持防止早熟收敛。
+类似方法在程序合成、架构搜索（NAS）和 AutoML 中都有应用。
 """
 
 from __future__ import annotations
@@ -25,101 +30,92 @@ DEFAULT_SEED = 1
 
 # Target function the loop tries to rediscover.
 def target(x: float) -> float:
-    """target"""
-    return 2.0 * x * x + 3.0 * x - 1.0  # 返回结果
+    return 2.0 * x * x + 3.0 * x - 1.0
 
 
 Expr = tuple  # recursive: ("num", v) | ("x",) | ("add", a, b) | ("mul", a, b)
 
 
 def evaluate_expr(e: Expr, x: float) -> float:
-    """evaluate_expr"""
     tag = e[0]
     if tag == "num":
-        return float(e[1])  # 返回结果
+        return float(e[1])
     if tag == "x":
-        return x  # 返回结果
+        return x
     if tag == "add":
-        return evaluate_expr(e[1], x) + evaluate_expr(e[2], x)  # 返回结果
+        return evaluate_expr(e[1], x) + evaluate_expr(e[2], x)
     if tag == "mul":
-        return evaluate_expr(e[1], x) * evaluate_expr(e[2], x)  # 返回结果
+        return evaluate_expr(e[1], x) * evaluate_expr(e[2], x)
     raise ValueError(tag)
 
 
 def depth(e: Expr) -> int:
-    """depth"""
     tag = e[0]
     if tag in ("num", "x"):
-        return 1  # 返回结果
-    return 1 + max(depth(e[1]), depth(e[2]))  # 返回结果
+        return 1
+    return 1 + max(depth(e[1]), depth(e[2]))
 
 
 def max_const(e: Expr) -> float:
-    """max_const"""
     tag = e[0]
     if tag == "num":
-        return abs(e[1])  # 返回结果
+        return abs(e[1])
     if tag == "x":
-        return 0.0  # 返回结果
-    return max(max_const(e[1]), max_const(e[2]))  # 返回结果
+        return 0.0
+    return max(max_const(e[1]), max_const(e[2]))
 
 
 def mutate(e: Expr) -> Expr:
     """Stand-in for the LLM's targeted edit."""
     choice = random.random()
     if choice < 0.25:
-        return random_leaf()  # 返回结果
+        return random_leaf()
     if choice < 0.5:
-        return ("add", e, random_leaf())  # 返回结果
+        return ("add", e, random_leaf())
     if choice < 0.75:
-        return ("mul", e, random_leaf())  # 返回结果
+        return ("mul", e, random_leaf())
     # perturb a constant somewhere
-    return perturb(e)  # 返回结果
+    return perturb(e)
 
 
 def perturb(e: Expr) -> Expr:
-    """perturb"""
     tag = e[0]
     if tag == "num":
-        return ("num", e[1] + random.choice([-1.0, -0.5, 0.5, 1.0]))  # 返回结果
+        return ("num", e[1] + random.choice([-1.0, -0.5, 0.5, 1.0]))
     if tag == "x":
-        return e  # 返回结果
-    return (tag, perturb(e[1]), e[2]) if random.random() < 0.5 else (tag, e[1], perturb(e[2]))  # 返回结果
+        return e
+    return (tag, perturb(e[1]), e[2]) if random.random() < 0.5 else (tag, e[1], perturb(e[2]))
 
 
 def random_leaf() -> Expr:
-    """random_leaf"""
     if random.random() < 0.5:
-        return ("x",)  # 返回结果
-    return ("num", float(random.choice([-2, -1, 0, 1, 2, 3])))  # 返回结果
+        return ("x",)
+    return ("num", float(random.choice([-2, -1, 0, 1, 2, 3])))
 
 
 def render(e: Expr) -> str:
-    """render"""
     tag = e[0]
     if tag == "num":
-        return f"{e[1]:g}"  # 返回结果
+        return f"{e[1]:g}"
     if tag == "x":
-        return "x"  # 返回结果
+        return "x"
     op = "+" if tag == "add" else "*"
-    return f"({render(e[1])} {op} {render(e[2])})"  # 返回结果
+    return f"({render(e[1])} {op} {render(e[2])})"
 
 
 def mse(e: Expr, xs: list[float]) -> float:
-    """mse"""
     total = 0.0
     for x in xs:
         try:
             y = evaluate_expr(e, x)
         except (OverflowError, ValueError):
-            return float("inf")  # 返回结果
+            return float("inf")
         total += (y - target(x)) ** 2
-    return total / max(1, len(xs))  # 返回结果
+    return total / max(1, len(xs))
 
 
 @dataclass
 class Candidate:
-    """Candidate"""
     expr: Expr
     train_score: float
     test_score: float
@@ -127,16 +123,14 @@ class Candidate:
 
 
 def cell_key(e: Expr) -> tuple[int, int]:
-    """cell_key"""
     d = min(depth(e), 6)
     c = min(int(max_const(e) / 2), 4)
-    return (d, c)  # 返回结果
+    return (d, c)
 
 
 def seed_candidate(test_xs: list[float], train_xs: list[float], gen: int) -> Candidate:
-    """seed_candidate"""
     e = random_leaf()
-    return Candidate(e, mse(e, train_xs), mse(e, test_xs), gen)  # 返回结果
+    return Candidate(e, mse(e, train_xs), mse(e, test_xs), gen)
 
 
 def run_loop(
@@ -151,7 +145,7 @@ def run_loop(
     test_xs = [-2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 3.5]
 
     def signal_of(c: Candidate) -> float:
-        return 0.5 * (c.train_score + c.test_score) if use_holdout else c.train_score  # 返回结果
+        return 0.5 * (c.train_score + c.test_score) if use_holdout else c.train_score
 
     archive: dict[tuple[int, int], Candidate] = {}
     for _ in range(pop):
@@ -182,11 +176,10 @@ def run_loop(
     # held-out test here when use_holdout=False would silently leak the
     # holdout back into Run B and mask the overfitting the lesson shows.
     best = min(archive.values(), key=signal_of)
-    return best, best_trace, test_trace  # 返回结果
+    return best, best_trace, test_trace
 
 
 def main() -> None:
-    """main"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--no-holdout",

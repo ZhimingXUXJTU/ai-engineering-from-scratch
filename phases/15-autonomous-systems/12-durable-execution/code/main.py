@@ -8,8 +8,14 @@ replay of a workflow re-runs the workflow code but returns cached outputs
 for activities whose event is already in the log. A crash mid-run loses
 only the incomplete activity.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：持久化执行引擎 —— Workflow/Activity/Event-Log 模式。Activity 执行前记录输入，
+执行后记录输出；Workflow 重放时跳过已完成的 Activity 直接返回缓存结果。
+崩溃只丢失正在执行的 Activity，重启后从上次完成处继续。
+
+AI 对应：Temporal、LangGraph checkpointing、Microsoft Agent Framework 和
+Claude Code Routines 都采用这个模式。这是长时间运行 Agent 的基础设施 ——
+如果 Agent 在第 50 步崩溃，你不希望从第 1 步重新开始。
+数据库的 WAL（Write-Ahead Log）和消息队列的 exactly-once 语义也是同一思路。
 """
 
 from __future__ import annotations
@@ -25,7 +31,6 @@ from dataclasses import dataclass
 
 @dataclass
 class EventLog:
-    """EventLog"""
     path: str
 
     def __post_init__(self) -> None:
@@ -35,7 +40,7 @@ class EventLog:
 
     def events(self) -> list[dict]:
         with open(self.path) as f:
-            return json.load(f)  # 返回结果
+            return json.load(f)
 
     def append(self, ev: dict) -> None:
         evs = self.events()
@@ -46,52 +51,48 @@ class EventLog:
     def lookup(self, name: str, args: tuple) -> dict | None:
         for ev in self.events():
             if ev["name"] == name and ev["args"] == list(args) and ev["status"] == "done":
-                return ev  # 返回结果
-        return None  # 返回结果
+                return ev
+        return None
 
 
 # ---------- Activity decorator ----------
 
 def activity(name: str):
-    """activity"""
     def deco(fn):
         @functools.wraps(fn)
         def wrapper(log: EventLog, *args):
             hit = log.lookup(name, args)
             if hit:
                 print(f"    [replay] {name}({args}) -> {hit['result']} (from log)")
-                return hit["result"]  # 返回结果
+                return hit["result"]
             log.append({"name": name, "args": list(args), "status": "started"})
             result = fn(*args)
             log.append({"name": name, "args": list(args),
                         "status": "done", "result": result})
             print(f"    [run]    {name}({args}) -> {result}")
-            return result  # 返回结果
-        return wrapper  # 返回结果
-    return deco  # 返回结果
+            return result
+        return wrapper
+    return deco
 
 
 # ---------- Example activities ----------
 
 @activity("fetch_docs")
 def fetch_docs(query: str) -> int:
-    """fetch_docs"""
     # Pretend to hit an API; return number of docs.
-    return len(query) * 3  # 返回结果
+    return len(query) * 3
 
 
 @activity("call_llm")
 def call_llm(doc_count: int) -> str:
-    """call_llm"""
     # Pretend LLM call; deterministic here for pedagogy.
-    return f"summary({doc_count}_docs)"  # 返回结果
+    return f"summary({doc_count}_docs)"
 
 
 @activity("write_report")
 def write_report(summary: str) -> str:
-    """write_report"""
     # Pretend tool call with a side effect.
-    return f"report://{summary}"  # 返回结果
+    return f"report://{summary}"
 
 
 # ---------- Workflow ----------
@@ -105,25 +106,22 @@ def workflow(log: EventLog, query: str, crash_after: int = -1) -> str:
     if crash_after == 2:
         raise RuntimeError("simulated crash after call_llm")
     report = write_report(log, summary)
-    return report  # 返回结果
+    return report
 
 
 # ---------- Driver ----------
 
 def reset_log(path: str) -> EventLog:
-    """reset_log"""
     if os.path.exists(path):
         os.remove(path)
-    return EventLog(path)  # 返回结果
+    return EventLog(path)
 
 
 def count_runs(log: EventLog) -> int:
-    """count_runs"""
-    return sum(1 for ev in log.events() if ev["status"] == "started")  # 返回结果
+    return sum(1 for ev in log.events() if ev["status"] == "started")
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("DURABLE EXECUTION (Phase 15, Lesson 12)")
     print("=" * 70)

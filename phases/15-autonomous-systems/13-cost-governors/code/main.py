@@ -9,8 +9,14 @@ three configurations:
 
 Metrics: turns executed, total tokens, total dollars, trigger that fired.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：分层成本控制器 —— 模拟 Agent 在 30 轮后漂入轮询循环的场景，
+对比三种配置：无上限（无限支出）、仅月度上限（先花很多再触发）、
+分层堆叠（每请求限制 + 迭代限制 + 速度限制 + 月度上限）。
+
+AI 对应：Agent 成本失控是生产环境中最常见的问题之一。
+OpenAI API 的 usage limits、Anthropic 的 rate limits、Langfuse 的 cost tracking
+都是这个分层控制模式的实例。"无上限"配置下，一个陷入循环的 Agent 可以在几分钟内
+消耗数千美元的 API 费用。
 """
 
 from __future__ import annotations
@@ -29,15 +35,13 @@ DOLLARS_PER_KTOK = 0.003
 
 
 def turn_cost(turn: int) -> int:
-    """turn_cost"""
-    return LOOP_TURN_TOKENS if turn >= LOOP_STARTS_AT else NORMAL_TURN_TOKENS  # 返回结果
+    return LOOP_TURN_TOKENS if turn >= LOOP_STARTS_AT else NORMAL_TURN_TOKENS
 
 
 # ---------- Governor ----------
 
 @dataclass
 class Governor:
-    """Governor"""
     max_tokens_per_request: int = 10_000
     max_turns: int = 200
     max_budget_usd: float = 50.0
@@ -57,7 +61,6 @@ class Governor:
 
 @dataclass
 class Run:
-    """Run"""
     turns: int = 0
     tokens: int = 0
     dollars: float = 0.0
@@ -69,13 +72,12 @@ EPSILON_MIN = 1e-9
 
 
 def velocity_exceeded(run: Run, gov: Governor, now_min: float) -> bool:
-    """velocity_exceeded"""
     if not run.history:
-        return False  # 返回结果
+        return False
     cutoff = now_min - gov.velocity_window_min
     window = [(t, d) for (t, d) in run.history if t >= cutoff]
     if not window:
-        return False  # 返回结果
+        return False
     start_min, start_dollars = window[0]
     window_dollars = run.dollars - start_dollars
     # Use the actual elapsed time inside the window, not the nominal
@@ -83,11 +85,10 @@ def velocity_exceeded(run: Run, gov: Governor, now_min: float) -> bool:
     # stops the rate being under-reported.
     elapsed = max(now_min - start_min, EPSILON_MIN)
     rate = window_dollars / elapsed
-    return rate > gov.velocity_usd_per_min  # 返回结果
+    return rate > gov.velocity_usd_per_min
 
 
 def simulate(gov: Governor, label: str) -> Run:
-    """simulate"""
     run = Run()
     now_min = 0.0
 
@@ -119,11 +120,10 @@ def simulate(gov: Governor, label: str) -> Run:
 
     print(f"  {label:<24}  turns={run.turns:>5}  tokens={run.tokens:>8,}  "
           f"dollars=${run.dollars:>7.2f}  stopped_by={run.stopped_by}")
-    return run  # 返回结果
+    return run
 
 
 def main() -> None:
-    """main"""
     print("=" * 85)
     print("LAYERED COST GOVERNORS (Phase 15, Lesson 13)")
     print("=" * 85)
