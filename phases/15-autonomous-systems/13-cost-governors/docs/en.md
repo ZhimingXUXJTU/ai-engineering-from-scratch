@@ -2,18 +2,20 @@
 
 > A mid-sized e-commerce agent's monthly LLM cost jumped from $1,200 to $4,800 after its team enabled the "order-tracking" skill. That is not a pricing bug. That is an agent that found a new loop and kept spending inside it. Microsoft's Agent Governance Toolkit (April 2, 2026) codifies the defense against this class: per-request `max_tokens`, per-task token and dollar budgets, per-day/month caps, iteration caps, tiered model routing, prompt caching, context windowing, HITL checkpoints on expensive actions, kill switches on budget breach. Anthropic's Claude Code Agent SDK ships the same primitives under different names. Financial velocity limits — e.g. cut access on >$50 in 10 minutes — catch loops faster than monthly caps.
 
-**Type:** Learn
-**Languages:** Python (stdlib, layered cost-governor simulator)
-**Prerequisites:** Phase 15 · 10 (Permission modes), Phase 15 · 12 (Durable execution)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, layered cost-governor simulator) | **语言:** Python (stdlib, layered cost-governor simulator)
+**Prerequisites:** Phase 15 · 10 (Permission modes), Phase 15 · 12 (Durable execution) | **前置知识:** Phase 15 · 10 (Permission modes), Phase 15 · 12 (Durable execution)
+**Time:** ~60 minutes | **时间:** ~60 minutes
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 > **【中文解读】** 成本控制器（Cost Governors）监控和限制 Agent 的资源消耗——主要是 API 调用费用和 token 使用量。没有成本控制器的 Agent 可能在循环或低效执行中产生巨额账单。三种控制策略：(1) 预算上限——硬性 token/费用限制；(2) 速率限制——每分钟/每小时调用上限；(3) 效率门控——当成本/收益比恶化时暂停。
 
 > **【拓展：cost governors】** 成本控制是 2025-2026 年 Agent 生产部署的关键挑战。公开案例：多个用户报告编码 Agent 在陷入修复循环后产生数千美元的 API 费用。解决方案包括：(1) OpenAI 的 max_output_tokens 限制；(2) Anthropic 的 usage tracking API；(3) 第三方工具如 Helicone 和 Braintrust 的成本监控。最佳实践是为每个任务设置明确的成本上限。
 
-Autonomous agents spend real money on every turn. A chatbot's bad output is a bad reply; an agent's bad loop is a bill. The industry-documented term for the failure mode is "Denial of Wallet" — the agent keeps reasoning, keeps tool-calling, keeps billing, and nothing stops it because nothing was designed to.
+Autonomous agents spend real money on every turn.
+
+> 自主 Agent 在每一轮都花费真金白银。聊天机器人的错误输出是一条错误回复；Agent 的错误循环是一张账单。 A chatbot's bad output is a bad reply; an agent's bad loop is a bill. The industry-documented term for the failure mode is "Denial of Wallet" — the agent keeps reasoning, keeps tool-calling, keeps billing, and nothing stops it because nothing was designed to.
 
 The fix is not one number. It is a stack of limits at different time scales and granularities: per-request, per-task, per-hour, per-day, per-month. A well-designed stack catches a runaway loop within minutes, a slow leak within hours, and a bad release within a day. The same stack keeps a budget at all when the agent is long-horizon and autonomous.
 
@@ -22,7 +24,7 @@ The fix is not one number. It is a stack of limits at different time scales and 
 
 This is an engineering lesson: the math is trivial, the discipline is where teams fail. The list of limits below is all named either in the Microsoft Agent Governance Toolkit or the Anthropic Claude Code Agent SDK docs.
 
-## The Concept | 概念
+## The Concept | 核心概念
 
 ### The cost-governor stack
 
@@ -65,37 +67,35 @@ Microsoft's Agent Governance Toolkit covers the OWASP Agentic Top 10 and the EU 
 
 ### The observed $1,200 → $4,800 case
 
-The real case in the Microsoft docs: an e-commerce agent whose monthly cost tripled after a new tool was added. The tool allowed the agent to poll order status during every session. No loop detection. No per-tool cap. No alert on week-over-week growth. The fix was a per-tool cap plus a daily-growth alert. This is a template: every new tool surface is a new potential loop; every new tool needs its own cap and its own alert.
+The real case in the Microsoft docs: an e-commerce agent whose monthly cost tripled after a new tool was added.
 
-## Use It | 使用方法
+> Microsoft 文档中的真实案例：一个电子商务 Agent 在添加新工具后月成本翻了三倍。没有循环检测，没有按工具上限。 The tool allowed the agent to poll order status during every session. No loop detection. No per-tool cap. No alert on week-over-week growth. The fix was a per-tool cap plus a daily-growth alert. This is a template: every new tool surface is a new potential loop; every new tool needs its own cap and its own alert.
+
+## Use It | 用框架实现
 
 `code/main.py` simulates an agent run with and without a layered cost-governor stack. The simulated agent drifts into a polling loop after some turns; the layered stack catches it within the velocity window while a single monthly cap would not fire until days later.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 `outputs/skill-agent-budget-audit.md` audits a proposed agent deployment's cost-governor stack and flags missing layers.
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Confirm the velocity limit fires before the iteration cap on a polling-loop trajectory. Now disable the velocity limit and measure how much the agent "spends" before the iteration cap catches it.
-   *思考并实践此练习*
 
 2. Design a per-tool cap set for a browser agent (Lesson 11). Which tool needs the tightest cap? Which tool can run unbounded without risk?
-   *思考并实践此练习*
 
 3. Read the Microsoft Agent Governance Toolkit docs. List every cap type the toolkit names. Map each to one of the failure modes (runaway loop, slow leak, bad release, surge).
-   *思考并实践此练习*
 
 4. Price an overnight unattended run for a realistic task (e.g., "triage 50 issues in a repo"). Set `max_budget_usd` at 2x your point estimate. Justify the 2x.
-   *思考并实践此练习*
 
 5. Claude Code's `max_budget_usd` fires on session aggregate cost. Design a complementary velocity limit you would enforce externally. What triggers the cut-off, and what does re-enable look like?
-   *思考并实践此练习*
 
-## Key Terms | 关键术语
+## Key Terms | 术语速查表
 
 | Term | What people say | What it actually means |
-|---|---|---|---|
+|---|---|---|
+| 术语 | 通俗说法 | 实际含义 |
 | Denial of Wallet | "Runaway bill" | Agent loop generating spend with no cap to stop it |  |
 | max_tokens | "Per-request cap" | Ceiling on a single completion's size |  |
 | max_turns | "Iteration cap" | Ceiling on agent loop iterations in a session |  |
