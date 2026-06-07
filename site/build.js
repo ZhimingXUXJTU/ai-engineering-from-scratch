@@ -453,6 +453,48 @@ const ARTIFACTS = ${JSON.stringify(artifacts, null, 2)};
   console.log(`\n✅ Generated ${OUTPUT_PATH}`);
 
   syncCounts(totalLessons, phases.length, artifacts.length);
+  syncReadme(totalLessons);
+}
+
+// ─── Regenerate README stats block + lessons badge from source ───────────
+function syncReadme(lessons) {
+  const readmePath = path.join(REPO_ROOT, 'README.md');
+  if (!fs.existsSync(readmePath)) return;
+  let md = fs.readFileSync(readmePath, 'utf8');
+  const before = md;
+
+  // Keep the lessons badge in sync with the live count (URL value + alt text)
+  md = md.replace(/badge\/lessons-\d+-/g, `badge/lessons-${lessons}-`);
+  md = md.replace(/alt="\d+ lessons"/g, `alt="${lessons} lessons"`);
+
+  // Regenerate the traffic proof block from site/stats.json
+  const statsPath = path.join(__dirname, 'stats.json');
+  if (fs.existsSync(statsPath)) {
+    try {
+      const s = JSON.parse(fs.readFileSync(statsPath, 'utf8'));
+      const fmt = n => Number(n).toLocaleString('en-US');
+      const block =
+        '<!-- STATS:START (generated from site/stats.json by build.js — do not edit by hand) -->\n' +
+        `<p align="center"><sub><b>${fmt(s.visitors30d)}</b> readers &nbsp;·&nbsp; ` +
+        `<b>${fmt(s.pageViews30d)}</b> page views in the last ${s.period} &nbsp;·&nbsp; ` +
+        `as of ${s.updated}</sub></p>\n` +
+        '<!-- STATS:END -->';
+      const statsRe = /<!-- STATS:START[\s\S]*?<!-- STATS:END -->/;
+      if (statsRe.test(md)) {
+        md = md.replace(statsRe, block);
+      } else {
+        // Self-heal: re-insert the block if the markers were removed/mangled
+        md = md.replace(/\n## How this works/, `\n${block}\n\n## How this works`);
+      }
+    } catch (err) {
+      console.warn(`⚠️  README stats sync skipped: ${err.message}`);
+    }
+  }
+
+  if (md !== before) {
+    fs.writeFileSync(readmePath, md, 'utf8');
+    console.log('   synced README stats + lessons badge');
+  }
 }
 
 // ─── Keep marketing counts in sync (single source of truth = this build) ──
