@@ -23,6 +23,10 @@ The 2017 paper "Attention Is All You Need" proposed something radical: drop recu
 
 The result dominates every modality by 2026. Language (GPT-5, Claude 4, Llama 4), vision (ViT, DINOv2, SAM 3), audio (Whisper), biology (AlphaFold 3), robotics (RT-2). Same block, different inputs.
 
+> **【中文解读】** RNN 的三个致命弱点：1) 无法并行——token t+1 必须等 token t 完成，GPU 上 99% 算力被浪费；2) 梯度消失——50 个 token 之前的信息已被压缩成模糊信号；3) 固定宽度瓶颈——整个源序列被压缩为单一向量。Transformer 的激进方案：完全抛弃循环，让每个位置同时关注所有其他位置。串行深度从 O(N) 降到 O(1)，训练速度提升 5-10 倍。
+
+> **【拓展：Transformer 何时不是最佳选择】** 2026 年仍有三个场景选择 RNN/SSM：1) 流式推理（逐 token，常量内存）；2) 超长序列（>1M token，注意力内存爆炸）；3) 边缘设备（无矩阵乘法加速器）。Mamba 等状态空间模型本质上是结构化参数化的 RNN，训练时可并行，推理时 O(N)。前沿实验室训练混合 SSM+Transformer 模型（如 Jamba、Samba）——循环没有死，它是一个组件。
+
 ## The Concept
 
 ![RNN sequential compute vs Transformer parallel attention](../assets/rnn-vs-transformer.svg)
@@ -91,15 +95,15 @@ See `outputs/skill-architecture-picker.md`. The skill picks an architecture for 
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Recurrence | "RNNs are sequential" | Computation where step `t` depends on step `t-1`, forcing serial execution along the time axis. |
-| Serial depth | "How deep the graph is" | Longest chain of dependent ops; bounds wall-clock even on infinite hardware. |
-| Attention | "Let tokens look at each other" | Weighted sum `sum_j a_ij v_j` where `a_ij` comes from a similarity score between positions i and j. |
-| Context window | "How much the model sees" | Number of positions an attention layer can take as input; quadratic memory cost scales here. |
-| Inductive bias | "Assumptions baked into the architecture" | Prior about what the data looks like; CNNs assume translation invariance, RNNs assume recency. |
-| State-space model | "RNN with algebra behind it" | Recurrence parameterized for parallel training via structured state-space matrices. |
-| Quadratic bottleneck | "Why context costs so much" | Attention memory = `O(N²)` in sequence length; Flash Attention hides the constants, not the scaling. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Recurrence | "RNNs are sequential" | Computation where step `t` depends on step `t-1`, forcing serial execution along the time axis. | 循环——逐步串行的计算模式 |
+| Serial depth | "How deep the graph is" | Longest chain of dependent ops; bounds wall-clock even on infinite hardware. | 串行深度——依赖链的最大长度 |
+| Attention | "Let tokens look at each other" | Weighted sum `sum_j a_ij v_j` where `a_ij` comes from a similarity score between positions i and j. | 注意力——token 间的加权聚合 |
+| Context window | "How much the model sees" | Number of positions an attention layer can take as input; quadratic memory cost scales here. | 上下文窗口——模型可见的 token 数 |
+| Inductive bias | "Assumptions baked into the architecture" | Prior about what the data looks like; CNNs assume translation invariance, RNNs assume recency. | 归纳偏置——架构中内置的数据假设 |
+| State-space model | "RNN with algebra behind it" | Recurrence parameterized for parallel training via structured state-space matrices. | 状态空间模型——可并行训练的结构化 RNN |
+| Quadratic bottleneck | "Why context costs so much" | Attention memory = `O(N²)` in sequence length; Flash Attention hides the constants, not the scaling. | 二次瓶颈——注意力的 O(N²) 内存代价 |
 
 ## Further Reading
 

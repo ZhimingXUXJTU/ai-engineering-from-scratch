@@ -23,6 +23,10 @@ The fix is to inject position into the embeddings somehow. Three eras of answers
 
 As of 2026, essentially every frontier open model uses RoPE: Llama 2/3/4, Qwen 2/3, Mistral, Mixtral, DeepSeek-V3, Kimi. A handful of long-context models use ALiBi or its modern variants. Absolute sinusoidal is historical.
 
+> **【中文解读】** 注意力机制本身是排列不变的——打乱输入顺序，输出只是按相同顺序打乱。对语言、代码等有序数据而言，这是致命缺陷。三个时代的解决方案：绝对正弦编码（2017，简单但外推差）、RoPE 旋转位置编码（2021，编码相对位置，2026 年主流）、ALiBi 线性偏置（2022，直接修改注意力分数，外推能力最强）。
+
+> **【拓展：长上下文的关键技术】** Llama 3 从 8K 扩展到 128K 上下文长度，核心就是 RoPE 的缩放技巧。NTK-aware 插值调整 base 参数、YaRN 保持注意力熵、LongRoPE 用进化搜索找最优缩放因子。这些技巧让模型在不重新训练的情况下支持更长的上下文。
+
 ## The Concept
 
 ![Sinusoidal absolute vs RoPE rotations vs ALiBi distance bias](../assets/positional-encoding.svg)
@@ -74,6 +78,8 @@ Where `m_h` is a head-specific slope (e.g. `1 / 2^(8·h/H)`). Closer tokens get 
 | ALiBi | excellent | free | BLOOM, MPT, Baichuan |
 
 RoPE won because it slots into attention without changing the architecture, encodes relative position, and its `base` hyperparameter gives a clean knob for long-context fine-tuning.
+
+> **【中文解读】** 绝对正弦编码将 sin/cos 函数值加到嵌入上，每个维度是不同频率的正弦波。RoPE 则更巧妙——旋转 Q 和 K 向量，使点积只依赖相对距离 (m-n)，而非绝对位置。ALiBi 最直接——在注意力分数上减去与距离成正比的偏置。2026 年 RoPE 胜出的原因：不改变架构即可编码相对位置，base 参数是长上下文微调的干净旋钮。
 
 ## Build It
 
@@ -161,16 +167,16 @@ See `outputs/skill-positional-encoding-picker.md`. The skill picks an encoding s
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Positional encoding | "Tells attention about order" | Any signal added to embeddings or attention that encodes position. |
-| Sinusoidal | "The original one" | `sin/cos` at geometric frequencies added to embeddings; doesn't extrapolate. |
-| RoPE | "Rotary embeddings" | Rotate Q, K by position-dependent angle; dot product encodes relative distance. |
-| ALiBi | "Linear bias trick" | Add `-m·\|i-j\|` to attention scores; no embedding needed, great extrapolation. |
-| base | "RoPE's knob" | The frequency scaler in RoPE; increase to extend context at inference. |
-| NTK-aware | "A RoPE scaling trick" | Rescale `base` so high-frequency dims aren't squeezed when context expands. |
-| YaRN | "The fancy one" | Per-dimension interpolation+extrapolation that preserves attention entropy. |
-| Extrapolation | "Works beyond trained length" | Can the position scheme serve correct output past `max_len` seen in training? |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Positional encoding | "Tells attention about order" | Any signal added to embeddings or attention that encodes position. | 位置编码——为注意力注入顺序信息 |
+| Sinusoidal | "The original one" | `sin/cos` at geometric frequencies added to embeddings; doesn't extrapolate. | 正弦编码——原始 Transformer 的位置方案 |
+| RoPE | "Rotary embeddings" | Rotate Q, K by position-dependent angle; dot product encodes relative distance. | 旋转位置编码——2026 年主流方案 |
+| ALiBi | "Linear bias trick" | Add `-m·\|i-j\|` to attention scores; no embedding needed, great extrapolation. | 线性偏置注意力——无需嵌入，外推极佳 |
+| base | "RoPE's knob" | The frequency scaler in RoPE; increase to extend context at inference. | base 参数——RoPE 的频率缩放因子 |
+| NTK-aware | "A RoPE scaling trick" | Rescale `base` so high-frequency dims aren't squeezed when context expands. | NTK 感知插值——扩展上下文时的缩放技巧 |
+| YaRN | "The fancy one" | Per-dimension interpolation+extrapolation that preserves attention entropy. | YaRN——保持注意力熵的维度级插值外推 |
+| Extrapolation | "Works beyond trained length" | Can the position scheme serve correct output past `max_len` seen in training? | 外推——超越训练长度仍能正确输出 |
 
 ## Further Reading
 

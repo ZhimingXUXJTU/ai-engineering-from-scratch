@@ -17,6 +17,10 @@ The fix from the 2017 Vaswani paper: run several attention functions in parallel
 
 Multi-head attention is the default every transformer in 2026 ships with. The only argument is about *how many* heads and whether keys and values share projections (Grouped-Query Attention, Multi-Query Attention, Multi-head Latent Attention).
 
+> **【中文解读】** 单个注意力头只能捕获一种关系——当数据中同时存在主谓一致、共指消解、长距离语篇、句法分块等多种关系时，单头会将它们"揉成一团"而丢失大量信号。Vaswani 的解决方案：并行运行多组独立投影的注意力函数，每组在不同子空间中工作，最后拼接输出。参数总量不变，表达能力大幅提升。
+
+> **【拓展：多头注意力在实践中的分工】** 探针研究（2019-2024）发现不同的注意力头确实学会了不同的功能角色：位置头关注相邻 token、复制头负责重复模式、归纳头（induction head）负责上下文学习。归纳头被认为是 GPT 系列模型展现出 in-context learning 能力的核心电路。
+
 ## The Concept
 
 ![Multi-head attention splits, attends, concatenates](../assets/multi-head-attention.svg)
@@ -39,6 +43,8 @@ Multi-head attention is the default every transformer in 2026 ships with. The on
 | Multi-head latent (MLA) | N | compressed to low-rank | DeepSeek-V2, V3 |
 
 GQA is the modern default because it cuts KV-cache memory by a factor of `N/G` while keeping nearly full quality. MLA goes further by compressing K/V into a latent space, then projecting back at compute time — costs FLOPs, saves a lot more memory.
+
+> **【中文解读】** 多头注意力的核心流程：将输入投影为 Q/K/V → 按头数分割为多个子空间 → 每个子空间独立计算注意力 → 拼接结果并通过输出矩阵 Wo 投影。2026 年的变体：MQA（PaLM/Falcon 使用，所有头共享一组 K/V）最省内存但质量略有下降；GQA（Llama 2/3、Qwen、Mistral 使用，K/V 分成 G 组）是当前主流平衡点；MLA（DeepSeek-V2/V3 使用，将 K/V 压缩到低秩隐空间）最激进但效果最好。
 
 ## Build It
 
@@ -93,6 +99,8 @@ def gqa_project(X, W, n_kv_heads, n_heads):
 
 At inference this saves memory because only `n_kv_heads` copies live in the KV cache, not `n_heads`. Llama 3 70B uses 64 query heads with 8 KV heads — an 8× cache shrink.
 
+> **【中文解读】** GQA（分组查询注意力）的实现关键：Q 保持 `n_heads` 组，K/V 只投影到 `n_kv_heads` 组（`n_kv_heads < n_heads`），然后通过重复匹配到 Q 的头数。推理时 KV 缓存只需存储 `n_kv_heads` 份，而非 `n_heads` 份。Llama 3 70B 使用 64 个查询头但只有 8 个 KV 头，KV 缓存缩小 8 倍，这是 70B 模型能在单机上部署的关键优化。
+
 ### Step 4: probe what each head learned
 
 Run MHA on a short sentence with 4 heads. For each head, print the `(N, N)` attention matrix. You'll see different heads pick out different structure even with random initialization — that's partly signal, partly rotational symmetry in the subspaces.
@@ -129,6 +137,8 @@ out = scaled_dot_product_attention(q, k, v, is_causal=True, enable_gqa=True)
 
 `d_head` almost always lands at 64 or 128. It is the unit of how much one head can "see." Drop below 32 and heads start fighting the scaling factor `sqrt(d_head)`; go above 256 and you lose the "many small specialists" benefit.
 
+> **【中文解读】** 头维度（d_head）的选择有明确的经验规律：几乎所有生产模型都使用 64 或 128。低于 32 时 sqrt(d_head) 缩放因子会出问题；高于 256 则失去"多个小专家"的优势。增加头数本质上是免费的——GPU 将其视为一次批量矩阵乘法（bmm），不需要循环。
+
 ## Ship It
 
 See `outputs/skill-mha-configurator.md`. The skill recommends head count, kv-head count, and projection strategy for a new transformer given parameter budget, sequence length, and deployment target.
@@ -141,16 +151,16 @@ See `outputs/skill-mha-configurator.md`. The skill recommends head count, kv-hea
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Head | "A single attention circuit" | One Q/K/V projection of dimension `d_head = d_model / n_heads` with its own attention matrix. |
-| d_head | "Head dimension" | Per-head hidden width; almost always 64 or 128 in production. |
-| Split / combine | "Reshape tricks" | `(N, d_model) ↔ (n_heads, N, d_head)` reshape+transpose around attention. |
-| W_o | "Output projection" | `(d_model, d_model)` matrix applied after concatenating heads; where heads mix. |
-| MQA | "One KV head" | Multi-Query Attention: single shared K/V projection. Smallest KV cache, some quality loss. |
-| GQA | "The default since Llama 2" | Grouped-Query Attention with `n_kv_heads < n_heads`; repeats to match Q. |
-| MLA | "DeepSeek's trick" | Multi-head Latent Attention: K,V compressed to low-rank latent, decompressed at attend time. |
-| Induction head | "The circuit behind in-context learning" | A pair of heads that detect previous occurrences and copy what followed them. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Head | "A single attention circuit" | One Q/K/V projection of dimension `d_head = d_model / n_heads` with its own attention matrix. | 注意力头——一个独立的注意力计算单元 |
+| d_head | "Head dimension" | Per-head hidden width; almost always 64 or 128 in production. | 头维度——每个头的隐藏宽度 |
+| Split / combine | "Reshape tricks" | `(N, d_model) ↔ (n_heads, N, d_head)` reshape+transpose around attention. | 分割/合并——注意力前后的 reshape+transpose |
+| W_o | "Output projection" | `(d_model, d_model)` matrix applied after concatenating heads; where heads mix. | 输出投影矩阵——多头拼接后的混合层 |
+| MQA | "One KV head" | Multi-Query Attention: single shared K/V projection. Smallest KV cache, some quality loss. | 多查询注意力——所有头共享一组 K/V |
+| GQA | "The default since Llama 2" | Grouped-Query Attention with `n_kv_heads < n_heads`; repeats to match Q. | 分组查询注意力——2026 年主流方案 |
+| MLA | "DeepSeek's trick" | Multi-head Latent Attention: K,V compressed to low-rank latent, decompressed at attend time. | 多头隐注意力——DeepSeek-V2/V3 的内存优化 |
+| Induction head | "The circuit behind in-context learning" | A pair of heads that detect previous occurrences and copy what followed them. | 归纳头——驱动上下文学习的关键电路 |
 
 ## Further Reading
 

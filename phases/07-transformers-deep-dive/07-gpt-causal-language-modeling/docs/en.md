@@ -19,6 +19,10 @@ The causal mask does this. It is a single upper-triangular matrix of `-inf` valu
 
 GPT-1 (2018), GPT-2 (2019), GPT-3 (2020), GPT-4 (2023), GPT-5 (2024), Claude, Llama, Qwen, Mistral, DeepSeek, Kimi — they are all decoder-only causal transformers with the same core loop. Just bigger, better data, and better RLHF.
 
+> **【中文解读】** 语言模型的核心问题：给定前 t-1 个 token，预测第 t 个 token 的概率分布。因果掩码是实现并行训练的关键——一个上三角全为 -inf 的矩阵加到注意力分数上，softmax 后被掩码的位置权重为零。每个位置只能看到自身和之前的位置，但一次前向传播同时得到 N 个并行预测。GPT、Claude、Llama、Qwen 等所有现代大模型都是这个架构。
+
+> **【拓展：因果掩码为什么是"现代 AI 最重要的一行代码"】** 因果掩码的实现只需一行 `torch.tril()`，时间复杂度纳秒级，但它使得 Transformer 能够并行处理整个序列进行训练——这是 GPT 能够从 124M 扩展到万亿参数的工程基础。没有因果掩码，训练每个序列都需要逐步串行，扩展性将大打折扣。
+
 ## The Concept
 
 ![Causal mask creates a triangular attention matrix](../assets/causal-attention.svg)
@@ -77,6 +81,10 @@ In 2026, min-p + temperature 0.7 is a reasonable default for open-weights models
 5. **Pre-norm + RoPE + SwiGLU.** Stable training at scale.
 
 The core architecture hasn't changed much since GPT-2. Everything interesting has happened in data, scale, and post-training.
+
+> **【中文解读】** GPT 的成功配方：1) Decoder-only 架构（无编码器开销）；2) 规模扩展（124M → 1.5B → 175B → 万亿）；3) 上下文学习（约 6B-13B 开始涌现）；4) RLHF 后训练（将原始预训练文本转化为聊天助手）；5) 现代化组件（pre-norm + RoPE + SwiGLU）。核心架构自 GPT-2 以来变化不大，所有突破都发生在数据、规模和后训练上。
+
+> **【拓展：解码策略的实践选择】** 2026 年推荐的默认采样参数：min-p + temperature 0.7。greedy 适合确定性任务（代码补全），temperature 控制多样性，top-p 是 2020 年以来的主流，min-p（2024+）在高置信度时更精准地截断长尾。推测解码（speculative decoding）是生产推理的标配——小模型提出 N 个 token，大模型一次验证，延迟降低 2-3 倍。
 
 ## Build It
 
@@ -140,17 +148,17 @@ See `outputs/skill-sampling-tuner.md`. The skill picks sampling parameters for a
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Causal mask | "The triangle" | Upper-triangular `-inf` matrix added to attention scores so position `i` only sees positions `≤ i`. |
-| Next-token prediction | "The loss" | Cross-entropy of the model's distribution against the true next token at every position. |
-| Autoregressive | "Generate one at a time" | Feed output back as input; parallelism only during training, not during generation. |
-| Logits | "Pre-softmax scores" | Raw output of the LM head before softmax; sampling happens on these. |
-| Temperature | "Creativity knob" | Divide logits by T; T→0 = greedy, T→∞ = uniform. |
-| Top-p | "Nucleus sampling" | Truncate distribution to smallest set summing to ≥p; sample from what remains. |
-| Min-p | "Better than top-p" | Keep tokens where `p ≥ min_p × max_p`; adapts cutoff to sharpness of distribution. |
-| Speculative decoding | "Draft + verify" | Cheap model proposes N tokens; big model verifies in parallel. |
-| Teacher forcing | "Training trick" | During training, feed the true previous token, not the model's prediction. Standard for every seq2seq LM. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Causal mask | "The triangle" | Upper-triangular `-inf` matrix added to attention scores so position `i` only sees positions `≤ i`. | 因果掩码——下三角矩阵防止看到未来 |
+| Next-token prediction | "The loss" | Cross-entropy of the model's distribution against the true next token at every position. | 下一 token 预测——GPT 的训练目标 |
+| Autoregressive | "Generate one at a time" | Feed output back as input; parallelism only during training, not during generation. | 自回归——逐 token 生成 |
+| Logits | "Pre-softmax scores" | Raw output of the LM head before softmax; sampling happens on these. | logits——softmax 前的原始分数 |
+| Temperature | "Creativity knob" | Divide logits by T; T→0 = greedy, T→∞ = uniform. | 温度——控制输出多样性 |
+| Top-p | "Nucleus sampling" | Truncate distribution to smallest set summing to ≥p; sample from what remains. | 核采样——累积概率截断 |
+| Min-p | "Better than top-p" | Keep tokens where `p ≥ min_p × max_p`; adapts cutoff to sharpness of distribution. | Min-p 采样——自适应截断 |
+| Speculative decoding | "Draft + verify" | Cheap model proposes N tokens; big model verifies in parallel. | 推测解码——小模型起草+大模型验证 |
+| Teacher forcing | "Training trick" | During training, feed the true previous token, not the model's prediction. Standard for every seq2seq LM. | 教师强制——训练时使用真实 token |
 
 ## Further Reading
 

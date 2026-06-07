@@ -21,6 +21,10 @@ Whisper made three bets:
 
 The result: Whisper large-v3 is robust across accents, noise, and languages that have zero clean labeled data. It is the default speech front-end for every open-source voice assistant and most commercial ones in 2026.
 
+> **【中文解读】** Whisper 的三个关键赌注：1) 用 68 万小时的网络音频训练（弱标注，非学术语料）；2) 一个模型同时处理转录、翻译、语种检测、时间戳、语音活动检测；3) 标准 Transformer 编码器-解码器，无需声码器或 CTC。结果：large-v3 在口音、噪声、低资源语言上都表现稳健，成为 2026 年所有开源语音助手和大多数商业产品的默认前端。
+
+> **【拓展：Whisper-turbo 与实时语音 Agent】** Large-v3-turbo（2024）将解码器从 32 层减到 4 层，解码速度提升 8 倍，WER 仅退化不到 1 个百分点。这使得 Whisper-turbo 成为 2026 年实时语音 Agent 的默认选择。配合 faster-whisper（CTranslate2 实现、int8 量化），可在消费级硬件上实现 150ms 级延迟。
+
 ## The Concept
 
 ![Whisper pipeline: audio → mel → encoder → decoder → text](../assets/whisper.svg)
@@ -173,16 +177,16 @@ See `outputs/skill-asr-configurator.md`. The skill picks an ASR model, decoding 
 
 ## Key Terms
 
-| Term | What people say | What it actually means |
-|------|-----------------|-----------------------|
-| Mel spectrogram | "Audio image" | 2D representation: frequency bins on one axis, time frames on the other; log-scaled energy per cell. |
-| Log-mel | "What Whisper sees" | Mel spectrogram passed through log; approximates human perception of loudness. |
-| Frame | "One time slice" | A 25 ms window of samples; overlapping at 10 ms stride. |
-| Task token | "Prompt prefix for speech" | Special tokens like `<\|transcribe\|>` / `<\|translate\|>` in the decoder prompt. |
-| Voice activity detection (VAD) | "Find the speech" | Gate that removes silence before ASR; cuts cost massively. |
-| CTC | "Connectionist Temporal Classification" | Classic ASR loss for alignment-free training; Whisper does NOT use it. |
-| Whisper-turbo | "Small decoder, full encoder" | large-v3 encoder + 4-layer decoder; 8× faster decoding. |
-| Faster-whisper | "The production wrapper" | CTranslate2 reimplementation; int8 quantization; 4× faster than OpenAI's reference. |
+| Term | What people say | What it actually means | 中文释义 |
+|------|-----------------|-----------------------|---------|
+| Mel spectrogram | "Audio image" | 2D representation: frequency bins on one axis, time frames on the other; log-scaled energy per cell. | Mel 频谱图——音频的二维时频表示 |
+| Log-mel | "What Whisper sees" | Mel spectrogram passed through log; approximates human perception of loudness. | 对数 Mel 频谱——Whisper 的实际输入 |
+| Frame | "One time slice" | A 25 ms window of samples; overlapping at 10 ms stride. | 音频帧——25ms 的音频窗口 |
+| Task token | "Prompt prefix for speech" | Special tokens like `<\|transcribe\|>` / `<\|translate\|>` in the decoder prompt. | 任务 token——控制 Whisper 行为的前缀标记 |
+| Voice activity detection (VAD) | "Find the speech" | Gate that removes silence before ASR; cuts cost massively. | 语音活动检测——过滤静音段 |
+| CTC | "Connectionist Temporal Classification" | Classic ASR loss for alignment-free training; Whisper does NOT use it. | CTC——经典 ASR 对齐无关训练损失（Whisper 不用） |
+| Whisper-turbo | "Small decoder, full encoder" | large-v3 encoder + 4-layer decoder; 8× faster decoding. | Whisper-turbo——精简解码器版 |
+| Faster-whisper | "The production wrapper" | CTranslate2 reimplementation; int8 quantization; 4× faster than OpenAI's reference. | faster-whisper——CTranslate2 生产优化版 |
 
 ## Further Reading
 
