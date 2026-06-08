@@ -19,6 +19,8 @@
 
 Leaderboards tell you which model wins on one benchmark. They do not tell you:
 
+> 排行榜告诉你哪个模型在某个基准上获胜。它们不会告诉你：
+
 > SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
 
 - Whether the benchmark is contaminated (solutions in training data, test leakage).
@@ -31,6 +33,8 @@ Leaderboards tell you which model wins on one benchmark. They do not tell you:
 > **{【拓展：SWE-bench (Princeton, 2023) 包含 2,294 个真实 GitHub is...】}** SWE-bench (Princeton, 2023) 包含 2,294 个真实 GitHub issue，Agent 必须在真实代码库中定位 bug、编写修复并通过测试。2026 年 SOTA 是 72% 解决率（OpenAI 的 Codex）。GAIA (Meta, 2023) 的 466 个问题需要 web 搜索、文件处理、代码执行等工具。人类平均 92%，最好的 Agent 约 70%。
 Know the three anchoring benchmarks and their failure modes before you quote a number.
 
+> 在引用数据之前，先了解这三个基准测试及其失败模式。
+
 ## The Concept | 核心概念
 
 ### SWE-bench (Jimenez et al., ICLR 2024 oral)
@@ -42,11 +46,15 @@ Know the three anchoring benchmarks and their failure modes before you quote a n
 
 SWE-agent (Yang et al., 2024) hit 12.5% at release by emphasizing agent-computer interfaces (file editor commands, search syntax the model understands).
 
+> SWE-agent（Yang 等，2024）在发布时达到 12.5%，通过强调 Agent-计算机接口（文件编辑器命令、模型能理解的搜索语法）。
+
 > SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
 
 ### SWE-bench Verified
 
 OpenAI, Aug 2024. Human-curated 500-task subset. Removes ambiguous issues, unreliable tests, and tasks where the fix was unclear. Primary benchmark for "does your agent ship real patches?"
+
+> OpenAI，2024 年 8 月。人工策划的 500 个任务子集。移除了模糊的 issue、不可靠的测试和修复不明确的任务。"你的 Agent 能交付真实的补丁吗？"的主要基准。
 
 > SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
 
@@ -58,6 +66,8 @@ OpenAI, Aug 2024. Human-curated 500-task subset. Removes ambiguous issues, unrel
 
 Practical implication: a model that scores 50% on SWE-bench may score 35% on SWE-bench+. Always report both if you claim SWE-bench performance.
 
+> 实际影响：一个在 SWE-bench 上得分 50% 的模型在 SWE-bench+ 上可能只得到 35%。如果你声称 SWE-bench 性能，请务必同时报告两者。
+
 > SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
 
 ### GAIA (Mialon et al., Nov 2023)
@@ -68,6 +78,8 @@ Practical implication: a model that scores 50% on SWE-bench may score 35% on SWE
 - Three difficulty levels; Level 3 requires long tool chains across modalities.
 
 GAIA is what you run to measure "generalist capability." Do not confuse with code-specific benchmarks.
+
+> GAIA 是用来衡量"通用能力"的基准。不要与代码专用基准混淆。
 
 > SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
 
@@ -90,9 +102,15 @@ GAIA is what you run to measure "generalist capability." Do not confuse with cod
 - **Contaminated claims.** Reporting SWE-bench without mentioning Verified or SWE-bench+ is misleading.
 - **Benchmark-as-development-target.** Optimizing for the benchmark diverges from production usefulness.
 
+> **单一数字执念。** SWE-bench 50% 告诉你的信息少于 P50/P75/P95 成本 + 步骤分布。
+> **污染声明。** 报告 SWE-bench 时不提及 Verified 或 SWE-bench+ 是误导性的。
+> **基准作为开发目标。** 为基准优化会偏离生产实用性。
+
 ## Build It | 动手实现
 
 `code/main.py` implements a toy SWE-bench-like harness:
+
+> `code/main.py` 实现了一个类似 SWE-bench 的玩具测试工具：
 
 > SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
 
@@ -109,6 +127,8 @@ python3 code/main.py
 
 The output shows resolution rate per task + per difficulty and makes the evaluator rules concrete.
 
+> 输出显示每个任务和每个难度级别的解决率，并使评估器规则具体化。
+
 > SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
 
 ## Use It | 用框架实现
@@ -121,6 +141,8 @@ The output shows resolution rate per task + per difficulty and makes the evaluat
 ## Ship It | 产出物
 
 `outputs/skill-benchmark-harness.md` builds a SWE-bench-style harness for any codebase-task pair with FAIL_TO_PASS / PASS_TO_PASS gating.
+
+> `outputs/skill-benchmark-harness.md` 为任何代码库-任务对构建一个 SWE-bench 风格的测试工具，带有 FAIL_TO_PASS / PASS_TO_PASS 门控。
 
 > SWE-bench 和 GAIA 是 Agent 能力的两个核心基准。SWE-bench 评估代码修复能力，GAIA 评估通用推理能力。2026 年的 Agent 评估正在从单任务指标转向端到端轨迹评估。
 

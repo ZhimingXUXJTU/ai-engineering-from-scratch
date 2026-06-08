@@ -21,7 +21,11 @@
 
 Teams adopting multi-agent frameworks hit the same wall. "Autonomous collaboration" sounds great in a demo. Then a customer files a bug and you need deterministic replay. Or finance asks how much an LLM-routed crew costs per run. Or on-call needs to know which agent stalled at 3 AM.
 
+> 采用多 Agent 框架的团队都会碰到同样的墙。"自主协作"在演示中听起来很棒。然后客户提了一个 bug，你需要确定性重放。或者财务部门问一次 LLM 路由的团队运行要花多少钱。或者值班人员需要知道哪个 Agent 在凌晨 3 点卡住了。
+
 Free-form LLM-routed crews answer none of those cleanly. Pure DAGs answer them all but lose the exploratory shape a brainstorming agent needs.
+
+> 自由形式的 LLM 路由团队无法干净地回答这些问题。纯 DAG 可以全部回答，但会丢失头脑风暴 Agent 所需的探索性结构。
 
 
 > **【中文解读】** CrewAI 采用角色模板模型——每个 Agent 有角色（Role）、目标（Goal）和背景故事（Backstory）。Agent 组成 Crew 协作完成任务。CrewAI 的独特之处是将组织管理理论（角色定义、团队协作）映射到 Agent 设计中，使得非技术用户也能定义 Agent 团队。
@@ -29,11 +33,15 @@ Free-form LLM-routed crews answer none of those cleanly. Pure DAGs answer them a
 > **{【拓展：CrewAI 是 2024-2025 年增长最快的 Agent 框架之一（GitHub 20k+ s...】}** CrewAI 是 2024-2025 年增长最快的 Agent 框架之一（GitHub 20k+ stars）。其核心卖点是低代码 Agent 协作——通过 YAML 配置文件定义 Agent 角色和任务流。CrewAI 支持两种模式：Crew（预定义角色团队）和 Flow（动态工作流）。企业用户（尤其是非技术团队）特别青睐其直观的角色定义方式。
 CrewAI's split is honest about the trade. Crews for collaborative, role-based, exploratory work. Flows for event-driven, code-owned, auditable production. Same framework, two shapes, pick per surface.
 
+> CrewAI 的分裂诚实地面对了这个权衡。Crew 用于协作式、基于角色的探索性工作。Flow 用于事件驱动、代码控制、可审计的生产环境。同一框架，两种形态，按场景选择。
+
 ## The Concept | 核心概念
 
 ### Four primitives
 
 CrewAI's surface is small. Memorize this and the rest is config.
+
+> CrewAI 的接口面很小。记住这些，其余的都是配置。
 
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
@@ -43,6 +51,8 @@ CrewAI's surface is small. Memorize this and the rest is config.
 - **Process.** Execution strategy. Sequential, Hierarchical, Consensus (planned). Picks the shape of the run.
 
 Agents do not see each other directly. Tasks reference agents. The Crew sequences tasks. The Process decides who picks the next task. That is the whole mental model.
+
+> Agent 之间不直接看到彼此。Task 引用 Agent。Crew 排列任务顺序。Process 决定谁执行下一个任务。这就是完整的心智模型。
 
 > **Validated against** CrewAI 0.86 (2026-05). Newer versions may rename or merge process types; check the [CrewAI Processes docs](https://docs.crewai.com/concepts/processes) before relying on a specific shape.
 
@@ -54,22 +64,30 @@ Agents do not see each other directly. Tasks reference agents. The Crew sequence
 
 Hierarchical adds a per-round LLM call (the manager) on top of every specialist call. Token cost can triple on a five-step run. Pay for it only when you need the routing.
 
+> 层级模式在每次专家调用之上增加了每轮的 LLM 调用（管理者）。在五步运行中，Token 成本可能增加三倍。只有在你需要路由时才值得为此付费。
+
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 ### Crews vs Flows
 
 This is the framing the docs lead with in 2026.
 
+> 这是 2026 年文档中最核心的框架划分。
+
 - **Crew.** LLM-driven autonomy. The framework picks the shape at runtime. Good for: research, brainstorming, first drafts, anywhere the path is part of the answer. Hard to replay. Hard to test. Cheap to prototype.
 - **Flow.** Event-driven graph you own. `@start` marks the entry. `@listen(topic)` marks a step that fires when another step emits that topic. Each step is plain Python (can call a Crew internally). Good for: production. Observable. Testable. Deterministic.
 
 The docs' 2026 production recommendation: start with a Flow. Fold Crews in as `Crew.kickoff()` calls from inside Flow steps when autonomy earns its cost. The Flow gives you the audit trail, the Crew gives you the exploration. Compose, do not pick.
+
+> 文档 2026 年的生产建议：从 Flow 开始。当自主性值得其成本时，将 Crew 作为 `Crew.kickoff()` 调用嵌入 Flow 步骤中。Flow 提供审计追踪，Crew 提供探索能力。组合使用，不要二选一。
 
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 ### Tool integration
 
 Three ways to give an Agent a tool. Pick the simplest one that fits.
+
+> 有三种方式给 Agent 提供工具。选择最简单的那个。
 
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
@@ -107,11 +125,15 @@ Three ways to give an Agent a tool. Pick the simplest one that fits.
 
 Structured outputs use Pydantic. Pass `output_pydantic=MyModel` on the Task. CrewAI validates the LLM response against the model and either coerces or retries. Pair this with a tight `expected_output` string. Free-text outputs are fine for drafts; structured outputs are what downstream Flows can consume.
 
+> 结构化输出使用 Pydantic。在 Task 上传入 `output_pydantic=MyModel`。CrewAI 根据 model 校验 LLM 的响应，不匹配则强制转换或重试。搭配严格的 `expected_output` 字符串使用。自由文本输出适合草稿；结构化输出才是下游 Flow 可以消费的。
+
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 ### Memory hooks
 
 CrewAI ships four memory types out of the box. They compose: a Crew can enable all four at once.
+
+> CrewAI 开箱提供四种记忆类型。它们可以组合使用：一个 Crew 可以同时启用全部四种。
 
 > **Validated against** CrewAI 0.86 (2026-05). Recent releases route everything through a unified `Memory` system that wraps these four stores. The conceptual model below still holds, but the public class surface may collapse to a single `Memory` entry-point in newer versions; check [CrewAI memory docs](https://docs.crewai.com/concepts/memory) for the current API.
 
@@ -121,6 +143,8 @@ CrewAI ships four memory types out of the box. They compose: a Crew can enable a
 - **Contextual.** Assembly-time retrieval. Pulls relevant memory at the moment the Agent needs it, not preloaded.
 
 Enable on the Crew with `memory=True` or per-type config. Backed by an embeddings provider you configure (defaults to OpenAI, swappable to local). Memory is one of the places CrewAI earns its keep against thinner frameworks; pure LangGraph requires you to wire each of these yourself.
+
+> 在 Crew 上通过 `memory=True` 或按类型配置来启用。由你配置的 embeddings 提供商支持（默认 OpenAI，可替换为本地模型）。记忆是 CrewAI 相比更轻量框架的优势之一；纯 LangGraph 需要你自己连接每一种记忆。
 
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
@@ -138,24 +162,38 @@ Enable on the Crew with `memory=True` or per-type config. Backed by an embedding
 
 Lesson 17 (Agent Framework Tradeoffs) lays this out in a matrix. The short version: CrewAI sits in the "collaborative role-based" corner.
 
+> 第 17 课（Agent 框架权衡）用矩阵展示了这一点。简短版本：CrewAI 位于"协作式基于角色"的角落。
+
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 ### Dependency shape
 
 Independent of LangChain. Python 3.10 to 3.13. Uses `uv`. Star count: see [crewAIInc/crewAI](https://github.com/crewAIInc/crewAI) (snapshot as of 2026-05). AWS Bedrock integration is documented; vendor benchmarks report a substantial speedup vs LangGraph on QA workloads, but the methodology (dataset, hardware, evaluation metric) is not published, so treat framework-vendor numbers as directional only.
 
+> 不依赖 LangChain。支持 Python 3.10 到 3.13。使用 `uv` 包管理。AWS Bedrock 集成已有文档；供应商基准测试报告称在 QA 工作负载上比 LangGraph 有显著加速，但方法论（数据集、硬件、评估指标）未公开，因此将框架供应商的数据仅作参考。
+
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 ### Where this pattern goes wrong
 
 - **Prompt-bloat from backstories.** A 2000-word backstory per agent and a five-agent crew burns the context budget before the first tool call. Keep backstories under 200 words. Reuse phrases across agents; do not repeat house style five times.
+
+> **背景故事导致的提示膨胀。** 每个 Agent 2000 词的背景故事，加上五个 Agent 的团队，在第一次工具调用前就耗尽了上下文预算。将背景故事控制在 200 词以内。跨 Agent 复用短语；不要重复五次相同的风格说明。
 - **Manager-LLM token tax.** Hierarchical process adds a manager LLM call before every specialist call. On a five-task crew that is six LLM calls instead of five, and the manager call carries the full task list plus prior outputs. Switch to Sequential unless routing depends on output.
+
+> **管理者 LLM 的 Token 税。** 层级模式在每次专家调用前增加一次管理者 LLM 调用。五个任务的团队变成六次 LLM 调用而不是五次，而且管理者调用携带完整的任务列表加之前的输出。除非路由依赖输出，否则切换到顺序模式。
 - **Brittle handoffs.** Task N's `expected_output` is "an outline". Task N+1 reads it as `context` and tries to parse three sections. The LLM produced four. The downstream Agent ad-libs. Fix with `output_pydantic` on Task N so Task N+1 reads a typed object, not free text.
+
+> **脆弱的交接。** 任务 N 的 `expected_output` 是"一个大纲"。任务 N+1 将其作为 `context` 读取并尝试解析三个部分。LLM 生成了四个。下游 Agent 即兴发挥。用 `output_pydantic` 修复任务 N，让任务 N+1 读取类型化对象而非自由文本。
 - **Crew-as-prod.** Free-form Crew shipped to production without a Flow wrapper. Output variability is high; replay is impossible; on-call cannot diff a bad run against a good one. Wrap with a Flow.
+
+> **Crew 直接上生产。** 没有包装成 Flow 就将自由形式 Crew 发布到生产环境。输出变异性高；无法重放；值班人员无法对比好坏运行。用 Flow 包装。
 
 ## Build It | 动手实现
 
 `code/main.py` implements stdlib versions of both shapes plus a three-agent crew.
+
+> `code/main.py` 用标准库实现了两种形态以及一个三 Agent 团队。
 
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
@@ -171,6 +209,8 @@ Shape:
 
 Concrete demo: researcher, writer, editor crew producing a brief on "agent engineering 2026". Researcher pulls (mocked) sources. Writer drafts. Editor tightens. Same crew runs through a Flow to show the deterministic shape.
 
+> 具体演示：研究员、撰写者、编辑组成团队，生成一篇关于"agent engineering 2026"的简报。研究员获取（模拟的）来源。撰写者起草。编辑精炼。同一个团队通过 Flow 运行以展示确定性形态。
+
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 Run it:
@@ -184,6 +224,8 @@ Trace covers: sequential crew threading outputs through `context`, hierarchical 
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 The Crew trace is fluid; the manager could in principle re-order. The Flow trace is fixed. That choice is the lesson.
+
+> Crew 的追踪是流动的；管理者原则上可以重新排序。Flow 的追踪是固定的。这个选择本身就是这一课的要点。
 
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
@@ -201,15 +243,27 @@ The Crew trace is fluid; the manager could in principle re-order. The Flow trace
 
 `outputs/skill-crew-or-flow.md` picks Crew vs Flow for a task and scaffolds the minimal implementation. Hard rejects on Crew-without-backstory, Flow-without-explicit-topics, Hierarchical with under three specialists.
 
+> `outputs/skill-crew-or-flow.md` 为一个任务选择 Crew 还是 Flow，并搭建最小实现。硬性拒绝：没有背景故事的 Crew、没有显式 topic 的 Flow、少于三个专家的层级模式。
+
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 ## Pitfalls | 常见陷阱
 
 - **Backstory as flavor.** It shapes outputs. Test three variants per agent; variance is real. Pick one, freeze it.
+
+> **把背景故事当装饰。** 它实际上塑造了输出。每个 Agent 测试三个变体；差异是真实的。选定一个，冻结它。
 - **Skipping `expected_output`.** Without a contract per task, downstream tasks pick up whatever the LLM produced. Crew runs; audit fails.
+
+> **跳过 `expected_output`。** 没有每个任务的契约，下游任务会接收 LLM 生成的任何内容。Crew 运行通过；审计失败。
 - **Memory always-on.** Long-term writes every run. Vector DB grows. Retrieval gets noisy. Scope writes to tasks where the fact is persistent.
+
+> **记忆始终开启。** 长期记忆每次运行都写入。向量数据库不断增长。检索变得嘈杂。将写入范围限制在需要持久化事实的任务。
 - **Manager prompt drift.** Hierarchical's manager prompt is implicit. If routing gets weird, dump it in verbose mode and read.
+
+> **管理者提示漂移。** 层级模式的管理者提示是隐式的。如果路由变得奇怪，用 verbose 模式导出并阅读。
 - **Tool side effects in Crews.** A Crew can call a tool more times than expected. POST, DELETE, payment belong in a Flow step, never a Crew tool.
+
+> **Crew 中的工具副作用。** Crew 可能比预期更多地调用工具。POST、DELETE、支付等操作应该放在 Flow 步骤中，永远不要放在 Crew 工具中。
 
 ## Exercises | 练习题
 

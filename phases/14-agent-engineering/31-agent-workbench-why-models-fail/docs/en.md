@@ -18,12 +18,18 @@
 
 You drop a frontier model into a real repo and ask it to add input validation. It opens four files, writes plausible code, declares success, and stops. You run the tests. Two fail. A third file is touched that had nothing to do with validation. There is no record of what the agent assumed, what it tried first, or what is left to do.
 
+> 你把一个前沿模型放入真实代码仓库，让它添加输入验证。它打开四个文件，写出看起来合理的代码，宣布成功，然后停止。你运行测试。两个失败。第三个文件被触及但与验证无关。没有记录表明 Agent 假设了什么、首先尝试了什么、还剩下什么要做。
+
 The model was not wrong about Python. It was wrong about the work. It had no idea what counted as done, where it was allowed to write, what tests were authoritative, or how the next session was supposed to pick up.
+
+> 模型在 Python 上没有错。它在工作上错了。它不知道什么算完成、允许在哪里写入、哪些测试是权威的、下一个会话应该如何接手。
 
 
 > **【中文解读】** Agent 在真实仓库中失败的原因分析：(1) 指令遵循失败——忽略约束或编造不存在的能力；(2) 上下文窗口耗尽——长代码库超出窗口导致关键信息丢失；(3) 错误累积——小错误在多步执行中雪崩式放大；(4) 缺乏项目记忆——不知道代码库的约定和架构。
 
 This is not a model bug. It is a workbench bug. The surface around the agent is missing the parts that turn a one-shot generation into reliable, resumable engineering.
+
+> 这不是模型 bug。这是工作台 bug。Agent 周围的表面缺少将一次性生成转变为可靠、可恢复的工程的部分。
 
 > Agent Workbench 分析模型失败的根本原因。主要失败模式包括：指令遵循失败、工具使用错误、上下文丢失和推理链断裂。
 
@@ -48,6 +54,8 @@ A workbench is the operating environment that wraps the model during a task. It 
 
 The workbench is independent of the model. You can swap the model and keep the surfaces. You cannot swap the surfaces and keep reliability.
 
+> 工作台独立于模型。你可以替换模型而保留表面。你不能替换表面而保留可靠性。
+
 > Agent Workbench 分析模型失败的根本原因。主要失败模式包括：指令遵循失败、工具使用错误、上下文丢失和推理链断裂。
 
 ```mermaid
@@ -64,17 +72,23 @@ flowchart LR
 
 The loop closes on the state file, not on chat history. Chat is volatile. The repo is the system of record.
 
+> 循环在状态文件上关闭，而不是在聊天历史上。聊天是易变的。仓库是记录的系统。
+
 > Agent Workbench 分析模型失败的根本原因。主要失败模式包括：指令遵循失败、工具使用错误、上下文丢失和推理链断裂。
 
 ### Workbench versus prompt engineering
 
 Prompting tells the model what you want this turn. A workbench tells the model how to do work across turns and across sessions. Most agent failure stories are workbench failures wearing prompt-engineering clothes.
 
+> 提示告诉模型这一轮你想要什么。工作台告诉模型如何跨轮次和跨会话做工作。大多数 Agent 失败故事都是穿着提示工程外衣的工作台失败。
+
 > Agent Workbench 分析模型失败的根本原因。主要失败模式包括：指令遵循失败、工具使用错误、上下文丢失和推理链断裂。
 
 ### Workbench versus framework
 
 A framework gives you a runtime (LangGraph, AutoGen, Agents SDK). A workbench gives the agent a place to work inside that runtime. You need both. This mini-track is about the second one.
+
+> 框架给你一个运行时（LangGraph、AutoGen、Agents SDK）。工作台给 Agent 在那个运行时内一个工作的地方。两者都需要。这个小专题是关于第二个的。
 
 > Agent Workbench 分析模型失败的根本原因。主要失败模式包括：指令遵循失败、工具使用错误、上下文丢失和推理链断裂。
 
@@ -85,6 +99,8 @@ There is a lot of writing on "harness engineering" right now. Addy Osmani, OpenA
 > Agent Workbench 分析模型失败的根本原因。主要失败模式包括：指令遵循失败、工具使用错误、上下文丢失和推理链断裂。
 
 Strip the agent label off for a moment. An agent run is computation that crosses time, processes, and machines. To make that reliable you need the same primitives any production system needs.
+
+> 暂时去掉 Agent 标签。一个 Agent 运行是跨越时间、进程和机器的计算。要使其可靠，你需要任何生产系统都需要的相同原语。
 
 > Agent Workbench 分析模型失败的根本原因。主要失败模式包括：指令遵循失败、工具使用错误、上下文丢失和推理链断裂。
 
@@ -152,6 +168,8 @@ The harness-over-model claim has numbers behind it now. Worth knowing, because t
 
 The takeaway is not "harness wins forever." Models do absorb harness tricks over time. The takeaway is that today, the load-bearing engineering is around the model, not inside it, and the primitives that carry that load are the ones every production system has always needed.
 
+> 结论不是"harness 永远赢"。模型确实会随时间吸收 harness 技巧。结论是今天，承载工程重量的是模型周围的部分，而不是模型内部的，承载这个重量的原语是每个生产系统一直需要的。
+
 > Agent Workbench 分析模型失败的根本原因。主要失败模式包括：指令遵循失败、工具使用错误、上下文丢失和推理链断裂。
 
 ### Where vendor writeups stop short
@@ -215,6 +233,8 @@ Workbench engineering is the discipline of making those surfaces explicit and re
 ## Ship It | 产出物
 
 `outputs/skill-workbench-audit.md` is a portable skill that audits an existing repo for the seven workbench surfaces and reports which are missing, which are partial, and which are healthy. Drop it next to any agent setup; it tells you what to fix first.
+
+> `outputs/skill-workbench-audit.md` 是一个可移植的技能，审计现有仓库的七个工作台表面，报告哪些缺失、哪些部分存在、哪些健康。放在任何 Agent 设置旁边；它会告诉你首先修复什么。
 
 > Agent Workbench 分析模型失败的根本原因。主要失败模式包括：指令遵循失败、工具使用错误、上下文丢失和推理链断裂。
 

@@ -18,6 +18,8 @@
 
 Production agents fail in ways a Jupyter notebook doesn't surface: network timeouts at step 37, user hangs up mid-voice call, cron job dies on machine reboot, background worker runs out of memory. The runtime shape determines which failures are survivable.
 
+> 生产 Agent 的失败方式是 Jupyter 笔记本无法展现的：第 37 步的网络超时、用户在语音通话中途挂断、定时任务在机器重启时死亡、后台工作器内存不足。运行时形态决定了哪些故障是可恢复的。
+
 
 > **【中文解读】** 生产环境 Agent 运行时需要处理开发环境不需要的问题：持久化状态、容错恢复、水平扩展、速率限制、成本控制和可观测性。选择运行时（LangGraph、Temporal、自建）取决于任务的关键性和预算。
 
@@ -77,6 +79,8 @@ Production agents fail in ways a Jupyter notebook doesn't surface: network timeo
 
 Without OpenTelemetry GenAI spans (Lesson 23) plus a Langfuse/Phoenix/Opik backend (Lesson 24), you cannot debug a multi-step agent that failed at step 40. This is not optional for production. It's the difference between "we debug fast" and "we replay from scratch with more logging."
 
+> 没有 OpenTelemetry GenAI span（第 23 课）加上 Langfuse/Phoenix/Opik 后端（第 24 课），你无法调试在第 40 步失败的多步 Agent。这对生产环境不是可选的。这是"快速调试"和"从头重放并添加更多日志"之间的区别。
+
 > 生产运行时处理 Agent 的部署、扩展和可靠性。关键考虑因素包括：状态管理、错误恢复、限流、队列管理和成本控制。
 
 ### Where production runtimes fail
@@ -85,6 +89,11 @@ Without OpenTelemetry GenAI spans (Lesson 23) plus a Langfuse/Phoenix/Opik backe
 - **No DLQ.** Queue workers without dead-letter. Failed jobs vanish.
 - **Opaque background work.** Background agent runs without trace export. Failures are invisible until the user reports them.
 - **Skipping durable state.** Any run > 30 seconds where you can't afford to restart needs durable execution.
+
+> **错误的形态选择。** 为 5 分钟任务选择请求-响应。用户挂断；工作器堆积；重试叠加。
+> **没有 DLQ。** 队列工作器没有死信队列。失败的任务消失。
+> **不透明的后台工作。** 后台 Agent 运行没有追踪导出。失败不可见直到用户报告。
+> **跳过持久化状态。** 任何超过 30 秒且无法承受重启的运行都需要持久化执行。
 
 ## Build It | 动手实现
 
@@ -104,6 +113,8 @@ python3 code/main.py
 
 Output: five traces showing each shape's behavior on the same task. Same agent logic, different outer shells. Durable execution (the sixth shape) is intentionally covered in Lesson 13 with LangGraph checkpointing.
 
+> 输出：五个追踪显示每种形态在同一任务上的行为。相同的 Agent 逻辑，不同的外壳。持久化执行（第六种形态）有意在第 13 课中通过 LangGraph 检查点覆盖。
+
 > 生产运行时处理 Agent 的部署、扩展和可靠性。关键考虑因素包括：状态管理、错误恢复、限流、队列管理和成本控制。
 
 ## Use It | 用框架实现
@@ -118,6 +129,8 @@ Output: five traces showing each shape's behavior on the same task. Same agent l
 ## Ship It | 产出物
 
 `outputs/skill-runtime-shape.md` picks a runtime shape for a task and wires the observability requirements.
+
+> `outputs/skill-runtime-shape.md` 为任务选择一个运行时形态并连接可观测性要求。
 
 > 生产运行时处理 Agent 的部署、扩展和可靠性。关键考虑因素包括：状态管理、错误恢复、限流、队列管理和成本控制。
 

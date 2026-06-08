@@ -18,7 +18,11 @@
 
 Open a session. The agent guesses the Python version. Guesses the test command. Lists the repo root five times to find the entry point. Tries to import a package that is not installed. Asks the user where the config file lives. By the time it makes a real edit, ten thousand tokens have gone to setup work that should have been a single script.
 
+> 打开一个会话。Agent 猜测 Python 版本。猜测测试命令。列出仓库根目录五次来找到入口点。尝试导入一个未安装的包。问用户配置文件在哪里。当它真正做出编辑时，一万个 token 已经花在了本应是一个脚本的设置工作上。
+
 The fix is one initialization script that runs before the agent does anything else and writes a `init_report.json` the agent reads at startup.
+
+> 修复是一个初始化脚本，在 Agent 做任何事情之前运行，并写入一个 Agent 在启动时读取的 `init_report.json`。
 
 
 > **【中文解读】** 初始化脚本在 Agent 会话开始时设置环境和上下文。包括：(1) 环境探测——检查依赖、语言版本、工具链；(2) 项目分析——扫描文件结构、识别框架和约定；(3) 记忆加载——从上次会话恢复上下文。好的初始化脚本是 Agent 成功的前提。

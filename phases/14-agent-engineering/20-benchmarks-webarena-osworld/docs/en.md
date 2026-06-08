@@ -18,6 +18,8 @@
 
 Generalist agents can call tools. Can they drive a browser across 20 clicks to complete a shopping checkout? Can they configure a Linux box using only keyboard and mouse? These are the questions WebArena and OSWorld answer.
 
+> 通用 Agent 可以调用工具。但它们能驱动浏览器完成 20 次点击来完成购物结账吗？它们能仅用键盘和鼠标配置一台 Linux 机器吗？这就是 WebArena 和 OSWorld 要回答的问题。
+
 
 > **【中文解读】** WebArena 和 OSWorld 评估 Agent 在真实计算环境中的操作能力。WebArena 测试 Web 浏览器操作（购物、论坛、CMS）。OSWorld 测试桌面操作系统操作（文件管理、应用操作）。两者都是端到端评估——不看中间步骤，只看最终结果是否正确。
 
@@ -32,6 +34,8 @@ Generalist agents can call tools. Can they drive a browser across 20 clicks to c
 - At release: best GPT-4 agent hit 14.41% success vs human 78.24%.
 
 The self-hosted framing matters — the benchmark is not flaky because the target apps are pinned and reproducible.
+
+> 自托管的框架很重要——基准不会因为目标应用被固定且可重现而不稳定。
 
 > WebArena 和 OSWorld 是计算机使用 Agent 的评估环境。WebArena 模拟网页操作，OSWorld 模拟完整桌面环境。两者都测试 Agent 在真实 GUI 中的操作能力。
 
@@ -61,6 +65,8 @@ The self-hosted framing matters — the benchmark is not flaky because the targe
 
 Claude computer use, OpenAI CUA, Gemini 2.5 Computer Use (Lesson 21) all train on workloads shaped by WebArena and OSWorld. The benchmarks are the target; the production models are the shipped answer.
 
+> Claude 计算机使用、OpenAI CUA、Gemini 2.5 计算机使用（第 21 课）都在 WebArena 和 OSWorld 塑造的工作负载上训练。基准是目标；生产模型是交付的答案。
+
 > WebArena 和 OSWorld 是计算机使用 Agent 的评估环境。WebArena 模拟网页操作，OSWorld 模拟完整桌面环境。两者都测试 Agent 在真实 GUI 中的操作能力。
 
 ### Where benchmarking goes wrong
@@ -69,9 +75,15 @@ Claude computer use, OpenAI CUA, Gemini 2.5 Computer Use (Lesson 21) all train o
 - **Ignoring trajectory length.** Scoring only success-rate misses the 1.4-2.7x step inefficiency OSWorld-Human surfaces.
 - **Stale self-hosted apps.** WebArena's apps pin specific versions; update without re-curation breaks comparability.
 
+> **仅截图评估。** OSWorld 是截图驱动的；在 OSWorld 上评估使用 DOM 或无障碍 API 的 Agent 会错过接地挑战。
+> **忽略轨迹长度。** 仅评分成功率会错过 OSWorld-Human 揭示的 1.4-2.7 倍步骤低效。
+> **过时的自托管应用。** WebArena 的应用固定了特定版本；不重新策划就更新会破坏可比性。
+
 ## Build It | 动手实现
 
 `code/main.py` implements a toy web-agent harness:
+
+> `code/main.py` 实现了一个玩具 Web Agent 测试工具：
 
 > WebArena 和 OSWorld 是计算机使用 Agent 的评估环境。WebArena 模拟网页操作，OSWorld 模拟完整桌面环境。两者都测试 Agent 在真实 GUI 中的操作能力。
 
@@ -88,6 +100,8 @@ python3 code/main.py
 
 Output: per-task success rate and trajectory efficiency, mirroring OSWorld-Human's methodology.
 
+> 输出：每任务成功率和轨迹效率，反映 OSWorld-Human 的方法论。
+
 > WebArena 和 OSWorld 是计算机使用 Agent 的评估环境。WebArena 模拟网页操作，OSWorld 模拟完整桌面环境。两者都测试 Agent 在真实 GUI 中的操作能力。
 
 ## Use It | 用框架实现
@@ -100,6 +114,8 @@ Output: per-task success rate and trajectory efficiency, mirroring OSWorld-Human
 ## Ship It | 产出物
 
 `outputs/skill-web-desktop-harness.md` builds a web/desktop agent harness with execution-based eval and trajectory efficiency metric.
+
+> `outputs/skill-web-desktop-harness.md` 构建一个 Web/桌面 Agent 测试工具，带有基于执行的评估和轨迹效率指标。
 
 > WebArena 和 OSWorld 是计算机使用 Agent 的评估环境。WebArena 模拟网页操作，OSWorld 模拟完整桌面环境。两者都测试 Agent 在真实 GUI 中的操作能力。
 

@@ -18,7 +18,11 @@
 
 The agent says "running tests now." The next message says "all tests pass." The reality is that no test ran. The agent imagined the output, or it ran the command and never read the result, or it read the result and silently truncated the failure line.
 
+> Agent 说"现在运行测试"。下一条消息说"所有测试通过"。实际情况是没有运行任何测试。Agent 想象了输出，或者运行了命令但从未读取结果，或者读取了结果但默默地截断了失败行。
+
 A feedback runner removes that gap. Every command goes through the runner. Every record carries the command, the captured stdout and stderr, the exit code, the wall-clock duration, and a one-line agent note. The agent reads the record at the next turn. The verification gate reads the records at the end of the task.
+
+> 反馈运行器消除了这个差距。每个命令都通过运行器。每条记录携带命令、捕获的 stdout 和 stderr、退出码、挂钟时间和一行 Agent 备注。Agent 在下一轮读取记录。验证门控在任务结束时读取记录。
 
 
 > **【中文解读】** 运行时反馈循环让 Agent 在执行过程中持续获取反馈。三种反馈类型：(1) 工具反馈——命令输出、编译结果、测试结果；(2) 用户反馈——中途中断和纠正；(3) 系统反馈——资源使用、错误率、超时。反馈循环是 Agent 自适应调整的基础。

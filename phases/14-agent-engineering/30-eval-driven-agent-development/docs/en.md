@@ -18,6 +18,8 @@
 
 Agents pass demos. They fail in production in ways demos cannot predict. Benchmarks answer "is this model broadly capable?" not "is this agent shipping the right patches for my product?" The answer: evaluation at three layers, running continuously, with every guardrail and learned rule mapped to an eval case.
 
+> Agent 通过了演示。它们在生产中以演示无法预测的方式失败。基准回答的是"这个模型是否有广泛的能力？"而不是"这个 Agent 是否在为我的产品交付正确的补丁？"答案是：三层评估，持续运行，每个护栏和学习规则都映射到一个评估用例。
+
 
 > **【中文解读】** 评估驱动的 Agent 开发（Eval-Driven Development）将传统软件工程中的 TDD 应用于 Agent：先定义评估标准，再实现 Agent。核心挑战是 Agent 的非确定性——同样的输入可能产生不同的执行路径和输出，需要基于轨迹的评估而非基于快照的评估。
 
@@ -47,6 +49,8 @@ The tight loop:
 3. Refine until evaluator passes.
 
 This is Self-Refine (Lesson 05) generalized. Any agent flow you care about can wrap in evaluator-optimizer for reliability.
+
+> 这是 Self-Refine（第 5 课）的泛化。你关心的任何 Agent 流程都可以用评估器-优化器包裹以提高可靠性。
 
 > 评估驱动的 Agent 开发（Eval-Driven Development）将评估作为 Agent 开发的核心。先定义评估标准，再构建 Agent，用评估轨迹指导改进。
 
@@ -85,6 +89,8 @@ Every lesson in Phase 14 generates eval cases:
 
 If your eval suite has cases for each, you have covered Phase 14.
 
+> 如果你的评估套件有每个课程的用例，你就覆盖了 Phase 14。
+
 > 评估驱动的 Agent 开发（Eval-Driven Development）将评估作为 Agent 开发的核心。先定义评估标准，再构建 Agent，用评估轨迹指导改进。
 
 ### Where eval-driven development fails
@@ -93,6 +99,11 @@ If your eval suite has cases for each, you have covered Phase 14.
 - **LLM-judge without grounding.** Judges hallucinate too. CRITIC pattern (Lesson 05) — judge grounds on external tools.
 - **Over-fitting to evals.** Optimizing for the eval diverges from production usefulness. Rotate cases.
 - **Flaky evals.** Non-deterministic cases cause false alarms. Pin seeds, snapshot state.
+
+> **没有基线。** 没有最后已知良好状态的评估是不可读的。存储基线。
+> **LLM 评审器没有基础。** 评审器也会幻觉。CRITIC 模式（第 5 课）——评审器基于外部工具。
+> **过拟合评估。** 为评估优化会偏离生产实用性。轮换用例。
+> **不稳定的评估。** 非确定性用例导致误报。固定种子，快照状态。
 
 ## Build It | 动手实现
 
@@ -111,6 +122,8 @@ python3 code/main.py
 
 Output: per-case pass/fail, regression flag, CI gate verdict.
 
+> 输出：每用例通过/失败、回归标志、CI 门控裁定。
+
 > 评估驱动的 Agent 开发（Eval-Driven Development）将评估作为 Agent 开发的核心。先定义评估标准，再构建 Agent，用评估轨迹指导改进。
 
 ## Use It | 用框架实现
@@ -124,6 +137,8 @@ Output: per-case pass/fail, regression flag, CI gate verdict.
 ## Ship It | 产出物
 
 `outputs/skill-eval-suite.md` builds a three-layer eval suite for an agent product with CI gates and regression tracking.
+
+> `outputs/skill-eval-suite.md` 为 Agent 产品构建三层评估套件，包含 CI 门控和回归追踪。
 
 > 评估驱动的 Agent 开发（Eval-Driven Development）将评估作为 Agent 开发的核心。先定义评估标准，再构建 Agent，用评估轨迹指导改进。
 

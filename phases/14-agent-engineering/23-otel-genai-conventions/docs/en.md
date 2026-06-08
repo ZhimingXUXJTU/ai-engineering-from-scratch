@@ -20,6 +20,8 @@
 
 Every vendor invents their own span names. Ops teams end up building per-framework dashboards. OpenTelemetry's GenAI SIG fixes this by defining one standard the whole ecosystem targets.
 
+> 每个供应商都发明自己的 span 名称。运维团队最终需要为每个框架构建独立的仪表盘。OpenTelemetry 的 GenAI SIG 通过定义一个全生态系统遵循的标准来解决这个问题。
+
 > **【拓展：OTel GenAI 规范的跨平台统一】** OpenTelemetry GenAI 语义约定 (2024年4月启动) 定义了 Agent 遥测的标准 Schema：span 名称、属性和内容捕获规则跨供应商统一，使 Agent 追踪在 Datadog、Grafana、Jaeger 和 Honeycomb 中具有相同语义。一次埋点，多后端通用。
 
 ## The Concept | 核心概念
@@ -62,6 +64,8 @@ The default rule: instrumentations SHOULD NOT capture inputs/outputs by default.
 
 Recommended production pattern: store content externally (S3, your log store), record references on spans (pointer IDs, not prose). This is the Lesson 27 content-poisoning defense wired into observability.
 
+> 推荐的生产模式：将内容外部存储（S3、你的日志存储），在 span 上记录引用（指针 ID，不是原文）。这就是将第 27 课内容投毒防御整合到可观测性中。
+
 > OpenTelemetry GenAI 语义约定定义了 LLM 和 Agent 的可观测性标准。关键属性包括 `gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.agent.name` 等。
 
 ### Stability
@@ -76,6 +80,8 @@ OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental
 
 Datadog v1.37+ maps GenAI attributes natively into its LLM Observability schema. Other backends (Grafana, Honeycomb, Jaeger) support the raw attributes.
 
+> Datadog v1.37+ 原生将 GenAI 属性映射到其 LLM Observability schema。其他后端（Grafana、Honeycomb、Jaeger）支持原始属性。
+
 > OpenTelemetry GenAI 语义约定定义了 LLM 和 Agent 的可观测性标准。关键属性包括 `gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.agent.name` 等。
 
 ### Where this pattern goes wrong
@@ -84,6 +90,11 @@ Datadog v1.37+ maps GenAI attributes natively into its LLM Observability schema.
 - **No `gen_ai.provider.name`.** Multi-provider dashboards break when attribution is missing.
 - **Spans without parent links.** Orphaned tool spans. Always propagate context.
 - **Not setting stability opt-in.** Your attributes may get renamed on backend upgrade.
+
+> **在 span 中捕获完整提示。** 运维可以读取的追踪中包含 PII、密钥、客户数据。外部存储。
+> **缺少 `gen_ai.provider.name`。** 缺少归属时，多供应商仪表盘会出错。
+> **没有父链接的 span。** 孤立的工具 span。始终传播上下文。
+> **不设置稳定性选择加入。** 你的属性可能在后端升级时被重命名。
 
 ## Build It | 动手实现
 
@@ -104,6 +115,8 @@ python3 code/main.py
 
 Output: a span tree with all required GenAI attributes, and an "external store" showing the opt-in content references.
 
+> 输出：一个包含所有必需 GenAI 属性的 span 树，以及一个显示选择加入内容引用的"外部存储"。
+
 > OpenTelemetry GenAI 语义约定定义了 LLM 和 Agent 的可观测性标准。关键属性包括 `gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.agent.name` 等。
 
 ## Use It | 用框架实现
@@ -116,6 +129,8 @@ Output: a span tree with all required GenAI attributes, and an "external store" 
 ## Ship It | 产出物
 
 `outputs/skill-otel-genai.md` wires OTel GenAI spans into an existing agent with content-capture defaults and external-reference storage.
+
+> `outputs/skill-otel-genai.md` 将 OTel GenAI span 接入现有 Agent，包含内容捕获默认值和外部引用存储。
 
 > OpenTelemetry GenAI 语义约定定义了 LLM 和 Agent 的可观测性标准。关键属性包括 `gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.agent.name` 等。
 

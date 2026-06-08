@@ -18,7 +18,11 @@
 
 The session ends. The agent says "great, we made progress." The next session opens. The next agent asks "where did we leave off?" The first agent's answer is gone. The next agent rediscovers, re-runs the same commands, re-asks the human the same questions, and burns thirty minutes recovering the last thirty seconds of the previous session.
 
+> 会话结束。Agent 说"太好了，我们有进展"。下一个会话打开。下一个 Agent 问"我们停在哪里了？"第一个 Agent 的答案已经没了。下一个 Agent 重新发现，重新运行相同的命令，重新问人类相同的问题，花三十分钟恢复上一个会话最后三十秒的内容。
+
 The cost of a bad handoff is paid every session for the life of the task. The fix is a packet generated automatically at session end: what changed, why, what was tried, what failed, what is left, what to do first next time.
+
+> 糟糕交接的代价在任务生命周期中每个会话都要支付。修复是在会话结束时自动生成的包：更改了什么、为什么、尝试了什么、失败了什么、剩下什么、下次首先做什么。
 
 
 > **【中文解读】** 多会话交接处理 Agent 跨多个会话的连续性。当一次会话因超时、token 限制或用户中断而结束时，Agent 需要将上下文传递给下一次会话。关键技术：(1) 会话摘要——压缩关键信息；(2) 检查点——保存中间状态；(3) 恢复协议——新会话如何加载旧状态。

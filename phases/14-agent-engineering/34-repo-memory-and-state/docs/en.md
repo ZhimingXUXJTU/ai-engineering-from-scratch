@@ -18,7 +18,11 @@
 
 The agent finishes a session. The chat closes. The next session opens and asks where to start. The model says "let me check the files," reads stale notes, and re-does work that was already complete. Or worse, it rewrites a finished file because no one told it the file was finished.
 
+> Agent 完成一个会话。聊天关闭。下一个会话打开并问从哪里开始。模型说"让我检查文件"，读取过时的笔记，重新做已经完成的工作。或者更糟，它重写了一个已完成的文件，因为没有人告诉它文件已完成。
+
 The workbench fix is repo memory: state lives in JSON files in the repo, written under a schema, persisted atomically, diff-friendly in code review. Chat is a transient feed; the repo is the system of record.
+
+> 工作台的修复是仓库记忆：状态存在于仓库中的 JSON 文件中，在 schema 下写入，原子化持久化，在代码审查中友好 diff。聊天是瞬态流；仓库是记录的系统。
 
 
 > **【中文解读】** 仓库记忆与状态管理——让 Agent 维护对代码库的理解。两种记忆：(1) 结构性记忆——文件树、依赖关系、API 接口；(2) 语义性记忆——代码意图、设计决策、变更历史。状态管理确保 Agent 在多轮交互中保持一致的代码库理解。

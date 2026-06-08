@@ -18,12 +18,18 @@
 
 Most teams reach for a workbench by writing a 3000-line `AGENTS.md` and calling it done. The model loads it, ignores the parts it cannot summarize, and still fails on the same surfaces it always failed on.
 
+> 大多数团队通过写一个 3000 行的 `AGENTS.md` 并称之为完成来寻求工作台。模型加载它，忽略它无法总结的部分，仍然在相同的表面上失败。
+
 You need the opposite. A tiny root file that routes the agent into deeper files only when relevant. Durable state the agent reads before acting and writes after. A task board that says what is in flight, what is blocked, and what is up next.
+
+> 你需要相反的做法。一个微小的根文件，仅在相关时将 Agent 路由到更深的文件。Agent 在行动前读取、行动后写入的持久状态。一个说明什么在进行中、什么被阻塞、什么在下一步的任务板。
 
 
 > **【中文解读】** 最小化 Agent 工作台是理解编码 Agent 内部机制的起点。它包含五个核心组件：(1) 文件读写工具；(2) 代码执行沙盒；(3) 简单的 ReAct 循环；(4) 消息缓冲区；(5) 停止条件。目标是让学习者从头理解每个组件的作用和交互。
 
 Three files. Each one with a job. Each one machine-readable enough to evolve into a real system later.
+
+> 三个文件。每个都有自己的职责。每个都足够机器可读，以便以后演化为真实系统。
 
 > 最小 Agent Workbench 是一个用于实验和调试 Agent 行为的轻量级环境。它提供了隔离的执行空间和详细的轨迹分析工具。
 
@@ -54,6 +60,8 @@ A good `AGENTS.md` is short. It points the agent at:
 
 Anything longer goes in deeper docs, loaded only when needed. Long manuals get ignored. Short routers get followed.
 
+> 更长的内容放在更深的文档中，仅在需要时加载。长手册被忽略。短路由被遵循。
+
 > 最小 Agent Workbench 是一个用于实验和调试 Agent 行为的轻量级环境。它提供了隔离的执行空间和详细的轨迹分析工具。
 
 ### agent_state.json is the system of record
@@ -63,6 +71,8 @@ State carries: the active task id, the touched files, the assumptions made, the 
 > 最小 Agent Workbench 是一个用于实验和调试 Agent 行为的轻量级环境。它提供了隔离的执行空间和详细的轨迹分析工具。
 
 State lives in a file because chat history is unreliable. Sessions die. Conversations get trimmed. The file does not.
+
+> 状态存在于文件中，因为聊天历史是不可靠的。会话会消亡。对话会被裁剪。文件不会。
 
 > 最小 Agent Workbench 是一个用于实验和调试 Agent 行为的轻量级环境。它提供了隔离的执行空间和详细的轨迹分析工具。
 
@@ -79,6 +89,8 @@ A task on the board has an id, a goal, an owner (`builder`, `reviewer`, or `huma
 ### Three files is the floor, not the ceiling
 
 Later lessons add scope contracts, feedback runners, verification gates, reviewer checklists, and handoff packets. The three files here are what they all assume.
+
+> 后续课程将添加范围契约、反馈运行器、验证门控、评审者检查清单和交接包。这里的三个文件是它们都假设存在的基础。
 
 > 最小 Agent Workbench 是一个用于实验和调试 Agent 行为的轻量级环境。它提供了隔离的执行空间和详细的轨迹分析工具。
 

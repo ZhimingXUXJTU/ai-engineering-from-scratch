@@ -18,6 +18,8 @@
 
 Teams reach for "multi-agent" before they need it. Four patterns recur across frameworks; once you can name them, you can pick the right one — or skip topology entirely.
 
+> 团队在不必要的时候就使用了"多 Agent"。四种模式在框架中反复出现；一旦你能命名它们，你就能选择正确的一个——或者完全跳过拓扑。
+
 
 > **【中文解读】** Agent 编排模式定义了多 Agent 系统中的任务分配和协调方式。四种核心模式：(1) 顺序——任务在 Agent 之间线性传递；(2) 并行——多个 Agent 同时处理不同子任务；(3) 分层——管理者 Agent 分配任务给工作者 Agent；(4) 对等——Agent 之间平等协作。
 
@@ -35,6 +37,8 @@ Frameworks: LangGraph `create_supervisor`, Anthropic orchestrator-workers, CrewA
 > 编排模式描述多 Agent 系统的组织方式。主要模式包括：监督者（中央路由）、群体（点对点移交）、层次化（嵌套监督）、管道（顺序处理）。
 
 **2026 LangChain recommendation:** do supervision through direct tool calls rather than `create_supervisor`. Gives finer context engineering control — you decide exactly what each specialist sees.
+
+> **2026 年 LangChain 建议：** 通过直接工具调用而不是 `create_supervisor` 来实现监督。提供更精细的上下文工程控制——你可以精确决定每个专家看到什么。
 
 ### Swarm / peer-to-peer
 
@@ -54,6 +58,8 @@ Frameworks: LangGraph swarm topology, OpenAI Agents SDK handoffs (when all agent
 - Scales to large agent populations at the cost of operational complexity.
 
 When you need it: when a single supervisor's context budget cannot hold descriptions of all specialists.
+
+> 何时需要：当单个监督者的上下文预算无法容纳所有专家的描述时。
 
 > 编排模式描述多 Agent 系统的组织方式。主要模式包括：监督者（中央路由）、群体（点对点移交）、层次化（嵌套监督）、管道（顺序处理）。
 
@@ -93,6 +99,10 @@ Decision order:
 - **Bouncing handoffs in swarm.** A -> B -> A -> B. Use hop counters.
 - **Fake hierarchy.** Three layers because "enterprise"; two actual teams. Collapse.
 
+> **拓扑优先思维。** 在确定多 Agent 解决什么问题之前就说"我们需要多 Agent"。
+> **群体中弹跳交接。** A -> B -> A -> B。使用跳数计数器。
+> **虚假层级。** 因为"企业级"就设三层；实际只有两个团队。合并。
+
 ## Build It | 动手实现
 
 `code/main.py` implements all four patterns in stdlib against a scripted LLM:
@@ -116,6 +126,8 @@ python3 code/main.py
 
 Output: per-pattern trace + op count. Supervisor is cleanest; swarm is shortest; hierarchical is deepest; debate is most expensive.
 
+> 输出：每模式追踪 + 操作数。监督者最清晰；群体最短；层级最深；辩论最昂贵。
+
 > 编排模式描述多 Agent 系统的组织方式。主要模式包括：监督者（中央路由）、群体（点对点移交）、层次化（嵌套监督）、管道（顺序处理）。
 
 ## Use It | 用框架实现
@@ -128,6 +140,8 @@ Output: per-pattern trace + op count. Supervisor is cleanest; swarm is shortest;
 ## Ship It | 产出物
 
 `outputs/skill-orchestration-picker.md` picks a topology and implements it.
+
+> `outputs/skill-orchestration-picker.md` 选择一个拓扑并实现它。
 
 > 编排模式描述多 Agent 系统的组织方式。主要模式包括：监督者（中央路由）、群体（点对点移交）、层次化（嵌套监督）、管道（顺序处理）。
 

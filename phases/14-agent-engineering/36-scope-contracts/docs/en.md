@@ -18,7 +18,11 @@
 
 Agents creep. The task is "fix the login bug." The diff touches the login route, the email helper, the database driver, the README, and the release script. Each touch had a plausible reason in the moment. Together they are a different change than the one that was reviewed.
 
+> Agent 会蔓延。任务是"修复登录 bug"。diff 触及登录路由、邮件辅助函数、数据库驱动、README 和发布脚本。每次触及在当下都有合理的理由。但加在一起，它们与审查的更改不同。
+
 Scope creep is the most under-monitored failure mode in agent work because the agent narrates each step in good faith. The fix is not a stricter prompt. The fix is a contract on disk that says what was promised and a check that compares the result against the promise.
+
+> 范围蔓延是 Agent 工作中最缺乏监控的失败模式，因为 Agent 诚实地叙述每一步。修复不是更严格的提示。修复是磁盘上的契约，说明承诺了什么，以及将结果与承诺进行比较的检查。
 
 
 > **【中文解读】** 范围契约定义 Agent 可以做什么和不能做什么。显式的范围契约包括：(1) 文件范围——Agent 可以修改哪些文件和目录；(2) 操作范围——可以执行哪些命令；(3) 依赖范围——可以安装哪些包。范围越明确，Agent 的可预测性越高。

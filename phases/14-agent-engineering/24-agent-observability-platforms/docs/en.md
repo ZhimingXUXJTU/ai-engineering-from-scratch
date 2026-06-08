@@ -18,6 +18,8 @@
 
 OTel GenAI (Lesson 23) gives you the schema. You still need the platform that ingests spans, runs evaluations, stores prompt versions, and surfaces regressions. The three contenders each emphasize different parts of the lifecycle.
 
+> OTel GenAI（第 23 课）给了你 schema。你仍然需要一个平台来接收 span、运行评估、存储提示版本并显示回归。三个竞争者各自强调生命周期的不同部分。
+
 
 > **【中文解读】** Agent 可观测性平台提供对 Agent 执行的端到端可见性——从用户请求到最终响应的每一步。核心能力：追踪（每步执行记录）、指标（延迟/成本/成功率）、日志（详细执行过程）。主要平台包括 LangSmith、AgentOps、Braintrust 和 Phoenix。
 
@@ -68,6 +70,10 @@ Per Maxim (2026 field analysis): 89% of organizations have agent observability i
 - **Self-rolled LLM-judge without grounding.** CRITIC pattern (Lesson 05) applies — judges need external tools for factual verification.
 - **Prompt versions not tied to traces.** When prod regresses, you cannot bisect to the prompt that caused it.
 
+> **没有评估策略。** 没有评估的追踪只是昂贵的日志。
+> **自建的 LLM 评审器没有基础。** CRITIC 模式（第 5 课）适用——评审器需要外部工具进行事实核查。
+> **提示版本未与追踪关联。** 当生产回归时，你无法定位到导致问题的提示。
+
 ## Build It | 动手实现
 
 `code/main.py` implements a stdlib trace collector + LLM-judge evaluator:
@@ -87,6 +93,8 @@ python3 code/main.py
 
 Output: per-session eval scores and failure categorization matching what Langfuse/Phoenix/Opik would show.
 
+> 输出：每会话的评估分数和失败分类，匹配 Langfuse/Phoenix/Opik 会显示的内容。
+
 > Agent 可观测性平台提供运行时追踪、指标监控和调试工具。Langfuse、Arize Phoenix、Braintrust 是 2026 年主要的 Agent 可观测性工具。
 
 ## Use It | 用框架实现
@@ -99,6 +107,8 @@ Output: per-session eval scores and failure categorization matching what Langfus
 ## Ship It | 产出物
 
 `outputs/skill-obs-platform-wiring.md` picks a platform and wires traces + evals + prompt versions into an existing agent.
+
+> `outputs/skill-obs-platform-wiring.md` 选择一个平台，并将追踪 + 评估 + 提示版本接入现有 Agent。
 
 > Agent 可观测性平台提供运行时追踪、指标监控和调试工具。Langfuse、Arize Phoenix、Braintrust 是 2026 年主要的 Agent 可观测性工具。
 
