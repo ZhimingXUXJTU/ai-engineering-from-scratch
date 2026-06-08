@@ -8,8 +8,13 @@ a 70-step task.
 Pedagogical, not calibrated. The point is to hold the numbers in your head
 before trusting an agent to run unattended.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：METR 风格的时间视界模拟器 —— 给定倍增时间和基线视界，预测未来年份的
+50% 任务完成视界。同时展示每步可靠性如何随轨迹长度复合衰减：99% 单步可靠性的 Agent
+在 70 步任务上仍有 50% 失败率。这让你在信任 Agent 无人值守运行前建立数字直觉。
+
+AI 对应：METR（Model Evaluation & Threat Research）是评估 Agent 自主能力的关键组织，
+其时间视界指标被 Anthropic、OpenAI 用于衡量模型自主性。核心洞察：
+单步可靠性不等于轨迹可靠性，这是部署自主 Agent 时最容易被忽视的数学事实。
 """
 
 from __future__ import annotations
@@ -20,7 +25,6 @@ from dataclasses import dataclass
 
 @dataclass
 class HorizonConfig:
-    """HorizonConfig"""
     baseline_hours: float
     baseline_month: int  # months since epoch (0 = now)
     doubling_months: float
@@ -29,34 +33,33 @@ class HorizonConfig:
 def horizon_at(cfg: HorizonConfig, months_from_now: int) -> float:
     """Project the 50% horizon at a given month offset."""
     delta = months_from_now - cfg.baseline_month
-    return cfg.baseline_hours * (2 ** (delta / cfg.doubling_months))  # 返回结果
+    return cfg.baseline_hours * (2 ** (delta / cfg.doubling_months))
 
 
 def months_to_cross(cfg: HorizonConfig, target_hours: float) -> float:
     """Months until horizon reaches target_hours."""
     ratio = target_hours / cfg.baseline_hours
-    return cfg.baseline_month + cfg.doubling_months * math.log2(ratio)  # 返回结果
+    return cfg.baseline_month + cfg.doubling_months * math.log2(ratio)
 
 
 def end_to_end_reliability(per_step: float, steps: int) -> float:
     """Probability that every step succeeds in sequence."""
-    return per_step ** steps  # 返回结果
+    return per_step ** steps
 
 
 def max_steps_for_target(per_step: float, target: float) -> int:
     """Largest N such that per_step**N >= target."""
     if per_step >= 1.0:
-        return 10**9  # 返回结果
-    return math.floor(math.log(target) / math.log(per_step))  # 返回结果
+        return 10**9
+    return math.floor(math.log(target) / math.log(per_step))
 
 
 def fmt_hours(h: float) -> str:
-    """fmt_hours"""
     if h < 1:
-        return f"{h * 60:.1f} min"  # 返回结果
+        return f"{h * 60:.1f} min"
     if h < 24:
-        return f"{h:.1f} hr"  # 返回结果
-    return f"{h / 24:.1f} day"  # 返回结果
+        return f"{h:.1f} hr"
+    return f"{h / 24:.1f} day"
 
 
 def horizon_projection() -> None:
@@ -147,7 +150,6 @@ def deploy_gap_note() -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("METR TIME HORIZONS AND COMPOUNDING RELIABILITY (Phase 15, Lesson 1)")
     print("=" * 70)

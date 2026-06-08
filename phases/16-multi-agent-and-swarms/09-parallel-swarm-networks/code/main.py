@@ -7,8 +7,13 @@ Compares three scheduling strategies on a variable-duration workload:
 
 Swarm balances load automatically; fixed assignment leaves fast workers idle.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Swarm 架构中的任务队列负载均衡——Worker 从共享队列拉取任务（pull 模式），
+对比串行、固定分配（push 模式）、Swarm 三种调度策略，
+Swarm 在任务时长不均匀时自动平衡负载，避免固定分配中慢任务集中导致 Worker 空闲
+AI 对应：OpenAI Swarm SDK 的核心理念——Agent 无中心调度器、自主拉取任务；
+Celery 的 Worker Pool 和 Redis Queue 实现 same pattern；
+LangGraph 的 Map-Reduce 节点用并行 Worker 处理不定长子任务；
+Kubernetes Job 的 parallelism + work-queue 模式是基础设施层的实现
 """
 from __future__ import annotations
 
@@ -20,26 +25,23 @@ from dataclasses import dataclass
 
 @dataclass
 class Task:
-    """Task"""
     task_id: int
     duration: float
     pre_assigned: int  # for the fixed-assignment baseline
 
 
 def fake_work(task: Task) -> str:
-    """fake_work"""
     time.sleep(task.duration)
-    return f"task-{task.task_id}-done"  # 返回结果
+    return f"task-{task.task_id}-done"
 
 
 def run_sequential(tasks: list[Task]) -> tuple[float, dict[int, int]]:
-    """run_sequential"""
     t0 = time.time()
     counts: dict[int, int] = {0: 0}
     for t in tasks:
         fake_work(t)
         counts[0] += 1
-    return time.time() - t0, counts  # 返回结果
+    return time.time() - t0, counts
 
 
 def run_fixed_assignment(tasks: list[Task], n_workers: int) -> tuple[float, dict[int, int]]:
@@ -60,7 +62,7 @@ def run_fixed_assignment(tasks: list[Task], n_workers: int) -> tuple[float, dict
         th.start()
     for th in threads:
         th.join()
-    return time.time() - t0, counts  # 返回结果
+    return time.time() - t0, counts
 
 
 def run_swarm(tasks: list[Task], n_workers: int) -> tuple[float, dict[int, int]]:
@@ -76,7 +78,7 @@ def run_swarm(tasks: list[Task], n_workers: int) -> tuple[float, dict[int, int]]
             try:
                 task = q.get_nowait()
             except queue.Empty:
-                return  # 返回结果
+                return
             fake_work(task)
             with lock:
                 counts[wid] += 1
@@ -88,7 +90,7 @@ def run_swarm(tasks: list[Task], n_workers: int) -> tuple[float, dict[int, int]]
         th.start()
     for th in threads:
         th.join()
-    return time.time() - t0, counts  # 返回结果
+    return time.time() - t0, counts
 
 
 def make_tasks(n_workers: int = 4) -> list[Task]:
@@ -104,11 +106,10 @@ def make_tasks(n_workers: int = 4) -> list[Task]:
                 pre_assigned=0 if is_slow else (i - 3) % n_workers,
             )
         )
-    return tasks  # 返回结果
+    return tasks
 
 
 def main() -> None:
-    """main"""
     print("Swarm architecture demo — variable-duration workload")
     print("-" * 56)
     n_workers = 4

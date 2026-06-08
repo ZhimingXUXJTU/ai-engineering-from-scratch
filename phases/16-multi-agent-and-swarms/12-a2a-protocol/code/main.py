@@ -7,8 +7,13 @@ Implements the discovery-submit-poll-result flow:
 
 Server runs in a background thread; client talks to it and prints the trace.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Google A2A（Agent-to-Agent）协议的最小实现——Discovery（GET /.well-known/agent.json
+获取 Agent Card）、Submit（POST /tasks 创建任务）、Poll（GET /tasks/{id} 轮询状态和结果），
+MCP 是 Agent<->Tool 的纵向协议，A2A 是 Agent<->Agent 的横向协议
+AI 对应：Google A2A Protocol（2025 年发布）是 Agent 间互操作的标准，已被 LangChain、
+CrewAI、AutoGen 等框架采纳；与 Anthropic 的 MCP（Model Context Protocol）互补——
+MCP 连接 Agent 与工具，A2A 连接 Agent 与 Agent；OpenAI 的 Assistants API
+使用类似的任务提交-轮询模型
 """
 from __future__ import annotations
 
@@ -35,7 +40,6 @@ AGENT_CARD = {
 
 
 class TaskStore:
-    """TaskStore"""
     def __init__(self) -> None:
         self.tasks: dict[str, dict[str, Any]] = {}
         self._lock = threading.Lock()
@@ -52,7 +56,7 @@ class TaskStore:
                 "created_at": time.time(),
             }
         threading.Thread(target=self._run, args=(tid,), daemon=True).start()
-        return tid  # 返回结果
+        return tid
 
     def _run(self, tid: str) -> None:
         with self._lock:
@@ -78,7 +82,7 @@ class TaskStore:
 
     def get(self, tid: str) -> dict | None:
         with self._lock:
-            return self.tasks.get(tid)  # 返回结果
+            return self.tasks.get(tid)
 
 
 STORE = TaskStore()
@@ -87,7 +91,7 @@ STORE = TaskStore()
 class A2AHandler(BaseHTTPRequestHandler):
     """A2AHandler"""
     def log_message(self, format: str, *args: Any) -> None:
-        return  # 返回结果
+        return
 
     def _send_json(self, status: int, body: Any) -> None:
         data = json.dumps(body).encode("utf-8")
@@ -100,15 +104,15 @@ class A2AHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path == "/.well-known/agent.json":
             self._send_json(200, AGENT_CARD)
-            return  # 返回结果
+            return
         if self.path.startswith("/tasks/"):
             tid = self.path.split("/tasks/", 1)[1]
             task = STORE.get(tid)
             if task is None:
                 self._send_json(404, {"error": "not found"})
-                return  # 返回结果
+                return
             self._send_json(200, task)
-            return  # 返回结果
+            return
         self._send_json(404, {"error": "route not found"})
 
     def do_POST(self) -> None:
@@ -117,28 +121,25 @@ class A2AHandler(BaseHTTPRequestHandler):
             body = json.loads(self.rfile.read(length).decode("utf-8"))
             tid = STORE.create(body.get("skill", ""), body.get("payload", {}))
             self._send_json(201, {"task_id": tid, "state": "submitted"})
-            return  # 返回结果
+            return
         self._send_json(404, {"error": "route not found"})
 
 
 def run_server() -> HTTPServer:
-    """run_server"""
     server = HTTPServer(("localhost", 8765), A2AHandler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    return server  # 返回结果
+    return server
 
 
 def http_json(method: str, url: str, body: Any = None) -> dict:
-    """http_json"""
     data = json.dumps(body).encode("utf-8") if body is not None else None
     req = urllib.request.Request(url, data=data, method=method)
     req.add_header("Content-Type", "application/json")
     with urllib.request.urlopen(req) as resp:
-        return json.loads(resp.read().decode("utf-8"))  # 返回结果
+        return json.loads(resp.read().decode("utf-8"))
 
 
 def run_client() -> None:
-    """run_client"""
     print("\n[1] discovery: GET /.well-known/agent.json")
     card = http_json("GET", "http://localhost:8765/.well-known/agent.json")
     print(f"    name={card['name']}, skills={card['skills']}")
@@ -160,7 +161,6 @@ def run_client() -> None:
 
 
 def main() -> None:
-    """main"""
     print("A2A minimal protocol demo")
     print("-" * 30)
     server = run_server()

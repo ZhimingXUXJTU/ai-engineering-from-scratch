@@ -3,8 +3,14 @@
 Three specialized agents produce hypotheses; supervisor ranks by agreement.
 Adversarial evaluation: disagreement escalates to human.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：多 Agent AI SRE 事件分诊——LogAgent（日志模式扫描）、MetricAgent（PromQL 指标关联）、
+RunbookAgent（运维手册向量检索）三个专业 Agent 生成假设，Supervisor Agent
+按共识度排序并聚合置信度，对抗性评估：低于 2 Agent 共识时升级人工审批
+AI 对应：PagerDuty AIOps 和 BigPanda 使用类似的 AI 辅助事件分诊；
+Datadog Watchdog 提供自动异常检测和根因分析；
+Prometheus + Alertmanager 是指标监控和告警的标准栈；
+vLLM 的 KV cache OOM 是 GPU 推理服务的典型故障模式；
+"human-in-the-loop" 是 AI SRE 的安全底线原则
 """
 
 from __future__ import annotations
@@ -14,7 +20,6 @@ from dataclasses import dataclass
 
 @dataclass
 class AgentHypothesis:
-    """AgentHypothesis"""
     agent: str
     root_cause: str
     confidence: float
@@ -22,22 +27,20 @@ class AgentHypothesis:
 
 
 def log_agent(incident: str) -> AgentHypothesis:
-    """log_agent"""
     # simulated: scans logs, picks most common error token
     if "checkout" in incident.lower():
-        return AgentHypothesis(  # 返回结果
+        return AgentHypothesis(
             "LogAgent",
             "vLLM OOM from KV cache spike on /api/llm",
             0.78,
             ["frequency: 142 errors/min", "pattern: 'kv_cache_allocation_failed'", "node: pod-gpu-3"],
         )
-    return AgentHypothesis("LogAgent", "unclear", 0.35, ["logs show no obvious pattern"])  # 返回结果
+    return AgentHypothesis("LogAgent", "unclear", 0.35, ["logs show no obvious pattern"])
 
 
 def metric_agent(incident: str) -> AgentHypothesis:
-    """metric_agent"""
     # simulated: PromQL query matches to known patterns
-    return AgentHypothesis(  # 返回结果
+    return AgentHypothesis(
         "MetricAgent",
         "GPU memory utilization hit 98% 4 minutes before error spike",
         0.82,
@@ -46,9 +49,8 @@ def metric_agent(incident: str) -> AgentHypothesis:
 
 
 def runbook_agent(incident: str) -> AgentHypothesis:
-    """runbook_agent"""
     # simulated: vector search on runbook repo
-    return AgentHypothesis(  # 返回结果
+    return AgentHypothesis(
         "RunbookAgent",
         "Matches runbook RB-017: KV cache OOM under burst concurrency",
         0.88,
@@ -57,7 +59,6 @@ def runbook_agent(incident: str) -> AgentHypothesis:
 
 
 def supervisor(hypotheses: list[AgentHypothesis]) -> dict:
-    """supervisor"""
     # group similar root causes; agreement = confidence boost
     root_causes = {}
     for h in hypotheses:
@@ -69,7 +70,7 @@ def supervisor(hypotheses: list[AgentHypothesis]) -> dict:
     adversarial_agreement = len(top_agents) >= 2
     action = "restart pod + lower --gpu-memory-utilization"  # safe action
 
-    return {  # 返回结果
+    return {
         "top_root_cause": top_key,
         "supporting_agents": [h.agent for h in top_agents],
         "aggregated_confidence": sum(h.confidence for h in top_agents) / len(top_agents),
@@ -80,7 +81,6 @@ def supervisor(hypotheses: list[AgentHypothesis]) -> dict:
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("AI SRE TRIAGE — multi-agent investigation of a production incident")
     print("=" * 80)

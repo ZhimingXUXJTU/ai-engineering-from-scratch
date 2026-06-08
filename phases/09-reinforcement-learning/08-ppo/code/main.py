@@ -1,17 +1,32 @@
+"""PPO (Proximal Policy Optimization) —— RLHF 使用的核心 RL 算法
+
+核心概念：
+  - PPO 是 OpenAI 在 2017 年提出的策略梯度算法，是 RLHF 的标准优化器
+  - 核心思想：限制策略更新幅度（clip），避免一次更新太多导致训练不稳定
+  - Actor-Critic 架构：Actor（策略网络）选择动作，Critic（价值网络）估计状态价值
+  - 优势函数 (Advantage)：A(s,a) = Q(s,a) - V(s)，衡量某个动作比平均水平好多少
+  - Clip 机制：ratio = pi_new/pi_old，clip(ratio, 1-eps, 1+eps) * advantage
+
+AI 对应：
+  - ChatGPT 的 RLHF 训练就使用 PPO 来优化策略
+  - PPO 之所以受欢迎是因为：(1) 实现简单 (2) 训练稳定 (3) 样本效率较好
+  - 本实现在 4x4 网格世界上演示 PPO 的完整训练过程
+"""
+
 import math
 import random
 
 
-GRID = 4
-TERMINAL = (3, 3)
+GRID = 4           # 4x4 网格世界
+TERMINAL = (3, 3)  # 终点在右下角
 ACTIONS = ("up", "down", "left", "right")
 DELTAS = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}
 N_ACTIONS = len(ACTIONS)
-N_FEAT = GRID * GRID
+N_FEAT = GRID * GRID  # 状态特征维度：one-hot 编码
 
 
 def reset():
-    return (0, 0)
+    return (0, 0)  # 起点：(0, 0) 左上角
 
 
 def step(state, action_idx):

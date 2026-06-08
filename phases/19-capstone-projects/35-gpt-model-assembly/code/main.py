@@ -8,8 +8,13 @@ multinomial sampling under a sliding window context.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：GPT 模型组装 —— 12 个 Transformer Block + Token 嵌入 + 可学习位置编码 +
+最终 LayerNorm + 语言模型头（权重与 token 嵌入绑定），参考配置下参数量约 124M。
+演示包含 temperature、top-k 和多项式采样的文本生成。
+
+AI 对应：GPT-2 Small 就是 124M 参数，GPT-3 是 1750 亿参数的放大版。
+权重绑定（embedding 和 LM head 共享权重）是 GPT 系列的标准做法。
+理解模型组装是从单个组件到完整模型的关键一步。
 """
 
 from __future__ import annotations
@@ -38,7 +43,6 @@ class GPTConfig:
 
 
 class LayerNorm(nn.Module):
-    """LayerNorm"""
     def __init__(self, d_model: int, eps: float = 1e-5) -> None:
         super().__init__()
         self.eps = eps
@@ -48,11 +52,10 @@ class LayerNorm(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         mean = x.mean(dim=-1, keepdim=True)
         var = x.var(dim=-1, keepdim=True, unbiased=False)
-        return self.scale * (x - mean) / torch.sqrt(var + self.eps) + self.shift  # 返回结果
+        return self.scale * (x - mean) / torch.sqrt(var + self.eps) + self.shift
 
 
 class MultiHeadAttention(nn.Module):
-    """MultiHeadAttention"""
     def __init__(self, cfg: GPTConfig) -> None:
         super().__init__()
         if cfg.d_model % cfg.num_heads != 0:
@@ -93,11 +96,10 @@ class MultiHeadAttention(nn.Module):
         out = out.transpose(1, 2).contiguous().view(batch, seq, dim)
         out = self.out_proj(out)
         out = self.resid_dropout(out)
-        return out  # 返回结果
+        return out
 
 
 class FeedForward(nn.Module):
-    """FeedForward"""
     def __init__(self, cfg: GPTConfig) -> None:
         super().__init__()
         hidden = cfg.mlp_expansion * cfg.d_model
@@ -107,7 +109,7 @@ class FeedForward(nn.Module):
         self.dropout = nn.Dropout(cfg.dropout)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.dropout(self.fc2(self.act(self.fc1(x))))  # 返回结果
+        return self.dropout(self.fc2(self.act(self.fc1(x))))
 
 
 class TransformerBlock(nn.Module):
@@ -123,7 +125,7 @@ class TransformerBlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x + self.attn(self.ln1(x))
         x = x + self.mlp(self.ln2(x))
-        return x  # 返回结果
+        return x
 
 
 class GPTModel(nn.Module):
@@ -175,7 +177,7 @@ class GPTModel(nn.Module):
             x = block(x)
         x = self.final_ln(x)
         logits = self.lm_head(x)
-        return logits  # 返回结果
+        return logits
 
 
 def count_parameters(model: nn.Module) -> int:
@@ -183,17 +185,16 @@ def count_parameters(model: nn.Module) -> int:
     seen: dict[int, int] = {}
     for param in model.parameters():
         seen[id(param)] = param.numel()
-    return sum(seen.values())  # 返回结果
+    return sum(seen.values())
 
 
 def top_k_filter(logits: torch.Tensor, top_k: int) -> torch.Tensor:
-    """top_k_filter"""
     if top_k is None or top_k <= 0:
-        return logits  # 返回结果
+        return logits
     top_k = min(top_k, logits.size(-1))
     values, _ = torch.topk(logits, top_k, dim=-1)
     threshold = values[..., -1:]
-    return torch.where(logits < threshold, torch.full_like(logits, float("-inf")), logits)  # 返回结果
+    return torch.where(logits < threshold, torch.full_like(logits, float("-inf")), logits)
 
 
 def generate(
@@ -227,13 +228,12 @@ def generate(
                 probs = F.softmax(next_logits, dim=-1)
                 next_token = torch.multinomial(probs, num_samples=1)
                 tokens = torch.cat([tokens, next_token], dim=1)
-        return tokens  # 返回结果
+        return tokens
     finally:
         model.train(was_training)
 
 
 def demo() -> None:
-    """demo"""
     torch.manual_seed(0)
 
     print("Building 124M reference GPT...")

@@ -4,8 +4,12 @@ Implements three aggregators (plurality, CP-WBFT, DecentLLMs) and three
 attack patterns (byzantine, sycophancy, monoculture). Prints a table of
 (attack, aggregator) -> final answer, highlighting correct decisions.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：多 Agent 共识与拜占庭容错——Plurality（简单多数投票）、CP-WBFT（置信度加权拜占庭容错）、
+DecentLLMs（几何中位数聚类评分），对抗三种攻击模式：拜占庭说谎（高置信度错误答案）、
+谄媚从众（低置信度附和）、单文化（同模型相关错误）
+AI 对应：CP-WBFT 源自 Li et al. "Combating Conspiracy Theories in Multi-Agent Debate"；
+DecentLLMs (Wang et al.) 用评估器 Agent 评分代替简单投票；MetaGPT 的 Reviewer 角色
+实现类似的质量门控；OpenAI 的 Mixture of Agents (MoA) 使用置信度加权的多模型聚合
 """
 from __future__ import annotations
 
@@ -16,18 +20,16 @@ from typing import Callable
 
 @dataclass
 class Vote:
-    """Vote"""
     agent: str
     answer: str
     confidence: float
 
     def canonical(self) -> str:
         """Rough semantic clustering: lowercase + strip whitespace/punct."""
-        return "".join(c for c in self.answer.lower().strip() if c.isalnum() or c == "." or c == "%")  # 返回结果
+        return "".join(c for c in self.answer.lower().strip() if c.isalnum() or c == "." or c == "%")
 
 
 def plurality(votes: list[Vote]) -> tuple[str, dict[str, int]]:
-    """plurality"""
     counts: dict[str, int] = {}
     rep: dict[str, str] = {}
     for v in votes:
@@ -35,11 +37,10 @@ def plurality(votes: list[Vote]) -> tuple[str, dict[str, int]]:
         counts[key] = counts.get(key, 0) + 1
         rep.setdefault(key, v.answer)
     winner_key = max(counts, key=counts.get)
-    return rep[winner_key], counts  # 返回结果
+    return rep[winner_key], counts
 
 
 def cp_wbft(votes: list[Vote], threshold: float = 0.5) -> tuple[str | None, dict[str, float]]:
-    """cp_wbft"""
     weights: dict[str, float] = {}
     rep: dict[str, str] = {}
     for v in votes:
@@ -49,8 +50,8 @@ def cp_wbft(votes: list[Vote], threshold: float = 0.5) -> tuple[str | None, dict
     total = sum(weights.values()) or 1.0
     winner_key = max(weights, key=weights.get)
     if weights[winner_key] / total < threshold:
-        return None, weights  # 返回结果
-    return rep[winner_key], weights  # 返回结果
+        return None, weights
+    return rep[winner_key], weights
 
 
 def decentllms(votes: list[Vote]) -> tuple[str | None, dict[str, float]]:
@@ -72,11 +73,10 @@ def decentllms(votes: list[Vote]) -> tuple[str | None, dict[str, float]]:
 
     winner_key = max(scores, key=scores.get)
     rep = clusters[winner_key][0].answer
-    return rep, scores  # 返回结果
+    return rep, scores
 
 
 def scenario(name: str, correct: str, votes: list[Vote]) -> None:
-    """scenario"""
     print("\n" + "=" * 72)
     print(f"SCENARIO: {name}")
     print(f"  correct answer: {correct!r}")
@@ -90,8 +90,8 @@ def scenario(name: str, correct: str, votes: list[Vote]) -> None:
 
     def mark(a: str | None) -> str:
         if a is None:
-            return "[rejected below threshold]"  # 返回结果
-        return "[CORRECT]" if a == correct else "[WRONG]"  # 返回结果
+            return "[rejected below threshold]"
+        return "[CORRECT]" if a == correct else "[WRONG]"
 
     print(f"\n  plurality    -> {plural!r:22s} {mark(plural)}")
     print(f"  CP-WBFT      -> {str(cp)!r:22s} {mark(cp)}")
@@ -99,7 +99,6 @@ def scenario(name: str, correct: str, votes: list[Vote]) -> None:
 
 
 def main() -> None:
-    """main"""
     # Scenario 1: honest majority, no attack
     scenario(
         "no attack",

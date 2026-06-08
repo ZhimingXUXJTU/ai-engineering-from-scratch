@@ -11,8 +11,13 @@ Three demos:
   - retry after transient failure -> idempotency catches
   - rubber-stamp UI vs challenge-and-response checklist
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Propose-then-Commit 人机协作状态机 —— 四阶段（提议→展示→提交→验证），
+Agent 持久化提议动作（带幂等键），审查者看到元数据（意图/血缘/爆炸半径/回滚方案），
+确认后幂等提交，提交后验证目标资源。对比"橡皮图章 UI"和"挑战-响应检查清单"。
+
+AI 对应：这是 Claude Code 的 permission prompt 的正式化版本。
+GitHub Copilot 的"建议-接受"模式、Stripe 的两步确认支付也是这个模式。
+关键洞察：人机协作的质量取决于 UI 展示的信息量，而非确认按钮本身。
 """
 
 from __future__ import annotations
@@ -26,7 +31,6 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Proposal:
-    """Proposal"""
     thread_id: str
     action: str
     payload: dict
@@ -38,12 +42,11 @@ class Proposal:
     def key(self) -> str:
         sig = json.dumps({"t": self.thread_id, "a": self.action,
                           "p": self.payload}, sort_keys=True)
-        return hashlib.sha256(sig.encode()).hexdigest()[:16]  # 返回结果
+        return hashlib.sha256(sig.encode()).hexdigest()[:16]
 
 
 @dataclass
 class Store:
-    """Store"""
     path: str
 
     def __post_init__(self) -> None:
@@ -53,7 +56,7 @@ class Store:
 
     def all(self) -> dict:
         with open(self.path) as f:
-            return json.load(f)  # 返回结果
+            return json.load(f)
 
     def save(self, key: str, record: dict) -> None:
         data = self.all()
@@ -68,36 +71,32 @@ SIDE_EFFECTS: list[str] = []
 
 
 def execute(proposal: Proposal) -> bool:
-    """execute"""
     SIDE_EFFECTS.append(f"{proposal.action}:{json.dumps(proposal.payload)}")
-    return True  # 返回结果
+    return True
 
 
 def verify(proposal: Proposal) -> bool:
-    """verify"""
     # In a real system, this re-reads the target resource.
     needle = f"{proposal.action}:{json.dumps(proposal.payload)}"
-    return needle in SIDE_EFFECTS  # 返回结果
+    return needle in SIDE_EFFECTS
 
 
 # ---------- Flow ----------
 
 def propose(store: Store, p: Proposal) -> str:
-    """propose"""
     k = p.key()
     existing = store.all().get(k)
     if existing:
         print(f"  [propose] idempotent: record {k} already exists "
               f"(status={existing['status']})")
-        return k  # 返回结果
+        return k
     record = {"status": "waiting", **vars(p)}
     store.save(k, record)
     print(f"  [propose] record {k} stored, waiting for review")
-    return k  # 返回结果
+    return k
 
 
 def surface(store: Store, k: str) -> None:
-    """surface"""
     r = store.all()[k]
     print(f"  [surface] proposal {k}")
     # Use 'name' rather than 'field' to avoid shadowing dataclasses.field
@@ -107,42 +106,39 @@ def surface(store: Store, k: str) -> None:
 
 
 def rubber_stamp_approve(store: Store, k: str) -> bool:
-    """rubber_stamp_approve"""
     r = store.all()
     rec = r[k]
     rec["status"] = "approved"
     rec["ack_mode"] = "rubber_stamp"
     store.save(k, rec)
     print("  [approve:rubber-stamp] clicked Approve (no checklist)")
-    return True  # 返回结果
+    return True
 
 
 def checklist_approve(store: Store, k: str,
-    """checklist_approve"""
                       understood: bool, verified: bool,
                       rollback_ready: bool) -> bool:
     if not (understood and verified and rollback_ready):
         print("  [approve:checklist] REJECTED (incomplete answers)")
-        return False  # 返回结果
+        return False
     r = store.all()
     rec = r[k]
     rec["status"] = "approved"
     rec["ack_mode"] = "challenge_response"
     store.save(k, rec)
     print("  [approve:checklist] APPROVED (all three checks)")
-    return True  # 返回结果
+    return True
 
 
 def commit(store: Store, k: str) -> bool:
-    """commit"""
     data = store.all()
     rec = data[k]
     if rec["status"] == "committed":
         print(f"  [commit] idempotent: {k} already committed, no re-execute")
-        return True  # 返回结果
+        return True
     if rec["status"] != "approved":
         print(f"  [commit] refusing: {k} status={rec['status']}")
-        return False  # 返回结果
+        return False
     p = Proposal(
         thread_id=rec["thread_id"], action=rec["action"],
         payload=rec["payload"], intent=rec["intent"],
@@ -153,13 +149,12 @@ def commit(store: Store, k: str) -> bool:
     rec["status"] = "committed"
     store.save(k, rec)
     print(f"  [commit] executed; verify={verify(p)}")
-    return True  # 返回结果
+    return True
 
 
 # ---------- Demos ----------
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("PROPOSE-THEN-COMMIT HITL (Phase 15, Lesson 15)")
     print("=" * 80)

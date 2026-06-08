@@ -5,8 +5,14 @@ and DeepMind FSF v3 classify a short list of capabilities. Outputs a
 side-by-side comparison. The tables are pedagogical distillations of
 the three source documents; real policy reads require the documents.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：跨政策决策表对比 —— 读取三个小表，分别编码 OpenAI PF v2、
+Anthropic RSP v3.0 和 DeepMind FSF v3 如何对一组能力进行分类。
+输出并排对比。这些表是三份源文件的教学提炼，真实政策需阅读原文。
+
+AI 对应：OpenAI Preparedness Framework（PF）、Anthropic Responsible Scaling Policy（RSP）、
+Google DeepMind Frontier Safety Framework（FSF）是三大 AI 公司的安全政策。
+对比它们的异同是理解 AI 安全治理格局的关键。相似之处反映了行业共识，
+差异之处反映了不同的风险判断。
 """
 
 from __future__ import annotations
@@ -16,7 +22,6 @@ from dataclasses import dataclass
 
 @dataclass
 class Policy:
-    """Policy"""
     name: str
     # capability -> (classification, trigger-action)
     table: dict[str, tuple[str, str]]
@@ -80,7 +85,6 @@ POLICIES = [OPENAI_PF_V2, ANTHROPIC_RSP_V3, DEEPMIND_FSF_V3]
 
 
 def diff(capability: str) -> None:
-    """diff"""
     print(f"\nCapability: {capability}")
     print("-" * 80)
     for p in POLICIES:
@@ -91,7 +95,6 @@ def diff(capability: str) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("CROSS-POLICY DIFF (Phase 15, Lesson 20)")
     print("=" * 80)

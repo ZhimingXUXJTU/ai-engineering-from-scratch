@@ -1,7 +1,26 @@
+"""分词器对比实验 —— 从字符级到 BPE 的完整演示
+
+核心概念：
+  - 字符级分词器 (CharTokenizer)：每个字符一个 token，词表小但序列长
+  - BPE 分词器 (BPETokenizer)：通过合并高频字节对来压缩序列，词表大但序列短
+  - 压缩比 (compression_ratio)：token 数 / 原始字节数，越低越好
+
+AI 对应：
+  - 所有 LLM 都使用子词分词器（BPE / WordPiece / Unigram），而非字符级或词级
+  - GPT-4 的 cl100k_base 平均每个 token 对应约 4 个字符（英文）
+  - 分词器的选择直接影响模型的上下文窗口利用率和推理成本
+"""
+
 from collections import Counter
 
 
 class CharTokenizer:
+    """字符级分词器：最简单的方案，每个 Unicode 字符对应一个 token ID
+
+    优点：词表小、无需训练、无未知 token
+    缺点：序列极长（"hello" = 5 个 token），模型难以学习长距离依赖
+    """
+
     def encode(self, text):
         return [ord(c) for c in text]
 
@@ -10,6 +29,11 @@ class CharTokenizer:
 
 
 class BPETokenizer:
+    """BPE 分词器：通过迭代合并高频字节对来压缩文本
+
+    与 bpe.py 中的版本相同，这里没有打印训练过程的详细信息。
+    """
+
     def __init__(self):
         self.merges = {}
         self.vocab = {}
@@ -66,12 +90,14 @@ class BPETokenizer:
 
 
 def compression_ratio(tokenizer, text):
+    """计算压缩比：token 数 / 原始字节数。越接近 0 说明压缩效果越好"""
     encoded = tokenizer.encode(text)
     raw_bytes = len(text.encode("utf-8"))
     return len(encoded) / raw_bytes
 
 
 def vocabulary_stats(tokenizer, texts):
+    """分析词表使用情况：总 token 数、每个词平均多少 token、最高频的 token 等"""
     total_tokens = 0
     total_words = 0
     token_usage = Counter()
@@ -99,6 +125,7 @@ def vocabulary_stats(tokenizer, texts):
 
 
 def demo_char_tokenizer():
+    """演示字符级分词器的工作方式"""
     print("=" * 60)
     print("STEP 1: Character-Level Tokenizer")
     print("=" * 60)
@@ -116,6 +143,11 @@ def demo_char_tokenizer():
 
 
 def demo_bpe_training():
+    """演示 BPE 训练过程：从字节开始，学习 50 个合并规则
+
+    【拓展】真实模型的 BPE 训练通常在几十 GB 的语料上进行，学习数万个合并规则。
+    GPT-2 有 50257 个 token，Llama 3 扩展到 128256 个以支持多语言。
+    """
     print("=" * 60)
     print("STEP 2: BPE Training")
     print("=" * 60)
@@ -141,6 +173,7 @@ def demo_bpe_training():
 
 
 def demo_encode_decode(tokenizer):
+    """测试 BPE 分词器的编码/解码和压缩效果"""
     print("\n" + "=" * 60)
     print("STEP 3: Encode and Decode")
     print("=" * 60)
@@ -167,6 +200,7 @@ def demo_encode_decode(tokenizer):
 
 
 def demo_tiktoken_comparison(tokenizer):
+    """与 tiktoken (GPT-4 分词器) 对比：我们的 BPE vs 生产级分词器"""
     print("\n" + "=" * 60)
     print("STEP 4: Compare with tiktoken")
     print("=" * 60)
@@ -199,6 +233,7 @@ def demo_tiktoken_comparison(tokenizer):
 
 
 def demo_vocabulary_analysis(tokenizer, corpus):
+    """分析词表使用效率和压缩比"""
     print("\n" + "=" * 60)
     print("STEP 5: Vocabulary Analysis")
     print("=" * 60)

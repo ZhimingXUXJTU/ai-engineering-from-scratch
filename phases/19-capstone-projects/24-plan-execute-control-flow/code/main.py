@@ -7,8 +7,11 @@ Conceptual references:
 
 Stdlib only. Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Plan-and-Execute 控制流——先规划再执行、失败时重规划、计划 diff 追踪变更、
+双预算控制（步数 + wall-clock），实现 Agent 的反思-重规划循环
+AI 对应：LangGraph 的 Plan-and-Execute 模式和 ReWOO (Reasoning WithOut Observation)
+都使用先规划后执行的分离架构；Claude Code 的计划状态重写在每次工具调用后更新；
+plan diff 是追踪 Agent 决策变化的核心可观测性信号
 """
 
 from __future__ import annotations
@@ -21,7 +24,6 @@ from typing import Any, Callable
 
 @dataclass
 class Step:
-    """Step"""
     id: int
     tool_name: str
     args: dict
@@ -30,19 +32,18 @@ class Step:
     error: str | None = None
 
     def signature(self) -> tuple:
-        return (self.tool_name, json.dumps(self.args, sort_keys=True))  # 返回结果
+        return (self.tool_name, json.dumps(self.args, sort_keys=True))
 
 
 @dataclass
 class PlanDiff:
-    """PlanDiff"""
     revision: int
     removed: list[int]
     added: list[int]
     revised: list[int]
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "revision": self.revision,
             "removed": list(self.removed),
             "added": list(self.added),
@@ -52,7 +53,6 @@ class PlanDiff:
 
 @dataclass
 class Event:
-    """Event"""
     type: str
     payload: dict
     ts: float = field(default_factory=time.time)
@@ -60,7 +60,6 @@ class Event:
 
 @dataclass
 class SessionResult:
-    """SessionResult"""
     status: str
     reason: str
     history: list[Step]
@@ -68,7 +67,7 @@ class SessionResult:
     events: list[Event]
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "status": self.status,
             "reason": self.reason,
             "history": [
@@ -86,12 +85,10 @@ ToolExecutor = Callable[[str, dict], Any]
 
 
 class ToolFailure(Exception):
-    """ToolFailure"""
     pass
 
 
 def _diff_plans(old: list[Step], new: list[Step], revision: int) -> PlanDiff:
-    """_diff_plans"""
     old_ids = {s.id for s in old}
     new_ids = {s.id for s in new}
     removed = sorted(old_ids - new_ids)
@@ -101,7 +98,7 @@ def _diff_plans(old: list[Step], new: list[Step], revision: int) -> PlanDiff:
     for s in new:
         if s.id in old_ids and old_by_id[s.id].signature() != s.signature():
             revised.append(s.id)
-    return PlanDiff(revision=revision, removed=removed, added=added, revised=revised)  # 返回结果
+    return PlanDiff(revision=revision, removed=removed, added=added, revised=revised)
 
 
 class PlanExecuteAgent:
@@ -137,7 +134,7 @@ class PlanExecuteAgent:
 
         if not plan:
             self._emit("session.complete", {"reason": "no_plan"})
-            return SessionResult(  # 返回结果
+            return SessionResult(
                 status="failed", reason="no_plan",
                 history=history, revisions=revisions, events=list(self._events),
             )
@@ -148,7 +145,7 @@ class PlanExecuteAgent:
         while cursor < len(plan):
             if steps_taken >= self.max_steps:
                 self._emit("session.complete", {"reason": "step_budget"})
-                return SessionResult(  # 返回结果
+                return SessionResult(
                     status="failed", reason="step_budget",
                     history=history, revisions=revisions, events=list(self._events),
                 )
@@ -171,7 +168,7 @@ class PlanExecuteAgent:
 
             if replans_used >= self.max_replans:
                 self._emit("session.complete", {"reason": "replan_budget"})
-                return SessionResult(  # 返回结果
+                return SessionResult(
                     status="failed", reason="replan_budget",
                     history=history, revisions=revisions, events=list(self._events),
                 )
@@ -182,7 +179,7 @@ class PlanExecuteAgent:
             self._emit("plan.draft", {"revision": revision, "steps": _summarize(new_plan)})
             if not new_plan:
                 self._emit("session.complete", {"reason": "no_plan"})
-                return SessionResult(  # 返回结果
+                return SessionResult(
                     status="failed", reason="no_plan",
                     history=history, revisions=revisions, events=list(self._events),
                 )
@@ -194,15 +191,14 @@ class PlanExecuteAgent:
             self._emit("plan.commit", {"revision": revision, "steps": _summarize(plan)})
 
         self._emit("session.complete", {"reason": "goal_met"})
-        return SessionResult(  # 返回结果
+        return SessionResult(
             status="completed", reason="goal_met",
             history=history, revisions=revisions, events=list(self._events),
         )
 
 
 def _summarize(plan: list[Step]) -> list[dict]:
-    """_summarize"""
-    return [{"id": s.id, "tool": s.tool_name, "outcome": s.expected_outcome} for s in plan]  # 返回结果
+    return [{"id": s.id, "tool": s.tool_name, "outcome": s.expected_outcome} for s in plan]
 
 
 def make_deterministic_planner(fail_step_id: int | None, recovery: str = "route_around") -> Planner:
@@ -226,25 +222,24 @@ def make_deterministic_planner(fail_step_id: int | None, recovery: str = "route_
                 for s in initial:
                     if s.id == fail_step_id:
                         s.args = {**s.args, "_force_fail": True}
-            return initial  # 返回结果
+            return initial
         if recovery == "route_around" and "transform" in last_error:
-            return [  # 返回结果
+            return [
                 Step(2, "transform", {"mode": "v2"}, "computed via fallback"),
                 Step(3, "render", {}, "rendered output"),
                 Step(4, "submit", {}, "submitted to backend"),
             ]
         if recovery == "give_up":
-            return [  # 返回结果
+            return [
                 Step(98, "log_failure", {"why": last_error or ""}, "logged failure"),
                 Step(99, "notify_user", {}, "told the user"),
             ]
-        return []  # 返回结果
+        return []
 
-    return planner  # 返回结果
+    return planner
 
 
 def _demo() -> None:
-    """_demo"""
     counters = {"transform_v1_calls": 0}
 
     def executor(tool: str, args: dict) -> Any:
@@ -252,18 +247,18 @@ def _demo() -> None:
             counters["transform_v1_calls"] += 1
             raise ToolFailure(f"{tool} marker-forced failure")
         if tool == "fetch":
-            return {"k": "v"}  # 返回结果
+            return {"k": "v"}
         if tool == "transform":
             if args.get("mode") == "v1":
                 counters["transform_v1_calls"] += 1
                 raise ToolFailure("transform v1 backend down")
-            return {"ok": True}  # 返回结果
+            return {"ok": True}
         if tool == "render":
-            return "html"  # 返回结果
+            return "html"
         if tool == "submit":
-            return {"id": 1}  # 返回结果
+            return {"id": 1}
         if tool in ("log_failure", "notify_user"):
-            return "logged"  # 返回结果
+            return "logged"
         raise ToolFailure(f"unknown tool {tool}")
 
     agent = PlanExecuteAgent(

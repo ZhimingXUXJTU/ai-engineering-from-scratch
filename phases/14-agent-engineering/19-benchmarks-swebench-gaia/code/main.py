@@ -4,8 +4,12 @@ SWE-bench: bug-fix tasks with FAIL_TO_PASS and PASS_TO_PASS gates.
 GAIA: simple-for-humans, hard-for-AI questions scored by decomposition depth.
 Both are synthetic; the point is to make the evaluator rules concrete.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：SWE-bench 和 GAIA 两大 Agent 评测基准的核心逻辑 —— SWE-bench 通过 FAIL_TO_PASS /
+PASS_TO_PASS 门控评判补丁是否正确修复了 bug；GAIA 按"简单对人、困难对 AI"原则，
+通过推理步骤数、多模态需求和工具依赖三个维度划分难度等级。
+AI 对应：SWE-bench 是评估代码 Agent（如 SWE-Agent、Devin、OpenHands）的事实标准，
+Anthropic Claude 3.5 Sonnet 在其上达到 SOTA；GAIA 由 Meta 基金会发布，
+GPT-4、Gemini 在 Level 3 上仍表现不佳，是衡量通用 Agent 能力的关键基准。
 """
 
 from __future__ import annotations
@@ -16,7 +20,6 @@ from typing import Any, Callable
 
 @dataclass
 class Task:
-    """Task"""
     tid: str
     description: str
     state_before: dict[str, int]
@@ -27,7 +30,6 @@ class Task:
 
 @dataclass
 class TaskResult:
-    """TaskResult"""
     tid: str
     ftp_passed: int
     ftp_total: int
@@ -37,7 +39,6 @@ class TaskResult:
 
 
 def run_task(task: Task) -> TaskResult:
-    """run_task"""
     state = dict(task.state_before)
     ftp_pre = sum(1 for _, check in task.fail_to_pass if check(state))
     ptp_pre = sum(1 for _, check in task.pass_to_pass if check(state))
@@ -51,7 +52,7 @@ def run_task(task: Task) -> TaskResult:
     ptp_broke = ptp_pre - ptp_post
     resolved = (ftp_post == len(task.fail_to_pass)) and (ptp_broke == 0)
 
-    return TaskResult(  # 返回结果
+    return TaskResult(
         tid=task.tid,
         ftp_passed=ftp_post, ftp_total=len(task.fail_to_pass),
         ptp_passed=ptp_post, ptp_total=len(task.pass_to_pass),
@@ -60,7 +61,6 @@ def run_task(task: Task) -> TaskResult:
 
 
 def gaia_level(question: str) -> int:
-    """gaia_level"""
     steps = sum(1 for w in question.lower().split()
                 if w in {"then", "after", "finally", "next", "and"}) + 1
     modalities = sum(word in question.lower() for word in
@@ -69,14 +69,13 @@ def gaia_level(question: str) -> int:
                 ("search", "look up", "find", "visit", "extract"))
     score = steps + modalities + tools
     if score <= 2:
-        return 1  # 返回结果
+        return 1
     if score <= 5:
-        return 2  # 返回结果
-    return 3  # 返回结果
+        return 2
+    return 3
 
 
 def swe_demo() -> None:
-    """swe_demo"""
     print("-" * 70)
     print("SWE-bench-style harness (FAIL_TO_PASS + PASS_TO_PASS)")
     print("-" * 70)
@@ -122,7 +121,6 @@ def swe_demo() -> None:
 
 
 def gaia_demo() -> None:
-    """gaia_demo"""
     print("\n" + "-" * 70)
     print("GAIA-style difficulty classifier")
     print("-" * 70)
@@ -139,7 +137,6 @@ def gaia_demo() -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("BENCHMARKS: SWE-bench, GAIA — Phase 14, Lesson 19")
     print("=" * 70)

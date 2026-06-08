@@ -3,8 +3,13 @@
 Models one request through colocated (same GPU) vs disaggregated (prefill pool + decode pool + KV transfer).
 Sweeps prompt length to find the crossover.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Prefill/Decode 分离架构——Colocated（同一 GPU 同时处理 prefill 和 decode）
+vs Disaggregated（Prefill 池 + Decode 池分离，KV cache 通过 RDMA/TCP 传输），
+长 prompt 场景下 decode 专用池的吞吐优势超过 KV 传输开销，RDMA 使分离更早盈利
+AI 对应：NVIDIA Dynamo 是 Prefill/Decode 分离的参考实现；Splitwise (Microsoft Research)
+论文分析分离架构的经济学；Mooncake (Moonshot AI/清华) 实现分离式 KV cache；
+NIXL (NVIDIA) 提供 RDMA KV 传输；vLLM 的 disagg_prefill 实验性支持此模式；
+这是 2025-2026 年推理架构的核心趋势
 """
 
 from __future__ import annotations
@@ -20,24 +25,21 @@ NIXL_TCP_GB_S = 10
 
 
 def ms_colocated(prompt: int, output: int) -> float:
-    """ms_colocated"""
     prefill_ms = prompt / PREFILL_TOK_PER_MS
     decode_ms = output / DECODE_TOK_PER_MS_COLOCATED
-    return prefill_ms + decode_ms  # 返回结果
+    return prefill_ms + decode_ms
 
 
 def ms_disaggregated(prompt: int, output: int, use_rdma: bool = True) -> float:
-    """ms_disaggregated"""
     prefill_ms = prompt / PREFILL_TOK_PER_MS
     kv_bytes = prompt * KV_BYTES_PER_TOKEN_70B_FP8
     transport = NIXL_RDMA_GB_S if use_rdma else NIXL_TCP_GB_S
     transfer_ms = (kv_bytes / 1e9) / transport * 1000
     decode_ms = output / DECODE_TOK_PER_MS_DECODE_GPU
-    return prefill_ms + transfer_ms + decode_ms  # 返回结果
+    return prefill_ms + transfer_ms + decode_ms
 
 
 def main() -> None:
-    """main"""
     print("=" * 95)
     print("DISAGGREGATED vs COLOCATED — same request, different GPU placement")
     print("=" * 95)

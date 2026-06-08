@@ -31,6 +31,9 @@
 
 You add prompt caching to your RAG service. The bill stays flat. You measure the hit rate; it is 7%. Your prompts look static but they are not — the system prompt includes the current date formatted to the minute, a request ID, and a randomized example reorder for diversity. Every request writes a new cache entry, reads zero.
 
+> **【中文解读】**
+> 提示缓存分两层：L2（提供商级）重用重复前缀的 KV cache——Anthropic 声称缓存读取成本降低 90%、延迟降低 85%；L1（应用级）语义缓存在嵌入相似度命中时直接跳过 LLM。但两个反模式会毁掉缓存效果：(1) prompt 中的动态内容（时间戳、请求 ID）阻止缓存命中；(2) 并行请求在第一个缓存写入前全部到达，导致 N 次写入零次读取。
+
 Separately, your agent runs ten parallel tool calls per user question. All ten arrive at the provider before the first cache write completes. Ten writes, zero reads. Your bill is 5-10x what "with caching" was supposed to cost.
 
 Caching is a protocol, not a flag. Two layers, two different failure modes.
@@ -113,6 +116,11 @@ Pricing points are captured 2026-04 from the linked vendor docs and drift every 
 - Parallelization anti-pattern: typical reports of 5–10x bill inflation when N parallel requests miss the first cache write.
 
 ## Use It | 用框架实现
+
+> **【中文解读】**
+> 生产环境的提示缓存最佳实践：把 prompt 模板分为静态前缀（系统提示、工具 schema）和动态后缀（用户输入、检索结果），用 Anthropic 的 `cache_control` 标记静态前缀。实测案例：把动态内容移出缓存前缀，命中率从 7% 跳到 74%。对于 RAG 系统，静态系统提示 + 检索到的文档属于缓存范围，用户问题不属于。
+
+> **【拓展：提示缓存→成本优化】** 提示缓存是 LLM 成本优化最直接的手段。Anthropic Claude 的缓存读取价格为 $0.30/M token，不到新鲜输入 $3.00/M 的十分之一。OpenAI 对 1024+ token 的 prompt 自动缓存，缓存输入价格约降 90%。对于每天处理百万请求的 RAG 系统，提示缓存可以将月度 API 账单从数十万美元降到数万美元。
 
 `code/main.py` simulates L1 + L2 caching on mixed workloads. Reports hit rates, bill, and shows the parallelization penalty.
 

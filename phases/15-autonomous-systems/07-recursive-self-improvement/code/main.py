@@ -5,8 +5,14 @@ rate r_a, each with configurable noise. The simulator tracks the gap
 M(t) = C(t) - A(t) and the cycle at which the gap would cross a safety
 threshold.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：能力-对齐竞赛模拟器 —— 每轮 RSI（递归自改进）循环中，能力（C）和对齐（A）
+分别以不同速率复合增长（带噪声），追踪差距 M(t) = C(t) - A(t) 和
+安全阈值穿越时间。Monte Carlo 模拟估算风险分布。
+AI 对应：递归自改进（Recursive Self-Improvement）是 Nick Bostrom（2014）在
+"Superintelligence" 中提出的核心风险场景；Anthropic 的 Responsible Scaling Policy (RSP)、
+OpenAI 的 Preparedness Framework 和 DeepMind 的 Frontier Safety Framework 都针对此风险
+设计了分级缓解措施。Claude 3.5 的 self-improvement 能力限制和 GPT-4 的 usage policies
+都体现了"对齐速度必须跟上能力速度"的设计原则。
 """
 
 from __future__ import annotations
@@ -22,7 +28,6 @@ DEFAULT_SEED = 11
 
 @dataclass
 class Config:
-    """Config"""
     r_c: float
     r_a: float
     noise_c: float
@@ -31,7 +36,6 @@ class Config:
 
 
 def run(cycles: int, cfg: Config) -> list[tuple[int, float, float, float]]:
-    """run"""
     c = 1.0
     a = 1.0
     out = [(0, c, a, c - a)]
@@ -41,19 +45,17 @@ def run(cycles: int, cfg: Config) -> list[tuple[int, float, float, float]]:
         c *= max(0.9, nc)
         a *= max(0.9, na)
         out.append((cyc, c, a, c - a))
-    return out  # 返回结果
+    return out
 
 
 def crossing_cycle(trajectory, threshold: float) -> int:
-    """crossing_cycle"""
     for cyc, _c, _a, gap in trajectory:
         if gap >= threshold:
-            return cyc  # 返回结果
-    return -1  # 返回结果
+            return cyc
+    return -1
 
 
 def print_trajectory(label: str, cfg: Config, cycles: int = 40) -> None:
-    """print_trajectory"""
     traj = run(cycles, cfg)
     print(f"\n{label}")
     print(f"  r_c={cfg.r_c:.2f} r_a={cfg.r_a:.2f} "
@@ -75,7 +77,6 @@ def print_trajectory(label: str, cfg: Config, cycles: int = 40) -> None:
 
 
 def monte_carlo(cfg: Config, cycles: int, trials: int) -> None:
-    """monte_carlo"""
     crossings = []
     for _ in range(trials):
         traj = run(cycles, cfg)
@@ -92,7 +93,6 @@ def monte_carlo(cfg: Config, cycles: int, trials: int) -> None:
 
 
 def main() -> None:
-    """main"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--threshold", type=float, default=1.5,
                         help="pause-gap threshold C - A (default: %(default)s)")

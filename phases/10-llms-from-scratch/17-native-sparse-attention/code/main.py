@@ -1,13 +1,16 @@
-"""Native Sparse Attention (DeepSeek NSA) in stdlib Python.
+"""原生稀疏注意力 (Native Sparse Attention, DeepSeek NSA) —— 三分支并行稀疏注意力
 
-Implements the three parallel branches from Yuan et al. 2025:
-  - compressed branch: coarse-grained attention over block-averaged keys
-  - selected branch: fine-grained attention over top-k uncompressed blocks
-  - sliding-window branch: attention over the last W tokens
+核心概念：
+  - NSA 是 DeepSeek 提出的高效长上下文注意力机制，包含三个并行分支：
+  - 压缩分支 (compressed)：对 Key 做块级平均池化后做粗粒度注意力（找到大致相关的块）
+  - 选择分支 (selected)：根据压缩分支的分数选 top-k 块做细粒度注意力（精确定位）
+  - 滑动窗口分支 (sliding window)：只关注最近 W 个 token（捕获局部依赖）
+  - 三个分支通过门控 (gate) 加权组合，兼顾全局和局部信息
 
-Combines them with a gate and prints the per-query key count for each branch
-vs. full attention. Scales the key-count report to 64k and 128k contexts to
-show the long-sequence savings NSA targets.
+AI 对应：
+  - NSA 的目标是将注意力的 O(n^2) 复杂度降低到接近 O(n)
+  - 在 128K 上下文中，NSA 只需关注约 10% 的 token，大幅降低计算量
+  - 类似思想包括 Mamba 的选择性状态空间和 Longformer 的局部+全局注意力
 """
 
 from __future__ import annotations

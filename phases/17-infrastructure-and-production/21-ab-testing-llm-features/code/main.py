@@ -3,8 +3,13 @@
 Compares fixed-sample vs always-valid sequential testing on a binary outcome.
 Illustrates CUPED-style variance reduction.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：LLM 特性的序贯 A/B 测试——固定样本量 vs Always-Valid 序贯检验(mSPRT)，
+LLM 非确定性需要 1.4x 样本量缓冲，强效应(50% lift)序贯检验提前停止节省样本，
+弱效应时序贯检验保守以控制 Type-I 错误率
+AI 对应：CUPED (Microsoft Research) 是 A/B 测试方差缩减的标准方法；
+mSPRT (mixture Sequential Probability Ratio Test) 提供 anytime-valid 的 p-value；
+Eppo 和 Statsig 提供企业级 A/B 测试平台；
+LLM 输出的非确定性(prompt 相同、输出不同)使传统 A/B 测试需要更大的样本量
 """
 
 from __future__ import annotations
@@ -14,16 +19,14 @@ import random
 
 
 def z_statistic(success_a: int, n_a: int, success_b: int, n_b: int) -> float:
-    """z_statistic"""
     p_a = success_a / n_a if n_a else 0
     p_b = success_b / n_b if n_b else 0
     p = (success_a + success_b) / (n_a + n_b) if (n_a + n_b) else 0
     se = math.sqrt(p * (1 - p) * (1 / n_a + 1 / n_b)) if n_a and n_b else 1
-    return (p_b - p_a) / se if se > 0 else 0  # 返回结果
+    return (p_b - p_a) / se if se > 0 else 0
 
 
 def fixed_sample_size(p_baseline: float, lift: float, alpha: float = 0.05, power: float = 0.80) -> int:
-    """fixed_sample_size"""
     p_treat = p_baseline * (1 + lift)
     z_alpha = 1.96
     z_beta = 0.84
@@ -31,11 +34,10 @@ def fixed_sample_size(p_baseline: float, lift: float, alpha: float = 0.05, power
     num = (z_alpha * math.sqrt(2 * p_bar * (1 - p_bar)) +
            z_beta * math.sqrt(p_baseline * (1 - p_baseline) + p_treat * (1 - p_treat))) ** 2
     den = (p_treat - p_baseline) ** 2
-    return int(num / den)  # 返回结果
+    return int(num / den)
 
 
 def simulate(p_a: float, p_b: float, seed: int = 7, max_n: int = 300_000) -> dict:
-    """simulate"""
     rng = random.Random(seed)
     success_a = success_b = 0
     n_a = n_b = 0
@@ -60,7 +62,7 @@ def simulate(p_a: float, p_b: float, seed: int = 7, max_n: int = 300_000) -> dic
                 sequential_stopped_at = n_total
                 break
 
-    return {  # 返回结果
+    return {
         "n_a": n_a,
         "n_b": n_b,
         "p_a_observed": success_a / n_a if n_a else 0.0,
@@ -70,7 +72,6 @@ def simulate(p_a: float, p_b: float, seed: int = 7, max_n: int = 300_000) -> dic
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("SEQUENTIAL A/B — fixed vs always-valid, binary outcome")
     print("=" * 80)

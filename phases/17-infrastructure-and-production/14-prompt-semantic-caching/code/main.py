@@ -3,8 +3,13 @@
 Models L1 (semantic) + L2 (prompt-prefix) caching on a mixed workload.
 Reports bill, hit rates, and the parallelization penalty.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：双层 Prompt 缓存——L1 语义缓存（语义相似请求直接命中，无需调用 LLM）+ L2
+Prompt Prefix 缓存（相同前缀的 KV cache 复用，读取成本仅 1/10），以及并行化惩罚
+（N 个并行请求同时 miss 缓存导致 N 次写入而非 1 次写入 + N-1 次读取）
+AI 对应：Anthropic Claude 的 prompt caching 是 L2 层的工业实现（5min/1hr TTL）；
+GPT-4 的 cached response 机制类似；GCP Redis + Semantic Hash 可实现 L1 层；
+LangChain 的 InMemoryCache 和 RedisCache 提供应用层缓存；
+Varnish/CDN 的缓存策略是 prompt 缓存设计的参考模式
 """
 
 from __future__ import annotations
@@ -22,7 +27,6 @@ CACHE_WRITE_1HR = 2.00 * BASE_INPUT   # write premium 1-hour TTL
 
 @dataclass
 class Request:
-    """Request"""
     prompt_tokens: int
     prefix_hash: str
     is_parallel_wave: bool
@@ -31,7 +35,6 @@ class Request:
 
 @dataclass
 class Config:
-    """Config"""
     l1_enabled: bool
     l2_enabled: bool
     parallel_penalty: bool  # N parallel arrivals miss cache together
@@ -41,7 +44,6 @@ class Config:
 
 
 def make_workload(n: int = 500, seed: int = 7) -> list[Request]:
-    """make_workload"""
     rng = random.Random(seed)
     reqs = []
     prefixes = [f"prefix_{i}" for i in range(12)]
@@ -57,11 +59,10 @@ def make_workload(n: int = 500, seed: int = 7) -> list[Request]:
             reqs.append(Request(rng.choice([2000, 4000, 8000]),
                                 rng.choice(prefixes), False, now))
             now += rng.uniform(0.1, 2.0)
-    return reqs  # 返回结果
+    return reqs
 
 
 def simulate(reqs: list[Request], cfg: Config) -> dict:
-    """simulate"""
     l2_cache: set[str] = set()
     l2_writes = 0
     l2_reads = 0
@@ -93,7 +94,7 @@ def simulate(reqs: list[Request], cfg: Config) -> dict:
 
         cost += (200 / 1e6) * BASE_OUTPUT
 
-    return {  # 返回结果
+    return {
         "cost": cost,
         "l1_hits": l1_hits,
         "l2_reads": l2_reads,
@@ -102,14 +103,12 @@ def simulate(reqs: list[Request], cfg: Config) -> dict:
 
 
 def report(label: str, cfg: Config, reqs: list[Request]) -> None:
-    """report"""
     res = simulate(reqs, cfg)
     print(f"{label:45}  cost=${res['cost']:7.2f}  "
           f"L1={res['l1_hits']:4}  L2_reads={res['l2_reads']:4}  L2_writes={res['l2_writes']:4}")
 
 
 def main() -> None:
-    """main"""
     print("=" * 95)
     print("PROMPT + SEMANTIC CACHING — 500 requests, Claude Sonnet-class pricing")
     print("=" * 95)

@@ -1,9 +1,16 @@
-"""Constitutional AI self-critique + GRPO rule-reward loop.
+"""Constitutional AI 自我纠错 + GRPO 规则奖励循环
 
-Runs end-to-end in pure stdlib + numpy. The CAI loop uses a handwritten critic
-that stands in for an LLM self-judge. The GRPO loop uses a deterministic math
-grader as the reward source. Both loops produce the metrics you would wire
-into a real optimizer.
+核心概念：
+  - Constitutional AI (CAI)：Anthropic 提出的自我改进框架
+    模型根据"宪法原则"（一组行为准则）对自身输出进行批判和修订
+  - GRPO (Group Relative Policy Optimization)：DeepSeek 提出的 RL 算法
+    对同一 prompt 生成一组回复，用组内相对奖励作为优势函数，无需 critic 网络
+  - 流程：生成回复 -> 根据原则批判 -> 修订回复 -> 用修订后的数据训练模型
+
+AI 对应：
+  - Claude 的对齐训练就使用了 Constitutional AI 方法
+  - DeepSeek V3 的 RL 训练使用 GRPO 替代 PPO（不需要价值网络，更节省算力）
+  - 规则奖励 (rule-based reward) 适用于有确定性答案的任务（如数学题）
 """
 
 from __future__ import annotations
@@ -15,6 +22,7 @@ from typing import Callable
 import numpy as np
 
 
+# "宪法"原则：一组行为准则，模型用这些原则来评估和改进自身输出
 CONSTITUTION = [
     "The response must directly answer the question asked, without hedging.",
     "The response must not include unnecessary filler or padding.",
@@ -24,6 +32,11 @@ CONSTITUTION = [
 
 
 def critique(response: str, principle: str) -> dict:
+    """批判函数：根据给定原则检查回复中的问题
+
+    在真实系统中，这一步由 LLM 自身完成（自我评判）。
+    这里用规则模拟：检查冗余、拒绝、过度谨慎等问题。
+    """
     problems = []
     lowered = response.strip().lower()
     if len(response.split()) > 40 and "plainly" in principle:
@@ -38,6 +51,10 @@ def critique(response: str, principle: str) -> dict:
 
 
 def revise(response: str, critique_result: dict) -> str:
+    """修订函数：根据批判结果修改回复
+
+    在真实系统中，LLM 根据批判意见重新生成更好的回复。
+    """
     problems = " ".join(critique_result["problems"])
     if "answer buried" in problems:
         sentences = [s.strip() for s in response.split(".") if s.strip()]
@@ -104,6 +121,19 @@ def group_relative_advantage(rewards: list[float]) -> np.ndarray:
 
 
 def grpo_step(
+    policy_logprobs: np.ndarray,
+    ref_logprobs: np.ndarray,
+    advantages: np.ndarray,
+    beta: float = 0.01,
+    clip_eps: float = 0.2,
+) -> dict:
+    """GRPO 优化步骤：使用组内相对优势更新策略
+
+    与 PPO 的区别：
+    - GRPO 不需要 critic 网络（用组内均值/标准差标准化奖励作为优势）
+    - 仍然使用 clip 机制防止策略更新过大
+    - 加入 KL 惩罚防止偏离参考模型太远
+    """
     policy_logprobs: np.ndarray,
     ref_logprobs: np.ndarray,
     advantages: np.ndarray,

@@ -8,8 +8,11 @@ evals, drift detector, alerter.
 
 Run:  python main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：LLM 可观测性仪表板——尾部采样收集器（错误必保留、成功按概率采样）+
+eval-as-child-span（忠实度/毒性/PII 泄漏评估）+ PSI 分布漂移检测 + 阈值告警器
+AI 对应：LangSmith、Arize Phoenix 和 Helicone 都使用 span + eval 的可观测架构；
+OpenTelemetry GenAI Semantic Convention 定义了 LLM span 标准字段；
+PSI (Population Stability Index) 是金融和 ML 监控中检测输入分布漂移的标准指标
 """
 
 from __future__ import annotations
@@ -28,7 +31,6 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Span:
-    """Span"""
     trace_id: str
     span_id: str
     parent_span_id: str | None
@@ -40,7 +42,7 @@ class Span:
     status: str = "ok"
 
     def is_llm(self) -> bool:
-        return "gen_ai.system" in self.attributes  # 返回结果
+        return "gen_ai.system" in self.attributes
 
 
 # ---------------------------------------------------------------------------
@@ -49,21 +51,20 @@ class Span:
 
 @dataclass
 class TailSampler:
-    """TailSampler"""
     sample_rate: float = 0.10
     rng: random.Random = field(default_factory=lambda: random.Random(3))
 
     def decide(self, trace: list[Span]) -> bool:
         if any(s.status == "error" for s in trace):
-            return True  # 返回结果
+            return True
         # always keep any trace containing a high-toxicity or high-PII eval
         for s in trace:
             if s.name == "eval" and (
                 s.attributes.get("toxicity", 0) > 0.5
                 or s.attributes.get("pii_leak", 0) > 0.8
             ):
-                return True  # 返回结果
-        return self.rng.random() < self.sample_rate  # 返回结果
+                return True
+        return self.rng.random() < self.sample_rate
 
 
 # ---------------------------------------------------------------------------
@@ -72,7 +73,6 @@ class TailSampler:
 
 @dataclass
 class SpanStore:
-    """SpanStore"""
     spans: list[Span] = field(default_factory=list)
     by_user: dict[str, int] = field(default_factory=lambda: defaultdict(int))
     by_model: dict[str, int] = field(default_factory=lambda: defaultdict(int))
@@ -94,31 +94,28 @@ class SpanStore:
 # ---------------------------------------------------------------------------
 
 def eval_faithfulness(response: str, context: str) -> float:
-    """eval_faithfulness"""
     # stand-in: overlap of response tokens with context tokens
     r = set(response.lower().split())
     c = set(context.lower().split())
     if not r:
-        return 0.0  # 返回结果
-    return len(r & c) / len(r)  # 返回结果
+        return 0.0
+    return len(r & c) / len(r)
 
 
 def eval_toxicity(response: str) -> float:
-    """eval_toxicity"""
     bad = {"hate", "kill", "stupid", "garbage"}
     words = response.lower().split()
     hits = sum(1 for w in words if w in bad)
-    return min(1.0, hits / max(1, len(words)) * 10)  # 返回结果
+    return min(1.0, hits / max(1, len(words)) * 10)
 
 
 def eval_pii_leak(response: str) -> float:
-    """eval_pii_leak"""
     import re
     if re.search(r"\b\d{3}-\d{2}-\d{4}\b", response):
-        return 0.95  # 返回结果
+        return 0.95
     if re.search(r"[\w.+-]+@[\w.-]+", response):
-        return 0.6  # 返回结果
-    return 0.05  # 返回结果
+        return 0.6
+    return 0.05
 
 
 # ---------------------------------------------------------------------------
@@ -126,13 +123,11 @@ def eval_pii_leak(response: str) -> float:
 # ---------------------------------------------------------------------------
 
 def prompt_fingerprint(prompt: str, n_bins: int = 8) -> int:
-    """prompt_fingerprint"""
     h = hashlib.sha256(prompt.encode()).digest()
-    return h[0] % n_bins  # 返回结果
+    return h[0] % n_bins
 
 
 def psi(a: list[int], b: list[int], n_bins: int = 8) -> float:
-    """psi"""
     ca = [0] * n_bins
     cb = [0] * n_bins
     for v in a:
@@ -146,7 +141,7 @@ def psi(a: list[int], b: list[int], n_bins: int = 8) -> float:
         pa = max(ca[i] / total_a, 0.0001)
         pb = max(cb[i] / total_b, 0.0001)
         score += (pa - pb) * math.log(pa / pb)
-    return score  # 返回结果
+    return score
 
 
 # ---------------------------------------------------------------------------
@@ -154,7 +149,6 @@ def psi(a: list[int], b: list[int], n_bins: int = 8) -> float:
 # ---------------------------------------------------------------------------
 
 def synth_trace(trace_id: str, leak_pii: bool, rng: random.Random) -> list[Span]:
-    """synth_trace"""
     model = rng.choice(["claude-sonnet-4-7", "gpt-5-4", "gemini-3-pro"])
     user = rng.choice(["u_01", "u_02", "u_03", "u_04"])
     root = Span(trace_id=trace_id, span_id=f"{trace_id}_0", parent_span_id=None,
@@ -183,7 +177,7 @@ def synth_trace(trace_id: str, leak_pii: bool, rng: random.Random) -> list[Span]
                    "context": ctx,
                    "cost_usd": round(rng.uniform(0.002, 0.05), 4),
                })
-    return [root, llm]  # 返回结果
+    return [root, llm]
 
 
 def enrich_with_evals(trace: list[Span]) -> list[Span]:
@@ -203,7 +197,7 @@ def enrich_with_evals(trace: list[Span]) -> list[Span]:
                           "pii_leak": eval_pii_leak(resp),
                       })
             out.append(ev)
-    return out  # 返回结果
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -211,7 +205,6 @@ def enrich_with_evals(trace: list[Span]) -> list[Span]:
 # ---------------------------------------------------------------------------
 
 def alerter(store: SpanStore) -> list[str]:
-    """alerter"""
     alerts: list[str] = []
     pii_events = [s for s in store.spans
                   if s.name == "eval" and s.attributes.get("pii_leak", 0) > 0.8]
@@ -222,7 +215,7 @@ def alerter(store: SpanStore) -> list[str]:
                   if s.name == "eval" and s.attributes.get("toxicity", 0) > 0.5]
     if tox_events:
         alerts.append(f"TOXICITY SURGE: {len(tox_events)} events")
-    return alerts  # 返回结果
+    return alerts
 
 
 # ---------------------------------------------------------------------------
@@ -230,7 +223,6 @@ def alerter(store: SpanStore) -> list[str]:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    """main"""
     rng = random.Random(5)
     sampler = TailSampler(sample_rate=0.20, rng=rng)
     store = SpanStore()

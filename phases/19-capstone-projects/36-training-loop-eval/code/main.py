@@ -12,8 +12,12 @@ at the probe points. End to end runs in well under a minute on CPU.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：LLM 训练循环与评估——交叉熵损失 + held-out 评估 + 生成质量探测 +
+AdamW 优化器 + 线性 warmup + 余弦衰减学习率 + 梯度裁剪 + JSONL 损失日志
+AI 对应：NanoGPT (Karpathy) 的训练循环是此模式的开源参考实现；
+AdamW (Loshchilov & Hutter 2017) 是 LLM 训练的标准优化器；
+cosine learning rate schedule 被 GPT-3 和 Llama 系列采用；
+JSONL 日志是训练可复现性的标准实践
 """
 
 from __future__ import annotations
@@ -54,7 +58,6 @@ class TrainConfig:
 
 @dataclass
 class ModelConfig:
-    """ModelConfig"""
     vocab_size: int = 256
     context_length: int = 32
     d_model: int = 64
@@ -67,7 +70,6 @@ class ModelConfig:
 
 
 class LayerNorm(nn.Module):
-    """LayerNorm"""
     def __init__(self, d_model: int, eps: float = 1e-5) -> None:
         super().__init__()
         self.eps = eps
@@ -77,11 +79,10 @@ class LayerNorm(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         mean = x.mean(dim=-1, keepdim=True)
         var = x.var(dim=-1, keepdim=True, unbiased=False)
-        return self.scale * (x - mean) / torch.sqrt(var + self.eps) + self.shift  # 返回结果
+        return self.scale * (x - mean) / torch.sqrt(var + self.eps) + self.shift
 
 
 class MultiHeadAttention(nn.Module):
-    """MultiHeadAttention"""
     def __init__(self, cfg: ModelConfig) -> None:
         super().__init__()
         if cfg.d_model % cfg.num_heads != 0:
@@ -112,11 +113,10 @@ class MultiHeadAttention(nn.Module):
         attn = F.softmax(scores, dim=-1)
         attn = self.attn_dropout(attn)
         out = (attn @ v).transpose(1, 2).contiguous().view(batch, seq, dim)
-        return self.resid_dropout(self.out_proj(out))  # 返回结果
+        return self.resid_dropout(self.out_proj(out))
 
 
 class FeedForward(nn.Module):
-    """FeedForward"""
     def __init__(self, cfg: ModelConfig) -> None:
         super().__init__()
         hidden = cfg.mlp_expansion * cfg.d_model
@@ -126,11 +126,10 @@ class FeedForward(nn.Module):
         self.dropout = nn.Dropout(cfg.dropout)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.dropout(self.fc2(self.act(self.fc1(x))))  # 返回结果
+        return self.dropout(self.fc2(self.act(self.fc1(x))))
 
 
 class TransformerBlock(nn.Module):
-    """TransformerBlock"""
     def __init__(self, cfg: ModelConfig) -> None:
         super().__init__()
         self.ln1 = LayerNorm(cfg.d_model)
@@ -141,11 +140,10 @@ class TransformerBlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x + self.attn(self.ln1(x))
         x = x + self.mlp(self.ln2(x))
-        return x  # 返回结果
+        return x
 
 
 class GPTModel(nn.Module):
-    """GPTModel"""
     def __init__(self, cfg: ModelConfig) -> None:
         super().__init__()
         self.cfg = cfg
@@ -184,7 +182,7 @@ class GPTModel(nn.Module):
         x = self.embed_dropout(tok + pos)
         for block in self.blocks:
             x = block(x)
-        return self.lm_head(self.final_ln(x))  # 返回结果
+        return self.lm_head(self.final_ln(x))
 
 
 def make_batches(
@@ -222,7 +220,7 @@ def calc_loss_batch(
 ) -> torch.Tensor:
     """Forward, flatten across batch and time, return scalar cross entropy."""
     logits = model(inputs)
-    return F.cross_entropy(  # 返回结果
+    return F.cross_entropy(
         logits.reshape(-1, logits.size(-1)),
         targets.reshape(-1),
     )
@@ -247,7 +245,7 @@ def evaluate_model(
         count += 1
     if was_training:
         model.train()
-    return total / max(count, 1)  # 返回结果
+    return total / max(count, 1)
 
 
 @torch.no_grad()
@@ -282,7 +280,7 @@ def generate_and_print_sample(
         model.train()
     seq = tokens.tolist()[0]
     print(f"  sample tokens          : {seq}")
-    return seq  # 返回结果
+    return seq
 
 
 def build_param_groups(model: nn.Module, weight_decay: float) -> list[dict]:
@@ -296,7 +294,7 @@ def build_param_groups(model: nn.Module, weight_decay: float) -> list[dict]:
             no_decay.append(param)
         else:
             decay.append(param)
-    return [  # 返回结果
+    return [
         {"params": decay, "weight_decay": weight_decay},
         {"params": no_decay, "weight_decay": 0.0},
     ]
@@ -311,11 +309,11 @@ def cosine_with_warmup(
 ) -> float:
     """Linear warmup then cosine decay to min_lr over the remaining steps."""
     if step < warmup_steps:
-        return max_lr * (step + 1) / max(warmup_steps, 1)  # 返回结果
+        return max_lr * (step + 1) / max(warmup_steps, 1)
     progress = (step - warmup_steps) / max(total_steps - warmup_steps, 1)
     progress = min(max(progress, 0.0), 1.0)
     cosine = 0.5 * (1.0 + math.cos(math.pi * progress))
-    return min_lr + (max_lr - min_lr) * cosine  # 返回结果
+    return min_lr + (max_lr - min_lr) * cosine
 
 
 def train(
@@ -372,7 +370,7 @@ def train(
         with log_path.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(record) + "\n")
 
-    return records  # 返回结果
+    return records
 
 
 def _synthetic_byte_tokens(length: int, vocab_size: int, seed: int) -> torch.Tensor:
@@ -388,11 +386,10 @@ def _synthetic_byte_tokens(length: int, vocab_size: int, seed: int) -> torch.Ten
     noise = torch.randint(0, vocab_size, (length,), generator=rng)
     mask = (torch.rand(length, generator=rng) < 0.1)
     tokens = torch.where(mask, noise, tokens)
-    return tokens.to(dtype=torch.long)  # 返回结果
+    return tokens.to(dtype=torch.long)
 
 
 def demo() -> None:
-    """demo"""
     torch.manual_seed(0)
     cfg = TrainConfig()
     mcfg = ModelConfig(

@@ -3,8 +3,13 @@
 Stdlib only. Action space is code; skills are retrievable and composable;
 failures feed back into the next version.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：技能库（Skill Library）—— Agent 通过"检索-执行-反馈-迭代"循环不断积累和优化技能。
+技能是可检索、可组合的代码片段，执行失败后会被重写为改进版本。
+技能之间有依赖关系，执行时按拓扑排序依次运行。
+
+AI 对应：Voyager（NVIDIA）在 Minecraft 中用这个模式让 Agent 自动探索和学习新技能。
+Claude Code 的 skill 系统、OpenAI 的 custom GPT actions 都是类似思路：
+将成功的行为模式固化为可复用的工具。Devin 的技能积累机制也是这个模式。
 """
 
 from __future__ import annotations
@@ -15,7 +20,7 @@ from typing import Any, Callable
 
 @dataclass
 class Skill:
-    """Skill"""
+    """技能定义 —— 包含名称、描述、代码、执行函数、版本号、标签和依赖关系。"""
     name: str
     description: str
     code: str
@@ -27,23 +32,24 @@ class Skill:
 
 
 class SkillLibrary:
-    """SkillLibrary"""
+    """技能库 —— 管理技能的注册、检索、拓扑排序执行和迭代改进。"""
     def __init__(self) -> None:
         self._skills: dict[str, Skill] = {}
 
     def register(self, skill: Skill, dedup: bool = True) -> str:
+        """注册技能 —— 如果同名技能已存在，将其升级为新版本（迭代改进）。"""
         if dedup and skill.name in self._skills:
             existing = self._skills[skill.name]
-            existing.history.append(existing.code)
+            existing.history.append(existing.code)  # 保存旧版本代码
             existing.code = skill.code
             existing.fn = skill.fn
             existing.description = skill.description
             existing.tags = skill.tags
             existing.depends_on = skill.depends_on
-            existing.version += 1
-            return f"refined {skill.name} -> v{existing.version}"  # 返回结果
+            existing.version += 1  # 版本号递增
+            return f"refined {skill.name} -> v{existing.version}"
         self._skills[skill.name] = skill
-        return f"registered {skill.name} v{skill.version}"  # 返回结果
+        return f"registered {skill.name} v{skill.version}"
 
     def search(self, query: str, top_k: int = 3,
                tag_filter: str | None = None) -> list[tuple[float, Skill]]:
@@ -61,12 +67,13 @@ class SkillLibrary:
             score = overlap / len(q_tokens | d_tokens)
             scored.append((score, skill))
         scored.sort(key=lambda x: -x[0])
-        return scored[:top_k]  # 返回结果
+        return scored[:top_k]
 
     def get(self, name: str) -> Skill | None:
-        return self._skills.get(name)  # 返回结果
+        return self._skills.get(name)
 
     def topo_order(self, name: str) -> list[str]:
+        """拓扑排序 —— 按依赖关系排列技能的执行顺序，确保前置技能先执行。"""
         visited: set[str] = set()
         order: list[str] = []
         stack = [(name, False)]
@@ -85,18 +92,19 @@ class SkillLibrary:
             for dep in skill.depends_on:
                 if dep not in visited:
                     stack.append((dep, False))
-        return order  # 返回结果
+        return order
 
     def execute(self, name: str, context: dict[str, Any] | None = None) -> dict[str, Any]:
+        """执行技能 —— 按拓扑排序依次执行技能及其依赖，失败时记录错误。"""
         if context is None:
             context = {}
         context.setdefault("log", [])
-        for skill_name in self.topo_order(name):
+        for skill_name in self.topo_order(name):  # 按依赖拓扑排序执行
             skill = self._skills.get(skill_name)
             if skill is None:
                 context["log"].append(f"missing skill: {skill_name}")
                 context["failed"] = True
-                return context  # 返回结果
+                return context
             try:
                 result = skill.fn(context)
                 context["log"].append(
@@ -108,25 +116,23 @@ class SkillLibrary:
                     f"{type(e).__name__}: {e}"
                 )
                 context["failed"] = True
-                return context  # 返回结果
+                return context
         context["failed"] = False
-        return context  # 返回结果
+        return context
 
     def list_names(self) -> list[str]:
-        return sorted(self._skills)  # 返回结果
+        return sorted(self._skills)
 
 
 def _mine(context: dict[str, Any]) -> str:
-    """_mine"""
     context["resources"] = context.get("resources", {})
     context["resources"]["ore"] = context["resources"].get("ore", 0) + 3
-    return "+3 ore"  # 返回结果
+    return "+3 ore"
 
 
 def _place_table(context: dict[str, Any]) -> str:
-    """_place_table"""
     context["has_table"] = True
-    return "placed crafting table"  # 返回结果
+    return "placed crafting table"
 
 
 def _craft_iron_pick_v1(context: dict[str, Any]) -> str:
@@ -143,33 +149,31 @@ def _craft_iron_pick_v1(context: dict[str, Any]) -> str:
     context["resources"]["stick"] -= 2
     context["inventory"] = context.get("inventory", [])
     context["inventory"].append("iron_pickaxe")
-    return "crafted iron_pickaxe"  # 返回结果
+    return "crafted iron_pickaxe"
 
 
 def _craft_iron_pick_v2(context: dict[str, Any]) -> str:
     """_craft_iron_pick_v2"""
     if not context.get("has_table"):
-        return "skipped craft: no table yet"  # 返回结果
+        return "skipped craft: no table yet"
     ore = context.get("resources", {}).get("ore", 0)
     stick = context.get("resources", {}).get("stick", 0)
     if ore < 3 or stick < 2:
-        return f"skipped craft: ore={ore}, stick={stick}"  # 返回结果
+        return f"skipped craft: ore={ore}, stick={stick}"
     context["resources"]["ore"] -= 3
     context["resources"]["stick"] -= 2
     context["inventory"] = context.get("inventory", [])
     context["inventory"].append("iron_pickaxe")
-    return "crafted iron_pickaxe"  # 返回结果
+    return "crafted iron_pickaxe"
 
 
 def _gather_sticks(context: dict[str, Any]) -> str:
-    """_gather_sticks"""
     context["resources"] = context.get("resources", {})
     context["resources"]["stick"] = context["resources"].get("stick", 0) + 2
-    return "+2 stick"  # 返回结果
+    return "+2 stick"
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("VOYAGER SKILL LIBRARY — Phase 14, Lesson 10")
     print("=" * 70)

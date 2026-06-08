@@ -7,8 +7,11 @@ Concept refs:
   - Observation budget as a deterministic stopping criterion.
 The demo at the bottom runs a synthetic three-turn loop and exits zero.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：验证门链 + 观察预算——门链模式（最便宜的拒绝检查先执行、最昂贵的允许最后执行）+
+观察预算作为确定性停止标准，控制 Agent 在验证上消耗的 LLM 调用次数
+AI 对应：SWE-bench 和 HumanEval 的评估管线使用类似的门链验证模式；
+Claude Code 的验证门在工具调用后检查输出是否符合预期；
+观察预算是 OpenAI 和 Anthropic 推荐的 Agent 成本控制核心机制
 """
 
 from __future__ import annotations
@@ -35,7 +38,7 @@ class ToolCall:
     payload: str = ""
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "turn": self.turn,
             "tool": self.tool,
             "argv": list(self.argv),
@@ -53,7 +56,7 @@ class Observation:
     tokens: int
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "turn": self.turn,
             "tool": self.tool,
             "tokens": self.tokens,
@@ -69,7 +72,7 @@ class GateDecision:
     reason: str
 
     def to_dict(self) -> dict:
-        return {"allow": self.allow, "gate": self.gate, "reason": self.reason}  # 返回结果
+        return {"allow": self.allow, "gate": self.gate, "reason": self.reason}
 
 
 # ---------------------------------------------------------------------------
@@ -85,8 +88,8 @@ def estimate_tokens(text: str) -> int:
     """
 
     if not text:
-        return 0  # 返回结果
-    return max(1, len(text) // 4)  # 返回结果
+        return 0
+    return max(1, len(text) // 4)
 
 
 # ---------------------------------------------------------------------------
@@ -104,19 +107,19 @@ class ObservationLedger:
         self.rows.append(obs)
 
     def cumulative(self) -> int:
-        return sum(row.tokens for row in self.rows)  # 返回结果
+        return sum(row.tokens for row in self.rows)
 
     def per_tool(self, name: str) -> int:
-        return sum(row.tokens for row in self.rows if row.tool == name)  # 返回结果
+        return sum(row.tokens for row in self.rows if row.tool == name)
 
     def turns_seen(self) -> list[int]:
-        return sorted({row.turn for row in self.rows})  # 返回结果
+        return sorted({row.turn for row in self.rows})
 
     def latest_turn(self) -> int:
-        return self.rows[-1].turn if self.rows else -1  # 返回结果
+        return self.rows[-1].turn if self.rows else -1
 
     def snapshot(self) -> list[dict]:
-        return [row.to_dict() for row in self.rows]  # 返回结果
+        return [row.to_dict() for row in self.rows]
 
 
 # ---------------------------------------------------------------------------
@@ -134,7 +137,6 @@ class GateContext:
 
 
 class VerificationGate(Protocol):
-    """VerificationGate"""
     name: str
 
     def evaluate(self, call: ToolCall, ctx: GateContext) -> GateDecision: ...
@@ -154,8 +156,8 @@ class WhitelistGate:
 
     def evaluate(self, call: ToolCall, ctx: GateContext) -> GateDecision:
         if call.tool in self.allowed:
-            return GateDecision(True, self.name, "tool in allow-set")  # 返回结果
-        return GateDecision(  # 返回结果
+            return GateDecision(True, self.name, "tool in allow-set")
+        return GateDecision(
             False,
             self.name,
             f"tool {call.tool!r} not in allow-set {sorted(self.allowed)}",
@@ -172,16 +174,16 @@ class RegexGate:
     @classmethod
     def from_strings(cls, patterns: Iterable[str], name: str = "regex") -> "RegexGate":
         compiled = tuple(re.compile(p) for p in patterns)
-        return cls(refuse_patterns=compiled, name=name)  # 返回结果
+        return cls(refuse_patterns=compiled, name=name)
 
     def evaluate(self, call: ToolCall, ctx: GateContext) -> GateDecision:
         haystack = " ".join(call.argv) + " " + call.payload
         for pat in self.refuse_patterns:
             if pat.search(haystack):
-                return GateDecision(  # 返回结果
+                return GateDecision(
                     False, self.name, f"argv matched refuse pattern {pat.pattern!r}"
                 )
-        return GateDecision(True, self.name, "no refuse pattern matched")  # 返回结果
+        return GateDecision(True, self.name, "no refuse pattern matched")
 
 
 @dataclass
@@ -198,15 +200,15 @@ class RecencyGate:
     def evaluate(self, call: ToolCall, ctx: GateContext) -> GateDecision:
         last = ctx.ledger.latest_turn()
         if last < 0:
-            return GateDecision(True, self.name, "no prior observations")  # 返回结果
+            return GateDecision(True, self.name, "no prior observations")
         gap = call.turn - last
         if gap > self.window:
-            return GateDecision(  # 返回结果
+            return GateDecision(
                 False,
                 self.name,
                 f"observation gap {gap} turns exceeds window {self.window}",
             )
-        return GateDecision(True, self.name, f"gap {gap} within window {self.window}")  # 返回结果
+        return GateDecision(True, self.name, f"gap {gap} within window {self.window}")
 
 
 @dataclass
@@ -225,13 +227,13 @@ class BudgetGate:
     def evaluate(self, call: ToolCall, ctx: GateContext) -> GateDecision:
         used = ctx.ledger.cumulative()
         if used >= self.max_tokens:
-            return GateDecision(  # 返回结果
+            return GateDecision(
                 False,
                 self.name,
                 f"observation budget exhausted: {used}/{self.max_tokens} tokens",
             )
         remaining = self.max_tokens - used
-        return GateDecision(  # 返回结果
+        return GateDecision(
             True, self.name, f"{remaining} tokens of budget remaining"
         )
 
@@ -246,15 +248,15 @@ class PerToolBudgetGate:
     def evaluate(self, call: ToolCall, ctx: GateContext) -> GateDecision:
         limit = self.limits.get(call.tool)
         if limit is None:
-            return GateDecision(True, self.name, "tool has no per-tool budget")  # 返回结果
+            return GateDecision(True, self.name, "tool has no per-tool budget")
         used = ctx.ledger.per_tool(call.tool)
         if used >= limit:
-            return GateDecision(  # 返回结果
+            return GateDecision(
                 False,
                 self.name,
                 f"per-tool budget for {call.tool} exhausted: {used}/{limit}",
             )
-        return GateDecision(  # 返回结果
+        return GateDecision(
             True, self.name, f"per-tool {call.tool}: {limit - used} tokens remaining"
         )
 
@@ -272,17 +274,17 @@ class ChainOutcome:
 
     @property
     def allow(self) -> bool:
-        return all(d.allow for d in self.decisions)  # 返回结果
+        return all(d.allow for d in self.decisions)
 
     @property
     def deny_reason(self) -> str | None:
         for d in self.decisions:
             if not d.allow:
-                return f"[{d.gate}] {d.reason}"  # 返回结果
-        return None  # 返回结果
+                return f"[{d.gate}] {d.reason}"
+        return None
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "allow": self.allow,
             "deny_reason": self.deny_reason,
             "decisions": [d.to_dict() for d in self.decisions],
@@ -301,8 +303,8 @@ class GateChain:
             decision = gate.evaluate(call, ctx)
             decisions.append(decision)
             if not decision.allow:
-                return ChainOutcome(decisions=decisions)  # 返回结果
-        return ChainOutcome(decisions=decisions)  # 返回结果
+                return ChainOutcome(decisions=decisions)
+        return ChainOutcome(decisions=decisions)
 
 
 # ---------------------------------------------------------------------------
@@ -324,7 +326,7 @@ class LoopReport:
     decisions: list[ChainOutcome]
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "turns": self.turns,
             "allowed": self.allowed,
             "refused": self.refused,
@@ -377,7 +379,7 @@ def run_synthetic_loop(
         observations.append(obs)
         allowed += 1
 
-    return LoopReport(  # 返回结果
+    return LoopReport(
         turns=len(calls),
         allowed=allowed,
         refused=refused,
@@ -396,26 +398,26 @@ def _demo_tools() -> dict[str, ToolFn]:
 
     def read_file(call: ToolCall) -> str:
         target = call.argv[0] if call.argv else "<missing>"
-        return (  # 返回结果
+        return (
             f"# fake contents of {target}\n"
             + ("line of fake source code that is sixty bytes long " * 12)
         )
 
     def list_dir(call: ToolCall) -> str:
-        return "main.py\nREADME.md\ntests/test_main.py\n"  # 返回结果
+        return "main.py\nREADME.md\ntests/test_main.py\n"
 
     def run_tests(call: ToolCall) -> str:
-        return json.dumps(  # 返回结果
+        return json.dumps(
             {"status": "passed", "tests": 4, "duration_ms": 42}, indent=2
         )
 
-    return {"read_file": read_file, "list_dir": list_dir, "run_tests": run_tests}  # 返回结果
+    return {"read_file": read_file, "list_dir": list_dir, "run_tests": run_tests}
 
 
 def build_default_chain(budget: int = 200) -> GateChain:
     """Wire the canonical four-gate chain in the order documented in en.md."""
 
-    return GateChain(  # 返回结果
+    return GateChain(
         gates=(
             WhitelistGate(
                 allowed=frozenset({"read_file", "list_dir", "run_tests"})
@@ -463,8 +465,8 @@ def run_demo() -> int:
 
     if report.refused < 1:
         print("ERROR: demo expected at least one refusal", file=sys.stderr)
-        return 1  # 返回结果
-    return 0  # 返回结果
+        return 1
+    return 0
 
 
 if __name__ == "__main__":

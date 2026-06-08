@@ -12,8 +12,11 @@ Implements:
   - run_demo: trains a tiny TinyGPT briefly, runs all four evals, writes
     report.json next to this file, exits 0 on success.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：LLM 评估管线——困惑度评估（held-out LM）+ 精确匹配（short-form factual）+
+Token F1（open-form similarity）+ LLM-as-Judge 评估 + 聚合器（per-eval 归一化 + 加权均值）
+AI 对应：lm-eval-harness (EleutherAI) 是 LLM 评估的工业标准框架；
+HELM (Stanford) 提供多维度评估；MT-Bench 使用 LLM-as-Judge 评估对话质量；
+Perplexity 是语言模型最基础的质量指标，越低越好
 """
 
 from __future__ import annotations
@@ -39,7 +42,6 @@ from torch.utils.data import DataLoader, Dataset
 
 
 class InstructionTokenizer:
-    """InstructionTokenizer"""
     INST_ID = 256
     RESP_ID = 257
     PAD_ID = 258
@@ -54,7 +56,7 @@ class InstructionTokenizer:
         ids.extend(response.encode("utf-8", errors="ignore"))
         if len(ids) > max_len:
             ids = ids[:max_len]
-        return ids, resp_start  # 返回结果
+        return ids, resp_start
 
     def encode_prefix(self, instruction: str, max_len: int) -> List[int]:
         ids = [self.INST_ID]
@@ -62,20 +64,19 @@ class InstructionTokenizer:
         ids.append(self.RESP_ID)
         if len(ids) > max_len:
             ids = ids[:max_len]
-        return ids  # 返回结果
+        return ids
 
     def encode_text(self, text: str, max_len: int) -> List[int]:
         ids = list(text.encode("utf-8", errors="ignore"))
         if len(ids) > max_len:
             ids = ids[:max_len]
-        return ids  # 返回结果
+        return ids
 
     def decode_response(self, ids: Sequence[int]) -> str:
-        return bytes(i for i in ids if i < 256).decode("utf-8", errors="replace")  # 返回结果
+        return bytes(i for i in ids if i < 256).decode("utf-8", errors="replace")
 
 
 class CausalSelfAttention(nn.Module):
-    """CausalSelfAttention"""
     def __init__(self, hidden: int, heads: int, max_len: int):
         super().__init__()
         if hidden % heads != 0:
@@ -100,11 +101,10 @@ class CausalSelfAttention(nn.Module):
         weights = F.softmax(att, dim=-1)
         weights = torch.nan_to_num(weights, nan=0.0)
         ctx = (weights @ v).transpose(1, 2).contiguous().view(B, T, D)
-        return self.out(ctx)  # 返回结果
+        return self.out(ctx)
 
 
 class Block(nn.Module):
-    """Block"""
     def __init__(self, hidden: int, heads: int, max_len: int):
         super().__init__()
         self.ln1 = nn.LayerNorm(hidden)
@@ -116,11 +116,10 @@ class Block(nn.Module):
     def forward(self, x: torch.Tensor, key_pad_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         x = x + self.attn(self.ln1(x), key_pad_mask)
         h = self.ln2(x)
-        return x + self.fc2(F.gelu(self.fc1(h)))  # 返回结果
+        return x + self.fc2(F.gelu(self.fc1(h)))
 
 
 class TinyGPT(nn.Module):
-    """TinyGPT"""
     def __init__(self, vocab: int, hidden: int, heads: int, depth: int, max_len: int):
         super().__init__()
         self.tok = nn.Embedding(vocab, hidden)
@@ -136,7 +135,7 @@ class TinyGPT(nn.Module):
         x = self.tok(ids) + self.pos(positions)
         for blk in self.blocks:
             x = blk(x, key_pad_mask)
-        return self.head(self.ln_f(x))  # 返回结果
+        return self.head(self.ln_f(x))
 
 
 # ---------------------------------------------------------------------------
@@ -146,7 +145,6 @@ class TinyGPT(nn.Module):
 
 @dataclass
 class ExampleRecord:
-    """ExampleRecord"""
     instruction: str
     prediction: str
     reference: str
@@ -156,7 +154,6 @@ class ExampleRecord:
 
 @dataclass
 class EvalResult:
-    """EvalResult"""
     name: str
     metric: float
     n_examples: int
@@ -164,7 +161,7 @@ class EvalResult:
     extras: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        return {  # 返回结果
+        return {
             "name": self.name,
             "metric": self.metric,
             "n_examples": self.n_examples,
@@ -182,29 +179,25 @@ _TERMINAL_PUNCT = ".!?"
 
 
 def normalise(text: str) -> str:
-    """normalise"""
     s = text.lower().strip()
     while "  " in s:
         s = s.replace("  ", " ")
-    return s  # 返回结果
+    return s
 
 
 def strip_trailing_punctuation(text: str) -> str:
-    """strip_trailing_punctuation"""
     s = text
     while s and s[-1] in _TERMINAL_PUNCT:
         s = s[:-1]
-    return s  # 返回结果
+    return s
 
 
 def normalise_for_em(text: str) -> str:
-    """normalise_for_em"""
-    return strip_trailing_punctuation(normalise(text))  # 返回结果
+    return strip_trailing_punctuation(normalise(text))
 
 
 def tokenize_text(text: str) -> List[str]:
-    """tokenize_text"""
-    return [t for t in normalise(text).split() if t]  # 返回结果
+    return [t for t in normalise(text).split() if t]
 
 
 # ---------------------------------------------------------------------------
@@ -374,14 +367,13 @@ JUDGE_SET = [
 
 
 class LMTextDataset(Dataset):
-    """LMTextDataset"""
     def __init__(self, texts: Sequence[str], tok: InstructionTokenizer, max_len: int):
         self.texts = list(texts)
         self.tok = tok
         self.max_len = max_len
 
     def __len__(self) -> int:
-        return len(self.texts)  # 返回结果
+        return len(self.texts)
 
     def __getitem__(self, idx: int):
         ids = self.tok.encode_text(self.texts[idx], self.max_len)
@@ -389,7 +381,7 @@ class LMTextDataset(Dataset):
         pad = self.max_len - len(ids)
         ids = ids + [InstructionTokenizer.PAD_ID] * pad
         attn = attn + [0] * pad
-        return torch.tensor(ids, dtype=torch.long), torch.tensor(attn, dtype=torch.long)  # 返回结果
+        return torch.tensor(ids, dtype=torch.long), torch.tensor(attn, dtype=torch.long)
 
 
 # ---------------------------------------------------------------------------
@@ -442,7 +434,7 @@ def perplexity_eval(
         )
         for i in range(len(texts))
     ]
-    return EvalResult(  # 返回结果
+    return EvalResult(
         name="perplexity",
         metric=ppl,
         n_examples=len(texts),
@@ -484,12 +476,11 @@ def generate_greedy(
             and out_chars[-2] in sentence_ends
         ):
             break
-    return tok.decode_response(out_chars)  # 返回结果
+    return tok.decode_response(out_chars)
 
 
 def exact_match_score(pred: str, ref: str) -> int:
-    """exact_match_score"""
-    return 1 if normalise_for_em(pred) == normalise_for_em(ref) else 0  # 返回结果
+    return 1 if normalise_for_em(pred) == normalise_for_em(ref) else 0
 
 
 def token_f1_score(pred: str, ref: str) -> float:
@@ -497,9 +488,9 @@ def token_f1_score(pred: str, ref: str) -> float:
     p_tokens = tokenize_text(pred)
     r_tokens = tokenize_text(ref)
     if not p_tokens and not r_tokens:
-        return 1.0  # 返回结果
+        return 1.0
     if not p_tokens or not r_tokens:
-        return 0.0  # 返回结果
+        return 0.0
     p_counts: Dict[str, int] = {}
     for tok in p_tokens:
         p_counts[tok] = p_counts.get(tok, 0) + 1
@@ -510,10 +501,10 @@ def token_f1_score(pred: str, ref: str) -> float:
     for tok, n in p_counts.items():
         intersection += min(n, r_counts.get(tok, 0))
     if intersection == 0:
-        return 0.0  # 返回结果
+        return 0.0
     precision = intersection / len(p_tokens)
     recall = intersection / len(r_tokens)
-    return (2 * precision * recall) / (precision + recall)  # 返回结果
+    return (2 * precision * recall) / (precision + recall)
 
 
 def exact_match_eval(
@@ -536,7 +527,7 @@ def exact_match_eval(
             )
         )
     metric = hits / max(len(pairs), 1)
-    return EvalResult(  # 返回结果
+    return EvalResult(
         name="exact_match", metric=metric, n_examples=len(pairs), records=records
     )
 
@@ -561,7 +552,7 @@ def token_f1_eval(
             )
         )
     metric = total / max(len(pairs), 1)
-    return EvalResult(name="token_f1", metric=metric, n_examples=len(pairs), records=records)  # 返回结果
+    return EvalResult(name="token_f1", metric=metric, n_examples=len(pairs), records=records)
 
 
 # ---------------------------------------------------------------------------
@@ -571,7 +562,6 @@ def token_f1_eval(
 
 @dataclass(frozen=True)
 class JudgeVerdict:
-    """JudgeVerdict"""
     score: int
     rationale: str
 
@@ -589,15 +579,15 @@ def mock_judge(instruction: str, prediction: str, reference: str) -> JudgeVerdic
     norm_pred = normalise_for_em(prediction)
     norm_ref = normalise_for_em(reference)
     if norm_pred == norm_ref:
-        return JudgeVerdict(score=5, rationale="exact match after normalisation")  # 返回结果
+        return JudgeVerdict(score=5, rationale="exact match after normalisation")
     f1 = token_f1_score(prediction, reference)
     if f1 >= 0.8:
-        return JudgeVerdict(score=4, rationale=f"high token overlap (F1={f1:.2f})")  # 返回结果
+        return JudgeVerdict(score=4, rationale=f"high token overlap (F1={f1:.2f})")
     if f1 >= 0.5:
-        return JudgeVerdict(score=3, rationale=f"moderate token overlap (F1={f1:.2f})")  # 返回结果
+        return JudgeVerdict(score=3, rationale=f"moderate token overlap (F1={f1:.2f})")
     if f1 >= 0.2:
-        return JudgeVerdict(score=2, rationale=f"weak token overlap (F1={f1:.2f})")  # 返回结果
-    return JudgeVerdict(score=1, rationale=f"low token overlap (F1={f1:.2f})")  # 返回结果
+        return JudgeVerdict(score=2, rationale=f"weak token overlap (F1={f1:.2f})")
+    return JudgeVerdict(score=1, rationale=f"low token overlap (F1={f1:.2f})")
 
 
 def judge_eval(
@@ -622,7 +612,7 @@ def judge_eval(
             )
         )
     metric = total / max(len(pairs), 1)
-    return EvalResult(name="judge", metric=metric, n_examples=len(pairs), records=records)  # 返回结果
+    return EvalResult(name="judge", metric=metric, n_examples=len(pairs), records=records)
 
 
 # ---------------------------------------------------------------------------
@@ -642,20 +632,19 @@ def normalise_metric(name: str, value: float) -> float:
     """Map a raw metric onto [0, 1]."""
     if name == "perplexity":
         if value <= 0 or math.isinf(value) or math.isnan(value):
-            return 0.0  # 返回结果
-        return 1.0 / (1.0 + math.log(max(value, 1.0)))  # 返回结果
+            return 0.0
+        return 1.0 / (1.0 + math.log(max(value, 1.0)))
     if name == "exact_match":
-        return max(0.0, min(1.0, float(value)))  # 返回结果
+        return max(0.0, min(1.0, float(value)))
     if name == "token_f1":
-        return max(0.0, min(1.0, float(value)))  # 返回结果
+        return max(0.0, min(1.0, float(value)))
     if name == "judge":
-        return max(0.0, min(1.0, float(value) / 5.0))  # 返回结果
+        return max(0.0, min(1.0, float(value) / 5.0))
     raise ValueError(f"unknown metric name: {name}")
 
 
 @dataclass
 class FinalReport:
-    """FinalReport"""
     per_eval: Dict[str, float]
     normalised: Dict[str, float]
     weights: Dict[str, float]
@@ -663,7 +652,7 @@ class FinalReport:
     details: Dict[str, EvalResult] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        return {  # 返回结果
+        return {
             "per_eval": self.per_eval,
             "normalised": self.normalised,
             "weights": self.weights,
@@ -673,7 +662,6 @@ class FinalReport:
 
 
 def aggregate(results: Sequence[EvalResult], weights: Optional[Dict[str, float]] = None) -> FinalReport:
-    """aggregate"""
     weights = dict(weights or DEFAULT_WEIGHTS)
     # Normalise weights so they sum to 1.
     total_w = sum(weights.get(r.name, 0.0) for r in results)
@@ -683,7 +671,7 @@ def aggregate(results: Sequence[EvalResult], weights: Optional[Dict[str, float]]
     per_eval = {r.name: r.metric for r in results}
     normalised = {r.name: normalise_metric(r.name, r.metric) for r in results}
     agg = sum(normalised[name] * norm_weights[name] for name in normalised)
-    return FinalReport(  # 返回结果
+    return FinalReport(
         per_eval=per_eval,
         normalised=normalised,
         weights=norm_weights,
@@ -698,7 +686,6 @@ def aggregate(results: Sequence[EvalResult], weights: Optional[Dict[str, float]]
 
 
 def render_report(report: FinalReport, log: Callable[[str], None] = print) -> None:
-    """render_report"""
     log("EVAL REPORT")
     log("  eval          raw        normalised   weight")
     log("  ------------  ---------  -----------  ------")
@@ -722,7 +709,6 @@ def render_report(report: FinalReport, log: Callable[[str], None] = print) -> No
 
 @dataclass(frozen=True)
 class EvalConfig:
-    """EvalConfig"""
     vocab: int = InstructionTokenizer.VOCAB
     hidden: int = 64
     heads: int = 4
@@ -762,11 +748,10 @@ def train_small(model: TinyGPT, tok: InstructionTokenizer, cfg: EvalConfig) -> L
             opt.step()
             ep_loss += float(loss.item())
         losses.append(ep_loss / max(len(pairs), 1))
-    return losses  # 返回结果
+    return losses
 
 
 def run_demo(cfg: Optional[EvalConfig] = None, write_json: bool = True) -> int:
-    """run_demo"""
     cfg = cfg or EvalConfig()
     torch.manual_seed(cfg.seed)
     np.random.seed(cfg.seed)
@@ -814,8 +799,8 @@ def run_demo(cfg: Optional[EvalConfig] = None, write_json: bool = True) -> int:
 
     if report.aggregate <= 0.0 or math.isnan(report.aggregate):
         print("ERROR: aggregate score is not positive", file=sys.stderr)
-        return 1  # 返回结果
-    return 0  # 返回结果
+        return 1
+    return 0
 
 
 if __name__ == "__main__":

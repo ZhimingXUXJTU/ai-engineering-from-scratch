@@ -5,8 +5,12 @@ canonical outputs and cross-references.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：对齐研究生态地图——MATS 人才管道、Redwood AI 控制、Apollo 欺骗评估、
+METR 任务跨度评估、Eleos 模型福利，展示实验室外部评估的结构性作用
+AI 对应：MATS (ML Alignment & Theory Scholars) 培养了 527+ 研究者进入对齐领域；
+Redwood Research 的 AI Control (ICML 2024) 被前沿实验室采用；
+Apollo Research 为 OpenAI 和 Anthropic 提供预部署欺骗性评估；
+UK AISI / US CAISI 作为监管对应方进行独立审计
 """
 
 from __future__ import annotations
@@ -52,7 +56,6 @@ ECOSYSTEM = [
 
 
 def main() -> None:
-    """main"""
     print("=" * 78)
     print("ALIGNMENT RESEARCH ECOSYSTEM (Phase 18, Lesson 28)")
     print("=" * 78)

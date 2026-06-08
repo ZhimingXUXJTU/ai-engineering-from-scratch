@@ -4,8 +4,13 @@ Compares naive all-LLM bargaining against OG-Narrator (deterministic offer
 generator + LLM narration). Measures deal rate over 1000 trials. Includes
 a small Contract Net task-market demo at the end.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：多 Agent 协商与讨价还价——朴素 LLM 讨价（高方差、频繁偏离 ZOPA 可行区间）
+vs OG-Narrator（确定性让步策略 + LLM 叙述），以及 Contract Net 任务市场
+（广播 CFP -> 收集报价 -> 中标/拒绝），确定性出价策略的成交率远高于纯 LLM 生成
+AI 对应：OG-Narrator (arXiv:2402.15813) 是多 Agent 协商的参考方法，将确定性博弈策略
+与 LLM 自然语言生成解耦；FIPA Contract Net Protocol 是 Agent 任务分配的标准协议；
+CrewAI 的 task delegation 和 AutoGen 的 NestedChat 实现类似的任务协商；
+eBay/Amazon 的自动竞价系统是工业界的类似实现
 """
 from __future__ import annotations
 
@@ -15,7 +20,6 @@ from dataclasses import dataclass, field
 
 @dataclass
 class BargainState:
-    """BargainState"""
     buyer_max: int
     seller_min: int
     buyer_offer: int | None = None
@@ -37,41 +41,38 @@ def naive_llm_bargain(state: BargainState, rng: random.Random) -> int:
         candidate = rng.randint(state.seller_min - 30, state.buyer_max + 30)
     else:
         candidate = rng.randint(state.seller_min - 60, state.buyer_max + 60)
-    return candidate  # 返回结果
+    return candidate
 
 
 def og_narrator_bargain(state: BargainState, rng: random.Random,
-    """og_narrator_bargain"""
                         concession: float = 0.35) -> int:
     """OG-Narrator deterministic offer: zeuthen-style concession toward midpoint."""
     if state.seller_offer is None and state.buyer_offer is None:
-        return state.buyer_max - max(1, int((state.buyer_max - state.seller_min) * 0.2))  # 返回结果
+        return state.buyer_max - max(1, int((state.buyer_max - state.seller_min) * 0.2))
     if state.seller_offer is None:
-        return state.buyer_offer  # 返回结果
+        return state.buyer_offer
     prior = state.buyer_offer if state.buyer_offer is not None else state.buyer_max
     move = max(1, int(concession * (state.seller_offer - prior)))
     candidate = prior + move
     candidate = min(candidate, state.buyer_max)
-    return candidate  # 返回结果
+    return candidate
 
 
 def seller_response(state: BargainState, rng: random.Random,
-    """seller_response"""
                     concession: float = 0.3) -> int:
     """Seller uses OG-Narrator-style offer too (for both buyers)."""
     if state.buyer_offer is None and state.seller_offer is None:
-        return state.seller_min + max(1, int((state.buyer_max - state.seller_min) * 0.4))  # 返回结果
+        return state.seller_min + max(1, int((state.buyer_max - state.seller_min) * 0.4))
     if state.buyer_offer is None:
-        return state.seller_offer  # 返回结果
+        return state.seller_offer
     prior = state.seller_offer if state.seller_offer is not None else state.seller_min + 20
     move = max(1, int(concession * (prior - state.buyer_offer)))
     candidate = prior - move
     candidate = max(candidate, state.seller_min)
-    return candidate  # 返回结果
+    return candidate
 
 
 def simulate_bargain(buyer_fn, rng: random.Random, buyer_max: int = 100,
-    """simulate_bargain"""
                      seller_min: int = 60) -> bool:
     state = BargainState(buyer_max=buyer_max, seller_min=seller_min)
     deal = False
@@ -89,11 +90,10 @@ def simulate_bargain(buyer_fn, rng: random.Random, buyer_max: int = 100,
                 deal = True
             break
         state.rounds += 1
-    return deal  # 返回结果
+    return deal
 
 
 def bench_deal_rate(buyer_fn, label: str, trials: int = 1000) -> None:
-    """bench_deal_rate"""
     rng = random.Random(42)
     deals = 0
     for _ in range(trials):
@@ -106,7 +106,6 @@ def bench_deal_rate(buyer_fn, label: str, trials: int = 1000) -> None:
 
 @dataclass
 class Bid:
-    """Bid"""
     bidder: str
     price: int
     eta_minutes: int
@@ -115,7 +114,6 @@ class Bid:
 
 @dataclass
 class ContractNetTask:
-    """ContractNetTask"""
     task_id: str
     description: str
     deadline_minutes: int
@@ -123,7 +121,6 @@ class ContractNetTask:
 
 
 class ContractNetManager:
-    """ContractNetManager"""
     def __init__(self, bidders: list[str]) -> None:
         self.bidders = bidders
         self.proposals: dict[str, list[Bid]] = {}
@@ -141,17 +138,16 @@ class ContractNetManager:
         feasible = [b for b in props if b.price <= task.budget and b.eta_minutes <= task.deadline_minutes]
         if not feasible:
             print("    no feasible bid; awarding rejected")
-            return None  # 返回结果
+            return None
         winner = max(feasible, key=lambda b: b.confidence / max(b.price, 1))
         print(f"  manager accept-proposal -> {winner.bidder} (score = conf/price)")
         for b in props:
             if b is not winner:
                 print(f"  manager reject-proposal -> {b.bidder}")
-        return winner  # 返回结果
+        return winner
 
 
 def demo_contract_net() -> None:
-    """demo_contract_net"""
     print("\n" + "=" * 72)
     print("CONTRACT NET TASK MARKET — manager + 3 bidders")
     print("=" * 72)
@@ -170,7 +166,6 @@ def demo_contract_net() -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 72)
     print("DEAL RATE — naive LLM bargaining vs OG-Narrator")
     print("reservation prices sampled per trial: seller_min in [50,80], buyer_max in [75,115]")

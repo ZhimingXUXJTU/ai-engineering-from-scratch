@@ -4,8 +4,10 @@ Actors have private state and an inbox. Messages are the only interaction.
 Failures in one actor are caught by the runtime and routed to a dead-letter
 queue; other actors keep running.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Actor 模型消息运行时 —— 每个 Agent 拥有私有状态和 inbox，通过异步消息交互，
+故障隔离到 dead-letter queue，不影响其他 Actor。复刻 AutoGen v0.4 Core 的 Actor/Runtime 设计。
+AI 对应：Microsoft AutoGen 是最流行的多 Agent 对话框架之一，其 v0.4 Core 采用 Actor 模型；
+类似设计也出现在 Erlang/OTP process、Ray Actor 和 Akka 中，是构建容错分布式 Agent 系统的基础。
 """
 
 from __future__ import annotations
@@ -17,7 +19,6 @@ from typing import Any, Callable
 
 @dataclass
 class Message:
-    """Message"""
     sender: str
     recipient: str
     topic: str
@@ -26,7 +27,7 @@ class Message:
 
 
 class Actor:
-    """Actor"""
+    """Actor 基类 —— 定义消息处理接口，子类实现具体的 receive 逻辑。"""
     def __init__(self, name: str) -> None:
         self.name = name
 
@@ -36,7 +37,7 @@ class Actor:
 
 @dataclass
 class Runtime:
-    """Runtime"""
+    """Actor 运行时 —— 管理消息队列、Actor 注册表和死信队列，驱动消息循环。"""
     actors: dict[str, Actor] = field(default_factory=dict)
     queue: deque[Message] = field(default_factory=deque)
     dead_letters: list[tuple[Message, str]] = field(default_factory=list)
@@ -80,7 +81,7 @@ class Runtime:
 
 
 class ReviewerAgent(Actor):
-    """ReviewerAgent"""
+    """代码审查 Agent —— 检查代码片段中是否包含 eval() 或裸 except 等危险模式。"""
     def __init__(self, name: str) -> None:
         super().__init__(name)
         self.verdicts: list[tuple[str, bool]] = []
@@ -106,7 +107,7 @@ class ReviewerAgent(Actor):
 
 
 class ChecklistAgent(Actor):
-    """ChecklistAgent"""
+    """检查清单 Agent —— 协调多个代码审查请求，收集结果并判断是否全部通过。"""
     def __init__(self, name: str, partner: str) -> None:
         super().__init__(name)
         self.partner = partner
@@ -129,7 +130,6 @@ class ChecklistAgent(Actor):
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("AUTOGEN V0.4 ACTOR RUNTIME (STDLIB) — Phase 14, Lesson 14")
     print("=" * 70)

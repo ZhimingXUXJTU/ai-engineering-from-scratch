@@ -4,8 +4,15 @@ Two demos, one file. HTN shows the ChatHTN pattern: symbolic planner falls back
 to an LLM for decomposition when no method matches. Evolutionary search shows
 the AlphaEvolve pattern: ensemble mutations filtered by a deterministic evaluator.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：分层任务网络（HTN）规划 + 进化搜索 —— 两种 Agent 规划范式。
+HTN 将高层任务递归分解为可执行的原子操作序列，当预定义方法无法匹配时
+回退到 LLM 进行分解（ChatHTN 模式），LLM 生成的方法会被缓存复用。
+进化搜索通过变异-评估-选择循环优化参数，模拟 AlphaEvolve 的思路。
+
+AI 对应：HTN 规划是机器人任务规划的经典方法，现代 Agent 系统如 OpenAI 的
+task decomposition、Claude 的 extended thinking 都隐含了类似的分层分解思路。
+AlphaEvolve（Google DeepMind）用进化搜索优化数学算法和代码，
+Devin 的代码修复也采用类似的迭代优化策略。
 """
 
 from __future__ import annotations
@@ -17,14 +24,14 @@ from typing import Any, Callable
 
 @dataclass
 class Operator:
-    """Operator"""
+    """原子操作 —— HTN 中不可再分的执行步骤，包含前置条件和效果（添加/删除事实）。"""
     name: str
     preconditions: tuple[str, ...]
     effects_add: tuple[str, ...]
     effects_remove: tuple[str, ...] = ()
 
     def applicable(self, state: set[str]) -> bool:
-        return all(p in state for p in self.preconditions)  # 返回结果
+        return all(p in state for p in self.preconditions)
 
     def apply(self, state: set[str]) -> set[str]:
         new_state = set(state)
@@ -32,23 +39,23 @@ class Operator:
             new_state.discard(fact)
         for fact in self.effects_add:
             new_state.add(fact)
-        return new_state  # 返回结果
+        return new_state
 
 
 @dataclass
 class Method:
-    """Method"""
+    """分解方法 —— 将高层任务分解为子任务序列，需满足前置条件才能应用。"""
     name: str
     task: str
     preconditions: tuple[str, ...]
     subtasks: tuple[str, ...]
 
     def applicable(self, state: set[str]) -> bool:
-        return all(p in state for p in self.preconditions)  # 返回结果
+        return all(p in state for p in self.preconditions)
 
 
 class ScriptedLLM:
-    """Stands in for ChatHTN's LLM fallback. Returns scripted decompositions."""
+    """模拟 LLM 的回退分解器 —— 当 HTN 方法库无法匹配时，提供脚本化的分解建议。"""
 
     def __init__(self, scripts: dict[str, tuple[str, ...]]) -> None:
         self._scripts = scripts
@@ -56,12 +63,12 @@ class ScriptedLLM:
 
     def decompose(self, task: str, state: set[str]) -> tuple[str, ...] | None:
         self.calls.append(task)
-        return self._scripts.get(task)  # 返回结果
+        return self._scripts.get(task)
 
 
 @dataclass
 class HTNPlanner:
-    """HTNPlanner"""
+    """分层任务网络规划器 —— 递归分解任务为原子操作序列，支持 LLM 回退和方法缓存。"""
     operators: dict[str, Operator]
     methods: dict[str, list[Method]]
     llm: ScriptedLLM
@@ -69,46 +76,47 @@ class HTNPlanner:
 
     def plan(self, task: str, state: set[str],
              depth: int = 0, max_depth: int = 12) -> list[str] | None:
+        """递归规划 —— 尝试用方法库分解任务，失败则回退到 LLM，结果会被缓存。"""
         if depth > max_depth:
-            return None  # 返回结果
-        if task in self.operators:
+            return None
+        if task in self.operators:  # 原子操作：直接检查前置条件
             op = self.operators[task]
             if op.applicable(state):
-                return [task]  # 返回结果
-            return None  # 返回结果
+                return [task]
+            return None
         applicable = [m for m in self.methods.get(task, []) if m.applicable(state)]
-        if not applicable and task in self.cached_methods:
+        if not applicable and task in self.cached_methods:  # 使用缓存的方法
             subtasks = self.cached_methods[task]
-            return self._expand(list(subtasks), state, depth)  # 返回结果
-        if not applicable:
+            return self._expand(list(subtasks), state, depth)
+        if not applicable:  # 回退到 LLM 分解
             suggested = self.llm.decompose(task, state)
             if suggested is None:
-                return None  # 返回结果
+                return None
             if not all(s in self.operators or s in self.methods for s in suggested):
-                return None  # 返回结果
-            self.cached_methods[task] = suggested
-            return self._expand(list(suggested), state, depth)  # 返回结果
+                return None
+            self.cached_methods[task] = suggested  # 缓存 LLM 的分解结果
+            return self._expand(list(suggested), state, depth)
         method = applicable[0]
-        return self._expand(list(method.subtasks), state, depth)  # 返回结果
+        return self._expand(list(method.subtasks), state, depth)
 
     def _expand(self, subtasks: list[str], state: set[str], depth: int) -> list[str] | None:
+        """展开子任务列表 —— 递归规划每个子任务，并模拟状态变迁验证可执行性。"""
         plan: list[str] = []
         current_state = set(state)
         for subtask in subtasks:
             sub_plan = self.plan(subtask, current_state, depth=depth + 1)
             if sub_plan is None:
-                return None  # 返回结果
+                return None
             for step in sub_plan:
                 op = self.operators.get(step)
                 if op is None or not op.applicable(current_state):
-                    return None  # 返回结果
-                current_state = op.apply(current_state)
+                    return None
+                current_state = op.apply(current_state)  # 模拟执行：更新世界状态
                 plan.append(step)
-        return plan  # 返回结果
+        return plan
 
 
 def htn_demo() -> None:
-    """htn_demo"""
     print("-" * 70)
     print("demo 1: ChatHTN-style hybrid HTN planner")
     print("-" * 70)
@@ -152,7 +160,6 @@ def htn_demo() -> None:
 
 
 def evolutionary_demo() -> None:
-    """evolutionary_demo"""
     print()
     print("-" * 70)
     print("demo 2: AlphaEvolve-style evolutionary search (toy)")
@@ -165,12 +172,12 @@ def evolutionary_demo() -> None:
             target = 3 * x + 7
             guess = a * x + b
             total += (target - guess) ** 2
-        return total  # 返回结果
+        return total
 
     def random_mutation(a: int, b: int) -> tuple[int, int]:
         da = random.choice((-2, -1, 0, 1, 2))
         db = random.choice((-2, -1, 0, 1, 2))
-        return a + da, b + db  # 返回结果
+        return a + da, b + db
 
     population: list[tuple[int, int, float]] = [
         (random.randint(-10, 10), random.randint(-10, 10), 0.0)
@@ -203,7 +210,6 @@ def evolutionary_demo() -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("HTN + EVOLUTIONARY SEARCH — Phase 14, Lesson 11")
     print("=" * 70)

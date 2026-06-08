@@ -7,8 +7,13 @@ JSONL file rotates at 1 MB to keep loader memory bounded.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：结构化命令反馈回路 —— 每次 shell 命令通过 run_with_feedback 执行，记录
+argv/redacted stdout-tail/stderr-tail/exit-code/duration，自动脱敏（Bearer token、
+API key、AWS key、Slack token、私钥），JSONL 日志文件 1MB 轮转，command_id/parent_command_id
+支持重试链路追踪。
+AI 对应：Claude Code 的 Bash 工具输出截断、Cursor 的 terminal capture 和 SWE-Agent 的
+命令执行日志都采用类似的结构化反馈模式；JSONL + 轮转是 Datadog、Honeycomb 等
+可观测平台的标准日志格式，脱敏模式遵循 OWASP 敏感数据泄露防护指南。
 """
 
 from __future__ import annotations
@@ -44,7 +49,6 @@ REDACTION_PATTERNS = [
 
 @dataclass
 class FeedbackRecord:
-    """FeedbackRecord"""
     command_id: str
     parent_command_id: str | None
     command: list[str]
@@ -62,35 +66,34 @@ class FeedbackRecord:
 def redact(text: str) -> tuple[str, int]:
     """Strip secrets before the JSONL append. Read-time redaction is a foot-gun."""
     if not text:
-        return text, 0  # 返回结果
+        return text, 0
     hits = 0
     out = text
     for pattern, replacement in REDACTION_PATTERNS:
         out, n = pattern.subn(replacement, out)
         hits += n
-    return out, hits  # 返回结果
+    return out, hits
 
 
 def deterministic_tail(text: str, head: int = HEAD_LINES, tail: int = TAIL_LINES) -> tuple[str, int]:
-    """deterministic_tail"""
     lines = text.splitlines()
     if len(lines) <= head + tail:
-        return text, 0  # 返回结果
+        return text, 0
     cut = len(lines) - head - tail
-    return "\n".join(lines[:head] + [f"...truncated {cut} lines..."] + lines[-tail:]), cut  # 返回结果
+    return "\n".join(lines[:head] + [f"...truncated {cut} lines..."] + lines[-tail:]), cut
 
 
 def _process_capture(text: str) -> tuple[str, int, int]:
     """Truncate first, then redact. Returns (text, cut_lines, redaction_hits)."""
     tailed, cut = deterministic_tail(text)
     redacted, hits = redact(tailed)
-    return redacted, cut, hits  # 返回结果
+    return redacted, cut, hits
 
 
 def maybe_rotate() -> None:
     """Cap the active file at ROTATE_BYTES; rotate .1 .. .MAX, drop oldest."""
     if not RECORD.exists() or RECORD.stat().st_size < ROTATE_BYTES:
-        return  # 返回结果
+        return
     for idx in range(MAX_ROTATIONS, 0, -1):
         src = RECORD.with_suffix(RECORD.suffix + (f".{idx - 1}" if idx > 1 else ""))
         if src == RECORD:
@@ -158,12 +161,12 @@ def run_with_feedback(
     maybe_rotate()
     with RECORD.open("a") as fh:
         fh.write(json.dumps(asdict(record)) + "\n")
-    return record  # 返回结果
+    return record
 
 
 def loop_can_advance(record: FeedbackRecord) -> bool:
     """Refuse to advance the loop when exit code is missing."""
-    return record.exit_code is not None  # 返回结果
+    return record.exit_code is not None
 
 
 def load_all() -> list[FeedbackRecord]:
@@ -173,9 +176,9 @@ def load_all() -> list[FeedbackRecord]:
         if not suffix:
             return 0  # active file
         try:
-            return int(suffix.lstrip("."))  # 返回结果
+            return int(suffix.lstrip("."))
         except ValueError:
-            return 99  # 返回结果
+            return 99
     paths = sorted(HERE.glob(RECORD.name + "*"), key=_rotation_key, reverse=True)
     by_id: dict[str, FeedbackRecord] = {}
     for path in paths:
@@ -191,7 +194,7 @@ def load_all() -> list[FeedbackRecord]:
             except (json.JSONDecodeError, TypeError):
                 continue
             by_id[record.command_id] = record  # active file wins (last loaded)
-    return list(by_id.values())  # 返回结果
+    return list(by_id.values())
 
 
 def retry_chain(command_id: str) -> list[FeedbackRecord]:
@@ -202,11 +205,10 @@ def retry_chain(command_id: str) -> list[FeedbackRecord]:
     while cursor and cursor in records:
         chain.append(records[cursor])
         cursor = records[cursor].parent_command_id
-    return list(reversed(chain))  # 返回结果
+    return list(reversed(chain))
 
 
 def main() -> None:
-    """main"""
     for path in HERE.glob("feedback_record.jsonl*"):
         path.unlink()
 

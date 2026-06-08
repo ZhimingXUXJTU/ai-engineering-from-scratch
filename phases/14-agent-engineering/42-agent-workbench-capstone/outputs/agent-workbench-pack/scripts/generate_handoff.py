@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""End-of-session handoff packet generator. See Phase 14 · 40."""
+"""会话交接包生成器 —— 在 AI Agent 会话结束时生成交接文档
+
+核心概念：
+  - 交接包 (handoff packet)：记录当前会话状态、已完成的任务、未完成的事项
+  - 用于多轮对话或多 Agent 协作时传递上下文信息
+  - 确保下一个 Agent 或下一次会话能无缝接续工作
+"""
 
 from __future__ import annotations
 

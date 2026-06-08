@@ -1,25 +1,15 @@
-"""Speculative decoding harness: exact rejection rule, alpha sweep, tree mask.
+"""投机解码完整实现 —— 拒绝规则验证、alpha 扫描与树形投机
 
-Three things this file proves, on synthetic toy distributions so the math
-stays visible:
+核心概念：
+  - 本文件在合成分布上精确验证投机解码的三个核心性质：
+  1. Leviathan 拒绝规则保持目标分布不变（总变差距离 < 0.01）
+  2. 期望 token 数公式成立：E[tokens] = (1 - alpha^(K+1)) / (1 - alpha)
+  3. 树形投机 (tree drafting)：用拓扑因果掩码一次前向传播验证多条候选路径
 
-1. The Leviathan-Kalai-Matias rejection rule preserves the target's
-   sampling distribution. Empirical total-variation distance between
-   plain target sampling and speculative-with-draft sampling is < 0.01
-   over 50_000 draws.
-2. The expected-tokens-per-verify formula holds. For acceptance rate
-   alpha and draft length K, E[tokens] = (1 - alpha^(K+1)) / (1 - alpha)
-   matches the measured throughput within sampling noise.
-3. Tree drafting verifies multiple candidate paths in a single target
-   forward via a topological causal mask. We build a depth-K tree, emit
-   the verification mask, and confirm every node attends only to its
-   ancestors.
-
-Stdlib + numpy only.
-
-Run:
-    python main.py
-    python main.py --vocab 64 --alpha 0.75 --k 4 --samples 50000
+AI 对应：
+  - 投机解码是目前 LLM 推理加速最有效的方法之一
+  - 树形投机是 EAGLE/Medusa 的核心：小模型生成一棵候选树，大模型一次验证
+  - 接受率 alpha=0.8 + K=5 时，理论加速约 4 倍（无精度损失）
 """
 
 from __future__ import annotations

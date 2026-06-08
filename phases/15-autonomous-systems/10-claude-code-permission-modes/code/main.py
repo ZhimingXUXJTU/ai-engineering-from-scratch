@@ -9,8 +9,13 @@ a repetitive loop, and one "legitimate-channel exfiltration" composite. The
 last case is the point: individual actions pass both stages while the
 composition is the risk.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：两阶段安全分类器 —— Stage 1 快速关键词规则（每个操作都运行），
+Stage 2 慢速多规则审查（仅对标记操作运行），HITL 人工升级（Stage 2 不确定时）。
+最关键的是"合法渠道数据渗出"组合攻击：单个操作都通过两个阶段，但组合后构成风险。
+
+AI 对应：Claude Code 的权限模式（allow/ask/deny）就是这个两阶段分类器的实例。
+Anthropic 的 Computer Use 安全白皮书也描述了类似的分层安全检查。
+"组合风险"是 Agent 安全中最难检测的类别 —— 单步安全不代表轨迹安全。
 """
 
 from __future__ import annotations
@@ -20,7 +25,6 @@ from enum import Enum
 
 
 class Verdict(Enum):
-    """Verdict"""
     APPROVE = "approve"
     BLOCK = "block"
     HITL = "hitl"
@@ -30,7 +34,6 @@ class Verdict(Enum):
 
 @dataclass
 class Action:
-    """Action"""
     tool: str
     payload: str
     note: str = ""
@@ -63,12 +66,12 @@ def stage1(a: Action, history: list[Action]) -> bool:
     """
     hay = f"{a.tool} {a.payload}".lower()
     if any(k.lower() in hay for k in STAGE1_FLAG_KEYWORDS):
-        return True  # 返回结果
+        return True
     if len(history) >= 4:
         tail = history[-4:]
         if all(t.tool == a.tool and t.payload == a.payload for t in tail):
-            return True  # 返回结果
-    return False  # 返回结果
+            return True
+    return False
 
 
 # ---------- Stage 2: deeper multi-rule review ----------
@@ -88,29 +91,28 @@ def stage2(a: Action, history: list[Action]) -> tuple[Verdict, str]:
     # This is the only way stage 2 clears a flag; everything else either
     # blocks or escalates to HITL.
     if "curl " in payload and any(h in payload for h in STAGE2_ALLOWED_CURL_HOSTS):
-        return Verdict.APPROVE, "curl to allowlisted host"  # 返回结果
+        return Verdict.APPROVE, "curl to allowlisted host"
     # Rule 1: outbound exfil to non-approved hosts
     if "curl " in payload and ("attacker" in payload or "paste" in payload or "webhook.site" in payload):
-        return Verdict.BLOCK, "exfiltration-shaped URL"  # 返回结果
+        return Verdict.BLOCK, "exfiltration-shaped URL"
     # Rule 2: destructive fs operation at repo root
     if "rm -rf" in payload and ("/" in payload or "$home" in payload):
-        return Verdict.BLOCK, "destructive filesystem op at root"  # 返回结果
+        return Verdict.BLOCK, "destructive filesystem op at root"
     # Rule 3: repetitive loop (same tool+payload 5 times running)
     if len(history) >= 4:
         tail = history[-4:]
         if all(t.tool == a.tool and t.payload == a.payload for t in tail):
-            return Verdict.BLOCK, "repetitive loop detected (>=5 identical calls)"  # 返回结果
+            return Verdict.BLOCK, "repetitive loop detected (>=5 identical calls)"
     # Rule 4: high-privilege escalation
     if "sudo " in payload or "chmod 777" in payload:
-        return Verdict.BLOCK, "privilege escalation shape"  # 返回结果
+        return Verdict.BLOCK, "privilege escalation shape"
     # Default: not confident -> escalate to HITL rather than approve
-    return Verdict.HITL, "low-confidence reviewer -> HITL"  # 返回结果
+    return Verdict.HITL, "low-confidence reviewer -> HITL"
 
 
 # ---------- Driver ----------
 
 def classify(trajectory: list[Action]) -> None:
-    """classify"""
     history: list[Action] = []
     counts = {"approved_s1": 0, "flagged_s1": 0, "approved_s2": 0,
               "blocked_s2": 0, "hitl_s2": 0}
@@ -142,7 +144,6 @@ def classify(trajectory: list[Action]) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("AUTO MODE TWO-STAGE CLASSIFIER SIMULATOR (Phase 15, Lesson 10)")
     print("=" * 80)

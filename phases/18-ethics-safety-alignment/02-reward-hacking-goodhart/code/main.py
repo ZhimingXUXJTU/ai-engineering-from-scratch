@@ -8,8 +8,10 @@ penalty. You can vary proxy sample size and noise tails.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：奖励黑客与 Goodhart 法则——代理奖励随 KL 单调上升而真实奖励先升后降，
+重现 Gao et al. (ICML 2023) 的 over-optimization 曲线，涵盖 KL 约束策略和 best-of-N 采样
+AI 对应：OpenAI 的 InstructGPT 和 Claude 的 RLHF 训练均观测到此现象；Goodhart 定律
+"当一个指标成为优化目标时，它就不再是一个好指标"在 RLHF 中以奖励-黄金差距的形式精确显现
 """
 
 from __future__ import annotations
@@ -26,13 +28,11 @@ GOLD_W = [1.0, -0.6, 0.4, 0.2, -0.1, 0.3, -0.5, 0.8]
 
 
 def dot(a: list[float], b: list[float]) -> float:
-    """dot"""
-    return sum(x * y for x, y in zip(a, b))  # 返回结果
+    return sum(x * y for x, y in zip(a, b))
 
 
 def gauss() -> float:
-    """gauss"""
-    return random.gauss(0.0, 1.0)  # 返回结果
+    return random.gauss(0.0, 1.0)
 
 
 def student_t(df: float) -> float:
@@ -41,27 +41,24 @@ def student_t(df: float) -> float:
     chi2 = sum(random.gauss(0.0, 1.0) ** 2 for _ in range(int(df)))
     if chi2 <= 0:
         chi2 = 1e-6
-    return u * math.sqrt(df / chi2)  # 返回结果
+    return u * math.sqrt(df / chi2)
 
 
 def sample_feature() -> list[float]:
-    """sample_feature"""
-    return [gauss() for _ in range(D)]  # 返回结果
+    return [gauss() for _ in range(D)]
 
 
 def gold_reward(x: list[float]) -> float:
-    """gold_reward"""
-    return dot(GOLD_W, x)  # 返回结果
+    return dot(GOLD_W, x)
 
 
 @dataclass
 class ProxyRM:
-    """ProxyRM"""
     w: list[float]
     n_samples: int
 
     def score(self, x: list[float]) -> float:
-        return dot(self.w, x)  # 返回结果
+        return dot(self.w, x)
 
 
 def train_proxy(n_samples: int, noise: str = "gauss") -> ProxyRM:
@@ -84,7 +81,7 @@ def train_proxy(n_samples: int, noise: str = "gauss") -> ProxyRM:
     for i in range(D):
         g[i][i] += 1e-3
     w = solve(g, b)
-    return ProxyRM(w=w, n_samples=n_samples)  # 返回结果
+    return ProxyRM(w=w, n_samples=n_samples)
 
 
 def solve(a: list[list[float]], b: list[float]) -> list[float]:
@@ -104,17 +101,17 @@ def solve(a: list[list[float]], b: list[float]) -> list[float]:
     x = [0.0] * n
     for i in range(n - 1, -1, -1):
         x[i] = (m[i][n] - sum(m[i][j] * x[j] for j in range(i + 1, n))) / m[i][i]
-    return x  # 返回结果
+    return x
 
 
 def sqrt_kl_from_origin(mu: list[float]) -> float:
     """Two unit-variance Gaussians, one at 0, one at mu. KL = 1/2 * ||mu||^2."""
-    return math.sqrt(0.5 * sum(m * m for m in mu))  # 返回结果
+    return math.sqrt(0.5 * sum(m * m for m in mu))
 
 
 def expected_reward(w: list[float], mu: list[float]) -> float:
     """E_{x ~ N(mu, I)} [<w, x>] = <w, mu>."""
-    return dot(w, mu)  # 返回结果
+    return dot(w, mu)
 
 
 def best_of_n_sweep(proxy: ProxyRM, ns: list[int]) -> list[tuple[float, float, float]]:
@@ -139,11 +136,10 @@ def best_of_n_sweep(proxy: ProxyRM, ns: list[int]) -> list[tuple[float, float, f
             sum(proxies) / trials,
             sum(golds) / trials,
         ))
-    return curve  # 返回结果
+    return curve
 
 
 def kl_constrained_policy_sweep(proxy: ProxyRM,
-    """kl_constrained_policy_sweep"""
                                 kl_budgets: list[float]) -> list[tuple[float, float, float]]:
     """Solve argmax_mu <w_proxy, mu> - lambda * ||mu||^2/2, sweep lambda."""
     curve = []
@@ -160,11 +156,10 @@ def kl_constrained_policy_sweep(proxy: ProxyRM,
             expected_reward(proxy.w, mu),
             expected_reward(GOLD_W, mu),
         ))
-    return curve  # 返回结果
+    return curve
 
 
 def print_curve(name: str, curve: list[tuple[float, float, float]]) -> None:
-    """print_curve"""
     print(f"\n{name}")
     print("-" * 60)
     print(f"  {'sqrt(KL)':>9}  {'proxy':>8}  {'gold':>8}  {'gap':>8}")
@@ -176,7 +171,6 @@ def print_curve(name: str, curve: list[tuple[float, float, float]]) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 60)
     print("REWARD HACKING OVER-OPTIMIZATION (Phase 18, Lesson 2)")
     print("=" * 60)

@@ -10,8 +10,11 @@ Outcomes: backdoor-ship rate (safety-inverted) and useful-output rate.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：AI 控制协议——通过 baseline、upfront auditing、untrusted monitoring、
+trusted editing 四种协议在 backdoor 任务上比较安全性与有用性，量化共谋风险和能力差距
+AI 对应：Greenblatt et al. (2023) 的 AI Control 框架被 Anthropic 和 OpenAI 的安全团队
+采用；信任编辑（trusted editing）协议被认为是部署前沿模型的核心安全策略之一；
+Redwood Research 的控制评估方法直接基于此工作
 """
 
 from __future__ import annotations
@@ -25,11 +28,10 @@ random.seed(23)
 def u_produce(backdoor_rate: float) -> tuple[str, bool]:
     """U produces an output. Returns (output, is_backdoored)."""
     is_backdoor = random.random() < backdoor_rate
-    return ("useful" if not is_backdoor else "backdoor"), is_backdoor  # 返回结果
+    return ("useful" if not is_backdoor else "backdoor"), is_backdoor
 
 
 def t_edit(output: str, is_backdoor: bool, t_skill: float,
-    """t_edit"""
            overreject: float = 0.05) -> tuple[str, bool, bool]:
     """T edits. Returns (edited, still_backdoored, t_low_confidence).
 
@@ -38,12 +40,12 @@ def t_edit(output: str, is_backdoor: bool, t_skill: float,
     """
     if is_backdoor:
         if random.random() < t_skill:
-            return ("useful", False, False)  # 返回结果
-        return ("backdoor", True, True)  # 返回结果
+            return ("useful", False, False)
+        return ("backdoor", True, True)
     # benign input: T over-rejects with some probability
     if random.random() < overreject:
-        return ("rejected", False, True)  # 返回结果
-    return ("useful", False, False)  # 返回结果
+        return ("rejected", False, True)
+    return ("useful", False, False)
 
 
 def untrusted_monitor(is_backdoor: bool, collusion: float) -> bool:
@@ -54,15 +56,14 @@ def untrusted_monitor(is_backdoor: bool, collusion: float) -> bool:
     """
     if not is_backdoor:
         # monitor correctly passes benign with high probability
-        return random.random() < 0.05  # 返回结果
+        return random.random() < 0.05
     # monitor would normally flag; collusion suppresses that signal.
     if random.random() < collusion:
-        return False  # 返回结果
-    return random.random() < 0.80  # 返回结果
+        return False
+    return random.random() < 0.80
 
 
 def run_protocol(name: str, backdoor_rate: float, h_budget: float,
-    """run_protocol"""
                  n: int, t_skill: float = 0.7, collusion: float = 0.30) -> None:
     useful, shipped_backdoor, used_h = 0, 0, 0
     for _ in range(n):
@@ -113,7 +114,6 @@ def run_protocol(name: str, backdoor_rate: float, h_budget: float,
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("AI CONTROL PROTOCOL SIMULATION (Phase 18, Lesson 10)")
     print("=" * 70)

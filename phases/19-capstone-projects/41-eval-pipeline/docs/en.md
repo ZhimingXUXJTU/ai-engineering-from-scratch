@@ -23,6 +23,8 @@
 - Aggregate the four evals into a single weighted report with per-task breakdown.
   中文翻译：Aggregate the four evals into a single weighted report with per-task breakdown.
 
+> **【中文解读】** 评估流水线是模型开发不可或缺的部分。本课构建统一的评估管线：困惑度（语言建模质量）、精确匹配（短答案正确性）、Token F1（开放式相似度）和本地模拟 LLM-as-judge（定性评分）。四个评估维度覆盖发布模型需要的所有维度，汇总为加权报告。
+
 ## The Problem | 问题
 
 > **【中文解读】** 单一指标永远无法完整描述语言模型。困惑度衡量语言分布拟合但不回答问题能力。精确匹配要求完全相同的字符串但惩罚正确释义。Token F1 容忍释义但被词汇重叠欺骗。LLM-as-judge 捕捉定性维度但昂贵且随机。本课构建包含四种评估的统一管线，每种覆盖其他指标遗漏的维度。

@@ -7,8 +7,14 @@ Compares three configs on a preemption-heavy workload:
 
 Reports re-prefill count avoided, throughput gain, and break-even HBM utilization.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：vLLM 生产栈 + LMCache 集群 KV cache 共享——NATIVE_ONLY（无 offload，抢占后
+重新 prefill）、CPU_OFFLOAD（引擎本地 CPU offload）、LMCACHE（跨 4 引擎共享
+分布式 KV cache），高 HBM 压力下共享缓存避免冗余 prefill，显著提升集群吞吐
+AI 对应：vLLM Production Stack 是 vLLM 的官方生产级部署方案；
+LMCache (LMCache.ai) 提供跨引擎的分布式 KV cache 共享；
+vLLM 的 CPU offload 将 KV block 卸载到系统内存；
+PagedAttention 的 block 管理是底层机制；
+Kubernetes 上的 vLLM 集群通常搭配 Redis/外部存储作为共享缓存
 """
 
 from __future__ import annotations
@@ -26,21 +32,19 @@ KV_BLOCK_TOKENS = 16
 
 @dataclass
 class Request:
-    """Request"""
     prompt_tokens: int
     output_tokens: int
     prefix_id: str  # for reuse across engines
 
 
 def make_workload(n: int = 200, seed: int = 7) -> list[Request]:
-    """make_workload"""
     rng = random.Random(seed)
     prefixes = [f"tpl_{i}" for i in range(6)]  # small set = high reuse
     reqs = []
     for _ in range(n):
         prompt = rng.choice([2000, 4000, 8000])
         reqs.append(Request(prompt, rng.randint(150, 400), rng.choice(prefixes)))
-    return reqs  # 返回结果
+    return reqs
 
 
 def simulate(config: str, reqs: list[Request]) -> dict:
@@ -93,7 +97,7 @@ def simulate(config: str, reqs: list[Request]) -> dict:
         total_time_ms += prefill_ms + decode_ms
         prefill_work += prefill_ms
 
-    return {  # 返回结果
+    return {
         "config": config,
         "total_ms": total_time_ms,
         "prefill_ms": prefill_work,
@@ -102,7 +106,6 @@ def simulate(config: str, reqs: list[Request]) -> dict:
 
 
 def report(row: dict, baseline: float) -> None:
-    """report"""
     speedup = baseline / row["total_ms"] if row["total_ms"] else 1
     print(f"{row['config']:14}  total={row['total_ms']:8.0f} ms  "
           f"prefill={row['prefill_ms']:7.0f} ms  "
@@ -111,7 +114,6 @@ def report(row: dict, baseline: float) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("vLLM PRODUCTION STACK + LMCACHE — preemption-heavy, 4 engines, shared prefixes")
     print("=" * 80)

@@ -1,11 +1,25 @@
+"""奖励建模 (Reward Modeling) —— RLHF 的关键组件：训练评分模型
+
+核心概念：
+  - 奖励模型学习人类的偏好判断：给定 (prompt, response)，输出一个标量分数
+  - 训练数据：人类标注的偏好对 (preferred_response vs rejected_response)
+  - Bradley-Terry 模型：P(preferred > rejected) = sigmoid(r_preferred - r_rejected)
+  - 训练目标：让 preferred 的分数高于 rejected，使用交叉熵损失
+
+AI 对应：
+  - OpenAI 用数千名标注员为 ChatGPT 训练了奖励模型
+  - 奖励模型的质量直接决定 RLHF 的效果——如果奖励模型判断不准，模型会学到错误行为
+  - 本实现在一个简化的文本分类场景上演示奖励模型的训练和评估
+"""
+
 import math
 import random
 from collections import Counter, defaultdict
 
 
 PROMPTS = ("help me", "answer me", "explain this")
-GOOD = ("clear", "specific", "kind", "thorough", "precise", "helpful")
-BAD = ("vague", "rude", "wrong", "short", "cold", "careless")
+GOOD = ("clear", "specific", "kind", "thorough", "precise", "helpful")  # 好回复的特征词
+BAD = ("vague", "rude", "wrong", "short", "cold", "careless")           # 差回复的特征词
 VOCAB = tuple(sorted(set(GOOD + BAD)))
 
 

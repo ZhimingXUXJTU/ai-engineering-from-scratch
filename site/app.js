@@ -126,7 +126,11 @@
       var num = String(p.id).padStart(2, '0');
       html += '<div class="toc-row" data-phase="' + i + '">';
       html += '<span class="toc-num">' + roman + '.</span>';
-      html += '<div><span class="toc-status ' + statusClass + '"></span><span class="toc-name">' + escapeHtml(p.name) + '</span></div>';
+      html += '<div><span class="toc-status ' + statusClass + '"></span><span class="toc-name">' + escapeHtml(p.name) + '</span>';
+      if (AIFS_I18N.isZh() && AIFS_I18N.phaseZh(p.id)) {
+        html += '<span class="phase-name-zh">' + AIFS_I18N.phaseZh(p.id).name + '</span>';
+      }
+      html += '</div>';
       html += '<span class="toc-meta">' + done + ' / ' + total + '</span>';
       html += '<span class="toc-meta">' + num + '</span>';
       html += '</div>';
@@ -195,7 +199,7 @@
     if (resetBtn) {
       resetBtn.addEventListener('click', function () {
         if (!window.AIFSProgress) return;
-        var ok = window.confirm('Clear all your local progress (quiz answers and completed lessons)? This cannot be undone.');
+        var ok = window.confirm(AIFS_I18N.t('app.resetConfirm') || 'Clear all your local progress (quiz answers and completed lessons)? This cannot be undone.');
         if (!ok) return;
         window.AIFSProgress.reset();
       });
@@ -209,7 +213,7 @@
     if (!p) return;
     currentPhaseIdx = idx;
 
-    document.getElementById('modalPhaseNum').textContent = 'PHASE ' + String(p.id).padStart(2, '0');
+    document.getElementById('modalPhaseNum').textContent = (AIFS_I18N.t('app.phase') || 'PHASE ') + String(p.id).padStart(2, '0');
     document.getElementById('modalTitle').textContent = p.name;
     document.getElementById('modalDesc').textContent = p.desc;
 
@@ -238,22 +242,28 @@
       if (userComplete) statusClass = 'complete';
 
       html += '<div class="modal-lesson' + (userComplete ? ' user-done' : '') + '">';
-      html += '<span class="modal-lesson-status ' + statusClass + '"' + (userComplete ? ' title="You completed this lesson"' : '') + '></span>';
+      html += '<span class="modal-lesson-status ' + statusClass + '"' + (userComplete ? ' title="' + (AIFS_I18N.t('app.youCompleted') || 'You completed this lesson') + '"' : '') + '></span>';
       if (l.url) {
         html += '<a href="' + l.url + '" target="_blank" rel="noopener">' + escapeHtml(l.name) + '</a>';
       } else {
         html += '<a>' + escapeHtml(l.name) + '</a>';
       }
-      html += '<span class="modal-lesson-type" data-type="' + escapeHtml(l.type) + '"' + (l.combines ? ' title="Combines: ' + escapeHtml(l.combines) + '"' : '') + '>' + escapeHtml(l.type) + '</span>';
+      if (AIFS_I18N.isZh() && AIFS_I18N.phaseZh && AIFS_I18N.phaseZh(p.id)) {
+        var zhLessons = window.ZH && window.ZH.lessons && window.ZH.lessons[p.id];
+        if (zhLessons && zhLessons[i]) {
+          html += '<span class="lesson-summary-zh">' + zhLessons[i].name + '</span>';
+        }
+      }
+      html += '<span class="modal-lesson-type" data-type="' + escapeHtml(l.type) + '"' + (l.combines ? ' title="' + (AIFS_I18N.t('app.combines') || 'Combines: ') + escapeHtml(l.combines) + '"' : '') + '>' + escapeHtml(l.type) + '</span>';
       html += '<span class="modal-lesson-lang">' + escapeHtml(l.lang) + '</span>';
 
       var actionHtml = '';
       if ((l.status === 'complete' || userComplete) && lessonPath) {
-        actionHtml = '<a href="lesson.html?path=' + lessonPath + '" class="modal-lesson-read">' + (userComplete ? 'Review' : 'Read') + '</a>';
+        actionHtml = '<a href="lesson.html?path=' + lessonPath + '" class="modal-lesson-read">' + (userComplete ? (AIFS_I18N.t('app.review') || 'Review') : (AIFS_I18N.t('app.read') || 'Read')) + '</a>';
       }
       var toggleHtml = '';
       if (hasProgress && lessonPath) {
-        toggleHtml = '<button type="button" class="modal-lesson-toggle' + (userComplete ? ' done' : '') + '" data-path="' + lessonPath + '" title="' + (userComplete ? 'Mark as not done' : 'Mark complete') + '" aria-label="' + (userComplete ? 'Mark as not done' : 'Mark complete') + '">' + (userComplete ? '✓' : '+') + '</button>';
+        toggleHtml = '<button type="button" class="modal-lesson-toggle' + (userComplete ? ' done' : '') + '" data-path="' + lessonPath + '" title="' + (userComplete ? (AIFS_I18N.t('app.markNotDone') || 'Mark as not done') : (AIFS_I18N.t('app.markComplete') || 'Mark complete')) + '" aria-label="' + (userComplete ? (AIFS_I18N.t('app.markNotDone') || 'Mark as not done') : (AIFS_I18N.t('app.markComplete') || 'Mark complete')) + '">' + (userComplete ? '✓' : '+') + '</button>';
       }
       html += (actionHtml || '<span class="modal-lesson-read-placeholder" aria-hidden="true"></span>') + toggleHtml;
       html += '</div>';
@@ -283,7 +293,7 @@
       var pct = Math.round((userDone / p.lessons.length) * 100);
       if (progEl) {
         progEl.style.display = '';
-        progEl.innerHTML = '<span class="modal-progress-count">' + userDone + ' / ' + p.lessons.length + '</span> <span class="modal-progress-label">completed</span> <span class="modal-progress-pct">' + pct + '%</span>';
+        progEl.innerHTML = '<span class="modal-progress-count">' + userDone + ' / ' + p.lessons.length + '</span> <span class="modal-progress-label">' + (AIFS_I18N.t('app.completed') || 'completed') + '</span> <span class="modal-progress-pct">' + pct + '%</span>';
       }
       if (barEl && barFill) {
         barEl.style.display = '';

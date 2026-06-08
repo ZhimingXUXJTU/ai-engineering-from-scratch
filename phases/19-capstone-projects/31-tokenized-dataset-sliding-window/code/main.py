@@ -8,8 +8,13 @@ this lesson runs without inter-lesson imports.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：滑动窗口分词数据集 —— 将 tokenizer 编码的 ID 流包装为 PyTorch Dataset 和 DataLoader，
+训练循环可以拉取 (B, T) 输入和 (B, T) 目标批次。使用内联的 BPE tokenizer（第30课），
+无需跨课程导入。
+
+AI 对应：这是所有 LLM 训练的基础数据管线。GPT-4、Llama、Qwen 等模型的训练
+都使用相同的滑动窗口模式：将长文本切分为固定长度的 (input, target) 对，
+target 是 input 向右偏移一位。理解这个数据管线是理解 LLM 训练的第一步。
 """
 
 from __future__ import annotations
@@ -40,7 +45,7 @@ class MiniBPE:
 
     @property
     def vocab_size(self) -> int:
-        return len(self.vocab)  # 返回结果
+        return len(self.vocab)
 
     def initialize(self, specials: Iterable[str] = DEFAULT_SPECIALS) -> None:
         self.vocab.clear()
@@ -60,17 +65,15 @@ class MiniBPE:
 
 
 def _pretokenize(text: str) -> list[str]:
-    """_pretokenize"""
-    return WORD_SPLIT_RE.findall(text)  # 返回结果
+    return WORD_SPLIT_RE.findall(text)
 
 
 def _count_pairs(units: dict[tuple[int, ...], int]) -> Counter:
-    """_count_pairs"""
     pairs: Counter = Counter()
     for symbols, count in units.items():
         for i in range(len(symbols) - 1):
             pairs[(symbols[i], symbols[i + 1])] += count
-    return pairs  # 返回结果
+    return pairs
 
 
 def _apply_merge_to_corpus(
@@ -95,11 +98,10 @@ def _apply_merge_to_corpus(
                 i += 1
         merged = tuple(out)
         new_units[merged] = new_units.get(merged, 0) + count
-    return new_units  # 返回结果
+    return new_units
 
 
 def train_bpe(tokenizer: MiniBPE, corpus: str, target_vocab_size: int) -> None:
-    """train_bpe"""
     min_vocab_size = BYTE_ALPHABET_SIZE + len(DEFAULT_SPECIALS)
     if target_vocab_size < min_vocab_size:
         raise ValueError(
@@ -129,7 +131,6 @@ def train_bpe(tokenizer: MiniBPE, corpus: str, target_vocab_size: int) -> None:
 
 
 def encode_text(tokenizer: MiniBPE, text: str) -> list[int]:
-    """encode_text"""
     ranked = {pair: rank for rank, pair in enumerate(tokenizer.merges.keys())}
     out: list[int] = []
     for chunk in _pretokenize(text):
@@ -152,7 +153,7 @@ def encode_text(tokenizer: MiniBPE, text: str) -> list[int]:
             new_id = tokenizer.merges[best_pair]
             symbols = symbols[:best_index] + [new_id] + symbols[best_index + 2:]
         out.extend(symbols)
-    return out  # 返回结果
+    return out
 
 
 class SlidingWindowDataset(Dataset):
@@ -184,11 +185,11 @@ class SlidingWindowDataset(Dataset):
     def count_windows(num_ids: int, context_length: int, stride: int) -> int:
         usable = num_ids - (context_length + 1)
         if usable < 0:
-            return 0  # 返回结果
-        return 1 + usable // stride  # 返回结果
+            return 0
+        return 1 + usable // stride
 
     def __len__(self) -> int:
-        return self.count_windows(self.ids.numel(), self.context_length, self.stride)  # 返回结果
+        return self.count_windows(self.ids.numel(), self.context_length, self.stride)
 
     def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
         if index < 0:
@@ -198,7 +199,7 @@ class SlidingWindowDataset(Dataset):
         start = index * self.stride
         end = start + self.context_length + 1
         window = self.ids[start:end]
-        return window[:-1].clone(), window[1:].clone()  # 返回结果
+        return window[:-1].clone(), window[1:].clone()
 
 
 def make_dataloader(
@@ -212,7 +213,7 @@ def make_dataloader(
     """Build a DataLoader with a deterministic per-epoch shuffle."""
     generator = torch.Generator()
     generator.manual_seed(base_seed + epoch)
-    return DataLoader(  # 返回结果
+    return DataLoader(
         dataset,
         batch_size=batch_size,
         shuffle=shuffle,
@@ -223,9 +224,8 @@ def make_dataloader(
 
 
 def _encode_corpus_to_ids(tokenizer: MiniBPE, corpus: str, target_vocab: int) -> list[int]:
-    """_encode_corpus_to_ids"""
     train_bpe(tokenizer, corpus, target_vocab_size=target_vocab)
-    return encode_text(tokenizer, corpus)  # 返回结果
+    return encode_text(tokenizer, corpus)
 
 
 DEMO_CORPUS = """\
@@ -251,13 +251,11 @@ practice the basics until the basics become invisible
 
 
 def _print_section(title: str) -> None:
-    """_print_section"""
     bar = "-" * len(title)
     print(f"\n{title}\n{bar}")
 
 
 def main() -> int:
-    """main"""
     target_vocab = 320
     context_length = 16
     stride = 8
@@ -315,7 +313,7 @@ def main() -> int:
         print(f"  stride {s:>2}: {len(ds):>4} windows")
 
     print("\nDemo OK.")
-    return 0  # 返回结果
+    return 0
 
 
 if __name__ == "__main__":

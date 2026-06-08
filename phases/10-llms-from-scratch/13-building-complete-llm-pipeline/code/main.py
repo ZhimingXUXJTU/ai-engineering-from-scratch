@@ -1,11 +1,15 @@
-"""End-to-end LLM pipeline orchestrator.
+"""端到端 LLM 流水线编排器 —— 从分词到推理的十二阶段 DAG
 
-Twelve stages wired as a DAG. Each stage is a placeholder that emits a typed
-artifact with a content-addressed hash. The orchestrator resolves dependencies,
-runs stages, records a manifest, and applies eval gates before shipping.
+核心概念：
+  - DAG（有向无环图）编排：12 个阶段按依赖关系顺序执行
+  - 内容寻址存储：每个阶段的输出用 SHA-256 哈希标识，支持缓存和增量构建
+  - 评估门控 (Eval Gate)：只有通过所有质量门控才能发布（MMLU >= 65, HumanEval >= 40 等）
+  - 预算控制：总训练成本超过预算时自动停止
 
-No network, no GPUs, stdlib only. Replace each stage's `run` with the real
-training script from the corresponding Phase 10 lesson.
+AI 对应：
+  - 这就是工业界训练 LLM 的完整流程：tokenizer -> 数据处理 -> 预训练 -> SFT -> RLHF/DPO -> 量化 -> 部署
+  - Meta 训练 Llama 3 的流水线与本课程结构几乎一致
+  - Kubeflow / MetaFlow / Ray 是生产环境中常用的 DAG 编排工具
 """
 
 from __future__ import annotations

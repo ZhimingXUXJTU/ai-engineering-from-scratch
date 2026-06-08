@@ -7,8 +7,13 @@ Three patterns on the same workload:
 
 Reports blended cost, quality loss, escalation rate.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：模型路由三种模式——NO_ROUTE（所有请求发往前沿模型）、PRE_ROUTE（分类器前置，
+简单请求路由到廉价模型）、CASCADE（先尝试廉价模型，低置信度时升级到前沿模型），
+在成本节约和质量保障之间权衡，60% 请求为简单任务时 PRE_ROUTE 可节省 50%+ 成本
+AI 对应：Portkey AI 和 LiteLLM 的 model router 实现类似的请求路由；
+RouteLLM (LMSYS) 使用训练好的分类器进行模型选择；
+OpenAI 的 GPT-4o-mini vs GPT-4o 是 PRE_ROUTE 的典型应用场景；
+Cascade 模式在 Anthropic 的 Claude Haiku -> Sonnet -> Opus 升级路径中使用
 """
 
 from __future__ import annotations
@@ -25,14 +30,12 @@ FRONTIER_OUTPUT = 15.00
 
 @dataclass
 class Query:
-    """Query"""
     difficulty: str  # 'simple' | 'medium' | 'hard'
     prompt_tokens: int
     output_tokens: int
 
 
 def make_workload(n: int = 1000, seed: int = 7) -> list[Query]:
-    """make_workload"""
     rng = random.Random(seed)
     reqs = []
     for _ in range(n):
@@ -43,25 +46,23 @@ def make_workload(n: int = 1000, seed: int = 7) -> list[Query]:
             reqs.append(Query("medium", rng.randint(800, 3000), rng.randint(100, 400)))
         else:
             reqs.append(Query("hard", rng.randint(2000, 8000), rng.randint(200, 1500)))
-    return reqs  # 返回结果
+    return reqs
 
 
 def cost_of(route: str, q: Query) -> float:
-    """cost_of"""
     if route == "cheap":
-        return (q.prompt_tokens / 1e6) * CHEAP_INPUT + (q.output_tokens / 1e6) * CHEAP_OUTPUT  # 返回结果
-    return (q.prompt_tokens / 1e6) * FRONTIER_INPUT + (q.output_tokens / 1e6) * FRONTIER_OUTPUT  # 返回结果
+        return (q.prompt_tokens / 1e6) * CHEAP_INPUT + (q.output_tokens / 1e6) * CHEAP_OUTPUT
+    return (q.prompt_tokens / 1e6) * FRONTIER_INPUT + (q.output_tokens / 1e6) * FRONTIER_OUTPUT
 
 
 def quality(route: str, q: Query) -> float:
     """Toy quality score per difficulty on route."""
     if route == "frontier":
-        return 1.0  # 返回结果
-    return {"simple": 0.99, "medium": 0.92, "hard": 0.75}[q.difficulty]  # 返回结果
+        return 1.0
+    return {"simple": 0.99, "medium": 0.92, "hard": 0.75}[q.difficulty]
 
 
 def simulate(pattern: str, reqs: list[Query]) -> dict:
-    """simulate"""
     total_cost = 0.0
     total_q = 0.0
     escalated = 0
@@ -88,7 +89,7 @@ def simulate(pattern: str, reqs: list[Query]) -> dict:
                 total_cost += cost_of("frontier", q)
                 total_q += 1.0
 
-    return {  # 返回结果
+    return {
         "pattern": pattern,
         "cost": total_cost,
         "mean_quality": total_q / len(reqs),
@@ -97,14 +98,12 @@ def simulate(pattern: str, reqs: list[Query]) -> dict:
 
 
 def report(row: dict, baseline: float) -> None:
-    """report"""
     save = (baseline - row["cost"]) / baseline * 100
     print(f"{row['pattern']:12}  cost=${row['cost']:7.2f}  save={save:5.1f}%  "
           f"quality={row['mean_quality']*100:5.1f}%  escalated={row['escalated']:4}")
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("MODEL ROUTING — three patterns, 1000 requests, mixed difficulty")
     print("=" * 80)

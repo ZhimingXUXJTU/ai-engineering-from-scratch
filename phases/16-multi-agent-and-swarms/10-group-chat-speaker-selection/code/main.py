@@ -3,8 +3,12 @@
 Three agents (coder, reviewer, manager), two selector variants
 (round-robin, LLM-simulated), TERMINATE-token stop condition.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：GroupChat 的 Speaker 选择机制——Round-Robin（轮流发言）vs LLM-Style（上下文感知选择），
+以及 TERMINATE token 停止条件，选择策略决定了 Agent 交互效率和对话质量
+AI 对应：Microsoft AutoGen 的 GroupChat 是此模式的直接实现，支持 round_robin、auto（LLM 选择）、
+manual 等选择器；CrewAI 的 Crew.process=sequential 实现轮流模式；
+LangGraph 的 StateGraph 通过条件边实现上下文感知路由；
+OpenAI Assistants API 的 RunStep 机制隐含了 speaker 选择逻辑
 """
 from __future__ import annotations
 
@@ -14,48 +18,43 @@ from typing import Callable, Optional
 
 @dataclass
 class Msg:
-    """Msg"""
     speaker: str
     content: str
 
 
 @dataclass
 class Agent:
-    """Agent"""
     name: str
     role: str
     policy: Callable[[list[Msg]], str]
 
 
 def coder_policy(pool: list[Msg]) -> str:
-    """coder_policy"""
     recent = [m for m in pool[-3:] if m.speaker != "coder"]
     last = recent[-1].content if recent else ""
     if "review" in last.lower() or "fix" in last.lower():
-        return "revised code: return a + b"  # 返回结果
+        return "revised code: return a + b"
     if not any(m.speaker == "coder" for m in pool):
-        return "initial code: return a - b  (buggy)"  # 返回结果
-    return "TERMINATE"  # 返回结果
+        return "initial code: return a - b  (buggy)"
+    return "TERMINATE"
 
 
 def reviewer_policy(pool: list[Msg]) -> str:
-    """reviewer_policy"""
     last_coder = next((m for m in reversed(pool) if m.speaker == "coder"), None)
     if last_coder is None:
-        return "waiting for code"  # 返回结果
+        return "waiting for code"
     if "a - b" in last_coder.content:
-        return "review: bug detected -- sum must be a+b, please fix"  # 返回结果
+        return "review: bug detected -- sum must be a+b, please fix"
     if "a + b" in last_coder.content:
-        return "review: approved"  # 返回结果
-    return "review: unclear"  # 返回结果
+        return "review: approved"
+    return "review: unclear"
 
 
 def manager_policy(pool: list[Msg]) -> str:
-    """manager_policy"""
     approvals = [m for m in pool if m.speaker == "reviewer" and "approved" in m.content]
     if approvals:
-        return "TERMINATE"  # 返回结果
-    return "manager: continue working"  # 返回结果
+        return "TERMINATE"
+    return "manager: continue working"
 
 
 AGENTS: dict[str, Agent] = {
@@ -66,29 +65,28 @@ AGENTS: dict[str, Agent] = {
 
 
 def round_robin_selector(pool: list[Msg], team: dict[str, Agent]) -> Optional[str]:
-    """round_robin_selector"""
     names = list(team.keys())
     if not pool:
-        return names[0]  # 返回结果
+        return names[0]
     idx = (names.index(pool[-1].speaker) + 1) % len(names)
-    return names[idx]  # 返回结果
+    return names[idx]
 
 
 def llm_style_selector(pool: list[Msg], team: dict[str, Agent]) -> Optional[str]:
     """Simulated LLM selector: picks based on recent context keywords.
     A real implementation is an LLM call with the recent pool."""
     if not pool:
-        return "manager"  # 返回结果
+        return "manager"
     last = pool[-1]
     if last.speaker == "coder":
-        return "reviewer"  # 返回结果
+        return "reviewer"
     if last.speaker == "reviewer":
         if "approved" in last.content:
-            return "manager"  # 返回结果
-        return "coder"  # 返回结果
+            return "manager"
+        return "coder"
     if last.speaker == "manager":
-        return "coder"  # 返回结果
-    return None  # 返回结果
+        return "coder"
+    return None
 
 
 def run_groupchat(
@@ -113,19 +111,17 @@ def run_groupchat(
             break
     print(f"  Selector trace: {trace}")
     print(f"  Rounds used: {len(pool)}")
-    return pool  # 返回结果
+    return pool
 
 
 def speaker_counts(pool: list[Msg]) -> dict[str, int]:
-    """speaker_counts"""
     counts: dict[str, int] = {}
     for m in pool:
         counts[m.speaker] = counts.get(m.speaker, 0) + 1
-    return counts  # 返回结果
+    return counts
 
 
 def main() -> None:
-    """main"""
     print("Group chat with speaker selection -- AutoGen GroupChat shape")
     print("-" * 62)
 

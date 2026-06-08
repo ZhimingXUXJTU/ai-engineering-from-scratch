@@ -7,8 +7,11 @@ through a Flow to show all three execution shapes.
 Stdlib + numpy. Mock LLM responses are deterministic hardcoded strings
 keyed off agent role and input prefix.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：CrewAI 风格的角色团队 + 三种执行模式 —— Sequential（串行）、Hierarchical（层级调度）
+和 Flow（DAG 工作流）。每个 Agent 绑定 role/goal/backstory 和 tool 列表，Task 间通过 context 传递依赖。
+AI 对应：CrewAI 是 2024 年最活跃的开源多 Agent 框架之一，广泛用于研究助手、内容生成等场景；
+其角色抽象（Researcher/Writer/Editor）已成为多 Agent 协作的事实标准模式，Microsoft AutoGen 和
+LangGraph 也提供类似的角色编排能力。
 """
 
 from __future__ import annotations
@@ -27,9 +30,9 @@ def tool(name: str) -> Callable[[Callable[..., str]], Callable[..., str]]:
     def decorator(fn: Callable[..., str]) -> Callable[..., str]:
         fn.tool_name = name  # type: ignore[attr-defined]
         fn.is_tool = True  # type: ignore[attr-defined]
-        return fn  # 返回结果
+        return fn
 
-    return decorator  # 返回结果
+    return decorator
 
 
 @tool("Search the web")
@@ -41,13 +44,12 @@ def search(query: str) -> str:
     }
     for key, value in fixtures.items():
         if key in query.lower():
-            return value  # 返回结果
-    return "src1: generic, src2: generic, src3: generic"  # 返回结果
+            return value
+    return "src1: generic, src2: generic, src3: generic"
 
 
 @dataclass
 class Agent:
-    """Agent"""
     role: str
     goal: str
     backstory: str
@@ -57,7 +59,6 @@ class Agent:
 
 @dataclass
 class Task:
-    """Task"""
     description: str
     expected_output: str
     agent: Agent
@@ -66,7 +67,6 @@ class Task:
 
 @dataclass
 class SequentialCrew:
-    """SequentialCrew"""
     agents: list[Agent]
     tasks: list[Task]
     memory: "Memory | None" = None
@@ -92,12 +92,11 @@ class SequentialCrew:
             if self.memory is not None:
                 self.memory.write_short_term(task.agent.role, out)
                 self.memory.write_long_term(task.agent.role, out)
-        return outputs  # 返回结果
+        return outputs
 
 
 @dataclass
 class HierarchicalCrew:
-    """HierarchicalCrew"""
     manager: Agent
     specialists: dict[str, Agent]
     max_steps: int = 5
@@ -122,7 +121,7 @@ class HierarchicalCrew:
             done.add(pick)
             if self.memory is not None:
                 self.memory.write_short_term(specialist.role, out)
-        return outputs  # 返回结果
+        return outputs
 
 
 class Flow:
@@ -137,18 +136,18 @@ class Flow:
 
     def start(self, fn: Callable[[Any], tuple[str, Any]]) -> Callable[..., Any]:
         self.start_step = fn
-        return fn  # 返回结果
+        return fn
 
     def listen(self, topic: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         def decorator(fn: Callable[[Any], tuple[str, Any] | None]) -> Callable[..., Any]:
             self.listeners[topic] = fn
-            return fn  # 返回结果
+            return fn
 
-        return decorator  # 返回结果
+        return decorator
 
     def kickoff(self, payload: Any) -> list[tuple[str, str, Any]]:
         if self.start_step is None:
-            return []  # 返回结果
+            return []
         self.trace = []
         topic, out = self.start_step(payload)
         self.trace.append(("start", topic, out))
@@ -159,7 +158,7 @@ class Flow:
                 break
             topic, out = result
             self.trace.append((step.__name__, topic, out))
-        return self.trace  # 返回结果
+        return self.trace
 
 
 class Memory:
@@ -181,7 +180,7 @@ class Memory:
         rng = np.random.default_rng(seed)
         v = rng.standard_normal(self.dim)
         n = np.linalg.norm(v)
-        return v / n if n > 0 else v  # 返回结果
+        return v / n if n > 0 else v
 
     def write_short_term(self, role: str, value: str) -> None:
         self.short_term.append((role, value))
@@ -194,18 +193,17 @@ class Memory:
 
     def recall_long_term(self, query: str, k: int = 2) -> list[tuple[str, str, float]]:
         if not self.long_term:
-            return []  # 返回结果
+            return []
         q = self._embed(query)
         scored = [(r, v, float(np.dot(q, e))) for r, v, e in self.long_term]
         scored.sort(key=lambda row: row[2], reverse=True)
-        return scored[:k]  # 返回结果
+        return scored[:k]
 
     def reset_short_term(self) -> None:
         self.short_term = []
 
 
 def _researcher(prior: Any, tools: list[Callable[..., str]], memory: Memory | None) -> str:
-    """_researcher"""
     topic = prior if isinstance(prior, str) else ""
     # Run whichever search-ish tool the agent was wired with, in order.
     search_fn = next(
@@ -213,35 +211,31 @@ def _researcher(prior: Any, tools: list[Callable[..., str]], memory: Memory | No
         None,
     )
     sources = search_fn(topic) if search_fn else "src1, src2, src3"
-    return f"3 sources on {topic}: {sources}"  # 返回结果
+    return f"3 sources on {topic}: {sources}"
 
 
 def _writer(prior: Any, tools: list[Callable[..., str]], memory: Memory | None) -> str:
-    """_writer"""
     text = prior if isinstance(prior, str) else ""
-    return f"draft (3 paragraphs) from sources: {text[:60]}"  # 返回结果
+    return f"draft (3 paragraphs) from sources: {text[:60]}"
 
 
 def _editor(prior: Any, tools: list[Callable[..., str]], memory: Memory | None) -> str:
-    """_editor"""
     text = prior if isinstance(prior, str) else ""
-    return f"final brief (tightened, 800 words): {text[:60]}"  # 返回结果
+    return f"final brief (tightened, 800 words): {text[:60]}"
 
 
 def _manager(prior: Any, tools: list[Callable[..., str]], memory: Memory | None) -> str:
-    """_manager"""
     done = prior if isinstance(prior, set) else set()
     if "researcher" not in done:
-        return "researcher"  # 返回结果
+        return "researcher"
     if "writer" not in done:
-        return "writer"  # 返回结果
+        return "writer"
     if "editor" not in done:
-        return "editor"  # 返回结果
-    return "done"  # 返回结果
+        return "editor"
+    return "done"
 
 
 def build_agents() -> tuple[Agent, Agent, Agent]:
-    """build_agents"""
     researcher = Agent(
         role="researcher",
         goal="find 3 credible sources",
@@ -261,11 +255,10 @@ def build_agents() -> tuple[Agent, Agent, Agent]:
         backstory="cuts adjectives. enforces house style.",
         fn=_editor,
     )
-    return researcher, writer, editor  # 返回结果
+    return researcher, writer, editor
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("CREWAI CREW AND FLOW - Phase 14, Lesson 15")
     print("=" * 70)
@@ -309,25 +302,25 @@ def main() -> None:
         out = _researcher(topic, [search], memory)
         memory.write_short_term("researcher", out)
         memory.write_long_term("researcher", out)
-        return "researched", out  # 返回结果
+        return "researched", out
 
     @flow.listen("researched")
     def on_researched(prior: str) -> tuple[str, str]:
         out = _writer(prior, [], memory)
         memory.write_short_term("writer", out)
         memory.write_long_term("writer", out)
-        return "drafted", out  # 返回结果
+        return "drafted", out
 
     @flow.listen("drafted")
     def on_drafted(prior: str) -> tuple[str, str]:
         out = _editor(prior, [], memory)
         memory.write_short_term("editor", out)
         memory.write_long_term("editor", out)
-        return "edited", out  # 返回结果
+        return "edited", out
 
     @flow.listen("edited")
     def on_edited(prior: str) -> None:
-        return None  # 返回结果
+        return None
 
     for step_name, topic, output in flow.kickoff("agent engineering 2026"):
         print(f"  [{step_name}] topic={topic!r} out={output[:60]}")

@@ -8,8 +8,12 @@ Conceptual references:
 
 Stdlib only. Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：工具注册表 + JSON Schema 2020-12 子集验证——注册带类型化 schema 的工具，
+在调用前验证参数（type/required/enum/minLength/maxLength/pattern/items），
+支持嵌套对象和数组的递归校验，RFC 6901 JSON Pointer 报告错误路径
+AI 对应：MCP (Model Context Protocol) 使用 JSON Schema 定义工具的输入参数；
+OpenAI Function Calling 和 Anthropic Tool Use 都采用 JSON Schema 验证；
+schema-first 的工具注册是 2026 年 AI Agent 工具调用的标准实践
 """
 
 from __future__ import annotations
@@ -38,24 +42,21 @@ ALLOWED_KEYWORDS = {
 
 @dataclass
 class ValidationError:
-    """ValidationError"""
     path: str
     keyword: str
     message: str
 
     def to_dict(self) -> dict:
-        return {"path": self.path, "keyword": self.keyword, "message": self.message}  # 返回结果
+        return {"path": self.path, "keyword": self.keyword, "message": self.message}
 
 
 @dataclass
 class Ok:
-    """Ok"""
     pass
 
 
 @dataclass
 class ToolRecord:
-    """ToolRecord"""
     name: str
     description: str
     schema: dict
@@ -95,23 +96,23 @@ class ToolRegistry:
         if name not in self._records:
             self._order.append(name)
         self._records[name] = rec
-        return rec  # 返回结果
+        return rec
 
     def get(self, name: str) -> ToolRecord:
         if name not in self._records:
             raise KeyError(f"unknown tool {name!r}")
-        return self._records[name]  # 返回结果
+        return self._records[name]
 
     def names(self) -> list[str]:
-        return list(self._order)  # 返回结果
+        return list(self._order)
 
     def validate(self, name: str, args: Any) -> Ok | list[ValidationError]:
         rec = self.get(name)
         errors: list[ValidationError] = []
         _walk(rec.schema, args, "", errors)
         if errors:
-            return errors  # 返回结果
-        return Ok()  # 返回结果
+            return errors
+        return Ok()
 
 
 def validate_schema_shape(schema: dict) -> None:
@@ -158,25 +159,22 @@ def validate_schema_shape(schema: dict) -> None:
 
 
 def _path(prefix: str, segment: str | int) -> str:
-    """_path"""
     seg = str(segment).replace("~", "~0").replace("/", "~1")
-    return f"{prefix}/{seg}"  # 返回结果
+    return f"{prefix}/{seg}"
 
 
 def _type_matches(value: Any, expected: str) -> bool:
-    """_type_matches"""
     types = PRIMITIVE_TYPE_MAP[expected]
     if expected == "boolean":
-        return isinstance(value, bool)  # 返回结果
+        return isinstance(value, bool)
     if expected in ("integer", "number"):
         if isinstance(value, bool):
-            return False  # 返回结果
-        return isinstance(value, types)  # 返回结果
-    return isinstance(value, types)  # 返回结果
+            return False
+        return isinstance(value, types)
+    return isinstance(value, types)
 
 
 def _walk(schema: dict, value: Any, path: str, errs: list[ValidationError]) -> None:
-    """_walk"""
     t = schema.get("type")
     if t is not None and not _type_matches(value, t):
         errs.append(ValidationError(
@@ -184,7 +182,7 @@ def _walk(schema: dict, value: Any, path: str, errs: list[ValidationError]) -> N
             keyword="type",
             message=f"expected {t}, got {type(value).__name__}",
         ))
-        return  # 返回结果
+        return
     if "enum" in schema:
         if value not in schema["enum"]:
             errs.append(ValidationError(
@@ -192,7 +190,7 @@ def _walk(schema: dict, value: Any, path: str, errs: list[ValidationError]) -> N
                 keyword="enum",
                 message=f"value {value!r} not in {schema['enum']!r}",
             ))
-            return  # 返回结果
+            return
     if t == "string":
         _check_string(schema, value, path, errs)
     elif t == "object":
@@ -202,7 +200,6 @@ def _walk(schema: dict, value: Any, path: str, errs: list[ValidationError]) -> N
 
 
 def _check_string(schema: dict, value: str, path: str, errs: list[ValidationError]) -> None:
-    """_check_string"""
     if "minLength" in schema and len(value) < schema["minLength"]:
         errs.append(ValidationError(
             path=path or "/", keyword="minLength",
@@ -228,7 +225,6 @@ def _check_string(schema: dict, value: str, path: str, errs: list[ValidationErro
 
 
 def _check_object(schema: dict, value: dict, path: str, errs: list[ValidationError]) -> None:
-    """_check_object"""
     required = schema.get("required", [])
     for req_name in required:
         if req_name not in value:
@@ -244,20 +240,18 @@ def _check_object(schema: dict, value: dict, path: str, errs: list[ValidationErr
 
 
 def _check_array(schema: dict, value: list, path: str, errs: list[ValidationError]) -> None:
-    """_check_array"""
     items_schema = schema.get("items")
     if items_schema is None:
-        return  # 返回结果
+        return
     for idx, item in enumerate(value):
         _walk(items_schema, item, _path(path, idx), errs)
 
 
 def _demo() -> None:
-    """_demo"""
     registry = ToolRegistry()
 
     def get_user(id: int) -> dict:
-        return {"id": id, "name": "ada"}  # 返回结果
+        return {"id": id, "name": "ada"}
 
     registry.register(
         name="db.get_user",
