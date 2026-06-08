@@ -18,9 +18,13 @@
 - State C2PA's role and why it is complementary to watermarking.
 - Describe the key limitations: model-specific signal, robustness under paraphrase, and meaning-preserving attacks (arXiv:2508.20228).
 
+> 描述令牌级水印（SynthID-text 风格）及其可检测机制。描述 Stable Signature 和 2024 年破坏它的移除攻击。说明 C2PA 的角色以及为什么它与水印互补。描述关键局限性：模型特定信号、释义下的鲁棒性和意义保持攻击。
+
 ## The Problem | 问题
 
 2023-2024 saw deepfakes and AI-generated content enter political and consumer contexts at scale. Watermarking is the proposed technical provenance signal: mark generations at creation time, detect them later. 2025 evidence: no watermark is unconditionally robust, but layered with C2PA metadata the combination provides a usable provenance story.
+
+> 2023-2024 年深度伪造和 AI 生成内容大规模进入政治和消费场景。水印是提出的技术来源信号：在创建时标记生成，之后检测。2025 年证据：没有水印是无条件鲁棒的，但与 C2PA 元数据分层提供可用的来源故事。
 
 ## The Concept | 概念
 
@@ -49,11 +53,17 @@ SynthID-text is open-sourced October 2024 via Google's Responsible GenAI Toolkit
 
 Fernandez et al. ICCV 2023. Fine-tune the latent diffusion decoder so every generated image contains a fixed binary message embedded in the latent representation. Detection is decoded from the latent with a neural decoder. Cropped (to 10% of content) images detected >90% at FPR<1e-6.
 
+> Stable Signature 微调潜在扩散解码器使每个生成图像包含固定二进制消息。裁剪到 10% 的图像在 FPR<1e-6 下检测率 >90%。
+
 May 2024 "Stable Signature is Unstable" (arXiv:2405.07145): fine-tuning the decoder removes the watermark while preserving image quality. Adversarial post-generation fine-tuning is cheap; the watermark's adversarial robustness is limited.
+
+> 2024 年 5 月"Stable Signature is Unstable"证明微调解码器可以在保持图像质量的同时移除水印。对抗性后生成微调成本低；水印的对抗鲁棒性有限。
 
 ### SynthID unified detector (November 2025)
 
 Alongside Gemini 3 Pro: a multi-media detector that reads SynthID signals from text, image, audio, and video in one API. Unifies the Google provenance stack.
+
+> 伴随 Gemini 3 Pro：一个跨模态检测器，可从文本、图像、音频和视频中读取 SynthID 信号。统一了 Google 来源技术栈。
 
 > **【拓展：C2PA + 水印互补 → EU AI Act Article 50】** C2PA 和水印互补：元数据可剥离但携带丰富来源链；水印通过转码持久但只携带少量比特。Google 在搜索、广告和"关于此图片"中集成两者。EU AI Act Article 50 的透明度代码要求 AI 生成内容标签（包括 Deepfake），这是需要 Lesson 23 水印技术的监管层。
 
@@ -61,12 +71,18 @@ Alongside Gemini 3 Pro: a multi-media detector that reads SynthID signals from t
 
 Coalition for Content Provenance and Authenticity. Cryptographically signed tamper-evident metadata standard. C2PA 2.2 Explainer (2025). A C2PA manifest records provenance claims (who created, when, what transformations) signed by the creator's key.
 
+> C2PA 是加密签名、防篡改的元数据标准。C2PA 清单记录来源声明（谁创建、何时、什么转换），由创建者的密钥签名。
+
 Complementary to watermarking:
 - Metadata can be stripped; watermarks cannot (easily).
 - Metadata is rich (full provenance chain); watermarks carry bits.
 - C2PA depends on platform adoption; watermarks embed automatically.
 
+> 与水印互补：元数据可剥离但信息丰富；水印通过转码持久但只携带少量比特。C2PA 依赖平台采用；水印自动嵌入。
+
 Google integrates both in Search, Ads, and "About this image."
+
+> Google 在搜索、广告和"关于此图片"中集成两者。
 
 > **【拓展：水印局限性 → 模型特定信号问题】** 关键局限性：SynthID 水印仅来自启用 SynthID 的模型。"无 SynthID 信号"不等于真实性证明——未启用 SynthID 的模型生成的任何内容都不会有水印。此外，arXiv:2508.20228（2025）展示了意义保持攻击可以同时破坏文本水印和多种图像水印。
 
@@ -85,13 +101,19 @@ Transparency Code for AI-generated content labeling (first draft December 2025, 
 
 Lessons 22-23 are about what the model emits (private data, provenance signal). Lesson 27 covers training-data governance. Lesson 24 is the regulatory framework that requires these technical measures.
 
+> Lessons 22-23 关于模型发出什么（私有数据、来源信号）。Lesson 27 涵盖训练数据治理。Lesson 24 是要求这些技术措施的监管框架。
+
 ## Use It | 使用方法
 
 `code/main.py` builds a toy text watermark. Tokens are integers 0..N-1; watermarked sampling biases toward the hash-defined green set. A detector computes the green-token z-score. You can observe detection at 1000-token generations, watch paraphrase destroy the signal, and measure the false-positive rate on human text.
 
+> `code/main.py` 构建了玩具文本水印。令牌是整数 0..N-1；水印采样偏向哈希定义的绿色集。检测器计算绿色令牌 z 分数。你可以观察 1000 令牌生成的检测、释义破坏信号以及人类文本上的误报率。
+
 ## Ship It | 部署上线
 
 This lesson produces `outputs/skill-provenance-audit.md`. Given a content deployment with a provenance claim, it audits: the watermark mechanism (if any), the C2PA signing chain (if any), the adversarial robustness of each, and the per-modality coverage.
+
+> 本课产出 `outputs/skill-provenance-audit.md`。给定有来源声明的内容部署，审计：水印机制、C2PA 签名链、各自的对抗鲁棒性以及每模态覆盖。
 
 ## Exercises | 练习题
 

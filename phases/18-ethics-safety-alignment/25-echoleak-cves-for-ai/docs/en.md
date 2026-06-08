@@ -18,9 +18,13 @@
 - Describe the three related CVEs (EchoLeak, CamoLeak, Copilot RCE) and what each reveals about the production attack surface.
 - State the state of AI vulnerability disclosure: responsible disclosure works, but initial severity assessments have been low.
 
+> 描述 EchoLeak 从邮件投递到数据外泄的攻击链。定义"LLM 范围违规"并解释为什么它是新漏洞类别。描述三个相关 CVE 及各自揭示的生产攻击面。说明 AI 漏洞披露现状。
+
 ## The Problem | 问题
 
 Lesson 15 describes indirect prompt injection as a concept. Lesson 25 describes the first production CVE of that class. The policy lesson: AI vulnerabilities are now ordinary security vulnerabilities — they get CVEs, they need disclosure, they follow CVSS scoring. The practice lesson: the threat model has been validated in production, not only in benchmarks.
+
+> Lesson 15 将间接提示注入描述为概念。Lesson 25 描述该类别首个生产 CVE。政策教训：AI 漏洞现在是普通安全漏洞——获得 CVE、需要披露、遵循 CVSS 评分。实践教训：威胁模型已在生产中验证。
 
 ## The Concept | 概念
 
@@ -44,12 +48,18 @@ CVSS 9.3. First reported as lower severity; Aim Labs escalated with a demonstrat
 
 External untrusted input (the attacker's email) manipulates the model to access data from a privileged scope (the victim's mailbox) and leak it to the attacker. The formal analog is OS-level scope violation; the LLM-level version is a new class.
 
+> 外部不可信输入（攻击者的邮件）操纵模型访问特权范围的数据并泄露给攻击者。形式类比是操作系统级范围违规；LLM 级别是新的类别。
+
 Aim Labs positions Scope Violation as a framework for reasoning about this CVE and successors:
 - Untrusted input enters via a retrieval surface.
 - Model action accesses privileged scope.
 - Output crosses the trust boundary (user or network-facing).
 
+> Aim Labs 的三边界框架：不可信输入通过检索面进入、模型行动访问特权范围、输出跨越信任边界。
+
 All three must be prevented independently; fixing one does not secure the others.
+
+> 三者必须独立防护——修复一个不能保障其他。
 
 > **【中文解读】** CamoLeak（CVSS 9.6, GitHub Copilot Chat）：利用 GitHub 的 Camo 图像代理——仓库中攻击者控制的内容通过 Camo 触发图像加载事件泄露数据。Microsoft/GitHub 的修复是完全禁用 Copilot Chat 中的图像渲染——代价是可用性，替代方案是无法限制的攻击面。CVE-2025-53773（GitHub Copilot RCE）通过代码建议表面的提示注入实现远程代码执行。
 
@@ -78,15 +88,21 @@ Pattern across the three: vendors initially rated EchoLeak low (information disc
 
 Lesson 15 is the attack class in the abstract. Lesson 25 is the concrete CVE layer. Lesson 24 is the regulatory framework that governs disclosure obligations. Lessons 26-27 cover documentation and data governance.
 
+> Lesson 15 是抽象的攻击类别。Lesson 25 是具体的 CVE 层。Lesson 24 是管辖披露义务的监管框架。Lessons 26-27 涵盖文档和数据治理。
+
 > **【拓展：AI 漏洞披露 → 新兴实践】** AI 漏洞的负责任披露正在发展。传统的 CVE 披露流程适用于 AI 特定漏洞，但需要额外证据：可复现性（跨模型版本）、提示注入抗性测量、攻击复杂度评估。初始严重性评估倾向于低估——EchoLeak 最初被评为低严重性，直到演示了 MFA 码外泄。NIST 和 OWASP 的定位强化了提示注入作为最高优先级威胁的重要性。
 
 ## Use It | 使用方法
 
 `code/main.py` reconstructs the EchoLeak attack trace as a state-transition log. You can observe the email entering context, the instruction execution, and the exfiltration URL construction. A simple defense (scope separation: block tool calls triggered by untrusted content) prevents the exfiltration.
 
+> `code/main.py` 将 EchoLeak 攻击追踪重构为状态转换日志。你可以观察邮件进入上下文、指令执行和外泄 URL 构建。简单防御（范围分离：阻止不可信内容触发的工具调用）防止外泄。
+
 ## Ship It | 部署上线
 
 This lesson produces `outputs/skill-cve-review.md`. Given a production AI deployment, it enumerates the Scope Violation surfaces, checks whether each violates the three-independent-boundaries rule, and recommends controls.
+
+> 本课产出 `outputs/skill-cve-review.md`。给定生产 AI 部署，枚举范围违规面，检查是否违反三独立边界规则，并推荐控制措施。
 
 ## Exercises | 练习题
 

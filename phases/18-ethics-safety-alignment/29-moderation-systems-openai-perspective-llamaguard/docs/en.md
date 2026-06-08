@@ -18,9 +18,13 @@
 - Describe Perspective API's position as a pre-LLM-era baseline and why it remains used in research.
 - State the Azure deprecation timeline.
 
+> 描述 OpenAI Moderation API 的类别分类法及其与 Llama Guard 3 MLCommons 集的区别。描述三层审核模式和每层的一个失败模式。描述 Perspective API 作为 LLM 前时代基线的位置。说明 Azure 弃用时间线。
+
 ## The Problem | 问题
 
 Lessons 12-16 describe attacks and defense tooling. Lesson 29 covers the deployed moderation systems that operationalize the defenses at the surface where users touch the product. The three-layer pattern is the 2026 default configuration.
+
+> Lessons 12-16 描述攻击和防御工具。Lesson 29 涵盖将防御操作化的已部署审核系统。三层模式是 2026 年默认配置。
 
 ## The Concept | 概念
 
@@ -84,15 +88,19 @@ Azure Content Moderator: deprecated February 2024, retired February 2027. Replac
 
 Lesson 16 covers the moderation tooling in the red-team context. Lesson 29 covers deployed moderation. Lesson 30 closes with the current dual-use capability evidence.
 
+> Lesson 16 在红队背景下涵盖审核工具。Lesson 29 涵盖已部署的审核。Lesson 30 以当前双重用途能力证据结束。
+
 > **【拓展：Azure 迁移 → 2024-2027 行业项目】** Azure Content Moderator 2024 年 2 月弃用，2027 年 2 月退役，替换为基于 LLM 的 Azure AI Content Safety 并与 Azure OpenAI 集成。迁移是一个 2024-2027 年的行业级别项目——每个使用 Azure Content Moderator 的部署都需要规划迁移路径。这是传统内容审核向 LLM 驱动审核的系统性转变。
 
 ## Use It | 使用方法
 
 `code/main.py` builds a three-layer moderation harness: input moderator (keyword + category score), output moderator (same classifier on output), custom moderator (domain rules). You can run inputs through and observe which layer catches what.
 
-## Ship It | 部署上线
+> `code/main.py` 构建三层审核框架：输入审核器、输出审核器、自定义审核器。你可以运行输入并观察哪一层捕获什么。
 
 This lesson produces `outputs/skill-moderation-stack.md`. Given a deployment, it recommends a moderation stack configuration: which classifier at input, which at output, which custom rules, and what judge for edge cases.
+
+> 本课产出 `outputs/skill-moderation-stack.md`。给定部署，推荐审核栈配置。
 
 ## Exercises | 练习题
 

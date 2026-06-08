@@ -14,13 +14,26 @@
 ## Learning Objectives | 学习目标
 
 - Describe Llama Guard 3/4's position in the safety stack: input classifier, output classifier, or both.
+
+> 描述 Llama Guard 3/4 在安全技术栈中的位置：输入分类器、输出分类器或两者兼有。
+
 - Name the 14 MLCommons hazard categories and state one non-obvious one (Code Interpreter Abuse).
+
+> 列出 14 个 MLCommons 危险类别，并说明一个不明显的类别（代码解释器滥用）。
+
 - Describe Garak's probe architecture: probes, detectors, harnesses.
+
+> 描述 Garak 的探针架构：探针、检测器、线束。
+
 - Describe PyRIT's multi-turn campaign structure and how it composes with Garak probes.
+
+> 描述 PyRIT 的多轮活动结构及其如何与 Garak 探针组合。
 
 ## The Problem | 问题
 
 Lessons 12-15 present the attack surface. Production deployments need repeatable, scalable evaluation. Three tools dominate 2026: Llama Guard (the defense classifier), Garak (the scanner), PyRIT (the campaign orchestrator). Each targets a different layer of the red-team lifecycle.
+
+> Lessons 12-15 展示了攻击面。生产部署需要可重复、可扩展的评估。三个工具主导 2026 年：Llama Guard（防御分类器）、Garak（扫描器）、PyRIT（活动编排器）。每个针对红队生命周期的不同层。
 
 ## The Concept | 概念
 
@@ -33,11 +46,19 @@ Llama Guard 3 is a Llama-3.1-8B model fine-tuned for input/output classification
 - Specialized advice, privacy, IP, indiscriminate weapons, hate
 - Suicide/self-harm, sexual content, elections, code-interpreter abuse
 
+> Llama Guard 3 是 Llama-3.1-8B 模型，针对 MLCommons AILuminate 14 个类别进行输入/输出分类微调。支持 8 种语言。
+
 Supports 8 languages. Usage: place before the LLM (input moderation), after the LLM (output moderation), or both. The two uses generate different training distributions — Llama Guard 3 ships as a single model handling both.
+
+> 使用方式：放在 LLM 之前（输入审核）、之后（输出审核）或两者兼有。Llama Guard 3 作为单一模型处理两者。
 
 Llama Guard 3-1B-INT4 (arXiv:2411.17713, 440MB, ~30 tokens/s on mobile CPU) is the quantized edge variant.
 
+> Llama Guard 3-1B-INT4 是量化边缘变体（440MB，移动 CPU 约 30 tokens/s）。
+
 Llama Guard 4 (April 2025) is 12B, natively multimodal, pruned from Llama 4 Scout. It replaces both the 8B text and 11B vision predecessors with one classifier that ingests text + images.
+
+> Llama Guard 4（2025 年 4 月）是 12B 原生多模态分类器，从 Llama 4 Scout 剪枝，替代了之前的 8B 文本和 11B 视觉分类器。
 
 > **【拓展：Garak 架构 → 探针/检测器/线束】** Garak 的三层架构：探针——幻觉、数据泄露、提示注入、毒性、越狱的攻击生成器，分为静态（固定提示）、动态（生成提示）、自适应（响应目标输出）；检测器——针对预期失败模式评分输出；线束——管理探针-检测器对，运行活动，生成报告。基于层的评分（TBSA）替代二元通过/失败——模型可以在同一探针上通过严重性层级 3 但失败层级 5。
 
@@ -48,7 +69,11 @@ Open-source vulnerability scanner. Architecture:
 - **Detectors.** Score outputs against expected failure modes — toxic, leaked, jailbroken.
 - **Harnesses.** Manage probe-detector pairs, run campaigns, generate reports.
 
+> 开源漏洞扫描器。架构：探针（幻觉、数据泄露、提示注入、毒性、越狱的攻击生成器）、检测器（针对预期失败模式评分输出）、线束（管理探针-检测器对，运行活动，生成报告）。
+
 TrustyAI integrates Garak with the Llama-Stack shields (Prompt-Guard-86M input classifier, Llama-Guard-3-8B output classifier) for end-to-end shielded-target evaluation. Tier-based scoring (TBSA) replaces binary pass/fail — a model can pass at severity tier 3 and fail at severity tier 5 on the same probe.
+
+> TrustyAI 将 Garak 与 Llama Stack shields 集成进行端到端评估。基于层的评分（TBSA）替代二元通过/失败——模型可以在同一探针上通过严重性层级 3 但失败层级 5。
 
 ### PyRIT (Microsoft)
 
@@ -57,11 +82,17 @@ Python Risk Identification Toolkit. Multi-turn red-team campaigns. Built around:
 - **Orchestrators.** Run the campaign: Crescendo (escalation), TAP (branching), RedTeaming (custom loop).
 - **Scoring.** LLM-as-judge or classifier-as-judge.
 
+> PyRIT 是 Python 风险识别工具包。多轮红队活动。核心组件：转换器（转换种子提示）、编排器（运行活动）、评分（LLM 或分类器评判）。
+
 PyRIT is the heavier cousin of Garak. Garak runs thousands of single-turn probes; PyRIT runs deep multi-turn campaigns designed to break specific failure modes.
+
+> PyRIT 是 Garak 的重量级表亲。Garak 运行数千个单轮探针；PyRIT 运行旨在打破特定失败模式的多轮深度活动。
 
 ### The stack
 
 Put Llama Guard on both sides of the model. Run Garak nightly for regression. Run PyRIT for pre-release campaigns. This is the 2026 default configuration for most production deployments.
+
+> 在模型两侧放置 Llama Guard。每晚运行 Garak 回归测试。预发布运行 PyRIT 活动。这是 2026 年大多数生产部署的默认配置。
 
 > **【中文解读】** 评估陷阱：评判身份——所有三个工具都可以使用 LLM 评判，评判校准驱动报告的 ASR（Lesson 12），必须指定评判；探针过时——Garak 探针随着模型修补而老化，自适应探针（PAIR 式）比静态探针老化更慢；Llama Guard 在良性内容上的误报率——早期版本过度标记政治和 LGBTQ+ 内容，v3/v4 校准有改善但未按部署校准。
 
@@ -75,15 +106,21 @@ Put Llama Guard on both sides of the model. Run Garak nightly for regression. Ru
 
 Lessons 12-15 are the attack families. Lesson 16 is the production tooling. Lesson 17 (WMDP) is the evaluation for dual-use capability. Lesson 18 is the frontier safety frameworks that wrap these tools in a policy structure.
 
+> Lessons 12-15 是攻击家族。Lesson 16 是生产工具。Lesson 17 是双重用途能力评估。Lesson 18 是将这些工具包装在政策结构中的前沿安全框架。
+
 > **【拓展：PyRIT → 多轮深度利用】** PyRIT（Microsoft）是 Garak 的重量级表亲。Garak 运行数千个单轮探针，PyRIT 运行旨在打破特定失败模式的多轮深度活动。其核心是转换器链——将种子提示通过释义、编码、翻译、角色扮演等步骤转换。编排器运行 Crescendo（升级）、TAP（分支）或自定义循环。评分使用 LLM 作为评判或分类器作为评判。
 
 ## Use It | 使用方法
 
 `code/main.py` builds a toy Llama Guard-style classifier (keyword + semantic features over 14 categories), a toy Garak harness (probe-detector loop), and a PyRIT-style multi-turn converter chain. You can run the three tools against a mock target and observe the different coverage signatures.
 
+> `code/main.py` 构建了玩具 Llama Guard 风格分类器、玩具 Garak 线束和 PyRIT 风格多轮转换链。你可以对模拟目标运行三个工具并观察不同的覆盖特征。
+
 ## Ship It | 部署上线
 
 This lesson produces `outputs/skill-red-team-stack.md`. Given a deployment description, it names which of the three tools are appropriate, what to configure in each, and what regression cadence to run.
+
+> 本课产出 `outputs/skill-red-team-stack.md`。给定部署描述，命名三个工具中哪些合适，每个配置什么，以及什么回归节奏。
 
 ## Exercises | 练习题
 

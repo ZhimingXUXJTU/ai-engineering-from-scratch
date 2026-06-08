@@ -18,9 +18,13 @@
 - Describe the irreversibility problem: why GDPR right-to-erasure has no practical equivalent for trained neural networks.
 - State the Data Provenance Initiative's "Consent in Crisis" finding.
 
+> 描述 California AB 2013 的 12 个必填字段。说明 2025 年 DPA 关于合法利益 LLM 训练的立场。描述不可逆性问题：为什么 GDPR 被遗忘权对训练神经网络没有实际等价物。说明数据来源倡议的"Consent in Crisis"发现。
+
 ## The Problem | 问题
 
 Training-data governance is the upstream of every model card (Lesson 26) and regulatory obligation (Lesson 24). In 2024-2025, the regulatory landscape consolidated on three principles: opt-out infrastructure, per-dataset disclosure, and legitimate-interest accommodations for publicly available data. Providers that do not comply at collection time cannot remediate downstream.
+
+> 训练数据治理是每个模型卡和监管义务的上游。2024-2025 年监管景观在三个原则上巩固：退出基础设施、每数据集披露和公开可用数据的合法利益安排。在收集时不合规的提供商无法在下游补救。
 
 ## The Concept | 概念
 
@@ -81,15 +85,21 @@ dataprovenance.org. Longpre, Mahari, Lee et al. "Consent in Crisis" (July 2024):
 
 Lesson 26 is model-level documentation. Lesson 27 is dataset-level governance. Together they define the transparency layer. Lesson 28 maps the research ecosystem that works on these questions.
 
+> Lesson 26 是模型级文档。Lesson 27 是数据集级治理。它们共同定义透明度层。Lesson 28 映射研究这些问题的研究生态系统。
+
 > **【拓展：巴西 ANPD → 不同监管结果】** 巴西 ANPD（2024 年 6 月）因信息透明度不足暂停了 Meta 对巴西用户数据的 AI 训练处理——与 EU DPA 的结果不同。ANPD 优先考虑透明度而非合法利益的许可度。预防措施在 2024 年 8 月 Meta 提交合规计划后解除。这展示了不同司法管辖区在相同技术实践上可能得出截然不同的结论。
 
 ## Use It | 使用方法
 
 `code/main.py` generates a California AB 2013-compliant 12-field dataset summary scaffold for a toy dataset. You can fill the fields and observe which ones trigger privacy or copyright follow-on obligations.
 
+> `code/main.py` 为玩具数据集生成符合 California AB 2013 的 12 字段数据集摘要脚手架。你可以填写字段并观察哪些触发隐私或版权后续义务。
+
 ## Ship It | 部署上线
 
 This lesson produces `outputs/skill-provenance-check.md`. Given a dataset used in training, it checks for AB 2013 12-field coverage, opt-out infrastructure compliance, DPA alignment, and irreversibility-risk assessment.
+
+> 本课产出 `outputs/skill-provenance-check.md`。给定训练中使用的数据集，检查 AB 2013 12 字段覆盖、退出基础设施合规、DPA 对齐和不可逆性风险评估。
 
 ## Exercises | 练习题
 

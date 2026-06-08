@@ -14,13 +14,26 @@
 ## Learning Objectives | 学习目标
 
 - Describe the PAIR algorithm: attacker system prompt, iterative refinement, in-context feedback.
+
+> 描述 PAIR 算法：攻击者系统提示、迭代改进、上下文反馈。
+
 - Explain why PAIR is strictly more efficient than GCG when the target is black-box.
+
+> 解释为什么 PAIR 在目标是黑盒时严格比 GCG 更高效。
+
 - Name four other automated-attack baselines (GCG, AutoDAN, TAP, PAP) and state one distinguishing feature of each.
+
+> 列出其他四种自动化攻击基线（GCG、AutoDAN、TAP、PAP）及各自的区分特征。
+
 - Describe the JailbreakBench and HarmBench evaluation protocols and what "attack success rate" means under each.
+
+> 描述 JailbreakBench 和 HarmBench 评估协议以及各自"攻击成功率"的含义。
 
 ## The Problem | 问题
 
 Red-teaming used to be a manual activity. A small number of expert testers constructed adversarial prompts and tracked which ones worked. This does not scale: attack success rate needs a statistical sample, and the target is a moving target with every model release. PAIR operationalizes red-teaming as an optimization problem with a black-box target.
+
+> 红队测试过去是手动活动。少数专家测试者构建对抗性提示并跟踪哪些有效。这不可扩展：攻击成功率需要统计样本，且每个模型发布时目标都在变化。PAIR 将红队测试操作化为黑盒目标的优化问题。
 
 ## The Concept | 概念
 
@@ -35,6 +48,8 @@ Inputs:
 - Goal string G: "respond with [harmful instruction]."
 - Budget K (usually 20 queries).
 
+> 输入：目标 LLM T（我们攻击的模型）、评判 LLM J（评分响应是否越狱）、攻击者 LLM A（红队优化器）、目标字符串 G（"用[有害指令]响应"）、预算 K（通常 20 查询）。
+
 Loop, for k in 1..K:
 1. A is prompted with the goal G and the history of (prompt, response) pairs so far.
 2. A emits a new prompt p_k.
@@ -43,18 +58,35 @@ Loop, for k in 1..K:
 5. If score >= threshold, halt — jailbreak found.
 6. Else, append (p_k, r_k) to A's history; continue.
 
+> 循环 k=1..K：1. A 被提示目标 G 和历史（提示，响应）对。2. A 发出新提示 p_k。3. 提交 p_k 到 T；接收响应 r_k。4. J 评分（p_k, r_k）。5. 如果分数 >= 阈值，停止——越狱找到。6. 否则追加到历史继续。
+
 Empirical result (NeurIPS 2023): >50% attack success rate against GPT-3.5-turbo, Llama-2-7B-chat; mean queries to success in the 10-20 range.
+
+> 实证结果（NeurIPS 2023）：对 GPT-3.5-turbo、Llama-2-7B-chat 攻击成功率 >50%；平均成功查询数在 10-20 范围。
 
 ### Why PAIR is efficient
 
 GCG (Zou et al. 2023) searches over adversarial token suffixes by gradient; it requires white-box model access and produces unreadable suffixes. PAIR is black-box and produces natural-language attacks that transfer across models. PAIR's in-context feedback lets the attacker learn from each rejection; GCG has no equivalent (each new token update has to rediscover prior progress).
 
+> GCG 通过梯度搜索对抗性令牌后缀；需要白盒访问且产生不可读后缀。PAIR 是黑盒的，产生可跨模型迁移的自然语言攻击。PAIR 的上下文反馈让攻击者从每次拒绝中学习；GCG 没有等价机制。
+
 ### Related automated attacks
 
 - **GCG (Zou et al. 2023, arXiv:2307.15043).** Token-level gradient search for adversarial suffixes. White-box, transferable, produces unreadable strings.
+
+> **GCG（Zou 等人 2023）。** 令牌级梯度搜索对抗后缀。白盒、可迁移、产生不可读字符串。
+
 - **AutoDAN (Liu et al. 2023).** Evolutionary search over prompts, guided by a hierarchical objective.
+
+> **AutoDAN（Liu 等人 2023）。** 进化搜索提示，由层次化目标指导。
+
 - **TAP (Mehrotra et al. 2024).** Tree-of-attacks with pruning — branches multiple PAIR-style rollouts.
+
+> **TAP（Mehrotra 等人 2024）。** 带剪枝的攻击树——分支多个 PAIR 式推出。
+
 - **PAP (Zeng et al. 2024).** Persuasive Adversarial Prompts — encodes human persuasion techniques as prompt templates.
+
+> **PAP（Zeng 等人 2024）。** 说服性对抗提示——将人类说服技术编码为提示模板。
 
 > **【拓展：ASR 指标 → 评估陷阱】** 攻击成功率（ASR）必须在固定查询预算下报告。90% ASR 在 200 查询处与 85% ASR 在 20 查询处不可比较。评判身份也驱动报告的 ASR——GPT-4-turbo 评判和 Llama Guard 评判对同一攻击可能给出不同分数。比较攻击需要匹配预算和指定评判。
 
@@ -62,10 +94,19 @@ GCG (Zou et al. 2023) searches over adversarial token suffixes by gradient; it r
 
 Both (2024) standardize evaluation:
 
+> 两者（2024）标准化了评估：
+
 - JailbreakBench (arXiv:2404.01318). 100 harmful behaviors across 10 OpenAI-policy categories. Attack success rate (ASR) as the primary metric. Requires a judge (GPT-4-turbo, Llama Guard, or StrongREJECT).
+
+> JailbreakBench：100 个有害行为，横跨 10 个 OpenAI 政策类别。攻击成功率（ASR）作为主要指标。需要一个评判者。
+
 - HarmBench (Mazeika et al. 2024). 510 behaviours across 7 categories, with semantic and functional harm tests. Compares 18 attacks against 33 models.
 
+> HarmBench：510 个行为，横跨 7 个类别，包含语义和功能性危害测试。比较 18 种攻击对 33 个模型。
+
 ASR is usually reported at a fixed query budget. Comparing attacks requires matching budgets; a 90% ASR at 200 queries is not comparable to 85% ASR at 20.
+
+> ASR 通常在固定查询预算下报告。比较攻击需要匹配预算；200 查询处 90% ASR 与 20 查询处 85% ASR 不可比较。
 
 > **【中文解读】** 2026 年部署意义：每个前沿实验室现在在发布前对生产模型运行 PAIR 和 TAP。ASR 轨迹出现在模型卡（Lesson 26）和安全案例附录（Lesson 18）中。这不是特殊的攻击——它是标准基础设施。
 
@@ -73,9 +114,13 @@ ASR is usually reported at a fixed query budget. Comparing attacks requires matc
 
 Every frontier lab now runs PAIR and TAP against production models before release. ASR trajectories appear in model cards (Lesson 26) and safety-case appendices (Lesson 18). The attack is not exotic — it is standard infrastructure.
 
+> 每个前沿实验室现在在发布前对生产模型运行 PAIR 和 TAP。ASR 轨迹出现在模型卡和安全案例附录中。这不是特殊的攻击——它是标准基础设施。
+
 ### Where this fits in Phase 18
 
 Lesson 12 is the automated-attack foundation. Lesson 13 (Many-Shot Jailbreaking) is a complementary length-exploit. Lesson 14 (ASCII Art / Visual) is an encoding attack. Lesson 15 (Indirect Prompt Injection) is the 2026 production attack surface. Lesson 16 covers the defensive-tooling counterparts (Llama Guard, Garak, PyRIT).
+
+> Lesson 12 是自动化攻击基础。Lesson 13 是互补的长度利用。Lesson 14 是编码攻击。Lesson 15 是 2026 年生产攻击面。Lesson 16 涵盖防御工具。
 
 > **【拓展：TAP 和 PAP → 攻击进化】** TAP（Mehrotra 等人 2024）通过分支多个 PAIR 式推出并剪枝来扩展 PAIR——更高 ASR 但更多计算。PAP（Zeng 等人 2024）将人类说服技术编码为提示模板。攻击家族从 GCG 的白盒令牌搜索进化到 PAIR 的黑盒迭代改进，再到 TAP 的树搜索和 PAP 的社会工程。每一代都在不同的攻击维度上更强。
 
@@ -83,9 +128,13 @@ Lesson 12 is the automated-attack foundation. Lesson 13 (Many-Shot Jailbreaking)
 
 `code/main.py` builds a toy PAIR loop. The target is a mock classifier that refuses "obvious" harmful prompts (keyword-filter). The attacker is a rule-based refiner that tries paraphrase, roleplay-framing, and encoding. The judge scores the response. You watch the attacker succeed in ~5-15 iterations against the keyword filter and fail against a semantic filter.
 
+> `code/main.py` 构建了一个玩具 PAIR 循环。目标是拒绝"明显"有害提示的模拟分类器（关键词过滤）。攻击者是尝试释义、角色扮演和编码的规则精化器。你可以看到攻击者在约 5-15 次迭代中对关键词过滤成功，对语义过滤失败。
+
 ## Ship It | 部署上线
 
 This lesson produces `outputs/skill-attack-audit.md`. Given a red-team evaluation report, it audits: which attacks were run (PAIR, GCG, TAP, AutoDAN, PAP), at what budget each, with which judge, on which harmful-behaviour set (JailbreakBench, HarmBench, internal).
+
+> 本课产出 `outputs/skill-attack-audit.md`。给定红队评估报告，审计：运行了哪些攻击、每个攻击的预算、使用哪个评判者、在哪个有害行为集上。
 
 ## Exercises | 练习题
 

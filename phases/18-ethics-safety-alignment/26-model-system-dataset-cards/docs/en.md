@@ -18,9 +18,13 @@
 - Describe System Cards and their end-to-end coverage.
 - State three 2024-2025 developments (automated generation, verifiable attestations, sustainability reporting).
 
+> 描述 Mitchell 等人 2019 年的原始模型卡和 Gebru 等人 2018 年的数据表。描述 Data Cards 的望远镜/潜望镜/显微镜分层。描述 System Cards 及其端到端覆盖。说明三个 2024-2025 年发展。
+
 ## The Problem | 问题
 
 Regulatory frameworks (Lesson 24) and lab safety policies (Lesson 18) both require documentation. Documentation formats evolved from model-specific (model cards) to dataset-specific (datasheets) to system-specific (system cards). Each addresses a different scope of transparency. The 2024-2025 automation and verifiable-attestation work addresses the long-standing adoption problem.
+
+> 监管框架和实验室安全政策都要求文档。文档格式从模型特定（模型卡）到数据集特定（数据表）到系统特定（系统卡）演进。2024-2025 年自动化和可验证证明工作解决了长期采用问题。
 
 ## The Concept | 概念
 
@@ -90,15 +94,21 @@ Sidhpurwala 2024 and Meta system-level transparency work. "Blueprints of Trust" 
 
 Lessons 24-25 are regulatory and CVE layers. Lesson 26 is the documentation layer. Lesson 27 is training-data governance, which is the datasheet's upstream. Lesson 28 is the research ecosystem that produces evaluations referenced in cards.
 
+> Lessons 24-25 是监管和 CVE 层。Lesson 26 是文档层。Lesson 27 是训练数据治理。Lesson 28 是产生卡片中引用评估的研究生态系统。
+
 > **【拓展：可验证证明 → Laminator】** Laminator（Duddu 等人 2024）使用硬件 TEE / 加密签名实现可验证证明——允许模型卡携带声明证明而非仅仅是声明。例如，一个模型卡字段可以携带"在数据集 X 上的准确率为 Y%"的加密证明，验证者可以检查证明而不需要重新运行评估。这对于监管合规（EU AI Act, Lesson 24）特别重要。
 
 ## Use It | 使用方法
 
 `code/main.py` generates a minimal model card, datasheet, and system card for a toy deployment. Each follows the canonical section structure. You can inspect the format and compare the three scopes.
 
+> `code/main.py` 为玩具部署生成最小的模型卡、数据表和系统卡。每个遵循标准章节结构。你可以检查格式并比较三个范围。
+
 ## Ship It | 部署上线
 
 This lesson produces `outputs/skill-card-audit.md`. Given a model card, datasheet, or system card, it audits section coverage, numerical disaggregation, and whether verifiable attestations are present.
+
+> 本课产出 `outputs/skill-card-audit.md`。给定模型卡、数据表或系统卡，审计章节覆盖、数值分解以及是否存在可验证证明。
 
 ## Exercises | 练习题
 
