@@ -32,7 +32,11 @@ Ask a model "Explain quantum computing" and it might produce:
 
 **Response A:** "Quantum computing uses qubits that can exist in superposition, meaning they can be 0, 1, or both simultaneously. This allows quantum computers to process certain calculations exponentially faster than classical computers. Key algorithms include Shor's algorithm for factoring large numbers and Grover's algorithm for searching unsorted databases."
 
+> **回复 A：** "量子计算使用可以处于叠加态的量子比特，意味着它们可以同时是 0、1 或两者。这使得量子计算机处理某些计算比经典计算机快指数级。关键算法包括用于大数分解的 Shor 算法和用于搜索无序数据库的 Grover 算法。"
+
 **Response B:** "Quantum computing is a type of computing that uses quantum mechanical phenomena. It was first proposed in the 1980s. Richard Feynman suggested that quantum systems could be simulated by quantum computers. The field has grown significantly since then. Many companies are now working on quantum computers. IBM, Google, and others have made progress. Quantum supremacy was claimed by Google in 2019."
+
+> **回复 B：** "量子计算是一种使用量子力学现象的计算。它在 1980 年代首次被提出。Richard Feynman 建议量子系统可以被量子计算机模拟。该领域此后显著发展。许多公司现在正在研发量子计算机。IBM、Google 等都取得了进展。Google 在 2019 年声称实现了量子霸权。"
 
 Both responses are factually correct. Both are grammatically sound. Both follow the instruction. But Response A is clearly better. It's more concise, more informative, and better structured. A human would pick A every time.
 
@@ -230,12 +234,14 @@ Common failure modes:
 
 | Failure | What happens | Why |
 |---------|-------------|-----|
-| Verbosity | Model produces longer and longer responses | Human annotators often preferred longer, more detailed responses, so the reward model assigns higher scores to length |
-| Sycophancy | Model agrees with everything the user says | Annotators preferred responses that agreed with the premise of the question |
-| Hedging | Model refuses to commit to an answer | Hedged responses ("This is a complex topic with many perspectives...") rarely get marked as wrong |
-| Format gaming | Model uses bullet points and headers excessively | Formatted responses looked more "polished" to annotators |
+| Verbosity / 冗长 | Model produces longer and longer responses / 模型生成越来越长的回复 | Human annotators often preferred longer, more detailed responses, so the reward model assigns higher scores to length / 人类标注者通常偏好更长、更详细的回复，因此奖励模型给长度分配更高分数 |
+| Sycophancy / 谄媚 | Model agrees with everything the user says / 模型同意用户说的一切 | Annotators preferred responses that agreed with the premise of the question / 标注者偏好同意问题前提的回复 |
+| Hedging / 模糊 | Model refuses to commit to an answer / 模型拒绝给出确定答案 | Hedged responses ("This is a complex topic with many perspectives...") rarely get marked as wrong / 模糊的回复很少被标记为错误 |
+| Format gaming / 格式投机 | Model uses bullet points and headers excessively / 模型过度使用列表和标题 | Formatted responses looked more "polished" to annotators / 格式化的回复在标注者看来更"精致" |
 
 Mitigation strategies: stronger KL penalty (prevents the model from straying far enough to exploit weaknesses), training the reward model on adversarial examples (patch known failure modes), and using multiple reward models with different architectures (harder to hack all simultaneously).
+
+> 缓解策略：更强的 KL 惩罚（防止模型偏离到足以利用弱点的程度）、在对抗样本上训练奖励模型（修补已知失败模式）、使用不同架构的多个奖励模型（更难同时攻破所有模型）。
 
 ### Real RLHF Pipelines
 
@@ -246,13 +252,19 @@ Mitigation strategies: stronger KL penalty (prevents the model from straying far
 | Claude | undisclosed | undisclosed | undisclosed | undisclosed | undisclosed |
 | Anthropic RLHF paper | 22K | 20 | 52B | 50K | 0.001 |
 
+> 各模型的 RLHF 训练配置对比：InstructGPT 用 33K 偏好对和 6B 奖励模型；Llama 2 Chat 用约 1M 偏好对和 70B 奖励模型；Anthropic 的 RLHF 论文在 22K 比较对上训练了 52B 的奖励模型。
+
 Anthropic's 2022 paper trained a 52B reward model on 22,000 comparisons. Larger reward models produce more reliable signals, which makes PPO training more stable. Using a small reward model to train a large language model is risky -- the reward model doesn't have enough capacity to capture the nuances of good vs bad responses.
+
+> Anthropic 2022 年的论文在 22,000 个比较对上训练了 52B 的奖励模型。更大的奖励模型产生更可靠的信号，使 PPO 训练更稳定。用小奖励模型训练大语言模型是有风险的——奖励模型没有足够的容量来捕获好回复与坏回复之间的细微差别。
 
 ## Build It | 动手实现
 
 ### Step 1: Synthetic Preference Data
 
 In production, human annotators create preference data. We'll create synthetic pairs where the "preferred" response is objectively better (more concise, more accurate, more helpful).
+
+> 在生产中，人类标注者创建偏好数据。我们将创建合成对，其中"首选"回复客观上更好（更简洁、更准确、更有帮助）。
 
 ```python
 import numpy as np
@@ -293,9 +305,13 @@ PREFERENCE_DATA = [
 
 The preferred responses are concise and direct. The rejected responses exhibit common failure modes: unnecessary padding, hedging, redundant explanation, and imprecision. This is exactly the kind of distinction that SFT cannot capture but RLHF can.
 
+> 首选回复简洁直接。被拒回复展示了常见失败模式：不必要的填充、模糊、冗余解释和不精确。这正是 SFT 无法捕获但 RLHF 可以区分的差异。
+
 ### Step 2: Reward Model Architecture
 
 The reward model reuses the transformer architecture from the mini GPT, but replaces the vocabulary-sized output head with a single scalar projection.
+
+> 奖励模型复用了 mini GPT 的 transformer 架构，但将词表大小的输出头替换为单个标量投影。
 
 ```python
 import sys
@@ -332,9 +348,13 @@ class RewardModel:
 
 The reward model takes the hidden state at the *last* token position and projects it to a scalar. Why the last token? Because the causal attention mask means the last position has attended to every previous token. It has the most complete representation of the entire (prompt, response) sequence.
 
+> 奖励模型取最后一个 token 位置的隐藏状态并投影为标量。为什么是最后一个 token？因为因果注意力掩码意味着最后一个位置已经关注了前面所有的 token。它对整个（prompt, 回复）序列有最完整的表示。
+
 ### Step 3: Bradley-Terry Loss
 
 Train the reward model on preference pairs using the Bradley-Terry pairwise loss.
+
+> 使用 Bradley-Terry 成对损失在偏好对上训练奖励模型。
 
 ```python
 def tokenize_for_reward(prompt, response, vocab_size=256):
@@ -414,9 +434,13 @@ def train_reward_model(rm, preference_data, num_epochs=10, lr=1e-4, max_seq_len=
 
 The accuracy metric is straightforward: what fraction of preference pairs does the reward model rank correctly? A random model scores 50%. A well-trained reward model on clean data should exceed 70%. InstructGPT's reward model achieved about 72% accuracy on held-out comparisons, which sounds low but is actually good -- many preference pairs are ambiguous even to humans (inter-annotator agreement was about 73%).
 
+> 准确率指标很直观：奖励模型正确排序的偏好对比例是多少？随机模型得分 50%。在干净数据上训练良好的奖励模型应超过 70%。InstructGPT 的奖励模型在保留比较对上达到了约 72% 的准确率，听起来低但实际上很好——许多偏好对对人类来说也是有歧义的（标注者间一致性约为 73%）。
+
 ### Step 4: Simplified PPO Loop
 
 Full PPO is complex. This implementation captures the core mechanism: generate responses, score them, compute the advantage, and update the policy with a KL penalty.
+
+> 完整的 PPO 很复杂。这个实现捕获了核心机制：生成回复、评分、计算优势、用 KL 惩罚更新策略。
 
 ```python
 def compute_kl_divergence(policy_logits, reference_logits):
@@ -517,9 +541,13 @@ def ppo_training(policy_model, reference_model, reward_model, prompts,
 
 The core loop: (1) sample a prompt, (2) generate a response, (3) score it with the reward model, (4) compute KL divergence against the frozen reference, (5) compute the adjusted reward (reward minus KL penalty), (6) update the policy. The KL penalty grows as the policy diverges from the reference, automatically preventing reward hacking.
 
+> 核心循环：(1) 采样一个 prompt，(2) 生成回复，(3) 用奖励模型评分，(4) 计算与冻结参考模型的 KL 散度，(5) 计算调整后的奖励（奖励减 KL 惩罚），(6) 更新策略。KL 惩罚随策略偏离参考模型而增长，自动防止奖励黑客。
+
 ### Step 5: Reward Score Comparison
 
 After RLHF, the policy model's responses should score higher on the reward model than the original SFT model's responses.
+
+> RLHF 后，策略模型的回复在奖励模型上的得分应高于原始 SFT 模型的回复。
 
 ```python
 def compare_models(sft_model, rlhf_model, reward_model, prompts, max_seq_len=128):
@@ -665,17 +693,24 @@ if __name__ == "__main__":
 
 This lesson produces `outputs/prompt-reward-model-designer.md` -- a prompt for designing reward model training pipelines. Given a target behavior (helpfulness, coding ability, safety), it produces a data collection protocol, annotator guidelines, and reward model evaluation criteria.
 
+> 本课产出 `outputs/prompt-reward-model-designer.md`——一个用于设计奖励模型训练管线的 prompt。给定目标行为（有用性、编程能力、安全性），它会生成数据收集协议、标注者指南和奖励模型评估标准。
+
 ## Exercises | 练习题
 
 1. Modify the reward model to use the mean of all hidden states instead of just the last position. Compare accuracy. The mean pooling approach gives every token equal weight, while the last-position approach relies on the causal attention to aggregate information. Test on the 6 preference pairs and report which approach scores higher accuracy.
+   中文翻译：修改奖励模型使用所有隐藏状态的均值而非仅最后位置。比较准确率。均值池化方法给每个 token 相同权重，而最后位置方法依赖因果注意力聚合信息。在 6 个偏好对上测试并报告哪种方法准确率更高。
 
 2. Implement reward model calibration. After training, run all preference pairs through the reward model and compute: (a) the average reward for preferred responses, (b) the average reward for rejected responses, (c) the margin (preferred minus rejected). A well-calibrated model should have a clear margin. Then add 4 new preference pairs and check if the margin holds on unseen data.
+   中文翻译：实现奖励模型校准。训练后，将所有偏好对通过奖励模型计算：(a) 首选回复的平均奖励，(b) 被拒回复的平均奖励，(c) 边距（首选减被拒）。良好校准的模型应有明显边距。然后添加 4 个新偏好对，检查边距在未见数据上是否保持。
 
 3. Simulate reward hacking. Create a reward model that gives high scores to long responses (reward = len(response) / 100). Run PPO with this flawed reward model and observe the policy model generating increasingly long, repetitive outputs. Then add a KL penalty of 0.1 and show that it prevents the degenerate behavior.
+   中文翻译：模拟奖励黑客。创建一个给长回复高分的奖励模型（reward = len(response) / 100）。用这个有缺陷的奖励模型运行 PPO，观察策略模型生成越来越长、重复的输出。然后添加 0.1 的 KL 惩罚，展示它能防止退化行为。
 
 4. Implement a multi-objective reward. Train two reward models -- one for helpfulness and one for conciseness. Combine them as R = 0.7 * R_helpful + 0.3 * R_concise. Show that the combined objective produces responses that are both helpful and concise, avoiding the verbosity trap of a single helpfulness reward.
+   中文翻译：实现多目标奖励。训练两个奖励模型——一个用于有用性，一个用于简洁性。组合为 R = 0.7 * R_helpful + 0.3 * R_concise。展示组合目标产生既又有用又简洁的回复，避免单一有用性奖励的冗长陷阱。
 
 5. Compare different KL coefficients. Run PPO with beta=0.001 (too low, reward hacking), beta=0.02 (standard), and beta=0.5 (too high, no learning). Plot the reward curve and KL curve for each. The beta=0.02 run should show steady reward improvement with bounded KL.
+   中文翻译：比较不同 KL 系数。用 beta=0.001（太低，奖励黑客）、beta=0.02（标准）和 beta=0.5（太高，不学习）运行 PPO。绘制每组的奖励曲线和 KL 曲线。beta=0.02 应显示稳定的奖励提升和有界的 KL。
 
 ## Key Terms | 术语速查表
 

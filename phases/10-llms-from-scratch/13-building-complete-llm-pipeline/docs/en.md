@@ -74,6 +74,8 @@ graph TD
 
 Stages 07 and 08 can run in parallel. Everything else is a hard dependency. A change in stage 02 (tokenizer) invalidates every downstream artifact. A change in stage 10 (eval) invalidates only the ship decision.
 
+> 阶段 07 和 08 可以并行运行。其他都是硬依赖。阶段 02（分词器）的变更使所有下游产物失效。阶段 10（评估）的变更只使发布决策失效。
+
 ### The Manifest
 
 A manifest is a single file that describes a run completely enough to replay it. Nothing the pipeline produces should depend on state that is not in the manifest. The fields are boring and mandatory.
@@ -220,46 +222,48 @@ The numbers change every six months. The skeleton does not.
 
 The lesson's code is an orchestrator and a manifest checker, not twelve training scripts. Each stage is simulated with a placeholder that produces an output artifact with the correct shape and hash. Running the orchestrator end-to-end proves the pipeline's plumbing works before you burn GPU money on the real stages.
 
-See `code/main.py` for the full implementation. The key pieces:
-
-- `Manifest` dataclass: pipeline version, seed, git commit, stages, gates.
-- `Stage` dataclass: name, type, inputs (hashes), output (hash), wall clock, cost.
-- `Orchestrator.run()`: resolves DAG, dispatches stages, verifies hashes, updates manifest.
-- `EvalGate.check()`: reads thresholds, compares against latest eval report, returns pass/fail.
-- `ArtifactStore` (in-memory stub): put/get by hash, simulates S3.
-- `CostTracker`: per-stage and cumulative, halts when cap exceeded.
+> 本课代码是编排器和清单检查器，不是十二个训练脚本。每个阶段用占位符模拟，产出正确形状和哈希的输出产物。端到端运行编排器证明管线管道在花 GPU 钱之前就能工作。
 
 The pipeline in `main.py` runs twelve placeholder stages, produces a manifest, and exercises a failing eval gate to show what a held run looks like. Swap each placeholder for the real training script from the corresponding lesson and you have the skeleton a real frontier pipeline uses.
+
+> `main.py` 中的管线运行十二个占位阶段，产出清单，并测试一个失败的评估门控来展示被挂起的运行是什么样的。将每个占位符替换为对应课程的实际训练脚本，你就有了真实前沿管线使用的骨架。
 
 ## Use It | 用框架实现
 
 The canonical workflow has three commands.
 
-```
-python code/main.py plan    # validate manifest, compute cost estimate, print DAG
-python code/main.py run     # execute stages, writing to manifest.out.yaml
-python code/main.py gate    # read manifest.out.yaml, apply eval gates, ship-or-hold
-```
+> 标准工作流有三个命令。
 
 Run `plan` first every time. Most pipeline bugs show up at plan time -- missing gate thresholds, stale hashes, budget overruns. Running `plan` is free. Running `run` is expensive. Save money by catching bugs on the cheap side.
 
+> 每次先运行 `plan`。大多管线 bug 在计划时就出现——缺失门控阈值、过期哈希、预算超支。运行 `plan` 免费。运行 `run` 昂贵。在便宜的一侧捕获 bug 省钱。
+
 The output of `gate` is either `SHIP` or `HOLD: <reason>`. A held run is not a failure; it is a decision point. A named reviewer either overrides (and the override is logged), or they approve the rollback.
+
+> `gate` 的输出是 `SHIP` 或 `HOLD: <reason>`。被挂起的运行不是失败；它是一个决策点。指定审核者要么覆盖（覆盖被记录），要么批准回滚。
 
 ## Ship It | 产出物
 
 This lesson produces `outputs/skill-llm-pipeline-reviewer.md`. Feed it a proposed pipeline manifest and it checks all the contracts: stage typing, hash chain, gates, rollback plan, cost estimate. It refuses to approve a manifest with a missing eval gate, an unbounded KL budget, or a run that mixes eval and training data.
 
+> 本课产出 `outputs/skill-llm-pipeline-reviewer.md`。向其输入提议的管线清单，它检查所有契约：阶段类型、哈希链、门控、回滚计划、成本估算。它拒绝批准缺少评估门控、无限 KL 预算或混合评估和训练数据的清单。
+
 ## Exercises | 练习题
 
 1. Extend the orchestrator to support parallel execution of stages 07 and 08. Use the stdlib `concurrent.futures` module. Confirm the final manifest records both stages' outputs and that stage 09's input hash is a deterministic combination of both.
+   中文翻译：扩展编排器支持阶段 07 和 08 的并行执行。使用标准库 `concurrent.futures` 模块。确认最终清单记录两个阶段的输出，且阶段 09 的输入哈希是两者的确定性组合。
 
 2. Add a "contamination check" gate. Given the eval dataset hash and the training dataset shards, compute the overlap (exact string match or 13-gram match). The gate fails if overlap exceeds 0.1%. Feed it a contaminated training set and confirm the gate holds the run.
+   中文翻译：添加"污染检查"门控。给定评估数据集哈希和训练数据集分片，计算重叠（精确字符串匹配或 13-gram 匹配）。重叠超过 0.1% 则门控失败。喂入被污染的训练集并确认门控挂起运行。
 
 3. Implement a cost estimator from first principles. For stage 04 (pre-training), estimate FLOPs as 6 x params x tokens, assume 40% MFU (model FLOPs utilization) on H100 at 989 TFLOPs BF16, at $2.50/GPU-hour. Report the estimate for a 7B model trained on 2T tokens. Compare to published Llama 2 numbers.
+   中文翻译：从第一性原理实现成本估算器。对于阶段 04（预训练），估算 FLOPs 为 6 x 参数 x token，假设 H100 上 40% MFU（模型算力利用率），989 TFLOPS BF16，$2.50/GPU-小时。报告 7B 模型在 2T token 上训练的估算。与已发表的 Llama 2 数据比较。
 
 4. Build a partial rollback. Simulate a failure at stage 09 (CAI), then re-run stages 09 through 12 while leaving 01-08 cached. The orchestrator should detect the cached artifacts by hash and skip them. Measure wall-clock saved versus full re-run.
+   中文翻译：构建部分回滚。模拟阶段 09（CAI）失败，然后重跑阶段 09-12 同时保持 01-08 缓存。编排器应通过哈希检测缓存产物并跳过。测量相比完整重跑节省的挂钟时间。
 
 5. Add observability. Emit OpenTelemetry spans for each stage, with attributes for params, tokens seen, loss, and cost. Pipe the spans to a local collector. The point is not dashboards; the point is that every stage's health is traceable from a single trace ID.
+   中文翻译：添加可观测性。为每个阶段发出 OpenTelemetry span，带参数、已见 token、损失和成本属性。将 span 管道到本地收集器。重点不是仪表盘；重点是每个阶段的健康可从单个 trace ID 追踪。
 
 ## Key Terms | 术语速查表
 
