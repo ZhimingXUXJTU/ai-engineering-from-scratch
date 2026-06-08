@@ -14,13 +14,26 @@
 ## Learning Objectives | 学习目标
 
 - Describe WMDP's three domains, question counts, and "yellow zone" filter criterion.
+
+> 描述 WMDP 的三个领域、问题数量和"黄色区域"过滤标准。
+
 - Explain RMU and why WMDP is both an evaluation and an unlearning benchmark.
+
+> 解释 RMU 以及为什么 WMDP 既是评估基准也是遗忘基准。
+
 - Describe the 2024-2025 uplift narrative: "mild uplift" -> "on the cusp" -> "insufficient to rule out ASL-3."
+
+> 描述 2024-2025 年提升叙述："轻微提升" -> "即将突破" -> "不足以排除 ASL-3"。
+
 - Distinguish novice-relative uplift from expert-absolute capability.
+
+> 区分新手相对提升和专家绝对能力。
 
 ## The Problem | 问题
 
 Dual-use capability is the measurement problem under every lab's frontier safety framework (Lesson 18). The question: does model X materially advance a novice's ability to cause mass harm in bio, chem, or cyber? Direct measurement (ask the model to actually produce harm) is illegal and unethical. Proxy measurement needs a benchmark the model cannot refuse (to produce honest capability numbers) but whose questions are not themselves harmful publications.
+
+> 双重用途能力是每个实验室前沿安全框架下的测量问题。问题是：模型 X 是否实质性地推进了新手在生物、化学或网络领域造成大规模伤害的能力？直接测量是非法和不道德的。代理测量需要一个模型不能拒绝的基准，但问题本身不是有害出版物。
 
 ## The Concept | 概念
 
@@ -30,12 +43,18 @@ Dual-use capability is the measurement problem under every lab's frontier safety
 
 Questions that require proximate, enabling knowledge of a harmful process without being a direct synthesis recipe. "What reagent catalyzes step 4 of [published pathway]?" not "how do I make [dangerous compound]?" Each question reviewed by multiple domain experts; filtered for ITAR/EAR export-control compliance.
 
+> 需要有害流程的接近使能知识但不是直接合成配方的问题。每道题经过多个领域专家审查，按 ITAR/EAR 出口管制合规过滤。
+
 4,157 questions total:
 - Biosecurity: 1,520
 - Cybersecurity: 2,225
 - Chemistry: 412
 
+> 总共 4,157 道题：生物安全 1,520、网络安全 2,225、化学 412。
+
 Multiple-choice format. Models answer without being asked to assist with anything; capability can be measured without eliciting harmful behaviour.
+
+> 选择题格式。模型在不被要求协助任何有害活动的情况下回答；能力可以在不引出有害行为的情况下测量。
 
 > **【中文解读】** RMU（表征误导遗忘）：应用于 LLaMa-2-7B，在将 WMDP 分数降低到接近随机的同时保持 MMLU 和其他通用能力基准在几个百分点内。该方法是每个后续生物-化学-网络安全遗忘论文的基线。
 
@@ -43,15 +62,25 @@ Multiple-choice format. Models answer without being asked to assist with anythin
 
 The companion unlearning method. Applied to LLaMa-2-7B, reduced WMDP scores to near-random while preserving MMLU and other general-capability benchmarks within a few percentage points. The published method is the unlearning baseline for every subsequent bio-chem-cyber unlearning paper.
 
+> 配套的遗忘方法。应用于 LLaMa-2-7B，在将 WMDP 分数降低到接近随机的同时保持 MMLU 和其他通用能力基准在几个百分点内。该方法是每个后续生物-化学-网络安全遗忘论文的基线。
+
 ### The 2024-2025 uplift narrative
 
 Three phases:
 
+> 三个阶段：
+
 1. **2024 "mild uplift."** Early OpenAI and Anthropic Preparedness/RSP evaluations reported small advantages over internet search for novices attempting bio-adjacent tasks. Public framing: frontier models help, but not substantially more than Google.
+
+> **2024 年"轻微提升"。** 早期评估报告模型对新手只有小幅优势。公共框架：前沿模型有帮助，但不比 Google 多太多。
 
 2. **April 2025 "on the cusp."** OpenAI's Preparedness Framework v2 reported models "on the cusp of meaningfully helping novices create known biological threats." Not a capability claim — a warning that the cusp is close.
 
+> **2025 年 4 月"即将突破"。** OpenAI PF v2 报告模型即将有意义地帮助新手创造已知生物威胁。不是能力声明——是警告。
+
 3. **Anthropic's 2025 bioweapon-acquisition trial.** Controlled study with novice participants, measured relative success at acquisition-phase tasks. Reported 2.53x uplift. Insufficient to rule out ASL-3 (Lesson 18) — the threshold for Anthropic's Responsible Scaling Policy tier 3 is met or approached.
+
+> **Anthropic 2025 年生物武器获取试验。** 对照研究测量新手在获取阶段任务的相对成功率。报告 2.53 倍提升。不足以排除 ASL-3。
 
 > **【拓展：新手相对提升 vs 专家绝对能力 → 安全案例构建】** 关键区分：新手相对提升是乘法的——新手知道很少，即使适度信息也有很大帮助；专家绝对能力是高天花板的——专家知道该问什么和如何解释。安全案例（Lesson 18）必须同时针对两者："模型不能给新手足够的提升来执行"加"专家不能从模型中提取已发布以外的信息"。
 
@@ -59,10 +88,19 @@ Three phases:
 
 A crucial distinction:
 
+> 关键区分：
+
 - **Novice-relative uplift.** How much does the model help a non-expert? Multiplicative. The relative advantage is high because novices know little; even modest information helps.
+
+> **新手相对提升。** 模型对非专家有多少帮助？乘法的。新手知道很少，即使适度信息也有很大帮助。
+
 - **Expert-absolute capability.** How much information does the model produce at maximum effort? An expert can extract more than a novice. The absolute ceiling is high.
 
+> **专家绝对能力。** 模型在最大努力下产生多少信息？专家比新手提取更多。绝对天花板很高。
+
 Safety cases (Lesson 18) target both: "the model cannot give a novice enough uplift to execute" plus "an expert cannot extract information from the model that is not already published."
+
+> 安全案例（Lesson 18）同时针对两者："模型不能给新手足够的提升来执行"加"专家不能从模型中提取已发布以外的信息"。
 
 ### The measurement pitfall
 
@@ -71,11 +109,17 @@ WMDP is a capability proxy, not a deployment measurement. A model that scores hi
 - Tacit knowledge (capability that requires wet-lab skill, not information)
 - Execution barriers (procurement, equipment)
 
+> WMDP 是能力代理，不是部署测量。WMDP 得分高的模型在实践中不一定可被新手利用——取决于引出抗性、隐性知识和执行壁垒。
+
 Anthropic's 2025 bioweapon-acquisition trial adds the novice-elicitation layer on top of WMDP-style capability: it measures actual task success, not multiple-choice capability.
+
+> Anthropic 2025 年生物武器获取试验在 WMDP 式能力之上添加了新手引出层：测量实际任务成功而非多项选择能力。
 
 ### Where this fits in Phase 18
 
 Lessons 12-16 are attack and defense tooling on model outputs. Lesson 17 is the dual-use capability layer — the measurement that frontier safety frameworks (Lesson 18) evaluate. Lesson 30 closes the arc with the current 2026 cyber/bio/chem/nuclear uplift evidence.
+
+> Lessons 12-16 是模型输出的攻击和防御工具。Lesson 17 是双重用途能力层——前沿安全框架评估的测量。Lesson 30 以当前 2026 年网络/生物/化学/核提升证据结束。
 
 > **【拓展：测量陷阱 → 能力代理非部署测量】** WMDP 是能力代理，不是部署测量。WMDP 得分高的模型在实践中不一定可被新手利用——取决于引出抗性（不触发安全过滤器获得能力的难度）、隐性知识（需要湿实验室技能的能力）和执行壁垒（采购、设备）。Anthropic 2025 生物武器获取试验在 WMDP 式能力之上添加了新手引出层：测量实际任务成功而非多项选择能力。
 
@@ -83,9 +127,13 @@ Lessons 12-16 are attack and defense tooling on model outputs. Lesson 17 is the 
 
 `code/main.py` builds a toy WMDP-shaped evaluation harness. A mock model is tested on category-binned questions; scores per domain are reported. A simple unlearning intervention (zero out domain-specific representation) reduces scores; you can measure the trade-off against general capability.
 
+> `code/main.py` 构建了玩具 WMDP 形式评估框架。模拟模型在分类问题上测试；报告每个领域的分数。简单的遗忘干预降低分数；你可以衡量与通用能力的权衡。
+
 ## Ship It | 部署上线
 
 This lesson produces `outputs/skill-wmdp-eval.md`. Given a dual-use capability claim ("our model does not meaningfully help with bioweapons"), it audits: which benchmarks were run, which refusal path was used for evaluation (raw completion vs policy-gated), and whether novice-elicitation studies complement the multiple-choice result.
+
+> 本课产出 `outputs/skill-wmdp-eval.md`。给定双重用途能力声明，审计：运行了哪些基准、使用哪种拒绝路径评估、新手引出研究是否补充了多项选择结果。
 
 ## Exercises | 练习题
 

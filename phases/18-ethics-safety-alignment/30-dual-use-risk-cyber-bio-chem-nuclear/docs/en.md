@@ -18,9 +18,13 @@
 - Describe the chem/bio execution-gap erosion: vision-enabled real-time correction of wet-lab experiments.
 - State the novice-relative vs expert-absolute asymmetry and its implication for safety-case construction.
 
+> 描述 2024-2025 年生物提升叙述。描述 2025 年 11 月 Anthropic 网络报告。描述化学/生物执行差距侵蚀。说明新手相对 vs 专家绝对的不对称性及其对安全案例构建的含义。
+
 ## The Problem | 问题
 
 Lesson 17 is the measurement methodology. Lesson 30 is the 2026 state of the measurement. The picture shifted materially between 2024 and late 2025: each domain crossed a threshold that the 2024 frameworks did not anticipate.
+
+> Lesson 17 是测量方法论。Lesson 30 是 2026 年的测量状态。2024 到 2025 年底画面发生了实质性变化。
 
 ## The Concept | 概念
 
@@ -62,6 +66,8 @@ Implications:
 
 The least-analyzed of the four CBRN domains in public documentation. The threat model is different: fissile-material acquisition dominates the difficulty, not information. AI uplift on the information layer provides limited novice uplift in practice. No 2024-2025 major-lab report identifies a nuclear-specific threshold crossing.
 
+> 四个 CBRN 领域中在公开文档中分析最少的。威胁模型不同：裂变材料获取主导难度，不是信息。材料获取瓶颈是唯一仍然有效的非信息壁垒。
+
 > **【中文解读】** 新手相对 vs 专家绝对的模式：新手相对提升——高，乘法的（Anthropic 2025 生物报告 2.53 倍）；专家绝对能力——高天花板（专家知道该问什么和如何解释）。安全案例启示：仅解决新手提升（通过输入过滤器、拒绝、不确定性表达）对专家绝对控制不够。需要额外措施：引出强化、能力遗忘（Lesson 17）和控制协议（Lesson 10）。
 
 ### Novice-relative vs expert-absolute
@@ -84,17 +90,21 @@ Implication for safety cases: addressing only novice uplift (via input filters, 
 
 Three domains crossed thresholds. One remains bounded by non-informational barriers.
 
+> 三个领域穿越了阈值，一个仍受非信息壁垒约束。
+
 ### Where this fits in Phase 18
 
 Lesson 30 is the capstone: the current dual-use picture that every prior lesson contributes to measuring, limiting, or governing. Lessons 17-18 give the measurement and frameworks; Lessons 12-16 give the evaluation tooling; Lessons 24-25 give the regulatory and disclosure layer; Lesson 28 gives the research ecosystem. Lesson 30 is where the evidence lands.
 
-## Use It | 使用方法
+> Lesson 30 是顶点课程：每个先前课程贡献于测量、限制或治理的当前双重用途画面。Lesson 30 是证据落地的位置。
 
 No code. Read the Anthropic November 2025 cyber report, OpenAI's Preparedness Framework v2 April 2025 update, and the Council on Strategic Risks 2025 AI x Bio wrapup.
 
-## Ship It | 部署上线
+> 没有代码。阅读 Anthropic 2025 年 11 月网络报告、OpenAI PF v2 和 Council on Strategic Risks 2025 AI x Bio 年终总结。
 
 This lesson produces `outputs/skill-dual-use-triage.md`. Given a 2026 capability claim or incident report, it triages across the four domains and identifies whether the claim affects novice-relative uplift, expert-absolute capability, or both.
+
+> 本课产出 `outputs/skill-dual-use-triage.md`。给定 2026 年能力声明或事件报告，跨四个领域分类并识别声明影响新手相对提升、专家绝对能力还是两者。
 
 ## Exercises | 练习题
 

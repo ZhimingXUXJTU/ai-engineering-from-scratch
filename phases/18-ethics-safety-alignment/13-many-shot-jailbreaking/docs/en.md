@@ -14,13 +14,26 @@
 ## Learning Objectives | 学习目标
 
 - Describe the many-shot jailbreaking attack and the context-window property it exploits.
+
+> 描述多次射击越狱攻击及其利用的上下文窗口属性。
+
 - State the empirical power law: attack success rate as a function of shot count.
+
+> 说明实证幂律：攻击成功率作为射击次数的函数。
+
 - Explain why MSJ shares a mechanism with benign in-context learning, and what that implies for defenses.
+
+> 解释为什么 MSJ 与良性上下文学习共享机制，以及对防御意味着什么。
+
 - Describe Anthropic's classifier-based prompt modification defense and its reported 61% -> 2% reduction.
+
+> 描述 Anthropic 基于分类器的提示修改防御及其报告的 61% 到 2% 的降低。
 
 ## The Problem | 问题
 
 PAIR (Lesson 12) works within normal prompt lengths. MSJ works because context windows are long. Every 2024-2025 frontier model ships with a 200k+ context window; Claude has extended to 1M; Gemini offers 2M. Long context is a product feature. MSJ turns it into an attack surface.
+
+> PAIR 在正常提示长度内工作。MSJ 因为上下文窗口长而有效。每个 2024-2025 前沿模型都有 200k+ 上下文窗口；Claude 扩展到 1M；Gemini 提供 2M。长上下文是产品特性。MSJ 将其变成攻击面。
 
 ## The Concept | 概念
 
@@ -42,19 +55,29 @@ Assistant:
 
 The model continues the pattern. The assistant turns in the context are fake — never emitted by the target model — but the target treats them as a pattern to follow.
 
+> 模型继续这个模式。上下文中的助手回合是虚假的——从未由目标模型生成——但目标模型将其视为要遵循的模式。
+
 > **【拓展：幂律 ASR → ICL 共享机制】** 幂律而非逻辑回归——增加射击次数不会饱和，而是持续上升。良性 ICL 和 MSJ 的幂律形状相同，模型不区分两者，因为底层机制——从上下文示例中提取模式——是同一个。这意味着任何修复 MSJ 而不损害 ICL 的训练时防御都需要模型在模式级别区分有害和良性内容。
 
 ### Power-law ASR
 
 Anil et al. report attack success rate scales as a power law in shot count. Fails reliably at 5 shots. Begins to succeed around 32 shots. Reliable on violent/deceitful content at 256 shots. The curve's exponent depends on behaviour category and model.
 
+> Anil 等人报告攻击成功率遵循射击次数的幂律。5 次射击可靠失败。32 次左右开始成功。256 次射击在暴力/欺骗内容上可靠。曲线的指数取决于行为类别和模型。
+
 Power law — not logistic. Increasing shots does not plateau; it keeps climbing.
+
+> 幂律而非逻辑回归。增加射击次数不会饱和，而是持续上升。
 
 ### Why it shares a mechanism with ICL
 
 Benign ICL: the model extracts the task from in-context examples and executes it on the query. MSJ: the model extracts "comply with harmful requests" from in-context examples and executes on the target.
 
+> 良性 ICL：模型从上下文示例中提取任务并在查询上执行。MSJ：模型从上下文示例中提取"遵守有害请求"并在目标上执行。
+
 The power-law shape is identical. The model does not distinguish the two because the mechanism — pattern extraction from in-context examples — is the same.
+
+> 幂律形状相同。模型不区分两者，因为机制——从上下文示例中提取模式——是相同的。
 
 > **【中文解读】** 防御困境：如果抑制长上下文的模式提取，你就禁用了上下文学习，这会破坏所有基于提示的少样本方法。实际防御必须在保留良性模式的 ICL 的同时拒绝有害模式。Anthropic 的基于分类器的提示修改对全上下文运行安全分类器检测多次射击结构，然后截断或重写相关部分，报告从 61% 降到 2% 攻击成功率。
 
@@ -62,19 +85,29 @@ The power-law shape is identical. The model does not distinguish the two because
 
 If you suppress pattern extraction from long contexts, you disable in-context learning, which breaks all prompt-based few-shot methods. Practical defenses must preserve ICL for benign patterns while rejecting harmful patterns.
 
+> 如果抑制长上下文的模式提取，你就禁用了上下文学习，这会破坏所有基于提示的少样本方法。实际防御必须在保留良性模式 ICL 的同时拒绝有害模式。
+
 Anthropic's classifier-based prompt modification runs a safety classifier over the full context to detect many-shot structure, and either truncates or rewrites the relevant portion. Reported reduction: 61% -> 2% attack success on tested settings.
+
+> Anthropic 的基于分类器的提示修改对全上下文运行安全分类器检测多次射击结构，然后截断或重写相关部分。报告降低：61% 到 2% 攻击成功率。
 
 ### Combinations with other attacks
 
 MSJ composes with PAIR (Lesson 12): use PAIR to find the attack structure, fill it with many shots. Anil et al. 2024 (Anthropic) report that MSJ composes with competing-objective jailbreaks — stacking reaches higher ASR than either alone.
 
+> MSJ 与 PAIR 组合：用 PAIR 找到攻击结构，填充多次射击。Anil 等人报告 MSJ 与竞争目标越狱组合，堆叠比单独任何一种都达到更高的 ASR。
+
 ### What 2025-2026 frontier models ship
 
 Every frontier lab now runs MSJ evaluations at 256+ shots against production models. The attack appears in model cards as an ASR curve rather than a single number.
 
+> 每个前沿实验室现在在 256+ 射击下对生产模型运行 MSJ 评估。攻击在模型卡中以 ASR 曲线而非单个数字出现。
+
 ### Where this fits in Phase 18
 
 Lesson 12 is the in-context iterative attack. Lesson 13 is the long-context length-exploit. Lesson 14 is the encoding attack. Lesson 15 is the injection attack at the system boundary. Together they define the 2026 jailbreak attack surface.
+
+> Lesson 12 是上下文迭代攻击。Lesson 13 是长上下文长度利用。Lesson 14 是编码攻击。Lesson 15 是系统边界注入攻击。它们共同定义了 2026 年越狱攻击面。
 
 > **【拓展：MSJ 在 2025-2026 前沿模型上的评估】** 每个前沿实验室现在在 256+ 射击下对生产模型运行 MSJ 评估。攻击在模型卡中以 ASR 曲线而非单个数字出现。MSJ 还与 PAIR 组合——用 PAIR 找到攻击结构然后填充多次射击。Anil 等人报告 MSJ 与竞争目标越狱组合，堆叠比单独任何一种都达到更高的 ASR。
 
@@ -82,9 +115,13 @@ Lesson 12 is the in-context iterative attack. Lesson 13 is the long-context leng
 
 `code/main.py` builds a toy target with a keyword filter and a "patterned-continuation" weakness: when the context contains N examples of harmful-compliance pairs, the target's filter score is damped by a power-law factor. You can reproduce the shot-vs-ASR curve.
 
+> `code/main.py` 构建了一个带关键词过滤和"模式延续"弱点的玩具目标：当上下文包含 N 个有害遵守对示例时，目标的过滤分数被幂律因子衰减。你可以复现射击-ASR 曲线。
+
 ## Ship It | 部署上线
 
 This lesson produces `outputs/skill-msj-audit.md`. Given a long-context-safety evaluation, it audits: shot counts tested (5, 32, 128, 256, 512), categories covered, defense mechanism (prompt classifier, truncation, rewriting), and power-law-fit statistics.
+
+> 本课产出 `outputs/skill-msj-audit.md`。给定长上下文安全评估，审计：测试的射击次数、覆盖的类别、防御机制和幂律拟合统计。
 
 ## Exercises | 练习题
 

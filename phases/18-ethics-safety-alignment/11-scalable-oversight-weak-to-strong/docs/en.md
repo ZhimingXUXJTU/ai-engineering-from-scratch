@@ -14,9 +14,20 @@
 ## Learning Objectives | 学习目标
 
 - Define scalable oversight and weak-to-strong generalization and explain how they are complementary.
+
+> 定义可扩展监督和弱到强泛化，并解释它们如何互补。
+
 - Describe the Burns et al. 2023 experimental setup: fine-tune GPT-4 using labels from GPT-2.
+
+> 描述 Burns 等人 2023 年的实验设置：使用 GPT-2 产生的标签微调 GPT-4。
+
 - Explain the performance gap recovered (PGR) metric and what it measures.
+
+> 解释性能差距恢复（PGR）指标及其衡量内容。
+
 - State the three major scalable-oversight mechanisms (debate, recursive reward modeling, task decomposition) and one strength of each.
+
+> 列出三种主要的可扩展监督机制（辩论、递归奖励建模、任务分解）及各自的优点。
 
 ## The Problem | 问题引入
 
@@ -43,35 +54,65 @@ Procedure:
 2. Fine-tune the strong model on weak-labeled data.
 3. Measure the strong fine-tuned model's accuracy.
 
+> 流程：1. 获取弱模型在任务上的零样本预测。2. 在弱标签数据上微调强模型。3. 测量强微调模型的准确率。
+
 Baselines: weak model's own accuracy, strong model's supervised ceiling on gold labels.
 
+> 基线：弱模型自身的准确率，强模型在金标签上的监督上限。
+
 Gap metric: Performance Gap Recovered (PGR) = (fine-tuned - weak) / (ceiling - weak). PGR of 1.0 means weak supervision fully closes the gap; PGR of 0 means weak supervision did not help.
+
+> 差距指标：性能差距恢复（PGR）=（微调后 - 弱）/（上限 - 弱）。PGR 为 1.0 表示弱监督完全弥合差距；PGR 为 0 表示弱监督没有帮助。
 
 ### Burns et al. empirical findings
 
 Across NLP, chess-puzzle, and reward-modeling tasks, PGR was consistently positive: the strong model generalized beyond the weak supervisor's mistakes. Task-specific PGR varied from ~20% to ~80%. The strong model "understands" the intended task from imperfect labels, filling in with its pre-trained priors.
 
+> 在 NLP、国际象棋谜题和奖励建模任务中，PGR 一致为正：强模型超越了弱监督者的错误进行了泛化。特定任务的 PGR 从约 20% 到约 80% 不等。强模型从 imperfect 标签中"理解"了预期任务，用预训练先验进行补充。
+
 Limitations Burns et al. note:
 - The weak-to-strong gap here is capability, not alignment. The weak model is aligned; a truly superhuman model might be aligned by a human but with a much larger capability gap.
+
+> 这里的弱到强差距是能力，而非对齐。弱模型是对齐的；真正的超人类模型可能由人类对齐，但能力差距大得多。
+
 - The strong model's generalization may be more about task priors than about recovering ground-truth intent.
+
+> 强模型的泛化可能更多是关于任务先验，而非恢复真实意图。
+
 - Eliciting the strong model's latent knowledge is the real problem; PGR measures a specific operationalization.
+
+> 激发强模型的潜在知识才是真正的问题；PGR 衡量的是特定操作化。
 
 > **【拓展：三种可扩展监督机制 → 辩论/递归奖励建模/任务分解】** 辩论（Irving 等人 2018）：两个 U 实例争论相反立场，弱评判者决定。递归奖励建模（Leike 等人 2018）：U 帮助人类训练 U+1 的奖励模型，监督者的有效能力随模型增长。任务分解（Christiano 等人 2018）：将硬任务分解为人类可检查的子任务，递归执行。每种机制都假设了关于任务结构或中间组件对齐的某些东西。
 
 ### Scalable oversight: three mechanisms
 
 - **Debate (Irving et al. 2018).** Two instances of U argue opposite sides; the weak judge decides. The assumption: finding a convincing true answer is easier than finding a convincing false answer. Recent 2024-2025 work (Khan et al., Michael et al.) shows debate sometimes helps and sometimes does not, and whether it helps depends on task structure.
+
+> **辩论（Irving 等人 2018）。** U 的两个实例争论相反立场；弱评判者决定。假设：找到一个令人信服的真实答案比找到令人信服的虚假答案更容易。2024-2025 年的最新研究表明辩论有时有效有时无效，取决于任务结构。
+
 - **Recursive Reward Modeling (Leike et al. 2018).** U helps the human train the reward model for U+1. The overseer's effective capability grows with the model's.
+
+> **递归奖励建模（Leike 等人 2018）。** U 帮助人类训练 U+1 的奖励模型。监督者的有效能力随模型增长。
+
 - **Task Decomposition (Christiano, Shlegeris, Amodei 2018).** Decompose a hard task into sub-tasks the human can check, recursively. Assumes decomposability.
 
+> **任务分解（Christiano, Shlegeris, Amodei 2018）。** 将硬任务递归分解为人类可检查的子任务。假设可分解性。
+
 Each mechanism assumes something about the structure of the task or the alignment of the intermediate components.
+
+> 每种机制都假设了关于任务结构或中间组件对齐的某些东西。
 
 ### Why scalable oversight and W2SG are complementary
 
 Scalable oversight increases the overseer's effective signal quality.
 W2SG closes the gap from whatever imperfect signal the overseer can provide.
 
+> 可扩展监督提高监督者的有效信号质量。弱到强泛化从监督者能提供的任何不完美信号中闭合差距。
+
 Lang et al. — Debate Helps Weak-to-Strong Generalization (arXiv:2501.13124) combines them: a debate protocol provides better weak labels, and the strong model is trained on those labels. Reported PGR gains on NLP tasks.
+
+> Lang 等人——辩论帮助弱到强泛化（arXiv:2501.13124）将两者结合：辩论协议提供更好的弱标签，强模型在这些标签上训练。报告在 NLP 任务上的 PGR 提升。
 
 > **【中文解读】** 组织戏剧：OpenAI 的超级对齐团队在 2024 年 5 月 Jan Leike 离职加入 Anthropic 后解散。但研究议程（可扩展监督、弱到强泛化、自动化对齐研究）在 Anthropic 和学术实验室继续——MATS（Lesson 28）、Redwood（Lesson 10）、Apollo（Lesson 8）、METR（Lesson 28）。组织结构变了，研究问题没变。
 
@@ -79,9 +120,13 @@ Lang et al. — Debate Helps Weak-to-Strong Generalization (arXiv:2501.13124) co
 
 OpenAI's Superalignment team dissolved in May 2024 after Jan Leike's departure to Anthropic. The agenda (scalable oversight, W2SG, automated alignment research) continued at Anthropic and at academic labs — MATS (Lesson 28), Redwood (Lesson 10), Apollo (Lesson 8), METR (Lesson 28). The organizational structure changed; the research questions did not.
 
+> OpenAI 的超级对齐团队在 2024 年 5 月 Jan Leike 离职加入 Anthropic 后解散。研究议程（可扩展监督、弱到强泛化、自动化对齐研究）在 Anthropic 和学术实验室继续——MATS、Redwood、Apollo、METR。组织结构变了；研究问题没变。
+
 ### Where this fits in Phase 18
 
 Lessons 6-10 describe the threat and the defensive paradigm under the assumption U is untrustworthy. Lesson 11 is the offensive paradigm: make the overseer strong enough to verify U's alignment. Lessons 12-16 then turn to the practical tooling of adversarial evaluation.
+
+> Lessons 6-10 描述威胁和假设 U 不可信的防御范式。Lesson 11 是积极范式：使监督者足够强以验证 U 的对齐。Lessons 12-16 转向对抗性评估的实用工具。
 
 > **【拓展：辩论帮助弱到强泛化 → 2025 组合】** Lang 等人（arXiv:2501.13124, 2025 年 1 月）将可扩展监督和弱到强泛化结合：辩论协议提供更好的弱标签，强模型在这些标签上训练。报告在 NLP 任务上的 PGR 提升。这验证了两种方法是互补的——可扩展监督增加监督者的有效信号质量，弱到强泛化闭合从任何信号中恢复的差距。
 
@@ -89,9 +134,13 @@ Lessons 6-10 describe the threat and the defensive paradigm under the assumption
 
 `code/main.py` simulates a W2SG fine-tune on a synthetic task. Weak labeler has 70% accuracy with structured errors; strong model has 95% ceiling on gold labels. You fine-tune the strong model on weak labels, measure PGR, and compare to strong-on-gold and weak-alone.
 
+> `code/main.py` 在合成任务上模拟 W2SG 微调。弱标注器准确率 70% 带有结构性错误；强模型在金标签上上限为 95%。你在弱标签上微调强模型，测量 PGR，并与强模型金标签和弱模型单独结果比较。
+
 ## Ship It | 产出物
 
 This lesson produces `outputs/skill-w2sg-pgr.md`. Given an oversight setup description, it identifies the weak supervisor, the strong model, the supervision quality, and computes (or requests) PGR. It flags whether the claim is "weak can supervise strong" or "weak + oversight mechanism can supervise strong."
+
+> 本课产出 `outputs/skill-w2sg-pgr.md`。给定监督设置描述，识别弱监督者、强模型、监督质量，并计算（或请求）PGR。标记声明是"弱可以监督强"还是"弱 + 监督机制可以监督强"。
 
 ## Exercises | 练习题
 
