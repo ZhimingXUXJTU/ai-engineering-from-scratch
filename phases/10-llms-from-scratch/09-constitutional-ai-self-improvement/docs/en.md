@@ -54,6 +54,8 @@ Bai et al. (2022) structured the pipeline in two stages.
 
 > Bai 等人（2022）将管线分为两个阶段。
 
+> 这是关键思想：模型不需要人类标注者来判断哪个回复更好——它可以根据一组书面原则（"宪法"）自行判断。这两个阶段是：自我批判修正（SL-CAI）和基于 AI 反馈的强化学习（RLAIF）。
+
 **Stage 1: Supervised Learning from AI Feedback (SL-CAI).** Start with an SFT model that is helpful but possibly harmful. Prompt it with potentially harmful requests. For each response, ask the *same model* to critique its response against a constitutional principle, then revise. Fine-tune on the revised responses. The dataset is (prompt, revised_response) pairs.
 
 > **阶段 1：从 AI 反馈的监督学习（SL-CAI）。** 从一个有用但可能有害的 SFT 模型开始。用潜在有害的请求提示它。对每个回复，让*同一个模型*根据宪法原则批判自己的回复，然后修正。在修正后的回复上微调。数据集是 (prompt, 修正后回复) 对。
@@ -116,6 +118,8 @@ L_PPO = E[min(r(theta) * A, clip(r(theta), 1-eps, 1+eps) * A)]
 
 where `A` is the advantage, typically estimated with GAE using a learned value network `V(s)`. The value network is a second model the same size as the policy. It doubles memory and introduces its own training loop.
 
+> 其中 `A` 是优势，通常使用学习的价值网络 `V(s)` 通过 GAE 估计。价值网络是与策略同大小的第二个模型。它使内存翻倍并引入自己的训练循环。
+
 GRPO throws out the value function. For each prompt, it samples a group of G responses (typically G=16 or 64). The reward for each response is computed, then normalized within the group:
 
 > GRPO 抛弃了价值函数。对于每个 prompt，它采样一组 G 个回复（通常 G=16 或 64）。计算每个回复的奖励，然后在组内归一化：
@@ -144,31 +148,45 @@ For reasoning tasks the reward is often sparse and binary: the final answer is r
 
 This is the exact shape of signal you get from rule-based rewards:
 
+> 这正是你从基于规则奖励中获得的信号形式：
+
 - **Math**: sympy or a symbolic checker decides if the final answer matches.
+  中文翻译：**数学**：sympy 或符号检查器决定最终答案是否匹配。
 - **Code**: a test suite decides pass/fail.
+  中文翻译：**代码**：测试套件决定通过/失败。
 - **Formatting**: a regex decides whether the answer is in the required XML tag.
+  中文翻译：**格式**：正则表达式决定答案是否在要求的 XML 标签中。
 - **Multi-step proofs**: a proof assistant (Lean, Coq) decides validity.
+  中文翻译：**多步证明**：证明助手（Lean、Coq）决定有效性。
 
 DeepSeek-R1-Zero was trained with only two rewards: accuracy on math benchmarks and format compliance (answer inside `<answer>` tags). No human preferences. No critic model. The "aha moment" the DeepSeek paper described -- the model spontaneously learning to self-check and backtrack -- emerged from GRPO on sparse rule rewards alone.
+
+> DeepSeek-R1-Zero 仅用两个奖励训练：数学基准上的准确率和格式合规性（答案在 `<answer>` 标签中）。无需人类偏好。无需批判模型。DeepSeek 论文描述的"顿悟时刻"——模型自发学会自我检查和回溯——完全从稀疏规则奖励上的 GRPO 中涌现。
 
 ### Process Reward Models vs Outcome Reward Models
 
 You still have a design choice: reward the final answer (Outcome Reward Model, ORM) or reward each intermediate step (Process Reward Model, PRM).
 
+> 你仍然有一个设计选择：奖励最终答案（结果奖励模型，ORM）还是奖励每个中间步骤（过程奖励模型，PRM）。
+
 | Axis | ORM | PRM |
 |------|-----|-----|
-| Signal per trace | 1 number | N numbers (one per step) |
-| Supervision source | Final answer check | Step-level labels or self-judging |
-| Training cost | Cheap | Expensive |
-| Credit assignment | Sparse, noisy | Dense, targeted |
-| Reward hacking risk | Lower | Higher (model optimizes PRM artifacts) |
-| Used by | DeepSeek-R1, R1-Zero | OpenAI o1 (allegedly), Math-Shepherd |
+| Signal per trace / 每条链的信号 | 1 number / 1 个数 | N numbers (one per step) / N 个数（每步一个） |
+| Supervision source / 监督来源 | Final answer check / 最终答案检查 | Step-level labels or self-judging / 步骤级标签或自我判断 |
+| Training cost / 训练成本 | Cheap / 便宜 | Expensive / 昂贵 |
+| Credit assignment / 信用分配 | Sparse, noisy / 稀疏、有噪声 | Dense, targeted / 密集、有针对性 |
+| Reward hacking risk / 奖励黑客风险 | Lower / 较低 | Higher (model optimizes PRM artifacts) / 较高（模型优化 PRM 的伪影） |
+| Used by / 使用者 | DeepSeek-R1, R1-Zero | OpenAI o1 (allegedly), Math-Shepherd |
 
 The 2024-2025 consensus was that ORMs plus GRPO scale better than PRMs. PRMs are more sample-efficient per token but require expensive step-labeled data and tend to collapse into shortcut behaviors (writing steps that look good to the PRM but don't advance the proof). For most teams, ORM + GRPO is the first thing to try.
+
+> 2024-2025 年的共识是 ORM 加 GRPO 比 PRM 更好扩展。PRM 每 token 更样本高效，但需要昂贵的步骤标注数据，且倾向于坍缩为捷径行为（写看起来对 PRM 好但不推进证明的步骤）。对大多数团队，ORM + GRPO 是首先应该尝试的。
 
 ### Self-Improvement: The Feedback Multiplier
 
 Once you have the two-loop pattern (critique/revise and group-relative RL with rule rewards), you can chain them.
+
+> 一旦你有了双循环模式（批判/修正和带规则奖励的组相对 RL），你可以串联它们。
 
 1. Start with an SFT model.
 2. Generate many candidate responses per prompt.
@@ -176,9 +194,15 @@ Once you have the two-loop pattern (critique/revise and group-relative RL with r
 4. Keep the top candidates as new SFT data or as preference pairs.
 5. Fine-tune. Go to step 2 with the improved model.
 
+> 1. 从 SFT 模型开始。2. 每个 prompt 生成多个候选回复。3. 用基于规则的奖励（可验证任务）或宪法批判（主观任务）评分。4. 保留最佳候选作为新 SFT 数据或偏好对。5. 微调。用改进的模型回到步骤 2。
+
 DeepSeek called this "rejection sampling fine-tuning" when applied after R1-Zero. Anthropic called an earlier version of this "constitutional AI distillation." The pattern is: each iteration amplifies the signal already in the model. It does not add new signal. If the model cannot solve problem class X at all, no amount of self-improvement will create that capability.
 
+> DeepSeek 在 R1-Zero 之后应用此方法时称之为"拒绝采样微调"。Anthropic 将更早版本称为"宪法 AI 蒸馏"。模式是：每次迭代放大模型中已有的信号。它不添加新信号。如果模型根本无法解决某类问题 X，再多自我改进也无法创造这种能力。
+
 The danger is mode collapse. Self-generated data is always a narrower distribution than the training corpus. After 3-5 rounds of self-distillation, models typically lose diversity on creative tasks, become overconfident, and exhibit characteristic "AI voice" (repeated phrasings, formulaic structure). Production pipelines mix self-generated data with a small fraction of fresh human data to keep the distribution honest.
+
+> 危险是模式坍缩。自生成数据总是比训练语料更窄的分布。3-5 轮自蒸馏后，模型通常在创意任务上失去多样性，变得过度自信，并表现出特征性的"AI 语气"（重复措辞、公式化结构）。生产管线将自生成数据与少量新鲜人类数据混合以保持分布的真实性。
 
 ```mermaid
 graph LR
@@ -199,19 +223,29 @@ graph LR
 ### When To Use What
 
 - **Pure CAI**: Subjective behavior (tone, safety, refusal style). You have a well-defined constitution. You don't have clean verifiable outcomes.
+  中文翻译：**纯 CAI**：主观行为（语气、安全、拒绝风格）。你有明确界定的宪法。你没有干净的可验证结果。
 - **GRPO + ORM**: Verifiable tasks (math, code, structured extraction). You can cheaply check correctness. Reward is sparse and binary.
+  中文翻译：**GRPO + ORM**：可验证任务（数学、代码、结构化提取）。你可以廉价地检查正确性。奖励是稀疏和二元的。
 - **DPO on self-generated pairs**: Hybrid. Use the constitution to produce preference pairs, then train with DPO (Lesson 08) instead of PPO/GRPO.
+  中文翻译：**自我生成对上的 DPO**：混合方法。使用宪法产生偏好对，然后用 DPO（第八课）而非 PPO/GRPO 训练。
 - **Full RLHF**: Still appropriate when you need multi-objective tradeoffs that neither a rule nor a short constitution can express.
+  中文翻译：**完整 RLHF**：当你需要规则或短宪法都无法表达的多目标权衡时仍然适用。
 
 Most 2026 frontier pipelines run all four. CAI for safety layers. GRPO for the reasoning post-training pass. DPO for the preference polish. Small RLHF passes for residual behaviors that resist the other methods.
+
+> 大多数 2026 年前沿管线会运行全部四种方法。CAI 用于安全层。GRPO 用于推理后训练阶段。DPO 用于偏好精炼。小型 RLHF 用于抵抗其他方法的残留行为。
 
 ## Build It | 动手实现
 
 The code implements three things in pure Python + numpy. A Constitutional AI self-critique loop. A rule-based reward checker for simple arithmetic. A minimal GRPO trainer that runs on a tiny language model from Lesson 04.
 
+> 代码用纯 Python + numpy 实现三个部分：Constitutional AI 自我批判循环、简单算术的基于规则奖励检查器、在第四课的微型语言模型上运行的最小 GRPO 训练器。
+
 ### Step 1: The Constitution
 
 A list of principles. In production, each line would be richer and category-tagged. For the lesson, keep it short.
+
+> 原则列表。在生产中，每条原则会更丰富并带有类别标签。本课保持简短。
 
 ```python
 CONSTITUTION = [
@@ -225,6 +259,8 @@ CONSTITUTION = [
 ### Step 2: Self-Critique and Revise
 
 In a real system the model itself critiques. In the lesson we simulate a critic with a handwritten rubric so the pipeline runs without an LLM call.
+
+> 在真实系统中，模型自己进行批判。本课中我们用手写评分标准模拟批判者，使管线无需 LLM 调用即可运行。
 
 ```python
 def critique(response: str, principle: str) -> dict:
@@ -247,9 +283,13 @@ def revise(response: str, critique_result: dict) -> str:
 
 The revise function is a stand-in. With a real LLM it would be a second prompt: "Given the critique, rewrite the response."
 
+> 修正函数是替代品。使用真实 LLM 时，它会是一个第二次提示："根据批判，重写回复。"
+
 ### Step 3: Rule-Based Rewards
 
 For verifiable tasks, replace the critic entirely. This checker grades arithmetic answers.
+
+> 对于可验证任务，完全替换批判者。这个检查器给算术答案打分。
 
 ```python
 import re
@@ -270,9 +310,13 @@ def reward_format(response: str) -> float:
 
 Two deterministic rules. No training data. No human labels. The combined reward is `reward_math + 0.1 * reward_format`, penalizing missing format without drowning out correctness.
 
+> 两个确定性规则。无需训练数据。无需人类标签。组合奖励是 `reward_math + 0.1 * reward_format`，惩罚缺失格式但不淹没正确性。
+
 ### Step 4: Group-Relative Advantage
 
 Given a list of rewards for a group of responses to the same prompt, compute the z-score:
+
+> 给定同一 prompt 的一组回复的奖励列表，计算 z 分数：
 
 ```python
 import numpy as np
@@ -286,9 +330,13 @@ def group_relative_advantage(rewards: list[float]) -> np.ndarray:
 
 If every sample in the group has the same reward, the advantage is zero and no gradient signal flows. This is a feature. It tells you the prompt is either trivially solved or impossibly hard for the current policy, and the step should skip it.
 
+> 如果组中每个样本的奖励相同，优势为零，没有梯度信号流动。这是一个特性。它告诉你该 prompt 对当前策略来说要么轻松解决要么不可能解决，应该跳过。
+
 ### Step 5: GRPO Update
 
 One step, symbolic gradient. In production this would be a torch autograd pass. Here we show the update rule directly.
+
+> 单步符号梯度。在生产中这会是 torch autograd 传递。这里我们直接展示更新规则。
 
 ```python
 def grpo_step(policy_logprobs: np.ndarray, ref_logprobs: np.ndarray,
@@ -309,9 +357,13 @@ def grpo_step(policy_logprobs: np.ndarray, ref_logprobs: np.ndarray,
 
 This is PPO's clipped surrogate with one change: the advantages came from group-relative z-scores, not from a value function. No V(s) to train. No GAE. The group is the baseline.
 
+> 这是 PPO 的截断代理目标，只有一个变化：优势来自组相对 z 分数，而非价值函数。无需训练 V(s)。无需 GAE。组就是基线。
+
 ### Step 6: Self-Improvement Round
 
 Tie the pieces together. Sample a group, score each response with the rule, compute advantages, report the metrics you would feed into a real optimizer.
+
+> 将各部分串联。采样一个组，用规则给每个回复打分，计算优势，报告你将馈入真实优化器的指标。
 
 ```python
 def self_improvement_round(prompts: list[str], policy_sampler, group_size: int = 8) -> dict:
@@ -337,23 +389,34 @@ def self_improvement_round(prompts: list[str], policy_sampler, group_size: int =
 
 Running `code/main.py` runs both loops end to end. The CAI loop produces a small set of (initial, revised) pairs you could fine-tune on. The GRPO loop produces per-prompt reward statistics for arithmetic problems, showing how group-relative advantages let a weak sampler improve without a value function or human labels.
 
+> 运行 `code/main.py` 端到端运行两个循环。CAI 循环产生一小批可微调的（初始，修正）对。GRPO 循环产生算术问题的每 prompt 奖励统计，展示组相对优势如何让弱采样器在无价值函数或人类标签的情况下改进。
+
 The numbers are not the point. In a real run with a trained model the reward mean should climb across rounds, the reward std should stay positive (if it collapses to zero, the policy has mode-collapsed and you should stop), and the KL to the reference should grow slowly. Those three curves -- mean reward up, std stable, KL bounded -- are the production health check for a GRPO or CAI pipeline.
+
+> 具体数字不是重点。在使用训练模型的实际运行中，奖励均值应在各轮中上升，奖励标准差应保持为正（如果降为零，说明策略已模式坍缩，应停止），与参考模型的 KL 应缓慢增长。这三条曲线——奖励均值上升、标准差稳定、KL 有界——是 GRPO 或 CAI 管线的生产健康检查。
 
 ## Ship It | 产出物
 
 This lesson produces `outputs/skill-self-improvement-auditor.md`. Feed it a proposed self-improvement pipeline and it enforces the non-negotiable gates: a reward rule that is actually verifiable, a KL budget against the reference, a diversity floor, and a human-data quota. It refuses to approve a loop that claims to be "pure self-improvement" without any external grounding.
 
+> 本课产出 `outputs/skill-self-improvement-auditor.md`。向其输入提议的自我改进管线，它强制执行不可妥协的关卡：真正可验证的奖励规则、对参考模型的 KL 预算、多样性下限和人类数据配额。它拒绝批准声称"纯粹自我改进"但没有任何外部基础的循环。
+
 ## Exercises | 练习题
 
 1. Replace the handwritten critic in Step 2 with an LLM call. Use any local chat model. Measure how often the critique and revision actually improve the response versus leaving it unchanged.
+   中文翻译：用 LLM 调用替换第 2 步的手写批判者。使用任何本地聊天模型。测量批判和修正实际改善回复的频率与保持不变的频率。
 
 2. Add a third constitutional principle about factuality. Run the pipeline on prompts that require factual claims (capitals, dates) and measure how many revisions remove factual errors versus introduce new ones.
+   中文翻译：添加关于事实性的第三条宪法原则。在需要事实声明的 prompt（首都、日期）上运行管线，测量有多少修正消除了事实错误与引入了新错误。
 
 3. Implement DPO on the preference pairs produced by CAI stage 2. Take 20 prompts, generate two responses each, have the critic pick a winner per pair, then run the DPO loss from Lesson 08. Compare to the GRPO path on the same data.
+   中文翻译：在 CAI 阶段 2 产生的偏好对上实现 DPO。取 20 个 prompt，每个生成两个回复，让批判者为每对选择胜者，然后运行第八课的 DPO 损失。在相同数据上与 GRPO 路径比较。
 
 4. Add entropy regularization to the GRPO objective. The term `-alpha * entropy(policy)` with alpha=0.01 encourages diverse sampling. Measure whether it delays mode collapse across 5 rounds of self-improvement.
+   中文翻译：向 GRPO 目标添加熵正则化。项 `-alpha * entropy(policy)`（alpha=0.01）鼓励多样采样。测量它是否在 5 轮自我改进中延迟了模式坍缩。
 
 5. Build a process reward scorer for a two-step arithmetic problem. Given "What is (3+4)*5?", the model must show the intermediate 3+4=7 step. Grade the intermediate step separately from the final answer and compare PRM-weighted GRPO to pure ORM-weighted GRPO over 10 rounds.
+   中文翻译：为两步算术问题构建过程奖励评分器。给定 "What is (3+4)*5?"，模型必须展示中间步骤 3+4=7。分别对中间步骤和最终答案评分，比较 PRM 加权 GRPO 与纯 ORM 加权 GRPO 在 10 轮中的表现。
 
 ## Key Terms | 术语速查表
 
