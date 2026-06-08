@@ -7,55 +7,98 @@
 > **【拓展：failure modes mast groupthink→具体应用】** 多 Agent 系统的特有失败模式：(1) 群体思维（Groupthink）——Agent 过度趋同，失去多样性；(2) 信息级联——一个 Agent 的错误被后续 Agent 放大；(3) 死锁——Agent 互相等待无法继续；(4) 活锁——Agent 不断改变策略但无法收敛。防范措施包括：注入异见 Agent、随机化发言顺序、设置超时。
 
 
-**Type:** Learn
-**Languages:** Python (stdlib)
-**Prerequisites:** Phase 16 · 13 (Shared Memory), Phase 16 · 14 (Consensus and BFT), Phase 16 · 15 (Voting and Debate Topology)
-**Time:** ~75 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib) | **语言:** Python（标准库）
+**Prerequisites:** Phase 16 · 13 (Shared Memory), Phase 16 · 14 (Consensus and BFT), Phase 16 · 15 (Voting and Debate Topology) | **前置知识:** Phase 16 · 13（共享内存），Phase 16 · 14（共识与 BFT），Phase 16 · 15（投票与辩论拓扑）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
-## Problem
+## Problem | 问题引入
 
 Multi-agent systems fail 41-86.7% of the time on real tasks (Cemri et al. 2025 measured this across 7 open-source MAS). That is not debuggable by "just add more agents." The failures have structural causes. The MAST taxonomy gives you the categories. This lesson maps each category to a concrete detection, diagnosis, and mitigation pattern so the numbers stop looking arbitrary.
 
+> 多 Agent 系统在真实任务上 41-86.7% 的时间会失败（Cemri 等人 2025 年在 7 个开源 MAS 上测量）。这不是"添加更多 Agent"就能调试的。失败有结构性原因。MAST 分类法给你类别。本课将每个类别映射到具体的检测、诊断和缓解模式。
+
 The 2026 production practice is to treat failure modes as design inputs. Your architecture is not "good enough" until you can point to each MAST category and name the mitigation you deployed.
 
-## Concept
+> 2026 年生产实践是将失败模式视为设计输入。你的架构不是"足够好"的，直到你能指向每个 MAST 类别并说出你部署的缓解措施。
+
+## Concept | 核心概念
 
 ### MAST categories
 
 **Specification Problems (41.77% of failures).** The agent's task was not defined tightly enough. Examples:
 
+> **规范问题（41.77% 的失败）。** Agent 的任务定义不够紧密。例子：
+
 - Role ambiguity: two agents both think they are the reviewer.
+  中文翻译：角色模糊：两个 Agent 都认为自己是审阅者。
 - Task underspecified: "summarize this" when the user wanted a specific angle.
+  中文翻译：任务规格不足："总结这个"，但用户想要特定角度。
 - Success criteria implicit: the agent cannot tell if it succeeded.
+  中文翻译：成功标准隐含：Agent 无法判断是否成功。
 
 Mitigations:
+
+> 缓解措施：
+
 - Write explicit role contracts. Each agent's prompt states what it does *and what it does not do*.
+  中文翻译：编写显式角色契约。每个 Agent 的提示声明它做什么*和不做什么*。
 - Acceptance tests per task. Before the agent starts, define "done looks like X."
+  中文翻译：每个任务的验收测试。在 Agent 开始前，定义"完成的样子是 X"。
 - Pre-flight spec check: a separate agent reviews the task definition before dispatch.
+  中文翻译：预检规范检查：单独的 Agent 在分发前审查任务定义。
 
 **Coordination Failures (36.94%).** Communication or state breakdowns.
 
+> **协调失败（36.94%）。** 通信或状态故障。
+
 Examples:
+
+> 例子：
+
 - Two agents update shared state without synchronization.
+  中文翻译：两个 Agent 不同步地更新共享状态。
 - Message lost between agents (queue failure, timeout).
+  中文翻译：Agent 间消息丢失（队列故障、超时）。
 - State drift: agent A thinks the task is done; agent B is still executing.
+  中文翻译：状态漂移：Agent A 认为任务完成；Agent B 还在执行。
 
 Mitigations:
+
+> 缓解措施：
+
 - Versioned shared state with optimistic concurrency.
+  中文翻译：带乐观并发的版本化共享状态。
 - Explicit acknowledgment for critical messages (retry until acked).
+  中文翻译：关键消息的显式确认（重试直到确认）。
 - Periodic state-sync checkpoints; detect drift early.
+  中文翻译：定期状态同步检查点；早期检测漂移。
 
 **Verification Gaps (21.30%).** No independent check on outputs.
 
+> **验证缺口（21.30%）。** 没有对输出的独立检查。
+
 Examples:
+
+> 例子：
+
 - One agent claims success; no one verifies.
+  中文翻译：一个 Agent 声称成功；没人验证。
 - Chain of agents each trusts the prior's output.
+  中文翻译：Agent 链中每个都信任前一个的输出。
 - Test coverage missing on the emergent composed behavior.
+  中文翻译：涌现组合行为缺少测试覆盖。
 
 Mitigations:
+
+> 缓解措施：
+
 - Independent verifier agent (Lesson 13). Read-only, independent source access.
+  中文翻译：独立验证 Agent（第 13 课）。只读，独立源访问。
 - Explicit handoff contract: "A's output must pass checker C before B starts."
+  中文翻译：显式交接契约："A 的输出必须在 B 开始前通过检查器 C。"
 - Outcome logging for post-hoc analysis.
+  中文翻译：结果日志用于事后分析。
 
 ### Groupthink family (arXiv:2508.05687)
 
@@ -171,10 +214,15 @@ Expected output:
 Failure-mode discipline in production:
 
 - **MAST audit per quarter.** Not annual. Categories shift as your system grows.
+  中文翻译：**每季度 MAST 审计。** 不是年度的。类别随系统增长而变化。
 - **Circuit breakers everywhere.** Each outbound call to any dependent service. Default open threshold at 5-10% error rate.
+  中文翻译：**到处都是熔断器。** 每个对依赖服务的出站调用。默认断开阈值为 5-10% 错误率。
 - **Golden datasets.** Small, high-quality, hand-audited. Regression-test against them weekly.
+  中文翻译：**黄金数据集。** 小型、高质量、人工审计。每周对它们进行回归测试。
 - **STRATUS trio.** Detection + Diagnosis + Validation agents monitoring production. Start with the detection agent only; add diagnosis when symptoms are noisy.
+  中文翻译：**STRATUS 三重奏。** 检测 + 诊断 + 验证 Agent 监控生产。从检测 Agent 开始；当症状嘈杂时添加诊断。
 - **Failure budget.** Explicit SLO for failure rate by category. Exceeding budget triggers a stop-shipping conversation.
+  中文翻译：**失败预算。** 按类别的失败率显式 SLO。超出预算触发停止发布对话。
 
 ## Exercises | 练习题
 
@@ -188,16 +236,16 @@ Failure-mode discipline in production:
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
-| MAST | "The 2026 taxonomy" | Cemri 2025; 3 root categories + 14 sub-types of failures. |
-| Specification Problem | "Role ambiguity" | Task or role under-defined; agents do not know what to do. |
-| Coordination Failure | "State drift" | Communication or sync breakdown between agents. |
-| Verification Gap | "No one checked" | Outputs accepted without independent validation. |
-| Groupthink family | "Homogeneity failures" | Monoculture, conformity, deficient ToM, mixed-motive, cascading. |
-| Monoculture collapse | "Same model, same hallucinations" | Correlated errors from shared base model or training data. |
-| Retry storm | "Cascading error amplification" | One failure triggers retries which amplify load downstream. |
-| Circuit breaker | "Fail fast on error rate" | Open when error rate exceeds threshold; short-circuit with default. |
-| STRATUS | "Incident response trio" | Detection + diagnosis + validation agents. 1.5x mitigation success. |
-| Memory poisoning | "Hallucinations propagate" | Shared-memory fact tainted; downstream agents reason on poison. |
+| MAST / MAST 分类法 | "The 2026 taxonomy" / "2026 年分类法" | Cemri 2025; 3 root categories + 14 sub-types of failures. / Cemri 2025；3 个根类别 + 14 个失败子类型。 |
+| Specification Problem / 规范问题 | "Role ambiguity" / "角色模糊" | Task or role under-defined; agents do not know what to do. / 任务或角色定义不足；Agent 不知道做什么。 |
+| Coordination Failure / 协调失败 | "State drift" / "状态漂移" | Communication or sync breakdown between agents. / Agent 之间的通信或同步故障。 |
+| Verification Gap / 验证缺口 | "No one checked" / "没人检查" | Outputs accepted without independent validation. / 输出未经独立验证即接受。 |
+| Groupthink family / 群体思维族 | "Homogeneity failures" / "同质性失败" | Monoculture, conformity, deficient ToM, mixed-motive, cascading. / 单一文化、从众、ToM 不足、混合动机、级联。 |
+| Monoculture collapse / 单一文化崩溃 | "Same model, same hallucinations" / "相同模型，相同幻觉" | Correlated errors from shared base model or training data. / 共享基础模型或训练数据的相关错误。 |
+| Retry storm / 重试风暴 | "Cascading error amplification" / "级联错误放大" | One failure triggers retries which amplify load downstream. / 一次失败触发重试，放大下游负载。 |
+| Circuit breaker / 熔断器 | "Fail fast on error rate" / "错误率快速失败" | Open when error rate exceeds threshold; short-circuit with default. / 错误率超阈值时断开；用默认值短路。 |
+| STRATUS | "Incident response trio" / "事件响应三重奏" | Detection + diagnosis + validation agents. 1.5x mitigation success. / 检测 + 诊断 + 验证 Agent。1.5 倍缓解成功。 |
+| Memory poisoning / 记忆投毒 | "Hallucinations propagate" / "幻觉传播" | Shared-memory fact tainted; downstream agents reason on poison. / 共享记忆事实被污染；下游 Agent 在毒化数据上推理。 |
 
 ## Further Reading | 延伸阅读
 

@@ -7,30 +7,44 @@
 > **【拓展：production scaling queues checkpoints→具体应用】** 多 Agent 系统的生产扩展需要：(1) 消息队列——Kafka/RabbitMQ 缓冲 Agent 间的消息；(2) 检查点——定期保存系统状态以支持恢复；(3) 负载均衡——将任务均匀分配给可用的 Agent 实例；(4) 水平扩展——动态增减 Agent 数量应对负载变化。LangGraph Cloud 和 Temporal 是这一领域的两个主流选择。
 
 
-**Type:** Learn + Build
-**Languages:** Python (stdlib, `asyncio`, `sqlite3`)
-**Prerequisites:** Phase 16 · 09 (Parallel Swarm Networks), Phase 16 · 13 (Shared Memory)
-**Time:** ~75 minutes
+**Type:** Learn + Build | **类型:** 学习 + 构建
+**Languages:** Python (stdlib, `asyncio`, `sqlite3`) | **语言:** Python（标准库，`asyncio`，`sqlite3`）
+**Prerequisites:** Phase 16 · 09 (Parallel Swarm Networks), Phase 16 · 13 (Shared Memory) | **前置知识:** Phase 16 · 09（并行群体网络），Phase 16 · 13（共享内存）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
-## Problem
+## Problem | 问题引入
 
 A prototype multi-agent system works on one laptop with three agents in an in-memory event loop. You move to production:
 
+> 原型多 Agent 系统在一台笔记本电脑上用三个 Agent 在内存事件循环中运行。你转向生产环境：
+
 - Agents sometimes run for hours (long research, human-in-the-loop waits).
+  中文翻译：Agent 有时运行数小时（长时间研究、人在环等待）。
 - Worker processes crash. Restarting loses state.
+  中文翻译：工作者进程崩溃。重启丢失状态。
 - Peak load is 10x average; you need horizontal scaling.
+  中文翻译：峰值负载是平均的 10 倍；你需要水平扩展。
 - Users pay per agent-run; you need exactly-once semantics for charging.
+  中文翻译：用户按 Agent 运行付费；你需要恰好一次的计费语义。
 
 The in-memory event loop does none of these. You need a durable execution layer underneath. The 2026 canonical options are:
 
+> 内存事件循环这些都做不到。你需要一个持久执行层。2026 年规范选择是：
+
 1. A workflow engine with checkpoints (Temporal, LangGraph runtime).
+   中文翻译：带检查点的工作流引擎（Temporal、LangGraph 运行时）。
 2. A message queue with a state store (Postgres + SQS/RabbitMQ).
+   中文翻译：带状态存储的消息队列（Postgres + SQS/RabbitMQ）。
 3. Actor-model frameworks (MegaAgent's producer-consumer per agent).
+   中文翻译：Actor 模型框架（MegaAgent 的每 Agent 生产者-消费者）。
 4. Hand-rolled FastAPI + Postgres (Bedi's argument).
+   中文翻译：手工搭建的 FastAPI + Postgres（Bedi 的论点）。
 
 This lesson builds a miniature of each.
 
-## Concept
+> 本课构建每个的微型版本。
+
+## Concept | 核心概念
 
 ### Durable execution, the pattern
 
@@ -165,15 +179,15 @@ Canonical production hardening:
 
 | Term | What people say | What it actually means |
 |------|----------------|------------------------|
-| Durable execution | "Persist the program state" | Engine writes state after each super-step; crash recovery is deterministic. |
-| Super-step | "Transactional boundary" | Unit of work between checkpoints. LangGraph term. |
-| thread_id | "Agent run identifier" | Key that binds checkpoints and resume logic. |
-| Idempotency | "Safe to retry" | Repeating a side effect produces the same result as one attempt. |
-| Outbox pattern | "Decouple side effects" | Write intent to a table; a separate executor performs and marks done. |
-| At-least-once delivery | "Possible duplicates" | Message queue semantics; dedup key makes consumer effective-once. |
-| Rainbow deploy | "Overlapping versions" | Multiple runtime versions concurrent during long-running workloads. |
-| Async fiber | "Cooperative yielding" | User-mode concurrency; cheap compared to threads for I/O-bound loads. |
-| Checkpoint | "State snapshot" | Serialized state at a super-step boundary; key for resume. |
+| Durable execution / 持久执行 | "Persist the program state" / "持久化程序状态" | Engine writes state after each super-step; crash recovery is deterministic. / 引擎在每个超步后写入状态；崩溃恢复是确定性的。 |
+| Super-step / 超步 | "Transactional boundary" / "事务边界" | Unit of work between checkpoints. LangGraph term. / 检查点之间的工作单元。LangGraph 术语。 |
+| thread_id / 线程 ID | "Agent run identifier" / "Agent 运行标识符" | Key that binds checkpoints and resume logic. / 绑定检查点和恢复逻辑的键。 |
+| Idempotency / 幂等性 | "Safe to retry" / "安全重试" | Repeating a side effect produces the same result as one attempt. / 重复副作用产生与一次尝试相同的结果。 |
+| Outbox pattern / 发件箱模式 | "Decouple side effects" / "解耦副作用" | Write intent to a table; a separate executor performs and marks done. / 将意图写入表；单独的执行器执行并标记完成。 |
+| At-least-once delivery / 至少一次投递 | "Possible duplicates" / "可能重复" | Message queue semantics; dedup key makes consumer effective-once. / 消息队列语义；去重键使消费者有效一次。 |
+| Rainbow deploy / 彩虹部署 | "Overlapping versions" / "重叠版本" | Multiple runtime versions concurrent during long-running workloads. / 多个运行时版本在长时间工作负载期间并发。 |
+| Async fiber / 异步纤程 | "Cooperative yielding" / "协作让步" | User-mode concurrency; cheap compared to threads for I/O-bound loads. / 用户态并发；I/O 密集负载下比线程廉价。 |
+| Checkpoint / 检查点 | "State snapshot" / "状态快照" | Serialized state at a super-step boundary; key for resume. / 超步边界处的序列化状态；恢复的关键。 |
 
 ## Further Reading | 延伸阅读
 
