@@ -15,13 +15,13 @@
 ## Learning Objectives | 学习目标
 
 - Distinguish L2 prompt/prefix caching (KV reuse at provider) from L1 semantic caching (LLM bypass on similar prompts).
-  中文翻译：Distinguish L2 prompt/prefix caching (KV reuse at provider) from L1 semantic caching (LLM bypass on similar prompts).
+  中文翻译：区分 L2 提示/前缀缓存（提供商级 KV 复用）和 L1 语义缓存（相似提示跳过 LLM）。
 - Explain Anthropic's `cache_control` explicit marking and the two TTL options (5-min vs 1-hour) with their price multipliers.
-  中文翻译：Explain Anthropic's `cache_control` explicit marking and the two TTL options (5-min vs 1-hour) with their price multipliers.
+  中文翻译：解释 Anthropic 的 `cache_control` 显式标记和两种 TTL 选项（5 分钟 vs 1 小时）及其价格乘数。
 - Compute expected monthly savings given hit rate, prompt/response mix, and token prices.
-  中文翻译：Compute expected monthly savings given hit rate, prompt/response mix, and token prices.
+  中文翻译：给定命中率、提示/响应比例和 token 价格，计算预期月度节省。
 - Name the parallelization anti-pattern that inflates bills by 5-10x and the dynamic-content anti-pattern that collapses hit rate.
-  中文翻译：Name the parallelization anti-pattern that inflates bills by 5-10x and the dynamic-content anti-pattern that collapses hit rate.
+  中文翻译：说出将账单膨胀 5-10 倍的并行化反模式和导致命中率崩溃的动态内容反模式。
 
 ## The Problem | 问题引入
 
@@ -139,13 +139,13 @@ This lesson produces `outputs/skill-cache-auditor.md`. Given prompt template and
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Toggle the parallelization flag. How much does the bill change?
-   中文翻译：Run `code/main.py`. Toggle the parallelization flag. How much does the bill change?
+   中文翻译：运行 `code/main.py`。切换并行化标志。账单膨胀多少？修复后节省多少？
 2. Your system prompt has a date. Move it out. Show before/after hit rate math.
-   中文翻译：Your system prompt has a date. Move it out. Show before/after hit rate math.
+   中文翻译：你的系统提示包含日期。将它移出。展示前后命中率数学。
 3. Calculate break-even for 1-hour TTL (2x write) vs 5-minute TTL (1.25x write) given your request arrival rate.
-   中文翻译：Calculate break-even for 1-hour TTL (2x write) vs 5-minute TTL (1.25x write) given your request arrival rate.
+   中文翻译：计算 1 小时 TTL（2x 写入成本）vs 5 分钟 TTL（1.25x 写入成本）的盈亏平衡。
 4. Semantic cache at 0.95 threshold hits 20%. At 0.85 it hits 50% but you see incorrect cached responses. Pick the right threshold and justify.
-   中文翻译：Semantic cache at 0.95 threshold hits 20%. At 0.85 it hits 50% but you see incorrect cached responses. Pick the right threshold and justify.
+   中文翻译：语义缓存阈值 0.95 时命中率 20%。0.85 时命中率 50% 但你会看到幻觉。阈值设多少？
 5. You batch 10 parallel sub-queries per user question. Rewrite for cache-friendliness without adding end-to-end latency.
 
 ## Key Terms | 术语速查表

@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Explain why mobile LLM inference is memory-bandwidth-bound and compute is secondary.
-  中文翻译：Explain why mobile LLM inference is memory-bandwidth-bound and compute is secondary.
+  中文翻译：解释为什么移动 LLM 推理是内存带宽受限的，而计算能力是次要的。
 - Enumerate the four edge targets (Apple ANE, Qualcomm Hexagon, WebGPU/WebLLM, NVIDIA Jetson) and match each to a use case.
-  中文翻译：Enumerate the four edge targets (Apple ANE, Qualcomm Hexagon, WebGPU/WebLLM, NVIDIA Jetson) and match each to a use case.
+  中文翻译：列举四个边缘目标（Apple ANE、Qualcomm Hexagon、WebGPU/WebLLM、NVIDIA Jetson）并匹配每个的用例。
 - Name the 2026 WebGPU coverage gap (Firefox Android catching up) and the Safari iOS 26 landing.
-  中文翻译：Name the 2026 WebGPU coverage gap (Firefox Android catching up) and the Safari iOS 26 landing.
+  中文翻译：说出 2026 年 WebGPU 覆盖缺口（Firefox Android 赶追中）和 Safari iOS 26 落地。
 - Pick a quantization format per target (Core ML INT4 + FP16 for ANE, QNN INT8/INT4 for Hexagon, WebGPU Q4 for browser, NVFP4 for Jetson Thor).
-  中文翻译：Pick a quantization format per target (Core ML INT4 + FP16 for ANE, QNN INT8/INT4 for Hexagon, WebGPU Q4 for browser, NVFP4 for Jetson Thor).
+  中文翻译：为每个目标选择量化格式（ANE 用 Core ML INT4 + FP16，Hexagon 用 QNN INT8/INT4，浏览器用 WebGPU Q4，Jetson Thor 用 NVFP4）。
 
 ## The Problem | 问题引入
 
@@ -112,27 +112,26 @@ Voice agents are latency-sensitive (first token < 500 ms). Local inference elimi
 
 `code/main.py` computes theoretical decode throughput ceilings from bandwidth-bound math across edge targets. Compares to observed benchmarks and highlights where bandwidth, not compute, is the bottleneck.
 
-> `code/main.py` computes theoretical decode throughput ceilings from bandwidth-bound math across edge targets. Compares to observed benchmarks and highlights where bandwidth, not compute, is the bottleneck.
-
-> `code/main.py` computes theoretical decode throughput ceilings from bandwidth-bound math across edge targets. Compares to observed benchmarks and highlights where bandwidth, not compute, is the bottleneck.
+> `code/main.py` 从带宽受限数学计算各边缘目标的理论解码吞吐量上限。与观察到的基准比较，强调瓶颈在带宽而非计算。
 
 ## Ship It | 产出物
 
 This lesson produces `outputs/skill-edge-target-picker.md`. Given platform (iOS/Android/browser/Jetson), model, and latency/memory budget, picks a quantization format and conversion pipeline.
 
-> 本课产出 `outputs/skill-edge-target-picker.md`. Given platform (iOS/Android/browser/Jetson), model, and latency/memory budget, picks a quantization format and conversion pipeline.
+> 本课产出 `outputs/skill-edge-target-picker.md`。给定平台（iOS/Android/浏览器/Jetson）、模型和延迟/内存预算，选择量化格式和转换管线。
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. For a 7B model in Q4 on a Snapdragon 8 Gen 3 (~77 GB/s bandwidth), compute the decode ceiling. Compare to observed 6-8 tok/s — is the runtime efficient?
-   中文翻译：Run `code/main.py`. For a 7B model in Q4 on a Snapdragon 8 Gen 3 (~77 GB/s bandwidth), compute the decode ceiling. Compare to observed 6-8 tok/s — is the runtime efficient?
+   中文翻译：运行 `code/main.py`。计算 Snapdragon 8 Gen 3（约 77 GB/s 带宽）上 Q4 7B 模型的解码上限。与观察到的 6-8 tok/s 比较——运行时是否高效？
 2. WebGPU on Android requires Chrome v121+. Design a fallback for older browsers — server-side via the same OpenAI-compatible API.
-   中文翻译：WebGPU on Android requires Chrome v121+. Design a fallback for older browsers — server-side via the same OpenAI-compatible API.
+   中文翻译：Android 上的 WebGPU 需要 Chrome v121+。为旧浏览器设计回退方案——通过相同的 OpenAI 兼容 API 实现服务端推理。
 3. Your iOS app needs 4K-context streaming. Which model/format combination lets you stay under 4 GB active memory on an iPhone 16?
-   中文翻译：Your iOS app needs 4K-context streaming. Which model/format combination lets you stay under 4 GB active memory on an iPhone 16?
+   中文翻译：你的 iOS 应用需要 4K 上下文流式输出。哪种模型/格式组合可以在 iPhone 16 上保持在 4GB 活跃内存以内？
 4. Jetson AGX Orin runs gpt-oss-20b at 40 tok/s. Jetson Nano fits only a 3B. If your product targets both, how do you unify the inference stack?
-   中文翻译：Jetson AGX Orin runs gpt-oss-20b at 40 tok/s. Jetson Nano fits only a 3B. If your product targets both, how do you unify the inference stack?
+   中文翻译：Jetson AGX Orin 以 40 tok/s 运行 gpt-oss-20b。Jetson Nano 只能运行 3B 模型。如果你的产品同时针对两者，如何统一推理栈？
 5. Argue whether "WebLLM is production-ready in 2026." Cite the coverage, performance, and the Firefox Android gap.
+   中文翻译：论证“WebLLM 在 2026 年是否生产就绪”。引用覆盖率、性能和 Firefox Android 缺口。
 
 ## Key Terms | 术语速查表
 

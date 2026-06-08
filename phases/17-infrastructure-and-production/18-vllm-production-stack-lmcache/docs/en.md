@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Diagram the vLLM production-stack layers: router, engines, KV offload, observability.
-  中文翻译：Diagram the vLLM production-stack layers: router, engines, KV offload, observability.
+  中文翻译：绘制 vLLM production-stack 层次：路由器、引擎、KV 卸载、可观测性。
 - Explain the KV Offloading Connector API (v0.9.0+) and how the 0.11.0 asynchronous path hides offload latency.
-  中文翻译：Explain the KV Offloading Connector API (v0.9.0+) and how the 0.11.0 asynchronous path hides offload latency.
+  中文翻译：解释 KV Offloading Connector API（v0.9.0+）以及 0.11.0 异步路径如何隐藏卸载延迟。
 - Quantify when LMCache CPU-DRAM helps (KV > HBM) vs adds overhead (KV small enough to fit HBM).
-  中文翻译：Quantify when LMCache CPU-DRAM helps (KV > HBM) vs adds overhead (KV small enough to fit HBM).
+  中文翻译：量化 LMCache CPU-DRAM 在何时有帮助（KV > HBM）vs 何时增加开销（KV 足够小可放入 HBM）。
 - Pick between native vLLM CPU offload and LMCache connector given deployment constraints.
-  中文翻译：Pick between native vLLM CPU offload and LMCache connector given deployment constraints.
+  中文翻译：给定部署约束，在原生 vLLM CPU 卸载和 LMCache 连接器之间选择。
 
 ## The Problem | 问题引入
 
@@ -118,13 +118,13 @@ This lesson produces `outputs/skill-vllm-stack-decider.md`. Given workload shape
 ## Exercises | 练习题
 
 1. Run `code/main.py`. At what HBM utilization does LMCache start paying?
-   中文翻译：Run `code/main.py`. At what HBM utilization does LMCache start paying?
+   中文翻译：运行 `code/main.py`。LMCache 在什么 HBM 利用率下开始划算？
 2. A tenant shares a 6K-token system prompt across 200 queries/hour. Compute expected LMCache savings per tenant.
-   中文翻译：A tenant shares a 6K-token system prompt across 200 queries/hour. Compute expected LMCache savings per tenant.
+   中文翻译：一个租户在 200 查询/小时中共享 6K token 系统提示。计算 LMCache 的预期节省。
 3. The LMCache server is a single point of failure. Design the HA strategy (replicas, fallback to native).
-   中文翻译：The LMCache server is a single point of failure. Design the HA strategy (replicas, fallback to native).
+   中文翻译：LMCache 服务器是单点故障。设计 HA 策略（副本、回退到重算）。
 4. LMCache stores to Ceph on spinning disk. For a 4K-token KV at 70B FP8 (500 MB), what's the read time vs re-prefill?
-   中文翻译：LMCache stores to Ceph on spinning disk. For a 4K-token KV at 70B FP8 (500 MB), what's the read time vs re-prefill?
+   中文翻译：LMCache 存储到机械硬盘上的 Ceph。对于 70B FP8 上 4K token KV（500MB），读取延迟是多少？与重算比较。
 5. Argue whether the vLLM 0.11.0 asynchronous path is "free" — where does the overhead hide?
 
 ## Key Terms | 术语速查表

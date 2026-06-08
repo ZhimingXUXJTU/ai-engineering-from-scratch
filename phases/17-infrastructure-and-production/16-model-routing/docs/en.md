@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Explain model cascading: cheap-first with confidence check, escalate on low confidence.
-  中文翻译：Explain model cascading: cheap-first with confidence check, escalate on low confidence.
+  中文翻译：解释模型级联：廉价优先加置信度检查，低置信度时升级。
 - Enumerate the four routing signals (task classification, prompt length, embedding similarity to known-hard set, self-confidence from first-pass).
-  中文翻译：Enumerate the four routing signals (task classification, prompt length, embedding similarity to known-hard set, self-confidence from first-pass).
+  中文翻译：列举四种路由信号（任务分类、提示长度、嵌入相似度、首次通过自置信度）。
 - Compute expected blended cost at target routing split and quality loss tolerance.
-  中文翻译：Compute expected blended cost at target routing split and quality loss tolerance.
+  中文翻译：计算目标路由分流和质量损失容忍度下的预期混合成本。
 - Name the drift-monitoring metric (online quality gate) that catches cheap-model creep.
-  中文翻译：Name the drift-monitoring metric (online quality gate) that catches cheap-model creep.
+  中文翻译：说出捕获廉价模型质量漂移的漂移监控指标（在线质量门控）。
 
 ## The Problem | 问题引入
 
@@ -109,13 +109,13 @@ This lesson produces `outputs/skill-router-plan.md`. Given workload and quality 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. At what accuracy floor does cascade beat pre-route?
-   中文翻译：Run `code/main.py`. At what accuracy floor does cascade beat pre-route?
+   中文翻译：运行 `code/main.py`。级联在什么精度下限下优于预路由？
 2. Your user base is 30% enterprise (complex queries), 70% free tier (simple). Design the routing split. What online metric gates it?
-   中文翻译：Your user base is 30% enterprise (complex queries), 70% free tier (simple). Design the routing split. What online metric gates it?
+   中文翻译：你的用户群 30% 是企业（复杂查询），70% 是免费层（简单）。设计路由策略。
 3. A route drops quality by 2% but saves 40%. Is that a ship? Depends on product — argue both.
-   中文翻译：A route drops quality by 2% but saves 40%. Is that a ship? Depends on product — argue both.
+   中文翻译：一个路由降低质量 2% 但节省 40%。值得上线吗？取决于产品上下文。
 4. Implement a confidence check using logprobs from OpenAI / Anthropic APIs. What's the threshold you start with?
-   中文翻译：Implement a confidence check using logprobs from OpenAI / Anthropic APIs. What's the threshold you start with?
+   中文翻译：使用 OpenAI/Anthropic API 的 logprobs 实现置信度检查。什么阈值触发升级？
 5. Over six months, escalation rate climbs from 8% to 22%. Diagnose three causes and the fix for each.
 
 ## Key Terms | 术语速查表

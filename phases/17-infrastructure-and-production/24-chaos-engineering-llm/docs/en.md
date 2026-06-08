@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Name the five chaos engineering prerequisites (SLI/SLO, observability, rollback, runbooks, on-call) and explain why skipping any breaks the practice.
-  中文翻译：Name the five chaos engineering prerequisites (SLI/SLO, observability, rollback, runbooks, on-call) and explain why skipping any breaks the practice.
+  中文翻译：说出五个混沌工程前置条件（SLI/SLO、可观测性、回滚、运行手册、待命文化）。
 - Diagram the four planes (control, target, safety, observability) and the feedback loop into SLO.
-  中文翻译：Diagram the four planes (control, target, safety, observability) and the feedback loop into SLO.
+  中文翻译：绘制四个平面（控制、目标、安全、可观测性）和反馈循环到 SLO 仪表板。
 - Enumerate five LLM-specific experiments (memory overload, network fail, provider outage, malformed prompt, KV eviction storm).
-  中文翻译：Enumerate five LLM-specific experiments (memory overload, network fail, provider outage, malformed prompt, KV eviction storm).
+  中文翻译：列举五个 LLM 特定的混沌实验（内存过载、网络故障、提供商宕机、畸形输入、缓存失效）。
 - Pick a tool — Harness, LitmusChaos, Chaos Mesh — given stack.
-  中文翻译：Pick a tool — Harness, LitmusChaos, Chaos Mesh — given stack.
+  中文翻译：选择工具——Harness、LitmusChaos、Chaos Mesh——根据技术栈。
 
 ## The Problem | 问题引入
 
@@ -125,13 +125,13 @@ This lesson produces `outputs/skill-chaos-plan.md`. Given stack and maturity, pi
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Which experiment trips the burn-rate gate and why?
-   中文翻译：Run `code/main.py`. Which experiment trips the burn-rate gate and why?
+   中文翻译：运行 `code/main.py`。哪个实验触发了燃烧率门控？为什么？
 2. Design the first five chaos experiments for a vLLM-based RAG service. Include success criteria.
-   中文翻译：Design the first five chaos experiments for a vLLM-based RAG service. Include success criteria.
+   中文翻译：为基于 vLLM 的 RAG 服务设计前五个混沌实验。
 3. Your burn-rate alert paused an experiment. How do you determine root cause — chaos or natural?
-   中文翻译：Your burn-rate alert paused an experiment. How do you determine root cause — chaos or natural?
+   中文翻译：你的燃烧率告警暂停了一个实验。如何确定根因 vs 预期行为？
 4. Argue whether chaos should run in production or only staging. When is production the right answer?
-   中文翻译：Argue whether chaos should run in production or only staging. When is production the right answer?
+   中文翻译：论证混沌实验应该在生产还是仅在预发布环境运行。何时生产环境是正确答案？
 5. Name three LLM-specific failure modes that generic network-chaos cannot reproduce.
 
 ## Key Terms | 术语速查表

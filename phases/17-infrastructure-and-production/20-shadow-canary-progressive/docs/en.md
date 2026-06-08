@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Distinguish shadow mode (zero-impact compare), canary (live traffic progressive), and A/B (stability-confirmed comparison).
-  中文翻译：Distinguish shadow mode (zero-impact compare), canary (live traffic progressive), and A/B (stability-confirmed comparison).
+  中文翻译：区分影子模式（零影响比较）、金丝雀（真实流量渐进）和 A/B（统计比较）。
 - Enumerate five LLM-specific canary metrics (latency, cost/request, error/refusal, output-length distribution, user feedback).
-  中文翻译：Enumerate five LLM-specific canary metrics (latency, cost/request, error/refusal, output-length distribution, user feedback).
+  中文翻译：列举五个 LLM 特定的金丝雀指标（延迟、成本/请求、错误/拒绝、输出长度分布、语义质量样本）。
 - Explain why LLM non-determinism (up to 15%) changes what "stable" means in a rollout.
-  中文翻译：Explain why LLM non-determinism (up to 15%) changes what "stable" means in a rollout.
+  中文翻译：解释为什么 LLM 非确定性（高达 15%）改变了推出中"稳定"的含义。
 - Design a rollback path that takes seconds (policy flip) not hours (redeploy).
-  中文翻译：Design a rollback path that takes seconds (policy flip) not hours (redeploy).
+  中文翻译：设计一个秒级回滚路径（策略翻转），而非小时级（重新部署）。
 
 ## The Problem | 问题引入
 
@@ -125,13 +125,13 @@ This lesson produces `outputs/skill-rollout-runbook.md`. Given candidate model, 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Inject a 25% cost regression. At which stage does the canary halt?
-   中文翻译：Run `code/main.py`. Inject a 25% cost regression. At which stage does the canary halt?
+   中文翻译：运行 `code/main.py`。注入 25% 成本回归。金丝雀在哪个阶段捕获它？
 2. Your new model has 3% accuracy gain offline but cost/request is +18%. Is it a ship? Depends on the policy — write both paths.
-   中文翻译：Your new model has 3% accuracy gain offline but cost/request is +18%. Is it a ship? Depends on the policy — write both paths.
+   中文翻译：你的新模型离线精度提升 3% 但成本/请求 +18%。值得上线吗？取决于产品上下文。
 3. Design a rollback that takes under 60 seconds end-to-end. List the required infrastructure.
-   中文翻译：Design a rollback that takes under 60 seconds end-to-end. List the required infrastructure.
+   中文翻译：设计端到端 60 秒内的回滚。列出所需基础设施。
 4. Non-determinism shows ±7% on your eval. Set canary gates so you don't false-alarm. What multipliers do you use?
-   中文翻译：Non-determinism shows ±7% on your eval. Set canary gates so you don't false-alarm. What multipliers do you use?
+   中文翻译：非确定性显示 +/-7%。设置金丝雀门控以避免误报。
 5. Shadow mode catches a 40% cost spike before canary. Write the alert rule that fires in shadow.
 
 ## Key Terms | 术语速查表

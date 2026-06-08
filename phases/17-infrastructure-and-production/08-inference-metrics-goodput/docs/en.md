@@ -146,9 +146,9 @@ Always state which tool. Always publish the definition.
 A reasonable consumer-facing SLO for a 70B chat model in 2026:
 
 - TTFT P99 <= 800 ms.
-  中文翻译：TTFT P99 <= 800ms。
+  中文翻译：TTFT P99 <= 800ms（首 token 延迟上限）。
 - TPOT P99 <= 25 ms.
-  中文翻译：TPOT P99 <= 25ms。
+  中文翻译：TPOT P99 <= 25ms（每 token 延迟上限）。
 - E2E P99 <= 3 s for <300-token outputs.
   中文翻译：E2E P99 <= 3s（<300 token 输出）。
 - Goodput target >= 99%.

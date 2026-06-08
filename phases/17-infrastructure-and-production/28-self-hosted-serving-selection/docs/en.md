@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Pick an engine given hardware (CPU / AMD / NVIDIA Hopper / Blackwell), scale (1 user / 100 / 10,000), and workload (general chat / agent / long-context).
-  中文翻译：Pick an engine given hardware (CPU / AMD / NVIDIA Hopper / Blackwell), scale (1 user / 100 / 10,000), and workload (general chat / agent / long-context).
+  中文翻译：给定硬件（CPU/AMD/NVIDIA Hopper/Blackwell）、规模和工作负载选择引擎。
 - Name the 2026 TGI maintenance-mode status (December 11, 2025) and why it biases new projects toward vLLM or SGLang.
-  中文翻译：Name the 2026 TGI maintenance-mode status (December 11, 2025) and why it biases new projects toward vLLM or SGLang.
+  中文翻译：说出 2026 年 TGI 维护模式状态（2025 年 12 月 11 日）以及它为什么影响使用 HuggingFace 默认设置的团队。
 - Describe the dev/staging/prod pipeline using the same GGUF or HF weights throughout.
-  中文翻译：Describe the dev/staging/prod pipeline using the same GGUF or HF weights throughout.
+  中文翻译：描述在整个生命周期中使用相同 GGUF 或 HF 权重的开发/预发布/生产流水线。
 - Explain why "CPU only" forces llama.cpp and "AMD" excludes TRT-LLM.
-  中文翻译：Explain why "CPU only" forces llama.cpp and "AMD" excludes TRT-LLM.
+  中文翻译：解释为什么"仅 CPU"强制使用 llama.cpp 而"AMD"排除了 TRT-LLM。
 
 ## The Problem | 问题引入
 
@@ -123,13 +123,13 @@ This lesson produces `outputs/skill-engine-picker.md`. Given constraints, picks 
 ## Exercises | 练习题
 
 1. Run `code/main.py` with your hardware / scale / workload. Does the output match your intuition?
-   中文翻译：Run `code/main.py` with your hardware / scale / workload. Does the output match your intuition?
+   中文翻译：用你的硬件/规模/工作负载运行 `code/main.py`。输出是否符合预期？
 2. Your infra is 12 H100s and 8 MI300X AMD. What engine? Why is TRT-LLM off the table?
-   中文翻译：Your infra is 12 H100s and 8 MI300X AMD. What engine? Why is TRT-LLM off the table?
+   中文翻译：你的基础设施是 12 块 H100 和 8 块 MI300X AMD。用什么引擎？为什么 TRT-LLM 不可选？
 3. A team wants to use TGI in 2026 because "it's what we know." Argue the migration case.
-   中文翻译：A team wants to use TGI in 2026 because "it's what we know." Argue the migration case.
+   中文翻译：一个团队想在 2026 年使用 TGI 因为"这是我们熟悉的"。论证迁移的理由。
 4. Ollama dev to vLLM prod: what changes in quantization, configuration, and observability?
-   中文翻译：Ollama dev to vLLM prod: what changes in quantization, configuration, and observability?
+   中文翻译：Ollama 开发到 vLLM 生产：量化、配置和可观测性有什么变化？
 5. RAG product with P99 prefix length 8K and high reuse across tenants. Pick an engine and stack it with Phase 17 · 11 + 18.
 
 ## Key Terms | 术语速查表

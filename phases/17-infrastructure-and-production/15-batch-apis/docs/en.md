@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Name the three provider batch APIs (OpenAI, Anthropic, Google) and the common 50% discount + 24h turnaround guarantees.
-  中文翻译：Name the three provider batch APIs (OpenAI, Anthropic, Google) and the common 50% discount + 24h turnaround guarantees.
+  中文翻译：说出三个提供商的批处理 API（OpenAI、Anthropic、Google）和通用的 50% 折扣 + 24 小时周转保证。
 - Compute the cost for stacking batch + cached-input on an overnight classification workload and compare to synchronous-uncached baseline.
-  中文翻译：Compute the cost for stacking batch + cached-input on an overnight classification workload and compare to synchronous-uncached baseline.
+  中文翻译：计算叠加批处理 + 缓存输入在隔夜分类工作负载上的成本，并与同步-未缓存基线比较。
 - Triage a workload into interactive / semi-interactive / batch and justify the lane.
-  中文翻译：Triage a workload into interactive / semi-interactive / batch and justify the lane.
+  中文翻译：将工作负载分流到交互式/半交互式/批处理，并为每个车道说明理由。
 - Name the two traps: partial interactivity (user expects faster than 24h) and output-schema drift (batch file format differs per provider).
-  中文翻译：Name the two traps: partial interactivity (user expects faster than 24h) and output-schema drift (batch file format differs per provider).
+  中文翻译：说出两个陷阱：部分交互性（用户期望快于 24 小时）和输出 schema 漂移（批处理文件格式因提供商而异）。
 
 ## The Problem | 问题引入
 
@@ -113,13 +113,13 @@ This lesson produces `outputs/skill-batch-triager.md`. Given workload characteri
 ## Exercises | 练习题
 
 1. Run `code/main.py`. For a 100k-doc pipeline with 3K-token system prompt and 500-token output, compute the savings of full stack (batch + cache) vs sync baseline.
-   中文翻译：Run `code/main.py`. For a 100k-doc pipeline with 3K-token system prompt and 500-token output, compute the savings of full stack (batch + cache) vs sync baseline.
+   中文翻译：运行 `code/main.py`。对于 100K 文档管线（3K token 系统提示，共享缓存前缀），计算批处理 + 缓存 vs 同步成本。
 2. Pick three features in a real product you know. Triage each into interactive/semi/batch.
-   中文翻译：Pick three features in a real product you know. Triage each into interactive/semi/batch.
+   中文翻译：在你了解的真实产品中选三个功能。将每个分流到交互式/半交互式/批处理。
 3. A user complains their report took 3 hours. Was that a batch mis-triage or a legitimate interactive? Write the decision criterion.
-   中文翻译：A user complains their report took 3 hours. Was that a batch mis-triage or a legitimate interactive? Write the decision criterion.
+   中文翻译：用户投诉报告花了 3 小时。这是批处理分流错误还是预期行为？
 4. Your batch API return SLA is 24h but P99 is 20 hours. How do you communicate this to the user — what is the downstream system behavior on the edge case?
-   中文翻译：Your batch API return SLA is 24h but P99 is 20 hours. How do you communicate this to the user — what is the downstream system behavior on the edge case?
+   中文翻译：你的批处理 API 返回 SLA 是 24 小时但 P99 是 20 小时。如何向用户传达？
 5. Compute break-even: at what shared-prefix length does batch + cache become cheaper than running overnight on your own reserved GPU?
 
 ## Key Terms | 术语速查表

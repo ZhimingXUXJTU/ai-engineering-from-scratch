@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Distinguish development platforms (bundled: evals + prompts + sessions) from gateway/telemetry tools (traces + metrics only).
-  中文翻译：Distinguish development platforms (bundled: evals + prompts + sessions) from gateway/telemetry tools (traces + metrics only).
+  中文翻译：区分开发平台（捆绑：评估 + 提示管理 + 会话）与网关/遥测工具（仅追踪和指标）。
 - Map six major tools (Langfuse, LangSmith, Phoenix, Arize AX, Helicone, Opik) to their licensing, pricing, and sweet-spot use cases.
-  中文翻译：Map six major tools (Langfuse, LangSmith, Phoenix, Arize AX, Helicone, Opik) to their licensing, pricing, and sweet-spot use cases.
+  中文翻译：将六个主要工具（Langfuse、LangSmith、Phoenix、Arize AX、Helicone、Opik）映射到其许可、定价和最佳用例。
 - Explain the OpenTelemetry-glue pattern that lets you combine a gateway tool with a separate eval platform.
-  中文翻译：Explain the OpenTelemetry-glue pattern that lets you combine a gateway tool with a separate eval platform.
+  中文翻译：解释 OpenTelemetry 胶水模式，该模式允许你将网关工具与独立评估平台组合。
 - Name the 2026 cost differentiator (Arize AX's zero-copy approach vs monolithic ingest) and state the rough 100x multiplier.
-  中文翻译：Name the 2026 cost differentiator (Arize AX's zero-copy approach vs monolithic ingest) and state the rough 100x multiplier.
+  中文翻译：说出 2026 年的成本差异化因素（Arize AX 的零拷贝方法 vs 单体式摄入）并说明大约 100 倍的乘数。
 
 ## The Problem | 问题引入
 
@@ -136,13 +136,13 @@ This lesson produces `outputs/skill-observability-stack.md`. Given stack, scale,
 ## Exercises | 练习题
 
 1. Your team on LangChain wants OSS self-hosted observability. Pick Langfuse or Opik and justify.
-   中文翻译：Your team on LangChain wants OSS self-hosted observability. Pick Langfuse or Opik and justify.
+   中文翻译：你的团队使用 LangChain，想要开源自托管可观测性。选择 Langfuse 或 Opik 并说明理由。
 2. At 5M traces/day with Datadog quotes $150K/month, compute break-even for Arize AX.
-   中文翻译：At 5M traces/day with Datadog quotes $150K/month, compute break-even for Arize AX.
+   中文翻译：在 5M traces/day 规模下，Datadog 报价 $150K/月，计算 Arize AX 零拷贝方案的盈亏平衡点。
 3. Design an OpenTelemetry GenAI attribute set your org's guideline should mandate on every LLM call.
-   中文翻译：Design an OpenTelemetry GenAI attribute set your org's guideline should mandate on every LLM call.
+   中文翻译：设计一个你的组织指南应强制要求每次 LLM 调用包含的 OpenTelemetry GenAI 属性集。
 4. Argue whether Phoenix alone is sufficient for production. When does it not suffice?
-   中文翻译：Argue whether Phoenix alone is sufficient for production. When does it not suffice?
+   中文翻译：论证 Phoenix 单独使用是否足以满足生产需求。它在什么情况下不够用？
 5. Helicone is 20ms proxy overhead. At P99 TTFT 300 ms, is that acceptable? What if SLA is 100 ms?
 
 ## Key Terms | 术语速查表
