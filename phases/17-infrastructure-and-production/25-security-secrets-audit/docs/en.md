@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Enumerate the four secret-management anti-patterns (config files in VCS, hardcoded env, spreadsheets, static keys) and name their replacements.
-  中文翻译：Enumerate the four secret-management anti-patterns (config files in VCS, hardcoded env, spreadsheets, static keys) and name their replacements.
+  中文翻译：列举四个密钥管理反模式（VCS 中的配置文件、硬编码环境变量、电子表格共享密钥、共享服务账户）。
 - Explain the AI-gateway-pulls-from-vault pattern as 2026 production standard.
-  中文翻译：Explain the AI-gateway-pulls-from-vault pattern as 2026 production standard.
+  中文翻译：解释 AI 网关从 Vault 拉取密钥的模式作为 2026 年生产标准。
 - Implement a PII scrubber with consistent tokenization (same value → same placeholder) so semantics survive.
-  中文翻译：Implement a PII scrubber with consistent tokenization (same value → same placeholder) so semantics survive.
+  中文翻译：实现带一致性标记化的 PII 清洗器（相同值 -> 相同占位符）。
 - Name the 2026 Vercel supply-chain incident and what it taught about CI/CD credential hygiene.
-  中文翻译：Name the 2026 Vercel supply-chain incident and what it taught about CI/CD credential hygiene.
+  中文翻译：说出 2026 年 Vercel 供应链事件以及它对 CI/CD 凭证卫生的教训。
 
 ## The Problem | 问题引入
 
@@ -137,13 +137,13 @@ This lesson produces `outputs/skill-llm-security-plan.md`. Given regulatory scop
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Send two prompts referencing the same SSN. Confirm both get the same placeholder.
-   中文翻译：Run `code/main.py`. Send two prompts referencing the same SSN. Confirm both get the same placeholder.
+   中文翻译：运行 `code/main.py`。发送两个引用相同 SSN 的提示。确认两者获得相同的占位符。
 2. Design the network egress policy for a vLLM-on-EKS deployment calling OpenAI + Anthropic + Weaviate.
-   中文翻译：Design the network egress policy for a vLLM-on-EKS deployment calling OpenAI + Anthropic + Weaviate.
+   中文翻译：为调用 OpenAI 和 Anthropic 的 vLLM-on-EKS 部署设计网络出口策略。
 3. You discover a key in git history (2 years old). What's the correct response — rotate the key, scrub history, or both? Justify.
-   中文翻译：You discover a key in git history (2 years old). What's the correct response — rotate the key, scrub history, or both? Justify.
+   中文翻译：你在 git 历史中发现一个密钥（2 年前）。正确的响应流程是什么？
 4. Your audit log grows 10 GB/day. Design retention tiers (hot 30d, warm 12mo, cold 6yr).
-   中文翻译：Your audit log grows 10 GB/day. Design retention tiers (hot 30d, warm 12mo, cold 6yr).
+   中文翻译：你的审计日志每天增长 10GB。设计保留层级（热 30 天、温 12 月、冷 6 年）。
 5. Argue whether reverse-tokenization (substituting real values back into LLM response) is worth the complexity versus keeping placeholders visible.
 
 ## Key Terms | 术语速查表

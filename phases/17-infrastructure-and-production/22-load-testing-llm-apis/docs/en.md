@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Explain the two anti-patterns (GIL trap, prompt-uniformity trap) that make generic load testers lie for LLM APIs.
-  中文翻译：Explain the two anti-patterns (GIL trap, prompt-uniformity trap) that make generic load testers lie for LLM APIs.
+  中文翻译：解释两个反模式（GIL 陷阱、提示均匀性陷阱），它们使通用负载测试工具产生误导。
 - Pick a tool for a given purpose: LLMPerf (benchmark run), k6 + streaming extension (CI gate), guidellm (large-scale synthetic), GenAI-Perf (NVIDIA reference).
-  中文翻译：Pick a tool for a given purpose: LLMPerf (benchmark run), k6 + streaming extension (CI gate), guidellm (large-scale synthetic), GenAI-Perf (NVIDIA reference).
+  中文翻译：选择工具——Harness、LitmusChaos、Chaos Mesh——根据技术栈。
 - Design four load patterns (steady, ramp, spike, soak) and name the failure mode each catches.
-  中文翻译：Design four load patterns (steady, ramp, spike, soak) and name the failure mode each catches.
+  中文翻译：设计四种负载模式（稳态、递增、尖峰、浸泡）并说出每种捕获的故障模式。
 - Build a realistic prompt distribution using mean + stddev of input tokens rather than fixed length.
-  中文翻译：Build a realistic prompt distribution using mean + stddev of input tokens rather than fixed length.
+  中文翻译：使用输入 token 的均值 + 标准差构建真实提示分布，而非固定长度。
 
 ## The Problem | 问题引入
 
@@ -116,13 +116,13 @@ This lesson produces `outputs/skill-load-test-plan.md`. Given workload and SLA, 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Compare uniform vs realistic distribution — where is the gap?
-   中文翻译：Run `code/main.py`. Compare uniform vs realistic distribution — where is the gap?
+   中文翻译：运行 `code/main.py`。比较均匀 vs 真实分布——P99 TTFT 差异在哪里？
 2. Write the k6 script for a CI gate: TTFT P95 < 800 ms at 100 concurrent, runtime 5 minutes.
-   中文翻译：Write the k6 script for a CI gate: TTFT P95 < 800 ms at 100 concurrent, runtime 5 minutes.
+   中文翻译：编写 CI 门控的 k6 脚本：100 并发下 TTFT P95 < 800ms，运行 5 分钟。
 3. Your soak test shows memory growing 50 MB/hour. Name three causes and the instrumentation to pick between them.
-   中文翻译：Your soak test shows memory growing 50 MB/hour. Name three causes and the instrumentation to pick between them.
+   中文翻译：你的浸泡测试显示内存每小时增长 50MB。说出三个原因和每个的调查方法。
 4. Spike test from 10 RPS to 100 RPS. What's the expected recovery time if Karpenter + vLLM production-stack are in place (Phase 17 · 03 + 18)?
-   中文翻译：Spike test from 10 RPS to 100 RPS. What's the expected recovery time if Karpenter + vLLM production-stack are in place (Phase 17 · 03 + 18)?
+   中文翻译：从 10 RPS 尖峰测试到 100 RPS。如果 Karpenter 需要 45 秒供给，预期恢复时间是多少？
 5. GenAI-Perf reports TPOT=6ms; LLMPerf reports TPOT=11ms on the same server. Explain.
 
 ## Key Terms | 术语速查表

@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Distinguish evals ("can the model do the job") from A/B tests ("do users care").
-  中文翻译：Distinguish evals ("can the model do the job") from A/B tests ("do users care").
+  中文翻译：区分评估（"模型能做这个工作吗"）和 A/B 测试（"用户在乎吗"）。
 - Enumerate three testable axes (prompt, model, parameters) and pick the metric for each.
-  中文翻译：Enumerate three testable axes (prompt, model, parameters) and pick the metric for each.
+  中文翻译：列举三个可测试轴（提示、模型、参数）并为每个选择指标。
 - Explain CUPED, sequential testing, and Benjamini-Hochberg multiple-comparison corrections.
-  中文翻译：Explain CUPED, sequential testing, and Benjamini-Hochberg multiple-comparison corrections.
+  中文翻译：解释 CUPED、序贯检验和 Benjamini-Hochberg 多重比较校正。
 - Pick Statsig or GrowthBook based on warehouse-SQL posture and corporate acquisition stance.
-  中文翻译：Pick Statsig or GrowthBook based on warehouse-SQL posture and corporate acquisition stance.
+  中文翻译：根据仓库-SQL 态势和企业收购立场选择 Statsig 或 GrowthBook。
 
 ## The Problem | 问题引入
 
@@ -124,13 +124,13 @@ This lesson produces `outputs/skill-ab-plan.md`. Given feature change, workload,
 ## Exercises | 练习题
 
 1. Run `code/main.py`. For an expected 5% lift with baseline 3% conversion, what sample size to 80% power?
-   中文翻译：Run `code/main.py`. For an expected 5% lift with baseline 3% conversion, what sample size to 80% power?
+   中文翻译：运行 `code/main.py`。预期 5% 提升、基线 3% 转化率，需要多少样本量？
 2. Pick Statsig or GrowthBook for a healthcare-regulated on-prem customer.
-   中文翻译：Pick Statsig or GrowthBook for a healthcare-regulated on-prem customer.
+   中文翻译：为医疗保健监管的本地部署客户选择 Statsig 或 GrowthBook。
 3. Design an A/B that tests GPT-4 vs GPT-3.5 on cost-per-resolved-ticket. What's the primary metric, guardrail metric, secondary?
-   中文翻译：Design an A/B that tests GPT-4 vs GPT-3.5 on cost-per-resolved-ticket. What's the primary metric, guardrail metric, secondary?
+   中文翻译：设计一个在每解决工单成本上测试 GPT-4 vs GPT-3.5 的 A/B。主要指标是什么？
 4. Your canary passes but A/B shows -1.2% conversion. Do you ship? Write the escalation criteria.
-   中文翻译：Your canary passes but A/B shows -1.2% conversion. Do you ship? Write the escalation criteria.
+   中文翻译：你的金丝雀通过但 A/B 显示 -1.2% 转化率。你上线吗？写出解释。
 5. Apply CUPED to a pre-period with 60% of the variance of post. Compute the effective-sample-size boost.
 
 ## Key Terms | 术语速查表

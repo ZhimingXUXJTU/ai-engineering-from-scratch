@@ -14,13 +14,13 @@
 ## Learning Objectives | 学习目标
 
 - Explain why traditional FinOps (tags + tiers) breaks on LLM spend and name the three new attribution dimensions.
-  中文翻译：Explain why traditional FinOps (tags + tiers) breaks on LLM spend and name the three new attribution dimensions.
+  中文翻译：解释为什么传统 FinOps（标签 + 层级）在 LLM 支出上失效，并说出三个新归因维度。
 - Enumerate the four token layers (prompt, tool, memory, response) and why single-bucket billing hides cost.
-  中文翻译：Enumerate the four token layers (prompt, tool, memory, response) and why single-bucket billing hides cost.
+  中文翻译：列举四个 token 层（提示、工具、记忆、响应），以及为什么单桶计费产生误导。
 - Design an enforcement ladder (rate → spend cap → kill switch) for a multi-tenant product.
-  中文翻译：Design an enforcement ladder (rate → spend cap → kill switch) for a multi-tenant product.
+  中文翻译：设计执行阶梯（速率 -> 支出上限 -> 熔断开关）用于多租户 LLM 服务。
 - Pick a unit metric (cost per resolved query / artifact) instead of $/M tokens.
-  中文翻译：Pick a unit metric (cost per resolved query / artifact) instead of $/M tokens.
+  中文翻译：选择单位指标（每次解决查询/产物的成本）而非 $/M tokens。
 
 ## The Problem | 问题引入
 
@@ -146,13 +146,13 @@ This lesson produces `outputs/skill-finops-plan.md`. Given product and scale, de
 ## Exercises | 练习题
 
 1. Run `code/main.py`. At what z-score does the kill switch fire? How do you pick the threshold?
-   中文翻译：Run `code/main.py`. At what z-score does the kill switch fire? How do you pick the threshold?
+   中文翻译：运行 `code/main.py`。熔断开关在什么 z-score 下触发？如何防止误报？
 2. Design a per-tenant, per-task cost dashboard. What are the 5 views you build first?
-   中文翻译：Design a per-tenant, per-task cost dashboard. What are the 5 views you build first?
+   中文翻译：设计按租户、按任务的成本仪表板。你首先构建哪 5 个视图？
 3. Your largest tenant is unit-economics-negative. Propose three interventions ordered by customer impact.
-   中文翻译：Your largest tenant is unit-economics-negative. Propose three interventions ordered by customer impact.
+   中文翻译：你最大的租户单位经济学为负。提出三个按影响排名的干预措施。
 4. Compute cost per resolved ticket for a support product: 3M tokens/ticket, ~800 tickets/day, GPT-5 cached rate.
-   中文翻译：Compute cost per resolved ticket for a support product: 3M tokens/ticket, ~800 tickets/day, GPT-5 cached rate.
+   中文翻译：计算支持产品的每解决工单成本：3M tokens/工单，约 2.5 次重试。单位经济学可行吗？
 5. Argue whether retroactive tagging can ever work. When is it acceptable?
 
 ## Key Terms | 术语速查表

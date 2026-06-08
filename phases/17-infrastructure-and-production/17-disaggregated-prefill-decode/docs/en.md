@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Explain why prefill and decode have different optimal GPU allocations and quantify the waste under colocation.
-  中文翻译：Explain why prefill and decode have different optimal GPU allocations and quantify the waste under colocation.
+  中文翻译：解释为什么预填充和解码有不同的最优 GPU 分配，并量化同位的资源浪费。
 - Diagram the disaggregated architecture: prefill pool, decode pool, KV transfer via NIXL, router.
-  中文翻译：Diagram the disaggregated architecture: prefill pool, decode pool, KV transfer via NIXL, router.
+  中文翻译：绘制分离式架构图：预填充池、解码池、通过 NIXL 的 KV 转移、路由器。
 - Name the condition when disaggregation does NOT pay off (short prompts, short outputs).
-  中文翻译：Name the condition when disaggregation does NOT pay off (short prompts, short outputs).
+  中文翻译：说出分离式部署不划算的条件（短提示、短输出）。
 - Distinguish NVIDIA Dynamo (stack-above) from llm-d (Kubernetes-native) and match each to an operational context.
-  中文翻译：Distinguish NVIDIA Dynamo (stack-above) from llm-d (Kubernetes-native) and match each to an operational context.
+  中文翻译：区分 NVIDIA Dynamo（栈上层）和 llm-d（Kubernetes 原生），并将每个匹配到运维场景。
 
 ## The Problem | 问题引入
 
@@ -149,13 +149,13 @@ This lesson produces `outputs/skill-disaggregation-decider.md`. Given workload a
 ## Exercises | 练习题
 
 1. Run `code/main.py`. At what prompt length does disaggregation beat colocation?
-   中文翻译：Run `code/main.py`. At what prompt length does disaggregation beat colocation?
+   中文翻译：运行 `code/main.py`。在什么提示长度下分离式部署优于同位服务？计算交叉点。
 2. Design the prefill pool and decode pool for a RAG service with P99 prefix length 8K, output 300.
-   中文翻译：Design the prefill pool and decode pool for a RAG service with P99 prefix length 8K, output 300.
+   中文翻译：为 P99 前缀长度 8K、300 输出的 RAG 服务设计预填充池和解码池。
 3. Dynamo vs llm-d: pick one for a pure-Kubernetes shop with no Python runtime preference.
-   中文翻译：Dynamo vs llm-d: pick one for a pure-Kubernetes shop with no Python runtime preference.
+   中文翻译：Dynamo vs llm-d：为纯 Kubernetes 无 Python 运行时偏好的团队选择一个。
 4. Compute KV transfer cost: 4K prefill on 70B FP8 = ~500 MB KV. At RDMA 100 GB/s, transfer = 5 ms. At TCP 10 GB/s = 50 ms. Which matters for your SLA?
-   中文翻译：Compute KV transfer cost: 4K prefill on 70B FP8 = ~500 MB KV. At RDMA 100 GB/s, transfer = 5 ms. At TCP 10 GB/s = 50 ms. Which matters for your SLA?
+   中文翻译：计算 KV 转移成本：70B FP8 上 4K 预填充 = 约 500MB KV。RDMA 100 GB/s 下传输 = 5ms。是否被解码延迟隐藏？
 5. MoE expert routing changes KV access patterns. How does disaggregation behave with MoE that activates different experts per token?
 
 ## Key Terms | 术语速查表

@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Enumerate the six core gateway features (routing, fallback, retries, rate limits, secrets, observability, guardrails).
-  中文翻译：Enumerate the six core gateway features (routing, fallback, retries, rate limits, secrets, observability, guardrails).
+  中文翻译：列举六个核心网关功能（路由、回退、重试、速率限制、密钥管理、可观测性）。
 - Map four 2026 gateways (LiteLLM, Portkey, Kong AI, Bifrost) to scale ceilings and use cases.
-  中文翻译：Map four 2026 gateways (LiteLLM, Portkey, Kong AI, Bifrost) to scale ceilings and use cases.
+  中文翻译：将四个 2026 年网关（LiteLLM、Portkey、Kong AI、Bifrost）映射到规模上限和用例。
 - Cite the Kong benchmark (228% vs Portkey, 859% vs LiteLLM) and explain why it matters for >500 RPS.
-  中文翻译：Cite the Kong benchmark (228% vs Portkey, 859% vs LiteLLM) and explain why it matters for >500 RPS.
+  中文翻译：引用 Kong 基准测试（228% vs Portkey，859% vs LiteLLM）并解释为什么在 >500 RPS 时重要。
 - Choose self-hosted vs managed given data residency and ops budget.
-  中文翻译：Choose self-hosted vs managed given data residency and ops budget.
+  中文翻译：给定数据驻留和运维预算，选择自托管 vs 托管。
 
 ## The Problem | 问题引入
 
@@ -128,13 +128,13 @@ This lesson produces `outputs/skill-gateway-picker.md`. Given scale, ops posture
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Configure fallback from OpenAI→Anthropic→self-hosted. What's the expected hit rate at 5% provider error rate?
-   中文翻译：Run `code/main.py`. Configure fallback from OpenAI→Anthropic→self-hosted. What's the expected hit rate at 5% provider error rate?
+   中文翻译：运行 `code/main.py`。配置 OpenAI -> Anthropic -> 自托管的回退。哪个触发条件最合理？
 2. Your SLA is TTFT P99 < 200 ms on a 300 ms baseline. Which gateways stay within budget?
-   中文翻译：Your SLA is TTFT P99 < 200 ms on a 300 ms baseline. Which gateways stay within budget?
+   中文翻译：你的 SLA 是在 300ms 基线上的 TTFT P99 < 200ms。哪些网关在预算内？
 3. A healthcare customer requires self-hosted + PII redaction + audit. Pick Portkey OSS or Kong.
-   中文翻译：A healthcare customer requires self-hosted + PII redaction + audit. Pick Portkey OSS or Kong.
+   中文翻译：一个医疗保健客户需要自托管 + PII 脱敏 + 审计。选择 Portkey OSS 或 Kong。
 4. Compare LiteLLM vs Kong: at what RPS ceiling should a team migrate?
-   中文翻译：Compare LiteLLM vs Kong: at what RPS ceiling should a team migrate?
+   中文翻译：比较 LiteLLM vs Kong：团队在什么 RPS 上限下应该迁移？
 5. Design a rate-limit policy for a multi-tenant SaaS: free tier, trial tier, paid tier. Token-bucket or sliding-window?
 
 ## Key Terms | 术语速查表

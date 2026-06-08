@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Diagram the multi-agent AI SRE architecture: supervisor + specialized agents (logs, metrics, runbooks) + human approval gate.
-  中文翻译：Diagram the multi-agent AI SRE architecture: supervisor + specialized agents (logs, metrics, runbooks) + human approval gate.
+  中文翻译：绘制多 Agent AI SRE 架构：主管 + 专业 Agent（日志、指标、运行手册）。
 - Explain why auto-remediation is narrow (restart pod, revert deploy) rather than broad (re-architect service).
-  中文翻译：Explain why auto-remediation is narrow (restart pod, revert deploy) rather than broad (re-architect service).
+  中文翻译：解释为什么自动修复是窄范围的（重启 Pod、回滚部署）而非宽范围的（重新架构）。
 - Name the adversarial evaluation pattern (NeuBird Hawkeye): two models agree = confidence; disagree = escalate.
-  中文翻译：Name the adversarial evaluation pattern (NeuBird Hawkeye): two models agree = confidence; disagree = escalate.
+  中文翻译：说出对抗性评估模式（NeuBird Hawkeye）：两个模型一致 = 置信度；不一致 = 升级到人类。
 - Cite the MIT 89% early-detection result and the operational constraint: predictions without actuation are just dashboards.
-  中文翻译：Cite the MIT 89% early-detection result and the operational constraint: predictions without actuation are just dashboards.
+  中文翻译：引用 MIT 89% 早期检测结果和运维约束：无历史基线的预测不可行。
 
 ## The Problem | 问题引入
 
@@ -124,13 +124,13 @@ This lesson produces `outputs/skill-ai-sre-plan.md`. Given current on-call, inci
 ## Exercises | 练习题
 
 1. Run `code/main.py`. What if the log and metric agents disagree? How does the supervisor resolve?
-   中文翻译：Run `code/main.py`. What if the log and metric agents disagree? How does the supervisor resolve?
+   中文翻译：运行 `code/main.py`。如果日志和指标 Agent 不一致怎么办？主管如何仲裁？
 2. Define three "safe" auto-remediation actions for your service. Justify each.
-   中文翻译：Define three "safe" auto-remediation actions for your service. Justify each.
+   中文翻译：为你的服务定义三个"安全"的自动修复操作。为每个提供理由。
 3. Write a structured runbook template: sections, required fields, verification commands.
-   中文翻译：Write a structured runbook template: sections, required fields, verification commands.
+   中文翻译：编写结构化运行手册模板：章节、必填字段、验证命令。
 4. Predictive detection fires at 12 min lead. What's your policy — pager, pre-drain, or both?
-   中文翻译：Predictive detection fires at 12 min lead. What's your policy — pager, pre-drain, or both?
+   中文翻译：预测性检测在 12 分钟提前量触发。你的策略是什么——寻呼、预热还是等待？
 5. Argue whether a 3-person team should adopt AI SRE in 2026 or wait. Consider maturity, volume, risk.
 
 ## Key Terms | 术语速查表

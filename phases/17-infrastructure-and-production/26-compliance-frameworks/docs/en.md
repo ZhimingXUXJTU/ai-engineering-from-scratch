@@ -13,13 +13,13 @@
 ## Learning Objectives | 学习目标
 
 - Enumerate the seven 2026 frameworks relevant to LLM products and match each to a customer segment.
-  中文翻译：Enumerate the seven 2026 frameworks relevant to LLM products and match each to a customer segment.
+  中文翻译：列举 2026 年与 LLM 产品相关的七个框架，并将每个匹配到客户细分。
 - Cite the EU AI Act enforcement timeline (in force August 2024; high-risk enforcement August 2026) and the two-tier fine ceiling (€15M / 3% for high-risk obligations, €35M / 7% for prohibited practices).
-  中文翻译：Cite the EU AI Act enforcement timeline (in force August 2024; high-risk enforcement August 2026) and the two-tier fine ceiling (€15M / 3% for high-risk obligations, €35M / 7% for prohibited practices).
+  中文翻译：引用 EU AI Act 执法时间表（2024 年 8 月生效；高风险执法 2026 年 8 月）。
 - Explain why post-processing PII cleanup is not enough for GDPR and name real-time inference-layer redaction as the defensible standard.
-  中文翻译：Explain why post-processing PII cleanup is not enough for GDPR and name real-time inference-layer redaction as the defensible standard.
+  中文翻译：解释为什么后处理 PII 清理对 GDPR 不够，并说出实时推理层的替代方案。
 - Describe cross-framework control mapping (e.g., access control maps to ISO 27001 A.5.15-5.18 + GDPR Art. 32 + HIPAA §164.312(a)).
-  中文翻译：Describe cross-framework control mapping (e.g., access control maps to ISO 27001 A.5.15-5.18 + GDPR Art. 32 + HIPAA §164.312(a)).
+  中文翻译：描述跨框架控制映射（如访问控制映射到 ISO 27001 A.5.15-5.18 + SOC 2 CC6 + HIPAA 安全规则）。
 
 ## The Problem | 问题引入
 
@@ -130,13 +130,13 @@ This lesson produces `outputs/skill-compliance-matrix.md`. Given customer segmen
 ## Exercises | 练习题
 
 1. Your first enterprise customer requires SOC 2 Type II, HIPAA BAA, EU AI Act statement. What is the minimum viable compliance posture to win the deal?
-   中文翻译：Your first enterprise customer requires SOC 2 Type II, HIPAA BAA, EU AI Act statement. What is the minimum viable compliance posture to win the deal?
+   中文翻译：你的第一个企业客户需要 SOC 2 Type II、HIPAA BAA、EU AI Act 合规。按优先级排序实现路线图。
 2. Classify three hypothetical LLM products under EU AI Act risk tiers. What changes at high-risk?
-   中文翻译：Classify three hypothetical LLM products under EU AI Act risk tiers. What changes at high-risk?
+   中文翻译：在 EU AI Act 风险等级下分类三个假设的 LLM 产品。高风险等级有什么变化？
 3. You accidentally sent PHI to a provider without BAA. Walk through the incident response.
-   中文翻译：You accidentally sent PHI to a provider without BAA. Walk through the incident response.
+   中文翻译：你不小心将 PHI 发送给了没有 BAA 的提供商。走一遍事件响应流程。
 4. Argue whether ISO 42001 is "necessary in 2026" for a mid-market AI vendor.
-   中文翻译：Argue whether ISO 42001 is "necessary in 2026" for a mid-market AI vendor.
+   中文翻译：论证 ISO 42001 在 2026 年对中等市场 AI 供应商是否"必要"。
 5. Map your LLM audit log fields (Phase 17 · 25) to at least three framework controls.
 
 ## Key Terms | 术语速查表
