@@ -6,10 +6,10 @@
 
 > **【拓展：水印 → Deepfake 检测】** 水印是 Deepfake 检测的核心技术路径。SynthID 的跨模态检测器（2025 年 11 月）可以从文本、图像、音频和视频中读取信号。但局限性明显：模型特定（无 SynthID 信号不等于真实）、不抗释义（文本水印在改写后消失）、微调可移除（"Stable Signature is Unstable"证明）。与 C2PA 元数据互补——元数据可剥离但信息丰富，水印持久但信息有限。
 
-**Type:** Build
-**Languages:** Python (stdlib, token-watermark embed + detect)
-**Prerequisites:** Phase 10 · 04 (sampling), Phase 01 · 09 (information theory)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib, token-watermark embed + detect) | **语言:** Python（标准库，token 水印嵌入 + 检测）
+**Prerequisites:** Phase 10 · 04 (sampling), Phase 01 · 09 (information theory) | **前置知识:** Phase 10 · 04 (采样), Phase 01 · 09 (信息论)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 

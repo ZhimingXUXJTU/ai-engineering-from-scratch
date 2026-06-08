@@ -6,10 +6,10 @@
 
 > **【拓展：2024-2025 提升叙述 → 从"轻微"到"关键"】** 三阶段叙述：2024 年"轻微提升"——早期评估报告模型对新手只有小幅优势；2025 年 4 月"即将突破"——OpenAI PF v2 报告模型即将有意义地帮助新手创造已知生物威胁；Anthropic 2025 年生物武器获取试验——2.53 倍提升，不足以排除 ASL-3。18 个月内从"轻微"演变为"可能促成"。
 
-**Type:** Learn
-**Languages:** Python (stdlib, WMDP-shaped uplift evaluation harness)
-**Prerequisites:** Phase 18 · 16 (red-team tooling), Phase 14 (agent engineering)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, WMDP-shaped uplift evaluation harness) | **语言:** Python（标准库，WMDP 形式提升评估框架）
+**Prerequisites:** Phase 18 · 16 (red-team tooling), Phase 14 (agent engineering) | **前置知识:** Phase 18 · 16 (红队工具), Phase 14 (Agent 工程)
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标
 

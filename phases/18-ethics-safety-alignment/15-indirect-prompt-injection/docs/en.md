@@ -6,10 +6,10 @@
 
 > **【拓展：IPI → 2026 最大生产威胁】** OWASP LLM Top 10（2025）将提示注入（直接+间接）排在 LLM01——应用层威胁第一位。NIST AI SPD 2024 称间接提示注入为"生成式 AI 最大的安全缺陷"。实际事件包括 EchoLeak（CVE-2025-32711, CVSS 9.3, Microsoft 365 Copilot）和 CamoLeak（CVSS 9.6, GitHub Copilot Chat）。
 
-**Type:** Build
-**Languages:** Python (stdlib, IPI attack + defense harness)
-**Prerequisites:** Phase 18 · 12 (PAIR), Phase 14 (agent engineering)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib, IPI attack + defense harness) | **语言:** Python（标准库，IPI 攻击 + 防御框架）
+**Prerequisites:** Phase 18 · 12 (PAIR), Phase 14 (agent engineering) | **前置知识:** Phase 18 · 12 (PAIR), Phase 14 (Agent 工程)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 

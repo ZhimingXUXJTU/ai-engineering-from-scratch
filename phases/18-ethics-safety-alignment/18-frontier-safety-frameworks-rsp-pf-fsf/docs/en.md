@@ -6,10 +6,10 @@
 
 > **【拓展：竞争调整条款 → 竞赛动态】** 所有三个框架都包含竞争调整条款——允许在竞争对手在没有可比保障措施的情况下发货时推迟。批评者认为这创造了竞底：如果三个实验室都在竞争对手违约时减少要求，均衡向违约偏移。维护者认为替代方案（单边保障措施）在违约实验室安全意识较低时产生更差结果。
 
-**Type:** Learn
-**Languages:** none
-**Prerequisites:** Phase 18 · 17 (WMDP), Phase 18 · 07-09 (deception failures)
-**Time:** ~75 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** none | **语言:** 无
+**Prerequisites:** Phase 18 · 17 (WMDP), Phase 18 · 07-09 (deception failures) | **前置知识:** Phase 18 · 17 (WMDP), Phase 18 · 07-09 (欺骗失败)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 

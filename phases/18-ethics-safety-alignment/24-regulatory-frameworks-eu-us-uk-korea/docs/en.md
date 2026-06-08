@@ -6,10 +6,10 @@
 
 > **【拓展：四国监管哲学对比 → 合规挑战】** 四种竞争性监管哲学：EU——严格、风险分级、重罚（最高 1500 万欧元或全球营业额 3%）；US——创新优先、分散化、各州填补联邦空白；UK——窄化安全焦点、强评估基础设施；韩国——MSIT 主导、面向外国提供商。多司法管辖区部署者必须遵守最严格的——2026 年通常是 EU AI Act。
 
-**Type:** Learn
-**Languages:** none
-**Prerequisites:** Phase 18 · 18 (frontier frameworks), Phase 18 · 27 (data governance)
-**Time:** ~75 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** none | **语言:** 无
+**Prerequisites:** Phase 18 · 18 (frontier frameworks), Phase 18 · 27 (data governance) | **前置知识:** Phase 18 · 18 (前沿框架), Phase 18 · 27 (数据治理)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 

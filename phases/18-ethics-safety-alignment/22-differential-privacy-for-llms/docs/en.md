@@ -6,10 +6,10 @@
 
 > **【拓展：MIA vs 训练数据提取 → 衡量差距】** 2024-2025 年的两条证据线形成张力：金丝雀 MIA（Duan 等人 2024）报告对语言模型的成功有限；训练数据提取（Carlini 2021, Nasr 等人 2025）恢复大量逐字记忆。2025 年 3 月的解决方案：两者测量不同东西——MIA 问"示例 e 在 D 中吗？"，提取问"我能恢复 D 的什么？"——"最可提取的"示例才是隐私的关键。
 
-**Type:** Build
-**Languages:** Python (stdlib, DP-SGD noise-injection and ε-δ accountant demonstration)
-**Prerequisites:** Phase 01 · 09 (information theory), Phase 10 · 01 (large-model training)
-**Time:** ~60 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib, DP-SGD noise-injection and ε-δ accountant demonstration) | **语言:** Python（标准库，DP-SGD 噪声注入和 ε-δ 计数器演示）
+**Prerequisites:** Phase 01 · 09 (information theory), Phase 10 · 01 (large-model training) | **前置知识:** Phase 01 · 09 (信息论), Phase 10 · 01 (大模型训练)
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标
 

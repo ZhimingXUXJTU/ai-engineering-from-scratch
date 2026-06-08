@@ -6,10 +6,10 @@
 
 > **【拓展：交叉偏见 → 真实世界影响】** An 等人（PNAS Nexus, 2025 年 3 月）测量了 GPT-3.5 Turbo、GPT-4o、Gemini 1.5 Flash、Claude 3.5 Sonnet、Llama 3-70B 在 20 个入门级职位自动简历评估中的交叉性别×种族偏见。GPT-4o 在简历评分中对黑人女性的惩罚比对黑人男性和白人女性分别更严重——单轴评估无法捕捉这种效应。
 
-**Type:** Build
-**Languages:** Python (stdlib, toy embedding-based bias probe)
-**Prerequisites:** Phase 05 (word embeddings), Phase 18 · 01 (instruction following)
-**Time:** ~60 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib, toy embedding-based bias probe) | **语言:** Python（标准库，玩具嵌入偏见探针）
+**Prerequisites:** Phase 05 (word embeddings), Phase 18 · 01 (instruction following) | **前置知识:** Phase 05 (词嵌入), Phase 18 · 01 (指令遵循)
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标
 

@@ -6,10 +6,10 @@
 
 > **【拓展：2026 红队技术栈 → 生产配置】** 标准配置：Llama Guard 放在模型两侧（输入+输出），Garak 每晚运行回归测试，PyRIT 用于预发布活动。Prompt-Guard-86M 是 Meta 的轻量级输入分类器，与 Llama Guard 配合使用。TrustyAI 将 Garak 与 Llama Stack shields 集成进行端到端评估。
 
-**Type:** Build
-**Languages:** Python (stdlib, tool-architecture simulator and Llama Guard-style classifier mock)
-**Prerequisites:** Phase 18 · 12-15 (jailbreaks and IPI)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib, tool-architecture simulator and Llama Guard-style classifier mock) | **语言:** Python（标准库，工具架构模拟器和 Llama Guard 风格分类器模拟）
+**Prerequisites:** Phase 18 · 12-15 (jailbreaks and IPI) | **前置知识:** Phase 18 · 12-15 (越狱和 IPI)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 

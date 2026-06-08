@@ -6,10 +6,10 @@
 
 > **【拓展：外部评估 → 利益冲突缓解】** 单一来源评估不可靠：实验室评估自己的模型存在结构性利益冲突。外部评估者可以发现和验证实验室可能低报的失败模式。2024 年的潜伏 Agent 论文是 Anthropic + Redwood 联合工作；对齐伪装是 Anthropic + Redwood；上下文策略是 Apollo；反策略是 Apollo + OpenAI。多组织结构是质量控制。
 
-**Type:** Learn
-**Languages:** none
-**Prerequisites:** Phase 18 · 01-27 (prior Phase 18 lessons)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** none | **语言:** 无
+**Prerequisites:** Phase 18 · 01-27 (prior Phase 18 lessons) | **前置知识:** Phase 18 · 01-27（先前 Phase 18 课程）
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## Learning Objectives | 学习目标
 

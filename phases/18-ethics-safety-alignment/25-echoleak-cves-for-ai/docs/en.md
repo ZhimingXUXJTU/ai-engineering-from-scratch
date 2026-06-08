@@ -6,10 +6,10 @@
 
 > **【拓展：AI CVE → 新漏洞类别】** AI 漏洞现在成为普通安全漏洞——它们获得 CVE、需要披露、遵循 CVSS 评分。Aim Labs 的"LLM 范围违规"框架定义了三边界模型：检索（不可信输入通过检索面进入）、范围（模型行动访问特权范围）、输出（输出跨越信任边界）。三者必须独立防护——修复一个不能保障其他。
 
-**Type:** Learn
-**Languages:** Python (stdlib, scope-violation trace reconstruction)
-**Prerequisites:** Phase 18 · 15 (indirect prompt injection)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, scope-violation trace reconstruction) | **语言:** Python（标准库，范围违规追踪重构）
+**Prerequisites:** Phase 18 · 15 (indirect prompt injection) | **前置知识:** Phase 18 · 15 (间接提示注入)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## Learning Objectives | 学习目标
 
