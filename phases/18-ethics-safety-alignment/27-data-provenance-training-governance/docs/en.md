@@ -6,10 +6,10 @@
 
 > **【拓展：合法利益趋同 → 2025 DPA 立场】** 2025 年多个数据保护机构在合法利益立场上趋同：Irish DPC（2025 年 5 月 21 日）在接受 Meta 在第一方公开 EU/EEA 成人内容上训练 LLM 的计划（带保障措施）；Cologne 高等地区法院驳回禁令；UK ICO（2025 年 9 月 23 日）对 LinkedIn 恢复 AI 训练发出积极监管回应。趋同原则：合法利益可以证明在公开可用第一方内容上训练的合理性，不需要同意。
 
-**Type:** Learn
-**Languages:** Python (stdlib, 12-field California AB 2013 scaffolding generator)
-**Prerequisites:** Phase 18 · 24 (regulatory), Phase 18 · 26 (cards)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, 12-field California AB 2013 scaffolding generator) | **语言:** Python（标准库，12 字段 California AB 2013 脚手架生成器）
+**Prerequisites:** Phase 18 · 24 (regulatory), Phase 18 · 26 (cards) | **前置知识:** Phase 18 · 24 (监管), Phase 18 · 26 (卡片)
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标
 

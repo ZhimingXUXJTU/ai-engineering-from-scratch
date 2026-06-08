@@ -6,10 +6,10 @@
 
 > **【拓展：ArtPrompt → 编码攻击家族】** 标准防御（困惑度过滤、释义、重新分词）在 ArtPrompt 上全部失败，因为安全过滤器在令牌/语义级别操作，而 ArtPrompt 在视觉识别级别操作。StructuralSleight 将此推广到罕见文本编码结构（UTES）——树、图、嵌套 JSON、CSV-in-JSON——任何训练安全数据中罕见但模型可解析的结构都可以隐藏有害内容。
 
-**Type:** Build
-**Languages:** Python (stdlib, ArtPrompt token-masking harness)
-**Prerequisites:** Phase 18 · 12 (PAIR), Phase 18 · 13 (MSJ)
-**Time:** ~60 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib, ArtPrompt token-masking harness) | **语言:** Python（标准库，ArtPrompt token 掩码框架）
+**Prerequisites:** Phase 18 · 12 (PAIR), Phase 18 · 13 (MSJ) | **前置知识:** Phase 18 · 12 (PAIR), Phase 18 · 13 (MSJ)
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标
 

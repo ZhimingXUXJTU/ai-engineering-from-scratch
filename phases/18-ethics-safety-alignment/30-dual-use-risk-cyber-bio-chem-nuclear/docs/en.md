@@ -6,10 +6,10 @@
 
 > **【拓展：跨领域综合 → 四领域阈值穿越】** 2024-2025 年四个领域的状态：生物从轻微提升到 ASL-3 临界（获取阶段自动化）；化学从轻微提升到执行差距侵蚀（实时湿实验室纠正）；网络从代码辅助到 80-90% 活动自动化（代理编码）；核——仍然受限于材料获取瓶颈。三个领域穿越了阈值，一个仍受非信息壁垒约束。
 
-**Type:** Learn
-**Languages:** none
-**Prerequisites:** Phase 18 · 17 (WMDP), Phase 18 · 18 (safety frameworks), Phase 18 · 28 (ecosystem)
-**Time:** ~75 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** none | **语言:** 无
+**Prerequisites:** Phase 18 · 17 (WMDP), Phase 18 · 18 (safety frameworks), Phase 18 · 28 (ecosystem) | **前置知识:** Phase 18 · 17 (WMDP), Phase 18 · 18 (安全框架), Phase 18 · 28 (生态系统)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 

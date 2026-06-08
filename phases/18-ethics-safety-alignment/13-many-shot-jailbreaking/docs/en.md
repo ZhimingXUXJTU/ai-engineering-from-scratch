@@ -6,10 +6,10 @@
 
 > **【拓展：MSJ → 长上下文攻击面】** 2024-2025 每个前沿模型都有 200k+ 上下文窗口（Claude 扩展到 1M，Gemini 提供 2M）。长上下文是产品特性。MSJ 将它变成攻击面。MSJ 还可以与 PAIR（Lesson 12）组合——用 PAIR 找到攻击结构，填充多次射击。组合攻击比单独任何一种都更强。
 
-**Type:** Learn
-**Languages:** Python (stdlib, in-context learning vs MSJ simulator)
-**Prerequisites:** Phase 18 · 12 (PAIR), Phase 10 · 04 (in-context learning)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, in-context learning vs MSJ simulator) | **语言:** Python（标准库，上下文学习 vs MSJ 模拟器）
+**Prerequisites:** Phase 18 · 12 (PAIR), Phase 10 · 04 (in-context learning) | **前置知识:** Phase 18 · 12 (PAIR), Phase 10 · 04 (上下文学习)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## Learning Objectives | 学习目标
 

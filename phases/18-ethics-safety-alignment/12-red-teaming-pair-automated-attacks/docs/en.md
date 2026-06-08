@@ -6,10 +6,10 @@
 
 > **【拓展：PAIR → GCG → 攻击家族谱系】** GCG（Zou 等人 2023）在令牌级梯度搜索对抗后缀，需要白盒访问，产生不可读字符串。PAIR 是黑盒的，产生自然语言攻击且可跨模型迁移。AutoDAN 使用进化搜索，TAP 引入分支剪枝，PAP 编码人类说服技术。JailbreakBench（100 个有害行为）和 HarmBench（510 个行为）标准化了评估。
 
-**Type:** Build
-**Languages:** Python (stdlib, mock PAIR loop against a toy target)
-**Prerequisites:** Phase 18 · 01 (instruction-following), Phase 14 (agent engineering)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib, mock PAIR loop against a toy target) | **语言:** Python（标准库，针对玩具目标的模拟 PAIR 循环）
+**Prerequisites:** Phase 18 · 01 (instruction-following), Phase 14 (agent engineering) | **前置知识:** Phase 18 · 01 (指令遵循), Phase 14 (Agent 工程)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 

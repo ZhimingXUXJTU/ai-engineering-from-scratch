@@ -6,10 +6,10 @@
 
 > **【拓展：审核栈 → 生产配置】** OpenAI 和 Llama Guard 的分类法重叠但分歧——OpenAI 有"非法"作为宽泛类别，Llama Guard 分为"暴力犯罪"和"非暴力犯罪"。部署根据策略分类法适配选择。Perspective API（Google Jigsaw）是 LLM 时代前的毒性评分基线，在内容审核研究中仍广泛使用因为有多年校准数据。Azure Content Moderator 2024 年 2 月弃用，2027 年 2 月退役，迁移到 Azure AI Content Safety。
 
-**Type:** Build
-**Languages:** Python (stdlib, three-layer moderation harness)
-**Prerequisites:** Phase 18 · 16 (Llama Guard / Garak / PyRIT)
-**Time:** ~60 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib, three-layer moderation harness) | **语言:** Python（标准库，三层审核框架）
+**Prerequisites:** Phase 18 · 16 (Llama Guard / Garak / PyRIT) | **前置知识:** Phase 18 · 16 (Llama Guard / Garak / PyRIT)
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标
 

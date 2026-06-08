@@ -6,10 +6,10 @@
 
 > **【拓展：不可能定理 → 公平性冲突】** Chouldechova / Kleinberg-Mullainathan-Raghavan（2017）不可能定理：人口平权、均等化赔率和条件使用准确率均等在不平等基础率下不能同时满足。这是一个数学结果，不是工程限制——任何涉及不平等群体的系统都必须选择牺牲哪个公平标准。
 
-**Type:** Learn
-**Languages:** Python (stdlib, three-criteria comparison)
-**Prerequisites:** Phase 18 · 20 (bias), Phase 02 (classical ML)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, three-criteria comparison) | **语言:** Python（标准库，三标准比较）
+**Prerequisites:** Phase 18 · 20 (bias), Phase 02 (classical ML) | **前置知识:** Phase 18 · 20 (偏见), Phase 02 (经典 ML)
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标
 

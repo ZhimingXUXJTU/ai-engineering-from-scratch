@@ -6,10 +6,10 @@
 
 > **【拓展：采用率 → 0.3% 问题】** Oreamuno 等人 2023 审计 Hugging Face 模型卡发现只有 0.3% 记录了伦理考量。Liang 等人 2024 发现详细模型卡与高达 29% 的下载增加相关——采用压力现在是市场驱动的，不仅是合规驱动的。自动化生成（CardGen, Liu 等人 2024）和可验证证明（Laminator, Duddu 等人 2024）正在解决长期采用问题。
 
-**Type:** Build
-**Languages:** Python (stdlib, model-card + datasheet + system-card generator)
-**Prerequisites:** Phase 18 · 18 (safety frameworks), Phase 18 · 24 (regulatory)
-**Time:** ~60 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib, model-card + datasheet + system-card generator) | **语言:** Python（标准库，模型卡 + 数据表 + 系统卡生成器）
+**Prerequisites:** Phase 18 · 18 (safety frameworks), Phase 18 · 24 (regulatory) | **前置知识:** Phase 18 · 18 (安全框架), Phase 18 · 24 (监管)
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标
 

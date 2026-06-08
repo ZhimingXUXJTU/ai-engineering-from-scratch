@@ -6,10 +6,10 @@
 
 > **【拓展：弱到强泛化 → 超级对齐路径】** PGR（Performance Gap Recovered）= (微调后-弱)/(上限-弱)。PGR 为 1.0 意味着弱监督完全弥合了差距；PGR 为 0 意味着弱监督没有帮助。Burns 等人发现 PGR 在 NLP、国际象棋谜题和奖励建模任务上一致为正（约 20%-80%），强模型利用预训练先验"理解"了意图任务，超越了弱监督者的错误。
 
-**Type:** Learn
-**Languages:** Python (stdlib, W2SG gap simulator)
-**Prerequisites:** Phase 18 · 01 (instruction-following), Phase 18 · 10 (AI Control), Phase 09 (RL foundations)
-**Time:** ~60 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python (stdlib, W2SG gap simulator) | **语言:** Python（标准库，W2SG 差距模拟器）
+**Prerequisites:** Phase 18 · 01 (instruction-following), Phase 18 · 10 (AI Control), Phase 09 (RL foundations) | **前置知识:** Phase 18 · 01 (指令遵循), Phase 18 · 10 (AI 控制), Phase 09 (RL 基础)
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标
 
@@ -18,13 +18,17 @@
 - Explain the performance gap recovered (PGR) metric and what it measures.
 - State the three major scalable-oversight mechanisms (debate, recursive reward modeling, task decomposition) and one strength of each.
 
-## The Problem | 问题
+## The Problem | 问题引入
 
 Every alignment technique so far in Phase 18 assumes the overseer can evaluate the model's behaviour. When the model is superhuman, the overseer is the weak link. The superalignment question: can a weaker supervisor reliably produce a stronger, aligned model?
 
+> Phase 18 中到目前为止的每种对齐技术都假设监督者可以评估模型的行为。当模型是超人的，监督者就是薄弱环节。超级对齐问题：较弱的监督者能否可靠地产生更强的、对齐的模型？
+
 Burns et al. reduce this to an operationalized empirical setup: supervise strong with weak, measure how much of the strong model's capability survives the weak supervision. This is not a solution to superalignment — it is a proxy that lets us measure progress.
 
-## The Concept | 概念
+> Burns 等人将其简化为操作化的实证设置：用弱监督强，测量强模型的能力有多少在弱监督下存活。这不是超级对齐的解决方案——它是让我们衡量进展的代理。
+
+## The Concept | 核心概念
 
 > **【中文解读】** Burns 等人实验设置：弱模型 GPT-2 级别，强模型 GPT-4 级别，目标是强模型在金标签上的上限。流程：获取弱模型零样本预测 → 在弱标签上微调强模型 → 测量强微调模型准确率。差距指标 PGR = (微调后-弱)/(上限-弱)，1.0 = 弱监督完全弥合差距，0 = 弱监督没有帮助。
 
@@ -81,11 +85,11 @@ Lessons 6-10 describe the threat and the defensive paradigm under the assumption
 
 > **【拓展：辩论帮助弱到强泛化 → 2025 组合】** Lang 等人（arXiv:2501.13124, 2025 年 1 月）将可扩展监督和弱到强泛化结合：辩论协议提供更好的弱标签，强模型在这些标签上训练。报告在 NLP 任务上的 PGR 提升。这验证了两种方法是互补的——可扩展监督增加监督者的有效信号质量，弱到强泛化闭合从任何信号中恢复的差距。
 
-## Use It | 使用方法
+## Use It | 用框架实现
 
 `code/main.py` simulates a W2SG fine-tune on a synthetic task. Weak labeler has 70% accuracy with structured errors; strong model has 95% ceiling on gold labels. You fine-tune the strong model on weak labels, measure PGR, and compare to strong-on-gold and weak-alone.
 
-## Ship It | 部署上线
+## Ship It | 产出物
 
 This lesson produces `outputs/skill-w2sg-pgr.md`. Given an oversight setup description, it identifies the weak supervisor, the strong model, the supervision quality, and computes (or requests) PGR. It flags whether the claim is "weak can supervise strong" or "weak + oversight mechanism can supervise strong."
 

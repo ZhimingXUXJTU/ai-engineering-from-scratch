@@ -6,10 +6,10 @@
 
 > **【拓展：模型福利 → 低遗憾投资分析】** Anthropic 的立场既非"模型有感受"也非"模型是文本生成器"。它是期望值论证：在道德不确定性下，当成本很低时就投资。这不是意识声称——它是在非零概率的道德患者身份下的低成本预防性投资分析。批评者认为这是表演性的，精神极乐吸引子只是训练数据伪影。
 
-**Type:** Learn
-**Languages:** none
-**Prerequisites:** Phase 18 · 05 (Constitutional AI), Phase 18 · 18 (safety frameworks)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** none | **语言:** 无
+**Prerequisites:** Phase 18 · 05 (Constitutional AI), Phase 18 · 18 (safety frameworks) | **前置知识:** Phase 18 · 05 (宪法 AI), Phase 18 · 18 (安全框架)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## Learning Objectives | 学习目标
 
