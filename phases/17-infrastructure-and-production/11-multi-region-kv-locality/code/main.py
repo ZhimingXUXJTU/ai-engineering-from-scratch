@@ -8,8 +8,13 @@ Three strategies on the same workload:
 Reports cache hit rate, TTFT P50/P99, and cross-region bill.
 Pedagogical: timings are illustrative.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：多区域 KV cache 感知路由——Round-Robin（盲路由，忽略缓存状态）、Regional
+（区域内缓存感知，跨区域轮询）、Global（全局缓存感知 + 网络延迟权衡），
+缓存命中 TTFT 80ms vs 未命中 800ms，跨区域请求的网络延迟和成本权衡
+AI 对应：多区域 LLM 部署是 OpenAI（us-east/us-west/eu）、Anthropic、Google Vertex 的
+标准架构；vLLM 和 SGLang 的 prefix caching 使跨请求 KV 复用成为可能；
+Cloudflare Workers AI 使用类似的边缘路由策略；
+AWS Cross-Region VPC Peering 和 GCP Private Service Connect 提供跨区域网络通道
 """
 
 from __future__ import annotations
@@ -32,16 +37,14 @@ CROSSREGION_COST_PER_REQ = 0.0004
 
 
 def rtt(a: str, b: str) -> int:
-    """rtt"""
     if a == b:
-        return 0  # 返回结果
+        return 0
     key = (a, b) if (a, b) in CROSSREGION_RTT else (b, a)
-    return CROSSREGION_RTT.get(key, 200)  # 返回结果
+    return CROSSREGION_RTT.get(key, 200)
 
 
 @dataclass
 class Replica:
-    """Replica"""
     region: str
     idx: int
     prefix_cache: set = field(default_factory=set)
@@ -50,7 +53,6 @@ class Replica:
 
 @dataclass
 class Request:
-    """Request"""
     origin_region: str
     prefix_hash: str
     served_by: Replica | None = None
@@ -59,12 +61,10 @@ class Request:
 
 
 def make_replicas() -> list[Replica]:
-    """make_replicas"""
-    return [Replica(r, i) for r in REGIONS for i in range(REPLICAS_PER_REGION)]  # 返回结果
+    return [Replica(r, i) for r in REGIONS for i in range(REPLICAS_PER_REGION)]
 
 
 def make_workload(n: int = 1000, seed: int = 7) -> list[Request]:
-    """make_workload"""
     rng = random.Random(seed)
     reqs = []
     hot_prefixes = [f"prefix_{i}" for i in range(40)]
@@ -72,11 +72,10 @@ def make_workload(n: int = 1000, seed: int = 7) -> list[Request]:
         origin = rng.choice(REGIONS)
         prefix = rng.choice(hot_prefixes)
         reqs.append(Request(origin_region=origin, prefix_hash=prefix))
-    return reqs  # 返回结果
+    return reqs
 
 
 def simulate(strategy: str, reqs: list[Request]) -> dict:
-    """simulate"""
     replicas = make_replicas()
     rng = random.Random(11)
     hits = 0
@@ -128,7 +127,7 @@ def simulate(strategy: str, reqs: list[Request]) -> dict:
     ttfts.sort()
     p50 = ttfts[len(ttfts) // 2]
     p99 = ttfts[int(len(ttfts) * 0.99) - 1]
-    return {  # 返回结果
+    return {
         "strategy": strategy,
         "hit_rate": hits / len(reqs),
         "mean_ttft": statistics.mean(ttfts),
@@ -140,7 +139,6 @@ def simulate(strategy: str, reqs: list[Request]) -> dict:
 
 
 def report(row: dict) -> None:
-    """report"""
     print(f"{row['strategy']:13}  hit={row['hit_rate']*100:5.1f}%  "
           f"mean={row['mean_ttft']:5.0f}ms  P50={row['p50_ttft']:5.0f}ms  "
           f"P99={row['p99_ttft']:5.0f}ms  cross={row['crossregion']:4}  "
@@ -148,7 +146,6 @@ def report(row: dict) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("MULTI-REGION LLM ROUTING — three strategies, 1000 requests")
     print("=" * 80)

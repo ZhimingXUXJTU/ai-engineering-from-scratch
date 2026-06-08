@@ -4,8 +4,13 @@ Models three platforms (Bedrock on-demand, Azure PTU, Vertex on-demand) on the
 same synthetic workload. Reports per-day cost, TTFT median / P99, and attribution
 fidelity. Pedagogical: prices and latencies are 2026 public-domain approximations.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：托管 LLM 平台对比器——模拟 AWS Bedrock、Azure OpenAI (PTU)、Google Vertex AI
+在同一工作负载下的日成本、TTFT 中位数/P99 和归因保真度，
+包含 PTU 盈亏平衡分析（利用率 >60% 时 PTU 优于按量付费）和多供应商冗余成本
+AI 对应：AWS Bedrock、Azure OpenAI Service、Google Vertex AI 是三大云 LLM 平台；
+Azure PTU (Provisioned Throughput Units) 是预留吞吐量的典型计费模式；
+Anthropic Console 和 OpenAI Platform 使用类似的按 token 计费 + 预留容量模式；
+Portkey AI 和 LiteLLM 提供跨平台网关以实现多供应商冗余
 """
 
 from __future__ import annotations
@@ -17,7 +22,6 @@ import statistics
 
 @dataclass
 class Platform:
-    """Platform"""
     name: str
     per_mtok_input: float        # $/M input tokens on-demand
     per_mtok_output: float       # $/M output tokens on-demand
@@ -37,7 +41,6 @@ PLATFORMS = [
 
 
 def simulate(tokens_in_per_day: int, tokens_out_per_day: int, sla_ttft_ms: float, use_ptu: bool) -> None:
-    """simulate"""
     print(f"\nWorkload: {tokens_in_per_day/1e6:.1f}M input, {tokens_out_per_day/1e6:.1f}M output per day")
     print(f"SLA: TTFT P99 < {sla_ttft_ms:.0f} ms   |   PTU path: {'enabled' if use_ptu else 'off'}\n")
     header = f"{'Platform':25}  {'$/day':>9}  {'TTFT P50':>10}  {'TTFT P99':>10}  {'SLA':>6}  Attribution"
@@ -68,7 +71,6 @@ def simulate(tokens_in_per_day: int, tokens_out_per_day: int, sla_ttft_ms: float
 
 
 def break_even_demo() -> None:
-    """break_even_demo"""
     print("\n" + "=" * 80)
     print("PTU BREAK-EVEN SWEEP — Azure OpenAI, GPT-4o class")
     print("=" * 80)
@@ -84,7 +86,6 @@ def break_even_demo() -> None:
 
 
 def lock_in_cost() -> None:
-    """lock_in_cost"""
     print("\n" + "=" * 80)
     print("TWO-PROVIDER MINIMUM — cost uplift for redundancy")
     print("=" * 80)
@@ -102,7 +103,6 @@ def lock_in_cost() -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("MANAGED LLM PLATFORM COMPARATOR — 2026 approximations")
     print("=" * 80)

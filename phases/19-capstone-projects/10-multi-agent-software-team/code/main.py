@@ -8,8 +8,12 @@ are observable end to end.
 
 Run:  python main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：多 Agent 软件团队——类型化消息任务板 + 架构师/编码者/审查者/测试者角色分工 +
+每个角色边界的 trace span + Token 放大倍率追踪 + Bug 注入探测审查者捕获率
+AI 对应：Google 的 A2A (Agent-to-Agent) 协议定义了 Agent 间的类型化消息标准；
+MetaGPT 和 ChatDev 是多 Agent 软件开发的开源实现；
+OpenAI 的 Swarm 和 Microsoft AutoGen 是多 Agent 协调框架；
+Token 放大是多 Agent 系统相对于单 Agent 的核心成本考量
 """
 
 from __future__ import annotations
@@ -25,7 +29,6 @@ from enum import Enum
 # ---------------------------------------------------------------------------
 
 class MsgKind(Enum):
-    """MsgKind"""
     PLAN_REQUEST = "plan_request"
     SUBTASK = "subtask"
     DIFF_READY = "diff_ready"
@@ -39,7 +42,6 @@ class MsgKind(Enum):
 
 @dataclass
 class Msg:
-    """Msg"""
     kind: MsgKind
     by: str
     to: str
@@ -49,7 +51,6 @@ class Msg:
 
 @dataclass
 class Board:
-    """Board"""
     messages: list[Msg] = field(default_factory=list)
     tokens_by_role: dict[str, int] = field(default_factory=lambda: defaultdict(int))
 
@@ -58,7 +59,7 @@ class Board:
         self.tokens_by_role[m.by] += m.tokens
 
     def inbox(self, role: str) -> list[Msg]:
-        return [m for m in self.messages if m.to == role]  # 返回结果
+        return [m for m in self.messages if m.to == role]
 
 
 # ---------------------------------------------------------------------------
@@ -67,7 +68,6 @@ class Board:
 
 @dataclass
 class Subtask:
-    """Subtask"""
     name: str
     files: list[str]
     lines_changed: int = 0
@@ -84,13 +84,12 @@ def architect_plan(issue: str, rng: random.Random) -> list[Subtask]:
     ]
     # randomly inject one bug for reviewer probe
     subs[rng.randrange(len(subs))].has_bug = rng.random() < 0.3
-    return subs  # 返回结果
+    return subs
 
 
 def coder_implement(sub: Subtask, rng: random.Random) -> dict:
-    """coder_implement"""
     sub.lines_changed = rng.randint(15, 95)
-    return {"subtask": sub.name, "lines": sub.lines_changed,  # 返回结果
+    return {"subtask": sub.name, "lines": sub.lines_changed,
             "has_bug": sub.has_bug}
 
 
@@ -98,20 +97,20 @@ def reviewer_check(diffs: list[dict], rng: random.Random) -> tuple[bool, str]:
     """Reviewer stub. Catches bugs ~85% of the time; 15% false-approve rate."""
     buggy = [d for d in diffs if d["has_bug"]]
     if not buggy:
-        return True, "lgtm"  # 返回结果
+        return True, "lgtm"
     if rng.random() < 0.85:
-        return False, f"found bug in {buggy[0]['subtask']}: please revisit"  # 返回结果
-    return True, "lgtm (FALSE-APPROVE)"  # 返回结果
+        return False, f"found bug in {buggy[0]['subtask']}: please revisit"
+    return True, "lgtm (FALSE-APPROVE)"
 
 
 def tester_run(diffs: list[dict], rng: random.Random) -> tuple[bool, str]:
     """Tester stub. Catches any remaining bugs, with ~3% flake rate."""
     buggy = [d for d in diffs if d["has_bug"]]
     if buggy:
-        return False, f"test fails in {buggy[0]['subtask']} module"  # 返回结果
+        return False, f"test fails in {buggy[0]['subtask']} module"
     if rng.random() < 0.03:
-        return False, "flaky test"  # 返回结果
-    return True, "412/412 passing"  # 返回结果
+        return False, "flaky test"
+    return True, "412/412 passing"
 
 
 # ---------------------------------------------------------------------------
@@ -119,7 +118,6 @@ def tester_run(diffs: list[dict], rng: random.Random) -> tuple[bool, str]:
 # ---------------------------------------------------------------------------
 
 def run_team(issue: str, n_coders: int = 4, rng: random.Random | None = None) -> dict:
-    """run_team"""
     rng = rng or random.Random(0)
     board = Board()
 
@@ -178,7 +176,7 @@ def run_team(issue: str, n_coders: int = 4, rng: random.Random | None = None) ->
         board.post(Msg(MsgKind.TEST_FAILED, by="tester", to="coder-A",
                        payload={"msg": testmsg}, tokens=1400))
 
-    return {  # 返回结果
+    return {
         "approved": approved,
         "review_comment": comment,
         "tested_passed": passed,
@@ -196,14 +194,13 @@ def run_team(issue: str, n_coders: int = 4, rng: random.Random | None = None) ->
 def single_agent_baseline(issue: str, rng: random.Random) -> dict:
     """Stub: one Sonnet 4.7 in a single worktree does the whole thing."""
     # slower but fewer handoffs; tokens roughly the whole budget minus role overhead
-    return {  # 返回结果
+    return {
         "passed": rng.random() < 0.68,
         "total_tokens": 18_000 + rng.randint(0, 6_000),
     }
 
 
 def main() -> None:
-    """main"""
     rng = random.Random(11)
     print("=== multi-agent team run ===")
     result = run_team("fix widget parser race", n_coders=4, rng=rng)

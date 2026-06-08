@@ -7,8 +7,11 @@ Concept refs:
   - Deterministic verifiers: file_equals, regex_match, shell_exit_zero.
 The demo at the bottom runs the bundled fixtures against the reference candidate.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Agent 评估线束——固定任务（fixture tasks）+ 确定性验证器（文件相等/正则匹配/shell 退出码）+
+pass@k 指标计算（1 - (1-p)^k），量化 Agent 在标准化编程任务上的可靠性
+AI 对应：SWE-bench (Princeton 2023) 是 Agent 编码评估的权威基准；
+HumanEval (OpenAI 2021) 使用 pass@k 衡量代码生成模型；
+HumanEvalPack (Meta) 扩展到多语言；EvalPlus 提供增强版测试用例防止误通过
 """
 
 from __future__ import annotations
@@ -44,7 +47,7 @@ class FixtureTask:
     root: str = ""
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "id": self.id,
             "goal": self.goal,
             "verifier": self.verifier_name,
@@ -62,7 +65,7 @@ class SampleResult:
     notes: str = ""
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "task_id": self.task_id,
             "sample_index": self.sample_index,
             "latency_ms": round(self.latency_ms, 3),
@@ -81,7 +84,6 @@ class VerificationOutcome:
 
 @dataclass
 class TaskReport:
-    """TaskReport"""
     task_id: str
     k: int
     passes: int
@@ -93,7 +95,7 @@ class TaskReport:
     samples: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "task_id": self.task_id,
             "k": self.k,
             "passes": self.passes,
@@ -108,7 +110,6 @@ class TaskReport:
 
 @dataclass
 class EvalReport:
-    """EvalReport"""
     task_reports: list[TaskReport]
     pass_at_1: float
     pass_at_k: float
@@ -118,7 +119,7 @@ class EvalReport:
     total_cost: float
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "k": self.k,
             "pass_at_1": round(self.pass_at_1, 4),
             "pass_at_k": round(self.pass_at_k, 4),
@@ -138,19 +139,19 @@ def pass_at_k(empirical_pass_rate: float, k: int) -> float:
     """Probability of at least one pass in k independent samples."""
 
     if k <= 0:
-        return 0.0  # 返回结果
+        return 0.0
     p = max(0.0, min(1.0, empirical_pass_rate))
-    return 1.0 - (1.0 - p) ** k  # 返回结果
+    return 1.0 - (1.0 - p) ** k
 
 
 def p95(values: list[float]) -> float:
     """Sample 95th percentile via nearest-rank."""
 
     if not values:
-        return 0.0  # 返回结果
+        return 0.0
     sorted_values = sorted(values)
     idx = max(0, int(round(0.95 * len(sorted_values))) - 1)
-    return sorted_values[min(idx, len(sorted_values) - 1)]  # 返回结果
+    return sorted_values[min(idx, len(sorted_values) - 1)]
 
 
 # ---------------------------------------------------------------------------
@@ -168,13 +169,13 @@ def verify_file_equals(
 
     rel = args.get("path")
     if not isinstance(rel, str):
-        return VerificationOutcome(False, "verifier args missing 'path'")  # 返回结果
+        return VerificationOutcome(False, "verifier args missing 'path'")
     actual = os.path.join(scratch_dir, rel)
     expected = os.path.join(task.expected_dir, rel)
     if not os.path.isfile(actual):
-        return VerificationOutcome(False, f"scratch file missing: {rel}")  # 返回结果
+        return VerificationOutcome(False, f"scratch file missing: {rel}")
     if not os.path.isfile(expected):
-        return VerificationOutcome(False, f"expected file missing: {rel}")  # 返回结果
+        return VerificationOutcome(False, f"expected file missing: {rel}")
     with open(actual, "r", encoding="utf-8") as fh:
         actual_text = fh.read()
     with open(expected, "r", encoding="utf-8") as fh:
@@ -184,8 +185,8 @@ def verify_file_equals(
         actual_text = actual_text.rstrip("\n") + "\n"
         expected_text = expected_text.rstrip("\n") + "\n"
     if actual_text == expected_text:
-        return VerificationOutcome(True, f"file {rel!r} matches expected")  # 返回结果
-    return VerificationOutcome(False, f"file {rel!r} differs from expected")  # 返回结果
+        return VerificationOutcome(True, f"file {rel!r} matches expected")
+    return VerificationOutcome(False, f"file {rel!r} differs from expected")
 
 
 def verify_regex_match(
@@ -196,15 +197,15 @@ def verify_regex_match(
     rel = args.get("path")
     pattern = args.get("pattern")
     if not isinstance(rel, str) or not isinstance(pattern, str):
-        return VerificationOutcome(False, "verifier args need 'path' and 'pattern'")  # 返回结果
+        return VerificationOutcome(False, "verifier args need 'path' and 'pattern'")
     actual = os.path.join(scratch_dir, rel)
     if not os.path.isfile(actual):
-        return VerificationOutcome(False, f"scratch file missing: {rel}")  # 返回结果
+        return VerificationOutcome(False, f"scratch file missing: {rel}")
     with open(actual, "r", encoding="utf-8") as fh:
         text = fh.read()
     if re.search(pattern, text, re.MULTILINE):
-        return VerificationOutcome(True, f"file {rel!r} matched {pattern!r}")  # 返回结果
-    return VerificationOutcome(False, f"file {rel!r} did not match {pattern!r}")  # 返回结果
+        return VerificationOutcome(True, f"file {rel!r} matched {pattern!r}")
+    return VerificationOutcome(False, f"file {rel!r} did not match {pattern!r}")
 
 
 def verify_shell_exit_zero(
@@ -219,7 +220,7 @@ def verify_shell_exit_zero(
 
     argv = args.get("argv")
     if not isinstance(argv, list) or not argv:
-        return VerificationOutcome(False, "verifier args need 'argv' list")  # 返回结果
+        return VerificationOutcome(False, "verifier args need 'argv' list")
     timeout = float(args.get("timeout_seconds", 10.0))
     try:
         proc = subprocess.run(
@@ -230,12 +231,12 @@ def verify_shell_exit_zero(
             check=False,
         )
     except subprocess.TimeoutExpired:
-        return VerificationOutcome(False, "shell command timed out")  # 返回结果
+        return VerificationOutcome(False, "shell command timed out")
     except FileNotFoundError as exc:
-        return VerificationOutcome(False, f"shell command not found: {exc}")  # 返回结果
+        return VerificationOutcome(False, f"shell command not found: {exc}")
     if proc.returncode == 0:
-        return VerificationOutcome(True, "command exited zero")  # 返回结果
-    return VerificationOutcome(False, f"command exited {proc.returncode}")  # 返回结果
+        return VerificationOutcome(True, "command exited zero")
+    return VerificationOutcome(False, f"command exited {proc.returncode}")
 
 
 VERIFIER_REGISTRY: dict[str, Verifier] = {
@@ -264,7 +265,7 @@ def load_fixture(task_dir: str) -> FixtureTask:
         spec = json.load(fh)
     setup = os.path.join(task_dir, "buggy")
     expected = os.path.join(task_dir, "expected")
-    return FixtureTask(  # 返回结果
+    return FixtureTask(
         id=spec["id"],
         goal=spec["goal"],
         setup_dir=setup,
@@ -276,13 +277,12 @@ def load_fixture(task_dir: str) -> FixtureTask:
 
 
 def load_all_fixtures(tasks_root: str) -> list[FixtureTask]:
-    """load_all_fixtures"""
     tasks: list[FixtureTask] = []
     for name in sorted(os.listdir(tasks_root)):
         full = os.path.join(tasks_root, name)
         if os.path.isdir(full) and os.path.isfile(os.path.join(full, "task.json")):
             tasks.append(load_fixture(full))
-    return tasks  # 返回结果
+    return tasks
 
 
 # ---------------------------------------------------------------------------
@@ -311,7 +311,7 @@ def apply_known_fixes(task: FixtureTask, scratch_dir: str) -> SampleResult:
                     os.path.join(dst_root, filename),
                 )
     elapsed = (time.perf_counter() - start) * 1000.0
-    return SampleResult(  # 返回结果
+    return SampleResult(
         task_id=task.id,
         sample_index=0,
         latency_ms=elapsed,
@@ -325,7 +325,7 @@ def noop_candidate(task: FixtureTask, scratch_dir: str) -> SampleResult:
 
     start = time.perf_counter()
     elapsed = (time.perf_counter() - start) * 1000.0
-    return SampleResult(  # 返回结果
+    return SampleResult(
         task_id=task.id,
         sample_index=0,
         latency_ms=elapsed,
@@ -354,10 +354,10 @@ class EvalHarness:
     ) -> VerificationOutcome:
         verifier = self.verifier_registry.get(task.verifier_name)
         if verifier is None:
-            return VerificationOutcome(  # 返回结果
+            return VerificationOutcome(
                 False, f"unknown verifier {task.verifier_name!r}"
             )
-        return verifier(task, scratch_dir, task.verifier_args)  # 返回结果
+        return verifier(task, scratch_dir, task.verifier_args)
 
     def _prepare_scratch(self, task: FixtureTask) -> str:
         scratch = tempfile.mkdtemp(prefix=f"eval-{task.id}-")
@@ -371,7 +371,7 @@ class EvalHarness:
                         os.path.join(dirpath, filename),
                         os.path.join(dst_root, filename),
                     )
-        return scratch  # 返回结果
+        return scratch
 
     def run(self, candidate: Candidate) -> EvalReport:
         task_reports: list[TaskReport] = []
@@ -438,7 +438,7 @@ class EvalHarness:
         total_cost = sum(
             float(s["cost_units"]) for r in task_reports for s in r.samples
         )
-        return EvalReport(  # 返回结果
+        return EvalReport(
             task_reports=task_reports,
             pass_at_1=pass_at_1_value,
             pass_at_k=pass_at_k_value,
@@ -457,16 +457,14 @@ class EvalHarness:
 
 
 def _tasks_dir() -> str:
-    """_tasks_dir"""
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "tasks")  # 返回结果
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "tasks")
 
 
 def run_demo() -> int:
-    """run_demo"""
     tasks = load_all_fixtures(_tasks_dir())
     if not tasks:
         print("ERROR: no fixture tasks found", file=sys.stderr)
-        return 1  # 返回结果
+        return 1
 
     print("EVAL HARNESS DEMO")
     print(f"loaded {len(tasks)} fixture task(s)")
@@ -486,7 +484,7 @@ def run_demo() -> int:
             f"pass@1={report.pass_at_1}",
             file=sys.stderr,
         )
-        return 1  # 返回结果
+        return 1
 
     print("")
     print("running noop candidate (should fail every fixture), k=3 ...")
@@ -508,9 +506,9 @@ def run_demo() -> int:
             f"ERROR: noop candidate should fail, got pass@1={noop_report.pass_at_1}",
             file=sys.stderr,
         )
-        return 1  # 返回结果
+        return 1
 
-    return 0  # 返回结果
+    return 0
 
 
 if __name__ == "__main__":

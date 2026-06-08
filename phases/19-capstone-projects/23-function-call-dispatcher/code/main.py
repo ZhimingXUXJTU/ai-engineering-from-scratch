@@ -7,8 +7,11 @@ Conceptual references:
 
 Stdlib only. Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：函数调用调度器——带超时、重试、幂等性标记和并发限制的工具调用执行器，
+复用 JSON Schema 验证和 JSON-RPC 2.0 错误信封格式，实现 Agent 工具调用的生产级调度
+AI 对应：OpenAI Function Calling 和 Anthropic Tool Use 都需要类似的调度器；
+LangChain 的 Tool Executor 和 Semantic Kernel 的 FunctionDispatcher 使用相同模式；
+幂等性标记 + 重试 + 超时是分布式系统中工具调用的标准可靠性三要素
 """
 
 from __future__ import annotations
@@ -42,7 +45,6 @@ class _DispatchedError(Exception):
 
 @dataclass
 class DispatchError(Exception):
-    """DispatchError"""
     kind: str
     message: str
     attempts: int
@@ -52,7 +54,7 @@ class DispatchError(Exception):
         super().__init__(f"{self.kind}: {self.message}")
 
     def to_envelope(self) -> dict:
-        return {  # 返回结果
+        return {
             "code": self.jsonrpc_code,
             "message": self.message,
             "data": {"kind": self.kind, "attempts": self.attempts},
@@ -61,14 +63,12 @@ class DispatchError(Exception):
 
 @dataclass
 class DispatchOk:
-    """DispatchOk"""
     result: Any
     attempts: int
 
 
 @dataclass
 class _ToolRecord:
-    """_ToolRecord"""
     name: str
     schema: dict
     handler: Callable[..., Any]
@@ -94,17 +94,16 @@ class MiniRegistry:
     def get(self, name: str) -> _ToolRecord:
         if name not in self._recs:
             raise KeyError(name)
-        return self._recs[name]  # 返回结果
+        return self._recs[name]
 
     def validate(self, name: str, args: Any) -> list[str]:
         rec = self.get(name)
         errs: list[str] = []
         _walk(rec.schema, args, "", errs)
-        return errs  # 返回结果
+        return errs
 
 
 def _walk(schema: dict, value: Any, path: str, errs: list[str]) -> None:
-    """_walk"""
     t = schema.get("type")
     type_ok = True
     if t == "object" and not isinstance(value, dict):
@@ -117,7 +116,7 @@ def _walk(schema: dict, value: Any, path: str, errs: list[str]) -> None:
         type_ok = False
     if not type_ok:
         errs.append(f"{path or '/'}: expected {t}, got {type(value).__name__}")
-        return  # 返回结果
+        return
     if t == "object":
         for req in schema.get("required", []):
             if req not in value:
@@ -129,7 +128,6 @@ def _walk(schema: dict, value: Any, path: str, errs: list[str]) -> None:
 
 @dataclass
 class _InFlight:
-    """_InFlight"""
     future: asyncio.Future
     started_at: float
 
@@ -168,20 +166,20 @@ class Dispatcher:
         try:
             rec = self.registry.get(name)
         except KeyError:
-            return DispatchError(  # 返回结果
+            return DispatchError(
                 kind="not_found", message=f"tool {name!r}", attempts=0,
                 jsonrpc_code=ERR_METHOD_NOT_FOUND,
             )
 
         errs = self.registry.validate(name, args)
         if errs:
-            return DispatchError(  # 返回结果
+            return DispatchError(
                 kind="schema", message="; ".join(errs), attempts=0,
                 jsonrpc_code=ERR_INVALID_PARAMS,
             )
 
         if budget_tool_calls_remaining is not None and budget_tool_calls_remaining <= 0:
-            return DispatchError(  # 返回结果
+            return DispatchError(
                 kind="budget_exceeded", message="tool_calls remaining is 0", attempts=0,
             )
 
@@ -189,17 +187,17 @@ class Dispatcher:
             now = time.monotonic()
             cached = self._cache.get(idempotency_key)
             if cached is not None and now - cached[1] < self._cache_ttl:
-                return DispatchOk(result=cached[0], attempts=0)  # 返回结果
+                return DispatchOk(result=cached[0], attempts=0)
             inflight = self._inflight.get(idempotency_key)
             if inflight is not None:
                 try:
                     res = await inflight.future
-                    return DispatchOk(result=res, attempts=0)  # 返回结果
+                    return DispatchOk(result=res, attempts=0)
                 except Exception as exc:
-                    return _map_exception(exc, attempts=0)  # 返回结果
+                    return _map_exception(exc, attempts=0)
 
         async with self._sem:
-            return await self._run_with_retries(rec, args, timeout_ms_override, idempotency_key)  # 返回结果
+            return await self._run_with_retries(rec, args, timeout_ms_override, idempotency_key)
 
     async def _run_with_retries(
         self,
@@ -249,51 +247,49 @@ class Dispatcher:
                     err = _map_exception(exc, attempts=attempt)
                     if future is not None and not future.done():
                         future.set_exception(_DispatchedError(err))
-                    return err  # 返回结果
+                    return err
                 if future is not None and not future.done():
                     future.set_result(result)
                 if idempotency_key is not None:
                     self._cache[idempotency_key] = (result, time.monotonic())
-                return DispatchOk(result=result, attempts=attempt)  # 返回结果
+                return DispatchOk(result=result, attempts=attempt)
 
             assert last_error is not None
             if future is not None and not future.done():
                 future.set_exception(_DispatchedError(last_error))
-            return last_error  # 返回结果
+            return last_error
         finally:
             if idempotency_key is not None:
                 self._inflight.pop(idempotency_key, None)
 
     async def gather_bounded(self, calls: Iterable[tuple[str, dict]]) -> list[DispatchOk | DispatchError]:
-        return await asyncio.gather(*(self.dispatch(n, a) for n, a in calls))  # 返回结果
+        return await asyncio.gather(*(self.dispatch(n, a) for n, a in calls))
 
 
 async def _invoke(handler: Callable[..., Any], args: dict) -> Any:
     if inspect.iscoroutinefunction(handler):
-        return await handler(**args)  # 返回结果
+        return await handler(**args)
     result = handler(**args)
     if inspect.isawaitable(result):
-        return await result  # 返回结果
-    return result  # 返回结果
+        return await result
+    return result
 
 
 def _backoff(attempt: int) -> float:
-    """_backoff"""
     base = 0.1 * (4 ** (attempt - 1))
-    return base * (1 + random.random() * 0.5)  # 返回结果
+    return base * (1 + random.random() * 0.5)
 
 
 def _map_exception(exc: Exception, attempts: int) -> DispatchError:
-    """_map_exception"""
     if isinstance(exc, _DispatchedError):
         original = exc.error
-        return DispatchError(  # 返回结果
+        return DispatchError(
             kind=original.kind,
             message=original.message,
             attempts=original.attempts,
             jsonrpc_code=original.jsonrpc_code,
         )
-    return DispatchError(  # 返回结果
+    return DispatchError(
         kind="internal",
         message=f"{type(exc).__name__}: {exc}",
         attempts=attempts,
@@ -309,12 +305,12 @@ async def _demo() -> None:
         counter["a"] += 1
         if counter["a"] < 2:
             raise TransientError("upstream not ready")
-        return {"id": id, "name": "ada"}  # 返回结果
+        return {"id": id, "name": "ada"}
 
     async def slow(n: int) -> int:
         counter["b"] += 1
         await asyncio.sleep(0.05)
-        return n  # 返回结果
+        return n
 
     reg.register(
         "fetch_user",

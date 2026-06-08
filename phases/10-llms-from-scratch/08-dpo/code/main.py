@@ -1,3 +1,17 @@
+"""DPO (Direct Preference Optimization) —— 无需奖励模型的偏好对齐方法
+
+核心概念：
+  - DPO 是 RLHF 的简化替代方案：直接用偏好数据优化策略，跳过奖励模型训练
+  - 核心公式：loss = -log(sigmoid(beta * (log pi(y_w|x)/pi_ref(y_w|x) - log pi(y_l|x)/pi_ref(y_l|x))))
+  - 隐式奖励：r(x,y) = beta * log(pi(y|x) / pi_ref(y|x))，不需要显式训练奖励模型
+  - 只需要 2 个模型（策略 + 参考），RLHF 需要 3-4 个（策略 + 参考 + 奖励 + 可能的 critic）
+
+AI 对应：
+  - Meta 的 Llama 3 使用 DPO 进行对齐训练（而非 PPO/RLHF）
+  - Mistral 的训练流程也优先使用 DPO
+  - 实践建议：先用 DPO，如果评估指标瓶颈再考虑 RLHF
+"""
+
 import numpy as np
 import sys
 import os
@@ -50,6 +64,10 @@ def tokenize_sequence(text, vocab_size=256):
 
 
 def compute_sequence_log_prob(model, prompt_tokens, response_tokens, max_seq_len=128):
+    """计算模型对给定回复序列的对数概率：用于 DPO 损失函数
+
+    log P(response | prompt) = sum of log P(token_t | token_{<t}) for each response token
+    """
     full_sequence = prompt_tokens + response_tokens
     if len(full_sequence) > max_seq_len:
         full_sequence = full_sequence[:max_seq_len]
@@ -98,6 +116,12 @@ def dpo_loss(
     ref_logprob_rejected,
     beta=0.1,
 ):
+    """DPO 损失函数：通过比较策略与参考模型的对数概率比来优化偏好
+
+    核心思想：如果策略模型比参考模型更偏好 preferred 而非 rejected，loss 就低。
+    beta 控制对齐强度：越大则对偏好数据的拟合越激进。
+    隐式奖励 r = beta * (log pi - log pi_ref)，直接从策略模型推导出来。
+    """
     preferred_ratio = policy_logprob_preferred - ref_logprob_preferred
     rejected_ratio = policy_logprob_rejected - ref_logprob_rejected
 
@@ -139,6 +163,21 @@ def copy_model_weights(source, target):
 
 
 def dpo_train(
+    policy_model,
+    reference_model,
+    preference_data,
+    num_epochs=5,
+    lr=5e-6,
+    beta=0.1,
+    max_seq_len=128,
+):
+    """DPO 训练循环：直接用偏好数据优化策略模型
+
+    与 RLHF 的关键区别：
+    - 不需要奖励模型
+    - 不需要采样生成（直接用数据中的 preferred/rejected）
+    - 更像监督学习，训练更稳定
+    """
     policy_model,
     reference_model,
     preference_data,
@@ -297,6 +336,12 @@ def analyze_implicit_rewards(
 
 
 def beta_sensitivity_analysis(sft_model, preference_data, betas, max_seq_len=128):
+    """Beta 敏感性分析：测试不同 beta 值对 DPO 训练效果的影响
+
+    beta 太小 -> 对齐不足，模型学不到偏好
+    beta 太大 -> 过度对齐，模型可能退化
+    实践中 beta = 0.1 是常用的起点。
+    """
     print("Beta Sensitivity Analysis")
     print("-" * 60)
     print(f"  {'Beta':>8} {'Final Loss':>12} {'Final Margin':>14} {'Accuracy':>10}")

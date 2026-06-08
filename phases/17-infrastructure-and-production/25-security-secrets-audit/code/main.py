@@ -4,8 +4,15 @@ Masks SSNs, emails, phone numbers; maps each distinct value to a stable
 placeholder so the LLM can still reason about relationships. Appends to an
 immutable audit log on every call.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：PII 脱敏与审计日志——一致性 token 化（相同 PII 值映射到相同占位符，
+保留 LLM 的关系推理能力）、SSN/Email/Phone 三种 PII 的正则检测、
+不可变审计日志（每次调用记录 prompt hash、response hash、token 数、成本、
+guardrail 触发记录）
+AI 对应：Presidio (Microsoft) 是 PII 检测和脱敏的参考库；
+AWS Macie 和 GCP DLP 提供云原生的 PII 检测服务；
+Anthropic 的 content moderation 和 OpenAI 的 moderation endpoint
+提供 LLM 层面的安全过滤；HIPAA、GDPR、PCI-DSS 对 PII 处理有严格合规要求；
+Langfuse 和 Helicone 的审计日志功能记录所有 LLM 调用
 """
 
 from __future__ import annotations
@@ -24,28 +31,26 @@ PHONE = re.compile(r"\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b")
 
 @dataclass
 class Scrubber:
-    """Scrubber"""
     tokens: dict = field(default_factory=dict)
     counter: dict = field(default_factory=lambda: {"SSN": 0, "EMAIL": 0, "PHONE": 0})
 
     def _token_for(self, kind: str, value: str) -> str:
         if value in self.tokens:
-            return self.tokens[value]  # 返回结果
+            return self.tokens[value]
         self.counter[kind] += 1
         placeholder = f"[{kind}_{self.counter[kind]:03}]"
         self.tokens[value] = placeholder
-        return placeholder  # 返回结果
+        return placeholder
 
     def scrub(self, text: str) -> str:
         text = SSN.sub(lambda m: self._token_for("SSN", m.group(0)), text)
         text = EMAIL.sub(lambda m: self._token_for("EMAIL", m.group(0)), text)
         text = PHONE.sub(lambda m: self._token_for("PHONE", m.group(0)), text)
-        return text  # 返回结果
+        return text
 
 
 @dataclass
 class AuditEntry:
-    """AuditEntry"""
     timestamp: str
     user: str
     tenant: str
@@ -59,13 +64,11 @@ class AuditEntry:
 
 
 def hash_short(s: str) -> str:
-    """hash_short"""
-    return hashlib.sha256(s.encode()).hexdigest()[:12]  # 返回结果
+    return hashlib.sha256(s.encode()).hexdigest()[:12]
 
 
 def audit_log_call(entry: AuditEntry) -> str:
-    """audit_log_call"""
-    return json.dumps({  # 返回结果
+    return json.dumps({
         "timestamp": entry.timestamp,
         "user": entry.user,
         "tenant": entry.tenant,
@@ -80,7 +83,6 @@ def audit_log_call(entry: AuditEntry) -> str:
 
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("PII SCRUBBER + AUDIT LOG — consistent tokenization across calls")
     print("=" * 80)

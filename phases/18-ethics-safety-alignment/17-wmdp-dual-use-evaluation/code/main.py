@@ -7,8 +7,11 @@ capability, measure the general-capability cost.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：WMDP 双用途能力评估——在生物安全、网络安全、化学领域测量模型的有害知识水平，
+以及 RMU 风格遗忘（unlearning）在抑制目标领域能力时的通用能力附带损害
+AI 对应：WMDP (Li et al. 2024) 由 Center for AI Safety 和 Scale AI 联合开发；
+RMU (Representation Engineering Unlearning) 被 Anthropic 研究为 ASL-3 缓解策略；
+Anthropic RSP 的 ASL-3 评估直接使用 WMDP 风格的基准
 """
 
 from __future__ import annotations
@@ -37,11 +40,10 @@ def evaluate(model_accuracy: dict) -> dict:
             if random.random() < acc:
                 correct += 1
         results[domain] = correct / cfg["n_questions"]
-    return results  # 返回结果
+    return results
 
 
 def apply_rmu_style_unlearning(model_accuracy: dict,
-    """apply_rmu_style_unlearning"""
                                targets: list[str],
                                strength: float = 0.9,
                                collateral: float = 0.03) -> dict:
@@ -53,23 +55,20 @@ def apply_rmu_style_unlearning(model_accuracy: dict,
     for d in new:
         if d not in targets:
             new[d] = max(0.0, new[d] - collateral)
-    return new  # 返回结果
+    return new
 
 
 def baseline_model() -> dict:
-    """baseline_model"""
-    return {d: cfg["accuracy"] for d, cfg in DOMAINS.items()}  # 返回结果
+    return {d: cfg["accuracy"] for d, cfg in DOMAINS.items()}
 
 
 def report(title: str, r: dict) -> None:
-    """report"""
     print(f"\n{title}")
     for d, score in r.items():
         print(f"  {d:18s} : {score:.3f}")
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("WMDP-SHAPED EVALUATION HARNESS (Phase 18, Lesson 17)")
     print("=" * 70)

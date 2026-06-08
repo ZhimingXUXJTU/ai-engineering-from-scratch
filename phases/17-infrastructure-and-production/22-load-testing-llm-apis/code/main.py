@@ -3,8 +3,13 @@
 Simulates how uniform prompts inflate reported throughput via prefix-cache
 and request-coalescing, while realistic distribution reveals the true ceiling.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：LLM API 负载测试的反模式——统一 prompt 陷阱：所有请求使用相同 prompt
+导致 prefix cache 命中率虚高(100%)，掩盖了真实的 TTFT 分布；
+使用多样化的 prompt 分布(mean+stddev)才能反映生产环境的真实性能
+AI 对应：LLMPerf 是 LLM 服务负载测试的参考工具，提供 --mean-input-tokens 和
+--stddev-input-tokens 参数控制 prompt 多样性；GenAI-Perf (NVIDIA) 是另一个
+LLM 专用基准测试工具；Locust 和 k6 是通用的 HTTP 负载测试工具；
+vLLM 的 prefix caching 在统一 prompt 下表现虚高是已知的基准陷阱
 """
 
 from __future__ import annotations
@@ -22,29 +27,25 @@ BATCH_EFFICIENCY_SHARED_PREFIX = 0.8  # batch serves 1/0.8 = 1.25x fewer slots
 
 @dataclass
 class Request:
-    """Request"""
     prompt_tokens: int
     prefix_hash: str
 
 
 def make_uniform_workload(n: int = 500) -> list[Request]:
-    """make_uniform_workload"""
-    return [Request(2000, "single_prefix") for _ in range(n)]  # 返回结果
+    return [Request(2000, "single_prefix") for _ in range(n)]
 
 
 def make_realistic_workload(n: int = 500, seed: int = 7) -> list[Request]:
-    """make_realistic_workload"""
     rng = random.Random(seed)
     reqs = []
     prefixes = [f"prefix_{i}" for i in range(80)]
     for _ in range(n):
         prompt = max(50, int(rng.gauss(500, 180)))
         reqs.append(Request(prompt, rng.choice(prefixes)))
-    return reqs  # 返回结果
+    return reqs
 
 
 def simulate(reqs: list[Request], concurrency: int) -> dict:
-    """simulate"""
     cache: set[str] = set()
     ttft_samples: list[float] = []
     # serialize in groups of "concurrency"
@@ -60,7 +61,7 @@ def simulate(reqs: list[Request], concurrency: int) -> dict:
     ttft_samples.sort()
     p50 = ttft_samples[len(ttft_samples) // 2]
     p99 = ttft_samples[int(len(ttft_samples) * 0.99) - 1]
-    return {  # 返回结果
+    return {
         "n": len(reqs),
         "p50": p50,
         "p99": p99,
@@ -70,7 +71,6 @@ def simulate(reqs: list[Request], concurrency: int) -> dict:
 
 
 def main() -> None:
-    """main"""
     print("=" * 95)
     print("PROMPT-UNIFORMITY TRAP — same test harness, different prompt distributions")
     print("=" * 95)

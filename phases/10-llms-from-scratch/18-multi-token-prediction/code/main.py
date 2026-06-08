@@ -1,14 +1,16 @@
-"""DeepSeek-V3 Multi-Token Prediction (MTP) module — stdlib Python.
+"""DeepSeek-V3 多 token 预测 (Multi-Token Prediction, MTP) 模块 —— 纯标准库实现
 
-Implements:
-  - shared embedding table (used by main model and every MTP module)
-  - per-depth MTP module: projection + 1-block transformer + shared head
-  - joint MTP loss across depths
-  - parameter-count accounting (per module, shared, total)
-  - a toy sequential evaluation that matches DeepSeek-V3's Section 2.2 equations
+核心概念：
+  - 标准 LLM 训练：每次只预测下一个 token（1 步 lookahead）
+  - MTP：同时预测未来 N 个 token（N 步 lookahead），提高训练信号的密度
+  - 每个 MTP 模块包含：投影层 + 1 层 Transformer Block + 共享输出头
+  - 共享嵌入表：主模型和所有 MTP 模块共用同一个 embedding
+  - 联合 MTP loss：所有深度的预测 loss 加权求和
 
-Pedagogical: single-head linear-projection attention, element-wise SwiGLU.
-The goal is to show the structure of the MTP module, not to train a real LLM.
+AI 对应：
+  - DeepSeek V3 使用 MTP 作为辅助训练目标，提升模型性能
+  - Meta 的 EAGLE 投机解码也利用了多 token 预测的思想
+  - MTP 让模型在训练时"看得更远"，学到更长程的依赖关系
 """
 
 from __future__ import annotations

@@ -8,8 +8,12 @@ Conceptual references:
 
 Stdlib + numpy only. Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：自动研究调度器——假设队列 + 并行实验槽 + UCB（Upper Confidence Bound）评分 +
+扇出式论文生成，在有限预算下自动编排假设生成、实验运行和论文撰写的完整流程
+AI 对应：UCB 是多臂老虎机（Multi-Armed Bandit）中的经典探索-利用策略；
+Sakana AI 的 The AI Scientist 使用类似的调度器编排研究流程；
+Weights & Biases 的 Hyperband 和贝叶斯优化使用类似的预算感知调度；
+并行实验槽最大化研究吞吐量
 """
 
 from __future__ import annotations
@@ -26,25 +30,23 @@ import numpy as np
 
 @dataclass
 class Hypothesis:
-    """Hypothesis"""
     id: str
     branch: str
     payload: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "branch": self.branch, "payload": dict(self.payload)}  # 返回结果
+        return {"id": self.id, "branch": self.branch, "payload": dict(self.payload)}
 
 
 @dataclass
 class Result:
-    """Result"""
     hypothesis_id: str
     branch: str
     reward: float
     payload: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "hypothesis_id": self.hypothesis_id,
             "branch": self.branch,
             "reward": self.reward,
@@ -54,7 +56,6 @@ class Result:
 
 @dataclass
 class BranchStats:
-    """BranchStats"""
     branch: str
     runs: int = 0
     reward_sum: float = 0.0
@@ -63,10 +64,10 @@ class BranchStats:
 
     @property
     def mean(self) -> float:
-        return (self.reward_sum / self.runs) if self.runs else 0.0  # 返回结果
+        return (self.reward_sum / self.runs) if self.runs else 0.0
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "branch": self.branch,
             "runs": self.runs,
             "reward_sum": self.reward_sum,
@@ -78,17 +79,15 @@ class BranchStats:
 
 @dataclass
 class TraceEvent:
-    """TraceEvent"""
     kind: str
     payload: dict
 
     def to_dict(self) -> dict:
-        return {"kind": self.kind, "payload": dict(self.payload)}  # 返回结果
+        return {"kind": self.kind, "payload": dict(self.payload)}
 
 
 @dataclass
 class SchedulerReport:
-    """SchedulerReport"""
     stop_reason: str
     experiments_run: int
     wall_seconds: float
@@ -97,7 +96,7 @@ class SchedulerReport:
     trace: list[TraceEvent]
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "stop_reason": self.stop_reason,
             "experiments_run": self.experiments_run,
             "wall_seconds": round(self.wall_seconds, 4),
@@ -112,12 +111,11 @@ Expander = Callable[[Result], list[Hypothesis]]
 
 
 def ucb_score(branch_stats: BranchStats, total_runs: int, c: float) -> float:
-    """ucb_score"""
     if branch_stats.runs == 0:
-        return float("inf")  # 返回结果
+        return float("inf")
     if total_runs == 0:
-        return branch_stats.mean  # 返回结果
-    return branch_stats.mean + c * math.sqrt(math.log(max(total_runs, 1)) / branch_stats.runs)  # 返回结果
+        return branch_stats.mean
+    return branch_stats.mean + c * math.sqrt(math.log(max(total_runs, 1)) / branch_stats.runs)
 
 
 class IterationScheduler:
@@ -162,7 +160,7 @@ class IterationScheduler:
             if score > best_score:
                 best_score = score
                 best_idx = idx
-        return best_idx  # 返回结果
+        return best_idx
 
     async def run(self, seed: list[Hypothesis]) -> SchedulerReport:
         queue: list[Hypothesis] = list(seed)
@@ -175,17 +173,17 @@ class IterationScheduler:
         t0 = time.monotonic()
 
         def deadline_hit() -> bool:
-            return (time.monotonic() - t0) >= self.max_seconds  # 返回结果
+            return (time.monotonic() - t0) >= self.max_seconds
 
         def budget_hit() -> bool:
-            return experiments_run >= self.max_experiments  # 返回结果
+            return experiments_run >= self.max_experiments
 
         def dispatch_until_full() -> None:
             nonlocal experiments_run
             while queue and len(in_flight) < self.slots and not budget_hit() and not deadline_hit():
                 idx = self._pick_next(queue, stats)
                 if idx is None:
-                    return  # 返回结果
+                    return
                 hyp = queue.pop(idx)
                 if hyp.branch not in stats:
                     stats[hyp.branch] = BranchStats(branch=hyp.branch)
@@ -293,7 +291,7 @@ class IterationScheduler:
             stop_reason = "queue_empty"
 
         wall = time.monotonic() - t0
-        return SchedulerReport(  # 返回结果
+        return SchedulerReport(
             stop_reason=stop_reason,
             experiments_run=experiments_run,
             wall_seconds=wall,
@@ -317,17 +315,17 @@ def make_deterministic_runner(
         bump = float(rng.normal(0.0, noise))
         reward = max(0.0, min(1.0, base + bump))
         await asyncio.sleep(delay_ms / 1000.0)
-        return Result(  # 返回结果
+        return Result(
             hypothesis_id=hyp.id, branch=hyp.branch, reward=reward,
             payload={"base": base, "noise": noise},
         )
 
-    return run  # 返回结果
+    return run
 
 
 def deterministic_expander(result: Result) -> list[Hypothesis]:
     """Spawn two follow-up hypotheses on the same branch with a monotonic id."""
-    return [  # 返回结果
+    return [
         Hypothesis(id=f"{result.hypothesis_id}-f{i}", branch=result.branch,
                    payload={"parent": result.hypothesis_id})
         for i in (1, 2)
@@ -351,12 +349,11 @@ async def demo_async() -> dict:
         expander=deterministic_expander,
     )
     report = await sched.run(seed)
-    return report.to_dict()  # 返回结果
+    return report.to_dict()
 
 
 def demo() -> dict:
-    """demo"""
-    return asyncio.run(demo_async())  # 返回结果
+    return asyncio.run(demo_async())
 
 
 if __name__ == "__main__":

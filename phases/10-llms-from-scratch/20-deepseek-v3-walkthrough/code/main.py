@@ -1,14 +1,16 @@
-"""DeepSeek-V3 architecture calculator — stdlib Python.
+"""DeepSeek-V3 架构深度解析 —— 参数量、MoE、MLA 注意力全拆解
 
-Given the DeepSeek-V3 config, computes:
-  - total parameter count by component
-  - active parameter count per forward (MoE sparse)
-  - KV cache at 128k context (MLA vs GQA hypothetical)
-  - per-layer breakdown (attention / MLP / experts / router / norms)
+核心概念：
+  - DeepSeek V3 是当前最先进的开源 LLM 之一（2024 年 12 月发布）
+  - 总参数 671B，但每个 token 只激活 37B（MoE 稀疏激活）
+  - MLA (Multi-head Latent Attention)：将 KV 压缩到低秩潜在空间，大幅减少 KV Cache
+  - 256 个专家 / 每 token 选 8 个 + 1 个共享专家（MoE 架构）
+  - 前 3 层是 Dense FFN，后 58 层是 MoE
 
-Also runs what-if variants: rank 256 MLA, 512 experts, top-16 routing. The
-goal is reading-a-config-becomes-reading-the-architecture. Same style as the
-Phase 10 · 14 calculator, specialized to DeepSeek-V3's full detail.
+AI 对应：
+  - DeepSeek V3 的训练成本约 $5.5M（远低于同规模模型）
+  - MLA 让 128K 上下文的 KV Cache 只需约 4GB（GQA 需要约 32GB）
+  - 本文件计算每个组件的精确参数量，帮助理解 671B 参数分布在哪里
 """
 
 from __future__ import annotations

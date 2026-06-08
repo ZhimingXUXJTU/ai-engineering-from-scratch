@@ -4,8 +4,12 @@ PSO runs on a 2D parameter space (temperature, top_k_weight) with a scripted
 fitness proxy. AMRO-S simulates 3 agents handling 4 task types with a
 pheromone matrix that strengthens on quality, decays over time.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：群体智能优化——LMPSO（语言模型参数空间粒子群优化，在 temperature/top_k 2D 空间
+搜索最优参数组合）和 AMRO-S（基于蚁群优化的 Agent 任务路由，信息素矩阵按任务质量
+强化并随时间衰减），无需梯度、仅依赖适应度评估即可收敛
+AI 对应：PSO 在 LLM 超参优化中被 DSPy 的 BootstrapFewShot 和 Optuna 集成使用；
+ACO 式的信息素路由在 Kubernetes 的 scheduler 和 Envoy 的负载均衡中实现类似机制；
+AutoGen 的 model selector 和 LiteLLM 的 router 使用类似的基于质量反馈的动态路由
 """
 from __future__ import annotations
 
@@ -18,7 +22,6 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Particle:
-    """Particle"""
     x: list[float]
     v: list[float]
     p_best: list[float]
@@ -32,11 +35,10 @@ def fitness(x: list[float]) -> float:
     dx, dy = x[0] - cx, x[1] - cy
     dist2 = dx * dx + dy * dy
     ripple = 0.08 * (math.cos(8 * math.pi * dx) + math.cos(8 * math.pi * dy))
-    return max(0.0, 1.0 - 6.0 * dist2 - ripple)  # 返回结果
+    return max(0.0, 1.0 - 6.0 * dist2 - ripple)
 
 
 def run_lmpso(n_particles: int = 20, iterations: int = 30, seed: int = 0) -> list[float]:
-    """run_lmpso"""
     rng = random.Random(seed)
     w, c1, c2 = 0.6, 1.2, 1.2
     bounds = ((0.0, 1.0), (0.0, 1.0))
@@ -72,13 +74,12 @@ def run_lmpso(n_particles: int = 20, iterations: int = 30, seed: int = 0) -> lis
                     g_best_fit = f
         history.append(g_best_fit)
 
-    return history  # 返回结果
+    return history
 
 
 # ---------- AMRO-S (ACO routing) ----------
 
 class PheromoneRouter:
-    """PheromoneRouter"""
     def __init__(self, task_types: list[str], agents: list[str],
                  decay: float = 0.05, reinforce: float = 0.2,
                  quality_threshold: float = 0.6) -> None:
@@ -97,8 +98,8 @@ class PheromoneRouter:
         for a, p in table.items():
             upto += p
             if r <= upto:
-                return a  # 返回结果
-        return self.agents[-1]  # 返回结果
+                return a
+        return self.agents[-1]
 
     def deposit(self, task_type: str, agent: str, quality: float) -> None:
         for a in self.agents:
@@ -115,13 +116,11 @@ AGENT_TASK_AFFINITY = {
 
 
 def simulate_task(agent: str, task_type: str, rng: random.Random) -> float:
-    """simulate_task"""
     base = AGENT_TASK_AFFINITY[agent][task_type]
-    return max(0.0, min(1.0, base + rng.uniform(-0.15, 0.15)))  # 返回结果
+    return max(0.0, min(1.0, base + rng.uniform(-0.15, 0.15)))
 
 
 def run_amro_s(n_tasks: int = 200, seed: int = 0) -> tuple[float, float, PheromoneRouter]:
-    """run_amro_s"""
     rng = random.Random(seed)
     task_types = ["code", "math", "writing", "planning"]
     agents = list(AGENT_TASK_AFFINITY.keys())
@@ -144,11 +143,10 @@ def run_amro_s(n_tasks: int = 200, seed: int = 0) -> tuple[float, float, Pheromo
         aco_quality += aq
         router.deposit(tt, aco_agent, aq)
 
-    return random_router_quality / n_tasks, aco_quality / n_tasks, router  # 返回结果
+    return random_router_quality / n_tasks, aco_quality / n_tasks, router
 
 
 def print_pheromone_table(router: PheromoneRouter) -> None:
-    """print_pheromone_table"""
     print(f"  {'task_type':12s} " + " ".join(f"{a:>14s}" for a in router.agents))
     for tt in router.task_types:
         row = [f"{router.pheromones[tt][a]:>14.3f}" for a in router.agents]
@@ -156,7 +154,6 @@ def print_pheromone_table(router: PheromoneRouter) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 72)
     print("LMPSO — 20 particles, 30 iterations, 2D parameter space")
     print("=" * 72)

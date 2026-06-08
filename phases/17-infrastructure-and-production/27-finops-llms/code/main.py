@@ -5,8 +5,14 @@ Three-tier enforcement:
   2. daily spend cap per tenant
   3. kill switch on spend z-score > 4
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：多租户 LLM FinOps 执法阶梯——三级防护：1) Rate Limit(每分钟请求限制)、
+2) Spend Cap(日消费上限 = 合同金额 x 2)、3) Kill Switch(z-score > 4 时自动暂停)，
+滥用租户在第 5 天触发 Kill Switch，正常和增长租户在限额内运行
+AI 对应：OpenAI 和 Anthropic 的 API rate limiting 实现类似的分级保护；
+AWS Budgets 和 GCP Billing Alerts 提供云级消费告警；
+Vercel 的 usage-based billing 和 Stripe 的 billing 是 SaaS 计费的参考；
+FinOps Foundation 定义了云成本管理的标准实践；
+多租户 LLM 平台（OpenAI Platform、Anthropic Console）都需要此模式
 """
 
 from __future__ import annotations
@@ -18,7 +24,6 @@ import statistics
 
 @dataclass
 class TenantPolicy:
-    """TenantPolicy"""
     contracted_daily_usd: float
     rate_limit_per_min: int
     spend_cap_multiplier: float = 2.0
@@ -27,7 +32,6 @@ class TenantPolicy:
 
 @dataclass
 class TenantState:
-    """TenantState"""
     spend_today_usd: float = 0.0
     minute_count: int = 0
     daily_history: list = field(default_factory=list)
@@ -42,7 +46,6 @@ TENANTS = {
 
 
 def simulate_day(day: int, verbose: bool) -> None:
-    """simulate_day"""
     for name, (policy, state, traffic_mult) in TENANTS.items():
         if state.paused:
             continue
@@ -67,7 +70,6 @@ def simulate_day(day: int, verbose: bool) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 95)
     print("FINOPS ENFORCEMENT — three tenants over 10 days, abusive tenant triggers kill switch")
     print("=" * 95)

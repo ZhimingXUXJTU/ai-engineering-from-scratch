@@ -5,8 +5,11 @@ Reference-only; primary sources cited in docs/en.md.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：双用途风险评估——生物、化学、网络、核四个领域的 2024-2025 AI 能力提升状态，
+追踪每个领域的拐点和剩余瓶颈，评估从"轻微提升"到"ASL-3 接近"的演化路径
+AI 对应：Anthropic 2025 年报告生物领域 2.53x 新手相对提升接近 ASL-3 阈值；
+网络攻击 80-90% 的攻击链已可被 AI 自动化；WMDP 基准是当前双用途能力评估标准；
+安全案例必须同时针对新手相对和专家绝对两个维度
 """
 
 from __future__ import annotations
@@ -45,7 +48,6 @@ DOMAINS = [
 
 
 def main() -> None:
-    """main"""
     print("=" * 82)
     print("2026 DUAL-USE PICTURE (Phase 18, Lesson 30)")
     print("=" * 82)

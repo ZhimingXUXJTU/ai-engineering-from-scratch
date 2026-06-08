@@ -1,6 +1,15 @@
-"""
-Stable Diffusion usage examples. Requires `diffusers`, `transformers`, and a GPU
-for any real inference. Running this on CPU without the model is a no-op summary.
+"""Stable Diffusion 文生图模型 —— 扩散模型最知名的应用
+
+核心概念：
+  - Stable Diffusion 是基于潜在扩散模型 (Latent Diffusion Model) 的文生图系统
+  - 三个核心组件：(1) 文本编码器 (CLIP) 编码提示词 (2) UNet 在潜在空间去噪 (3) VAE 解码为图像
+  - CFG (Classifier-Free Guidance)：在条件生成和无条件生成之间插值，控制图像与提示词的对齐度
+  - 潜在空间：不直接在像素空间（512x512x3）做扩散，而在压缩的潜在空间（4x64x64）做，大幅降低计算量
+
+AI 对应：
+  - SD 1.5 有 860M 参数（UNet），SDXL 有 2.6B，FLUX 有 12B
+  - Midjourney、DALL-E 3、Adobe Firefly 都基于类似的扩散模型架构
+  - ControlNet、LoRA 等技术让 Stable Diffusion 可以做精细的条件控制
 """
 
 import os

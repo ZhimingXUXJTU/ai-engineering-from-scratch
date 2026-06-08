@@ -1,4 +1,11 @@
-"""Tests for the byte-level BPE tokenizer."""
+"""BPE 分词器测试 —— 验证编码/解码、训练、序列化和特殊 token 处理
+
+核心概念：
+  - BPE (Byte Pair Encoding)：字节级分词，从 256 个基础字节开始迭代合并
+  - 训练：在小语料上学习合并规则
+  - 编码/解码往返测试：确保 encode(decode(tokens)) == tokens 和 decode(encode(text)) == text
+  - 特殊 token：如 <EOS>、<PAD> 等不在训练语料中出现的功能性 token
+"""
 
 from __future__ import annotations
 

@@ -6,8 +6,12 @@ Two primitives:
 
 Run loop detects Agent-valued returns and switches the active agent.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Handoff 驱动的 Agent 编排（OpenAI Swarm 模式），两个原语——Agent（名称+指令+工具）
+和 Handoff（返回 Agent 实例的函数），运行循环通过检测 Agent 类型的返回值自动切换活跃 Agent，
+无需状态机或 DSL，Agent 的工具定义本身就是路由逻辑
+AI 对应：OpenAI Swarm（2024 年开源）是此模式的参考实现，用 transfer_to_* 函数实现 Agent 交接；
+Claude 的 tool_use 机制可以返回 handoff 指令；CrewAI 的 delegate_to 实现类似交接；
+LangGraph 的 Command(goto=) 语法是编译时版本的 handoff
 """
 from __future__ import annotations
 
@@ -17,7 +21,6 @@ from typing import Callable, Optional, Union
 
 @dataclass
 class Agent:
-    """Agent"""
     name: str
     instructions: str
     functions: list[Callable] = field(default_factory=list)
@@ -25,24 +28,22 @@ class Agent:
 
 @dataclass
 class Msg:
-    """Msg"""
     role: str
     content: str
     sender: Optional[str] = None
 
 
 def triage_agent_factory() -> Agent:
-    """triage_agent_factory"""
     def transfer_to_refunds() -> "Agent":
-        return refund_agent  # 返回结果
+        return refund_agent
 
     def transfer_to_sales() -> "Agent":
-        return sales_agent  # 返回结果
+        return sales_agent
 
     def transfer_to_support() -> "Agent":
-        return support_agent  # 返回结果
+        return support_agent
 
-    return Agent(  # 返回结果
+    return Agent(
         name="triage",
         instructions="Route user to: refunds, sales, or support.",
         functions=[transfer_to_refunds, transfer_to_sales, transfer_to_support],
@@ -50,11 +51,10 @@ def triage_agent_factory() -> Agent:
 
 
 def refund_agent_factory() -> Agent:
-    """refund_agent_factory"""
     def process_refund(order_id: str) -> str:
-        return f"Refund processed for order {order_id}."  # 返回结果
+        return f"Refund processed for order {order_id}."
 
-    return Agent(  # 返回结果
+    return Agent(
         name="refund",
         instructions="Handle refund requests.",
         functions=[process_refund],
@@ -62,11 +62,10 @@ def refund_agent_factory() -> Agent:
 
 
 def sales_agent_factory() -> Agent:
-    """sales_agent_factory"""
     def quote_product(product: str) -> str:
-        return f"Quote for {product}: $99/mo."  # 返回结果
+        return f"Quote for {product}: $99/mo."
 
-    return Agent(  # 返回结果
+    return Agent(
         name="sales",
         instructions="Handle sales inquiries.",
         functions=[quote_product],
@@ -74,11 +73,10 @@ def sales_agent_factory() -> Agent:
 
 
 def support_agent_factory() -> Agent:
-    """support_agent_factory"""
     def open_ticket(issue: str) -> str:
-        return f"Ticket opened for: {issue}"  # 返回结果
+        return f"Ticket opened for: {issue}"
 
-    return Agent(  # 返回结果
+    return Agent(
         name="support",
         instructions="Handle technical support.",
         functions=[open_ticket],
@@ -98,29 +96,28 @@ def scripted_router(current: Agent, user_msg: str) -> Union[str, Agent]:
     text = user_msg.lower()
     if current.name == "triage":
         if "refund" in text or "money back" in text:
-            return next(f for f in current.functions if f.__name__ == "transfer_to_refunds")()  # 返回结果
+            return next(f for f in current.functions if f.__name__ == "transfer_to_refunds")()
         if "buy" in text or "price" in text:
-            return next(f for f in current.functions if f.__name__ == "transfer_to_sales")()  # 返回结果
+            return next(f for f in current.functions if f.__name__ == "transfer_to_sales")()
         if "broken" in text or "bug" in text:
-            return next(f for f in current.functions if f.__name__ == "transfer_to_support")()  # 返回结果
-        return "Could you tell me what you need help with?"  # 返回结果
+            return next(f for f in current.functions if f.__name__ == "transfer_to_support")()
+        return "Could you tell me what you need help with?"
     if current.name == "refund":
         order = "42"
         for word in user_msg.split():
             if word.isdigit():
                 order = word
                 break
-        return next(f for f in current.functions if f.__name__ == "process_refund")(order)  # 返回结果
+        return next(f for f in current.functions if f.__name__ == "process_refund")(order)
     if current.name == "sales":
         product = "enterprise plan"
-        return next(f for f in current.functions if f.__name__ == "quote_product")(product)  # 返回结果
+        return next(f for f in current.functions if f.__name__ == "quote_product")(product)
     if current.name == "support":
-        return next(f for f in current.functions if f.__name__ == "open_ticket")(user_msg)  # 返回结果
-    return "[no response]"  # 返回结果
+        return next(f for f in current.functions if f.__name__ == "open_ticket")(user_msg)
+    return "[no response]"
 
 
 def run_swarm(start_agent: Agent, user_messages: list[str]) -> list[Msg]:
-    """run_swarm"""
     history: list[Msg] = []
     active = start_agent
     for user in user_messages:
@@ -133,18 +130,16 @@ def run_swarm(start_agent: Agent, user_messages: list[str]) -> list[Msg]:
             active = out
             out = scripted_router(active, user)
         history.append(Msg(role="assistant", content=str(out), sender=active.name))
-    return history  # 返回结果
+    return history
 
 
 def render(history: list[Msg]) -> None:
-    """render"""
     for m in history:
         tag = m.sender if m.sender else m.role
         print(f"  [{tag:>8s}]: {m.content}")
 
 
 def main() -> None:
-    """main"""
     print("Handoff-driven orchestration -- OpenAI Swarm shape")
     print("-" * 54)
 

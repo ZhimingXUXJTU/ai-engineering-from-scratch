@@ -12,8 +12,11 @@ Pedagogical toy; real WEAT uses 300-d pretrained embeddings.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：WEAT 嵌入偏见探测——通过词嵌入中身份群体与属性集的余弦相似度差异
+测量表征性偏见（representational harm），以及投影去偏（debias）的效果与局限
+AI 对应：WEAT (Caliskan et al. 2017) 是测量 AI 偏见的经典方法；
+Bolukbasi et al. (2016) 的性别去偏方法被 Word2Vec/GloVe 广泛采用；
+GPT-4 和 BERT 的嵌入也被发现存在类似偏见；当前工业界使用概率和生成文本指标补充嵌入指标
 """
 
 from __future__ import annotations
@@ -43,22 +46,20 @@ EMB = {
 
 
 def cos(u: list[float], v: list[float]) -> float:
-    """cos"""
     nu = math.sqrt(sum(x * x for x in u)) + 1e-9
     nv = math.sqrt(sum(x * x for x in v)) + 1e-9
-    return sum(a * b for a, b in zip(u, v)) / (nu * nv)  # 返回结果
+    return sum(a * b for a, b in zip(u, v)) / (nu * nv)
 
 
 def weat_score(identity_a: list[str], identity_b: list[str],
-    """weat_score"""
                attr_x: list[str], attr_y: list[str]) -> float:
     def s(w):
         mx = sum(cos(EMB[w], EMB[a]) for a in attr_x) / len(attr_x)
         my = sum(cos(EMB[w], EMB[a]) for a in attr_y) / len(attr_y)
-        return mx - my  # 返回结果
+        return mx - my
     mean_a = sum(s(w) for w in identity_a) / len(identity_a)
     mean_b = sum(s(w) for w in identity_b) / len(identity_b)
-    return mean_a - mean_b  # 返回结果
+    return mean_a - mean_b
 
 
 def debias(emb: dict) -> dict:
@@ -70,11 +71,10 @@ def debias(emb: dict) -> dict:
               "nurse", "teacher", "caregiver"]:
         proj = sum(a * b for a, b in zip(new[w], gender_dir)) / norm_sq
         new[w] = [a - proj * b for a, b in zip(new[w], gender_dir)]
-    return new  # 返回结果
+    return new
 
 
 def main() -> None:
-    """main"""
     global EMB
     print("=" * 70)
     print("TOY WEAT BIAS PROBE (Phase 18, Lesson 20)")

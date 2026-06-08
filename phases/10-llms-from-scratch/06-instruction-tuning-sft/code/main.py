@@ -1,3 +1,17 @@
+"""指令微调 (Supervised Fine-Tuning, SFT) —— 让预训练模型学会遵循指令
+
+核心概念：
+  - SFT 是 RLHF 三步流程的第二步：预训练 -> SFT -> RLHF/DPO
+  - 使用特殊 token 标记指令和回复的边界：[INST_START]...[INST_END][RESP_START]...
+  - 只在回复部分计算 loss（loss_mask），不惩罚模型对指令的"预测"
+  - 灾难性遗忘：微调时在原始文本上的 loss 可能上升，需要监控
+
+AI 对应：
+  - ChatGPT 的指令遵循能力就来自 SFT：用人工标注的 (指令, 回复) 对微调
+  - Llama 3 使用了超过 10M 条人工标注的指令数据做 SFT
+  - 特殊 token 设计直接对应 ChatML 格式 (<|im_start|>user\n...<|im_end|>)
+"""
+
 import numpy as np
 import sys
 import os
@@ -47,13 +61,17 @@ INSTRUCTION_DATA = [
 ]
 
 SPECIAL_TOKENS = {
-    "INST_START": 253,
-    "INST_END": 254,
-    "RESP_START": 255,
+    "INST_START": 253,  # 标记指令开始
+    "INST_END": 254,    # 标记指令结束
+    "RESP_START": 255,  # 标记回复开始
 }
 
 
 def tokenize_instruction_pair(instruction, response, vocab_size=256):
+    """将指令-回复对编码为 token 序列，插入特殊 token 标记结构
+
+    格式：[INST_START] + 指令 tokens + [INST_END] + [RESP_START] + 回复 tokens
+    """
     inst_tokens = list(instruction.encode("utf-8"))
     resp_tokens = list(response.encode("utf-8"))
 
@@ -72,6 +90,10 @@ def tokenize_instruction_pair(instruction, response, vocab_size=256):
 
 
 def create_loss_mask(tokens):
+    """创建 loss 掩码：只在回复部分计算 loss，不惩罚指令部分的预测
+
+    这是 SFT 的关键设计——模型只需要学会"如何回复"，不需要学会"预测指令"。
+    """
     mask = np.zeros(len(tokens), dtype=np.float32)
     in_response = False
 
@@ -86,6 +108,10 @@ def create_loss_mask(tokens):
 
 
 def masked_cross_entropy_loss(logits, targets, loss_mask):
+    """带掩码的交叉熵损失：只在被掩码标记的位置计算 loss
+
+    loss_mask 为 1 的位置（回复部分）参与 loss 计算，为 0 的位置（指令部分）忽略。
+    """
     batch, seq_len, vocab_size = logits.shape
     logits_flat = logits.reshape(-1, vocab_size)
     targets_flat = targets.reshape(-1)
@@ -108,6 +134,11 @@ def masked_cross_entropy_loss(logits, targets, loss_mask):
 
 
 def sft_train(model, dataset, num_epochs=2, lr=2e-5, seq_len=64):
+    """SFT 训练循环：在指令-回复数据上微调模型
+
+    核心思想：只更新回复部分的梯度，让模型学会根据指令生成合适的回复。
+    学习率远小于预训练（2e-5 vs 3e-4），因为微调只需要小幅调整。
+    """
     formatted_data = []
     for example in dataset:
         tokens = tokenize_instruction_pair(example["instruction"], example["response"])
@@ -191,6 +222,7 @@ def generate_response(model, prompt_tokens, max_new_tokens=50, temperature=0.8):
 
 
 def evaluate_instruction_following(model, instructions):
+    """评估指令遵循能力：给模型输入指令，看它能否生成合理的回复"""
     print("Evaluating instruction following:")
     print("-" * 50)
 
@@ -214,6 +246,11 @@ def evaluate_instruction_following(model, instructions):
 
 
 def measure_forgetting(model, test_text, seq_len=64):
+    """测量灾难性遗忘：微调后模型在原始预训练任务上的 loss 变化
+
+    如果 loss 大幅上升，说明模型"忘记"了预训练学到的语言能力。
+    解决方案包括：学习率衰减、数据混合（混入少量预训练数据）、正则化等。
+    """
     tokens = np.array(list(test_text.encode("utf-8")[:512]))
 
     total_loss = 0.0

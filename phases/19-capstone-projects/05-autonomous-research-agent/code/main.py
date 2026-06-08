@@ -8,8 +8,11 @@ without real compute.
 
 Run:  python main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：自主研究 Agent 的最佳优先树搜索——实验节点（假设/配置/结果）+ 新颖性 x 质量 x 预算
+评分函数 + 沙箱执行 + 验证步骤 + 最优分支回溯，在有界预算下自动探索实验空间
+AI 对应：Google DeepMind 的 FunSearch 和 AI co-scientist 使用类似树搜索探索数学和科学空间；
+Sakana AI 的 The AI Scientist 使用最佳优先搜索自动化论文生成；
+Docker 沙箱隔离是实验 Agent 的安全基础架构
 """
 
 from __future__ import annotations
@@ -26,7 +29,6 @@ from typing import Iterable
 
 @dataclass
 class Node:
-    """Node"""
     node_id: int
     parent: int | None
     hypothesis: str
@@ -39,7 +41,7 @@ class Node:
 
     def score(self, remaining_budget: float) -> float:
         budget_weight = min(1.0, remaining_budget / 10.0)
-        return self.novelty * 0.4 + self.quality * 0.5 + budget_weight * 0.1  # 返回结果
+        return self.novelty * 0.4 + self.quality * 0.5 + budget_weight * 0.1
 
 
 # ---------------------------------------------------------------------------
@@ -64,7 +66,7 @@ def expand(node: Node, next_id: int) -> list[Node]:
                              hypothesis=f"lr={lr}",
                              config=cfg))
         next_id += 1
-    return children  # 返回结果
+    return children
 
 
 # ---------------------------------------------------------------------------
@@ -97,13 +99,12 @@ def run_experiment(node: Node, rng: random.Random) -> None:
 # ---------------------------------------------------------------------------
 
 def verify(node: Node) -> bool:
-    """verify"""
     if node.failure:
-        return False  # 返回结果
+        return False
     if node.result.get("loss", 99) > 4.0:
         node.failure = "loss_diverged"
-        return False  # 返回结果
-    return True  # 返回结果
+        return False
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -112,7 +113,6 @@ def verify(node: Node) -> bool:
 
 @dataclass
 class Tree:
-    """Tree"""
     root: Node
     nodes: dict[int, Node] = field(default_factory=dict)
     frontier: list = field(default_factory=list)  # (neg_score, counter, node_id)
@@ -130,12 +130,11 @@ class Tree:
     def pop(self) -> Node | None:
         while self.frontier:
             _, _, nid = heapq.heappop(self.frontier)
-            return self.nodes[nid]  # 返回结果
-        return None  # 返回结果
+            return self.nodes[nid]
+        return None
 
 
 def tree_search(seed: str, rng: random.Random) -> Tree:
-    """tree_search"""
     root = Node(node_id=0, parent=None, hypothesis=seed, config={"sparsity_top": 8, "lr": 3e-4})
     root.novelty = 1.0
     root.quality = 0.5
@@ -166,7 +165,7 @@ def tree_search(seed: str, rng: random.Random) -> Tree:
         for ch in children:
             tree.push(ch)
 
-    return tree  # 返回结果
+    return tree
 
 
 # ---------------------------------------------------------------------------
@@ -174,20 +173,18 @@ def tree_search(seed: str, rng: random.Random) -> Tree:
 # ---------------------------------------------------------------------------
 
 def best_branch(tree: Tree) -> list[Node]:
-    """best_branch"""
     done = [n for n in tree.nodes.values() if n.result and not n.failure]
     if not done:
-        return []  # 返回结果
+        return []
     best = max(done, key=lambda n: n.quality)
     # walk back to root
     chain = [best]
     while chain[-1].parent is not None:
         chain.append(tree.nodes[chain[-1].parent])
-    return list(reversed(chain))  # 返回结果
+    return list(reversed(chain))
 
 
 def main() -> None:
-    """main"""
     print("=== autonomous research agent: tree search (budget $30) ===")
     rng = random.Random(7)
     seed = "investigate sparsity patterns in attention maps of sub-1B transformers"

@@ -8,8 +8,10 @@ rate before and after.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Constitutional AI (CAI) 的批评-修订循环——AI 模型依据宪法原则对自己的输出进行
+批判和修订，生成对齐的 SFT 数据，再通过 RLAIF（AI 反馈强化学习）进一步优化
+AI 对应：Anthropic 的 Claude 系列模型使用 CAI 进行安全对齐（Bai et al. 2022）；
+Claude 的"有用、无害、诚实"原则即通过此流程实现；Google 的 Sparrow 也使用类似的 AI 反馈机制
 """
 
 from __future__ import annotations
@@ -55,30 +57,28 @@ def base_model_sample(n_tokens: int = 6, p_harmful: float = 0.35) -> list[str]:
             out.append(random.choice(HARMFUL_TOKENS))
         else:
             out.append(random.choice(SAFE_TOKENS))
-    return out  # 返回结果
+    return out
 
 
 def harmful_token_rate(response: list[str]) -> float:
-    """harmful_token_rate"""
     if not response:
-        return 0.0  # 返回结果
-    return sum(1 for t in response if t in HARMFUL_TOKENS) / len(response)  # 返回结果
+        return 0.0
+    return sum(1 for t in response if t in HARMFUL_TOKENS) / len(response)
 
 
 def critique(response: list[str], principle: str) -> list[str]:
     """Identify tokens that violate the sampled principle."""
-    return [t for t in response if t in HARMFUL_TOKENS]  # 返回结果
+    return [t for t in response if t in HARMFUL_TOKENS]
 
 
 def revise(response: list[str], bad: list[str]) -> list[str]:
     """Replace harmful tokens with safe alternatives per the mapping."""
     bad_set = set(bad)
-    return [REPLACEMENT.get(t, t) if t in bad_set else t for t in response]  # 返回结果
+    return [REPLACEMENT.get(t, t) if t in bad_set else t for t in response]
 
 
 @dataclass
 class SftCorpus:
-    """SftCorpus"""
     prompts: list[list[str]]
     targets: list[list[str]]
 
@@ -96,7 +96,7 @@ def build_cai_sft_corpus(n_examples: int = 500) -> SftCorpus:
         revised = revise(response, bad)
         prompts.append(prompt)
         targets.append(revised)
-    return SftCorpus(prompts, targets)  # 返回结果
+    return SftCorpus(prompts, targets)
 
 
 def toy_sft_train(corpus: SftCorpus) -> dict[tuple[str, ...], list[str]]:
@@ -105,15 +105,14 @@ def toy_sft_train(corpus: SftCorpus) -> dict[tuple[str, ...], list[str]]:
     for p, t in zip(corpus.prompts, corpus.targets):
         key = tuple(p[-2:]) if len(p) >= 2 else tuple(p)
         model[key] = t
-    return model  # 返回结果
+    return model
 
 
 def cai_model_sample(prompt: list[str], model: dict, n_tokens: int = 6) -> list[str]:
-    """cai_model_sample"""
     key = tuple(prompt[-2:]) if len(prompt) >= 2 else tuple(prompt)
     if key in model:
-        return list(model[key])  # 返回结果
-    return [random.choice(SAFE_TOKENS) for _ in range(n_tokens)]  # 返回结果
+        return list(model[key])
+    return [random.choice(SAFE_TOKENS) for _ in range(n_tokens)]
 
 
 def ai_feedback_rank(a: list[str], b: list[str]) -> int:
@@ -121,24 +120,22 @@ def ai_feedback_rank(a: list[str], b: list[str]) -> int:
     ra = harmful_token_rate(a)
     rb = harmful_token_rate(b)
     if ra < rb:
-        return 0  # 返回结果
+        return 0
     if rb < ra:
-        return 1  # 返回结果
-    return random.randint(0, 1)  # 返回结果
+        return 1
+    return random.randint(0, 1)
 
 
 def evaluate(model_fn, n: int = 200) -> float:
-    """evaluate"""
     rates = []
     for _ in range(n):
         prompt = base_model_sample(n_tokens=4, p_harmful=0.1)
         resp = model_fn(prompt)
         rates.append(harmful_token_rate(resp))
-    return sum(rates) / len(rates)  # 返回结果
+    return sum(rates) / len(rates)
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("CONSTITUTIONAL AI TOY PIPELINE (Phase 18, Lesson 5)")
     print("=" * 70)

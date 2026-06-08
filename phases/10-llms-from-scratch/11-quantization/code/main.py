@@ -1,7 +1,24 @@
+"""LLM 量化 (Quantization) —— 用更少位数表示模型权重以降低显存和加速推理
+
+核心概念：
+  - 量化：将浮点数从高精度（FP32）映射到低精度（FP16/BF16/INT8/INT4/INT2）
+  - 对称量化：映射范围关于 0 对称，适合权重（近似正态分布）
+  - 非对称量化：映射范围不对称，适合激活值（如 ReLU 后的非负值）
+  - 逐通道量化 (Per-channel)：每个通道独立量化，比逐张量量化精度更高
+  - GPTQ：基于 Hessian 矩阵的权重量化，通过误差补偿减少量化损失
+  - AWQ：保护重要权重通道（salient channels）不被过度量化
+
+AI 对应：
+  - Llama 3 70B 用 BF16 需 140GB 显存，INT4 量化后只需 35GB（单张 A100 可运行）
+  - llama.cpp / GPTQ / AWQ / BitsAndBytes 是主流的 LLM 量化工具
+  - GPT-4 的推理可能使用了 INT8 量化来降低服务成本
+"""
+
 import numpy as np
 
 
 def float_to_fp32_bits(value):
+    """将浮点数分解为 FP32 格式的符号位、指数位和尾数位（1+8+23 = 32 bit）"""
     bits = np.float32(value).view(np.uint32)
     sign = (bits >> 31) & 1
     exponent = (bits >> 23) & 0xFF
@@ -14,6 +31,7 @@ def float_to_fp32_bits(value):
 
 
 def float_to_fp16_bits(value):
+    """FP16 格式：1+5+10 = 16 bit，范围约 ±65504，精度约 3 位十进制"""
     fp16 = np.float16(value)
     bits = fp16.view(np.uint16)
     sign = (bits >> 15) & 1
@@ -27,6 +45,10 @@ def float_to_fp16_bits(value):
 
 
 def float_to_bf16_bits(value):
+    """BF16 格式：1+8+7 = 16 bit，与 FP32 相同的指数范围但更低精度
+
+    BF16 是 LLM 训练的标准格式：范围大（不易溢出），精度够用。
+    """
     fp32_bits = np.float32(value).view(np.uint32)
     bf16_bits = (fp32_bits >> 16).astype(np.uint16)
     sign = (bf16_bits >> 15) & 1
@@ -41,6 +63,7 @@ def float_to_bf16_bits(value):
 
 
 def simulate_fp8_e4m3(value):
+    """FP8 E4M3 格式模拟：1+4+3 = 8 bit，用于 H100 的推理加速"""
     sign = 1 if value < 0 else 0
     abs_val = abs(value)
     max_val = 448.0
@@ -80,6 +103,10 @@ def display_format_comparison(value):
 
 
 def quantize_symmetric(tensor, num_bits=8):
+    """对称量化：将张量映射到 [-2^(n-1), 2^(n-1)-1] 的整数范围
+
+    scale = abs_max / qmax，所有值共享同一个 scale 参数。
+    """
     qmin = -(2 ** (num_bits - 1))
     qmax = 2 ** (num_bits - 1) - 1
     abs_max = np.max(np.abs(tensor))
@@ -95,6 +122,10 @@ def dequantize_symmetric(quantized, scale):
 
 
 def quantize_per_channel(tensor, num_bits=8, axis=0):
+    """逐通道量化：每个通道（行/列）独立计算 scale，精度更高
+
+    因为不同通道的数值范围可能差异很大，独立量化能更好地保留信息。
+    """
     qmin = -(2 ** (num_bits - 1))
     qmax = 2 ** (num_bits - 1) - 1
 
@@ -273,6 +304,11 @@ def sensitivity_experiment(batch_size=2, seq_len=16, d_model=64, num_bits=8):
 
 
 def simulated_gptq(weight_matrix, calibration_inputs, num_bits=4):
+    """模拟 GPTQ 算法：基于 Hessian 的逐列量化 + 误差补偿
+
+    GPTQ 的核心思想：量化某一列时，将量化误差补偿到后续未量化的列中。
+    Hessian 矩阵 H = X^T X 衡量每个权重的重要性——重要的权重量化要更小心。
+    """
     n_in, n_out = weight_matrix.shape
     qmin = -(2 ** (num_bits - 1))
     qmax = 2 ** (num_bits - 1) - 1
@@ -328,6 +364,11 @@ def dequantize_gptq(quantized, scales):
 
 
 def simulated_awq(weight_matrix, calibration_inputs, num_bits=4, salient_fraction=0.01):
+    """模拟 AWQ 算法：激活感知的权重量化
+
+    AWQ 的核心思想：通过校准数据找到"重要"的权重通道（激活值大的通道），
+    对重要通道进行缩放保护，使其不被量化过度破坏。
+    """
     n_in, n_out = weight_matrix.shape
     qmin = -(2 ** (num_bits - 1))
     qmax = 2 ** (num_bits - 1) - 1

@@ -20,10 +20,9 @@ Consider an agent that runs for four hours. It calls three tools, prompts the us
 - In a naive `while True` loop: everything is lost. The run restarts from scratch. The three tool calls (with real side effects) execute again. The user is prompted again for things they already approved. Forty LLM calls are re-billed.
 - With durable execution: the run resumes from the most recent checkpoint. Already-completed activities are not re-executed; their results are replayed from the durable log. The user does not re-approve things they already approved. The LLM calls already made are not re-billed.
 
-
-> **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
-
 This is the same pattern workflow engines have shipped for a decade (Temporal, Cadence, Uber's Cherami). What's new is that LLM calls are now a kind of activity — non-deterministic, expensive, with side effects — and they fit this pattern cleanly.
+
+> **【中文解读】** 持久化执行解决长程 Agent 的可靠性问题：四小时运行中主机重启时，朴素循环丢失一切（工具重新执行、用户重新审批、LLM 重新计费），而持久化执行从最近的检查点恢复，已完成的活动从持久日志重放而非重新执行。Temporal 的 OpenAI Agents SDK 集成于 2026 年 3 月 GA。核心洞察：LLM 调用是一种非确定性、昂贵、有副作用的活动，完美适配工作流引擎的模式。
 
 The running theme of the lesson: long-horizon reliability decays (METR observes a "35-minute degradation" — success rate drops roughly quadratically with horizon). Durable execution enables runs that are longer than the reliability profile supports, which is a new way to fail safely if the design is right and unsafely if the design is wrong.
 

@@ -1,0 +1,141 @@
+/* i18n.css — Bilingual display and language toggle styles */
+
+/* Language toggle button */
+.lang-toggle {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border: 1px solid var(--ink, #222);
+  background: transparent;
+  color: var(--ink, #222);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  line-height: 1;
+  margin-left: 6px;
+}
+
+.lang-toggle:hover,
+.lang-toggle:focus-visible {
+  background: var(--ink, #222);
+  color: var(--bg, #fff);
+}
+
+/* Bilingual sub-text — shows Chinese below English */
+.zh-sub {
+  display: block;
+  font-size: 0.88em;
+  color: var(--ink-soft, #555);
+  line-height: 1.5;
+  margin-top: 2px;
+  font-family: var(--font-body, 'Source Serif 4', Georgia, serif);
+}
+
+/* When in English mode, hide Chinese subtitles */
+.lang-en .zh-sub {
+  display: none;
+}
+
+/* When in Chinese mode, adjust some headings */
+.lang-zh .toc-name,
+.lang-zh .modal-title {
+  line-height: 1.4;
+}
+
+/* Phase card bilingual name */
+.phase-name-zh {
+  display: block;
+  font-size: 0.85em;
+  color: var(--ink-soft, #555);
+  font-weight: 400;
+  margin-top: 1px;
+}
+
+.lang-en .phase-name-zh {
+  display: none;
+}
+
+/* Lesson summary bilingual */
+.lesson-summary-zh {
+  display: block;
+  font-size: 0.9em;
+  color: var(--ink-soft, #555);
+  margin-top: 4px;
+  line-height: 1.45;
+}
+
+.lang-en .lesson-summary-zh {
+  display: none;
+}
+
+/* Glossary bilingual terms */
+.glossary-term-zh {
+  display: block;
+  font-size: 0.85em;
+  color: var(--ink-soft, #555);
+  font-weight: 400;
+  margin-top: 2px;
+  font-family: var(--font-body, 'Source Serif 4', Georgia, serif);
+}
+
+.lang-en .glossary-term-zh {
+  display: none;
+}
+
+.glossary-col-means-zh {
+  display: block;
+  font-size: 0.9em;
+  color: var(--ink-soft, #555);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.lang-en .glossary-col-means-zh {
+  display: none;
+}
+
+/* Catalog bilingual */
+.catalog-lesson-name-zh {
+  display: block;
+  font-size: 0.85em;
+  color: var(--ink-soft, #555);
+  font-weight: 400;
+}
+
+.lang-en .catalog-lesson-name-zh {
+  display: none;
+}
+
+/* Prereqs bilingual */
+.prereq-phase-name-zh {
+  display: block;
+  font-size: 0.85em;
+  color: var(--ink-soft, #555);
+  font-weight: 400;
+}
+
+.lang-en .prereq-phase-name-zh {
+  display: none;
+}
+
+/* Quiz bilingual */
+.quiz-question-zh {
+  display: block;
+  font-size: 0.9em;
+  color: var(--ink-soft, #555);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.lang-en .quiz-question-zh {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .lang-toggle {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+  }
+}

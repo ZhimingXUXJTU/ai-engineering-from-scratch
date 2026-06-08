@@ -23,6 +23,8 @@
 - Pin behaviour with tests on the loss math, the gradient sign, and the reference invariance.
   中文翻译：Pin behaviour with tests on the loss math, the gradient sign, and the reference invariance.
 
+> **【中文解读】** DPO 将 RLHF 堆栈（奖励模型 + PPO）压缩为单一的监督损失，直接在偏好对上训练策略。本课从奖励差恒等式推导 DPO 损失，构建参考模型+策略模型对，计算逐 token 对数概率，在小型 Transformer 上用偏好数据训练。测试固定损失数学和梯度方向，确保实现与论文一致。
+
 ## The Problem | 问题
 
 > **【中文解读】** SFT 模型能跟随指令，但输出质量参差不齐。你有一组偏好对：对于同一 prompt，人工标记了一个为 chosen、一个为 rejected。经典 RLHF 管线是两阶段（训练奖励模型 + PPO 优化策略），成本高且复杂。DPO 将两阶段折叠为单一监督损失：不需要显式奖励模型，不需要 PPO，KL 约束 baked into 闭式推导中。

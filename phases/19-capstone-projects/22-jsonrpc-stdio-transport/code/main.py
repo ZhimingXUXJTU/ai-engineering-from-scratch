@@ -7,8 +7,12 @@ Conceptual references:
 
 Stdlib only. Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：JSON-RPC 2.0 over newline-delimited stdio——实现完整的请求解析、通知（无 id）、
+批量请求、错误码分层（parse/invalid/method-not-found/invalid-params/internal），
+通过 stdin/stdout 字节流传输，MCP 协议的基础传输层
+AI 对应：MCP (Model Context Protocol) 的 stdio 传输模式就是 JSON-RPC 2.0 over newline-delimited stdio；
+Language Server Protocol (LSP) 也使用相同的传输格式；
+这是 AI Agent 工具通信和 IDE 扩展通信的工业标准传输协议
 """
 
 from __future__ import annotations
@@ -28,7 +32,6 @@ ERR_INTERNAL = -32603
 
 
 class JsonRpcError(Exception):
-    """JsonRpcError"""
     code: int = ERR_INTERNAL
 
     def __init__(self, message: str, data: Any | None = None) -> None:
@@ -38,18 +41,15 @@ class JsonRpcError(Exception):
 
 
 class MethodNotFound(JsonRpcError):
-    """MethodNotFound"""
     code = ERR_METHOD_NOT_FOUND
 
 
 class InvalidParams(JsonRpcError):
-    """InvalidParams"""
     code = ERR_INVALID_PARAMS
 
 
 @dataclass
 class Request:
-    """Request"""
     method: str
     params: Any
     id: int | str | None
@@ -57,22 +57,21 @@ class Request:
 
 
 def _is_valid_envelope(msg: Any) -> bool:
-    """_is_valid_envelope"""
     if not isinstance(msg, dict):
-        return False  # 返回结果
+        return False
     if msg.get("jsonrpc") != "2.0":
-        return False  # 返回结果
+        return False
     if not isinstance(msg.get("method"), str):
-        return False  # 返回结果
+        return False
     if "params" in msg and not isinstance(msg["params"], (dict, list)):
-        return False  # 返回结果
+        return False
     if "id" in msg:
         rid = msg["id"]
         if isinstance(rid, bool):
-            return False  # 返回结果
+            return False
         if not isinstance(rid, (int, str, type(None))):
-            return False  # 返回结果
-    return True  # 返回结果
+            return False
+    return True
 
 
 def parse_request(raw: str) -> tuple[Request | None, dict | None]:
@@ -83,12 +82,12 @@ def parse_request(raw: str) -> tuple[Request | None, dict | None]:
     try:
         msg = json.loads(raw)
     except json.JSONDecodeError as exc:
-        return None, _err_envelope(None, ERR_PARSE, f"parse error: {exc}")  # 返回结果
+        return None, _err_envelope(None, ERR_PARSE, f"parse error: {exc}")
     if not _is_valid_envelope(msg):
         rid = msg.get("id") if isinstance(msg, dict) else None
-        return None, _err_envelope(rid, ERR_INVALID_REQUEST, "invalid request envelope")  # 返回结果
+        return None, _err_envelope(rid, ERR_INVALID_REQUEST, "invalid request envelope")
     is_notif = "id" not in msg
-    return Request(  # 返回结果
+    return Request(
         method=msg["method"],
         params=msg.get("params"),
         id=msg.get("id"),
@@ -97,24 +96,21 @@ def parse_request(raw: str) -> tuple[Request | None, dict | None]:
 
 
 def _err_envelope(rid: int | str | None, code: int, message: str, data: Any | None = None) -> dict:
-    """_err_envelope"""
     err: dict[str, Any] = {"code": code, "message": message}
     if data is not None:
         err["data"] = data
-    return {"jsonrpc": "2.0", "id": rid, "error": err}  # 返回结果
+    return {"jsonrpc": "2.0", "id": rid, "error": err}
 
 
 def _ok_envelope(rid: int | str | None, result: Any) -> dict:
-    """_ok_envelope"""
-    return {"jsonrpc": "2.0", "id": rid, "result": result}  # 返回结果
+    return {"jsonrpc": "2.0", "id": rid, "result": result}
 
 
 def _notification_envelope(method: str, params: Any | None) -> dict:
-    """_notification_envelope"""
     env: dict[str, Any] = {"jsonrpc": "2.0", "method": method}
     if params is not None:
         env["params"] = params
-    return env  # 返回结果
+    return env
 
 
 class StdioTransport:
@@ -127,8 +123,8 @@ class StdioTransport:
     def read_line(self) -> bytes | None:
         line = self._in.readline()
         if not line:
-            return None  # 返回结果
-        return line  # 返回结果
+            return None
+        return line
 
     def write_response(self, rid: int | str | None, result: Any) -> None:
         self._write(_ok_envelope(rid, result))
@@ -153,23 +149,22 @@ def _handle_one(handler: Handler, transport: StdioTransport, req: Request) -> di
     try:
         result = handler(req.method, req.params)
     except MethodNotFound as exc:
-        return None if req.is_notification else _err_envelope(req.id, exc.code, exc.message, exc.data)  # 返回结果
+        return None if req.is_notification else _err_envelope(req.id, exc.code, exc.message, exc.data)
     except InvalidParams as exc:
-        return None if req.is_notification else _err_envelope(req.id, exc.code, exc.message, exc.data)  # 返回结果
+        return None if req.is_notification else _err_envelope(req.id, exc.code, exc.message, exc.data)
     except JsonRpcError as exc:
-        return None if req.is_notification else _err_envelope(req.id, exc.code, exc.message, exc.data)  # 返回结果
+        return None if req.is_notification else _err_envelope(req.id, exc.code, exc.message, exc.data)
     except Exception as exc:
-        return None if req.is_notification else _err_envelope(  # 返回结果
+        return None if req.is_notification else _err_envelope(
             req.id, ERR_INTERNAL, "internal error",
             {"exception": type(exc).__name__, "detail": str(exc)},
         )
     if req.is_notification:
-        return None  # 返回结果
-    return _ok_envelope(req.id, result)  # 返回结果
+        return None
+    return _ok_envelope(req.id, result)
 
 
 def _process_batch(handler: Handler, transport: StdioTransport, items: list) -> list | None:
-    """_process_batch"""
     out: list = []
     for raw in items:
         if not isinstance(raw, dict) or not _is_valid_envelope(raw):
@@ -185,12 +180,11 @@ def _process_batch(handler: Handler, transport: StdioTransport, items: list) -> 
         if resp is not None:
             out.append(resp)
     if not out:
-        return None  # 返回结果
-    return out  # 返回结果
+        return None
+    return out
 
 
 def _write_raw(transport: StdioTransport, obj: Any) -> None:
-    """_write_raw"""
     encoded = json.dumps(obj, separators=(",", ":"))
     transport._out.write((encoded + "\n").encode("utf-8"))
     transport._out.flush()
@@ -201,7 +195,7 @@ def serve(handler: Handler, transport: StdioTransport) -> None:
     while True:
         line = transport.read_line()
         if line is None:
-            return  # 返回结果
+            return
         text = line.decode("utf-8").rstrip("\n").strip()
         if not text:
             continue
@@ -234,9 +228,9 @@ def _demo() -> None:
         if method == "math.add":
             if not isinstance(params, dict) or "a" not in params or "b" not in params:
                 raise InvalidParams("a and b required")
-            return params["a"] + params["b"]  # 返回结果
+            return params["a"] + params["b"]
         if method == "echo":
-            return params  # 返回结果
+            return params
         if method == "boom":
             raise RuntimeError("intentional")
         raise MethodNotFound(f"method {method!r}")

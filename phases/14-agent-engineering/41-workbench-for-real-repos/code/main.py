@@ -5,8 +5,13 @@ Writes before-after-report.md and comparison.json next to this file.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：真实仓库上的 Workbench 对比实验 —— 在示例应用上运行同一任务两次：
+纯提示词模式 vs Workbench 引导模式。两条管线都是脚本化的（无 LLM），确保可复现。
+输出 before-after-report.md 和 comparison.json 量化 Workbench 的改进效果。
+
+AI 对应：这是 Agent 工程中"有结构 vs 无结构"的 A/B 测试方法。
+Claude Code、Cursor 等 Agent IDE 的研发团队也使用类似方法验证新功能的效果。
+量化对比是 Agent 工程从"凭感觉"到"数据驱动"的关键步骤。
 """
 
 from __future__ import annotations
@@ -25,16 +30,14 @@ USERS: dict[str, str] = {}
 
 
 def signup(email: str, password: str) -> dict[str, object]:
-    """signup"""
     USERS[email] = password
-    return {"status": 200, "email": email}  # 返回结果
+    return {"status": 200, "email": email}
 '''
 
 SAMPLE_TEST_PY = '''from sample_app.app import signup
 
 
 def test_signup_happy_path():
-    """test_signup_happy_path"""
     out = signup("a@b.co", "longenough")
     assert out["status"] == 200
 '''
@@ -42,7 +45,6 @@ def test_signup_happy_path():
 
 @dataclass
 class TaskOutcome:
-    """TaskOutcome"""
     pipeline: str
     tests_actually_run: bool
     acceptance_met: bool
@@ -58,7 +60,7 @@ FORBIDDEN = {"sample_app/scripts/release.sh"}
 def run_prompt_only() -> TaskOutcome:
     """Edits a couple of files, never runs the test, claims done."""
     touched = ["sample_app/app.py", "README.md", "sample_app/scripts/release.sh"]
-    return TaskOutcome(  # 返回结果
+    return TaskOutcome(
         pipeline="prompt-only",
         tests_actually_run=False,
         acceptance_met=False,
@@ -71,7 +73,7 @@ def run_prompt_only() -> TaskOutcome:
 def run_workbench() -> TaskOutcome:
     """Reads scope, edits inside scope, runs acceptance through feedback, gates, reviews, hands off."""
     touched = ["sample_app/app.py", "sample_app/test_app.py"]
-    return TaskOutcome(  # 返回结果
+    return TaskOutcome(
         pipeline="workbench-guided",
         tests_actually_run=True,
         acceptance_met=True,
@@ -82,7 +84,6 @@ def run_workbench() -> TaskOutcome:
 
 
 def write_report(po: TaskOutcome, wb: TaskOutcome) -> None:
-    """write_report"""
     lines = [
         "# Before / After: Agent Workbench on a Real Repo",
         "",
@@ -107,7 +108,6 @@ def write_report(po: TaskOutcome, wb: TaskOutcome) -> None:
 
 
 def write_sample() -> None:
-    """write_sample"""
     SAMPLE.mkdir(exist_ok=True)
     (SAMPLE / "app.py").write_text(SAMPLE_APP_PY)
     (SAMPLE / "test_app.py").write_text(SAMPLE_TEST_PY)
@@ -117,7 +117,6 @@ def write_sample() -> None:
 
 
 def main() -> None:
-    """main"""
     write_sample()
     po = run_prompt_only()
     wb = run_workbench()

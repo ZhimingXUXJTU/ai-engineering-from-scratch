@@ -3,8 +3,11 @@
 Models a minimal shopping app; 3 tasks with gold trajectories; a scripted agent
 attempts each task; we record success + steps-over-gold per OSWorld-Human.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：WebArena/OSWorld 风格的 GUI Agent 评测 —— 模拟购物应用环境，定义带黄金轨迹的任务，
+度量成功率 + 步骤效率（steps-over-gold ratio）。Agent 通过 API 调用（而非真实点击）与界面交互。
+AI 对应：WebArena（CMU，2023）和 OSWorld（2024）是评估 GUI/计算机使用 Agent 的核心基准；
+Claude Computer Use、OpenAI Operator 和 Google Mariner 都在这些基准上评测。
+Anthropic 2024 年发布的 Computer Use beta 直接对标 OSWorld 场景。
 """
 
 from __future__ import annotations
@@ -14,7 +17,6 @@ from typing import Any, Callable
 
 
 class ShoppingApp:
-    """ShoppingApp"""
     def __init__(self) -> None:
         self.items = {
             "sku-001": {"name": "headphones", "price": 199},
@@ -25,34 +27,33 @@ class ShoppingApp:
         self.orders: list[dict[str, Any]] = []
 
     def list_items(self) -> list[dict[str, Any]]:
-        return [{"sku": sku, **meta} for sku, meta in self.items.items()]  # 返回结果
+        return [{"sku": sku, **meta} for sku, meta in self.items.items()]
 
     def add_to_cart(self, sku: str, qty: int = 1) -> str:
         if sku not in self.items:
-            return "error: unknown sku"  # 返回结果
+            return "error: unknown sku"
         self.cart[sku] = self.cart.get(sku, 0) + qty
-        return f"added {qty} x {sku}"  # 返回结果
+        return f"added {qty} x {sku}"
 
     def remove_from_cart(self, sku: str) -> str:
         if sku not in self.cart:
-            return "error: not in cart"  # 返回结果
+            return "error: not in cart"
         del self.cart[sku]
-        return f"removed {sku}"  # 返回结果
+        return f"removed {sku}"
 
     def checkout(self) -> str:
         if not self.cart:
-            return "error: empty cart"  # 返回结果
+            return "error: empty cart"
         total = sum(self.items[sku]["price"] * qty
                     for sku, qty in self.cart.items())
         oid = f"ord-{len(self.orders) + 1:03d}"
         self.orders.append({"oid": oid, "items": dict(self.cart), "total": total})
         self.cart = {}
-        return oid  # 返回结果
+        return oid
 
 
 @dataclass
 class Task:
-    """Task"""
     tid: str
     description: str
     agent: Callable[[ShoppingApp], list[str]]
@@ -66,7 +67,7 @@ def _agent_task_1(app: ShoppingApp) -> list[str]:
     trace.append(f"list_items -> {len(app.list_items())} items")
     trace.append(f"add_to_cart sku-001 -> {app.add_to_cart('sku-001')}")
     trace.append(f"checkout -> {app.checkout()}")
-    return trace  # 返回结果
+    return trace
 
 
 def _agent_task_2(app: ShoppingApp) -> list[str]:
@@ -77,7 +78,7 @@ def _agent_task_2(app: ShoppingApp) -> list[str]:
     trace.append(f"add_to_cart sku-002 -> {app.add_to_cart('sku-002')}")
     trace.append(f"add_to_cart sku-003 -> {app.add_to_cart('sku-003')}")
     trace.append(f"checkout -> {app.checkout()}")
-    return trace  # 返回结果
+    return trace
 
 
 def _agent_task_3(app: ShoppingApp) -> list[str]:
@@ -91,11 +92,10 @@ def _agent_task_3(app: ShoppingApp) -> list[str]:
     trace.append(f"remove_from_cart sku-002 -> {app.remove_from_cart('sku-002')}")
     trace.append(f"add_to_cart sku-003 -> {app.add_to_cart('sku-003')}")
     trace.append(f"checkout -> {app.checkout()}")
-    return trace  # 返回结果
+    return trace
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("WEBARENA/OSWORLD-STYLE HARNESS — Phase 14, Lesson 20")
     print("=" * 70)

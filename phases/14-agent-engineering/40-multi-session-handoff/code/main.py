@@ -5,8 +5,12 @@ writes handoff.md for humans and handoff.json for the next agent.
 
 Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：多会话交接协议 —— 从 workbench 快照（state + verdict + review + feedback）
+生成结构化 handoff.json（变更文件/执行命令/失败尝试/开放风险/下一步动作）和
+人类可读的 handoff.md。feedback 日志自动裁剪（保留最近 5 条 + 所有非零退出）。
+AI 对应：Claude Code 的 session 恢复机制、Devin 的 snapshot/restore 和 ChatGPT 的
+对话记忆都实现了类似的跨会话状态传递；在 SRE 领域，incident handoff document 是
+on-call 交接的标准实践，本课将其形式化为 Agent 可消费的 JSON 结构。
 """
 
 from __future__ import annotations
@@ -21,7 +25,6 @@ TAIL_K = 5
 
 @dataclass
 class WorkbenchSnapshot:
-    """WorkbenchSnapshot"""
     task_id: str
     state: dict[str, object]
     verdict: dict[str, object]
@@ -32,7 +35,6 @@ class WorkbenchSnapshot:
 
 @dataclass
 class HandoffPayload:
-    """HandoffPayload"""
     task_id: str
     summary: str
     changed_files: list[str]
@@ -45,7 +47,6 @@ class HandoffPayload:
 
 
 def trim_feedback(records: list[dict[str, object]]) -> list[dict[str, object]]:
-    """trim_feedback"""
     tail = records[-TAIL_K:]
     nonzero = [r for r in records if r.get("exit_code") not in (0, None)]
     out: list[dict[str, object]] = []
@@ -56,11 +57,10 @@ def trim_feedback(records: list[dict[str, object]]) -> list[dict[str, object]]:
             continue
         seen.add(key)
         out.append(r)
-    return out  # 返回结果
+    return out
 
 
 def derive_risks(snapshot: WorkbenchSnapshot) -> list[dict[str, str]]:
-    """derive_risks"""
     risks: list[dict[str, str]] = []
     for f in snapshot.verdict.get("findings", []) or []:
         if isinstance(f, dict) and f.get("severity") in ("warn", "block"):
@@ -74,11 +74,10 @@ def derive_risks(snapshot: WorkbenchSnapshot) -> list[dict[str, str]]:
         safe_total = 10
     if safe_total < 7:
         risks.append({"severity": "warn", "detail": f"review total {raw_total} below 7"})
-    return risks  # 返回结果
+    return risks
 
 
 def generate_handoff(snapshot: WorkbenchSnapshot) -> tuple[str, HandoffPayload]:
-    """generate_handoff"""
     next_action = str(snapshot.state.get("next_action") or "no next_action recorded; needs human")
     payload = HandoffPayload(
         task_id=snapshot.task_id,
@@ -100,7 +99,7 @@ def generate_handoff(snapshot: WorkbenchSnapshot) -> tuple[str, HandoffPayload]:
     )
 
     def _bullets(items: list[str]) -> list[str]:
-        return items or ["- none"]  # 返回结果
+        return items or ["- none"]
 
     md_lines = [
         f"# Handoff: {payload.task_id}",
@@ -126,11 +125,10 @@ def generate_handoff(snapshot: WorkbenchSnapshot) -> tuple[str, HandoffPayload]:
         f"- verdict: `{payload.verdict_pointer['verdict']}`",
         f"- review:  `{payload.verdict_pointer['review']}`",
     ]
-    return "\n".join(md_lines) + "\n", payload  # 返回结果
+    return "\n".join(md_lines) + "\n", payload
 
 
 def main() -> None:
-    """main"""
     snapshot = WorkbenchSnapshot(
         task_id="T-001",
         state={

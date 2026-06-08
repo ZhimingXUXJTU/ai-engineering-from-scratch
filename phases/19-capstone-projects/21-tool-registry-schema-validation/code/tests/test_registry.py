@@ -1,4 +1,10 @@
-"""Tests for ToolRegistry and JSON Schema subset validator."""
+"""工具注册表与 JSON Schema 验证测试
+
+核心概念：
+  - ToolRegistry：Agent 可用工具的注册中心，管理工具的 schema 和 handler
+  - JSON Schema 验证：确保工具调用的参数符合预设的 schema 规范
+  - 防止 Agent 传递错误参数给工具（类型检查、必填项检查）
+"""
 
 from __future__ import annotations
 

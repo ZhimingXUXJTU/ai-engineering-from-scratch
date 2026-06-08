@@ -3,8 +3,11 @@
 Same three-intent task (refund / bug / sales) handled four ways. Measure
 op count per pattern to see cost trade-offs.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：四种 Agent 编排模式对比 —— Supervisor-Worker（中心调度分发）、Swarm（去中心化 handoff）、
+Hierarchical（两级树状委派）、Debate（多 Agent 辩论求共识）。同一任务集对比操作数和成本。
+AI 对应：Supervisor 模式是 OpenAI Assistants API 的默认编排方式，Swarm 是 OpenAI 2024 年开源的
+多 Agent 框架，Hierarchical 对应 CrewAI 的 manager 模式，Debate 对应 AutoGen GroupChat；
+选择哪种模式取决于任务复杂度、延迟预算和成本约束。
 """
 
 from __future__ import annotations
@@ -15,15 +18,14 @@ from typing import Any, Callable
 
 
 def classify(text: str) -> str:
-    """classify"""
     t = text.lower()
     if "refund" in t:
-        return "refund"  # 返回结果
+        return "refund"
     if "crash" in t or "error" in t or "bug" in t:
-        return "bug"  # 返回结果
+        return "bug"
     if "pricing" in t or "quote" in t:
-        return "sales"  # 返回结果
-    return "sales"  # 返回结果
+        return "sales"
+    return "sales"
 
 
 SPECIALISTS: dict[str, Callable[[str], str]] = {
@@ -34,7 +36,6 @@ SPECIALISTS: dict[str, Callable[[str], str]] = {
 
 
 def supervisor_worker(tasks: list[str]) -> tuple[list[str], int]:
-    """supervisor_worker"""
     trace: list[str] = []
     ops = 0
     for task in tasks:
@@ -44,11 +45,10 @@ def supervisor_worker(tasks: list[str]) -> tuple[list[str], int]:
         specialist = SPECIALISTS[label]
         ops += 1
         trace.append(f"  {label}: {specialist(task)}")
-    return trace, ops  # 返回结果
+    return trace, ops
 
 
 def swarm(tasks: list[str]) -> tuple[list[str], int]:
-    """swarm"""
     trace: list[str] = []
     ops = 0
     for task in tasks:
@@ -63,11 +63,10 @@ def swarm(tasks: list[str]) -> tuple[list[str], int]:
             trace.append(f"swarm[{current}] handoff -> {label}")
             current = label
             hops += 1
-    return trace, ops  # 返回结果
+    return trace, ops
 
 
 def hierarchical(tasks: list[str]) -> tuple[list[str], int]:
-    """hierarchical"""
     trace: list[str] = []
     ops = 0
     for task in tasks:
@@ -80,11 +79,10 @@ def hierarchical(tasks: list[str]) -> tuple[list[str], int]:
         specialist = SPECIALISTS[sub_label]
         ops += 1
         trace.append(f"    {sub_label}: {specialist(task)}")
-    return trace, ops  # 返回结果
+    return trace, ops
 
 
 def debate(tasks: list[str]) -> tuple[list[str], int]:
-    """debate"""
     trace: list[str] = []
     ops = 0
     for task in tasks:
@@ -99,11 +97,10 @@ def debate(tasks: list[str]) -> tuple[list[str], int]:
         specialist = SPECIALISTS[convergent]
         ops += 1
         trace.append(f"debate converges -> {convergent}: {specialist(task)}")
-    return trace, ops  # 返回结果
+    return trace, ops
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("ORCHESTRATION PATTERNS — Phase 14, Lesson 28")
     print("=" * 70)

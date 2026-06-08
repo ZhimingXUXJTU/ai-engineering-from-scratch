@@ -7,8 +7,11 @@ z-score; reported at 1000 tokens.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：SynthID 风格的文本水印——解码时基于前 k 个 token 的哈希将词表分为绿/红集，
+偏向绿色集采样，检测时计算绿色 token 的 z-score，分析改写攻击对水印的影响
+AI 对应：Google DeepMind 的 SynthID (2024) 部署在 Gemini 中标记 AI 生成内容；
+C2PA (Coalition for Content Provenance and Authenticity) 由 Adobe、Microsoft、BBC 联合推动；
+OpenAI 在 DALL-E 3 和 ChatGPT 中使用类似水印技术；改写攻击后水印失灵是当前核心挑战
 """
 
 from __future__ import annotations
@@ -31,15 +34,14 @@ def green_set(prev_tokens: list[int]) -> set[int]:
     digest = hashlib.sha256(seed.encode()).hexdigest()
     h = int(digest, 16)
     # partition: token is green iff (token + h) mod 2 == 0
-    return {t for t in range(VOCAB) if (t + h) % 2 == 0}  # 返回结果
+    return {t for t in range(VOCAB) if (t + h) % 2 == 0}
 
 
 def unwatermarked_sample(n: int, seed_prefix: list[int]) -> list[int]:
-    """unwatermarked_sample"""
     out = list(seed_prefix)
     for _ in range(n):
         out.append(random.randrange(VOCAB))
-    return out  # 返回结果
+    return out
 
 
 def watermarked_sample(n: int, seed_prefix: list[int], bias: float = 0.9) -> list[int]:
@@ -50,13 +52,13 @@ def watermarked_sample(n: int, seed_prefix: list[int], bias: float = 0.9) -> lis
         use_green = random.random() < bias
         pool = list(greens) if use_green else list(set(range(VOCAB)) - greens)
         out.append(random.choice(pool))
-    return out  # 返回结果
+    return out
 
 
 def detect(tokens: list[int]) -> float:
     """Returns z-score: (green count - expected) / sqrt(expected * p(1-p))."""
     if len(tokens) <= K:
-        return 0.0  # 返回结果
+        return 0.0
     green_count = 0
     for i in range(K, len(tokens)):
         greens = green_set(tokens[:i])
@@ -65,7 +67,7 @@ def detect(tokens: list[int]) -> float:
     n = len(tokens) - K
     expected = n * 0.5
     std = math.sqrt(n * 0.5 * 0.5)
-    return (green_count - expected) / std  # 返回结果
+    return (green_count - expected) / std
 
 
 def paraphrase(tokens: list[int], ratio: float = 0.3) -> list[int]:
@@ -74,11 +76,10 @@ def paraphrase(tokens: list[int], ratio: float = 0.3) -> list[int]:
     for i in range(len(out)):
         if random.random() < ratio:
             out[i] = random.randrange(VOCAB)
-    return out  # 返回结果
+    return out
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("TOY TOKEN WATERMARK (Phase 18, Lesson 23)")
     print("=" * 70)

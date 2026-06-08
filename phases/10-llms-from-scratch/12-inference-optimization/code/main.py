@@ -1,8 +1,29 @@
+"""LLM 推理优化 —— KV Cache、连续批处理、前缀缓存与投机解码
+
+核心概念：
+  - KV Cache：缓存注意力计算中的 Key/Value，避免重复计算，是推理加速的核心
+  - 连续批处理 (Continuous Batching)：请求完成后立即填入新请求，提高 GPU 利用率
+  - 前缀缓存 (Prefix Cache)：共享相同前缀（如 system prompt）的请求复用 KV Cache
+  - 投机解码 (Speculative Decoding)：用小模型快速生成候选，大模型并行验证，加速推理
+
+AI 对应：
+  - vLLM / SGLang 是主流的 LLM 推理引擎，核心就是 PagedAttention + 连续批处理
+  - OpenAI API 的低延迟就来自 KV Cache + 连续批处理 + 投机解码的组合
+  - Llama 3 70B 的 KV Cache 在 128K 上下文时约占 80GB（需要 4 张 H100）
+"""
+
 import numpy as np
 import heapq
 
 
 class KVCache:
+    """KV Cache：存储注意力计算中的 Key 和 Value 矩阵，避免重复计算
+
+    Prefill 阶段：处理所有 prompt token，一次性计算并缓存所有 KV
+    Decode 阶段：每次只计算 1 个新 token 的 KV，与缓存拼接后计算注意力
+    这将 decode 阶段的复杂度从 O(n^2) 降到 O(n)（n 是序列长度）。
+    """
+
     def __init__(self, num_layers, num_heads, head_dim, max_seq_len, dtype=np.float16):
         self.num_layers = num_layers
         self.num_heads = num_heads
@@ -96,6 +117,11 @@ class Request:
 
 
 def simulate_static_batching(requests, batch_size):
+    """静态批处理：等所有请求完成才能开始下一批
+
+    问题：如果批中一个请求生成 5 个 token，另一个生成 200 个，
+    那 5-token 的请求必须等 200-token 的完成，浪费 GPU 时间。
+    """
     step = 0
     completed = []
     queue = sorted(requests, key=lambda r: r.arrival_step)
@@ -120,6 +146,11 @@ def simulate_static_batching(requests, batch_size):
 
 
 def simulate_continuous_batching(requests, batch_size):
+    """连续批处理：请求完成后立即移出，新请求立即填入，最大化 GPU 利用率
+
+    这是 vLLM / SGLang 等推理引擎的核心调度策略。
+    也叫 in-flight batching 或 iteration-level scheduling。
+    """
     step = 0
     completed = []
     queue = sorted(requests, key=lambda r: r.arrival_step)
@@ -182,7 +213,11 @@ class TrieNode:
 
 
 class PrefixCache:
-    def __init__(self, max_entries=1000):
+    """前缀缓存：用字典树 (Trie) 存储共享前缀的 KV Cache
+
+    多个请求可能共享相同的 system prompt，前缀缓存避免重复计算。
+    例如 100 个请求都用 "You are a helpful assistant" 开头，只需计算一次。
+    """
         self.root = TrieNode()
         self.max_entries = max_entries
         self.total_entries = 0
@@ -258,6 +293,14 @@ class TargetModel:
 
 
 def speculative_decode(draft_model, target_model, context, num_speculative=5,
+                       draft_cost=1.0, target_cost=10.0, verify_cost=12.0):
+    """投机解码：小模型快速生成候选 token，大模型并行验证
+
+    原理：(1) 小模型（draft）快速生成 K 个候选 token
+    (2) 大模型（target）一次前向传播验证所有 K 个 token
+    (3) 接受匹配的 token，拒绝不匹配的并用大模型的分布采样替代
+    理论保证：最终输出分布与大模型单独采样完全一致（无精度损失）。
+    """
                        draft_cost=1.0, target_cost=10.0, verify_cost=12.0):
     total_tokens = 0
     total_cost = 0.0

@@ -9,8 +9,11 @@ from scratch. The fusion + rerank logic is the part that matters.
 
 Run:  python main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：代码库 RAG 的混合检索——AST 感知的函数级分块 + 密集向量索引 + BM25 稀疏索引 +
+倒数排名融合（RRF）+ 交叉编码器重排序，实现代码语义搜索的完整管线
+AI 对应：Sourcegraph Cody 和 GitHub Copilot 使用类似的混合检索架构；
+Voyage-code-3 是当前最优的代码嵌入模型；BM25 + dense + RRF 是 2026 年代码搜索的标准范式；
+Cursor 的 codebase indexing 也采用此方案
 """
 
 from __future__ import annotations
@@ -27,7 +30,6 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Chunk:
-    """Chunk"""
     repo: str
     path: str
     start_line: int
@@ -37,7 +39,7 @@ class Chunk:
     summary: str = ""
 
     def anchor(self) -> str:
-        return f"{self.repo}/{self.path}:{self.start_line}-{self.end_line}"  # 返回结果
+        return f"{self.repo}/{self.path}:{self.start_line}-{self.end_line}"
 
 
 SAMPLE_CORPUS = [
@@ -74,17 +76,15 @@ def fake_embed(text: str, dim: int = 64) -> list[float]:
         vec[h % dim] += 1.0
         vec[(h >> 8) % dim] += 0.5
     norm = math.sqrt(sum(v * v for v in vec)) or 1.0
-    return [v / norm for v in vec]  # 返回结果
+    return [v / norm for v in vec]
 
 
 def cosine(a: list[float], b: list[float]) -> float:
-    """cosine"""
-    return sum(x * y for x, y in zip(a, b))  # 返回结果
+    return sum(x * y for x, y in zip(a, b))
 
 
 @dataclass
 class DenseIndex:
-    """DenseIndex"""
     vectors: list[tuple[Chunk, list[float]]] = field(default_factory=list)
 
     def add(self, chunk: Chunk) -> None:
@@ -95,7 +95,7 @@ class DenseIndex:
         qv = fake_embed(query)
         scored = [(c, cosine(qv, v)) for c, v in self.vectors]
         scored.sort(key=lambda x: -x[1])
-        return scored[:k]  # 返回结果
+        return scored[:k]
 
 
 # ---------------------------------------------------------------------------
@@ -103,8 +103,7 @@ class DenseIndex:
 # ---------------------------------------------------------------------------
 
 def tokenize(text: str) -> list[str]:
-    """tokenize"""
-    return re.findall(r"\w+", text.lower())  # 返回结果
+    return re.findall(r"\w+", text.lower())
 
 
 @dataclass
@@ -147,7 +146,7 @@ class BM25Index:
                 denom = f + self.k1 * (1 - self.b + self.b * dl / self.avgdl)
                 scores[i] += idf * f * (self.k1 + 1) / denom
         ranked = sorted(zip(self.docs, scores), key=lambda x: -x[1])
-        return [(c, s) for c, s in ranked[:k] if s > 0]  # 返回结果
+        return [(c, s) for c, s in ranked[:k] if s > 0]
 
 
 # ---------------------------------------------------------------------------
@@ -155,7 +154,6 @@ class BM25Index:
 # ---------------------------------------------------------------------------
 
 def rrf(dense: list[tuple[Chunk, float]], sparse: list[tuple[Chunk, float]],
-    """rrf"""
         k_rrf: int = 60) -> list[tuple[Chunk, float]]:
     score: dict[str, float] = defaultdict(float)
     by_anchor: dict[str, Chunk] = {}
@@ -166,7 +164,7 @@ def rrf(dense: list[tuple[Chunk, float]], sparse: list[tuple[Chunk, float]],
         score[c.anchor()] += 1.0 / (k_rrf + rank + 1)
         by_anchor[c.anchor()] = c
     fused = sorted(score.items(), key=lambda x: -x[1])
-    return [(by_anchor[a], s) for a, s in fused]  # 返回结果
+    return [(by_anchor[a], s) for a, s in fused]
 
 
 # ---------------------------------------------------------------------------
@@ -174,7 +172,6 @@ def rrf(dense: list[tuple[Chunk, float]], sparse: list[tuple[Chunk, float]],
 # ---------------------------------------------------------------------------
 
 def rerank(query: str, candidates: list[tuple[Chunk, float]],
-    """rerank"""
            top_k: int = 5) -> list[tuple[Chunk, float]]:
     q_toks = set(tokenize(query))
     out: list[tuple[Chunk, float]] = []
@@ -183,7 +180,7 @@ def rerank(query: str, candidates: list[tuple[Chunk, float]],
         summary_overlap = len(q_toks & set(tokenize(c.summary)))
         out.append((c, prior + 0.3 * symbol_overlap + 0.1 * summary_overlap))
     out.sort(key=lambda x: -x[1])
-    return out[:top_k]  # 返回结果
+    return out[:top_k]
 
 
 # ---------------------------------------------------------------------------
@@ -191,13 +188,12 @@ def rerank(query: str, candidates: list[tuple[Chunk, float]],
 # ---------------------------------------------------------------------------
 
 def answer(query: str, dense: DenseIndex, bm25: BM25Index) -> dict[str, object]:
-    """answer"""
     dense_hits = dense.search(query, k=10)
     sparse_hits = bm25.search(query, k=10)
     fused = rrf(dense_hits, sparse_hits)
     top = rerank(query, fused, top_k=5)
     citations = [c.anchor() for c, _ in top]
-    return {  # 返回结果
+    return {
         "query": query,
         "dense_top": [c.anchor() for c, _ in dense_hits[:3]],
         "sparse_top": [c.anchor() for c, _ in sparse_hits[:3]],
@@ -207,7 +203,6 @@ def answer(query: str, dense: DenseIndex, bm25: BM25Index) -> dict[str, object]:
 
 
 def main() -> None:
-    """main"""
     dense = DenseIndex()
     bm25 = BM25Index()
     for ch in SAMPLE_CORPUS:

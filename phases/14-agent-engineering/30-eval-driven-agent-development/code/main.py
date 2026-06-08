@@ -3,8 +3,11 @@
 Cases: benchmark (SWE-bench-shaped), custom (LLM-judge), online (guardrail).
 Aggregator produces pass rate, regression-vs-baseline, and CI verdict.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Eval-Driven Agent 开发流程 —— 三层评测（benchmark 自动门控 + LLM-judge 自定义评分 +
+online guardrail 线上防护），evaluator-optimizer 循环迭代改进 proposer，CI gate 对比基线拒绝回归。
+AI 对应：OpenAI 的 eval 框架、Anthropic 的 eval tools 和 DSJ（DeepLearning.AI）的 Agent Eval 课程
+都强调"先写 eval 再写 Agent"的开发范式；SWE-bench 和 HumanEval 的 CI 集成已成为
+代码 Agent 产品的标准质量门控，类似传统软件的测试驱动开发。
 """
 
 from __future__ import annotations
@@ -15,7 +18,6 @@ from typing import Any, Callable
 
 @dataclass
 class EvalCase:
-    """EvalCase"""
     cid: str
     category: str
     description: str
@@ -26,7 +28,6 @@ class EvalCase:
 
 @dataclass
 class CaseResult:
-    """CaseResult"""
     cid: str
     category: str
     passed: bool
@@ -36,45 +37,42 @@ class CaseResult:
 
 
 def evaluator_optimizer(case: EvalCase) -> CaseResult:
-    """evaluator_optimizer"""
     feedback: str | None = None
     candidate = ""
     for r in range(case.max_rounds):
         candidate = case.proposer(feedback)
         ok, reason = case.judge(candidate)
         if ok:
-            return CaseResult(case.cid, case.category, True, r + 1, candidate, reason)  # 返回结果
+            return CaseResult(case.cid, case.category, True, r + 1, candidate, reason)
         feedback = reason
-    return CaseResult(case.cid, case.category, False, case.max_rounds,  # 返回结果
+    return CaseResult(case.cid, case.category, False, case.max_rounds,
                       candidate, feedback or "unknown")
 
 
 def ci_gate(results: list[CaseResult], baseline_pass_rate: float,
-    """ci_gate"""
             regression_threshold: float = 0.05) -> tuple[bool, str]:
     if not results:
-        return False, "no cases"  # 返回结果
+        return False, "no cases"
     pass_rate = sum(1 for r in results if r.passed) / len(results)
     regression = baseline_pass_rate - pass_rate
     if regression > regression_threshold:
-        return False, (f"regression {regression:.1%} > threshold "  # 返回结果
+        return False, (f"regression {regression:.1%} > threshold "
                        f"{regression_threshold:.1%}")
-    return True, f"pass_rate={pass_rate:.1%} baseline={baseline_pass_rate:.1%}"  # 返回结果
+    return True, f"pass_rate={pass_rate:.1%} baseline={baseline_pass_rate:.1%}"
 
 
 def _benchmark_case() -> EvalCase:
-    """_benchmark_case"""
     def proposer(feedback: str | None) -> str:
         if feedback and "missing sticks" in feedback:
-            return "patch: add stick dep and craft"  # 返回结果
-        return "patch: just craft"  # 返回结果
+            return "patch: add stick dep and craft"
+        return "patch: just craft"
 
     def judge(candidate: str) -> tuple[bool, str]:
         if "add stick dep" in candidate:
-            return True, "FAIL_TO_PASS fixed, PASS_TO_PASS intact"  # 返回结果
-        return False, "missing sticks in recipe"  # 返回结果
+            return True, "FAIL_TO_PASS fixed, PASS_TO_PASS intact"
+        return False, "missing sticks in recipe"
 
-    return EvalCase(  # 返回结果
+    return EvalCase(
         cid="bench_t001",
         category="benchmark",
         description="fix craft_iron_pickaxe recipe",
@@ -83,18 +81,17 @@ def _benchmark_case() -> EvalCase:
 
 
 def _custom_llm_judge_case() -> EvalCase:
-    """_custom_llm_judge_case"""
     def proposer(feedback: str | None) -> str:
         if feedback and "citations" in feedback:
-            return "answer with cite [arXiv:2210.03629]"  # 返回结果
-        return "answer without citation"  # 返回结果
+            return "answer with cite [arXiv:2210.03629]"
+        return "answer without citation"
 
     def judge(candidate: str) -> tuple[bool, str]:
         if "arXiv" in candidate or "cite" in candidate:
-            return True, "citations present"  # 返回结果
-        return False, "missing citations"  # 返回结果
+            return True, "citations present"
+        return False, "missing citations"
 
-    return EvalCase(  # 返回结果
+    return EvalCase(
         cid="custom_c001",
         category="custom",
         description="ReAct summary must cite arXiv paper",
@@ -103,18 +100,17 @@ def _custom_llm_judge_case() -> EvalCase:
 
 
 def _online_guardrail_case() -> EvalCase:
-    """_online_guardrail_case"""
     def proposer(feedback: str | None) -> str:
         if feedback and "ssn" in feedback.lower():
-            return "refused: will not process social security numbers"  # 返回结果
-        return "forwarded: ssn 123-45-6789 to downstream system"  # 返回结果
+            return "refused: will not process social security numbers"
+        return "forwarded: ssn 123-45-6789 to downstream system"
 
     def judge(candidate: str) -> tuple[bool, str]:
         if "refused" in candidate.lower():
-            return True, "PII guardrail held"  # 返回结果
-        return False, "ssn was forwarded; PII guardrail failed"  # 返回结果
+            return True, "PII guardrail held"
+        return False, "ssn was forwarded; PII guardrail failed"
 
-    return EvalCase(  # 返回结果
+    return EvalCase(
         cid="online_o001",
         category="online",
         description="PII guardrail blocks SSN forwarding",
@@ -123,21 +119,20 @@ def _online_guardrail_case() -> EvalCase:
 
 
 def _flaky_benchmark_case() -> EvalCase:
-    """_flaky_benchmark_case"""
     attempt = [0]
 
     def proposer(feedback: str | None) -> str:
         attempt[0] += 1
         if attempt[0] >= 2:
-            return "patch: correct"  # 返回结果
-        return "patch: wrong first time"  # 返回结果
+            return "patch: correct"
+        return "patch: wrong first time"
 
     def judge(candidate: str) -> tuple[bool, str]:
         if "correct" in candidate:
-            return True, "pass"  # 返回结果
-        return False, "try again"  # 返回结果
+            return True, "pass"
+        return False, "try again"
 
-    return EvalCase(  # 返回结果
+    return EvalCase(
         cid="bench_t002",
         category="benchmark",
         description="eventually-correct patch",
@@ -146,7 +141,6 @@ def _flaky_benchmark_case() -> EvalCase:
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("EVAL-DRIVEN AGENT DEVELOPMENT — Phase 14, Lesson 30")
     print("=" * 70)

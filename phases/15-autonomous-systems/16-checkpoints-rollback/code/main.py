@@ -6,8 +6,13 @@ Simulates four scenarios:
   3. precondition fail         -> workflow aborts without firing
   4. verify fail               -> rollback fires
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：检查点 + 回滚工作流 —— 四种场景：正常完成、崩溃后重试（幂等性防双重执行）、
+前置条件失败（中止不触发）、验证失败（触发补偿事务回滚）。Checkpoint 使用
+temp-and-rename 原子写入，确保崩溃不损坏状态文件。
+AI 对应：数据库的 ACID 事务和补偿事务（saga pattern）是回滚的理论基础；
+Temporal.io 的 workflow replay、LangGraph 的 checkpoint 恢复和 Claude Code 的
+undo 功能都实现了类似的检查点-回滚机制。Kubernetes 的 rollback 和
+Git 的 revert 是基础设施层的同类模式。
 """
 
 from __future__ import annotations
@@ -25,14 +30,12 @@ DB = {"balance_A": 1500, "balance_B": 200, "last_transfer_id": None}
 
 
 def persist_transfer(txid: str, from_acct: str, to_acct: str, amount: int) -> None:
-    """persist_transfer"""
     DB[f"balance_{from_acct}"] -= amount
     DB[f"balance_{to_acct}"] += amount
     DB["last_transfer_id"] = txid
 
 
 def rollback_transfer(txid: str, from_acct: str, to_acct: str, amount: int,
-    """rollback_transfer"""
                       prior_last_transfer_id: str | None) -> None:
     # Compensating transaction: restore balances and the prior transfer id.
     DB[f"balance_{from_acct}"] += amount
@@ -44,7 +47,6 @@ def rollback_transfer(txid: str, from_acct: str, to_acct: str, amount: int,
 
 @dataclass
 class Checkpoint:
-    """Checkpoint"""
     path: str
 
     def __post_init__(self) -> None:
@@ -54,7 +56,7 @@ class Checkpoint:
 
     def load(self) -> dict:
         with open(self.path) as f:
-            return json.load(f)  # 返回结果
+            return json.load(f)
 
     def save(self, k: str, v: dict) -> None:
         # Atomic write: serialize to a sibling temp file, fsync, then
@@ -74,12 +76,10 @@ class Checkpoint:
 # ---------- Workflow ----------
 
 def key(txid: str) -> str:
-    """key"""
-    return hashlib.sha256(txid.encode()).hexdigest()[:12]  # 返回结果
+    return hashlib.sha256(txid.encode()).hexdigest()[:12]
 
 
 def run_transfer(cp: Checkpoint, txid: str, from_acct: str, to_acct: str,
-    """run_transfer"""
                  amount: int, min_balance: int,
                  inject_crash_after_execute: bool = False,
                  inject_verify_fail: bool = False) -> str:
@@ -97,12 +97,12 @@ def run_transfer(cp: Checkpoint, txid: str, from_acct: str, to_acct: str,
         "aborted-precondition": "aborted-precondition",
     }
     if record["status"] in terminal_results:
-        return terminal_results[record["status"]]  # 返回结果
+        return terminal_results[record["status"]]
 
     # Precondition check: post-transfer balance must remain >= min_balance
     if DB[f"balance_{from_acct}"] - amount < min_balance:
         cp.save(k, {"status": "aborted-precondition", "txid": txid})
-        return "aborted-precondition"  # 返回结果
+        return "aborted-precondition"
 
     # Capture prior state so rollback can restore exactly (not just invert).
     prior_last_transfer_id = DB["last_transfer_id"]
@@ -133,16 +133,15 @@ def run_transfer(cp: Checkpoint, txid: str, from_acct: str, to_acct: str,
     if inject_verify_fail or DB["last_transfer_id"] != txid:
         rollback_transfer(txid, from_acct, to_acct, amount, prior_last_transfer_id)
         cp.save(k, {"status": "rolled-back", "txid": txid})
-        return "verify-fail-rolled-back"  # 返回结果
+        return "verify-fail-rolled-back"
 
     cp.save(k, {"status": "verified", "txid": txid})
-    return "ok"  # 返回结果
+    return "ok"
 
 
 # ---------- Driver ----------
 
 def main() -> None:
-    """main"""
     print("=" * 80)
     print("CHECKPOINTS AND ROLLBACK (Phase 15, Lesson 16)")
     print("=" * 80)

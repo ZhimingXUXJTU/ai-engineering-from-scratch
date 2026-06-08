@@ -7,8 +7,11 @@ Reference-only; primary sources cited in docs/en.md.
 
 Usage: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：全球 AI 监管框架时间线——EU AI Act 实施时间表、GPAI 行为准则、透明度准则、
+英国 AISI 更名、美国 CAISI 更名和韩国 AI 框架法案的关键里程碑
+AI 对应：EU AI Act (2024) 是全球最全面的 AI 立法，2026 年 8 月全面执行；
+韩国 AI 框架法案是亚洲首部综合性 AI 法律；UK AISI 转型为 AI Security Institute；
+US CAISI (Center for AI Standards and Innovation) 代表美国从安全向标准化的转向
 """
 
 from __future__ import annotations
@@ -33,7 +36,6 @@ TIMELINE = [
 
 
 def main() -> None:
-    """main"""
     print("=" * 78)
     print("AI REGULATORY TIMELINE (Phase 18, Lesson 24)")
     print("=" * 78)

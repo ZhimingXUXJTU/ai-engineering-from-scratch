@@ -3,8 +3,11 @@
 Frames travel DOWNSTREAM (source to sink) and UPSTREAM (cancel/control).
 A scripted input shows normal flow plus a barge-in cancel that stops TTS.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：Pipecat 风格的语音 Agent 管线 —— VAD（语音活动检测）→ STT（语音转文本）→ LLM → TTS
+（文本转语音），Frame 双向流动（downstream 数据流 + upstream 取消/控制），支持 barge-in 打断。
+AI 对应：Pipecat 和 LiveKit 是最流行的开源语音 Agent 框架，用于构建实时对话 AI；
+OpenAI Realtime API、Google Gemini Live 和 Alexa 都采用类似的 VAD→STT→LLM→TTS 管线架构，
+LiveKit Agents 框架已集成 Deepgram STT 和 ElevenLabs TTS。
 """
 
 from __future__ import annotations
@@ -15,14 +18,12 @@ from typing import Any, Callable
 
 @dataclass
 class Frame:
-    """Frame"""
     kind: str
     payload: Any
     direction: str = "downstream"
 
 
 class Processor:
-    """Processor"""
     def __init__(self, name: str) -> None:
         self.name = name
         self.next: Processor | None = None
@@ -38,7 +39,6 @@ class Processor:
 
 
 class VAD(Processor):
-    """VAD"""
     def process(self, frame: Frame) -> None:
         if frame.kind == "audio_chunk":
             is_speech = bool(frame.payload)
@@ -50,7 +50,6 @@ class VAD(Processor):
 
 
 class STT(Processor):
-    """STT"""
     def process(self, frame: Frame) -> None:
         if frame.kind == "vad_speech":
             transcript = str(frame.payload)
@@ -61,7 +60,6 @@ class STT(Processor):
 
 
 class LLM(Processor):
-    """LLM"""
     def __init__(self, name: str, replies: dict[str, str]) -> None:
         super().__init__(name)
         self.replies = replies
@@ -70,7 +68,7 @@ class LLM(Processor):
         if frame.kind == "cancel":
             self.trace.append("LLM: cancelled")
             super().process(frame)
-            return  # 返回结果
+            return
         if frame.kind == "transcript":
             text = str(frame.payload)
             reply = self.replies.get(text, "[no canned reply]")
@@ -81,7 +79,6 @@ class LLM(Processor):
 
 
 class TTS(Processor):
-    """TTS"""
     def __init__(self, name: str) -> None:
         super().__init__(name)
         self.cancelled = False
@@ -91,7 +88,7 @@ class TTS(Processor):
             self.cancelled = True
             self.trace.append("TTS: cancel received; drop pending audio")
             super().process(frame)
-            return  # 返回结果
+            return
         if frame.kind == "text":
             self.cancelled = False
             words = str(frame.payload).split()
@@ -108,7 +105,6 @@ class TTS(Processor):
 
 
 class Transport(Processor):
-    """Transport"""
     def __init__(self, name: str) -> None:
         super().__init__(name)
         self.delivered: list[list[str]] = []
@@ -122,14 +118,12 @@ class Transport(Processor):
 
 
 def link(*processors: Processor) -> None:
-    """link"""
     for a, b in zip(processors, processors[1:]):
         a.next = b
         b.prev = a
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("VOICE PIPELINE (PIPECAT-SHAPED) — Phase 14, Lesson 22")
     print("=" * 70)

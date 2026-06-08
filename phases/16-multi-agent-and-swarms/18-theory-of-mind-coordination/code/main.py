@@ -5,8 +5,13 @@ cannot communicate; they only observe each other's movement. Zeroth-order
 agents ignore others; first-order ToM agents model which boxes each other
 is targeting. Measured over 200 trials.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：心智理论(Theory of Mind)协调——零阶 Agent（无视他人行为）vs 一阶 ToM Agent
+（建模他人意图并据此调整策略），在无通信、仅观测他人动作的条件下，
+ToM Agent 通过推断他人偏好消除资源竞争冲突，完成率从约 70% 提升到近 100%
+AI 对应：Riedl 2025 (arXiv:2510.05174) 研究 ToM prompting 在多 Agent 系统中的效果；
+Li et al. 2023 分析长视野下 ToM 能力的退化；Anthropic Claude 的 perspective-taking
+能力和 GPT-4 的 social reasoning 是 ToM 在 LLM 中的体现；
+AutoGen 的 "context-aware speaker selection" 隐含了 ToM 推理
 """
 from __future__ import annotations
 
@@ -16,18 +21,16 @@ from dataclasses import dataclass, field
 
 @dataclass
 class World:
-    """World"""
     n_boxes: int
     boxes_with_tokens: set[int]
 
     @classmethod
     def new(cls, n: int) -> "World":
-        return cls(n_boxes=n, boxes_with_tokens=set(range(n)))  # 返回结果
+        return cls(n_boxes=n, boxes_with_tokens=set(range(n)))
 
 
 @dataclass
 class Agent:
-    """Agent"""
     name: str
     tom: bool
     target: int | None = None
@@ -36,18 +39,18 @@ class Agent:
 
     def choose_target(self, world: World, rng: random.Random) -> int:
         if self.collected:
-            return -1  # 返回结果
+            return -1
         available = sorted(world.boxes_with_tokens)
         if not available:
-            return -1  # 返回结果
+            return -1
         if not self.tom:
             # zeroth-order: pick uniformly among remaining boxes; no memory of others
-            return rng.choice(available)  # 返回结果
+            return rng.choice(available)
         # first-order ToM: model which boxes others are currently targeting
         # (inferred from last-turn observations) and avoid them when possible.
         last_turn_targets = {box for _, box in self.observations[-(len(world.boxes_with_tokens) + 2):]}
         options = [b for b in available if b not in last_turn_targets]
-        return rng.choice(options) if options else rng.choice(available)  # 返回结果
+        return rng.choice(options) if options else rng.choice(available)
 
     def observe(self, other: str, box: int) -> None:
         self.observations.append((other, box))
@@ -119,11 +122,10 @@ def run_trial(n_agents: int, n_boxes: int, tom: bool, seed: int, max_turns: int 
             break
 
     completions = sum(1 for a in agents if a.collected)
-    return completions, duplications, turns  # 返回结果
+    return completions, duplications, turns
 
 
 def bench(tom: bool, trials: int = 200) -> None:
-    """bench"""
     label = "first-order ToM" if tom else "zeroth-order"
     tot_completions = 0
     tot_dup = 0
@@ -142,7 +144,6 @@ def bench(tom: bool, trials: int = 200) -> None:
 
 
 def main() -> None:
-    """main"""
     print("=" * 72)
     print("TOKEN-COLLECTION — 3 agents, 3 boxes, 10-turn budget, 200 trials each")
     print("agents cannot communicate; they observe each other's movements")

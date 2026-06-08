@@ -3,8 +3,11 @@
 Emits invoke_agent INTERNAL spans, per-tool spans, chat spans for LLM calls.
 Content capture is opt-in: prompts go to an external store, spans carry IDs.
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：OpenTelemetry GenAI 语义约定的精简实现 —— Tracer 生成嵌套 Span 树（invoke_agent → tool_call → chat），
+ExternalContentStore 将 prompt 内容脱敏存储，Span 只携带 reference_id。实现全链路可观测性。
+AI 对应：OpenTelemetry GenAI Semantic Conventions（2024 年定稿）是 LLM 可观测性的行业标准，
+Langfuse、Arize Phoenix、Honeycomb、Datadog LLM Observability 都遵循此约定；
+Anthropic 和 OpenAI 的 API 原生支持 OTel trace propagation。
 """
 
 from __future__ import annotations
@@ -16,7 +19,6 @@ from typing import Any
 
 @dataclass
 class Span:
-    """Span"""
     name: str
     kind: str = "INTERNAL"
     attributes: dict[str, Any] = field(default_factory=dict)
@@ -26,11 +28,10 @@ class Span:
 
     @property
     def duration_ms(self) -> float:
-        return (self.end_ns - self.start_ns) / 1_000_000  # 返回结果
+        return (self.end_ns - self.start_ns) / 1_000_000
 
 
 class ExternalContentStore:
-    """ExternalContentStore"""
     def __init__(self) -> None:
         self._store: dict[str, str] = {}
         self._counter = 0
@@ -39,17 +40,16 @@ class ExternalContentStore:
         self._counter += 1
         cid = f"content_{self._counter:03d}"
         self._store[cid] = content
-        return cid  # 返回结果
+        return cid
 
     def get(self, cid: str) -> str:
-        return self._store.get(cid, "")  # 返回结果
+        return self._store.get(cid, "")
 
     def items(self) -> list[tuple[str, str]]:
-        return sorted(self._store.items())  # 返回结果
+        return sorted(self._store.items())
 
 
 class Tracer:
-    """Tracer"""
     def __init__(self, capture_inline: bool = False,
                  content_store: ExternalContentStore | None = None) -> None:
         self.root = Span(name="__root__")
@@ -63,7 +63,7 @@ class Tracer:
                     start_ns=time.perf_counter_ns())
         self.stack[-1].children.append(span)
         self.stack.append(span)
-        return span  # 返回结果
+        return span
 
     def end_span(self) -> None:
         span = self.stack.pop()
@@ -72,27 +72,24 @@ class Tracer:
     def add_content(self, span: Span, key: str, content: str) -> None:
         if self.capture_inline:
             span.attributes[key] = content[:200]
-            return  # 返回结果
+            return
         cid = self.content_store.put(content)
         span.attributes[f"{key}.reference_id"] = cid
 
 
 def _scripted_llm(prompt: str) -> str:
-    """_scripted_llm"""
     if "search" in prompt.lower():
-        return "search_tool(\"agent engineering\")"  # 返回结果
+        return "search_tool(\"agent engineering\")"
     if "result" in prompt.lower():
-        return "found 3 sources; drafting answer"  # 返回结果
-    return "final answer: agents in 2026"  # 返回结果
+        return "found 3 sources; drafting answer"
+    return "final answer: agents in 2026"
 
 
 def _search_tool(query: str) -> str:
-    """_search_tool"""
-    return f"[3 sources for {query!r}]"  # 返回结果
+    return f"[3 sources for {query!r}]"
 
 
 def main() -> None:
-    """main"""
     print("=" * 70)
     print("OTEL GENAI SEMANTIC CONVENTIONS — Phase 14, Lesson 23")
     print("=" * 70)
@@ -154,7 +151,7 @@ def main() -> None:
         if span.name == "__root__":
             for child in span.children:
                 render(child, indent)
-            return  # 返回结果
+            return
         pad = "  " * indent
         dur = f"{span.duration_ms:.2f}ms" if span.end_ns else "..."
         print(f"{pad}{span.name}  [{span.kind}]  {dur}")

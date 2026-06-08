@@ -7,8 +7,11 @@ Conceptual references:
 
 Stdlib only. Run: python3 code/main.py
 
-核心概念：本节实现的核心模式
-AI 对应：此模式在现代 AI Agent 系统中有广泛应用。
+核心概念：多轮批评循环——对论文草稿在五个固定评分维度上进行多轮审查，
+模拟同行评审（peer review）的迭代改进过程
+AI 对应：Sakana AI 的 The AI Scientist 使用类似的 reviewer 循环改进论文；
+ICLR/NeurIPS 的同行评审流程在多个维度（新颖性/清晰度/正确性/意义/完整性）评分；
+LLM-as-reviewer 是 2026 年活跃的研究方向；多轮改进确保论文质量逐步提升
 """
 
 from __future__ import annotations
@@ -50,13 +53,12 @@ class MiniPaper:
 
 @dataclass
 class Suggestion:
-    """Suggestion"""
     dimension: str
     target_section_id: str | None
     edit: str
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "dimension": self.dimension,
             "target_section_id": self.target_section_id,
             "edit": self.edit,
@@ -65,7 +67,6 @@ class Suggestion:
 
 @dataclass
 class Critique:
-    """Critique"""
     round: int
     scores: dict[str, float]
     suggestions: list[Suggestion]
@@ -73,11 +74,11 @@ class Critique:
 
     def mean(self) -> float:
         if not self.scores:
-            return 0.0  # 返回结果
-        return sum(self.scores.values()) / len(self.scores)  # 返回结果
+            return 0.0
+        return sum(self.scores.values()) / len(self.scores)
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "round": self.round,
             "scores": dict(self.scores),
             "mean": self.mean(),
@@ -87,18 +88,15 @@ class Critique:
 
 
 class Critic(Protocol):
-    """Critic"""
     def __call__(self, paper: MiniPaper, round_: int) -> Critique: ...
 
 
 class Reviser(Protocol):
-    """Reviser"""
     def __call__(self, paper: MiniPaper, suggestions: list[Suggestion]) -> MiniPaper: ...
 
 
 @dataclass
 class LoopTrace:
-    """LoopTrace"""
     round: int
     scores: dict[str, float]
     mean: float
@@ -106,7 +104,7 @@ class LoopTrace:
     verdict: str
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "round": self.round,
             "scores": dict(self.scores),
             "mean": self.mean,
@@ -117,7 +115,6 @@ class LoopTrace:
 
 @dataclass
 class LoopResult:
-    """LoopResult"""
     status: str
     reason: str
     rounds_used: int
@@ -127,7 +124,7 @@ class LoopResult:
     trace: list[LoopTrace]
 
     def to_dict(self) -> dict:
-        return {  # 返回结果
+        return {
             "status": self.status,
             "reason": self.reason,
             "rounds_used": self.rounds_used,
@@ -161,16 +158,16 @@ class CriticLoop:
         self.plateau_window = plateau_window
 
     def _target_met(self, critique: Critique) -> bool:
-        return all(critique.scores.get(d, 0.0) >= self.target_score for d in DIMENSIONS)  # 返回结果
+        return all(critique.scores.get(d, 0.0) >= self.target_score for d in DIMENSIONS)
 
     def _plateau(self, trace: list[LoopTrace]) -> bool:
         if len(trace) < self.plateau_window + 1:
-            return False  # 返回结果
+            return False
         recent = trace[-(self.plateau_window + 1):]
         for i in range(1, len(recent)):
             if recent[i].mean - recent[i - 1].mean > self.plateau_epsilon:
-                return False  # 返回结果
-        return True  # 返回结果
+                return False
+        return True
 
     def run(self, paper: MiniPaper) -> LoopResult:
         trace: list[LoopTrace] = []
@@ -186,7 +183,7 @@ class CriticLoop:
                     mean=critique.mean(), suggestions_applied=0,
                     verdict="target",
                 ))
-                return LoopResult(  # 返回结果
+                return LoopResult(
                     status="converged", reason="target",
                     rounds_used=round_, final_scores=dict(critique.scores),
                     final_mean=critique.mean(), paper=paper, trace=trace,
@@ -201,7 +198,7 @@ class CriticLoop:
 
             if self._plateau(trace):
                 interim.verdict = "plateau"
-                return LoopResult(  # 返回结果
+                return LoopResult(
                     status="converged", reason="plateau",
                     rounds_used=round_, final_scores=dict(critique.scores),
                     final_mean=critique.mean(), paper=paper, trace=trace,
@@ -213,7 +210,7 @@ class CriticLoop:
         final_mean = critique.mean() if critique is not None else 0.0
         if trace:
             trace[-1].verdict = "budget"
-        return LoopResult(  # 返回结果
+        return LoopResult(
             status="stopped", reason="budget",
             rounds_used=self.max_rounds, final_scores=final_scores,
             final_mean=final_mean, paper=paper, trace=trace,
@@ -253,7 +250,7 @@ def deterministic_score(paper: MiniPaper) -> dict[str, float]:
     )
     related_work = 9.0 if has_related else 4.0
 
-    return {  # 返回结果
+    return {
         "clarity": round(clarity, 2),
         "novelty": round(novelty, 2),
         "evidence": round(evidence, 2),
@@ -268,7 +265,7 @@ def deterministic_critic(paper: MiniPaper, round_: int) -> Critique:
     suggestions: list[Suggestion] = []
 
     def first_section_id(default: str = "intro") -> str:
-        return paper.sections[0].id if paper.sections else default  # 返回结果
+        return paper.sections[0].id if paper.sections else default
 
     if scores["clarity"] < 8.0:
         target = paper.sections[-1].id if paper.sections else None
@@ -303,7 +300,7 @@ def deterministic_critic(paper: MiniPaper, round_: int) -> Critique:
         ))
 
     reason = "fully-met" if not suggestions else f"{len(suggestions)} below target"
-    return Critique(round=round_, scores=scores, suggestions=suggestions, reason=reason)  # 返回结果
+    return Critique(round=round_, scores=scores, suggestions=suggestions, reason=reason)
 
 
 def deterministic_reviser(paper: MiniPaper, suggestions: list[Suggestion]) -> MiniPaper:
@@ -356,16 +353,14 @@ def deterministic_reviser(paper: MiniPaper, suggestions: list[Suggestion]) -> Mi
                     if sec.title.lower() == "related work" and not sec.body:
                         sec.body = "We survey adjacent work. " + ("x" * 200)
                         break
-    return paper  # 返回结果
+    return paper
 
 
 def make_deterministic_critic_pair() -> tuple[Critic, Reviser]:
-    """make_deterministic_critic_pair"""
-    return deterministic_critic, deterministic_reviser  # 返回结果
+    return deterministic_critic, deterministic_reviser
 
 
 def demo() -> dict:
-    """demo"""
     paper = MiniPaper(
         title="Auto-Research Loop",
         abstract="abstract",
@@ -377,7 +372,7 @@ def demo() -> dict:
     critic, reviser = make_deterministic_critic_pair()
     loop = CriticLoop(critic=critic, reviser=reviser, max_rounds=6, target_score=8.0)
     result = loop.run(paper)
-    return result.to_dict()  # 返回结果
+    return result.to_dict()
 
 
 if __name__ == "__main__":

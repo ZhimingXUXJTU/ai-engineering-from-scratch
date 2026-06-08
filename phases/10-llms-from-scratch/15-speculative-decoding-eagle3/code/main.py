@@ -1,15 +1,16 @@
-"""Speculative decoding (Leviathan 2023) with N-token drafts and KV rollback.
+"""投机解码与 EAGLE-3 (Leviathan 2023) —— 用小模型加速大模型推理
 
-Implements the full production speculative-decoding loop:
-  - draft N tokens from p (cheap)
-  - verify N positions in one parallel q forward
-  - rejection rule: accept with min(1, q(d)/p(d))
-  - residual sampling on rejection: (q - p)_+ renormalized
-  - bonus token on full acceptance
-  - KV cache rollback bookkeeping
+核心概念：
+  - 投机解码：小模型（draft）快速生成 N 个候选 token，大模型（target）一次前向传播验证
+  - 接受规则：以概率 min(1, q(d)/p(d)) 接受 draft token（q 是大模型概率，p 是小模型概率）
+  - 残差采样：拒绝时从 (q - p)+ 归一化后的分布采样，保证输出分布不变
+  - 奖励 token：如果所有 N 个候选都被接受，额外从大模型分布采样一个 token（bonus）
+  - KV Cache 回滚：拒绝后需要截断 KV Cache 到接受位置
 
-Stdlib only. Numbers match what Phase 7 · 16 proved mathematically and what
-Phase 10 · 12 described operationally. Here we stitch both together.
+AI 对应：
+  - EAGLE-3 论文报告 3-6.5x 加速（在 Llama 2 70B 上）
+  - 接受率 alpha 越高加速越大：alpha=0.9 + N=5 约 4.5 token/forward
+  - 关键数学保证：投机解码的输出分布与大模型独立采样完全一致（无精度损失）
 """
 
 from __future__ import annotations
@@ -31,6 +32,7 @@ def sample(probs: List[float], rng: random.Random) -> int:
 
 
 def residual(q: List[float], p: List[float]) -> List[float]:
+    """残差分布：(q - p)+ 归一化后用于拒绝时的修正采样"""
     raw = [max(0.0, qi - pi) for qi, pi in zip(q, p)]
     s = sum(raw)
     if s == 0.0:
@@ -146,6 +148,11 @@ def measure_alpha(q: List[float], p: List[float], n_samples: int,
 
 
 def expected_tokens_per_verify(alpha: float, N: int) -> float:
+    """理论计算：给定接受率 alpha 和候选数 N，每次验证平均产出多少 token
+
+    公式：(1 - alpha^(N+1)) / (1 - alpha)
+    alpha 越高、N 越大，每次验证产出的 token 越多，加速比越高。
+    """
     if alpha >= 1.0:
         return N + 1
     if alpha <= 0.0:
