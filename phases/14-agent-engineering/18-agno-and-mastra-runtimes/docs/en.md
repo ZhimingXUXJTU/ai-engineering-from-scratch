@@ -18,6 +18,8 @@
 
 LangGraph, AutoGen, CrewAI are framework-heavy. Teams that want "just the agent loop, fast, in my runtime" reach for Agno (Python) or Mastra (TypeScript). Both trade some of the framework-owned primitives for raw speed and a tighter fit to the surrounding stack.
 
+> LangGraph、AutoGen、CrewAI 都是偏重框架的。想要"只要 Agent 循环，快速，在我的运行时中"的团队会选择 Agno（Python）或 Mastra（TypeScript）。两者都放弃了一些框架自带的原语，换取了原始速度和与周围技术栈更紧密的适配。
+
 
 > **【中文解读】** Agno 和 Mastra 代表了 2026 年的两种 Agent 运行时设计哲学。Agno（原 PhiData）追求极简——用最少的代码构建 Agent。Mastra（TypeScript）追求全功能——提供完整的 Agent 生命周期管理。选择取决于团队的技术栈和复杂度需求。
 
@@ -33,6 +35,8 @@ LangGraph, AutoGen, CrewAI are framework-heavy. Teams that want "just the agent 
 - Native multimodal (text, image, audio, video, file) and agentic RAG.
 
 The speed targets matter when you have thousands of short-lived agents per second (chat fan-in, evaluation pipelines). They matter less when one agent runs for 10 minutes.
+
+> 速度目标在你每秒有数千个短暂 Agent（聊天聚合、评估管道）时很重要。当一个 Agent 运行 10 分钟时，它们就不那么重要了。
 
 > Agno 和 Mastra 是两种轻量级 Agent 运行时。Agno 专注快速构建，Mastra 专注 TypeScript 生产部署。两者都提供最小化的 Agent 抽象。
 
@@ -50,6 +54,8 @@ The speed targets matter when you have thousands of short-lived agents per secon
 ### Positioning
 
 Neither is trying to be LangGraph. They compete on:
+
+> 两者都不是在试图成为 LangGraph。它们的竞争点是：
 
 > Agno 和 Mastra 是两种轻量级 Agent 运行时。Agno 专注快速构建，Mastra 专注 TypeScript 生产部署。两者都提供最小化的 Agent 抽象。
 
@@ -70,9 +76,15 @@ Neither is trying to be LangGraph. They compete on:
 - **Ecosystem lock-in.** Mastra's Vercel-flavored integration is a plus on Vercel, a minus elsewhere.
 - **Enterprise license confusion.** Mastra's `ee/` directories are source-available, not Apache 2.0. Read the licenses if you're planning to fork.
 
+> **为性能而性能。** 因为"2μs"听起来不错就选择 Agno，而工作负载是每个请求一个慢速 Agent 调用。开销不是瓶颈。
+> **生态系统锁定。** Mastra 的 Vercel 风格集成在 Vercel 上是优势，在其他地方是劣势。
+> **企业许可困惑。** Mastra 的 `ee/` 目录是源码可获取的，不是 Apache 2.0。如果你打算 fork，请先阅读许可证。
+
 ## Build It | 动手实现
 
 This lesson is primarily comparative — no single code artifact would do both frameworks justice. See `code/main.py` for a side-by-side toy: a minimal "run an agent, stream the output, persist session" flow implemented twice (once Agno-shaped, once Mastra-shaped).
+
+> 这一课主要是比较性的——没有一个代码产物能同时体现两个框架的特点。参见 `code/main.py` 中的并排演示：一个最小的"运行 Agent、流式输出、持久化会话"流程实现了两次（一次 Agno 形态，一次 Mastra 形态）。
 
 > Agno 和 Mastra 是两种轻量级 Agent 运行时。Agno 专注快速构建，Mastra 专注 TypeScript 生产部署。两者都提供最小化的 Agent 抽象。
 
@@ -83,6 +95,8 @@ python3 code/main.py
 ```
 
 Two structurally different but functionally equivalent traces.
+
+> 两个结构上不同但功能上等价的追踪。
 
 > Agno 和 Mastra 是两种轻量级 Agent 运行时。Agno 专注快速构建，Mastra 专注 TypeScript 生产部署。两者都提供最小化的 Agent 抽象。
 
@@ -95,6 +109,8 @@ Two structurally different but functionally equivalent traces.
 ## Ship It | 产出物
 
 `outputs/skill-runtime-picker.md` picks Agno, Mastra, LangGraph, or a provider SDK based on stack, latency budget, and operational shape.
+
+> `outputs/skill-runtime-picker.md` 根据技术栈、延迟预算和运营形态选择 Agno、Mastra、LangGraph 或提供商 SDK。
 
 > Agno 和 Mastra 是两种轻量级 Agent 运行时。Agno 专注快速构建，Mastra 专注 TypeScript 生产部署。两者都提供最小化的 Agent 抽象。
 

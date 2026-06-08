@@ -18,7 +18,11 @@
 
 A workbench that lives in a Google Doc, a chat history, and three half-remembered scripts is a workbench that gets rebuilt every quarter. The cure is a versioned pack: a repo or directory with the surfaces, the schemas, the scripts, and a one-command installer.
 
+> 一个存在于 Google 文档、聊天历史和三个半记忆脚本中的工作台是一个每季度都要重建的工作台。修复是一个版本化的包：一个包含表面、schema、脚本和一条命令安装器的仓库或目录。
+
 You will end this lesson with `outputs/agent-workbench-pack/` shipped on disk and a `bin/install.sh` that drops it into any target repo.
+
+> 你将在这一课结束时在磁盘上交付 `outputs/agent-workbench-pack/` 和一个 `bin/install.sh`，可以将其放入任何目标仓库。
 
 
 > **【中文解读】** Agent Workbench 顶点项目：将前面 11 课的所有概念整合到一个完整的编码 Agent 中。该 Agent 能够：(1) 理解项目结构和约定；(2) 执行范围受限的修改；(3) 运行验证门检查；(4) 通过审查者 Agent 质检；(5) 跨会话保持状态。这是最小可行生产 Agent 的设计。

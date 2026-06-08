@@ -18,7 +18,11 @@
 
 A demo on a toy task convinces no one. The case for the workbench is made when a real-feeling task on a real-feeling repo lands in production with fewer failures, fewer reverts, and a packet the next session can use.
 
+> 玩具任务的演示说服不了任何人。工作台的理由是在一个真实感的仓库上执行一个真实感的任务，以更少的失败、更少的回滚和下一个会话可以使用的包投入生产。
+
 This lesson ships that real-feeling repo and runs the same task through both pipelines. The result is a before/after report you can hand to a skeptic.
+
+> 这一课提供那个真实感的仓库，并通过两个管道运行相同的任务。结果是一份可以交给怀疑者的前后对比报告。
 
 
 > **【中文解读】** 本节介绍了生产环境的部署策略和运维最佳实践。

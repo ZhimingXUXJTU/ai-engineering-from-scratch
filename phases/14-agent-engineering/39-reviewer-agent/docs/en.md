@@ -18,7 +18,11 @@
 
 You ask the agent to fix a bug. It edits four files, runs the tests, and reports done. The verification gate (Phase 14 · 38) confirms acceptance ran and scope held. The gate says `passed: true`. You merge. Two days later you find that the fix solved the wrong half of the bug.
 
+> 你让 Agent 修复一个 bug。它编辑了四个文件，运行测试，报告完成。验证门控（Phase 14 · 38）确认验收通过且范围保持。门控说 `passed: true`。你合并。两天后你发现修复只解决了 bug 的一半。
+
 Acceptance is necessary, not sufficient. The reviewer asks the questions acceptance cannot ask: did this solve the right problem? Did it expand scope without flagging it? Did it document assumptions that should have been questioned? Did it leave the workbench in a state the next session can pick up?
+
+> 验收是必要的，但不充分的。评审者问验收无法问的问题：这是否解决了正确的问题？是否在没有标记的情况下扩展了范围？是否记录了本应被质疑的假设？是否将工作台留在了下一个会话可以接手的状态？
 
 
 > **【中文解读】** 审查者 Agent 是专门用于审查其他 Agent 工作的独立 Agent。它检查：(1) 代码质量——可读性、可维护性、性能；(2) 正确性——逻辑错误、边界条件、错误处理；(3) 安全性——注入漏洞、敏感数据泄露。独立的审查者提供第二双眼睛。

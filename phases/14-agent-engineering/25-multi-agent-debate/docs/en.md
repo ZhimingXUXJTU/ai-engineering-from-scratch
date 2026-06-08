@@ -18,6 +18,8 @@
 
 Self-Refine (Lesson 05) is one model critiquing itself — risks groupthink. CRITIC (Lesson 05) grounds critique in external tools — not always available. Debate introduces a third mode: multiple instances, cross-critique, convergence by disagreement.
 
+> Self-Refine（第 5 课）是一个模型自我批评——存在群体思维的风险。CRITIC（第 5 课）将批评基于外部工具——并非总是可用。辩论引入了第三种模式：多个实例、交叉批评、通过分歧达成收敛。
+
 
 > **【中文解读】** 多 Agent 辩论通过让多个 LLM 实例从不同角度讨论同一问题来提高推理质量。核心洞察：单个 LLM 可能自信地给出错误答案，但多个 LLM 辩论时，错误更容易被识别和纠正。这与人类专家小组讨论的原理相似。
 
@@ -37,11 +39,15 @@ Original experiments used N=3, R=2 due to cost. Accuracy improves with more agen
 
 Cross-model combinations beat single-model debates: ChatGPT + Bard together > either alone.
 
+> 跨模型组合胜过单一模型辩论：ChatGPT + Bard 一起比单独任何一个都好。
+
 > 多 Agent 辩论通过让多个 Agent 对同一问题提出和论证不同观点来提高推理质量。这种方法在复杂推理任务上比单 Agent 表现更好。
 
 ### Sparse topology
 
 "Improving Multi-Agent Debate with Sparse Communication Topology" (arXiv:2406.11776, 2024-2025) showed full-mesh debate is not always optimal. Sparse topologies (star, ring, hub-and-spoke) can match accuracy at lower token cost. Each debater sees only a subset of peers.
+
+> "Improving Multi-Agent Debate with Sparse Communication Topology"（arXiv:2406.11776, 2024-2025）表明全连接辩论并不总是最优的。稀疏拓扑（星形、环形、轮毂-辐条）可以在更低的 token 成本下匹配准确度。每个辩手只看到一部分同伴。
 
 > 多 Agent 辩论通过让多个 Agent 对同一问题提出和论证不同观点来提高推理质量。这种方法在复杂推理任务上比单 Agent 表现更好。
 
@@ -75,6 +81,10 @@ Implications:
 - **Hub failure.** In a star topology, a bad hub corrupts everyone. Rotate or use multiple hubs.
 - **Prompt homogenization.** All agents use the same prompt; they produce the same answers. Use diverse prompts and/or models.
 
+> **收敛崩溃。** 所有 Agent 收敛到第一个错误答案。通过要求分歧轮次来缓解。
+> **中心故障。** 在星形拓扑中，一个坏的中心会污染所有人。轮换或使用多个中心。
+> **提示同质化。** 所有 Agent 使用相同的提示；产生相同的答案。使用多样化的提示和/或模型。
+
 ## Build It | 动手实现
 
 `code/main.py` implements stdlib debate:
@@ -92,6 +102,8 @@ python3 code/main.py
 
 Output: per-protocol accuracy and cost; sparse matches full mesh on 2/3 questions at lower cost.
 
+> 输出：每协议的准确度和成本；稀疏拓扑在 2/3 的问题上以更低成本匹配全连接。
+
 > 多 Agent 辩论通过让多个 Agent 对同一问题提出和论证不同观点来提高推理质量。这种方法在复杂推理任务上比单 Agent 表现更好。
 
 ## Use It | 用框架实现
@@ -103,6 +115,8 @@ Output: per-protocol accuracy and cost; sparse matches full mesh on 2/3 question
 ## Ship It | 产出物
 
 `outputs/skill-debate.md` scaffolds a multi-agent debate with configurable topology, N, R, and a convergence rule.
+
+> `outputs/skill-debate.md` 搭建一个可配置拓扑、N、R 和收敛规则的多 Agent 辩论。
 
 > 多 Agent 辩论通过让多个 Agent 对同一问题提出和论证不同观点来提高推理质量。这种方法在复杂推理任务上比单 Agent 表现更好。
 

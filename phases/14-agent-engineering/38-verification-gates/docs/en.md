@@ -18,6 +18,8 @@
 
 Agents declare success too easily. Three failure shapes dominate:
 
+> Agent 太容易宣布成功。三种失败形态占主导：
+
 > 验证门（Verification Gates）在 Agent 工作流的关键节点设置检查点。每个门验证前一步的输出是否满足要求，不满足则触发修复流程。
 
 - "Looks good." The model read its own diff and decided it was correct.
@@ -28,6 +30,8 @@ Agents declare success too easily. Three failure shapes dominate:
 > **【中文解读】** 验证门在 Agent 执行的关键节点插入自动检查。常见验证门：(1) 编译检查——代码修改后必须通过编译；(2) 测试检查——提交前必须通过相关测试；(3) Lint 检查——代码必须符合风格规范；(4) 安全检查——不得引入已知漏洞。验证门防止错误累积。
 
 The workbench fix is a single verification gate that reads the artifacts the agent has already produced and makes the call. The gate is deterministic. The gate is in version control. The gate is wired into CI. The agent cannot bribe it.
+
+> 工作台的修复是一个单一的验证门控，读取 Agent 已经产生的工件并做出判断。门控是确定性的。门控在版本控制中。门控接入 CI。Agent 无法贿赂它。
 
 > 验证门（Verification Gates）在 Agent 工作流的关键节点设置检查点。每个门验证前一步的输出是否满足要求，不满足则触发修复流程。
 

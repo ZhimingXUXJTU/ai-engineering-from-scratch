@@ -18,7 +18,11 @@
 
 A typical `AGENTS.md` reads like onboarding documentation. It tells the agent to "be careful" and "test thoroughly" and "ask if unsure." Three days later, the agent ships a change with no tests, writes to a forbidden directory, and never asks because it never knew where the line was.
 
+> 一个典型的 `AGENTS.md` 读起来像入职文档。它告诉 Agent 要"小心"、"彻底测试"、"不确定就问"。三天后，Agent 交付了一个没有测试的更改，写入了一个禁止目录，从不提问因为它从不知道界限在哪里。
+
 Instructions are powerful when they are operational and weak when they are aspirational. The fix is to write rules the workbench can interpret and the reviewer can score.
+
+> 指令在可操作时强大，在理想化时软弱。修复方法是写出工作台可以解释、评审者可以评分的规则。
 
 
 > **【中文解读】** 将指令视为可执行约束——不仅要告诉 Agent 做什么，还要将约束编码为可验证的规则。例如'使用 TypeScript strict 模式'不仅是提示词，还应通过 TypeScript 编译器验证。AGENTS.md 和 lint 规则是实现这一理念的工具。
@@ -26,6 +30,8 @@ Instructions are powerful when they are operational and weak when they are aspir
 ## The Concept | 核心概念
 
 Rules belong in `docs/agent-rules.md`, away from the short root router. Each rule has a name, a category, and a check.
+
+> 规则放在 `docs/agent-rules.md` 中，远离短小的根路由。每条规则有名称、类别和检查。
 
 > 将指令视为可执行约束是构建可靠 Agent 的关键模式。通过将自然语言指令转化为可验证的约束条件，提高 Agent 的可靠性。
 
@@ -76,6 +82,8 @@ Framework guardrails (OpenAI Agents SDK guardrails, LangGraph interrupts) enforc
 
 `code/main.py` ships:
 
+> `code/main.py` 提供：
+
 - `agent-rules.md` parser that loads rules into a dataclass.
 - `rule_checker.py` style checker functions, one per `check` reference.
 - A demo agent run that violates two rules and a check pass that catches them.
@@ -117,6 +125,8 @@ The rule set is portable across all three because it is just markdown plus funct
 ## Ship It | 产出物
 
 `outputs/skill-rule-set-builder.md` interviews a project owner, classifies their existing prose instructions into the five categories, and emits a versioned `agent-rules.md` plus a checker stub.
+
+> `outputs/skill-rule-set-builder.md` 访谈项目所有者，将现有的散文式指令分类到五个类别中，并输出版本化的 `agent-rules.md` 和检查器存根。
 
 > 将指令视为可执行约束是构建可靠 Agent 的关键模式。通过将自然语言指令转化为可验证的约束条件，提高 Agent 的可靠性。
 

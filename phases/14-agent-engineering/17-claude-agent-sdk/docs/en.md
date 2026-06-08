@@ -18,6 +18,8 @@
 
 A raw LLM API gets you one round-trip. A production agent needs tool execution, MCP servers, lifecycle hooks, subagent spawning, session persistence, trace propagation. Claude Agent SDK ships this shape as a library — the same harness Claude Code uses, exposed for custom agents.
 
+> 原始 LLM API 只能给你一次往返调用。生产级 Agent 需要工具执行、MCP 服务器、生命周期钩子、子 Agent 生成、会话持久化、追踪传播。Claude Agent SDK 将这种形态作为库提供——Claude Code 使用的同一 harness，暴露给自定义 Agent 使用。
+
 
 > **【中文解读】** Claude Agent SDK 是 Anthropic 官方的 Agent 开发框架。核心特性：(1) 内置工具（文件读写、代码执行等）；(2) 子 Agent 支持——Agent 可以生成子 Agent 处理子任务；(3) 生命周期钩子——在 Agent 执行的关键节点插入自定义逻辑。SDK 深度集成 Claude 的 Extended Thinking 能力。
 
@@ -29,9 +31,14 @@ A raw LLM API gets you one round-trip. A production agent needs tool execution, 
 - **Client SDK (`anthropic`).** Raw Messages API. You own the loop, the tools, the state.
 - **Agent SDK (`claude-agent-sdk`).** Built-in tool execution, MCP connections, hooks, subagent spawning, session store. The Claude Code loop as a library.
 
+> **Client SDK（`anthropic`）。** 原始 Messages API。你自己管理循环、工具和状态。
+> **Agent SDK（`claude-agent-sdk`）。** 内置工具执行、MCP 连接、钩子、子 Agent 生成、会话存储。Claude Code 循环的库形式。
+
 ### Built-in tools
 
 The SDK ships 10+ tools out of the box: file read/write, shell, grep, glob, web fetch, more. Custom tools register via the standard tool-schema interface.
+
+> SDK 开箱提供 10+ 工具：文件读写、shell、grep、glob、网页抓取等。自定义工具通过标准 tool-schema 接口注册。
 
 > Claude Agent SDK 是 Anthropic 的官方 Agent 框架。核心概念：Agent（带系统提示和工具的 LLM）、Tools（可调用函数）、Subagents（子代理委派）、Session Store（会话持久化）。
 
@@ -39,16 +46,22 @@ The SDK ships 10+ tools out of the box: file read/write, shell, grep, glob, web 
 
 Two purposes documented by Anthropic:
 
+> Anthropic 文档记录了两个用途：
+
 1. **Parallelization.** Run independent work concurrently. "Find the test file for each of these 20 modules" is 20 parallel subagent tasks.
 2. **Context isolation.** Subagents use their own context window; only results return to the orchestrator. The orchestrator's budget is preserved.
 
 Python SDK recent additions: `list_subagents()`, `get_subagent_messages()` for reading subagent transcripts.
+
+> Python SDK 最近的新增功能：`list_subagents()`、`get_subagent_messages()` 用于读取子 Agent 的对话记录。
 
 > Claude Agent SDK 是 Anthropic 的官方 Agent 框架。核心概念：Agent（带系统提示和工具的 LLM）、Tools（可调用函数）、Subagents（子代理委派）、Session Store（会话持久化）。
 
 ### Session store
 
 Protocol parity with TypeScript:
+
+> 与 TypeScript 版本的协议对等：
 
 - `append(session_id, message)` — add a turn.
 - `load(session_id)` — restore conversation.
@@ -58,11 +71,15 @@ Protocol parity with TypeScript:
 
 `--session-mirror` (CLI flag) mirrors the transcript to an external file as it streams, for debugging.
 
+> `--session-mirror`（CLI 标志）在流式传输时将对话记录镜像到外部文件，用于调试。
+
 > Claude Agent SDK 是 Anthropic 的官方 Agent 框架。核心概念：Agent（带系统提示和工具的 LLM）、Tools（可调用函数）、Subagents（子代理委派）、Session Store（会话持久化）。
 
 ### Hooks
 
 Lifecycle hooks you can register:
+
+> 可注册的生命周期钩子：
 
 - `PreToolUse`, `PostToolUse` — gate or audit tool calls.
 - `SessionStart`, `SessionEnd` — set up and tear down.
@@ -73,17 +90,23 @@ Lifecycle hooks you can register:
 
 Hooks are how pro-workflow (Phase 14 curriculum reference) and similar systems add cross-cutting behavior.
 
+> 钩子是专业工作流（Phase 14 课程参考）和类似系统添加横切行为的方式。
+
 > Claude Agent SDK 是 Anthropic 的官方 Agent 框架。核心概念：Agent（带系统提示和工具的 LLM）、Tools（可调用函数）、Subagents（子代理委派）、Session Store（会话持久化）。
 
 ### W3C trace context
 
 OTel spans active on the caller propagate into the CLI subprocess via W3C trace context headers. The whole multi-process trace shows up as one trace in your backend.
 
+> 调用方上活跃的 OTel span 通过 W3C 追踪上下文头传播到 CLI 子进程。整个多进程追踪在你的后端显示为一个追踪。
+
 > Claude Agent SDK 是 Anthropic 的官方 Agent 框架。核心概念：Agent（带系统提示和工具的 LLM）、Tools（可调用函数）、Subagents（子代理委派）、Session Store（会话持久化）。
 
 ### Claude Managed Agents
 
 The hosted alternative (beta header `managed-agents-2026-04-01`). Long-running async work, built-in prompt caching, built-in compaction. Trade control for managed infrastructure.
+
+> 托管替代方案（beta 头 `managed-agents-2026-04-01`）。长时间运行的异步工作，内置提示缓存，内置压缩。用控制权换取托管基础设施。
 
 > Claude Agent SDK 是 Anthropic 的官方 Agent 框架。核心概念：Agent（带系统提示和工具的 LLM）、Tools（可调用函数）、Subagents（子代理委派）、Session Store（会话持久化）。
 
@@ -93,9 +116,15 @@ The hosted alternative (beta header `managed-agents-2026-04-01`). Long-running a
 - **Hook creep.** Every team adds hooks; startup time balloons. Review hooks quarterly.
 - **Session bloat.** Sessions accumulate; size grows. Use `list_sessions` + expiry policy.
 
+> **子 Agent 过度生成。** 为 100 个小任务生成 100 个子 Agent。开销占主导。改为批量处理。
+> **钩子膨胀。** 每个团队都添加钩子；启动时间膨胀。每季度审查钩子。
+> **会话膨胀。** 会话不断积累；大小增长。使用 `list_sessions` + 过期策略。
+
 ## Build It | 动手实现
 
 `code/main.py` implements the SDK shape in stdlib:
+
+> `code/main.py` 用标准库实现了 SDK 的形态：
 
 > Claude Agent SDK 是 Anthropic 的官方 Agent 框架。核心概念：Agent（带系统提示和工具的 LLM）、Tools（可调用函数）、Subagents（子代理委派）、Session Store（会话持久化）。
 
@@ -113,6 +142,8 @@ python3 code/main.py
 
 The trace shows subagent context isolation (orchestrator context size stays bounded), hook execution, and session persistence.
 
+> 追踪显示子 Agent 的上下文隔离（编排者上下文大小保持有界）、钩子执行和会话持久化。
+
 > Claude Agent SDK 是 Anthropic 的官方 Agent 框架。核心概念：Agent（带系统提示和工具的 LLM）、Tools（可调用函数）、Subagents（子代理委派）、Session Store（会话持久化）。
 
 ## Use It | 用框架实现
@@ -125,6 +156,8 @@ The trace shows subagent context isolation (orchestrator context size stays boun
 ## Ship It | 产出物
 
 `outputs/skill-claude-agent-scaffold.md` scaffolds a Claude Agent SDK app with subagents, hooks, session store, MCP server attachment, and W3C trace propagation.
+
+> `outputs/skill-claude-agent-scaffold.md` 搭建一个 Claude Agent SDK 应用，包含子 Agent、钩子、会话存储、MCP 服务器连接和 W3C 追踪传播。
 
 > Claude Agent SDK 是 Anthropic 的官方 Agent 框架。核心概念：Agent（带系统提示和工具的 LLM）、Tools（可调用函数）、Subagents（子代理委派）、Session Store（会话持久化）。
 

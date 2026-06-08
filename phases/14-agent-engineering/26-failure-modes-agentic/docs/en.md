@@ -18,6 +18,8 @@
 
 Teams ship agents that work on 90% of traces. The 10% failures are not random noise — they fall into a small number of recurring categories. Once you can name them, you can monitor for them and fix them.
 
+> 团队发布的 Agent 在 90% 的追踪上工作正常。10% 的失败不是随机噪声——它们属于少数几个反复出现的类别。一旦你能命名它们，你就能监控并修复它们。
+
 
 > **【中文解读】** Agent 系统的失败模式与普通软件不同：(1) 级联失败——一个错误决策触发后续一系列错误；(2) 目标漂移——Agent 在长链执行中偏离原始目标；(3) 过度自信——Agent 在错误结果上编造成功叙事。理解这些模式是构建可靠 Agent 的前提。
 
@@ -31,6 +33,8 @@ Multi-Agent System Failure Taxonomy. 14 failure modes clustered into 3 categorie
 > Agent 失败模式包括：级联失败（一个错误传播到多个下游调用）、幻觉成功（在错误上编造成功）、循环爆炸（无限循环或重复操作）、信任边界崩溃。
 
 Central claim: failures are fundamental design flaws in multi-agent systems, not LLM limitations to be fixed with better base models.
+
+> 核心主张：失败是多 Agent 系统的基本设计缺陷，不是可以通过更好的基础模型来修复的 LLM 限制。
 
 > Agent 失败模式包括：级联失败（一个错误传播到多个下游调用）、幻觉成功（在错误上编造成功）、循环爆炸（无限循环或重复操作）、信任边界崩溃。
 
@@ -70,6 +74,8 @@ Arize, Galileo, NimbleBrain 2024-2026 field analyses converge on:
 
 Cascading is the killer. Agents cannot distinguish "I failed" from "the task is impossible" and often hallucinate a success message on 400 errors to close the loop.
 
+> 级联是最致命的。Agent 无法区分"我失败了"和"任务不可能完成"，经常在 400 错误上幻觉出一个成功消息来关闭循环。
+
 > Agent 失败模式包括：级联失败（一个错误传播到多个下游调用）、幻觉成功（在错误上编造成功）、循环爆炸（无限循环或重复操作）、信任边界崩溃。
 
 ### Mitigation: gates at every step
@@ -89,6 +95,10 @@ Automated verification gates at every step of a reasoning chain, checking factua
 - **No baseline.** Drift detection needs a last-known-good; without it you cannot say "this is getting worse."
 - **Over-alerting.** Every failure produces a page. Cluster and rate-limit.
 
+> **仅标记崩溃。** 大多数 Agent 失败产生看起来有效的输出。需要内容级检查。
+> **没有基线。** 漂移检测需要一个最后已知的良好状态；没有它你无法说"这正在变糟"。
+> **过度告警。** 每次失败都产生一个页面。集群化和限速。
+
 ## Build It | 动手实现
 
 `code/main.py` implements a stdlib failure-mode tagger:
@@ -107,6 +117,8 @@ python3 code/main.py
 
 Output: per-trace labels + aggregate distribution, a cheap reproduction of what Phoenix's trace clustering surfaces.
 
+> 输出：每追踪标签 + 聚合分布，Phoenix 追踪聚类所显示内容的廉价复现。
+
 > Agent 失败模式包括：级联失败（一个错误传播到多个下游调用）、幻觉成功（在错误上编造成功）、循环爆炸（无限循环或重复操作）、信任边界崩溃。
 
 ## Use It | 用框架实现
@@ -118,6 +130,8 @@ Output: per-trace labels + aggregate distribution, a cheap reproduction of what 
 ## Ship It | 产出物
 
 `outputs/skill-failure-detector.md` generates failure-mode detectors tailored to your domain, wired to a trace store.
+
+> `outputs/skill-failure-detector.md` 生成针对你的领域的失败模式检测器，接入追踪存储。
 
 > Agent 失败模式包括：级联失败（一个错误传播到多个下游调用）、幻觉成功（在错误上编造成功）、循环爆炸（无限循环或重复操作）、信任边界崩溃。
 
