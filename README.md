@@ -3,6 +3,12 @@
 </p>
 
 <p align="center">
+  <a href="开始学习.md"><strong>🇨🇳 中文版入口 — 开始学习</strong></a> &nbsp;·&nbsp;
+  <a href="学习路线图.md">🗺 学习路线图</a> &nbsp;·&nbsp;
+  <a href="FAQ.md">❓ 常见问题</a>
+</p>
+
+<p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-1a1a1a?style=flat-square&labelColor=fafaf5" alt="MIT License"></a>
   <a href="ROADMAP.md"><img src="https://img.shields.io/badge/lessons-473-3553ff?style=flat-square&labelColor=fafaf5" alt="473 lessons"></a>
   <a href="#contents"><img src="https://img.shields.io/badge/phases-20-3553ff?style=flat-square&labelColor=fafaf5" alt="20 phases"></a>
