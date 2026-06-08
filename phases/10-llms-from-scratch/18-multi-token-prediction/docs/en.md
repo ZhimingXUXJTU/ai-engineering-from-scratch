@@ -185,17 +185,24 @@ When not to:
 
 This lesson produces `outputs/skill-mtp-planner.md`. Given a pre-training run specification (model size, data, compute), it returns a plan for integrating MTP: number of depths D, `lambda` schedule, memory overhead, and the inference-time speculative-decoding wiring.
 
+> 本课产出 `outputs/skill-mtp-planner.md`。给定预训练运行规范（模型大小、数据、算力），它返回集成 MTP 的计划：深度数 D、`lambda` 调度、内存开销和推理时投机解码接线。
+
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Show the per-depth loss decreases monotonically as the synthetic signal strengthens. Modify the synthetic to use a fixed pattern and verify both depth-1 and depth-2 losses converge.
+   中文翻译：运行 `code/main.py`。展示每深度损失随合成信号增强单调递减。修改合成数据使用固定模式并验证深度 1 和深度 2 的损失都收敛。
 
 2. Compute the parameter overhead for a dense 70B model (hidden 8192, 80 layers) with D=1 MTP module. Compare to the DeepSeek-V3 reported 14B overhead. Explain why DeepSeek's number is higher: the MTP transformer block inherits the same MoE structure, inflating the per-module parameter count.
+   中文翻译：计算密集 70B 模型（hidden 8192，80 层）加 D=1 MTP 模块的参数开销。与 DeepSeek-V3 报告的 14B 开销比较。解释为什么 DeepSeek 的数字更高：MTP transformer 块继承了相同的 MoE 结构，膨胀了每模块参数量。
 
 3. Implement D=2 in the toy: add a second MTP module that takes h^(1) and predicts `t_{i+2}`. Verify the joint loss and the parameter accounting match the DeepSeek paper's equations 19-21.
+   中文翻译：在玩具模型中实现 D=2：添加第二个 MTP 模块，取 h^(1) 并预测 `t_{i+2}`。验证联合损失和参数核算与 DeepSeek 论文公式 19-21 匹配。
 
 4. Switch the toy to parallel MTP (Gloeckle-style): add D output heads on top of the main hidden state, each predicting a different offset. Measure how the losses per depth compare to the sequential version on the same synthetic signal. The sequential version should produce lower depth-k loss for k > 1 because it conditions on the intermediate predictions.
+   中文翻译：将玩具模型切换为并行 MTP（Gloeckle 风格）：在主隐藏状态上添加 D 个输出头，每个预测不同偏移。测量每深度损失与顺序版本在相同合成信号上的比较。顺序版本在 k > 1 时应产生更低的深度 k 损失，因为它以中间预测为条件。
 
 5. Use the trained MTP module as an EAGLE-style draft: call module k to propose `t_{i+k}` at inference. Measure the acceptance rate of these draft tokens against the main model's predictions on a held-out sequence. If you hit 50%+ on the toy, you have reproduced the empirical MTP-as-draft property.
+   中文翻译：将训练的 MTP 模块用作 EAGLE 风格草稿：在推理时调用模块 k 提出 `t_{i+k}`。在保留序列上测量这些草稿 token 对主模型预测的接受率。如果玩具模型上达到 50%+，你就复现了 MTP-as-draft 的经验特性。
 
 ## Key Terms | 术语速查表
 

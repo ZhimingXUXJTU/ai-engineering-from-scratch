@@ -151,17 +151,24 @@ Integration considerations for a real training run:
 
 This lesson produces `outputs/skill-dualpipe-planner.md`. Given a training cluster specification (GPU count, topology, interconnect, model shape), it recommends a pipeline parallelism strategy, the scheduling algorithm to use, and the expected bubble fraction at the target scale.
 
+> 本课产出 `outputs/skill-dualpipe-planner.md`。给定训练集群规范（GPU 数量、拓扑、互连、模型形状），它推荐流水线并行策略、调度算法和目标规模下的预期气泡占比。
+
 ## Exercises | 练习题
 
 1. Run `code/main.py` on `(P=8, micro_batches=16, schedule=dualpipe)` and `(P=8, micro_batches=16, schedule=1f1b)`. Compute the GPU utilization difference and express it as recovered GPU-hours per million tokens of training.
+   中文翻译：在 `(P=8, micro_batches=16, schedule=dualpipe)` 和 `(P=8, micro_batches=16, schedule=1f1b)` 上运行 `code/main.py`。计算 GPU 利用率差异并表示为每百万训练 token 回收的 GPU 小时数。
 
 2. Sketch the schedule table for `(P=4, micro_batches=8, schedule=dualpipe)` by hand. Mark each time slot with the micro-batch ID and direction. Identify the first time slot where bubbles are absent.
+   中文翻译：手动画出 `(P=4, micro_batches=8, schedule=dualpipe)` 的调度表。标记每个时间槽的微批次 ID 和方向。找到气泡消失的第一个时间槽。
 
 3. Read Figure 5 of the DeepSeek-V3 technical report (arXiv:2412.19437). Identify the overlap window for all-to-all dispatch inside a DualPipe forward chunk. Explain how the compute schedule hides it.
+   中文翻译：阅读 DeepSeek-V3 技术报告图 5。识别 DualPipe 前向块内 all-to-all 调度的重叠窗口。解释计算调度如何隐藏它。
 
 4. Compute the 2x parameter overhead of DualPipe for a 70B dense model with P=8 pipeline stages and a 671B MoE model with P=16 pipeline stages. Show why the MoE case's overhead is proportionally smaller (most parameters are experts, sharded across a large EP group).
+   中文翻译：计算 DualPipe 对 70B 密集模型（P=8 流水线阶段）和 671B MoE 模型（P=16 阶段）的 2 倍参数开销。展示为什么 MoE 情况的开销比例更小（大多数参数是专家，跨大型 EP 组分片）。
 
 5. Compare DualPipe to Chimera (a competing bidirectional scheduler from 2021). Identify the two specific properties DualPipe added that Chimera did not have, using the paper's Section 3.4 as the reference.
+   中文翻译：比较 DualPipe 与 Chimera（2021 年的竞争双向调度器）。识别 DualPipe 添加的 Chimera 没有的两个特定属性，使用论文第 3.4 节作为参考。
 
 ## Key Terms | 术语速查表
 

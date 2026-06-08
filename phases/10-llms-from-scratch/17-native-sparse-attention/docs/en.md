@@ -174,17 +174,24 @@ When not to:
 
 This lesson produces `outputs/skill-nsa-integrator.md`. Given a long-context pre-training run specification, it produces an NSA integration plan: compression block size, top-k, sliding window, gate MLP width, kernel choice, and the specific long-context evals that would justify the architecture change.
 
+> 本课产出 `outputs/skill-nsa-integrator.md`。给定长上下文预训练运行规范，它产生 NSA 集成计划：压缩块大小、top-k、滑动窗口、门控 MLP 宽度、内核选择以及证明架构变更合理性的特定长上下文评估。
+
 ## Exercises | 练习题
 
 1. Run `code/main.py` on a 1024-token synthetic. Sweep `(l, k, w)` across three presets and print compute counts. Identify the preset that achieves the lowest key-count per query while keeping 95% recall against full attention on a needle-in-haystack test.
+   中文翻译：在 1024-token 合成数据上运行 `code/main.py`。在三个预设上扫描 `(l, k, w)` 并打印计算量。找到在 haystack 测试中对全注意力保持 95% 召回率的同时实现最低每查询键计数的预设。
 
 2. Replace the mean-pool compressor with a tiny learned MLP (2-layer, hidden 32). Train it on a synthetic task where the signal is the average of a block. Measure the perplexity gap against the mean-pool baseline on held-out data.
+   中文翻译：用小型学习 MLP（2 层，hidden 32）替换均值池化压缩器。在信号为块平均值的合成任务上训练。在保留数据上测量与均值池化基线的困惑度差距。
 
 3. Implement the gate MLP. It takes the query as input and outputs three scalars. Show that the gate behaves sensibly: near-uniform weighting on random queries, heavy weight on the selected branch when the query hits a far-back block.
+   中文翻译：实现门控 MLP。它以查询为输入输出三个标量。展示门控行为合理：随机查询时近似均匀加权，查询命中远回块时对选定分支重度加权。
 
 4. Compute the KV cache memory budget for an NSA-enabled 70B model at 128k context. KV heads are 8, head dim 128, BF16. Compare to full attention and to MLA (Phase 10 · 14 showed MLA's numbers). Identify the sequence length where NSA's fine-grained branch KV cache equals full attention.
+   中文翻译：计算 NSA 启用的 70B 模型在 128K 上下文下的 KV 缓存内存预算。KV 头 8 个，头维度 128，BF16。与全注意力和 MLA 比较。找到 NSA 细粒度分支 KV 缓存等于全注意力的序列长度。
 
 5. Read Section 4 of the NSA paper (arXiv:2502.11089) and explain in three sentences why the compressed branch's attention scores are reused for top-k selection rather than computing a separate routing score. Tie the answer to gradient flow.
+   中文翻译：阅读 NSA 论文第 4 节，用三句话解释为什么压缩分支的注意力分数被复用于 top-k 选择而非计算单独的路由分数。将答案与梯度流联系起来。
 
 ## Key Terms | 术语速查表
 

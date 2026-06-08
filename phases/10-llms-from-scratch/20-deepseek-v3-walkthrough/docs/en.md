@@ -175,15 +175,21 @@ What to look at:
 
 This lesson produces `outputs/skill-deepseek-v3-reader.md`. Given a DeepSeek-family model (V3, R1, or any future variant), it produces a component-by-component architecture reading that names each field of the config, derives parameter counts by component, and identifies which of the four DeepSeek-specific innovations the model uses.
 
+> 本课产出 `outputs/skill-deepseek-v3-reader.md`。给定 DeepSeek 系列模型（V3、R1 或任何未来变体），它产生逐组件的架构解读，命名配置的每个字段，按组件推导参数量，并识别模型使用了四项 DeepSeek 特定创新中的哪些。
+
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Compare the calculator's total-parameter estimate to the published 671B and identify where the delta comes from. The paper's Section 2 has the full itemization.
+   中文翻译：运行 `code/main.py`。将计算器的总参数估算与已发表的 671B 比较，找出差异来源。论文第 2 节有完整分项。
 
-2. Modify the config to use MLA rank 256 instead of 512. Compute the resulting KV cache size at 128k context. What percentage reduction does it buy, and at what cost to the per-head expressiveness?
+2. Modify the config to use MLA rank 256 instead of 512. Compute the resulting KV cache size at 128k context. What percentage reduction does it buy, and at what cost to per-head expressiveness?
+   中文翻译：修改配置使用 MLA 秩 256 而非 512。计算 128K 上下文下的 KV 缓存大小。节省了多少百分比，代价是什么？
 
 3. Compare DeepSeek-V3's (256 experts, top-8) routing to a hypothetical (512 experts, top-8) variant. Total parameters grow; active parameters stay the same. What does the extra expert capacity buy in theory, and what does it cost at inference?
+   中文翻译：比较 DeepSeek-V3 的（256 专家，top-8）路由与假设的（512 专家，top-8）变体。总参数增长；激活参数不变。额外专家容量理论上买到了什么，推理时代价是什么？
 
 4. Read Section 2.1 of the DeepSeek-V3 technical report (arXiv:2412.19437) on MLA. Explain in three sentences why the K and V decompression matrices can be "absorbed" into the subsequent matmul for inference-time efficiency.
+   中文翻译：阅读 DeepSeek-V3 技术报告第 2.1 节关于 MLA 的内容。用三句话解释为什么 K 和 V 解压矩阵可以被"吸收"到后续矩阵乘法中以实现推理时效率。
 
 5. DeepSeek-V3 uses FP8 training for most operations. Compute the memory savings of FP8 vs BF16 for storing the 671B weights. How does this intersect with the 14.8T-token training budget?
 

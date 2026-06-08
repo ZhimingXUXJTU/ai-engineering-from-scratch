@@ -167,17 +167,24 @@ When not to:
 
 This lesson produces `outputs/skill-eagle3-tuner.md`. Given an inference workload (model, batch size, target latency, task profile), it recommends a speculative-decoding strategy and tuning parameters (draft family, `N`, tree depth, temperature-aware switching).
 
+> 本课产出 `outputs/skill-eagle3-tuner.md`。给定推理工作负载（模型、批次大小、目标延迟、任务配置），它推荐投机解码策略和调优参数（草稿族、`N`、树深度、温度感知切换）。
+
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Confirm the chi-square statistic on the Leviathan distribution check stays below the 95% critical value on 50,000 samples.
+   中文翻译：运行 `code/main.py`。确认 Leviathan 分布检查的卡方统计量在 50,000 样本上低于 95% 临界值。
 
 2. Sweep `N` from 1 to 10 with `α` held at 0.9 and `c` held at 0.04. Plot expected tokens per verifier call and actual wall time per token. Find the `N` that minimizes wall time. Explain the shape of the curve.
+   中文翻译：将 `N` 从 1 扫到 10，`α` 保持 0.9，`c` 保持 0.04。绘制每次验证调用的期望 token 数和每 token 实际挂钟时间。找到最小化挂钟时间的 `N`。解释曲线形状。
 
 3. Modify the code to simulate EAGLE-2 tree search: at each step, the draft proposes a tree of shape `[2, 2, 2]` (eight candidate paths). The verifier runs once, and the highest-probability accepted path wins. Compute `α` per leaf and total tokens per verifier call. Compare to linear-chain spec-decoding at equivalent compute.
+   中文翻译：修改代码模拟 EAGLE-2 树搜索：每步草稿提出 `[2, 2, 2]` 形状的树（8 条候选路径）。验证器运行一次，最高概率的接受路径胜出。计算每叶 `α` 和每次验证调用的总 token 数。与等计算量的线性链投机解码比较。
 
 4. Implement a batched KV rollback simulator for two concurrent sequences. Sequence A has all drafts accepted; sequence B rejects at position 2. Show that the correct `kv_length` is updated per sequence and that no work is wasted.
+   中文翻译：实现两个并发序列的批量 KV 回滚模拟器。序列 A 所有草稿被接受；序列 B 在位置 2 被拒绝。展示正确的 `kv_length` 按序列更新且无浪费。
 
 5. Read the EAGLE-3 paper's Section 4 (Training-Time Test). Explain in two sentences why naive draft training without TTT suffers from exposure bias, and why feeding the draft its own predictions during training fixes it. Connect this to the scheduled-sampling literature in seq2seq.
+   中文翻译：阅读 EAGLE-3 论文第 4 节（训练时测试）。用两句话解释为什么没有 TTT 的朴素草稿训练受曝光偏差影响，以及为什么训练时喂草稿自己的预测能修复它。将其与 seq2seq 中的计划采样文献联系起来。
 
 ## Key Terms | 术语速查表
 
