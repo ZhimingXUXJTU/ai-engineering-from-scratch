@@ -180,17 +180,24 @@ def speculative_step(p_target, q_draft, K, temperature=1.0):
 
 This lesson produces `outputs/skill-speculative-tuning.md` — a skill that profiles a target model's workload and chooses: draft model, K (draft length), tree width, temperature, and when to fall back to plain decode.
 
+> 本课产出 `outputs/skill-speculative-tuning.md`——一个分析目标模型工作负载并选择草稿模型、K（草稿长度）、树宽度、温度以及何时回退到普通解码的技能。
+
 ## Exercises | 练习题
 
 1. Implement the exact rejection rule and empirically verify it. Run 10K samples via `speculative_decode` and via plain target sampling; compute TV distance between the two output distributions. Should be < 0.01.
+   中文翻译：实现精确拒绝规则并经验验证。通过 `speculative_decode` 和普通目标采样各运行 10K 样本；计算两个输出分布之间的 TV 距离。应 < 0.01。
 
 2. Compute the speedup formula. Given fixed `α` and `K`, plot expected tokens per target-forward. Find the optimal K for α ∈ {0.5, 0.7, 0.9}.
+   中文翻译：计算加速公式。给定固定 `α` 和 `K`，绘制每次目标前向传播的期望 token 数。找到 α ∈ {0.5, 0.7, 0.9} 的最优 K。
 
 3. Train a tiny draft. Take a 124M GPT-2 target and distill a 30M GPT-2 draft on 100M tokens with KL loss. Measure `α` on held-out text. Expected: 0.6-0.7.
+   中文翻译：训练微型草稿模型。以 124M GPT-2 为目标，在 100M token 上用 KL 损失蒸馏 30M GPT-2 草稿。在保留文本上测量 `α`。预期：0.6-0.7。
 
 4. Implement EAGLE-style tree drafting. Instead of a chain, have the draft output top-3 branches at each depth. Build the tree attention mask. Verify the target accepts the longest correct branch.
+   中文翻译：实现 EAGLE 风格树状草稿。不是链式，而是让草稿在每个深度输出 top-3 分支。构建树注意力掩码。验证目标接受最长正确分支。
 
 5. Measure failure modes. Run speculative decode at temperature=1.5 (high stochasticity). Show α collapses and the algorithm is slower than plain decode due to draft overhead.
+   中文翻译：测量失败模式。在 temperature=1.5（高随机性）下运行投机解码。展示 α 崩溃，算法因草稿开销比普通解码更慢。
 
 ## Key Terms | 术语速查表
 

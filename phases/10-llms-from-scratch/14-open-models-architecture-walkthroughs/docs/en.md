@@ -270,17 +270,24 @@ Then plug in a config for any model you have locally, read the summary, and deci
 
 This lesson produces `outputs/skill-open-model-picker.md`. Given a deployment target (GPU type, VRAM, context length, latency budget) and a task profile (chat, code, reasoning, long-context), it recommends an open model, a quantization scheme from Lesson 11, and an inference stack from Lesson 12, with explicit reasoning about the six architectural knobs.
 
+> 本课产出 `outputs/skill-open-model-picker.md`。给定部署目标（GPU 类型、显存、上下文长度、延迟预算）和任务配置（聊天、代码、推理、长上下文），它推荐开源模型、第十一课的量化方案和第十二课的推理栈，并给出六个架构旋钮的明确推理。
+
 ## Exercises | 练习题
 
 1. Read the Qwen 2.5 72B config from HuggingFace. Compute total parameters from scratch. Compare to the HF-reported value and identify where any delta comes from (head dim rounding, KV sharing factor, etc.).
+   中文翻译：阅读 HuggingFace 上的 Qwen 2.5 72B 配置。从零计算总参数量。与 HF 报告值比较，找出差异来源（头维度舍入、KV 共享因子等）。
 
 2. DeepSeek V3 uses 256 experts with top-8 routing. Compute the ratio of activated experts to total experts and compare to Mixtral 8x7B's top-2 of 8. What does the shift from sparse (25%) to denser sparse (3%) imply about capacity per FLOP?
+   中文翻译：DeepSeek V3 用 256 个专家 top-8 路由。计算激活专家与总专家的比率，与 Mixtral 8x7B 的 top-2 of 8 比较。从稀疏（25%）到更密稀疏（3%）的转变对每 FLOP 容量意味着什么？
 
 3. Compute the KV cache for Llama 3 405B at 128k context in FP8 and BF16. At FP8 it is half the BF16 number. How many parallel sequences can you serve on a single 8xH100 node (80GB each = 640GB total, minus weight memory)?
+   中文翻译：计算 Llama 3 405B 在 128K 上下文下 FP8 和 BF16 的 KV 缓存。FP8 是 BF16 的一半。单个 8xH100 节点（每张 80GB = 总共 640GB，减去权重内存）能服务多少并行序列？
 
 4. Gemma 2 alternates full-attention and sliding-window-attention layers. Write the math for the KV cache when half the layers use a 4096-token sliding window instead of full context. How much memory does that save at 8k total context?
+   中文翻译：Gemma 2 交替使用全注意力和滑动窗口注意力层。写出一半层使用 4096-token 滑动窗口而非全上下文时 KV 缓存的数学公式。在 8K 总上下文下节省多少内存？
 
 5. Find a recent frontier open model that was released after this lesson was written. Identify which of the six knobs it picked and whether it introduced a seventh knob. The curriculum will feel out of date the moment a new architecture ships -- the goal is to update your table without rebuilding your mental model.
+   中文翻译：找一篇本课编写后发布的最新前沿开源模型。识别它选择了六个旋钮中的哪些以及是否引入了第七个旋钮。课程在新架构发布时就会过时——目标是更新你的表格而不重建心智模型。
 
 ## Key Terms | 术语速查表
 

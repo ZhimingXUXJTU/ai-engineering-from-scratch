@@ -284,17 +284,24 @@ def should_recompute(layer_type, activation_bytes, recompute_flops_ratio):
 
 This lesson produces `outputs/prompt-activation-recompute-policy.md` — a prompt that takes your model config (layers, hidden, seq, batch) and available GPU memory and emits a per-layer recompute policy (none / selective / full / offload).
 
+> 本课产出 `outputs/prompt-activation-recompute-policy.md`——一个接受模型配置（层数、隐藏维度、序列长度、批次）和可用 GPU 内存并输出每层重计算策略（无 / 选择性 / 完全 / 卸载）的 prompt。
+
 ## Exercises | 练习题
 
 1. Verify correctness. Run `model_forward` + `model_backward` (full activations) vs `model_forward_checkpointed` + `model_backward_checkpointed` (segments). Parameter gradients must be identical to machine precision.
+   中文翻译：验证正确性。运行 `model_forward` + `model_backward`（完整激活）与 `model_forward_checkpointed` + `model_backward_checkpointed`（分段）。参数梯度必须与机器精度一致。
 
 2. Sweep segment size `k` from 1 to `L`. Plot FLOP overhead and memory. Find the knee of the curve.
+   中文翻译：将段大小 `k` 从 1 扫到 `L`。绘制 FLOP 开销和内存。找到曲线的拐点。
 
 3. Implement selective checkpointing: store the attention-module input but not its intermediates. Measure the FLOP overhead vs full-layer checkpointing for a 32-layer model at seq=8192.
+   中文翻译：实现选择性检查点：存储注意力模块输入但不存中间结果。测量 32 层模型在 seq=8192 下与全层检查点的 FLOP 开销比较。
 
 4. Add offload. Save segment inputs to a simulated "CPU buffer" (a separate list). Measure "PCIe bandwidth" as bytes/time and find the breakeven point between offload and recompute.
+   中文翻译：添加卸载。将段输入保存到模拟的"CPU 缓冲区"（单独的列表）。以字节/时间测量"PCIe 带宽"并找到卸载和重计算之间的平衡点。
 
 5. Benchmark a real PyTorch transformer with and without `torch.utils.checkpoint`. Measure memory (via `torch.cuda.max_memory_allocated`) and step time.
+   中文翻译：对真实 PyTorch transformer 分别使用和不使用 `torch.utils.checkpoint` 进行基准测试。测量内存（通过 `torch.cuda.max_memory_allocated`）和步长时间。
 
 ## Key Terms | 术语速查表
 

@@ -181,17 +181,24 @@ Combine with speculative decoding: each Hogwild! worker can independently use sp
 
 This lesson produces `outputs/skill-parallel-inference-router.md`. Given a reasoning workload profile (token budget, task parallelism profile, model family, deployment target), it routes between voting, tree-of-thought, multi-agent, Hogwild!, and speculative decoding strategies.
 
+> 本课产出 `outputs/skill-parallel-inference-router.md`。给定推理工作负载配置（token 预算、任务并行配置、模型族、部署目标），它在投票、思维树、多智能体、Hogwild! 和投机解码策略之间路由。
+
 ## Exercises | 练习题
 
 1. Run `code/main.py` with the default settings. Confirm the N=2 Hogwild! configuration produces more work-tokens than the N=1 baseline in the same wall time.
+   中文翻译：用默认设置运行 `code/main.py`。确认 N=2 Hogwild! 配置在相同挂钟时间内产生比 N=1 基线更多的工作 token。
 
 2. Reduce the coordination heuristic's strength (set `coordination_weight=0.1`). Re-run. Show that speedup collapses. Explain why: the workers duplicate effort when they cannot coordinate.
+   中文翻译：降低协调启发的强度（设置 `coordination_weight=0.1`）。重新运行。展示加速崩溃。解释原因：工作者无法协调时会重复努力。
 
 3. Compute the expected Hogwild! speedup for a 50k-token reasoning task with `p=0.8, c=500` and N=4 workers. Do the same for a 1k-token chat task with `p=0.3, c=200` and N=4. Why is one a win and the other a loss?
+   中文翻译：计算 50K token 推理任务（`p=0.8, c=500`，N=4 工作者）的期望 Hogwild! 加速。对 1K token 聊天任务（`p=0.3, c=200`，N=4）做同样计算。为什么一个是赢一个是输？
 
 4. Read the Hogwild! paper's Section 4 (preliminary evaluation). Identify the two failure modes the authors report. Describe how a better coordination prompt might mitigate each.
+   中文翻译：阅读 Hogwild! 论文第 4 节。识别作者报告的两种失败模式。描述更好的协调 prompt 如何缓解每种情况。
 
 5. Combine Hogwild! with speculative decoding in the toy: each worker uses a 2-token spec-decode internally. Report the multiplicative speedup. What bookkeeping problem arises when two workers both want to extend the same shared-cache prefix?
+   中文翻译：在玩具模型中结合 Hogwild! 和投机解码：每个工作者内部使用 2-token 投机解码。报告乘法加速。当两个工作者都想扩展相同的共享缓存前缀时会出现什么簿记问题？
 
 ## Key Terms | 术语速查表
 

@@ -183,17 +183,24 @@ When you would not:
 
 This lesson produces `outputs/skill-diff-attention-integrator.md`. Given a model architecture, target context length, hallucination profile, and training budget, it produces an integration plan for adding differential attention to a new pre-training run or LoRA fine-tune.
 
+> 本课产出 `outputs/skill-diff-attention-integrator.md`。给定模型架构、目标上下文长度、幻觉配置和训练预算，它产生将差分注意力集成到新预训练运行或 LoRA 微调的集成计划。
+
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Verify the signal-to-noise ratio reported for differential attention is higher than standard softmax attention on the synthetic query. Vary the noise amplitude and show the crossover point where standard attention becomes unusable.
+   中文翻译：运行 `code/main.py`。验证差分注意力报告的信噪比在合成查询上高于标准 softmax 注意力。改变噪声幅度并展示标准注意力变得不可用的交叉点。
 
 2. Compute the parameter-count delta from baseline to DIFF V1 and from baseline to DIFF V2 for a 7B-class model (hidden=4096, heads=32, d_head=128, 32 layers). Show which components gained parameters and which stayed the same.
+   中文翻译：计算 7B 级模型（hidden=4096，heads=32，d_head=128，32 层）从基线到 DIFF V1 和从基线到 DIFF V2 的参数量差异。展示哪些组件增加了参数，哪些保持不变。
 
 3. Read Section 3 of the DIFF V1 paper (arXiv:2410.05258) and Section 2 of the DIFF V2 Hugging Face blog. In two sentences, explain why the V1 per-head RMSNorm was necessary and why V2 could remove it without causing training divergence.
+   中文翻译：阅读 DIFF V1 论文第 3 节和 DIFF V2 Hugging Face 博客第 2 节。用两句话解释为什么 V1 的逐头 RMSNorm 是必要的，以及为什么 V2 可以在不导致训练发散的情况下移除它。
 
 4. Implement an ablation: compute differential attention with `lambda = 0` (pure first softmax) and `lambda = 1` (full subtraction). On the synthetic query, measure how signal-to-noise changes across the sweep. Identify the `lambda` that maximizes signal-to-noise.
+   中文翻译：实现消融实验：用 `lambda = 0`（纯第一 softmax）和 `lambda = 1`（完全减法）计算差分注意力。在合成查询上测量信噪比在扫描中如何变化。找到最大化信噪比的 `lambda`。
 
 5. Extend the toy to GQA + DIFF V2. Pick 8 KV heads and 32 Q heads. Show that the KV cache size matches a baseline GQA model with the same (8, 32) configuration.
+   中文翻译：将玩具模型扩展到 GQA + DIFF V2。选择 8 个 KV 头和 32 个 Q 头。展示 KV 缓存大小与相同 (8, 32) 配置的基线 GQA 模型匹配。
 
 ## Key Terms | 术语速查表
 
