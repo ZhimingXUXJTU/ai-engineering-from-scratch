@@ -4,10 +4,10 @@
 
 > **【中文解读】** REINFORCE 方差太大。加入一个"评论家"(Critic)学习 V̂(s)，用它作为基线构造优势函数 A = G - V̂(s)，期望不变但方差大幅降低。这就是 Actor-Critic——PPO、SAC 等所有现代深度 RL 方法的架构原型。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 9 · 04 (TD Learning), Phase 9 · 06 (REINFORCE)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 9 · 04 (TD Learning), Phase 9 · 06 (REINFORCE) | **前置知识:** Phase 9 · 04 (TD 学习), Phase 9 · 06 (REINFORCE)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## The Problem | 问题引入
 

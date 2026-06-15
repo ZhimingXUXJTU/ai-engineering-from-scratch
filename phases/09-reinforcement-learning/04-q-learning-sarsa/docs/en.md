@@ -4,10 +4,10 @@
 
 > **【中文解读】** MC 要等到回合结束才能更新，TD（时序差分）每一步都能更新——用 `r + γ V(s')` 作为目标来引导当前估计。Q-learning 是离策略的（学习最优策略），SARSA 是在线策略的（学习当前行为策略）。两者仅差一个 `max`，却是所有深度 RL 的基础。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 9 · 01 (MDPs), Phase 9 · 02 (Dynamic Programming), Phase 9 · 03 (Monte Carlo)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 9 · 01 (MDPs), Phase 9 · 02 (Dynamic Programming), Phase 9 · 03 (Monte Carlo) | **前置知识:** Phase 9 · 01 (MDP), Phase 9 · 02 (动态规划), Phase 9 · 03 (蒙特卡洛)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## The Problem | 问题引入
 

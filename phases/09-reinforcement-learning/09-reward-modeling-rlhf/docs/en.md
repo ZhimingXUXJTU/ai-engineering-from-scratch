@@ -6,10 +6,10 @@
 
 > **【拓展：RLHF 是大模型对齐的关键】** RLHF（基于人类反馈的强化学习）是 ChatGPT 成功的核心技术。三步流程：(1) 监督微调 SFT；(2) 训练奖励模型 RM；(3) 用 PPO 优化 LM。DPO 简化了第 2-3 步，但本质相同。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 5 · 05 (Sentiment), Phase 9 · 08 (PPO)
-**Time:** ~45 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 5 · 05 (Sentiment), Phase 9 · 08 (PPO) | **前置知识:** Phase 5 · 05 (情感分析), Phase 9 · 08 (PPO)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## The Problem | 问题引入
 
@@ -127,6 +127,8 @@ After a few hundred updates, `w` assigns positive weights to good-word tokens an
 
 Our toy policy produces a single token from a vocabulary. We score the token under the RM, compute `log π_θ(token | prompt)`, add a KL-to-reference penalty, and apply the clipped PPO surrogate.
 
+> 我们的玩具策略从一个词表中产生单个 token。我们在 RM 下评分该 token，计算 `log π_θ(token | prompt)`，添加 KL 到参考策略的惩罚，并应用裁剪的 PPO 代理。
+
 ```python
 def rlhf_step(theta, ref, w, prompt, rng, eps=0.2, beta=0.1, lr=0.05):
     logits_theta = policy_logits(theta, prompt)
@@ -138,6 +140,8 @@ def rlhf_step(theta, ref, w, prompt, rng, eps=0.2, beta=0.1, lr=0.05):
     # ppo-style update on theta, treating reward as the return
     ...
 ```
+
+> 关键：奖励 = RM 分数 - β × KL(π_θ || π_ref)。β 是控制策略漂移程度的关键超参数——太大策略几乎不变，太小则奖励黑客开始。
 
 ### Step 4: monitor the KL
 

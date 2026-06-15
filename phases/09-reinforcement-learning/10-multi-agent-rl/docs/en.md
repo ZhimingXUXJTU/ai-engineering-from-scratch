@@ -4,10 +4,10 @@
 
 > **【中文解读】** 单智能体 RL 假设环境是平稳的。但放入两个同时学习的智能体后，每个智能体都成了对方环境的一部分——环境不再平稳，马尔可夫假设被打破。多智能体 RL 就是处理"大家都在变"时的收敛问题。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 9 · 04 (Q-learning), Phase 9 · 06 (REINFORCE), Phase 9 · 07 (Actor-Critic)
-**Time:** ~45 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 9 · 04 (Q-learning), Phase 9 · 06 (REINFORCE), Phase 9 · 07 (Actor-Critic) | **前置知识:** Phase 9 · 04 (Q-learning), Phase 9 · 06 (REINFORCE), Phase 9 · 07 (Actor-Critic)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## The Problem | 问题引入
 

@@ -4,10 +4,10 @@
 
 > **【中文解读】** 动态规划需要已知环境模型，蒙特卡洛只需要完整的回合数据：执行策略、观测回报、取平均。这是 RL 中最简单的思想，也是所有后续算法（TD、Q-learning、PPO、RLHF）的基石。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 9 · 01 (MDPs), Phase 9 · 02 (Dynamic Programming)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 9 · 01 (MDPs), Phase 9 · 02 (Dynamic Programming) | **前置知识:** Phase 9 · 01 (MDP), Phase 9 · 02 (动态规划)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## The Problem | 问题引入
 
