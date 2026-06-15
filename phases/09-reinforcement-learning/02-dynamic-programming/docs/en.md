@@ -4,10 +4,10 @@
 
 > **【中文解读】** 动态规划是强化学习的"作弊版"——你已知环境的转移概率和奖励函数，只需反复迭代 Bellman 方程直到收敛。它是所有采样方法（Q-learning、PPO 等）的"金标准"参照。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 9 · 01 (MDPs)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 9 · 01 (MDPs) | **前置知识:** Phase 9 · 01 (MDP)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## The Problem | 问题引入
 

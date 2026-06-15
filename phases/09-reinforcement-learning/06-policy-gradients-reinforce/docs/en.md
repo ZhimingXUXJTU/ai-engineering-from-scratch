@@ -4,10 +4,10 @@
 
 > **【中文解读】** 不再估计值函数，直接参数化策略 π_θ(a|s)，计算期望回报的梯度并梯度上升。REINFORCE 定理告诉我们：`∇J(θ) = E[G · ∇log π_θ(a|s)]`。这是 PPO、GRPO、以及所有大模型 RL 训练循环存在的理由。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 3 · 03 (Backpropagation), Phase 9 · 03 (Monte Carlo), Phase 9 · 04 (TD Learning)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 3 · 03 (Backpropagation), Phase 9 · 03 (Monte Carlo), Phase 9 · 04 (TD Learning) | **前置知识:** Phase 3 · 03 (反向传播), Phase 9 · 03 (蒙特卡洛), Phase 9 · 04 (TD 学习)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## The Problem | 问题引入
 

@@ -6,10 +6,10 @@
 
 > **【拓展：PPO 与 ChatGPT】** PPO 是 ChatGPT RLHF 训练的核心算法。InstructGPT（2022）使用 PPO 对 GPT-3 进行人类偏好对齐，这就是 ChatGPT 背后的技术。PPO 的稳定性和简单性使其成为工业界首选。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 9 · 06 (REINFORCE), Phase 9 · 07 (Actor-Critic)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 9 · 06 (REINFORCE), Phase 9 · 07 (Actor-Critic) | **前置知识:** Phase 9 · 06 (REINFORCE), Phase 9 · 07 (Actor-Critic)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## The Problem | 问题引入
 

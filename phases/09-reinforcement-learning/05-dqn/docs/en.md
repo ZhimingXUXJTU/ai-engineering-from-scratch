@@ -4,10 +4,10 @@
 
 > **【中文解读】** DQN = Q-learning + 神经网络 + 三个稳定化技巧（经验回放、目标网络、奖励裁剪）。2013-2015 年在 Atari 游戏上击败所有经典 RL 方法，开启了深度 RL 时代。这三个技巧至今仍被所有深度 RL 方法使用。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 3 · 03 (Backpropagation), Phase 9 · 04 (Q-learning, SARSA)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 3 · 03 (Backpropagation), Phase 9 · 04 (Q-learning, SARSA) | **前置知识:** Phase 3 · 03 (反向传播), Phase 9 · 04 (Q-learning, SARSA)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## The Problem | 问题引入
 

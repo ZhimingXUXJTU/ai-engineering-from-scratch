@@ -4,10 +4,10 @@
 
 > **【中文解读】** 在仿真器中训练的策略如果无法在真实硬件上工作，说明它"过拟合"了仿真器。域随机化、域自适应和系统辨识是让 RL 策略跨越"现实鸿沟"的三大工具。
 
-**Type:** Learn
-**Languages:** Python
-**Prerequisites:** Phase 9 · 08 (PPO), Phase 2 · 10 (Bias/Variance)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 9 · 08 (PPO), Phase 2 · 10 (Bias/Variance) | **前置知识:** Phase 9 · 08 (PPO), Phase 2 · 10 (偏差/方差)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## The Problem | 问题引入
 

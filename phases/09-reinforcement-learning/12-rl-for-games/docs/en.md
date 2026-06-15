@@ -4,10 +4,10 @@
 
 > **【中文解读】** 游戏是 RL 突破的试验场：TD-Gammon (1992) → AlphaGo (2016) → AlphaZero (2017) → DeepSeek-R1 (2025)。DeepSeek-R1 证明了 AlphaZero 的"自我博弈+搜索+策略改进"循环可以直接用于大模型的数学推理——token 就是动作，验证器就是"赢/输"信号。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 9 · 05 (DQN), Phase 9 · 08 (PPO), Phase 9 · 09 (RLHF), Phase 9 · 10 (MARL)
-**Time:** ~120 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 9 · 05 (DQN), Phase 9 · 08 (PPO), Phase 9 · 09 (RLHF), Phase 9 · 10 (MARL) | **前置知识:** Phase 9 · 05 (DQN), Phase 9 · 08 (PPO), Phase 9 · 09 (RLHF), Phase 9 · 10 (多智能体 RL)
+**Time:** ~120 minutes | **时间:** ~120 分钟
 
 ## The Problem | 问题引入
 

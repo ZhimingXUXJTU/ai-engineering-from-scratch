@@ -6,10 +6,10 @@
 
 > **【拓展：MDP 是 AI 对齐的基础】** ChatGPT 的 RLHF 训练本质上也是一个 MDP：状态=对话上下文，动作=生成的 token，奖励=人类偏好评分。理解 MDP 是理解大模型对齐技术的起点。
 
-**Type:** Learn
-**Languages:** Python
-**Prerequisites:** Phase 1 · 06 (Probability & Distributions), Phase 2 · 01 (ML Taxonomy)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 1 · 06 (Probability & Distributions), Phase 2 · 01 (ML Taxonomy) | **前置知识:** Phase 1 · 06 (概率与分布), Phase 2 · 01 (ML 分类)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## The Problem | 问题引入
 
