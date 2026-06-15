@@ -547,6 +547,8 @@ freqs = np.fft.fftfreq(128, d=1/128)
 
 Run `code/complex_numbers.py` to generate `outputs/skill-complex-arithmetic.md`.
 
+> 运行 `code/complex_numbers.py` 生成 `outputs/skill-complex-arithmetic.md`（复数运算技能文档）。
+
 ## Exercises | 练习题
 
 1. **Complex arithmetic by hand.** Compute (2 + 3i) * (4 - i) and verify with the code. Then compute (5 + 2i) / (1 - 3i). Draw both results on the complex plane and check that multiplication rotated and scaled the first number.
@@ -575,6 +577,8 @@ Run `code/complex_numbers.py` to generate `outputs/skill-complex-arithmetic.md`.
 | Roots of unity | The N complex numbers e^(2*pi*i*k/N) for k = 0 to N-1. N equally spaced points on the unit circle |
 | DFT | Discrete Fourier Transform. Decomposes a signal into complex sinusoidal components using roots of unity |
 | RoPE | Rotary Position Embedding. Uses complex multiplication to encode relative position in transformer attention |
+
+> 术语速查：Complex number（复数 a+bi）、Imaginary unit（虚数单位 i，旋转算子）、Complex plane（复平面）、Magnitude/modulus（模 √(a²+b²)）、Phase/argument（相位 atan2(b,a)）、Conjugate（共轭 a-bi）、Polar form（极坐标 r·e^(iθ)）、Euler's formula（欧拉公式 e^(iθ)=cosθ+i·sinθ）、Phasor（旋转相量）、Roots of unity（单位根 N 个均分单位圆的点）、DFT（离散傅里叶变换）、RoPE（旋转位置编码，LLaMA 等模型使用）。
 
 ## Further Reading | 延伸阅读
 

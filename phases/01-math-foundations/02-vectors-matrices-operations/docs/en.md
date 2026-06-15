@@ -2,6 +2,8 @@
 
 > Every neural network is just matrix multiplication with extra steps.
 
+> 每个神经网络本质上就是矩阵乘法加几个额外步骤。
+
 **Type:** Build | **类型:** 动手
 **Languages:** Python, Julia | **语言:** Python, Julia
 **Prerequisites:** Phase 1, Lesson 01 (Linear Algebra Intuition) | **前置知识:** Phase 1, Lesson 01 (线性代数直觉)
@@ -10,9 +12,13 @@
 ## Learning Objectives | 学习目标
 
 - Build a Matrix class with element-wise operations, matrix multiplication, transpose, determinant, and inverse
+  构建包含逐元素运算、矩阵乘法、转置、行列式、逆矩阵的 Matrix 类
 - Distinguish element-wise multiplication from matrix multiplication and explain when each applies
+  区分逐元素乘法和矩阵乘法，解释各自适用场景
 - Implement a single dense neural network layer (`relu(W @ x + b)`) using only the from-scratch Matrix class
+  仅用从零实现的 Matrix 类实现一个稠密神经网络层（`relu(W @ x + b)`）
 - Explain broadcasting rules and how bias addition works in neural network frameworks
+  解释广播规则和神经网络框架中偏置加法的工作方式
 
 > **【中文解读】**
 > 每个神经网络的核心就是矩阵乘法。向量表示数据（如一个词、一张图片），矩阵表示变换（如一层神经网络权重）。本章从零构建向量类和矩阵类，帮你彻底理解 `output = relu(W @ x + b)` 这行代码背后的数学。
@@ -129,7 +135,7 @@ This distinction trips up beginners constantly.
 
 Element-wise: multiply matching positions. Both matrices must be the same shape.
 
-> 逐元素乘法：对应位置相乘，两个矩阵形状必须相同。
+> 逐元素乘法：对应位置相乘，两个矩阵形状必须相同。在 PyTorch 中用 `*` 表示。
 
 ```
 | 1  2 |   | 5  6 |   | 5  12 |
@@ -138,7 +144,7 @@ Element-wise: multiply matching positions. Both matrices must be the same shape.
 
 Matrix multiplication: dot products of rows and columns. Inner dimensions must match.
 
-> 矩阵乘法：行与列做点积，内部维度必须一致。
+> 矩阵乘法：行与列做点积，内部维度必须一致。在 PyTorch 中用 `@` 表示。
 
 ```
 | 1  2 |   | 5  6 |   | 1*5+2*7  1*6+2*8 |   | 19  22 |
@@ -147,7 +153,7 @@ Matrix multiplication: dot products of rows and columns. Inner dimensions must m
 
 Different operations, different results, different rules.
 
-> 不同的操作，不同的结果，不同的规则。
+> 不同的操作，不同的结果，不同的规则。`*` 和 `@` 在 NumPy/PyTorch 中含义完全不同，混淆会导致 silent bug。
 
 ### Broadcasting
 
@@ -192,11 +198,13 @@ class Vector:
         return Vector([x * scalar for x in self.data])
 
     def dot(self, other):
-        return sum(a * b for a, b in zip(self.data, other.data))
+        return sum(a * b for a, b in zip(self.data, other.data)])
 
     def magnitude(self):
         return sum(x ** 2 for x in self.data) ** 0.5
 ```
+
+> Vector 类实现：加法/减法是逐元素运算；标量乘法扩到每个分量；dot 是点积（对应分量乘积之和）；magnitude 是模长（√(x²+y²+...)）。
 
 ### Step 2: Matrix class with core operations
 
@@ -281,6 +289,8 @@ class Matrix:
             for i in range(n)
         ])
 ```
+
+> Matrix 类核心操作：matmul 是矩阵乘法（行×列做点积）；transpose 行列互换；determinant 用递归拉普拉斯展开；inverse_2x2 用 (1/det) × [[d,-b],[-c,a]]；identity 创建单位矩阵。
 
 ### Step 3: See it work
 
