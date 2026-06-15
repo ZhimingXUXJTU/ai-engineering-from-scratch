@@ -14,17 +14,17 @@
 ## Learning Objectives | 学习目标
 
 - Discover an authorization server through RFC 8414 metadata and verify the contract.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：通过 RFC 8414 元数据发现授权服务器并验证合同。
 - Implement RFC 7591 dynamic client registration so MCP clients enroll without admin intervention.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：实现 RFC 7591 动态客户端注册，使 MCP 客户端无需管理员干预即可注册。
 - Cache and rotate JWKS keys using a cron trigger so signature verification survives key roll-over.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：使用 cron 触发器缓存和轮换 JWKS 密钥，使签名验证在密钥轮换中存活。
 - Pin tokens to a single MCP resource using RFC 8707 resource indicators and refuse confused-deputy reuse.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：用 RFC 8707 资源指示器将 token 固定到单个 MCP 资源，拒绝混淆代理重用。
 - Wire every endpoint and background job as iii primitives — HTTP triggers, cron triggers, named functions, and `state::*` reads — so a single restart rebuilds the auth surface.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：将每个端点和后台作业连线为 iii 原语——HTTP 触发器、cron 触发器、命名函数和 `state::*` 读取——使单次重启重建认证面。
 - Read an IdP capability matrix and refuse to deploy when the IdP cannot satisfy MCP's auth profile.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：读取 IdP 能力矩阵，当 IdP 无法满足 MCP 认证配置时拒绝部署。
 
 ## The Problem | 问题引入
 
@@ -32,15 +32,15 @@
 
 The Lesson 16 simulator runs OAuth 2.1 in memory. Production has three operational gaps that a memory-only simulator does not see.
 
-> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+> Lesson 16 模拟器在内存中运行 OAuth 2.1。生产环境有三个内存模拟器看不到的操作缺口。
 
 The first gap is enrollment. A real org runs hundreds of MCP servers and thousands of MCP clients. Operators do not hand-register every Cursor user as an OAuth client. RFC 7591 dynamic client registration lets a client `POST /register` against the authorization server and receive a `client_id` (and optionally `client_secret`) on the spot. The server publishes `registration_endpoint` in its RFC 8414 metadata; the client discovers it without out-of-band configuration.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 第一个缺口是注册。真实组织运行数百个 MCP 服务器和数千个 MCP 客户端。运维不会手动注册每个 Cursor 用户为 OAuth 客户端。RFC 7591 动态客户端注册让客户端向授权服务器 `POST /register` 并立即获得 `client_id`（可选 `client_secret`）。服务器在其 RFC 8414 元数据中发布 `registration_endpoint`；客户端无需带外配置即可发现。
 
 The second gap is key rotation. JWT validation depends on the authorization server's signing keys, published as a JSON Web Key Set (JWKS). The authorization server rotates these on a schedule (often hourly, sometimes faster under incident response). An MCP server that fetches JWKS once at boot validates fine until the rotation window — then every request fails until restart. Production wires JWKS as a cached value with a refresh job that overwrites the cache before the previous keys expire, plus a fall-back fetch on cache miss for the case where a token signed by a key newer than the cache arrives.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 第二个缺口是密钥轮换。JWT 验证依赖授权服务器的签名密钥，以 JSON Web Key Set (JWKS) 发布。授权服务器按计划轮换（通常每小时，事件响应时更快）。启动时只获取一次 JWKS 的 MCP 服务器在轮换窗口前验证正常——之后每次请求失败直到重启。生产环境将 JWKS 连线为缓存值，刷新任务在密钥过期前覆盖缓存，加上缓存未命中时的回退获取（当 token 用比缓存更新的密钥签名时）。
 
 The third gap is audience binding. Lesson 16 introduced RFC 8707 resource indicators.
 
@@ -48,7 +48,7 @@ The third gap is audience binding. Lesson 16 introduced RFC 8707 resource indica
 
 This lesson treats every one of those gaps as an iii primitive. The metadata document is an HTTP trigger that returns a function's output. JWKS rotation is a cron trigger that calls `auth::rotate-jwks`, which writes to `state::set("auth/jwks/<issuer>", ...)`. JWT validation is a function others call via `iii.trigger("auth::validate-jwt", token)`. The MCP server itself is just another HTTP trigger that calls into validation before dispatching. Restart the engine: the trigger registry rebuilds; state survives; the auth surface is operational without manual reconciliation.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 本课将每个缺口视为 iii 原语。元数据文档是返回函数输出的 HTTP 触发器。JWKS 轮换是调用 `auth::rotate-jwks` 的 cron 触发器，写入 `state::set("auth/jwks/<issuer>", ...)`。JWT 验证是其他通过 `iii.trigger("auth::validate-jwt", token)` 调用的函数。MCP 服务器本身只是分发前调用验证的另一个 HTTP 触发器。重启引擎：触发器注册表重建；state 存活；认证面无需手动协调即运行。
 
 ## The Concept | 核心概念
 
@@ -60,7 +60,7 @@ This lesson treats every one of those gaps as an iii primitive. The metadata doc
 
 A document at `/.well-known/oauth-authorization-server` describes everything a client needs:
 
-> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+> 在 `/.well-known/oauth-authorization-server` 的文档描述客户端所需的一切：
 
 ```json
 {
@@ -79,30 +79,30 @@ A document at `/.well-known/oauth-authorization-server` describes everything a c
 
 A client given an MCP resource URL chains discovery: `oauth-protected-resource` from RFC 9728 (the resource server's document) names the issuer, then `oauth-authorization-server` (this RFC) names every endpoint. The client never hard-codes an authorization URL.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 给定 MCP 资源 URL 的客户端链式发现：RFC 9728 的 `oauth-protected-resource`（资源服务器的文档）命名签发者，然后 `oauth-authorization-server`（此 RFC）命名每个端点。客户端从不硬编码授权 URL。
 
 The contract you verify before trusting an IdP for MCP:
 
-> 参见英文原文获取完整的技术说明。
+> 信任 IdP 用于 MCP 前你验证的合同：
 
 - `code_challenge_methods_supported` includes `S256` (PKCE per RFC 7636).
-  中文翻译：参见英文条目了解详情。
+  中文翻译：`code_challenge_methods_supported` 包含 `S256`（RFC 7636 的 PKCE）。
 - `grant_types_supported` includes `authorization_code` and rejects `password` and `implicit`.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：`grant_types_supported` 包含 `authorization_code` 并拒绝 `password` 和 `implicit`。
 - `registration_endpoint` is present (RFC 7591 support).
-  中文翻译：参见英文条目了解详情。
+  中文翻译：`registration_endpoint` 存在（RFC 7591 支持）。
 - `response_types_supported` is exactly `["code"]` for OAuth 2.1.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：`response_types_supported` 对 OAuth 2.1 恰好是 `["code"]`。
 
 If any of those is missing, the MCP server refuses to deploy against this IdP. The deployment manifest is wrong, not the code.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 如果任何缺失，MCP 服务器拒绝在此 IdP 上部署。部署清单错了，不是代码。
 
 ### RFC 9728 (recap) — Protected Resource Metadata
 
 Lesson 16 covered RFC 9728. The delta in production: this document is the only place a client looks to find the authorization servers trusted by *this* MCP server. A single MCP server may accept tokens from multiple IdPs (one for staff, one for partners). RFC 9728 declares that set; RFC 8414 documents what each IdP supports.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> Lesson 16 涵盖 RFC 9728。生产中的增量：此文档是客户端查找 *此* MCP 服务器信任的授权服务器的唯一位置。单个 MCP 服务器可接受来自多个 IdP 的 token（一个给员工、一个给伙伴）。RFC 9728 声明该集合；RFC 8414 记录每个 IdP 支持什么。
 
 ```json
 {
@@ -120,7 +120,7 @@ Lesson 16 covered RFC 9728. The delta in production: this document is the only p
 
 Without DCR, every MCP client (Cursor, Claude Desktop, a custom agent) needs an out-of-band exchange with the IdP admin. With DCR, the client posts:
 
-> MCP 客户端的核心实现：发现和调用服务器工具，管理会话和命名空间。
+> 无 DCR 时，每个 MCP 客户端（Cursor、Claude Desktop、自定义 Agent）需要与 IdP 管理员的带外交换。有 DCR 时，客户端 POST：
 
 ```json
 POST /register
@@ -140,7 +140,7 @@ Content-Type: application/json
 
 The server responds with `client_id` and a `registration_access_token` for later updates:
 
-> 注册表相关内容：工具和服务器的注册与发现。
+> 服务器响应 `client_id` 和用于后续更新的 `registration_access_token`：
 
 ```json
 {
@@ -155,57 +155,59 @@ The server responds with `client_id` and a `registration_access_token` for later
 
 `token_endpoint_auth_method: none` is the right default for MCP clients that run on the user's device. They get a `client_id` only — no `client_secret` to exfiltrate. PKCE provides the proof-of-possession that public clients need.
 
-> MCP 客户端的核心实现：发现和调用服务器工具，管理会话和命名空间。
+> `token_endpoint_auth_method: none` 是运行在用户设备上的 MCP 客户端的正确默认。它们只获得 `client_id`——无 `client_secret` 可外泄。PKCE 提供公共客户端所需的持有证明。
 
 Three production pitfalls:
 
+> 三个生产陷阱：
+
 - The registration endpoint must rate-limit by source IP. Without that, a hostile actor scripts millions of fake registrations and exhausts the `client_id` namespace. iii makes this trivial: the registration HTTP trigger calls a `auth::rate-limit` function before dispatching to the registrar.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：注册端点必须按源 IP 限流。否则恶意行为者可脚本化数百万假注册耗尽 `client_id` 命名空间。iii 让这变得简单：注册 HTTP 触发器在分发到注册器前调用 `auth::rate-limit` 函数。
 - `software_statement` (a signed JWT vouching for the client) is required by some enterprise IdPs. The lesson's mock skips it; production wires a verification step that rejects unsigned registrations from anything other than localhost redirect URIs.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：`software_statement`（为客户端背书的签名 JWT）被某些企业 IdP 要求。本课的 mock 跳过它；生产环境连线一个验证步骤，拒绝除 localhost redirect URI 外的未签名注册。
 - The `registration_access_token` must be stored as a hash, not plaintext. Theft of this token means the attacker can rewrite the client's redirect URIs.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：`registration_access_token` 必须以哈希存储，而非明文。盗窃此 token 意味着攻击者可重写客户端的 redirect URI。
 
 ### RFC 8707 (recap) — Resource Indicators
 
 Lesson 16 established the shape. The production rule: every token request includes `resource=<canonical-mcp-url>`, and the MCP server verifies `token.aud` matches its own resource URL on every call. If the MCP server is reachable at `https://notes.example.com/mcp`, the canonical URL is `https://notes.example.com` — the path component is excluded so a single server hosts multiple paths under one audience.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> Lesson 16 确立了形态。生产规则：每次 token 请求包含 `resource=<canonical-mcp-url>`，MCP 服务器在每次调用时验证 `token.aud` 匹配其资源 URL。如果 MCP 服务器在 `https://notes.example.com/mcp` 可达，规范 URL 是 `https://notes.example.com`——路径组件被排除，使单个服务器在一个受众下托管多个路径。
 
 ### RFC 7636 (recap) — PKCE
 
 PKCE is mandatory in OAuth 2.1. The lesson's authorization-code flow always carries `code_challenge` and `code_verifier`. The server rejects any token request without a verifier or with a verifier that does not hash to the stored challenge.
 
-> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+> PKCE 在 OAuth 2.1 中强制。本课的授权码流程始终携带 `code_challenge` 和 `code_verifier`。服务器拒绝任何无 verifier 或 verifier 哈希不匹配存储 challenge 的 token 请求。
 
 ### MCP Spec 2025-11-25 Auth Profile
 
 The MCP spec (2025-11-25) is precise about what an MCP server's authorization layer must do:
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> MCP 规范（2025-11-25）对 MCP 服务器的授权层必须做什么精确：
 
 - Publish `/.well-known/oauth-protected-resource` (RFC 9728).
-  中文翻译：参见英文条目了解详情。
+  中文翻译：发布 `/.well-known/oauth-protected-resource`（RFC 9728）。
 - Accept tokens only via `Authorization: Bearer ...`.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：仅通过 `Authorization: Bearer ...` 接受 token。
 - Validate `aud`, `iss`, `exp`, and required scopes per request.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：每次请求验证 `aud`、`iss`、`exp` 和必需 scope。
 - Respond with `WWW-Authenticate` carrying `Bearer error=...` for every 401 and 403, including `scope=` and `resource=` parameters where applicable.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：每个 401 和 403 响应带 `WWW-Authenticate` 携带 `Bearer error=...`，适用时包含 `scope=` 和 `resource=` 参数。
 - Reject tokens whose `aud` does not match the canonical resource.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：拒绝 `aud` 不匹配规范资源的 token。
 - Reject tokens whose `iss` is not in the protected-resource metadata's `authorization_servers` list.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：拒绝 `iss` 不在受保护资源元数据 `authorization_servers` 列表中的 token。
 
 The OAuth 2.1 draft is the substrate; RFC 8414/7591/8707/9728 + RFC 7636 are the surface; the MCP spec is the profile.
 
-> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+> OAuth 2.1 草案是底物；RFC 8414/7591/8707/9728 + RFC 7636 是表面；MCP 规范是配置。
 
 ### IdP capability matrix
 
 Not every IdP supports the full MCP profile. The matrix below documents factual capability statements as of the 2025-11-25 spec. It is a *deployment gate*, not a recommendation.
 
-> 生产部署相关内容：从开发到生产环境的关键考量。
+> 不是每个 IdP 都支持完整 MCP 配置。下表记录截至 2025-11-25 规范的事实能力声明。它是 *部署门控*，不是推荐。
 
 | IdP category | RFC 8414 metadata | RFC 7591 DCR | RFC 8707 resource | RFC 7636 S256 PKCE | Notes |
 |---|---|---|---|---|---|
@@ -217,7 +219,7 @@ Not every IdP supports the full MCP profile. The matrix below documents factual 
 
 Refusal rule for the deployment manifest: if the chosen IdP does not return `registration_endpoint` and does not list `S256` in `code_challenge_methods_supported`, the MCP server refuses to start. There is no degraded mode.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 部署清单的拒绝规则：如果所选 IdP 不返回 `registration_endpoint` 或不在 `code_challenge_methods_supported` 中列出 `S256`，MCP 服务器拒绝启动。没有降级模式。
 
 ### JWKS rotation pattern with iii
 
@@ -225,7 +227,7 @@ Refusal rule for the deployment manifest: if the chosen IdP does not return `reg
 
 The production failure mode is a stale JWKS cache. Solve it with a cron trigger and a `state::*` cache:
 
-> 重连与故障恢复相关内容：传输层失败后的自动恢复。
+> 生产故障模式是过期的 JWKS 缓存。用 cron 触发器和 `state::*` 缓存解决：
 
 ```python
 iii.registerTrigger(
@@ -237,7 +239,7 @@ iii.registerTrigger(
 
 Every six hours, the cron trigger calls `auth::rotate-jwks`, which fetches `<issuer>/.well-known/jwks.json` and writes to `state::set("auth/jwks/<issuer>", {keys, fetched_at})`. The validator reads from `state::get`. A token whose `kid` is missing from the cache triggers a synchronous `auth::rotate-jwks` call as a fall-back. This handles two cases at once: scheduled rotation (cron) and key-overlap windows (synchronous fall-back).
 
-> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+> 每 6 小时，cron 触发器调用 `auth::rotate-jwks`，获取 `<issuer>/.well-known/jwks.json` 并写入 `state::set("auth/jwks/<issuer>", {keys, fetched_at})`。验证器从 `state::get` 读取。`kid` 不在缓存中的 token 触发同步 `auth::rotate-jwks` 调用作为回退。这同时处理两种情况：计划轮换（cron）和密钥重叠窗口（同步回退）。
 
 The state shape:
 
@@ -255,7 +257,7 @@ The state shape:
 
 Two keys at once is the steady state. Authorization servers rotate by introducing the next key (`k_2026_04`) before retiring the previous (`k_2026_03`), so tokens issued under the old key remain valid until they expire. The cache holds the union; the validator picks by `kid`.
 
-> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+> 同时持有两个密钥是稳态。授权服务器通过在退役前一个（`k_2026_03`）前引入下一个密钥（`k_2026_04`）来轮换，所以旧密钥签发的 token 在过期前仍有效。缓存持有并集；验证器按 `kid` 选择。
 
 ### iii primitive wiring (the part this lesson is actually about)
 
@@ -263,7 +265,7 @@ Two keys at once is the steady state. Authorization servers rotate by introducin
 
 Five primitives compose the auth surface:
 
-> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+> 五个原语组成认证面：
 
 ```python
 # 1. RFC 8414 metadata document
@@ -297,7 +299,7 @@ iii.registerFunction("auth::rotate-jwks", rotate_jwks_handler)
 
 The MCP server itself never calls validation directly. It does:
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> MCP 服务器自身从不直接调用验证。它执行：
 
 ```python
 result = iii.trigger("auth::validate-jwt", {"token": bearer_token, "resource": self.resource})
@@ -307,7 +309,7 @@ if not result["valid"]:
 
 This indirection is the iii bet. Tomorrow you swap the validator for a fanout that consults two IdPs in parallel, or you add a span emitter, or you cache positive validations. The MCP server does not change.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 此间接性是 iii 的赌注。明天你将验证器换成并行咨询两个 IdP 的 fanout，或添加 span 发射器，或缓存正面验证。MCP 服务器不变。
 
 ### Confused-deputy walkthrough with audience binding
 
@@ -315,37 +317,39 @@ This indirection is the iii bet. Tomorrow you swap the validator for a fanout th
 
 Server A (`notes.example.com`) and Server B (`tasks.example.com`) both register against the same authorization server. Server A is compromised. The attacker takes a user's notes token and replays it against Server B.
 
-> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+> 服务器 A（`notes.example.com`）和服务器 B（`tasks.example.com`）都向同一授权服务器注册。服务器 A 被攻陷。攻击者取用户 notes token 并向服务器 B 重放。
 
 Server B's validator:
 
+> 服务器 B 的验证器：
+
 1. Decode JWT, fetch JWKS by `kid`, verify signature.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：解码 JWT、按 `kid` 获取 JWKS、验证签名。
 2. Check `iss` against its protected-resource metadata's `authorization_servers`. (Pass — same IdP.)
-  中文翻译：参见英文条目了解详情。
+  中文翻译：对照其受保护资源元数据的 `authorization_servers` 检查 `iss`。（通过——相同 IdP。）
 3. Check `aud == "https://tasks.example.com"`. (Fail — token's `aud` is `https://notes.example.com`.)
-  中文翻译：参见英文条目了解详情。
+  中文翻译：检查 `aud == "https://tasks.example.com"`。（失败——token 的 `aud` 是 `https://notes.example.com`。）
 4. Return 401 with `WWW-Authenticate: Bearer error="invalid_token", error_description="audience mismatch"`.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：返回 401 带 `WWW-Authenticate: Bearer error="invalid_token", error_description="audience mismatch"`。
 
 The audience claim is the only defense against this attack at the protocol layer. Skipping it for performance is the most common production mistake; the validator must run on every request, not just at session start.
 
-> 安全相关内容：工具投毒防护、认证机制和攻击防御策略。
+> 受众声明是协议层对 此攻击的唯一防御。为性能跳过它是最常见的生产错误；验证器必须在每次请求上运行，而非仅会话开始时。
 
 ### Failure modes
 
 > **【中文解读】** 故障模式：(1) 过期 JWKS——轮换后验证器拒绝有效 token，需 cron+回退模式解决；(2) 缺失 aud 声明——验证器必须拒绝缺失 aud 的 token，而非视为通配符；(3) 范围升级竞态——并发逐步授权产生不同范围的 token，验证器必须使用请求中呈现的 token；(4) 注册令牌盗窃——攻击者重写 redirect URI；(5) iss 未锁定——攻击者自建授权服务器。
 
 - **Stale JWKS.** The validator rejects valid tokens after key rotation. The fix is the cron+fall-back pattern above. Never cache JWKS without a refresh job.
-  中文翻译：**Stale JWKS.** — 参见英文原文了解详情。
+  中文翻译：**过期 JWKS。** 验证器在密钥轮换后拒绝有效 token。修复是上述 cron+回退模式。永不在无刷新任务时缓存 JWKS。
 - **Missing `aud` claim.** Some IdPs default to omitting `aud` unless `resource` is present in the token request. The validator must reject tokens with missing `aud`, not treat absence as wildcard.
-  中文翻译：**Missing `aud` claim.** — 参见英文原文了解详情。
+  中文翻译：**缺失 `aud` 声明。** 某些 IdP 默认省略 `aud`，除非 token 请求中存在 `resource`。验证器必须拒绝缺失 `aud` 的 token，而非将缺失视为通配符。
 - **Scope upgrade race.** Two concurrent step-up flows for the same user can both succeed and produce two access tokens with different scopes. The validator must use the token presented on the request, not look up "the user's current scope" — that creates a TOCTOU window.
-  中文翻译：**Scope upgrade race.** — 参见英文原文了解详情。
+  中文翻译：**范围升级竞态。** 同一用户的两个并发逐步授权流程都可能成功，产生两个不同范围的 access token。验证器必须使用请求上呈现的 token，而非查找"用户当前范围"——那创造 TOCTOU 窗口。
 - **Registration token theft.** A leaked `registration_access_token` lets the attacker rewrite redirect URIs. Hash these at rest; require the client to present the cleartext on every update; rotate on suspicion.
-  中文翻译：**Registration token theft.** — 参见英文原文了解详情。
+  中文翻译：**注册 token 盗窃。** 泄漏的 `registration_access_token` 让攻击者重写 redirect URI。静态哈希；要求客户端在每次更新时呈现明文；怀疑时轮换。
 - **`iss` not pinned.** A validator that accepts any `iss` lets an attacker stand up their own authorization server, register a client for the target audience, and issue tokens. The protected-resource metadata's `authorization_servers` list is the allow-list; enforce it.
-  中文翻译：**`iss` not pinned.** — 参见英文原文了解详情。
+  中文翻译：**`iss` 未锁定。** 接受任何 `iss` 的验证器让攻击者建立自己的授权服务器、为目标受众注册客户端并签发 token。受保护资源元数据的 `authorization_servers` 列表是允许列表；强制执行。
 
 ## Use It | 用框架实现
 
@@ -353,30 +357,30 @@ The audience claim is the only defense against this attack at the protocol layer
 
 `code/main.py` walks the full production flow with stdlib Python and a small `iii_mock` registry that mimics `iii.registerFunction`, `iii.registerTrigger`, `iii.trigger`, and `state::set/get`. The flow:
 
-> 代码实现说明：参见 code/main.py 中的具体实现。
+> `code/main.py` 用标准库 Python 和小 `iii_mock` 注册表演示完整生产流程，模拟 `iii.registerFunction`、`iii.registerTrigger`、`iii.trigger` 和 `state::set/get`。流程：
 
 1. Authorization server publishes RFC 8414 metadata at `/.well-known/oauth-authorization-server`.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：授权服务器在 `/.well-known/oauth-authorization-server` 发布 RFC 8414 元数据。
 2. MCP client calls the metadata endpoint, discovers the registration endpoint.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：MCP 客户端调用元数据端点，发现注册端点。
 3. MCP client posts to `/register` (RFC 7591) and receives a `client_id`.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：MCP 客户端 POST 到 `/register`（RFC 7591）并接收 `client_id`。
 4. MCP client runs PKCE-protected authorization code flow (RFC 7636) with `resource` indicator (RFC 8707).
-  中文翻译：参见英文条目了解详情。
+  中文翻译：MCP 客户端运行 PKCE 保护的授权码流程（RFC 7636）带 `resource` 指示器（RFC 8707）。
 5. MCP client calls a tool on the MCP server with `Authorization: Bearer ...`.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：MCP 客户端调用 MCP 服务器上的工具带 `Authorization: Bearer ...`。
 6. MCP server triggers `auth::validate-jwt`, which reads JWKS from `state::get`.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：MCP 服务器触发 `auth::validate-jwt`，从 `state::get` 读取 JWKS。
 7. The cron trigger fires `auth::rotate-jwks`, replacing the JWKS in state.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：cron 触发器触发 `auth::rotate-jwks`，替换 state 中的 JWKS。
 8. The next call validates against the new keys without restart.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：下次调用针对新密钥验证，无需重启。
 9. A confused-deputy attempt against a different MCP resource gets 401 with audience mismatch.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：对不同 MCP 资源的混淆代理尝试获得 401 带受众不匹配。
 
 The mock JWT here uses HS256 with a shared secret (so the lesson runs on stdlib only). Production uses RS256 or EdDSA with the JWKS pattern above; the validation logic is otherwise identical.
 
-> 生产部署相关内容：从开发到生产环境的关键考量。
+> 此 mock JWT 使用 HS256 带共享密钥（使课程仅在标准库上运行）。生产使用 RS256 或 EdDSA 带上述 JWKS 模式；验证逻辑其他方面相同。
 
 ## Ship It | 产出物
 
@@ -384,24 +388,24 @@ The mock JWT here uses HS256 with a shared secret (so the lesson runs on stdlib 
 
 This lesson produces `outputs/skill-mcp-auth-iii.md`. Given an MCP server config and an IdP capability set, the skill emits the iii primitives to register, the JWKS rotation schedule, the scope mapping, and the refusal rules to apply when the IdP does not support the full RFC profile.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 本课产出 `outputs/skill-mcp-auth-iii.md`。给定 MCP 服务器配置和 IdP 能力集，该 skill 发出要注册的 iii 原语、JWKS 轮换计划、scope 映射，以及当 IdP 不支持完整 RFC 配置时应用的拒绝规则。
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Trace the 9-step flow. Note where `state::get` returns stale data immediately before `auth::rotate-jwks` overwrites it, and how the next request now validates against the new key.
-   中文翻译：运行相关练习。参见英文原文了解完整要求。
+   中文翻译：运行 `code/main.py`。追踪 9 步流程。注意 `state::get` 在 `auth::rotate-jwks` 覆盖前返回过期数据的位置，以及下次请求现在如何针对新密钥验证。
 
 2. Add a new IdP to the protected-resource metadata's `authorization_servers` list. Issue a token signed by the new IdP and confirm the validator accepts it. Issue a token signed by an unlisted IdP and confirm the validator rejects with `WWW-Authenticate: Bearer error="invalid_token", error_description="iss not allowed"`.
-   中文翻译：添加相关练习。参见英文原文了解完整要求。
+   中文翻译：将新 IdP 添加到受保护资源元数据的 `authorization_servers` 列表。签发由新 IdP 签名的 token，确认验证器接受。签发由未列出 IdP 签名的 token，确认验证器以 `WWW-Authenticate: Bearer error="invalid_token", error_description="iss not allowed"` 拒绝。
 
 3. Implement `auth::rate-limit` as an iii function and call it from inside the registration HTTP trigger before the registrar runs. Use a token-bucket per source IP held in `state::set("auth/ratelimit/<ip>", ...)`.
-   中文翻译：实现相关练习。参见英文原文了解完整要求。
+   中文翻译：将 `auth::rate-limit` 实现为 iii 函数，从注册 HTTP 触发器内部在注册器运行前调用。使用 `state::set("auth/ratelimit/<ip>", ...)` 中持有的每源 IP 令牌桶。
 
 4. Read RFC 7591 and identify two fields the lesson's `/register` handler does not validate. Add the validation. (Hint: `software_statement` and `redirect_uris` URI scheme.)
-   中文翻译：阅读相关练习。参见英文原文了解完整要求。
+   中文翻译：阅读 RFC 7591，识别本课 `/register` 处理器未验证的两个字段。添加验证。（提示：`software_statement` 和 `redirect_uris` URI 方案。）
 
 5. Read the MCP spec 2025-11-25 authorization section. Find the one normative requirement on `WWW-Authenticate` headers that the lesson's validator does not currently emit. Add it.
-   中文翻译：阅读相关练习。参见英文原文了解完整要求。
+   中文翻译：阅读 MCP 规范 2025-11-25 授权章节。找出本课验证器当前未发出的一个 `WWW-Authenticate` 头规范要求。添加它。
 
 ## Key Terms | 术语速查表
 
@@ -421,16 +425,16 @@ This lesson produces `outputs/skill-mcp-auth-iii.md`. Given an MCP server config
 ## Further Reading | 延伸阅读
 
 - [MCP — Authorization spec (2025-11-25)](https://modelcontextprotocol.io/specification/draft/basic/authorization) — the MCP auth profile this lesson implements
-  中文翻译：the MCP auth profile this lesson implements
+  中文翻译：本课实现的 MCP 认证配置
 - [RFC 8414 — OAuth 2.0 Authorization Server Metadata](https://datatracker.ietf.org/doc/html/rfc8414) — discovery contract
-  中文翻译：discovery contract
+  中文翻译：发现合同
 - [RFC 7591 — OAuth 2.0 Dynamic Client Registration Protocol](https://datatracker.ietf.org/doc/html/rfc7591) — DCR
   中文翻译：DCR
 - [RFC 7636 — Proof Key for Code Exchange (PKCE)](https://datatracker.ietf.org/doc/html/rfc7636) — public-client proof-of-possession
-  中文翻译：public-client proof-of-possession
+  中文翻译：公共客户端持有证明
 - [RFC 8707 — Resource Indicators for OAuth 2.0](https://datatracker.ietf.org/doc/html/rfc8707) — audience pinning
-  中文翻译：audience pinning
+  中文翻译：受众固定
 - [RFC 9728 — OAuth 2.0 Protected Resource Metadata](https://datatracker.ietf.org/doc/html/rfc9728) — resource server discovery
-  中文翻译：resource server discovery
+  中文翻译：资源服务器发现
 - [OAuth 2.1 draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1) — the consolidated OAuth substrate
-  中文翻译：the consolidated OAuth substrate
+  中文翻译：合并的 OAuth 底物
