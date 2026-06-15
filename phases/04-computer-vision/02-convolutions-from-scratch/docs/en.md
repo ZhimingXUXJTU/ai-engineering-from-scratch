@@ -4,10 +4,10 @@
 
 > **【中文解读】** 卷积本质上是一个"滑动的小型全连接层"——用同一组权重在图像的每个位置计算点积。这给了我们两个关键特性：平移等变性（输入移动，输出跟着移动）和参数共享（同一个特征检测器在整个图像上复用）。CNN 之所以能统治计算机视觉十余年（2012-2020），正是因为卷积是图像数据的正确归纳偏置。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 3 (Deep Learning Core), Phase 4 Lesson 01 (Image Fundamentals)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 3 (Deep Learning Core), Phase 4 Lesson 01 (Image Fundamentals) | **前置知识:** Phase 3（深度学习核心），Phase 4 Lesson 01（图像基础）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 

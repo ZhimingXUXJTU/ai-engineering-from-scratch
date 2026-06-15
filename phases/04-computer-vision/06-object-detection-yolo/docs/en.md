@@ -6,10 +6,10 @@
 
 > **【拓展：YOLO 在自动驾驶中的应用】** YOLO 是自动驾驶中最常用的实时目标检测算法，能同时检测行人、车辆、交通标志等。从 YOLOv1 到 YOLOv8，速度和精度不断提升，是工业界最受欢迎的检测框架之一。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 03 (CNNs), Phase 4 Lesson 04 (Image Classification), Phase 4 Lesson 05 (Transfer Learning)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 03 (CNNs), Phase 4 Lesson 04 (Image Classification), Phase 4 Lesson 05 (Transfer Learning) | **前置知识:** Phase 4 Lesson 03（CNN），Phase 4 Lesson 04（图像分类），Phase 4 Lesson 05（迁移学习）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 

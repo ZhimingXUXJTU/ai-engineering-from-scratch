@@ -6,12 +6,12 @@
 
 > **【拓展：文档理解的金融应用】** OCR 与文档理解在金融领域有广泛应用：银行流水识别、发票自动处理、合同智能审查、财务报表解析。LayoutLM、Donut 等模型将视觉和文本信息融合，实现了端到端的文档理解。
 
-**Type:** Learn + Use
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 06 (Detection), Phase 7 Lesson 02 (Self-Attention)
-**Time:** ~45 minutes
+**Type:** Learn + Use | **类型:** 学习 + 应用
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 06 (Detection), Phase 7 Lesson 02 (Self-Attention) | **前置知识:** Phase 4 Lesson 06（目标检测），Phase 7 Lesson 02（自注意力）
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Trace the classical OCR pipeline (detect -> recognise -> layout) and the modern end-to-end alternatives (Donut, Qwen-VL-OCR)
 - Implement CTC (Connectionist Temporal Classification) loss for sequence-to-sequence OCR training

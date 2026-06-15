@@ -6,12 +6,12 @@
 
 > **【拓展：姿态估计的应用】** OpenPose、MediaPipe、YOLO-Pose 是常见的姿态估计工具。应用场景包括：健身动作纠正（Keep）、手势控制（HoloLens）、运动分析（体育训练）、虚拟试衣等。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 06 (Detection), Phase 4 Lesson 07 (U-Net)
-**Time:** ~45 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 06 (Detection), Phase 4 Lesson 07 (U-Net) | **前置知识:** Phase 4 Lesson 06（目标检测），Phase 4 Lesson 07（U-Net）
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Distinguish top-down and bottom-up pose estimation and state when each is used
 - Regress heatmaps for K keypoints with a Gaussian-per-keypoint target and extract keypoint coordinates at inference

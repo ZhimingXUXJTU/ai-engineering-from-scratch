@@ -6,12 +6,12 @@
 
 > **【拓展：U-Net 的广泛应用】** U-Net 最初为医学影像分割设计，但已成为许多领域的基础架构：Stable Diffusion 使用 U-Net 作为核心去噪网络、自动驾驶中的道路分割、卫星图像的土地覆盖分类。其编码器-解码器+跳跃连接的模式已被广泛复制。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 03 (CNNs), Phase 4 Lesson 04 (Image Classification)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 03 (CNNs), Phase 4 Lesson 04 (Image Classification) | **前置知识:** Phase 4 Lesson 03（CNN），Phase 4 Lesson 04（图像分类）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Distinguish semantic, instance, and panoptic segmentation and pick the right task for a given problem
 - Build a U-Net from scratch in PyTorch with encoder blocks, a bottleneck, a decoder with transposed convolutions, and skip connections

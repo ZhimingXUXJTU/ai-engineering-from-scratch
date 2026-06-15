@@ -6,12 +6,12 @@
 
 > **【拓展：VLM 的应用】** VLM 是多模态 AI 的核心：GPT-4V（图像问答）、Claude Vision（文档分析）、LLaVA（开源视觉对话）、Google Gemini（多模态推理）。在金融领域，VLM 可用于财报图表理解、合同智能审查、票据自动处理。
 
-**Type:** Learn + Use
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 14 (ViT), Phase 4 Lesson 18 (CLIP), Phase 7 Lesson 02 (Self-Attention)
-**Time:** ~75 minutes
+**Type:** Learn + Use | **类型:** 学习 + 应用
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 14 (ViT), Phase 4 Lesson 18 (CLIP), Phase 7 Lesson 02 (Self-Attention) | **前置知识:** Phase 4 Lesson 14（ViT），Phase 4 Lesson 18（CLIP），Phase 7 Lesson 02（自注意力）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - State the ViT-MLP-LLM architecture and explain what each of the three components contributes
 - Compare Qwen3-VL, InternVL3.5, LLaVA-Next, and GLM-4.6V on parameter count, context length, and benchmark performance

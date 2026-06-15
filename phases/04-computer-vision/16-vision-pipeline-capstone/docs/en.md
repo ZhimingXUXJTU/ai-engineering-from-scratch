@@ -4,12 +4,12 @@
 
 > **【中文解读】** 生产级视觉系统是多个模型和规则通过数据契约串联而成的链条。本阶段前面的课程已经涵盖了各个组件，这个毕业项目将它们端到端地组装起来，包括数据加载、预处理、模型推理、后处理和结果输出。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lessons 01-15
-**Time:** ~120 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lessons 01-15 | **前置知识:** Phase 4 Lessons 01-15
+**Time:** ~120 minutes | **时间:** ~120 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Design a production vision pipeline that detects objects, classifies them, and emits structured JSON — with every failure path handled
 - Plug a detector (Mask R-CNN or YOLO), a classifier (ConvNeXt-Tiny), and a data contract (Pydantic) into one service

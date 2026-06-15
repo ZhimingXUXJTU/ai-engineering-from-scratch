@@ -6,12 +6,12 @@
 
 > **【拓展：3D 视觉的应用】** NeRF 被用于虚拟现实/增强现实（VR/AR）、建筑可视化、自动驾驶场景重建。3D Gaussian Splatting（下一课）是 NeRF 的快速替代方案，实时渲染质量更高。点云处理是自动驾驶 LiDAR 感知的核心。
 
-**Type:** Learn + Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 03 (CNNs), Phase 1 Lesson 12 (Tensor Operations)
-**Time:** ~45 minutes
+**Type:** Learn + Build | **类型:** 学习 + 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 03 (CNNs), Phase 1 Lesson 12 (Tensor Operations) | **前置知识:** Phase 4 Lesson 03（CNN），Phase 1 Lesson 12（张量运算）
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Distinguish explicit (point cloud, mesh, voxel) and implicit (signed distance field, NeRF) 3D representations and when each is used
 - Understand PointNet's symmetric-function trick that makes a neural network permutation-invariant over an unordered set of points

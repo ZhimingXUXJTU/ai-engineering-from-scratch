@@ -6,12 +6,12 @@
 
 > **【拓展：检索系统的应用】** 以图搜图（Google Images、淘宝拍照搜）、人脸识别（FaceNet）、推荐系统（Pinterest）都依赖度量学习。CLIP 的对比预训练本质上也是一种度量学习。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 14 (ViT), Phase 4 Lesson 18 (CLIP)
-**Time:** ~45 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 14 (ViT), Phase 4 Lesson 18 (CLIP) | **前置知识:** Phase 4 Lesson 14（ViT），Phase 4 Lesson 18（CLIP）
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Explain triplet, contrastive, and proxy-based metric learning losses and pick the right one for a given dataset
 - Implement L2-normalisation and cosine similarity correctly and audit the difference between "same item" and "same class" retrieval

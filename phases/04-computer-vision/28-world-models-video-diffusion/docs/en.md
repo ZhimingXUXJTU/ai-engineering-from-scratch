@@ -6,12 +6,12 @@
 
 > **【拓展：世界模型的前沿】** Sora（OpenAI）和 Genie（DeepMind）是世界模型的代表。世界模型可以用于自动驾驶仿真（生成训练场景）、游戏 AI（学习游戏物理）、机器人规划（预测动作后果）。它是实现 AGI 的可能路径之一。
 
-**Type:** Learn + Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 10 (Diffusion), Phase 4 Lesson 12 (Video Understanding), Phase 4 Lesson 23 (DiT + Rectified Flow)
-**Time:** ~75 minutes
+**Type:** Learn + Build | **类型:** 学习 + 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 10 (Diffusion), Phase 4 Lesson 12 (Video Understanding), Phase 4 Lesson 23 (DiT + Rectified Flow) | **前置知识:** Phase 4 Lesson 10（扩散模型），Phase 4 Lesson 12（视频理解），Phase 4 Lesson 23（DiT + 整流流）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Explain the difference between a pure video generation model (Sora 2) and an action-conditioned world model (Genie 3, DreamerV3)
 - Describe a video DiT: spatio-temporal patches, 3D position encoding, joint attention across (T, H, W) tokens

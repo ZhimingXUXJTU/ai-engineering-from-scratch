@@ -4,10 +4,10 @@
 
 > **【中文解读】** 图像本质上是一组光线采样值的张量（多维数组）。无论是手机拍照、自动驾驶还是 GPT-4V，所有视觉模型都从这个基本事实出发。理解像素、通道和数据格式是避免 "模型吃错数据" 这类隐蔽 bug 的关键。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 1 Lesson 12 (Tensor Operations), Phase 3 Lesson 11 (Intro to PyTorch)
-**Time:** ~45 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 1 Lesson 12 (Tensor Operations), Phase 3 Lesson 11 (Intro to PyTorch) | **前置知识:** Phase 1 Lesson 12（张量运算），Phase 3 Lesson 11（PyTorch 入门）
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## Learning Objectives | 学习目标
 

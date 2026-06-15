@@ -6,12 +6,12 @@
 
 > **【拓展：实例分割的应用】** Mask R-CNN 广泛用于自动驾驶（区分不同车辆和行人）、机器人抓取（识别单个物体轮廓）、视频编辑（精确抠图）。RoIAlign 技术后来也被用到 Vision Transformer 的适配器中。
 
-**Type:** Build + Learn
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 06 (YOLO), Phase 4 Lesson 07 (U-Net)
-**Time:** ~75 minutes
+**Type:** Build + Learn | **类型:** 动手 + 学习
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 06 (YOLO), Phase 4 Lesson 07 (U-Net) | **前置知识:** Phase 4 Lesson 06（YOLO），Phase 4 Lesson 07（U-Net）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Trace the Mask R-CNN architecture end-to-end: backbone, FPN, RPN, RoIAlign, box head, mask head
 - Implement RoIAlign from scratch and explain why RoIPool is no longer used

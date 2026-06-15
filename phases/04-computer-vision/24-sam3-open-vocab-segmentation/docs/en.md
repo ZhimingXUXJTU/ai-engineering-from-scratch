@@ -6,12 +6,12 @@
 
 > **【拓展：SAM 的革命性影响】** SAM 系列模型（Meta 发布）是分割领域的 "基础模型"，可以零样本分割任意物体。应用于图像编辑（Photoshop 的生成式填充）、视频编辑、医学影像、自动驾驶场景理解。SAM 2 还支持视频分割。
 
-**Type:** Use + Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 07 (U-Net), Phase 4 Lesson 08 (Mask R-CNN), Phase 4 Lesson 18 (CLIP)
-**Time:** ~60 minutes
+**Type:** Use + Build | **类型:** 应用 + 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 07 (U-Net), Phase 4 Lesson 08 (Mask R-CNN), Phase 4 Lesson 18 (CLIP) | **前置知识:** Phase 4 Lesson 07（U-Net），Phase 4 Lesson 08（Mask R-CNN），Phase 4 Lesson 18（CLIP）
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Distinguish SAM (visual prompts only), Grounded SAM / SAM 2 (detector + SAM), and SAM 3 (native text prompts via Promptable Concept Segmentation)
 - Explain the SAM 3 architecture: shared backbone + image detector + memory-based video tracker + presence head + decoupled detector-tracker design

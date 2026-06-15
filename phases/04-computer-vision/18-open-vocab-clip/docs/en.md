@@ -6,12 +6,12 @@
 
 > **【拓展：CLIP 是多模态 AI 的基石】** CLIP 是 DALL-E、Stable Diffusion（文本条件）、LLaVA、GPT-4V 等多模态模型的基础组件。它的对比学习预训练范式被广泛采用，开创了 "开放词汇" 视觉的新时代——模型可以理解训练中从未见过的概念。
 
-**Type:** Build + Use
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 14 (ViT), Phase 4 Lesson 17 (Self-Supervised)
-**Time:** ~45 minutes
+**Type:** Build + Use | **类型:** 动手 + 应用
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 14 (ViT), Phase 4 Lesson 17 (Self-Supervised) | **前置知识:** Phase 4 Lesson 14（ViT），Phase 4 Lesson 17（自监督）
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Explain CLIP's two-tower architecture and contrastive training objective
 - Use a pretrained CLIP (or SigLIP) for zero-shot classification without any task-specific training

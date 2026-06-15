@@ -6,12 +6,12 @@
 
 > **【拓展：边缘 AI 的应用】** 边缘部署在智能手机（人脸解锁、拍照美化）、无人机（实时目标检测）、工业 IoT（缺陷检测）和自动驾驶（车载推理）中至关重要。MobileNet、YOLO-nano、EfficientNet 是常见的轻量级模型。
 
-**Type:** Learn + Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 04 (Image Classification), Phase 10 Lesson 11 (Quantization)
-**Time:** ~75 minutes
+**Type:** Learn + Build | **类型:** 学习 + 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 04 (Image Classification), Phase 10 Lesson 11 (Quantization) | **前置知识:** Phase 4 Lesson 04（图像分类），Phase 10 Lesson 11（量化）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Measure inference latency, peak memory, and throughput for any PyTorch model, and read the FLOPs / params / latency trade-off
 - Quantise a vision model to INT8 using PyTorch's post-training quantisation and verify accuracy loss < 1%

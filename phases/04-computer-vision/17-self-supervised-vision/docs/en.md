@@ -6,12 +6,12 @@
 
 > **【拓展：自监督学习是 GPT 的秘密】** GPT 就是一种自监督模型——通过预测下一个词来学习。在视觉领域，MAE 通过预测被遮盖的 patch 来学习，DINO 通过自蒸馏学习语义特征。DINOv2 已成为许多视觉任务的基础模型。
 
-**Type:** Learn + Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 04 (Image Classification), Phase 4 Lesson 14 (ViT)
-**Time:** ~75 minutes
+**Type:** Learn + Build | **类型:** 学习 + 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 04 (Image Classification), Phase 4 Lesson 14 (ViT) | **前置知识:** Phase 4 Lesson 04（图像分类），Phase 4 Lesson 14（ViT）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Trace the three major self-supervised families — contrastive (SimCLR), teacher-student (DINO), masked reconstruction (MAE) — and state what each one optimises
 - Implement an InfoNCE loss from scratch and explain why a batch of 512 works but a batch of 32 fails
