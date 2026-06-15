@@ -1,12 +1,12 @@
 # Chameleon and Early-Fusion Token-Only Multimodal Models | Chameleon 早期融合纯 Token 多模态模型
 
-> Every VLM
+> Every VLM we have seen so far keeps images and text separate. Visual tokens come from a vision encoder, flow into a projector, then meet text inside the LLM. The vision and text vocabularies never overlap. Chameleon (Meta, May 2024) asked: what if they did? Train a VQ-VAE that turns an image into a sequence of discrete tokens from a shared vocabulary. Every multimodal document is now one sequence — text tokens and image tokens interleaved, a single autoregressive loss. Side effect: the model can generate mixed-modality outputs — alternating text and image tokens in a single inference call. This lesson reads the early-fusion thesis and builds a toy version end to end.
 
 > **【中文解读】** Chameleon（Meta，2024年5月）提出了一种激进的多模态方法：用 VQ-VAE 将图像转换为离散 token，与文本 token 共享同一个词汇表，用单一的自回归损失训练。这样模型既能理解又能生成混合模态内容。
 
-> **【拓展：早期融合 vs 后期融合】** 之前所有 VLM（LLaVA、BLIP-2、Qwen-VL）都保持图像和文本分离。Chameleon 的"早期融合"意味着图像和文本从一开始就在同一个空间中处理，模型可以自然地交替输出文本和图像。这是统一生成模型家族（Emu3、Show-o、Janus-Pro）的起点。 we have seen so far keeps images and text separate. Visual tokens come from a vision encoder, flow into a projector, then meet text inside the LLM. The vision and text vocabularies never overlap. Chameleon (Meta, May 2024) asked: what if they did? Train a VQ-VAE that turns an image into a sequence of discrete tokens from a shared vocabulary. Every multimodal document is now one sequence — text tokens and image tokens interleaved, a single autoregressive loss. Side effect: the model can generate mixed-modality outputs — alternating text and image tokens in a single inference call. This lesson reads the early-fusion thesis and builds a toy version end to end.
+> **【拓展：早期融合 vs 后期融合】** 之前所有 VLM（LLaVA、BLIP-2、Qwen-VL）都保持图像和文本分离。Chameleon 的"早期融合"意味着图像和文本从一开始就在同一个空间中处理，模型可以自然地交替输出文本和图像。这是统一生成模型家族（Emu3、Show-o、Janus-Pro）的起点。
 
-**Type:** Build  | **类型：构建**
+**Type:** Build  | **类型:** 构建
 **Languages:** Python (stdlib, VQ-VAE tokenizer + interleaved decoder) | **语言:** Python（标准库，VQ-VAE tokenizer + 交织解码器）
 **Prerequisites:** Phase 12 · 05, Phase 8 (Generative AI) | **前置知识:** Phase 12 · 05，Phase 8（生成式 AI）
 **Time:** ~180 minutes | **时间:** ~180 分钟
@@ -14,9 +14,13 @@
 ## Learning Objectives  | 学习目标
 
 - Explain why a shared vocabulary + single loss changes what the model can do.
+  > 解释为什么共享词汇表 + 单一损失能改变模型能力。
 - Describe how a VQ-VAE tokenizes an image into a discrete sequence compatible with a transformer's next-token objective.
+  > 描述 VQ-VAE 如何将图像分词为与 Transformer 下一 token 目标兼容的离散序列。
 - Name Chameleon's training-stability tricks: QK-Norm, dropout placement, LayerNorm ordering.
+  > 列举 Chameleon 的训练稳定性技巧：QK-Norm、Dropout 位置、LayerNorm 顺序。
 - Compare Chameleon vs BLIP-2's Q-Former approach and describe when each is the right choice.
+  > 比较 Chameleon 与 BLIP-2 的 Q-Former 方案，描述各自适合的场景。
 
 ## The Problem  | 问题背景
 

@@ -1,12 +1,12 @@
 # Emu3: Next-Token Prediction for Image and Video Generation | Emu3：用下一 Token 预测生成图像与视频
 
-> BAAI's Emu3
+> BAAI's Emu3 (Wang et al., September 2024) is the 2024 result that should have ended the diffusion-versus-autoregressive debate. A single Llama-style decoder-only transformer, trained only on the next-token-prediction objective, across a unified vocabulary of text + VQ image tokens + 3D VQ video tokens, beats SDXL on image generation and LLaVA-1.6 on perception. No CLIP loss. No diffusion schedule. Classifier-free guidance is used at inference for quality, but the core training objective is next-token prediction with teacher forcing. Published in Nature. This lesson reads the Emu3 thesis — why a better tokenizer plus scale is all you need — and contrasts with diffusion approaches.
 
 > **【中文解读】** Emu3（BAAI，2024年9月）用单一的自回归下一 token 预测目标，在统一的文本+图像+视频词汇表上训练，在图像生成上击败了 SDXL，在视觉理解上击败了 LLaVA-1.6。没有 CLIP 损失，没有扩散调度，核心训练目标就是下一 token 预测。发表在 Nature 上。
 
-> **【拓展：自回归 vs 扩散的争论】** Emu3 的核心贡献是概念性的：如果下一 token 预测能在图像生成上匹敌扩散模型，那么统一模型路径（一个损失、一个骨干、任何模态）就是可行的。后续的 Show-o、Janus-Pro、InternVL-U 都建立在这个论点之上。 (Wang et al., September 2024) is the 2024 result that should have ended the diffusion-versus-autoregressive debate. A single Llama-style decoder-only transformer, trained only on the next-token-prediction objective, across a unified vocabulary of text + VQ image tokens + 3D VQ video tokens, beats SDXL on image generation and LLaVA-1.6 on perception. No CLIP loss. No diffusion schedule. Classifier-free guidance is used at inference for quality, but the core training objective is next-token prediction with teacher forcing. Published in Nature. This lesson reads the Emu3 thesis — why a better tokenizer plus scale is all you need — and contrasts with diffusion approaches.
+> **【拓展：自回归 vs 扩散的争论】** Emu3 的核心贡献是概念性的：如果下一 token 预测能在图像生成上匹敌扩散模型，那么统一模型路径（一个损失、一个骨干、任何模态）就是可行的。后续的 Show-o、Janus-Pro、InternVL-U 都建立在这个论点之上。
 
-**Type:** Learn  | **类型：学习**
+**Type:** Learn  | **类型:** 学习
 **Languages:** Python (stdlib, 3D video tokenizer math + autoregressive sampler skeleton) | **语言:** Python（标准库，3D 视频分词器数学 + 自回归采样器骨架）
 **Prerequisites:** Phase 12 · 11 (Chameleon) | **前置知识:** Phase 12 · 11（Chameleon）
 **Time:** ~120 minutes | **时间:** ~120 分钟
@@ -14,9 +14,13 @@
 ## Learning Objectives  | 学习目标
 
 - Explain why Emu3's single-loss next-token objective works despite the long-held assumption that diffusion is required for image quality.
+  > 解释为什么 Emu3 单一损失的下一 token 目标在长期假设"图像生成必须扩散"的情况下仍然有效。
 - Describe the 3D video tokenizer: what a spatiotemporal VQ codebook looks like, why patches span time.
+  > 描述 3D 视频分词器：时空 VQ 码本长什么样、为什么 patch 要跨时间维度。
 - Compare Emu3 vs Stable Diffusion XL on (training compute, inference cost, quality ceiling).
+  > 比较 Emu3 与 Stable Diffusion XL 在训练算力、推理成本和质量上限上的差异。
 - Name the three roles the same Emu3 model plays: Emu3-Gen (image gen), Emu3-Chat (perception), Emu3-Stage2 (video gen).
+  > 列举同一 Emu3 模型扮演的三种角色：Emu3-Gen（图像生成）、Emu3-Chat（感知）、Emu3-Stage2（视频生成）。
 
 ## The Problem  | 问题背景
 

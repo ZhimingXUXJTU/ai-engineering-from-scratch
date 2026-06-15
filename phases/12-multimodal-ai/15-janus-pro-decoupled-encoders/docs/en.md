@@ -1,12 +1,12 @@
 # Janus-Pro: Decoupled Encoders for Unified Multimodal Models | Janus-Pro：解耦编码器的统一多模态模型
 
-> Unified multimodal models have an unavoidable tension.
+> Unified multimodal models have an unavoidable tension. Understanding wants semantic features — SigLIP or DINOv2 output vectors rich with concept-level information. Generation wants reconstruction-friendly codes — VQ tokens that compose back into crisp pixels. The two goals are not compatible in a single encoder. Janus (DeepSeek, October 2024) and Janus-Pro (DeepSeek, January 2025) argue the fix is to stop trying: decouple the two encoders. Share the transformer body between tasks, but route understanding through SigLIP and generation through a VQ tokenizer. At 7B, Janus-Pro beats DALL-E 3 on GenEval while matching LLaVA on MMMU. This lesson reads why two encoders work where one fails.
 
 > **【中文解读】** Janus-Pro（DeepSeek，2025年1月）解决了一个根本矛盾：理解任务需要语义特征（SigLIP），生成任务需要重建友好的编码（VQ token）。两者无法兼容于单一编码器。Janus-Pro 的答案是解耦：理解走 SigLIP 路径，生成走 VQ 路径，共享 Transformer 主体。7B 参数就在 GenEval 上击败了 DALL-E 3。
 
-> **【拓展：解耦编码器的产业影响】** 解耦编码器思想已成为 2026 年统一模型的默认架构。InternVL-U 将其整合到了原生多模态预训练框架中。对于需要同时理解和生成的产品（如创意工具、内容生成平台），Janus-Pro 是参考架构。 Understanding wants semantic features — SigLIP or DINOv2 output vectors rich with concept-level information. Generation wants reconstruction-friendly codes — VQ tokens that compose back into crisp pixels. The two goals are not compatible in a single encoder. Janus (DeepSeek, October 2024) and Janus-Pro (DeepSeek, January 2025) argue the fix is to stop trying: decouple the two encoders. Share the transformer body between tasks, but route understanding through SigLIP and generation through a VQ tokenizer. At 7B, Janus-Pro beats DALL-E 3 on GenEval while matching LLaVA on MMMU. This lesson reads why two encoders work where one fails.
+> **【拓展：解耦编码器的产业影响】** 解耦编码器思想已成为 2026 年统一模型的默认架构。InternVL-U 将其整合到了原生多模态预训练框架中。对于需要同时理解和生成的产品（如创意工具、内容生成平台），Janus-Pro 是参考架构。
 
-**Type:** Build  | **类型：构建**
+**Type:** Build  | **类型:** 构建
 **Languages:** Python (stdlib, dual-encoder routing + shared-body signal) | **语言:** Python（标准库，双编码器路由 + 共享体信号）
 **Prerequisites:** Phase 12 · 13 (Transfusion), Phase 12 · 14 (Show-o) | **前置知识:** Phase 12 · 13（Transfusion），Phase 12 · 14（Show-o）
 **Time:** ~120 minutes | **时间:** ~120 分钟
@@ -14,9 +14,13 @@
 ## Learning Objectives  | 学习目标
 
 - Explain why a single shared encoder compromises either understanding or generation quality.
+  > 解释为什么单一共享编码器会损害理解或生成质量。
 - Describe Janus-Pro's routing: SigLIP features on the input side for understanding, VQ tokens on both input and output for generation.
+  > 描述 Janus-Pro 的路由：理解路径输入侧用 SigLIP 特征，生成路径输入和输出侧都用 VQ token。
 - Trace the data-mix scaling that makes Janus-Pro succeed where Janus did not.
+  > 追溯让 Janus-Pro 成功而 Janus 失败的数据混合扩展。
 - Compare decoupled (Janus-Pro), coupled-continuous (Transfusion), and coupled-discrete (Show-o) architectures.
+  > 比较解耦（Janus-Pro）、耦合连续（Transfusion）、耦合离散（Show-o）三种架构。
 
 ## The Problem  | 问题背景
 
