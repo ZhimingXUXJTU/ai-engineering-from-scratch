@@ -7,8 +7,8 @@
 > **【拓展】** iii 原语（registerTrigger、registerFunction、state::set/get）是本课的核心抽象。每个认证端点和后台作业都是 iii 原语——HTTP 触发器返回函数输出，JWKS 轮换是 cron 触发器写入 state，JWT 验证是通过 iii.trigger 调用的函数。重启引擎后触发器注册表重建、state 存活，认证面无需手工恢复。
 
 **Type:** Build | **类型:** 构建
-**Languages:** Python (stdlib, iii primitives mocked for the lesson environment) | **语言:** Python (stdlib, iii primitives mocked for the lesson environment)
-**Prerequisites:** Phase 13 · 16 (OAuth 2.1 state machine), Phase 13 · 17 (gateways) | **前置知识:** Phase 13 · 16 (OAuth 2.1 state machine), Phase 13 · 17 (gateways)
+**Languages:** Python (stdlib, iii primitives mocked for the lesson environment) | **语言:** Python（标准库，iii 原语为本课环境模拟）
+**Prerequisites:** Phase 13 · 16 (OAuth 2.1 state machine), Phase 13 · 17 (gateways) | **前置知识:** Phase 13 · 16（OAuth 2.1 状态机）、Phase 13 · 17（网关）
 **Time:** ~90 minutes | **时间:** ~90 分钟
 
 ## Learning Objectives | 学习目标
