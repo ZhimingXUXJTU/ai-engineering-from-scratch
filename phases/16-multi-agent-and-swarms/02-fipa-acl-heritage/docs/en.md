@@ -59,6 +59,10 @@ The full list is in `fipa00037.pdf` (FIPA ACL Message Structure). The point is n
 
 > 完整列表在 `fipa00037.pdf`（FIPA ACL 消息结构）中。重点不在于记忆——而在于每一个都对应着一个 LLM 协议最终会重新添加的原语。
 
+Modern JSON-based protocols keep reinventing performatives under different names: "request" becomes "tool call", "subscribe" becomes "SSE stream", "cfp" becomes "open auction". The grammar of agent communication is small and stable; only the syntax churns.
+
+> 现代基于 JSON 的协议在不同名称下不断重新发明言语行为："request"变成"工具调用"、"subscribe"变成"SSE 流"、"cfp"变成"开放拍卖"。Agent 通信的语法小而稳定；只有语法在变化。
+
 ### Canonical FIPA-ACL message
 
 ```
@@ -77,6 +81,10 @@ The full list is in `fipa00037.pdf` (FIPA ACL Message Structure). The point is n
 Seven fields carry the protocol envelope; one field (`content`) carries the payload. The rest of the fields are exactly what you reinvent every time you bolt retries, threading, and ontology onto a JSON protocol.
 
 > 七个字段承载协议信封；一个字段（`content`）承载有效载荷。其余字段正是你每次将重试、线程和本体加到 JSON 协议上时重新发明的。
+
+Note `conversation-id` and `reply-with`: these are the request-response correlation primitives that modern async systems keep rediscovering. Without them, you cannot thread a multi-turn exchange.
+
+> 注意 `conversation-id` 和 `reply-with`：这些是现代异步系统不断重新发现的请求-响应关联原语。没有它们，你无法线程化多轮交换。
 
 ### The two legacy platforms
 
@@ -174,6 +182,10 @@ Each maps cleanly onto modern message queues, HTTP + polling, or SSE streaming.
 
 > 每个都可以清晰地映射到现代消息队列、HTTP + 轮询或 SSE 流。
 
+CNP is the protocol behind every "task marketplace" — Upwork, Fiverr, odesk-style bidding. A2A's negotiation patterns and LangGraph's evaluator-optimizer loops both reduce to CNP with different transport.
+
+> CNP 是每个"任务市场"背后的协议——Upwork、Fiverr、odesk 风格的投标。A2A 的协商模式和 LangGraph 的评估器-优化器循环都简化为不同传输的 CNP。
+
 ### What breaks when you drop the ontology
 
 Without a shared ontology, agents infer meaning from natural-language content. The documented 2026 failure mode is **semantic drift**: two agents use the same word (`"customer"`) for subtly different concepts, the receiver's agent acts on the wrong interpretation, no schema validator catches it. FIPA's ontology requirement would have rejected the message at parse time.
@@ -214,6 +226,10 @@ Mitigations without going full ontology:
 Reading the table top to bottom, the pattern is: keep the structural primitive, drop the formalism, let LLMs paper over the ambiguity.
 
 > 从上到下阅读表格，模式是：保留结构原语，丢弃形式主义，让 LLM 弥补模糊性。
+
+This is a clear trade: the formal semantics let you prove things about messages, but required expensive shared ontologies. JSON + LLMs give you cheap interop but lose the proofs. For most production use, cheap interop wins.
+
+> 这是一个明确的权衡：形式语义让你能对消息进行证明，但需要昂贵的共享本体。JSON + LLM 提供廉价的互操作性但失去了证明。对于大多数生产用途，廉价互操作性胜出。
 
 ## Build It | 动手实现
 

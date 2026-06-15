@@ -17,13 +17,25 @@ Research is the prototypical task that single-agent systems fail. You ask "what 
 
 > 研究是单 Agent 系统失败的典型任务。你问"2023 到 2026 年间多 Agent 系统发生了什么变化？"单个 Agent 顺序阅读五篇论文，用它们的文本填满一半上下文，然后必须对它们一起推理。到它读到第五篇时已经忘了第一篇。它无法并行化。
 
+The single-agent failure is structural, not fixable with better prompts. No matter how good the system prompt is, the context window fills up. The information needed for synthesis (all five papers' key findings) physically does not fit alongside the raw text of the papers.
+
+> 单 Agent 失败是结构性的，无法用更好的提示修复。无论系统提示多好，上下文窗口都会填满。综合所需的信息（所有五篇论文的关键发现）物理上无法与论文原始文本并存。
+
 The supervisor pattern fixes this: one lead agent plans the search, delegates each sub-question to a worker, and synthesizes. Each worker gets its own 200k-token window for a narrow question. The lead never sees the raw papers — only the worker summaries.
 
 > 监督者模式修复了这个问题：一个主导 Agent 规划搜索，将每个子问题委派给一个工作器，然后综合。每个工作器获得自己的 200k token 窗口用于一个狭窄的问题。主导者永远不看到原始论文——只看到工作器摘要。
 
+The information flow is the design: raw data stays in worker contexts; only compressed findings reach the lead. The lead's context is dedicated to synthesis, not data loading. This is the architectural win — separation of data-heavy work from synthesis-heavy work.
+
+> 信息流是设计：原始数据留在工作器上下文中；只有压缩的发现到达主导者。主导者的上下文专注于综合，而不是数据加载。这是架构胜利——数据密集工作与综合密集工作的分离。
+
 Anthropic's production Research system reports +90.2% on internal research evals vs a single Opus 4. The same post notes that 80% of the BrowseComp variance is explained by *token usage alone*. Fresh context per subagent is the main mechanism.
 
 > Anthropic 的生产研究系统报告在内部研究评估上比单个 Opus 4 提升 +90.2%。同一篇文章指出 BrowseComp 方差的 80% 仅由 *token 使用量* 解释。每个子 Agent 的清新上下文是主要机制。
+
+The 80% number is the headline finding: model choice, prompt engineering, and tooling together explain only 20% of the variance. If you want better research-agent performance, spend more tokens (more subagents, larger contexts) before tweaking prompts. Cost, not cleverness, is the lever.
+
+> 80% 这个数字是标题发现：模型选择、提示工程和工具加起来只解释 20% 的方差。如果你想要更好的研究 Agent 性能，在调整提示之前花更多 token（更多子 Agent、更大上下文）。成本，不是聪明，是杠杆。
 
 ## Concept | 核心概念
 
@@ -48,6 +60,10 @@ Anthropic's production Research system reports +90.2% on internal research evals
 The lead never reads the raw materials. The workers never see each other's work until the lead synthesizes. Each arrow is a handoff with a narrow artifact.
 
 > 主导者永远不读取原始材料。工作器在主导者综合之前永远不看到彼此的工作。每个箭头是一个带有狭窄工件的交接。
+
+This information isolation is the core design choice. The lead's context window stays focused on planning and synthesis — never polluted by 200k tokens of raw search results. Workers each get a clean 200k budget for their narrow question.
+
+> 这种信息隔离是核心设计选择。主导者的上下文窗口保持专注于规划和综合——永远不被 200k token 的原始搜索结果污染。工作器每个都获得针对其狭窄问题的干净 200k 预算。
 
 ### Why it wins
 
@@ -82,6 +98,10 @@ The Anthropic post lists several production lessons that are still 2026-relevant
 LangGraph originally shipped a `langgraph-supervisor` library with a high-level `create_supervisor` helper. In 2025 LangChain moved the recommendation to implementing the supervisor pattern via tool-calling directly, because tool calls give more control over *what the supervisor sees* (context engineering). The library still works; the docs now recommend the tool-calling form.
 
 > LangGraph 最初发布了一个带有高级 `create_supervisor` 助手的 `langgraph-supervisor` 库。2025 年 LangChain 将建议改为通过工具调用直接实现监督者模式，因为工具调用对*监督者看到什么*（上下文工程）提供更多控制。库仍然有效；文档现在推荐工具调用形式。
+
+The shift reflects a 2025-2026 insight: context engineering matters more than orchestration engineering. What the supervisor sees determines what it can plan. Passing raw worker context kills the lead's planning ability; passing narrow summaries preserves it.
+
+> 这种转变反映了 2025-2026 年的洞察：上下文工程比编排工程更重要。监督者看到什么决定了它能规划什么。传递原始工作器上下文杀死主导者的规划能力；传递狭窄摘要保留它。
 
 ### The failure modes
 

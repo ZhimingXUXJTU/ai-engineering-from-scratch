@@ -18,9 +18,17 @@ Once the supervisor pattern clicks, the natural next step is "what if the worker
 
 > 一旦监督者模式理解了，自然的下一步是"如果工作器本身也是监督者呢？"团队有子团队；公司有部门的部门。分层架构反映了这一点。
 
+The temptation is strong because human organizations work this way. But LLM hierarchies inherit all the pathologies of human hierarchies (information loss, miscommunication, slow iteration) without the stabilizing effects of human relationships and shared culture.
+
+> 诱惑很强，因为人类组织这样工作。但 LLM 层级继承了人类层级的所有病态（信息丢失、错误沟通、缓慢迭代），却没有人类关系和共享文化的稳定效应。
+
 The issue: LLM managers are not the same as human managers. A human manager has stable priors about what their reports know. An LLM manager re-reasons the org every turn from whatever is in its context. Tiny drift in that context, and the whole tree misallocates work.
 
 > 问题在于：LLM 管理者与人类管理者不同。人类管理者对其下属知道什么有稳定的先验。LLM 管理者每轮从其上下文中的内容重新推理组织。上下文中的微小漂移，整个树就会错误分配工作。
+
+This is the core failure mode of hierarchical LLM systems: every manager level amplifies the previous level's errors. A 5% misallocation at the top becomes 25% by level 3, because each level reinterprets the (already-wrong) delegation.
+
+> 这是分层 LLM 系统的核心失败模式：每个管理者层级放大上一层的错误。顶部 5% 的错误分配到第 3 层变成 25%，因为每层重新解释（已经错误的）委派。
 
 ## Concept | 核心概念
 
@@ -44,6 +52,10 @@ Every internal node plans, delegates, and synthesizes. Only leaves do work.
 
 > 每个内部节点规划、委派和综合。只有叶子节点做实际工作。
 
+This mirrors a human org chart, which is both its strength (familiar mental model) and weakness (human orgs have stable priors that LLMs lack). Each LLM level re-reasons the org from scratch every turn.
+
+> 这映射了人类组织架构，这既是其优势（熟悉的心智模型）也是其弱点（人类组织有 LLM 缺乏的稳定先验）。每个 LLM 层级每轮从头重新推理组织。
+
 ### Where it shines
 
 - **Clear org mapping.** If the real task is departmental ("legal review the doc, finance review the doc, engineering review the doc, then summarize for exec"), the hierarchy is explicit.
@@ -56,6 +68,10 @@ Every internal node plans, delegates, and synthesizes. Only leaves do work.
 Three failure modes the 2026 post-mortems keep finding:
 
 > 2026 年事后分析不断发现的三种失败模式：
+
+Cemri et al. (MAST, arXiv:2503.13657) document these as "specification failure" and "interpersonal misalignment" sub-families. Hierarchical systems exhibit them more than flat ones because each level adds a reinterpretation step.
+
+> Cemri 等人（MAST，arXiv:2503.13657）将这些记录为"规范失败"和"人际不对齐"子家族。分层系统比扁平系统更容易出现这些问题，因为每层添加重新解释步骤。
 
 1. **Task assignment error.** The manager reads the goal, hallucinates a decomposition, and delegates to the wrong sub-manager. Because the sub-manager obediently works on what it was given, the error only surfaces at the top synthesis — one level removed from where a human could have caught it.
    中文翻译：**任务分配错误。** 管理者读取目标，幻觉出分解，并委派给错误的子管理者。因为子管理者服从地处理给定的任务，错误只在顶层综合时浮现——比人类本可以捕获的位置高了一层。
@@ -70,11 +86,19 @@ Sequential (linear pipeline) vs hierarchical: does your task actually have indep
 
 > 顺序（线性流水线）vs 分层：你的任务真的有独立的子团队，还是一个伪装成树的线性流程？如果是后者，使用顺序。如果是前者，使用分层但要预算明确的协调规则。
 
+This is the test most teams skip. They reach for hierarchical because it sounds sophisticated, then spend weeks debugging decomposition drift. Sequential pipelines finish faster, debug easier, and rarely "lose the plot."
+
+> 这是大多数团队跳过的测试。他们因为听起来高级而选择分层，然后花几周调试分解漂移。顺序流水线完成更快、调试更容易、很少"偏离主题"。
+
 ### CrewAI's implementation
 
 `Process.hierarchical` wires a manager LLM over specialist crews. The manager:
 
 > `Process.hierarchical` 在专家团队上连接一个管理者 LLM。管理者：
+
+The manager LLM is itself a full agent with its own context, prompt, and tools. It is not a deterministic dispatcher — it makes judgement calls about delegation, which means it can make wrong judgement calls. This is the source of the task-assignment failure mode.
+
+> 管理者 LLM 本身是一个带自己上下文、提示和工具的完整 Agent。它不是确定性调度器——它对委派做出判断调用，这意味着它可以做出错误判断调用。这是任务分配失败模式的来源。
 
 - receives the top-level task,
   中文翻译：接收顶层任务，
@@ -94,6 +118,10 @@ Documentation: https://docs.crewai.com/en/introduction (look for "Hierarchical P
 LangGraph uses nested `create_supervisor` calls. The inner supervisor has its own graph; the outer supervisor treats the inner graph as an opaque node. This is cleaner than CrewAI for debugging (you can step through each graph separately) but harder to express dynamic reshaping of the tree.
 
 > LangGraph 使用嵌套的 `create_supervisor` 调用。内部监督者有自己的图；外部监督者将内部图视为不透明节点。这在调试方面比 CrewAI 更清晰（你可以分别步进每个图），但更难表达树的动态重塑。
+
+The debugging win is real: when something goes wrong in a 3-level LangGraph hierarchy, you can isolate which level failed by stepping through each graph independently. In CrewAI, the manager LLM is one opaque call that may have delegated wrong.
+
+> 调试优势真实：当 3 层 LangGraph 层级出错时，你可以通过独立步进每个图来隔离哪个层级失败了。在 CrewAI 中，管理者 LLM 是一个可能委派错误的不透明调用。
 
 Reference: https://reference.langchain.com/python/langgraph-supervisor.
 
@@ -115,6 +143,10 @@ Reference: https://reference.langchain.com/python/langgraph-supervisor.
 Demo contrasts happy path (everyone agrees) against a **perturbed path** where the top manager's decomposition mislabels "legal" as "finance" and watches the error cascade — the sub-manager obediently does finance work, the top synthesizer reports finance findings, the original legal question goes unanswered.
 
 > 演示对比了正常路径（所有人一致）与**扰动路径**，其中顶层管理者的分解将"法务"错误标记为"财务"并观察错误级联——子管理者服从地做财务工作，顶层综合者报告财务发现，原始的法务问题没有得到回答。
+
+The perturbed path is the warning: hierarchical systems amplify errors silently. The sub-manager does not push back ("you said finance, but the task said legal"). It assumes the manager knows better. By the time anyone notices, the original intent is lost.
+
+> 扰动路径是警告：分层系统静默放大错误。子管理者不反驳（"你说的财务，但任务说的法务"）。它假设管理者更了解。当任何人注意到时，原始意图已丢失。
 
 Run:
 

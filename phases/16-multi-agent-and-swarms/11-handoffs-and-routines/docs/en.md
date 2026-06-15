@@ -18,9 +18,17 @@ Every multi-agent framework wants you to learn its DSL: LangGraph nodes and edge
 
 > 每个多 Agent 框架都想让你学习它的 DSL：LangGraph 的节点和边、CrewAI 的团队和任务、AutoGen 的 GroupChat 和管理者。DSL 是真正的抽象，但它们让事情感觉比实际需要的更重。
 
+DSL lock-in is the multi-agent framework tax. Each DSL has its own concepts, its own debugging tools, its own community. Once you commit, migration is expensive. Swarm's bet: skip the DSL entirely, use the model's existing tool-calling.
+
+> DSL 锁定是多 Agent 框架税。每个 DSL 有自己的概念、自己的调试工具、自己的社区。一旦你承诺，迁移昂贵。Swarm 的赌注：完全跳过 DSL，使用模型现有的工具调用。
+
 Swarm pushes in the opposite direction: use the tool-calling capability the model already has. Handoffs become tool calls. The orchestrator is whichever agent currently holds the conversation. The state machine is implicit in the agents' system prompts.
 
-> Swarm 推向相反的方向：使用模型已有的工具调用能力。交接变成工具调用。编排器就是当前持有对话的 Agent。状态机隐含在 Agent 的系统提示中。
+> Swarm 推向相反的方向：使用模型已有的工具调用能力。交接变成工具调用。编排器就是当前持有对话的 Agent。状态机隐含在 Agent 的系统提示中.
+
+The insight is profound: you do not need an orchestration DSL because LLMs are already orchestrators. Every LLM call decides what to do next based on context. Handoffs just expose that decision as a tool the model can call.
+
+> 洞察深刻：你不需要编排 DSL，因为 LLM 已经是编排器。每次 LLM 调用根据上下文决定下一步做什么。交接只是将该决策暴露为模型可以调用的工具。
 
 ## Concept | 核心概念
 
@@ -53,6 +61,10 @@ The triage agent's system prompt makes it choose the right handoff based on the 
 
 > 分诊 Agent 的系统提示使其根据用户消息选择正确的交接。LLM 的工具调用完成路由。
 
+This is the elegant move: reuse the model's existing tool-calling infrastructure for orchestration. No new DSL, no graph editor, no state machine. The model already knows how to pick the right tool; handoffs are just tools that return agents.
+
+> 这是优雅的举措：复用模型现有的工具调用基础设施进行编排。没有新 DSL、没有图编辑器、没有状态机。模型已经知道如何选择正确的工具；交接只是返回 Agent 的工具。
+
 ### Why it is viral
 
 - **Small API.** Two concepts to learn.
@@ -67,6 +79,10 @@ The triage agent's system prompt makes it choose the right handoff based on the 
 Swarm is explicitly stateless between runs. The framework keeps a message history during a run, but it does not persist anything. Memory, continuity, long-running tasks — all the caller's problem.
 
 > Swarm 在运行之间明确是无状态的。框架在运行期间保持消息历史，但不持久化任何东西。内存、连续性、长时间运行的任务——都是调用者的问题。
+
+The stateless design is intentional: it makes the framework trivially restartable, horizontally scalable, and debuggable (every run is independent). The cost is that long-running workflows require external state management (databases, queues, checkpoints).
+
+> 无状态设计是有意的：它使框架可轻松重启、水平扩展和可调试（每次运行独立）。代价是长时间运行的工作流需要外部状态管理（数据库、队列、检查点）。
 
 In production (OpenAI Agents SDK, March 2025) this was one of the main things that changed: the SDK adds built-in session management, guardrails, and tracing while keeping the handoff primitive.
 
@@ -109,6 +125,10 @@ The handoff primitive survives; production ergonomics get added around it.
 
 > 交接原语存活下来；生产人体工程学围绕它添加。
 
+This is the standard progression for viral abstractions: simple primitive ships first (Swarm), production concerns layer on top (Agents SDK). The primitive stays stable; the wrappers grow. Bet on the primitive.
+
+> 这是病毒式抽象的标准进展：先发布简单原语（Swarm），生产关注点在其上层叠（Agents SDK）。原语保持稳定；包装器增长。押注原语。
+
 ### Swarm vs GroupChat
 
 Both use LLM-driven routing, but they differ on **who picks next**:
@@ -123,6 +143,10 @@ Both use LLM-driven routing, but they differ on **who picks next**:
 Swarm is "agent decides what's next"; GroupChat is "manager decides what's next." Swarm's decision lives in the active agent's tool call; GroupChat's lives in the `GroupChatManager`.
 
 > Swarm 是"Agent 决定下一步"；GroupChat 是"管理者决定下一步"。Swarm 的决策存在于活动 Agent 的工具调用中；GroupChat 的存在于 `GroupChatManager` 中。
+
+Practical implication: Swarm is easier to debug (follow the active agent's tool calls) but harder to constrain (any agent can hand off anywhere). GroupChat is the opposite: easy to constrain (the selector function is one place to add rules), harder to debug (the selector's logic may be opaque).
+
+> 实际影响：Swarm 更容易调试（跟踪活动 Agent 的工具调用）但更难约束（任何 Agent 可以交接任何地方）。GroupChat 相反：容易约束（选择器函数是添加规则的一个地方），更难调试（选择器的逻辑可能不透明）。
 
 ## Build It | 动手实现
 

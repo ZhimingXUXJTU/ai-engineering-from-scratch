@@ -18,9 +18,17 @@ Multi-agent systems need a place for agents to share facts. A literal option is 
 
 > 多 Agent 系统需要一个地方让 Agent 共享事实。一个字面选项是"在消息中传递所有东西"——但这等于重新发明带额外复制的共享状态。另一个是"给每个人一个全局日志"——但全局日志无限增长且容易被污染。第三个是"为每个 Agent 投射一个视图"——可扩展但需要大量模式设计。
 
+The three options trace a classic distributed-systems tradeoff: cheap-but-fragile (messages), simple-but-unscalable (global log), scalable-but-rigid (per-agent projections). No option dominates. Real systems mix: a small global pool for planning, projected views for workers.
+
+> 三个选项追溯经典分布式系统权衡：廉价但脆弱（消息）、简单但不可扩展（全局日志）、可扩展但僵化（每 Agent 投影）。没有选项占主导。真实系统混合：用于规划的小全局池、用于工作器的投影视图。
+
 When one of the agents hallucinates and writes the hallucination to shared state, every downstream agent that reads that state adopts the hallucination as fact. By the time the human notices, the reasoning chain is five steps deep and the root cause is the third message ever written. Debugging multi-agent accuracy decay is harder than debugging a crash.
 
 > 当其中一个 Agent 幻觉并将幻觉写入共享状态时，每个读取该状态的下游 Agent 都会将幻觉作为事实采纳。当人类注意到时，推理链已经有五步深，而根本原因是第三条消息。调试多 Agent 准确性衰减比调试崩溃更难。
+
+A crash gives you a stack trace. Memory poisoning gives you a confidently wrong report. The first is detectable in seconds; the second may take days of forensic work to trace back to the originating hallucination.
+
+> 崩溃给你堆栈跟踪。内存污染给你自信错误的报告。第一个几秒钟可检测；第二个可能需要几天的取证工作才能追溯到原始幻觉。
 
 This is memory poisoning. It is the second-most-documented failure family in the MAST taxonomy (Cemri et al., arXiv:2503.13657) and it is structural: any shared-memory design without provenance and an unwritable verifier will exhibit it eventually.
 
@@ -49,6 +57,10 @@ Production systems often mix: a small full pool at the top (planning layer), bla
 
 > 生产系统通常混合使用：顶部一个小的完整池（规划层），下面是黑板（工作器层）。
 
+This hybrid is what Anthropic's Research system does: a supervisor (full pool among a few lead agents) delegates to subagents (each its own scoped context, isolated from siblings). The top needs full transparency for synthesis; the workers need isolation for focus.
+
+> 这种混合是 Anthropic 研究系统所做的：监督者（少数主导 Agent 之间的完整池）委派给子 Agent（每个有自己的范围上下文，与同级隔离）。顶部需要完全透明以进行综合；工作器需要隔离以专注。
+
 ### Memory poisoning, in one scenario
 
 Three agents work on a research task. Agent A is a retrieval agent. Agent B is a summarizer. Agent C is an analyst.
@@ -70,6 +82,10 @@ No agent crashed. No test failed. The system "worked." The hallucination crossed
 
 > 没有 Agent 崩溃。没有测试失败。系统"工作"了。幻觉通过共享状态从一个 Agent 的上下文进入了每个下游 Agent 的推理。
 
+This is why memory poisoning is insidious: there is no crash, no error, no warning. The system produces a confidently wrong report. The only way to detect it is to re-derive each fact from primary sources — which defeats the point of having agents.
+
+> 这就是为什么内存污染阴险：没有崩溃、没有错误、没有警告。系统产生自信错误的报告。检测它的唯一方法是从原始来源重新推导每个事实——这违背了拥有 Agent 的意义。
+
 ### Why this is structural
 
 Without shared state, agent A's hallucination stays in A's context. Downstream agents would re-fetch or re-derive and might catch the error. With naive shared state, A's context becomes everyone's context, and the hallucination is laundered into fact.
@@ -79,6 +95,10 @@ Without shared state, agent A's hallucination stays in A's context. Downstream a
 The problem is not shared state per se — it is shared state **without provenance and without an independent verifier**. Three mitigations address this:
 
 > 问题不是共享状态本身——而是**没有来源追溯和没有独立验证器**的共享状态。三种缓解措施解决这个问题：
+
+Each mitigation targets a different failure mode. Provenance lets you trace errors back. Versioning preserves the audit trail. The unwritable verifier provides an independent check. Together, they form defense in depth against poisoning.
+
+> 每种缓解措施针对不同失败模式。来源追溯让你追溯错误。版本控制保留审计跟踪。不可写验证器提供独立检查。它们共同形成针对污染的纵深防御。
 
 1. **Attribute provenance on every write.** Every entry in shared state records who wrote it, when, under what prompt, and (if applicable) what source the agent cited. Downstream agents read with skepticism keyed to provenance.
    中文翻译：**每次写入时归属来源。** 共享状态中的每个条目记录谁写的、何时、在什么提示下、以及（如果适用）Agent 引用了什么来源。下游 Agent 根据来源以怀疑态度阅读。
@@ -92,6 +112,10 @@ The problem is not shared state per se — it is shared state **without provenan
 The blackboard pattern predates LLM agents by four decades. Hayes-Roth (1985, "A Blackboard Architecture for Control") described specialist Knowledge Sources that observe a global blackboard, contribute partial solutions, and trigger other sources. The 2026 blackboard (CA-MCP, Matrix) is the same pattern with LLM agents as Knowledge Sources and JSON blobs as partial solutions. The old literature has documented solutions to write contention, opportunistic control, and consistency that modern systems rediscover.
 
 > 黑板模式比 LLM Agent 早了四十年。Hayes-Roth（1985，"A Blackboard Architecture for Control"）描述了观察全局黑板、贡献部分解决方案并触发其他来源的专业知识源。2026 年的黑板（CA-MCP、Matrix）是相同的模式，只是以 LLM Agent 作为知识源、以 JSON blob 作为部分解决方案。旧文献中记录的写冲突、机会控制和一致性解决方案正被现代系统重新发现。
+
+The lesson from Hearsay-II (the 1970s speech recognition blackboard): opportunistic control — letting any Knowledge Source trigger when its trigger condition matches — produces emergent problem-solving. Modern agent systems that hard-code workflow graphs lose this. The blackboard's flexibility is its core innovation.
+
+> Hearsay-II（1970 年代语音识别黑板）的教训：机会控制——让任何知识源在其触发条件匹配时触发——产生涌现问题解决。硬编码工作流图的现代 Agent 系统失去了这一点。黑板的灵活性是其核心创新。
 
 ### Projection vs full view
 
@@ -118,7 +142,11 @@ Multiple agents writing simultaneously is a concurrency problem, not just an LLM
 
 Most 2026 frameworks default to sequential writer because LLM calls are slow enough that contention is rare and the bottleneck does not hurt.
 
-> 大多数 2026 框架默认使用顺序写入者，因为 LLM 调用足够慢，冲突很少，瓶颈不影响。
+> 大多数 2026 框架默认使用顺序写入者，因为 LLM 调用足够慢，冲突很少，瓶颈不影响.
+
+When you do hit contention (high-throughput swarm, parallel research agents writing findings), topic partitioning is usually the cheapest fix. Give each agent its own topic; merges happen at synthesis time.
+
+> 当你确实遇到冲突（高吞吐量群体、并行研究 Agent 写入发现）时，主题分区通常是最廉价的修复。给每个 Agent 自己的主题；合并在综合时发生。
 
 ### The unwritable verifier
 
@@ -138,6 +166,10 @@ The most load-bearing mitigation is the read-only verifier. Implementation rules
 Without this separation, the verifier's outputs become new entries in the pool, which means a poisoned pool poisons the verifier, which poisons its verifications.
 
 > 没有这种分离，验证者的输出变成池中的新条目，这意味着被污染的池污染了验证者，进而污染了它的验证。
+
+This is the unwritable-verifier principle: the auditor must be read-only with respect to the system being audited. Compromise the auditor and you compromise the audit. The principle applies to any verification role — keep its outputs separate from the system it checks.
+
+> 这是不可写验证者原则：审计者必须对被审计系统只读。攻陷审计者就攻陷了审计。该原则适用于任何验证角色——保持其输出与它检查的系统分离。
 
 ## Build It | 动手实现
 

@@ -18,9 +18,17 @@ Supervisor scales to a few workers. What about hundreds? The supervisor itself b
 
 > 监督者可以扩展到几个工作器。那几百个呢？监督者本身成为瓶颈：每个关于谁做什么的决定都通过一个 Agent。一个缓慢的计划步骤会停滞整个系统。
 
+The supervisor is itself an LLM call. At hundreds of workers, the supervisor makes hundreds of LLM calls just to dispatch. Each call is seconds; the dispatch overhead dominates. Swarm removes the supervisor entirely.
+
+> 监督者本身是 LLM 调用。在数百个工作器时，监督者仅调度就进行数百次 LLM 调用。每次调用几秒钟；调度开销占主导。群体完全移除监督者。
+
 Swarm architectures flip the design. Instead of a central planner dispatching work, workers pick work off a shared queue. The "coordination" is baked into the event bus semantics. No orchestrator; the system scales until the queue does.
 
 > 群体架构翻转了设计。不是中央规划者分发工作，而是工作器从共享队列中获取工作。"协调"被嵌入事件总线语义中。没有编排器；系统扩展直到队列成为瓶颈。
+
+The architectural inversion is significant: the bottleneck moves from "the LLM that decides what to do" to "the message broker that routes work." LLMs are slow and expensive; message brokers are fast and cheap. Swarm trades LLM bottleneck for broker bottleneck — almost always a win.
+
+> 架构反转重大：瓶颈从"决定做什么的 LLM"转移到"路由工作的消息代理"。LLM 慢且昂贵；消息代理快且便宜。群体用代理瓶颈换 LLM 瓶颈——几乎总是赢。
 
 ## Concept | 核心概念
 
@@ -43,6 +51,10 @@ Swarm architectures flip the design. Instead of a central planner dispatching wo
 No orchestrator. Each worker repeats: pull a task, process, write result (and optionally enqueue follow-ups).
 
 > 没有编排器。每个工作器重复：拉取任务、处理、写入结果（并可选地入队后续任务）。
+
+The lack of a central decider is the defining feature. Workers do not wait for instructions; they self-organize around the queue. This is the actor model applied to LLMs — each worker is an independent actor reacting to messages.
+
+> 缺乏中央决策者是定义特征。工作器不等待指令；它们围绕队列自组织。这是应用于 LLM 的 actor 模型——每个工作器是响应消息的独立 actor。
 
 ### When swarm fits
 
@@ -68,6 +80,10 @@ Matrix is the 2025 paper that takes swarm to its natural conclusion: both contro
 
 > Matrix 是 2025 年将群体推向自然结论的论文：控制流和数据流都是分布式队列上的序列化消息。没有中央协调器。容错来自消息持久性。可扩展性是消息代理的问题，而不是系统的。
 
+By making the broker (Kafka, Redis Streams, NATS) the scaling bottleneck, Matrix sidesteps the LLM-as-orchestrator bottleneck entirely. The system can scale to thousands of agents if the broker can; the LLMs are pure workers, never coordinators.
+
+> 通过使代理（Kafka、Redis Streams、NATS）成为扩展瓶颈，Matrix 完全避开了 LLM 作为编排器的瓶颈。如果代理可以，系统可以扩展到数千个 Agent；LLM 是纯工作器，永远不是协调器。
+
 Contribution: a programming model where multi-agent coordination is "what message topic does this agent subscribe to?" rather than "which agent does the supervisor pick next?" This makes the system look like a pub/sub event mesh.
 
 > 贡献：一个编程模型，多 Agent 协调是"这个 Agent 订阅什么消息主题？"而不是"监督者下一个选择哪个 Agent？"这使系统看起来像一个发布/订阅事件网格。
@@ -78,11 +94,19 @@ LangGraph 2025 docs explicitly describe "Swarm Architecture" as one of the multi
 
 > LangGraph 2025 文档明确将"群体架构"描述为多 Agent 模式之一：Agent 是节点，但边形成有环的有向图，任何节点都可以从池中激活。工作器按条件从可用工作中选择，而不是按监督者分配。
 
+LangGraph's contribution: the same graph-based mental model now supports swarm dynamics. Nodes that activated based on conditions rather than fixed edges. This bridges the static-graph and pure-swarm worlds.
+
+> LangGraph 的贡献：相同的基于图的心智模型现在支持群体动态。基于条件而非固定边激活的节点。这桥接了静态图和纯群体世界。
+
 ### Failure mode: starvation and hot-spotting
 
 If all workers pull the fastest-available task, long-running tasks never get picked until they are the only ones left. Classic queue starvation.
 
 > 如果所有工作器都拉取最快可用的任务，长时间运行的任务永远不会被选中，直到它们成为唯一剩下的。经典的队列饥饿。
+
+Starvation is the swarm's signature failure mode. Without explicit aging (priority increases with wait time) or specialized long-task workers, a 10-second task waits forever behind a stream of 100ms tasks. Production swarms must engineer around this.
+
+> 饥饿是群体的标志性失败模式。没有显式老化（优先级随等待时间增加）或专业化长任务工作器，10 秒任务永远在 100ms 任务流后等待。生产群体必须围绕此工程设计。
 
 Mitigations:
 - Priority queues with explicit aging (increase priority with wait time).
@@ -98,11 +122,19 @@ Swarm pairs naturally with content-based routing (Lesson 22). Instead of a gener
 
 > 群体与基于内容的路由（Lesson 22）自然配对。不是通用队列，而是每种消息类型一个队列。专业化工作器只订阅其类型。这是扩展到数千个 Agent 的消息总线架构的基础。
 
+Content-based routing plus swarm gives you the pub/sub event mesh: a substrate where any agent can publish any message type, and only interested agents receive it. This is the foundation of Matrix, CA-MCP, and most 2026 production multi-agent systems.
+
+> 基于内容的路由加群体给你发布/订阅事件网格：一个任何 Agent 可以发布任何消息类型且只有感兴趣的 Agent 接收它的底层。这是 Matrix、CA-MCP 和大多数 2026 年生产多 Agent 系统的基础。
+
 ## Build It | 动手实现
 
 `code/main.py` implements a swarm of 4 worker threads pulling from a shared `queue.Queue`. Tasks have variable durations (some fast, some slow). The demo contrasts:
 
 > `code/main.py` 实现了 4 个从共享 `queue.Queue` 拉取的工作线程。任务有可变持续时间（一些快，一些慢）。演示对比：
+
+The three-way comparison is the educational value: same tasks, same workers, only the dispatch strategy changes. Sequential = slow. Fixed = wasteful. Swarm = optimal. The wall-clock numbers make the case empirically.
+
+> 三方对比是教育价值：相同任务、相同工作器，只有调度策略变化。顺序 = 慢。固定 = 浪费。群体 = 最优。挂钟时间数字经验性地证明了案例。
 
 - **Sequential baseline:** one worker processes all tasks serially.
   中文翻译：**顺序基线：** 一个工作器串行处理所有任务。
@@ -114,6 +146,10 @@ Swarm pairs naturally with content-based routing (Lesson 22). Instead of a gener
 Swarm balances load automatically; fixed assignment leaves fast workers idle when their assigned task is slow.
 
 > 群体自动平衡负载；固定分配在分配的任务慢时让快速工作器空闲。
+
+The "uneven but optimal" distribution is the swarm signature. A worker that finishes its task in 50ms pulls three more while a worker on a 2-second task is still on its first. The total wall-clock is bounded by the slowest single task, not the sum.
+
+> "不均匀但最优"分布是群体特征。50ms 完成任务的工作器在 2 秒任务的工作器仍在第一个任务上时拉取三个更多任务。总挂钟时间受最慢单任务限制，而不是总和。
 
 Output shows per-worker task counts (swarm distributes unevenly but optimally) and wall-clock times.
 

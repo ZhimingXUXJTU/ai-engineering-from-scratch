@@ -17,17 +17,31 @@ Your agent needs to call another agent on another system. How? You can expose an
 
 > 你的 Agent 需要调用另一个系统上的 Agent。怎么做？你可以暴露一个 HTTP 端点，定义一个定制 JSON 模式，并希望另一端能理解它。每对 Agent 都变成了一个定制集成。
 
+The N-squared integration problem: with N agents, you need N×(N-1)/2 custom integrations. With 10 agents, that's 45 integrations. With 100 agents, 4950. A2A collapses this to N Agent Cards, each describing one agent.
+
+> N 平方集成问题：N 个 Agent 需要 N×(N-1)/2 个定制集成。10 个 Agent 是 45 个集成。100 个 Agent 是 4950 个。A2A 将其压缩为 N 个 Agent 卡片，每个描述一个 Agent。
+
 A2A is the universal wire protocol for that call. Standard discovery, standard task model, standard transport, standard artifacts. Like HTTP+REST but for agents as first-class citizens.
 
 > A2A 是该调用的通用线协议。标准发现、标准任务模型、标准传输、标准工件。就像 HTTP+REST，但以 Agent 为一等公民。
+
+The key abstraction: agents are addressable, discoverable network endpoints. You do not "import" an agent; you "call" it. This decouples deployment — the agent runs wherever, in whatever language, using whatever framework, as long as it speaks A2A.
+
+> 关键抽象：Agent 是可寻址、可发现的网络端点。你不"导入"Agent；你"调用"它。这解耦了部署——Agent 运行在任何地方、使用任何语言、使用任何框架，只要它说 A2A。
 
 ## Concept | 核心概念
 
 ### The four elements
 
+> 四个元素
+
 **Agent Card.** A JSON document at `/.well-known/agent.json` describing the agent: name, skills, endpoints, supported modalities, auth requirements. Discovery happens by reading the card.
 
 > **Agent 卡片。** 位于 `/.well-known/agent.json` 的 JSON 文档，描述 Agent：名称、技能、端点、支持的模态、认证要求。通过读取卡片进行发现。
+
+The well-known URL convention mirrors web standards (`/.well-known/` is the same path used for `robots.txt`, ACME challenges, OIDC discovery). Any A2A-compatible agent can be discovered by fetching that URL. No registry, no broker, no central directory required.
+
+> 知名 URL 约定镜像 Web 标准（`/.well-known/` 是用于 `robots.txt`、ACME 挑战、OIDC 发现的相同路径）。任何 A2A 兼容 Agent 都可以通过获取该 URL 发现。不需要注册表、代理或中央目录。
 
 **Task.** The unit of work. An async, stateful object with a lifecycle: `submitted -> working -> completed / failed / canceled`. A client sends a task, polls or subscribes for updates.
 
@@ -41,6 +55,10 @@ A2A is the universal wire protocol for that call. Standard discovery, standard t
 
 > **不透明生命周期。** A2A 不规定远程 Agent *如何* 解决任务。客户端看到状态转换和工件；实现可以自由使用任何框架。
 
+This opacity is by design. A remote agent built on LangGraph, CrewAI, or a custom Python script all look identical to the A2A client. Interoperability comes from agreeing on the wire format, not the internals.
+
+> 这种不透明是设计如此。基于 LangGraph、CrewAI 或自定义 Python 脚本构建的远程 Agent 对 A2A 客户端看起来都相同。互操作性来自就线格式达成一致，而不是内部。
+
 ### The MCP/A2A split
 
 - **MCP** (Lesson 13): agent <-> tool. The agent reads/writes via JSON-RPC to a tool server. Stateless by default.
@@ -52,6 +70,10 @@ Production multi-agent systems use both. An A2A peer calls MCP tools on its side
 
 > 生产多 Agent 系统两者都用。A2A 对等端在其端调用 MCP 工具。这种分离保持了两个关注点的清晰。
 
+A common pattern: an A2A "research agent" at company A calls an MCP search-tool server internally, then returns its findings to an A2A "analyst agent" at company B. The cross-org communication is A2A; the internal tool use is MCP. Each protocol does what it is best at.
+
+> 常见模式：公司 A 的 A2A"研究 Agent"内部调用 MCP 搜索工具服务器，然后将发现返回给公司 B 的 A2A"分析师 Agent"。跨组织通信是 A2A；内部工具使用是 MCP。每个协议做它最擅长的事。
+
 Or with streaming: SSE subscription to `/tasks/{id}/events` for push updates.
 
 > 或者使用流式：SSE 订阅 `/tasks/{id}/events` 获取推送更新。
@@ -61,6 +83,10 @@ Or with streaming: SSE subscription to `/tasks/{id}/events` for push updates.
 A2A supports three common patterns:
 
 > A2A 支持三种常见模式：
+
+The three patterns cover the spectrum from "I trust my identity provider" (OAuth2 bearer) to "we mutually verify each other" (mTLS) to "we don't trust any third party" (HMAC signing). Pick the lightest one that meets your security requirements.
+
+> 三种模式涵盖从"我信任我的身份提供商"（OAuth2 bearer）到"我们互相验证彼此"（mTLS）到"我们不信任任何第三方"（HMAC 签名）的范围。选择满足你安全要求的最轻量级一个。
 
 - **Bearer token** — OAuth2 or opaque.
   中文翻译：**Bearer token** — OAuth2 或不透明令牌。
@@ -78,6 +104,10 @@ Auth is declared in the Agent Card; clients discover and comply.
 Enterprise adoption drove A2A scale. The headline: A2A became the way enterprise agent systems cross trust boundaries. Google Cloud shipped Vertex AI Agent Builder A2A support; Microsoft Agent Framework supports it; most major frameworks (LangGraph, CrewAI, AutoGen) ship A2A adapters.
 
 > 企业采用推动了 A2A 的规模化。标题：A2A 成为企业 Agent 系统跨越信任边界的方式。Google Cloud 提供了 Vertex AI Agent Builder A2A 支持；Microsoft Agent Framework 支持它；大多数主要框架（LangGraph、CrewAI、AutoGen）提供 A2A 适配器。
+
+The reason A2A won enterprise adoption where FIPA-ACL failed: A2A is JSON-native, rides existing web infrastructure (HTTP, SSE, OAuth), and does not require shared ontologies. FIPA's overhead was the killer; A2A learned the lesson.
+
+> A2A 在企业采用上获胜而 FIPA-ACL 失败的原因：A2A 是 JSON 原生的、利用现有 Web 基础设施（HTTP、SSE、OAuth）、不需要共享本体。FIPA 的开销是致命的；A2A 学到了教训。
 
 ### Where A2A wins
 
@@ -115,6 +145,10 @@ Several related specs emerged in 2024-2026:
 A2A is the most-adopted peer protocol as of April 2026. See arXiv:2505.02279 (Liu et al., "A Survey of Agent Interoperability Protocols") for the comparison.
 
 > 截至 2026 年 4 月，A2A 是采用最广泛的对等协议。参见 arXiv:2505.02279（Liu 等人，"Agent 互操作性协议综述"）进行比较。
+
+The 2026 protocol landscape has stabilized: A2A for agent collaboration, MCP for tools, ACP absorbed into A2A for trajectory logging, ANP for cross-org identity. NLIP remains niche. New proposals need to demonstrate a real gap to gain traction.
+
+> 2026 年协议格局已经稳定：A2A 用于 Agent 协作，MCP 用于工具，ACP 吸收到 A2A 用于轨迹日志，ANP 用于跨组织身份。NLIP 仍然小众。新提案需要展示真实差距才能获得关注。
 
 ## Build It | 动手实现
 

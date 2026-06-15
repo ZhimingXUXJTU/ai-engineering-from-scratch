@@ -82,6 +82,10 @@ They're not competitors. They solve different problems at different levels.
 
 > 它们不是竞争关系。它们在不同层次上解决不同的问题。
 
+A real production system uses multiple protocols together: MCP for tools inside your org, A2A for agent collaboration, ACP-style trajectory logging for compliance, ANP for cross-org identity. Picking one and forcing everything through it produces a worse system than mixing them by concern.
+
+> 真正的生产系统组合使用多个协议：MCP 用于组织内工具、A2A 用于 Agent 协作、ACP 风格的轨迹日志用于合规、ANP 用于跨组织身份。选择一个并强制一切通过它会产生比按关注点混合更糟糕的系统。
+
 ### MCP (Recap)
 
 MCP is covered in depth in Phase 13. Quick recap: MCP standardizes how an LLM connects to external tools and data sources. It's a **client-server** protocol where the agent (client) discovers and calls tools exposed by a server.
@@ -102,6 +106,10 @@ sequenceDiagram
 MCP is **agent-to-tool** communication. It doesn't help agents talk to each other.
 
 > MCP 是**Agent 到工具**的通信。它不能帮助 Agent 之间互相通信。
+
+The vertical/horizontal split is clean: MCP is the vertical wire (agent reaches down to tools/data); A2A is the horizontal wire (agent reaches across to peer agents). Production systems need both.
+
+> 垂直/水平分离清晰：MCP 是垂直线（Agent 向下到达工具/数据）；A2A 是水平线（Agent 横向到达对等 Agent）。生产系统需要两者。
 
 ### A2A (Agent2Agent Protocol)
 
@@ -215,6 +223,10 @@ Tasks are the core unit of work in A2A. They move through defined states:
 
 > 任务是 A2A 中的核心工作单元。它们在定义的状态之间转换：
 
+The state machine is what makes A2A different from a simple RPC. A task can pause (input-required), resume (client provides input), fail, or be canceled. The client does not need to block; it polls or subscribes for updates.
+
+> 状态机是 A2A 与简单 RPC 的不同之处。任务可以暂停（input-required）、恢复（客户端提供输入）、失败或取消。客户端不需要阻塞；它轮询或订阅更新。
+
 ```mermaid
 stateDiagram-v2
     [*] --> submitted
@@ -236,6 +248,8 @@ stateDiagram-v2
 
 All 8 states (the spec also defines `UNSPECIFIED` as a sentinel, omitted here):
 
+> 所有 8 个状态（规范还定义了 `UNSPECIFIED` 作为哨兵，此处省略）：
+
 | State | Terminal? | Meaning / 含义 |
 |---|---|---|
 | `TASK_STATE_SUBMITTED` | No | Acknowledged, not yet processing / 已确认，尚未处理 |
@@ -246,6 +260,10 @@ All 8 states (the spec also defines `UNSPECIFIED` as a sentinel, omitted here):
 | `TASK_STATE_FAILED` | Yes | Finished with error / 出错完成 |
 | `TASK_STATE_CANCELED` | Yes | Canceled before completion / 完成前取消 |
 | `TASK_STATE_REJECTED` | Yes | Agent declined the task / Agent 拒绝任务 |
+
+The terminal states (completed, failed, canceled, rejected) are immutable — once a task reaches one, no further updates are allowed. Follow-up work must create a new task in the same `contextId` to preserve session continuity.
+
+> 终态（completed、failed、canceled、rejected）是不可变的——一旦任务到达终态，不允许进一步更新。后续工作必须在同一 `contextId` 中创建新任务以保持会话连续性。
 
 Once a task reaches a terminal state, it's immutable. No further messages. Follow-ups create a new task within the same `contextId`.
 
@@ -372,6 +390,8 @@ graph LR
 
 The **AgentManifest** is simpler than A2A's Agent Card:
 
+> **AgentManifest** 比 A2A 的 Agent Card 更简单：
+
 ```json
 {
   "name": "summarizer",
@@ -394,15 +414,31 @@ The **AgentManifest** is simpler than A2A's Agent Card:
 }
 ```
 
+No protocol bindings (single REST API), no security schemes (delegated to the server level), no skill list (capabilities are flat metadata). Trade: simpler to deploy, less self-describing.
+
+> 没有协议绑定（单一 REST API）、没有安全方案（委托给服务器级别）、没有技能列表（能力是扁平元数据）。权衡：部署更简单，自描述性较差。
+
 #### Run Lifecycle
 
 ACP uses "Runs" instead of "Tasks". A Run is an agent execution with three modes:
+
+> ACP 使用"Runs"而不是"Tasks"。Run 是具有三种模式的 Agent 执行：
 
 | Mode | Behavior |
 |---|---|
 | `sync` | Blocking. Response contains the complete result. |
 | `async` | Returns 202 immediately. Poll `GET /runs/{id}` for status. |
 | `stream` | SSE stream. Events fire as the agent works. |
+
+> | 模式 | 行为 |
+> |---|---|
+> | `sync` | 阻塞。响应包含完整结果。 |
+> | `async` | 立即返回 202。轮询 `GET /runs/{id}` 获取状态。 |
+> | `stream` | SSE 流。事件随 Agent 工作触发。 |
+
+The mode choice maps to user-experience requirements: sync for fast queries, async for background jobs, stream for long-running tasks where the user wants progress indicators.
+
+> 模式选择映射到用户体验需求：sync 用于快速查询，async 用于后台作业，stream 用于用户想要进度指示的长时间运行任务。
 
 ```mermaid
 stateDiagram-v2
@@ -446,6 +482,10 @@ This is ACP's key differentiator. Every message part can include metadata showin
 For regulated industries this is gold. Every answer comes with a provable chain of reasoning: which tools were called, what inputs were used, what outputs were received. No black box.
 
 > 对于受监管的行业来说，这是无价之宝。每个答案都带有可证明的推理链：调用了哪些工具、使用了什么输入、收到了什么输出。没有黑箱。
+
+Banks, healthcare, and government deployments require this kind of auditability. ACP's trajectory metadata is what makes LLM agents acceptable in those environments. Without it, regulators reject the deployment.
+
+> 银行、医疗和政府部署需要这种可审计性。ACP 的轨迹元数据使 LLM Agent 在这些环境中可接受。没有它，监管机构拒绝部署。
 
 ACP also supports **CitationMetadata** for source attribution:
 
@@ -563,6 +603,10 @@ Key things to notice:
 - The **service** section links to the Agent Description document.
   中文翻译：**service** 部分链接到 Agent 描述文档。
 
+The key separation pattern is what real-world crypto systems require but JSON protocols often skip. ANP enforces it because cross-organizational agents handle money, contracts, and PII — a single compromised key must not unlock every capability.
+
+> 密钥分离模式是现实加密系统所要求的，但 JSON 协议经常跳过。ANP 强制执行它，因为跨组织 Agent 处理金钱、合同和 PII——单个被攻陷的密钥不能解锁每个能力。
+
 #### How Trust Works in ANP
 
 ANP does **not** use a web-of-trust or endorsement graph. Trust is bilateral and verified per-interaction:
@@ -591,6 +635,10 @@ Trust comes from three sources:
    中文翻译：**DID 加密签名** 验证 Agent 的身份
 3. **Principle of least trust** grants only minimum permissions
    中文翻译：**最小信任原则** 仅授予最低权限
+
+The three-source design avoids single points of failure. TLS alone is insufficient (anyone with a cert can host a DID). DID alone is insufficient (a stolen key fakes identity). Combined with least-trust authorization, you get defense in depth without a central authority.
+
+> 三源设计避免了单点故障。仅 TLS 不够（任何有证书的人都可以托管 DID）。仅 DID 不够（被盗密钥伪造身份）。与最小信任授权结合，你获得纵深防御而无需中央权威。
 
 There's no gossip-based trust propagation or PageRank scoring. You verify each agent directly through its DID.
 
@@ -630,6 +678,10 @@ The agents go back and forth (max 10 rounds) until they agree on a format, then 
 This means two agents that have never seen each other before can figure out how to communicate without anyone pre-defining a shared schema.
 
 > 这意味着两个从未见过的 Agent 可以在没有人预定义共享模式的情况下找到如何通信的方式。
+
+The vision: an open agent web where any agent can talk to any other agent, ad-hoc, without prior integration work. Whether this scales beyond toy demos is an open 2026 question. The fallback is always "use A2A and pre-agree on schemas."
+
+> 愿景：开放 Agent 网络中任何 Agent 可以与任何其他 Agent 临时对话，无需前期集成工作。这是否能扩展到玩具演示之外是 2026 年的开放问题。后备总是"使用 A2A 并预先就模式达成一致。"
 
 ### Comparison (Corrected)
 

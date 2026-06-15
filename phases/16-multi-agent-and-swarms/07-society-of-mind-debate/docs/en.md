@@ -18,9 +18,17 @@ Self-consistency — sample one model many times and take the majority answer �
 
 > 自我一致性——对一个模型多次采样并取多数答案——是你可以添加的最便宜的推理改进。它有效，但很快饱和。你可以把样本量翻倍却看不到有意义的提升。
 
+The saturation comes from correlated errors: the same model tends to fail the same way. Sampling more does not help if every sample shares the same blind spot. Debate breaks the correlation by forcing agents to confront disagreement.
+
+> 饱和来自相关错误：相同模型倾向于以相同方式失败。如果每个样本共享相同盲点，更多采样没有帮助。辩论通过强制 Agent 面对分歧打破相关性。
+
 Debate breaks the saturation. Instead of N independent samples from one model, N agents read each other's reasoning and revise. The correlation between samples drops (they are no longer i.i.d.), and the convergence point is often correct where i.i.d. voting was confidently wrong.
 
 > 辩论打破了饱和。不是从一个模型中获取 N 个独立样本，而是让 N 个 Agent 阅读彼此的推理并修改。样本之间的相关性下降（它们不再是独立同分布的），收敛点通常是正确的，而独立同分布投票则在自信地犯错。
+
+The decorrelation is the mechanism. When agents see other agents' reasoning, they cannot help but engage with it — either to defend their position or update it. This forced engagement produces information that no amount of i.i.d. sampling can.
+
+> 去相关是机制。当 Agent 看到其他 Agent 的推理时，它们不得不参与——要么捍卫自己的立场，要么更新它。这种强制参与产生任何数量的独立同分布采样都不能产生的信息。
 
 ## Concept | 核心概念
 
@@ -29,6 +37,10 @@ Debate breaks the saturation. Instead of N independent samples from one model, N
 From arXiv:2305.14325 (ICML 2024):
 
 > 来自 arXiv:2305.14325 (ICML 2024)：
+
+The algorithm is intentionally simple: no special roles, no judge, no moderator. Every agent is symmetric. The only asymmetry is the order of who speaks first, and even that washes out over multiple rounds.
+
+> 算法有意简单：没有特殊角色、没有裁判、没有主持人。每个 Agent 是对称的。唯一的不对称是谁先发言的顺序，即使这也在多轮中淡化。
 
 1. Each of N agents produces an initial answer to the question.
    中文翻译：N 个 Agent 各自产生问题的初始答案。
@@ -40,6 +52,10 @@ From arXiv:2305.14325 (ICML 2024):
 The paper tests on MMLU, GSM8K, biographies, MATH, and factuality benchmarks. Debate consistently beats CoT and Self-Reflection.
 
 > 论文在 MMLU、GSM8K、传记、MATH 和事实性基准上测试。辩论持续优于 CoT 和自我反思。
+
+The benchmark suite spans both reasoning (MATH, GSM8K — problems with verifiable correct answers) and factuality (biographies — claims checkable against Wikipedia). The factuality gains are the headline result: debate is the cheapest known method to reduce hallucination on factual questions.
+
+> 基准套件涵盖推理（MATH、GSM8K——有可验证正确答案的问题）和事实性（传记——可对照 Wikipedia 检查的声明）。事实性增益是标题结果：辩论是减少事实性问题幻觉的已知最廉价方法。
 
 ### Two independent knobs
 
@@ -60,6 +76,10 @@ Two mechanisms:
 
 > 两个机制：
 
+The two mechanisms compound: exposure to disagreement provides new information; decorrelated errors prevent the new information from being averaged into the wrong answer. Either alone is weaker than both together.
+
+> 两个机制复合：暴露于分歧提供新信息；去相关错误防止新信息被平均到错误答案中。单独任一比两者结合弱。
+
 1. **Exposure to disagreement.** When an agent sees another agent's reasoning chain with a different conclusion, it has to either justify or update. Either way, the context for round r+1 is richer than round r.
    中文翻译：**暴露于分歧。** 当一个 Agent 看到另一个 Agent 具有不同结论的推理链时，它必须要么证明要么更新。无论哪种方式，第 r+1 轮的上下文都比第 r 轮更丰富。
 2. **Correlated error reduction.** In self-consistency, all samples come from the same model, so the errors correlate — you average into a confidently wrong answer. Different models or different seeds decorrelate. Different *debated views* decorrelate further.
@@ -71,15 +91,27 @@ A-HMAD and related follow-ups use *different base models* for different agents. 
 
 > A-HMAD 和相关后续工作为不同的 Agent 使用*不同的基础模型*。Llama + Claude + GPT 辩论减少了单一文化崩溃（Lesson 26），因为一个模型族的相关错误不被其他模型族共享。
 
+The error-decorrelation argument is the same one behind ensemble methods in classical ML: diverse models fail differently, so voting is more reliable. The catch is that diversity is expensive (three API bills instead of one) and the gain saturates quickly past 3-4 model families.
+
+> 错误去相关论点与经典 ML 中集成方法背后的相同：多样化模型以不同方式失败，因此投票更可靠。问题是多样性昂贵（三份 API 账单而不是一份）且收益在 3-4 个模型族之后快速饱和。
+
 Downside: a weak model participating in a debate can drag the consensus toward its wrong answer (see "Should we be going MAD?", arXiv:2311.17371).
 
 > 缺点：一个参与辩论的弱模型可以将共识拖向其错误答案（参见"我们应该走向 MAD 吗？"，arXiv:2311.17371）。
+
+Heterogeneous debate is not free diversity. A weak model (say, a 7B parameter Llama) can outvote a strong model (GPT-4) if the strong model updates too aggressively toward the weak model's confident wrong answers. Calibrate which models participate.
+
+> 异构辩论不是免费多样性。弱模型（如 7B 参数 Llama）可以否决强模型（GPT-4），如果强模型过于激进地向弱模型的自信错误答案更新。校准哪些模型参与。
 
 ### NLSOM — the 129-agent extension
 
 Zhuge et al. ("Mindstorms in Natural Language-Based Societies of Mind," arXiv:2305.17066) scaled this idea to 129-member societies. The result: specialization and self-organization emerge with scale, and the system outperforms single-agent on tasks like visual question answering.
 
 > Zhuge 等人（"基于自然语言的心智社会中的思维风暴"，arXiv:2305.17066）将这个想法扩展到 129 成员社会。结果：专业化和自组织随规模涌现，系统在视觉问答等任务上优于单 Agent。
+
+The scaling result is striking: past ~50 agents, individual roles start specializing without being told to. Some become "researchers," others "critics," others "synthesizers." This is emergent role differentiation — the same phenomenon observed in human organizations, now happening in LLM societies.
+
+> 扩展结果引人注目：超过约 50 个 Agent 后，个体角色开始在没有被告知的情况下专业化。一些变成"研究员"、其他"批评者"、其他"综合者"。这是涌现的角色分化——在人类组织中观察到的相同现象，现在发生在 LLM 社会中。
 
 ### Failure modes
 
