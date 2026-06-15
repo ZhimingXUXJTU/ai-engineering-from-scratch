@@ -1,12 +1,12 @@
 # Transfusion: Autoregressive Text + Diffusion Image in One Transformer | Transfusion：一个 Transformer 兼做自回归文本和扩散图像
 
-> Chameleon and Emu3 bet everything on discrete tokens.
+> Chameleon and Emu3 bet everything on discrete tokens. They work, but the quantization bottleneck is visible — the image quality plateaus below continuous-space diffusion models. Transfusion (Meta, Zhou et al., August 2024) takes the opposite bet: keep images continuous, drop the VQ-VAE entirely, and train one transformer with two losses. Text tokens get next-token-prediction. Image patches get a flow-matching / diffusion loss. Both objectives optimize the same weights. The architecture underlying Stable Diffusion 3 (MMDiT) is a close cousin. This lesson reads the Transfusion thesis, builds a toy two-loss trainer, and traces the attention mask that lets one transformer do both jobs.
 
 > **【中文解读】** Transfusion（Meta，2024年8月）选择了与 Chameleon/Emu3 相反的路径：保持图像为连续表示，不用 VQ-VAE，用一个 Transformer 同时跑两个损失——文本 token 用下一 token 预测，图像补丁用流匹配/扩散损失。Stable Diffusion 3 的 MMDiT 架构就是近亲。
 
-> **【拓展：双损失训练的工程挑战】** Transfusion 的核心难点在于平衡两个数值尺度不同的损失函数。NTP 损失和扩散 MSE 损失的量级差异可能导致一个损失主导训练。实际部署中需要仔细调整损失权重。MMDiT 通过模态特定权重缓解了这个问题。 They work, but the quantization bottleneck is visible — the image quality plateaus below continuous-space diffusion models. Transfusion (Meta, Zhou et al., August 2024) takes the opposite bet: keep images continuous, drop the VQ-VAE entirely, and train one transformer with two losses. Text tokens get next-token-prediction. Image patches get a flow-matching / diffusion loss. Both objectives optimize the same weights. The architecture underlying Stable Diffusion 3 (MMDiT) is a close cousin. This lesson reads the Transfusion thesis, builds a toy two-loss trainer, and traces the attention mask that lets one transformer do both jobs.
+> **【拓展：双损失训练的工程挑战】** Transfusion 的核心难点在于平衡两个数值尺度不同的损失函数。NTP 损失和扩散 MSE 损失的量级差异可能导致一个损失主导训练。实际部署中需要仔细调整损失权重。MMDiT 通过模态特定权重缓解了这个问题。
 
-**Type:** Build  | **类型：构建**
+**Type:** Build  | **类型:** 构建
 **Languages:** Python (stdlib, two-loss trainer on MNIST-scale toy) | **语言:** Python（标准库，MNIST 规模玩具的双损失训练器）
 **Prerequisites:** Phase 12 · 11 (Chameleon), Phase 8 (Generative AI) | **前置知识:** Phase 12 · 11（Chameleon），Phase 8（生成式 AI）
 **Time:** ~180 minutes | **时间:** ~180 分钟
@@ -14,9 +14,13 @@
 ## Learning Objectives  | 学习目标
 
 - Wire a transformer that runs two losses (NTP on text tokens, diffusion MSE on image patches) on one backbone.
+  > 构建一个能在同一骨干上跑两个损失（文本 token NTP + 图像 patch 扩散 MSE）的 Transformer。
 - Explain why bidirectional attention across image patches plus causal attention over text tokens is the right mask choice.
+  > 解释为什么"图像 patch 双向 + 文本 token 因果"是正确的掩码选择。
 - Compare Transfusion-style (continuous images, diffusion loss) to Chameleon-style (discrete images, NTP) on compute, quality, and code complexity.
+  > 比较 Transfusion 风格（连续图像、扩散损失）与 Chameleon 风格（离散图像、NTP）在算力、质量和代码复杂度上的差异。
 - Name MMDiT's contribution: modality-specific weights at each block, joint attention at the residual stream.
+  > 列举 MMDiT 的贡献：每个块的模态特定权重、残差流的联合注意力。
 
 ## The Problem  | 问题背景
 

@@ -1,12 +1,12 @@
 # Show-o and Discrete-Diffusion Unified Models | Show-o 离散扩散统一模型
 
-> Transfusion mixes continuous and discrete representations.
+> Transfusion mixes continuous and discrete representations. Show-o (Xie et al., August 2024) goes the other way: text tokens use causal next-token prediction, image tokens use masked discrete diffusion in the spirit of MaskGIT. Both sit inside one transformer with a hybrid attention mask. The result unifies VQA, text-to-image, inpainting, and mixed-modality generation on one backbone, one tokenizer per modality, one loss formulation (next-token extended to masked prediction). This lesson walks the Show-o design — why masked discrete diffusion is a parallel, few-step image generator — and contrasts with Transfusion and Emu3.
 
 > **【中文解读】** Show-o（2024年8月）走另一条路：文本 token 用因果下一 token 预测，图像 token 用掩码离散扩散（MaskGIT 风格）。两者共用一个 Transformer，用混合注意力掩码。结果是一个 checkpoint 同时支持 VQA、文本生成图像和图像修复。
 
-> **【拓展：并行解码的速度优势】** Show-o 生成图像只需约 16 步（每步并行预测所有掩码 token），而 Chameleon/Emu3 需要 1024-4096 步（逐 token 自回归）。这使得 Show-o 在统一生成模型中速度最快，但图像质量受限于 VQ tokenizer 的重建天花板。 Show-o (Xie et al., August 2024) goes the other way: text tokens use causal next-token prediction, image tokens use masked discrete diffusion in the spirit of MaskGIT. Both sit inside one transformer with a hybrid attention mask. The result unifies VQA, text-to-image, inpainting, and mixed-modality generation on one backbone, one tokenizer per modality, one loss formulation (next-token extended to masked prediction). This lesson walks the Show-o design — why masked discrete diffusion is a parallel, few-step image generator — and contrasts with Transfusion and Emu3.
+> **【拓展：并行解码的速度优势】** Show-o 生成图像只需约 16 步（每步并行预测所有掩码 token），而 Chameleon/Emu3 需要 1024-4096 步（逐 token 自回归）。这使得 Show-o 在统一生成模型中速度最快，但图像质量受限于 VQ tokenizer 的重建天花板。
 
-**Type:** Learn  | **类型：学习**
+**Type:** Learn  | **类型:** 学习
 **Languages:** Python (stdlib, masked-discrete-diffusion sampler) | **语言:** Python（标准库，掩码离散扩散采样器）
 **Prerequisites:** Phase 12 · 13 (Transfusion) | **前置知识:** Phase 12 · 13（Transfusion）
 **Time:** ~120 minutes | **时间:** ~120 分钟
@@ -14,9 +14,13 @@
 ## Learning Objectives  | 学习目标
 
 - Explain masked discrete diffusion: the schedule that masks tokens uniformly then asks the transformer to recover them.
+  > 解释掩码离散扩散：均匀掩码 token 然后让 Transformer 恢复它们的调度。
 - Compare parallel image decoding (Show-o, MaskGIT) to autoregressive image decoding (Chameleon, Emu3) on speed and quality.
+  > 比较并行图像解码（Show-o、MaskGIT）与自回归图像解码（Chameleon、Emu3）在速度和质量上的差异。
 - Name the three tasks Show-o handles in one checkpoint: T2I, VQA, image inpainting.
+  > 列举 Show-o 在一个 checkpoint 中支持的三种任务：T2I、VQA、图像修复。
 - Pick a masking schedule (cosine, linear, truncated) and reason about its effect on sample quality.
+  > 选择掩码调度（余弦、线性、截断）并分析其对采样质量的影响。
 
 ## The Problem  | 问题背景
 

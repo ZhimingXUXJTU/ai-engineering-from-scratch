@@ -4,10 +4,10 @@
 
 > **【中文解读】** 1 小时 4K 视频可产生约 6000 万 token，远超任何模型的上下文窗口。处理长视频有三条路径：(1) 暴力上下文（Gemini 1.5 的千万 token 上下文）；(2) Ring Attention 跨设备分布式注意力；(3) Token 压缩（Video-XL 的摘要 token）；(4) Agent 检索（VideoAgent 将视频当数据库查询）。每条路径在计算量、召回率和工程复杂度上有不同取舍。
 
-**Type:** Build
-**Languages:** Python (stdlib, needle-in-haystack simulator + agentic-retrieval router)
-**Prerequisites:** Phase 12 · 17 (video temporal tokens)
-**Time:** ~180 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python (stdlib, needle-in-haystack simulator + agentic-retrieval router) | **语言:** Python（标准库，大海捞针模拟器 + Agent 检索路由器）
+**Prerequisites:** Phase 12 · 17 (video temporal tokens) | **前置知识:** Phase 12 · 17（视频时间 token）
+**Time:** ~180 minutes | **时间:** ~180 分钟
 
 ## Learning Objectives
 
@@ -91,28 +91,26 @@ Token compression trades off recall at specific timestamps for scalability. The 
 
 Do not feed the full video to the LLM. Instead, treat the video as a database and use an LLM to query it.
 
-> 不要将完整视频喂给 LLM。而是将视频当作数据库，用 LLM 查询它。
+> 不要把整个视频喂给 LLM。而是把视频当作数据库，用 LLM 查询它。
 
 VideoAgent (arXiv:2403.10517):
 
-> VideoAgent：
+> VideoAgent（arXiv:2403.10517）：
 
 1. LLM reads the question.
-   中文翻译：LLM 读取问题。
+   > LLM 读取问题。
 2. LLM asks a retrieval tool for relevant clips ("show me segments with a cat").
-   中文翻译：LLM 向检索工具请求相关片段（"给我看有猫的片段"）。
+   > LLM 调用检索工具获取相关片段（"给我看有猫的片段"）。
 3. Tool returns matching clip timestamps.
-   中文翻译：工具返回匹配的片段时间戳。
+   > 工具返回匹配的片段时间戳。
 4. LLM reads those clips via a VLM.
-   中文翻译：LLM 通过 VLM 阅读那些片段。
+   > LLM 通过 VLM 读取这些片段。
 5. LLM composes the answer or asks follow-up queries.
-   中文翻译：LLM 生成回答或发起后续查询。
+   > LLM 生成回答或发起后续查询。
 
 This is the LLM-as-agent pattern applied to long video. Cheaper inference (only relevant clips encoded), harder engineering (retrieval quality becomes the bottleneck).
 
-> 这是将 LLM-as-agent 模式应用于长视频。推理更便宜（只编码相关片段），工程更难（检索质量成为瓶颈）。
-
-> **【拓展：生产级长视频管道】** 2026 年生产环境的长视频管道通常是混合方案：(1) 对整个视频进行动态 FPS 采样 + 激进池化（得到约 100k token 的全局表示）；(2) 用 72B VLM 生成全局摘要；(3) 用户提问时，用 Agent 检索定位到相关片段。这结合了暴力上下文的全局理解和检索的局部细节能力。
+> 这是把 LLM-as-agent 模式应用到长视频。推理更便宜（只编码相关片段），工程更难（检索质量成为瓶颈）。
 
 ### Needle-in-a-haystack benchmarks
 

@@ -6,35 +6,48 @@
 
 > **【拓展：金融文档场景的分辨率挑战】** 在金融场景中，报表、发票、合同等文档的宽高比千差万别。固定正方形缩放会导致文字变形、OCR 精度下降。AnyRes 和 Patch-n'-Pack 技术让 VLM 能以原始比例理解这些文档，是构建金融文档理解系统的关键技术基础。
 
-**Type:** Build  | **类型：构建**
-**Languages:** Python (stdlib, patch packer + block-diagonal mask)  | **语言：Python（标准库，补丁打包器 + 块对角掩码）**
-**Prerequisites:** Phase 12 · 01 (ViT patches), Phase 12 · 05 (LLaVA)  | **前置：阶段12第01课（ViT补丁）、阶段12第05课（LLaVA）**
-**Time:** ~120 minutes  | **时长：约120分钟**
+**Type:** Build  | **类型:** 构建
+**Languages:** Python (stdlib, patch packer + block-diagonal mask)  | **语言:** Python（标准库，补丁打包器 + 块对角掩码）
+**Prerequisites:** Phase 12 · 01 (ViT patches), Phase 12 · 05 (LLaVA)  | **前置知识:** Phase 12 · 01（ViT补丁）、Phase 12 · 05（LLaVA）
+**Time:** ~120 minutes  | **时间:** ~120 分钟
 
 ## Learning Objectives  | 学习目标
 
-- Pack patches from a batch of variable-resolution images into one sequence and build the block-diagonal attention mask.  | 将不同分辨率图像的补丁打包到一个序列中，构建块对角注意力掩码。
-- Pick between AnyRes tiling (LLaVA-NeXT), NaFlex (SigLIP 2), and M-RoPE (Qwen2-VL) for a given task.  | 根据任务选择 AnyRes 切片（LLaVA-NeXT）、NaFlex（SigLIP 2）或 M-RoPE（Qwen2-VL）。
-- Compute token budgets for OCR, charts, and photography without resizing.  | 计算无缩放情况下 OCR、图表和摄影的 token 预算。
-- Name the three failure modes of square-resize: squished text, cropped content, wasted tokens on padding.  | 列举正方形缩放的三种失败模式：文字压缩、内容裁剪、padding 浪费。
+- Pack patches from a batch of variable-resolution images into one sequence and build the block-diagonal attention mask.
+  > 将不同分辨率图像的补丁打包到一个序列中，构建块对角注意力掩码。
+- Pick between AnyRes tiling (LLaVA-NeXT), NaFlex (SigLIP 2), and M-RoPE (Qwen2-VL) for a given task.
+  > 根据任务选择 AnyRes 切片（LLaVA-NeXT）、NaFlex（SigLIP 2）或 M-RoPE（Qwen2-VL）。
+- Compute token budgets for OCR, charts, and photography without resizing.
+  > 计算无缩放情况下 OCR、图表和摄影的 token 预算。
+- Name the three failure modes of square-resize: squished text, cropped content, wasted tokens on padding.
+  > 列举正方形缩放的三种失败模式：文字压缩、内容裁剪、padding 浪费。
 
 ## The Problem  | 问题背景
 
 Transformers expect a sequence. A batch is a stack of sequences the same length. If your images are 224x224, you get 196 patch tokens every time, padding not required, job done. Train on 224, infer on 224, never think about resolution again.
 
+> Transformer 期望固定长度序列。一批就是一堆等长序列。如果图像都是 224x224，每次都产生 196 个补丁 token，无需填充，问题解决。训练和推理都用 224，永远不用考虑分辨率。
+
 The world does not cooperate. Documents are portrait (8.5x11 inches, 2:3-ish). Chart screenshots are landscape (16:9). Receipts are tall and thin (1:3). Medical imaging ships at 2048x2048 or larger. Mobile device screenshots are 1170x2532 (0.46:1).
+
+> 现实世界并不配合。文档是竖向的（8.5x11 英寸，约 2:3）。图表截图是横向的（16:9）。收据又高又窄（1:3）。医疗影像动辄 2048x2048 或更大。移动设备截图是 1170x2532（0.46:1）。
 
 Three pre-2024 options and why each fails:
 
+> 2024 年前的三种选项及其各自失败的原因：
+
 1. Resize to a fixed square (224x224 or 336x336). The squish distorts text and faces. The downscale destroys chart labels and OCR content. Standard practice until LLaVA-1.5.
+   > 缩放为固定正方形（224x224 或 336x336）。压缩会扭曲文字和人脸。下采样会破坏图表标签和 OCR 内容。LLaVA-1.5 之前的标准做法。
 2. Crop to a fixed aspect ratio. You throw away most of the image, and picking the crop location is its own vision problem.
+   > 裁剪为固定宽高比。会丢弃大部分图像，且选择裁剪位置本身就是一个视觉问题。
 3. Pad to the longest side. Fixes distortion but wastes 50%+ of tokens on padding for portrait images. Quadratic attention cost on all those pad tokens.
+   > 填充到最长边。修复了扭曲但对竖屏图像浪费 50%+ 的 token 在 padding 上。所有 padding token 的注意力成本是二次的。
 
 > **【中文解读】** Transformer 期望固定长度的序列。真实世界的图像宽高比各异，2024 年前有三种做法：(1) 缩放为正方形——文字变形、OCR 内容丢失；(2) 裁剪——丢弃大量内容；(3) 填充——竖屏图像浪费 50%+ 的 token 在 padding 上，注意力计算成本二次增长。
 
 The 2024-2025 answer: let the transformer eat patches at the image's native resolution, and figure out how to pack a heterogeneous batch into one sequence without wasted compute.
 
-> **【中文解读】** 2024-2025 年的答案：让 Transformer 直接以原始分辨率"吃"补丁，然后把不同分辨率的批次打包成一个序列，不浪费任何计算。
+> 2024-2025 年的答案：让 Transformer 直接以原始分辨率"吃"补丁，然后想办法把异构批次打包成一个序列而不浪费计算。
 
 ## The Concept  | 核心概念
 
@@ -42,15 +55,26 @@ The 2024-2025 answer: let the transformer eat patches at the image's native reso
 
 NaViT (Dehghani et al., 2023) was the paper that showed this works at scale. The idea is mechanical:
 
-1. For each image in the batch, compute its native patch grid at a chosen patch size (say 14).  | 对批次中每张图像，以指定补丁大小（如14）计算原始补丁网格。
-2. Flatten each image's patches into its own variable-length sequence.  | 将每张图像的补丁展平为各自的可变长度序列。
-3. Concatenate all images' patches into one long sequence for the batch.  | 将所有图像的补丁拼接成一个长序列。
-4. Build a block-diagonal attention mask so image A's patches only attend within image A.  | 构建块对角注意力掩码，使图像A的补丁只在自身内部做注意力计算。
-5. Carry per-patch position information (2D RoPE or fractional position embeddings).  | 为每个补丁携带位置信息（2D RoPE 或分数位置嵌入）。
+> NaViT（Dehghani 等人，2023）证明了这种思路在大规模上可行。想法很机械：
+
+1. For each image in the batch, compute its native patch grid at a chosen patch size (say 14).
+   > 对批次中每张图像，以指定补丁大小（如 14）计算原生补丁网格。
+2. Flatten each image's patches into its own variable-length sequence.
+   > 将每张图像的补丁展平为各自的可变长度序列。
+3. Concatenate all images' patches into one long sequence for the batch.
+   > 将所有图像的补丁拼接成一个长序列作为批次。
+4. Build a block-diagonal attention mask so image A's patches only attend within image A.
+   > 构建块对角注意力掩码，使图像 A 的补丁只在图像 A 内部做注意力。
+5. Carry per-patch position information (2D RoPE or fractional position embeddings).
+   > 为每个补丁携带位置信息（2D RoPE 或分数位置嵌入）。
 
 A batch of three images at 336x336 (576 tokens), 224x224 (256 tokens), and 448x336 (768 tokens) becomes one 1600-token sequence with a 1600x1600 block-diagonal mask. No padding. No wasted compute. The transformer handles arbitrary aspect ratios.
 
+> 三张不同分辨率图像（336x336=576 token、224x224=256 token、448x336=768 token）的批次变成一个 1600 token 的序列，配以 1600x1600 块对角掩码。零填充，零浪费。Transformer 自然处理任意宽高比。
+
 NaViT also introduced fractional patch dropping during training — drop 50% of patches at random across the batch — which both regularizes and speeds training. SigLIP 2 inherited this.
+
+> NaViT 还引入了训练时分数补丁丢弃——在批次中随机丢弃 50% 补丁——既正则化又加速训练。SigLIP 2 继承了这一做法。
 
 > **【中文解读】** NaViT 的核心：三张不同分辨率的图像（576 + 256 + 768 = 1600 个 token）被打包成一个序列，用块对角掩码防止跨图像注意力。零 padding，零浪费。NaViT 还引入了训练时随机丢弃 50% 补丁的技术，既正则化又加速训练。
 
@@ -118,18 +142,30 @@ The 2026 production rule: pick a per-task max-pixels cap, encode at native aspec
 
 `code/main.py` implements patch-n'-pack for a heterogeneous batch of images with integer pixel coordinates. It:
 
-- Takes a list of (H, W) image sizes.  | 接收 (H, W) 图像尺寸列表
-- Computes each image's patch sequence length at patch size 14.  | 计算每张图像在补丁大小14下的序列长度
-- Packs them into one sequence of total length `sum(n_i)`.  | 打包为总长度 `sum(n_i)` 的序列
-- Builds the block-diagonal attention mask (dense, for clarity).  | 构建块对角注意力掩码（密集格式，便于理解）
-- Compares the packed cost vs square-resize and AnyRes tiling.  | 对比打包成本 vs 正方形缩放和 AnyRes 切片
-- Prints a token budget table for a mixed batch (receipt, chart, screenshot, photo).  | 打印混合批次的 token 预算表
+> `code/main.py` 用整数像素坐标实现了异构批次图像的 patch-n'-pack。它：
+
+- Takes a list of (H, W) image sizes.
+  > 接收 (H, W) 图像尺寸列表。
+- Computes each image's patch sequence length at patch size 14.
+  > 计算每张图像在补丁大小 14 下的序列长度。
+- Packs them into one sequence of total length `sum(n_i)`.
+  > 打包为总长度 `sum(n_i)` 的单一序列。
+- Builds the block-diagonal attention mask (dense, for clarity).
+  > 构建块对角注意力掩码（密集格式，便于理解）。
+- Compares the packed cost vs square-resize and AnyRes tiling.
+  > 对比打包成本 vs 正方形缩放和 AnyRes 切片。
+- Prints a token budget table for a mixed batch (receipt, chart, screenshot, photo).
+  > 打印混合批次（收据、图表、截图、照片）的 token 预算表。
 
 Run it. The numbers that drop out are the reason every 2026 open VLM uses patch-n'-pack.
+
+> 运行它。打印出的数字就是每个 2026 开源 VLM 都使用 patch-n'-pack 的原因。
 
 ## Ship It  | 部署上线
 
 This lesson produces `outputs/skill-resolution-budget-planner.md`. Given a mixed-aspect-ratio workload (OCR, charts, photos, video frames) and a total-token budget, it picks the right strategy (NaFlex, AnyRes, M-RoPE, or fixed-square) and emits a per-request configuration. Use this skill when you are sizing a VLM for a product — it prevents the silent 10x token blowup that kills latency budgets.
+
+> 本课产出 `outputs/skill-resolution-budget-planner.md`。给定混合宽高比工作负载（OCR、图表、照片、视频帧）和总 token 预算，它选择正确的策略（NaFlex、AnyRes、M-RoPE 或固定正方形）并生成按请求的配置。在为产品选定 VLM 规模时使用此技能——它可避免悄悄把延迟预算拖垮的 10 倍 token 爆炸。
 
 > **【中文解读】** 本课产出分辨率预算规划工具。给定混合宽高比工作负载和总 token 预算，自动选择最优策略（NaFlex/AnyRes/M-RoPE/固定正方形），防止因分辨率不当导致的 10 倍 token 爆炸。
 
