@@ -18,9 +18,17 @@ Generic multi-agent systems produce generic output. Three coders in a group chat
 
 > 通用的多 Agent 系统产生通用输出。群聊中的三个编码器写出三种风味的同样平庸的代码。你可以添加更多 Agent、更多轮次，仍然无法跨越质量门槛。
 
+The problem is not quantity but uniformity. Three identical agents given the same task will produce three similar wrong answers. They share the same blind spots because they share the same prompt and model. Adding more of the same does not help; you need agents that are different in productive ways.
+
+> 问题不是数量而是同质性。三个相同 Agent 给定相同任务会产生三个相似错误答案。它们共享相同盲点因为共享相同提示和模型。添加更多相同没有帮助；你需要以生产方式不同的 Agent。
+
 The fix is not more agents — it is *different* agents. Assign distinct roles. Give the critic tools the planner does not have. Give the verifier an objective test suite. Now the system has internal disagreement with grounded correction, not just parallel guessing.
 
 > 修复方法不是更多 Agent——而是*不同*的 Agent。分配不同的角色。给批评者规划者没有的工具。给验证者一个客观的测试套件。现在系统有了基于事实纠正的内部分歧，而不是并行猜测。
+
+The key shift: from "more agents doing the same thing" to "different agents doing different things." Parallelism without specialization is just expensive guessing. Specialization creates the asymmetry that lets the system catch its own errors.
+
+> 关键转变：从"更多 Agent 做相同的事"到"不同 Agent 做不同的事"。没有专业化的并行性只是昂贵的猜测。专业化创造让系统捕获自己错误的不对称性。
 
 ## Concept | 核心概念
 
@@ -46,11 +54,19 @@ Critic is subjective, opinionated, often LLM-based. Verifier is objective, deter
 
 > 批评者是主观的、有观点的，通常基于 LLM。验证者是客观的、确定性的，通常基于代码。它们不是同一个角色。
 
+Conflating them is the most common multi-agent design error. A system with only critics (LLM reviewers) gets plausible-but-wrong output. A system with only verifiers (code checks) gets correct-but-ugly output. You need both: critic for taste, verifier for correctness.
+
+> 将它们混为一谈是最常见的多 Agent 设计错误。只有批评者（LLM 审阅者）的系统得到似是而非但错误的输出。只有验证者（代码检查）的系统得到正确但丑陋的输出。两者都需要：批评者负责品味，验证者负责正确性。
+
 ### MetaGPT's SOP pattern
 
 MetaGPT (arXiv:2308.00352) encodes software engineering SOPs as role prompts:
 
 > MetaGPT（arXiv:2308.00352）将软件工程 SOP 编码为角色提示：
+
+The "SOP" framing is borrowed from human organizations: Standard Operating Procedures turn ad-hoc work into repeatable process. MetaGPT applies this to LLMs — the SOP becomes a system prompt that constrains the LLM to a specific role with specific outputs.
+
+> "SOP"框架借鉴自人类组织：标准操作流程将临时工作转化为可重复流程。MetaGPT 将此应用于 LLM——SOP 成为将 LLM 约束到具有特定输出的特定角色的系统提示。
 
 - **Product Manager** writes the PRD.
   中文翻译：**产品经理**编写 PRD。
@@ -67,11 +83,19 @@ Each role has a strict input/output schema. The role prompt says what the role *
 
 > 每个角色有严格的输入/输出模式。角色提示说角色*是什么*和*必须产生什么*。`Code = SOP(Team)` 公式——确定性 SOP 将一个 LLM 团队变成一个可预测的流水线。
 
+The key insight: encode the team's workflow as code, not as conversation. Each LLM role is a node in a deterministic graph; the graph structure is human-authored. The LLMs do the local work; humans own the global workflow.
+
+> 关键洞察：将团队工作流编码为代码，而不是对话。每个 LLM 角色是确定性图中的节点；图结构由人类编写。LLM 做局部工作；人类拥有全局工作流。
+
 ### ChatDev's communicative dehallucination
 
 ChatDev adds a key move: when an executor needs a specific detail that was not in the plan, it explicitly asks the designer before continuing. This prevents the classic LLM failure of plausibly inventing the detail.
 
 > ChatDev 添加了一个关键举措：当执行者需要一个计划中没有的具体细节时，它在继续之前明确询问设计者。这防止了 LLM 经典的似是而非地发明细节的失败。
+
+The pattern catches hallucinations at their source. Instead of detecting fabricated details after the fact (hard), it prevents fabrication by requiring the executor to ask before assuming. The cost is an extra round-trip; the benefit is correctness.
+
+> 该模式在源头捕获幻觉。不是事后检测虚构细节（难），而是通过要求执行者在假设前询问来防止虚构。成本是额外往返；收益是正确性。
 
 Implementation: the role prompt includes "when you need specific information you were not given, ask the relevant role by name before producing output."
 
@@ -82,6 +106,10 @@ Implementation: the role prompt includes "when you need specific information you
 Cemri et al. (MAST) traced 1642 multi-agent execution failures. 21.3% were verification gaps — the system shipped an answer no one had checked. The remaining 79% often trace back to "there was a check that failed silently or was never run." Verification is the load-bearing role.
 
 > Cemri 等人（MAST）追踪了 1642 个多 Agent 执行失败。21.3% 是验证缺口——系统发布了没有人检查过的答案。其余 79% 通常追溯到"有一个检查静默失败或从未运行"。验证是承重角色。
+
+The 21.3% number is the single most cited statistic in 2026 multi-agent engineering. It says: if you only add one role to your system, make it a verifier. Not a critic, not a planner — a deterministic verifier with code-level checks.
+
+> 21.3% 这个数字是 2026 年多 Agent 工程中被引用最多的统计。它说：如果你只在系统中添加一个角色，让它成为验证者。不是批评者，不是规划者——一个带代码级检查的确定性验证者。
 
 PwC reported (CrewAI deployments, 2025) that adding a structured validation loop moved accuracy from 10% to 70%. 7x gain from one role.
 
@@ -97,6 +125,10 @@ PwC reported (CrewAI deployments, 2025) that adding a structured validation loop
 Use both. Critic catches taste issues the verifier cannot articulate. Verifier catches bugs the critic cannot see because they show up only at runtime.
 
 > 两者都用。批评者捕获验证者无法表达的质量问题。验证者捕获批评者看不到的 bug，因为它们只在运行时出现。
+
+A common ordering: verifier first (fast, kills obviously broken work), then critic (slow, refines quality). Some teams flip the order to catch taste issues before spending compute on broken code. Test which works for your task.
+
+> 常见顺序：先验证者（快，杀死明显破损的工作），然后批评者（慢，精炼质量）。一些团队翻转顺序以在花计算资源修复破损代码之前捕获质量问题。测试哪种适合你的任务。
 
 ### The anti-pattern
 

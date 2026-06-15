@@ -18,6 +18,10 @@ Static graphs (LangGraph) are great when the workflow is known. Real conversatio
 
 > 静态图（LangGraph）在工作流已知时很好。真实对话不是静态的：有时编码器问审阅者，有时问研究员，有时问写作者。硬编码每个可能的交接会产生边爆炸。你想要*Agent 对共享池做出反应*，由某个函数决定谁下一个发言。
 
+The edge-explosion problem is real: a 5-agent system with all possible handoffs has 25 directed edges. Add a sixth agent and you have 36. The graph approach does not scale to emergent conversations; you need a pool.
+
+> 边爆炸问题是真实的：带所有可能交接的 5 Agent 系统有 25 条有向边。添加第六个 Agent 就有 36 条。图方法不能扩展到涌现对话；你需要池。
+
 That is exactly what AutoGen GroupChat does.
 
 > 这正是 AutoGen GroupChat 所做的。
@@ -42,6 +46,10 @@ That is exactly what AutoGen GroupChat does.
 Every agent sees every message. A selector function is invoked at each turn to pick who speaks next.
 
 > 每个 Agent 看到每条消息。每轮调用选择器函数来选择下一个发言者。
+
+The full-transparency pool is both the strength and weakness of GroupChat. Strength: any agent can react to anything anyone said. Weakness: after 20 turns, every agent's context is huge, expensive, and diluted. Mitigations: project scoped views per agent (Lesson 15) or terminate early.
+
+> 完全透明的池既是 GroupChat 的优势也是弱点。优势：任何 Agent 可以对任何人说的任何事做出反应。弱点：20 轮后，每个 Agent 的上下文巨大、昂贵且稀释。缓解措施：为每个 Agent 投影范围视图（Lesson 15）或提前终止。
 
 ### The three selector flavors
 
@@ -73,6 +81,10 @@ manager = GroupChatManager(groupchat=chat, llm_config={...})
 
 > `GroupChatManager` 持有选择器。当 Agent 完成一轮时，管理者调用选择器，返回下一个 Agent。循环继续直到终止条件。
 
+The selector function is the heart of GroupChat. Swap it out, change the orchestration style. Round-robin selector = deterministic. LLM selector = adaptive. Custom selector = whatever rules you encode. Same primitives, different orchestration.
+
+> 选择器函数是 GroupChat 的核心。换掉它，改变编排风格。轮询选择器 = 确定性。LLM 选择器 = 自适应。自定义选择器 = 你编码的任何规则。相同原语，不同编排。
+
 ### Termination
 
 Three common patterns:
@@ -92,9 +104,17 @@ In early 2025, Microsoft began a major rewrite of AutoGen (v0.4) around an event
 
 > 2025 年初，微软开始围绕事件驱动 actor 模型对 AutoGen (v0.4) 进行重大重写。社区将 AutoGen v0.2 的 GroupChat 语义分叉为 AG2，保留了早期采用者已集成的 API。
 
+The fork was necessary because v0.4 broke backward compatibility in fundamental ways. AG2 keeps the original `GroupChat`, `ConversableAgent`, and `GroupChatManager` API stable, while v0.4 introduces new event-driven primitives. Both lines are actively maintained as of 2026.
+
+> 分叉是必要的，因为 v0.4 在基本方面破坏了向后兼容性。AG2 保持原始 `GroupChat`、`ConversableAgent` 和 `GroupChatManager` API 稳定，而 v0.4 引入新的事件驱动原语。截至 2026 年，两条线都积极维护。
+
 In February 2026, Microsoft announced AutoGen would go to maintenance mode, with the event-driven actor model merging into **Microsoft Agent Framework** (RC February 2026, now merged with Semantic Kernel). The GroupChat concept survives in both tracks; the implementation details differ. AG2 is the preferred upstream for v0.2-compatible code.
 
 > 2026 年 2 月，微软宣布 AutoGen 进入维护模式，事件驱动 actor 模型合并到 **Microsoft Agent Framework**（2026 年 2 月 RC，现已与 Semantic Kernel 合并）。GroupChat 概念在两个轨道中存活；实现细节不同。AG2 是 v0.2 兼容代码的首选上游。
+
+The lesson: API surface outlasts frameworks. Code written against AutoGen v0.2's GroupChat API in 2024 still runs unchanged via AG2 in 2026. Frameworks churn; the primitives (shared pool + selector) do not. Bet on the primitives.
+
+> 教训：API 表面比框架持久。2024 年针对 AutoGen v0.2 GroupChat API 编写的代码在 2026 年通过 AG2 仍然不变运行。框架变化；原语（共享池 + 选择器）不变。押注原语。
 
 ### When GroupChat fits
 
@@ -130,6 +150,10 @@ Same primitives, different defaults:
 Both use the four primitives from Lesson 04. Group chat defaults to LLM-selected orchestration and full-pool shared state.
 
 > 两者都使用 Lesson 04 的四个原语。群聊默认使用 LLM 选择的编排和全池共享状态。
+
+The choice between supervisor and group chat is mostly about *who holds the plan*. Supervisor: one agent owns the plan and delegates. Group chat: the plan is implicit, emergent from the conversation. The first is more controllable; the second is more flexible.
+
+> 监督者和群聊之间的选择主要是关于*谁持有计划*。监督者：一个 Agent 拥有计划并委派。群聊：计划是隐式的，从对话中涌现。前者更可控；后者更灵活。
 
 ## Build It | 动手实现
 

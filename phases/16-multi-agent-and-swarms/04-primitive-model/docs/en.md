@@ -18,6 +18,10 @@ Every six months a new multi-agent framework ships. AutoGen in 2023. CrewAI in 2
 
 > 每六个月就会有一个新的多 Agent 框架发布。2023 年的 AutoGen。2024 年的 CrewAI。2024 年的 LangGraph 和 OpenAI Swarm。2025 年 4 月的 Google ADK。2026 年 2 月的 Microsoft Agent Framework RC。每个新闻稿都声称自己是"正确的抽象"。
 
+The churn is real but the underlying primitives are not changing. What looks like innovation is often rebranding: same four knobs (agent, handoff, shared state, orchestrator) with different defaults and syntax. Once you see the primitives, the marketing falls away.
+
+> 变化是真实的但底层原语没有变化。看似创新的东西经常是重新品牌化：相同的四个旋钮（Agent、交接、共享状态、编排器）具有不同默认值和语法。一旦你看到原语，营销就消失了。
+
 If you try to learn them one at a time you will burn out. The APIs look different. The docs disagree about what an "agent" is. One framework calls its shared memory a "blackboard," another calls it a "message pool," a third calls it a "StateGraph." You start suspecting the field is just churning.
 
 > 如果你尝试一个一个地学习它们，你会筋疲力尽。API 看起来不同。文档对"Agent"是什么有不同看法。一个框架将其共享内存称为"黑板"，另一个称为"消息池"，第三个称为"StateGraph"。你开始怀疑这个领域只是在反复炒作。
@@ -42,6 +46,10 @@ It is not. Underneath the marketing, the four primitives are stable. Learn them 
 That is the entire design space. Every framework picks defaults for each axis; the rest is surface syntax.
 
 > 这就是整个设计空间。每个框架为每个轴选择默认值；其余的是表面语法。
+
+The implication: there is no "best" multi-agent framework. There is only "best for your task's axis preferences." A framework that nails orchestration for deterministic pipelines (LangGraph) is wrong for emergent conversations (use AutoGen). Know your axes, then pick.
+
+> 含义：没有"最好的"多 Agent 框架。只有"最适合你任务轴偏好的"框架。在确定性流水线上钉住编排的框架（LangGraph）对涌现对话是错误的（用 AutoGen）。了解你的轴，然后选择。
 
 ### How every 2026 framework maps to it
 
@@ -84,11 +92,19 @@ Those three questions answer 80% of which framework fits a given problem. You st
 
 > 这三个问题回答了 80% 的哪个框架适合给定问题。你不再购买"最好的多 Agent 框架"，而是开始为你真正关心的轴设计。
 
+When a new framework launches in 2027, run the three questions on it. If its answers match a framework you already use, skip the migration. If they differ on an axis you care about, evaluate. Most new frameworks are repackaging, not innovation.
+
+> 当 2027 年新框架发布时，对它运行这三个问题。如果其答案匹配你已使用的框架，跳过迁移。如果它们在你关心的轴上不同，评估。大多数新框架是重新包装，不是创新。
+
 ### The stateless insight
 
 Every primitive except shared state is stateless. Agent is a function of (prompt, tools). Handoff is a function call. Orchestrator is a scheduler. **The only stateful thing in the system is shared state.** That is where all the interesting bugs live: memory poisoning (Lesson 15), message ordering, versioning, write contention.
 
 > 除共享状态外，每个原语都是无状态的。Agent 是 (prompt, tools) 的函数。交接是函数调用。编排器是调度器。**系统中唯一有状态的东西是共享状态。** 这就是所有有趣的 bug 所在的地方：内存污染（Lesson 15）、消息排序、版本控制、写冲突。
+
+This insight drives debugging strategy: when a multi-agent system misbehaves, look at shared state first. Is the message pool poisoned? Are writes ordered correctly? Is the schema being respected? Stateless agents rarely cause subtle bugs; shared state causes them constantly.
+
+> 这个洞察驱动调试策略：当多 Agent 系统行为异常时，首先查看共享状态。消息池是否被污染？写入顺序是否正确？模式是否被遵守？无状态 Agent 很少导致微妙 bug；共享状态不断导致它们。
 
 Frameworks that hide shared state (Swarm) push the problem to the caller. Frameworks that centralize it (LangGraph checkpoint, AutoGen pool) make it inspectable but shift coordination cost onto the shared-state implementation.
 
@@ -105,6 +121,10 @@ Agent = (system_prompt, tools, model, optional_name)
 No memory. No state. Two agents with the same system prompt and tools are interchangeable. Everything that looks like per-agent state is actually in shared state or the handoff protocol.
 
 > 没有记忆。没有状态。具有相同系统提示和工具的两个 Agent 是可互换的。看起来像每个 Agent 状态的一切实际上都在共享状态或交接协议中。
+
+This is counterintuitive but powerful: stateless agents are trivially parallelizable, restartable, and swappable. You can spin up 100 copies of the same agent and they all behave identically. State lives elsewhere.
+
+> 这反直觉但强大：无状态 Agent 可以轻松并行化、重启和替换。你可以启动同一 Agent 的 100 个副本，它们的行为完全相同。状态在其他地方。
 
 #### Handoff
 
@@ -132,6 +152,10 @@ SharedState = { messages: [], artifacts: {}, context: {} }
 At minimum, a list of messages. Often more: structured artifacts (CrewAI Task outputs), typed context (LangGraph reducers), external memory (MCP, vector DB).
 
 > 至少是一个消息列表。通常更多：结构化工件（CrewAI Task 输出）、类型化上下文（LangGraph 归约器）、外部内存（MCP、向量 DB）。
+
+The shape of shared state determines what kinds of coordination are possible. A flat message list makes broadcast easy but role-specific filtering hard. A typed schema makes filtering trivial but requires upfront design. There is no free lunch.
+
+> 共享状态的形状决定了什么样的协调可能。扁平消息列表使广播容易但角色特定过滤难。类型化模式使过滤简单但需要前期设计。没有免费午餐。
 
 Two topologies: **full pool** (every agent sees every message) and **projected** (agents see a role-scoped view). Full pools are simple and scale badly. Projected pools scale but require upfront schema design.
 
@@ -174,6 +198,10 @@ Once the primitives are fixed, the remaining design decisions are:
 All implementable on top of the primitives. None of them are new primitives.
 
 > 所有都可以在原语之上实现。它们中没有新的原语。
+
+When a framework advertises a "new" feature (human-in-the-loop, retry, token budget), check whether it actually introduces a new primitive or just composes the four. Almost always the latter. The four primitives are stable; everything else is composition.
+
+> 当框架宣传"新"功能（人在循环、重试、token 预算）时，检查它是否真的引入了新原语或只是组合了这四个。几乎总是后者。四个原语是稳定的；其他一切都是组合。
 
 ## Build It | 动手实现
 
