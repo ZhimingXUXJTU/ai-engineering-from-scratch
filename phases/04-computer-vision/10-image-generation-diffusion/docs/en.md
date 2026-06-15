@@ -6,12 +6,12 @@
 
 > **【拓展：扩散模型的革命】** 扩散模型在 2022 年后取代 GAN 成为图像生成的主流。Stable Diffusion 使用潜在空间扩散（Latent Diffusion）大幅降低计算成本，DDIM 采样器将推理步数从 1000 步降至 20 步。扩散模型也被应用于视频生成（Sora）、3D 生成、音频生成等领域。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 07 (U-Net), Phase 1 Lesson 06 (Probability), Phase 3 Lesson 06 (Optimizers)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 07 (U-Net), Phase 1 Lesson 06 (Probability), Phase 3 Lesson 06 (Optimizers) | **前置知识:** Phase 4 Lesson 07（U-Net），Phase 1 Lesson 06（概率），Phase 3 Lesson 06（优化器）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Derive the forward noising process `x_0 -> x_1 -> ... -> x_T` and explain why the closed-form `q(x_t | x_0)` holds for any t
 - Implement a DDPM-style training objective that regresses the noise added at each step, and a sampler that walks back from pure noise to an image

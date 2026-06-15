@@ -6,12 +6,12 @@
 
 > **【拓展：视频 AI 应用】** 视频理解驱动了 YouTube/TikTok 的内容推荐、安防监控的异常检测、体育赛事的自动分析。Sora 等视频生成模型将视频理解推向了新高度——理解视频才能生成视频。
 
-**Type:** Learn + Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 03 (CNNs), Phase 4 Lesson 04 (Image Classification)
-**Time:** ~45 minutes
+**Type:** Learn + Build | **类型:** 学习 + 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 03 (CNNs), Phase 4 Lesson 04 (Image Classification) | **前置知识:** Phase 4 Lesson 03（CNN），Phase 4 Lesson 04（图像分类）
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Distinguish the three main video-modelling approaches (2D+pool, 3D conv, spatio-temporal transformer) and predict their cost and accuracy trade-offs
 - Implement frame sampling, temporal pooling, and a 2D+pool baseline classifier in PyTorch

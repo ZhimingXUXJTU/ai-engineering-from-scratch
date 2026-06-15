@@ -6,12 +6,12 @@
 
 > **【拓展：深度估计的应用】** 单目深度估计在自动驾驶（补充 LiDAR）、AR/VR（场景理解）、机器人导航、3D 照片效果（背景虚化）中有重要应用。Depth Anything、MiDaS、ZoeDepth 是代表性模型。
 
-**Type:** Build + Use
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 14 (ViT), Phase 4 Lesson 17 (Self-Supervised Vision), Phase 4 Lesson 07 (U-Net)
-**Time:** ~60 minutes
+**Type:** Build + Use | **类型:** 动手 + 应用
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 14 (ViT), Phase 4 Lesson 17 (Self-Supervised Vision), Phase 4 Lesson 07 (U-Net) | **前置知识:** Phase 4 Lesson 14（ViT），Phase 4 Lesson 17（自监督视觉），Phase 4 Lesson 07（U-Net）
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Distinguish relative and metric depth and state which one each production model (MiDaS, Marigold, Depth Anything V3, ZoeDepth) solves
 - Use Depth Anything V3 (DINOv2 backbone) to predict depth for arbitrary single images with no calibration

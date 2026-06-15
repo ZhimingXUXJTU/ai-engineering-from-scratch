@@ -6,12 +6,12 @@
 
 > **【拓展：ViT 与 GPT-4V】** ViT 是 GPT-4V、Claude 的视觉能力、LLaVA 等多模态大模型的视觉编码器。从 2021 年至今，ViT 已成为计算机视觉的基础架构，被用于 CLIP、SAM、DINO 等核心模型。ViT 的 patch 嵌入思想也启发了视频 Transformer 和多模态模型的设计。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 7 Lesson 02 (Self-Attention), Phase 4 Lesson 04 (Image Classification)
-**Time:** ~45 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 7 Lesson 02 (Self-Attention), Phase 4 Lesson 04 (Image Classification) | **前置知识:** Phase 7 Lesson 02（自注意力），Phase 4 Lesson 04（图像分类）
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Implement patch embedding, learned positional embedding, class token, and transformer encoder blocks from scratch to build a minimal ViT
 - Explain why ViT was thought to need massive pretraining data until DeiT and MAE proved otherwise

@@ -6,12 +6,12 @@
 
 > **【拓展：MOT 的应用】** 多目标跟踪在安防监控（人员轨迹追踪）、交通管理（车辆计数）、体育分析（球员跑动轨迹）、无人机跟踪等场景中不可或缺。ByteTrack、SORT/DeepSORT 是经典方法。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 06 (YOLO Detection), Phase 4 Lesson 08 (Mask R-CNN), Phase 4 Lesson 24 (SAM 3)
-**Time:** ~60 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 06 (YOLO Detection), Phase 4 Lesson 08 (Mask R-CNN), Phase 4 Lesson 24 (SAM 3) | **前置知识:** Phase 4 Lesson 06（YOLO 检测），Phase 4 Lesson 08（Mask R-CNN），Phase 4 Lesson 24（SAM 3）
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Distinguish tracking-by-detection from query-based tracking and name the algorithm families (SORT, DeepSORT, ByteTrack, BoT-SORT, SAM 2 memory tracker, SAM 3.1 Object Multiplex)
 - Implement IoU + Hungarian assignment from scratch for classic tracking-by-detection

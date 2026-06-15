@@ -6,12 +6,12 @@
 
 > **【拓展：3DGS vs NeRF】** 3D Gaussian Splatting 是 NeRF 的实时替代方案。NeRF 渲染慢但质量高，3DGS 通过显式的 3D 高斯表示实现了实时渲染，同时保持高质量。在 VR/AR、游戏、电影特效中有巨大潜力。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 13 (3D Vision & NeRF), Phase 1 Lesson 12 (Tensor Operations), Phase 4 Lesson 10 (Diffusion basics optional)
-**Time:** ~90 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 13 (3D Vision & NeRF), Phase 1 Lesson 12 (Tensor Operations), Phase 4 Lesson 10 (Diffusion basics optional) | **前置知识:** Phase 4 Lesson 13（3D 视觉与 NeRF），Phase 1 Lesson 12（张量运算），Phase 4 Lesson 10（扩散基础，可选）
+**Time:** ~90 minutes | **时间:** ~90 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Explain why 3D Gaussian Splatting replaced NeRF as the production default for photorealistic 3D reconstruction in 2026
 - State the six per-Gaussian parameters (position, rotation quaternion, scale, opacity, spherical harmonics colour, optional feature) and how many floats each contributes

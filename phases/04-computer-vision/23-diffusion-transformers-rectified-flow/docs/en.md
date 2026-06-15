@@ -6,12 +6,12 @@
 
 > **【拓展：DiT 是 2024-2026 的趋势】** Diffusion Transformer（DiT）将 Transformer 的可扩展性带入扩散模型。Sora（视频生成）、Stable Diffusion 3、FLUX 都采用 DiT 架构。Rectified Flow 将扩散过程简化为直线插值，训练和推理更高效。
 
-**Type:** Learn + Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 10 (Diffusion DDPM), Phase 4 Lesson 14 (ViT), Phase 7 Lesson 02 (Self-Attention)
-**Time:** ~75 minutes
+**Type:** Learn + Build | **类型:** 学习 + 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 10 (Diffusion DDPM), Phase 4 Lesson 14 (ViT), Phase 7 Lesson 02 (Self-Attention) | **前置知识:** Phase 4 Lesson 10（扩散 DDPM），Phase 4 Lesson 14（ViT），Phase 7 Lesson 02（自注意力）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Trace the evolution from U-Net DDPM (Lesson 10) to Diffusion Transformer (DiT), MMDiT (SD3), and single+double-stream DiT (FLUX)
 - Explain rectified flow: why a straight-line trajectory between noise and data lets models sample in 20 steps instead of 1000

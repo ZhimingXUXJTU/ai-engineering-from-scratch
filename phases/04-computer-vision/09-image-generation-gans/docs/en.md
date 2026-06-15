@@ -6,12 +6,12 @@
 
 > **【拓展：GAN 的遗产】** GAN 在 StyleGAN（人脸生成）、CycleGAN（风格迁移）、Super-Resolution GAN（图像超分辨率）中有里程碑式应用。虽然扩散模型在 2022 年后成为图像生成的主流，GAN 的对抗训练思想仍被用于提升其他生成模型的质量。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 03 (CNNs), Phase 3 Lesson 06 (Optimizers), Phase 3 Lesson 07 (Regularization)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 03 (CNNs), Phase 3 Lesson 06 (Optimizers), Phase 3 Lesson 07 (Regularization) | **前置知识:** Phase 4 Lesson 03（CNN），Phase 3 Lesson 06（优化器），Phase 3 Lesson 07（正则化）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Explain the minimax game between generator and discriminator and why the equilibrium corresponds to p_model = p_data
 - Implement a DCGAN in PyTorch and get it to generate coherent 32x32 synthetic images in under 60 lines

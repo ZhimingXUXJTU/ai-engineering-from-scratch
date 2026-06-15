@@ -4,10 +4,10 @@
 
 > **【中文解读】** 图像分类器本质上是一个从像素到类别概率分布的函数。检测（分类区域）、分割（分类像素）、检索（按类别相似度排序）归根结底都是分类。掌握分类的完整流水线（数据集、增强、训练、评估）是所有视觉任务的基础。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 2 Lesson 09 (Model Evaluation), Phase 3 Lesson 10 (Mini Framework), Phase 4 Lesson 03 (CNNs)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 2 Lesson 09 (Model Evaluation), Phase 3 Lesson 10 (Mini Framework), Phase 4 Lesson 03 (CNNs) | **前置知识:** Phase 2 Lesson 09（模型评估），Phase 3 Lesson 10（迷你框架），Phase 4 Lesson 03（CNN）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 

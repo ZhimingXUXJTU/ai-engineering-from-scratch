@@ -5,10 +5,10 @@
 
 > **【中文解读】** LDA 用概率模型发现主题，BERTopic 用 BERT 嵌入。
 
-**Type:** Learn
+**Type:** Learn | **类型:** 学习
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 5 · 02 (BoW + TF-IDF), Phase 5 · 03 (Word2Vec) | **前置知识:** Phase 5 · 02 (BoW + TF-IDF), Phase 5 · 03 (Word2Vec)
-**Time:** ~45 minutes | **时间:** ~45 minutes
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 
 ## The Problem | 问题引入

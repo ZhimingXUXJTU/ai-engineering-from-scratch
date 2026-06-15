@@ -6,10 +6,10 @@
 
 > **【拓展：迁移学习在工业界的应用】** 几乎所有生产级视觉系统都使用迁移学习：医疗影像（ImageNet 预训练 + 医学数据微调）、工业质检、自动驾驶。训练 ResNet-50 需 ~2000 GPU 小时，但微调只需几分钟。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 03 (CNNs), Phase 4 Lesson 04 (Image Classification)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 03 (CNNs), Phase 4 Lesson 04 (Image Classification) | **前置知识:** Phase 4 Lesson 03（CNN），Phase 4 Lesson 04（图像分类）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 

@@ -4,10 +4,10 @@
 
 > **【中文解读】** 过去三十年所有重要的 CNN 都是同一个模板（卷积-激活-下采样）加上一个新想法。按时间顺序学习这些想法：LeNet（模板定义）→ AlexNet（ReLU+深度）→ VGG（3x3堆叠）→ Inception（多尺度并行）→ ResNet（残差跳跃连接）。这些创新不仅改变了视觉，还转移到了 Transformer 和 LLM 中。
 
-**Type:** Learn + Build
-**Languages:** Python
-**Prerequisites:** Phase 3 Lesson 11 (PyTorch), Phase 4 Lesson 01 (Image Fundamentals), Phase 4 Lesson 02 (Convolutions from Scratch)
-**Time:** ~75 minutes
+**Type:** Learn + Build | **类型:** 学习 + 动手
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 3 Lesson 11 (PyTorch), Phase 4 Lesson 01 (Image Fundamentals), Phase 4 Lesson 02 (Convolutions from Scratch) | **前置知识:** Phase 3 Lesson 11（PyTorch），Phase 4 Lesson 01（图像基础），Phase 4 Lesson 02（从零实现卷积）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标
 

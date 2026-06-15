@@ -6,12 +6,12 @@
 
 > **【拓展：Stable Diffusion 生态】** Stable Diffusion 衍生出了 LoRA（轻量微调）、ControlNet（控制姿态/边缘）、IP-Adapter（图像提示）等丰富生态。LoRA 微调只需几张图片和消费级 GPU 即可定制风格，使 AI 绘画走进了千家万户。SDXL、SD3、FLUX 等后续版本不断推动图像质量提升。
 
-**Type:** Learn + Use
-**Languages:** Python
-**Prerequisites:** Phase 4 Lesson 10 (Diffusion), Phase 7 Lesson 02 (Self-Attention)
-**Time:** ~75 minutes
+**Type:** Learn + Use | **类型:** 学习 + 应用
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 4 Lesson 10 (Diffusion), Phase 7 Lesson 02 (Self-Attention) | **前置知识:** Phase 4 Lesson 10（扩散模型），Phase 7 Lesson 02（自注意力）
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
-## Learning Objectives
+## Learning Objectives | 学习目标
 
 - Trace the five pieces of a Stable Diffusion pipeline: VAE, text encoder, U-Net, scheduler, safety checker — and what each of them actually does
 - Explain latent diffusion and why training in a 4x64x64 latent space (instead of a 3x512x512 image) reduces compute by 48x without quality loss
