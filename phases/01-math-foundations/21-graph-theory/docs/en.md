@@ -330,6 +330,8 @@ graph LR
 | Spectral clustering | Unsupervised node grouping |
 | PageRank | Node importance, web search |
 
+> 概念与 ML 应用对照：邻接矩阵（GNN 输入表示）、图拉普拉斯（谱聚类、社区检测）、BFS/DFS（知识图谱遍历、路径查找）、度分布（节点重要性、特征工程）、消息传递（GNN 层 GCN/GAT/GraphSAGE）、L 的特征值（社区检测、图划分）、谱聚类（无监督节点分组）、PageRank（节点重要性、Web 搜索）。
+
 ## Build It | 动手实现
 
 ### Step 1: Graph class from scratch
@@ -373,6 +375,8 @@ class Graph:
 
 The adjacency list (`self.adj`) stores neighbors efficiently. The adjacency matrix conversion uses numpy because all the spectral operations need it.
 
+> 邻接表（`self.adj`）高效存储邻居。邻接矩阵转换使用 numpy，因为所有谱操作都需要它。
+
 ### Step 2: BFS and DFS
 
 ```python
@@ -413,6 +417,8 @@ def dfs(graph, start):
 
 BFS uses a deque (double-ended queue) for O(1) popleft. DFS uses a list as a stack. Both visit every node exactly once -- O(V + E) time.
 
+> BFS 用 deque（双端队列）实现 O(1) popleft；DFS 用 list 当栈。两者都恰好访问每个节点一次——时间复杂度 O(V+E)。
+
 ### Step 3: Connected components and Laplacian eigenvalues
 
 ```python
@@ -436,6 +442,8 @@ def laplacian_eigenvalues(graph):
 
 `eigvalsh` is for symmetric matrices -- the Laplacian is always symmetric for undirected graphs. It returns eigenvalues in ascending order. Count the zeros to find the number of connected components.
 
+> `eigvalsh` 用于对称矩阵——无向图的拉普拉斯矩阵总是对称的。它返回升序特征值。数零特征值即可得到连通分量个数。
+
 ### Step 4: Spectral clustering
 
 ```python
@@ -456,6 +464,8 @@ def spectral_clustering(graph, k=2):
 
 For k=2, the sign of the Fiedler vector splits the graph into two clusters. For k>2, you would run k-means on the first k eigenvectors (excluding the trivial all-ones eigenvector).
 
+> k=2 时，Fiedler 向量的符号把图分成两簇。k>2 时，在前 k 个特征向量上跑 k-means（跳过平凡的全 1 特征向量）。
+
 ### Step 5: Message passing
 
 ```python
@@ -472,9 +482,13 @@ def message_passing(graph, features, weight_matrix):
 
 This is one round of GNN message passing. Each node's new features are the weighted average of its neighbors' features, transformed by the weight matrix. Stack multiple rounds to propagate information further.
 
+> 这是 GNN 消息传递的一轮。每个节点的新特征 = 邻居特征的加权平均 × 权重矩阵。堆叠多层传播更远的信息。
+
 ## Use It | 用框架实现
 
 With networkx and numpy, the same operations are one-liners:
+
+> 用 networkx 和 numpy，同样的操作是一行代码：
 
 ```python
 import networkx as nx
@@ -498,6 +512,8 @@ print(f"Top 5 PageRank nodes: {top_nodes}")
 ```
 
 networkx handles graphs of any size with optimized C backends. Use it in production. Use your from-scratch implementation to understand what it does.
+
+> networkx 用优化的 C 后端处理任意大小的图。生产用它，从零实现用来理解它做了什么。
 
 ### numpy spectral analysis
 
@@ -555,6 +571,8 @@ H^(l+1) = sigma(D_hat^(-1/2) * A_hat * D_hat^(-1/2) * H^(l) * W^(l))
 
 where A_hat = A + I (adjacency plus self-loops) and D_hat is the degree matrix of A_hat. The self-loops ensure each node includes its own features during aggregation. This is exactly message passing with symmetric normalization. D_hat^(-1/2) * A_hat * D_hat^(-1/2) is the normalized adjacency matrix. The Laplacian shows up because this normalization is related to L_sym = I - D^(-1/2) * A * D^(-1/2). Understanding the Laplacian means understanding why GCNs work.
 
+> GNN 值得特别说明。GCN（Kipf & Welling, 2017）的图卷积用加了自环的邻接矩阵 A_hat = A + I：H^(l+1) = σ(D_hat^(-1/2) A_hat D_hat^(-1/2) H^(l) W^(l))。自环让每个节点聚合时包含自身特征。这就是对称归一化的消息传递。理解拉普拉斯矩阵 = 理解 GCN 为何有效。
+
 ## Exercises | 练习题
 
 1. **Implement PageRank from scratch.** Start with uniform scores. At each step: score(v) = (1-d)/n + d * sum(score(u)/out_degree(u)) for all u pointing to v. Use d=0.85. Run until convergence (change < 1e-6). Test on a small web graph.
@@ -581,6 +599,8 @@ where A_hat = A + I (adjacency plus self-loops) and D_hat is the degree matrix o
 | Message passing | "Nodes talk to neighbors" | Each node aggregates information from its neighbors, the core of GNNs |
 | Spectral clustering | "Cluster by eigenvectors" | Partition a graph using eigenvectors of its Laplacian |
 | Connected component | "A separate piece" | A maximal subgraph where every node can reach every other node |
+
+> 术语速查：Graph（图 G=(V,E)）、Adjacency matrix（邻接矩阵 A[i][j]=1 表示 i、j 连接）、Degree（度，节点连接的边数）、Laplacian（拉普拉斯 L=D-A）、Fiedler value（最小非零特征值，代数连通性）、BFS（广度优先，按层遍历）、DFS（深度优先，走到底再回溯）、Message passing（消息传递，GNN 核心）、Spectral clustering（用拉普拉斯特征向量聚类）、Connected component（连通分量）。
 
 ## Further Reading | 延伸阅读
 

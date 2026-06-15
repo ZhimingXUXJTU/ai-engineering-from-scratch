@@ -183,7 +183,11 @@ P(token_i) = exp(logit_i / temperature) / sum(exp(logit_j / temperature))
 - Temperature > 1.0: flatter (more random)
 - Temperature -> 0: argmax (greedy)
 
+> Temperature=1.0 标准分布；<1.0 更尖锐（更确定性）；>1.0 更平坦（更随机）；→0 退化为 argmax（贪心解码）。
+
 Top-k sampling truncates to the k highest-probability tokens. Top-p (nucleus) sampling truncates to the smallest set of tokens whose cumulative probability exceeds p. Both modify the Markov transition probabilities.
+
+> Top-k 采样保留概率最高的 k 个 token；Top-p（核采样）保留累积概率超过 p 的最小 token 集合。两者都修改了马尔可夫转移概率。
 
 ### Brownian Motion
 
@@ -192,7 +196,11 @@ The continuous-time limit of the random walk. Position B(t) has three properties
 2. B(t) - B(s) is normally distributed with mean 0 and variance t - s (for t > s)
 3. Increments on non-overlapping intervals are independent
 
+> 布朗运动是随机游走的连续时间极限。B(t) 有三条性质：B(0)=0；B(t)-B(s) ~ N(0, t-s)；非重叠区间上的增量独立。
+
 Brownian motion is continuous but nowhere differentiable -- it jiggles at every scale. The path has fractal dimension 2 in the plane.
+
+> 布朗运动连续但处处不可导——它在每个尺度都抖动。路径在平面上的分形维数为 2。
 
 In discrete simulation, you approximate Brownian motion by:
 
@@ -201,6 +209,8 @@ B(t + dt) = B(t) + sqrt(dt) * z,    where z ~ N(0, 1)
 ```
 
 The sqrt(dt) scaling is important. It comes from the central limit theorem applied to random walks.
+
+> 离散仿真中用 B(t+dt) = B(t) + √dt × z 近似布朗运动（z ~ N(0,1)）。√dt 缩放很关键，源自随机游走的中心极限定理。
 
 ### Langevin Dynamics
 
@@ -230,7 +240,11 @@ x_t = sqrt(alpha_t) * x_{t-1} + sqrt(1 - alpha_t) * noise
 
 This is a Markov chain that gradually mixes the data with noise. After enough steps, x_T is pure Gaussian noise.
 
+> 扩散模型的前向过程：x_t = √α_t × x_{t-1} + √(1-α_t) × noise。这是逐步混入噪声的马尔可夫链，足够多步后 x_T 变为纯高斯噪声。
+
 The reverse process -- going from noise back to data -- is also a Markov chain, but its transition probabilities are learned by a neural network. The network learns to predict the noise that was added at each step, then subtracts it.
+
+> 反向过程——从噪声回到数据——也是马尔可夫链，但转移概率由神经网络学习。网络学会预测每步添加的噪声，然后减去它。
 
 ```mermaid
 graph LR
@@ -260,17 +274,27 @@ Sometimes you need to sample from a distribution p(x) that you can evaluate (up 
 4. Accept x' with probability min(1, a). Otherwise stay at x.
 5. Repeat.
 
+> **Metropolis-Hastings** 构造一个平稳分布为 p(x) 的马尔可夫链：1) 从某点 x 出发；2) 从提议分布 Q(x'|x) 提出新位置 x'；3) 计算接受率 a = p(x')Q(x|x')/(p(x)Q(x'|x))；4) 以概率 min(1,a) 接受，否则停留；5) 重复。
+
 If Q is symmetric (e.g., Q(x'|x) = Q(x|x') = N(x, sigma^2)), the ratio simplifies to a = p(x') / p(x). You only need the ratio of probabilities -- the normalizing constant cancels.
+
+> 如果 Q 对称（如高斯），接受率简化为 a = p(x')/p(x)。只需概率比——归一化常数自动消去，这正是 MCMC 对贝叶斯后验如此有用的原因。
 
 The chain is guaranteed to converge to p(x) under mild conditions. But convergence can be slow if the proposal is too small (random walk) or too large (high rejection). Tuning the proposal is the art of MCMC.
 
+> 在温和条件下链保证收敛到 p(x)。但收敛可能慢——提议太小（变成随机游走）或太大（高拒绝率）。调参是 MCMC 的艺术。
+
 **Why it works.** The acceptance ratio ensures detailed balance: the probability of being at x and moving to x' equals the probability of being at x' and moving to x. Detailed balance implies that p(x) is the stationary distribution of the chain. So after enough steps, the samples come from p(x).
+
+> **为什么有效**：接受率保证细致平衡——从 x 到 x' 的概率等于从 x' 到 x 的概率。细致平衡意味着 p(x) 是链的平稳分布，足够多步后样本来自 p(x)。
 
 **Practical considerations:**
 - **Burn-in**: discard the first N samples. The chain needs time to reach the stationary distribution from its starting point.
 - **Thinning**: keep every k-th sample to reduce autocorrelation.
 - **Multiple chains**: run several chains from different starting points. If they converge to the same distribution, you have evidence of convergence.
 - **Acceptance rate**: for Gaussian proposals in d dimensions, the optimal acceptance rate is about 23% (Roberts & Rosenthal, 2001). Too high means the chain barely moves. Too low means it rejects everything.
+
+> 实战要点：**Burn-in** 丢弃前 N 个样本（链需要时间到达平稳分布）；**Thinning** 每 k 个样本取一个（降低自相关）；**Multiple chains** 从不同起点跑多条链（如果收敛到同分布，则有收敛证据）；**Acceptance rate** d 维高斯提议的最优接受率约 23%（太高=几乎不动，太低=全拒绝）。
 
 ### Stochastic Processes in AI
 
@@ -282,6 +306,8 @@ The chain is guaranteed to converge to p(x) under mild conditions. But convergen
 | Langevin dynamics | Score-based generative models, SGLD |
 | Markov decision process | Reinforcement learning |
 | Metropolis-Hastings | Bayesian inference, posterior sampling |
+
+> 随机过程在 AI 中的应用：随机游走（RL 探索、Node2Vec 嵌入）、马尔可夫链（文本生成、MCMC）、布朗运动（扩散模型前向）、Langevin 动力学（Score-based 模型、SGLD）、马尔可夫决策过程（强化学习）、Metropolis-Hastings（贝叶斯推理、后验采样）。
 
 ## Build It | 动手实现
 
@@ -312,6 +338,8 @@ def random_walk_2d(n_steps, seed=None):
 ```
 
 The 1D walk stores cumulative sums. Each step is +1 or -1. After n steps, the position is the sum. The variance grows linearly with n, so the standard deviation grows as sqrt(n).
+
+> 一维随机游走存储累加和。每步是 +1 或 -1。n 步后位置是总和。方差线性增长 n，标准差按 √n 增长。
 
 ### Step 2: Markov chain
 
@@ -347,6 +375,8 @@ class MarkovChain:
 
 The stationary distribution is the left eigenvector of P with eigenvalue 1. We find it by computing eigenvectors of P^T (transposing turns left eigenvectors into right eigenvectors).
 
+> 平稳分布是 P 的特征值为 1 的左特征向量。通过对 P^T 求特征向量得到（转置把左特征向量变成右特征向量）。
+
 ### Step 3: Langevin dynamics
 
 ```python
@@ -362,6 +392,8 @@ def langevin_dynamics(grad_U, x0, dt, temperature, n_steps, seed=None):
 ```
 
 The gradient pushes x toward low energy. The noise prevents it from getting stuck. At equilibrium, the distribution of samples is proportional to exp(-U(x)/temperature).
+
+> 梯度把 x 推向低能量区，噪声防止陷入局部最优。平衡时样本分布 ∝ exp(-U(x)/温度)。
 
 ### Step 4: Metropolis-Hastings
 
@@ -384,9 +416,13 @@ def metropolis_hastings(target_log_prob, proposal_std, x0, n_samples, seed=None)
 
 The algorithm proposes a new point, checks if it has higher probability (or accepts with probability proportional to the ratio), and repeats. The acceptance rate should be around 23-50% for good mixing.
 
+> 算法流程：提议新点 → 检查概率是否更高（或按比例接受）→ 重复。良好混合的接受率应在 23-50% 之间。
+
 ## Use It | 用框架实现
 
 In practice, you use established libraries for these algorithms. But understanding the mechanics matters for debugging and tuning.
+
+> 实际中你用成熟库实现这些算法。但理解机制对调试和调参很重要。
 
 ```python
 import numpy as np
@@ -416,11 +452,15 @@ print(f"Stationary distribution: {np.round(distribution, 4)}")
 
 Multiply the initial distribution by P repeatedly. After enough iterations, it converges to the stationary distribution regardless of where you started. This is the power method for finding the dominant left eigenvector.
 
+> 反复用初始分布乘 P。足够多次迭代后，无论从哪开始都收敛到平稳分布。这就是求主左特征向量的幂法。
+
 ### Connections to real frameworks
 
 - **PyTorch diffusion:** The `DDPMScheduler` in Hugging Face `diffusers` implements the forward and reverse Markov chains
 - **NumPyro / PyMC:** Use MCMC (NUTS sampler, which improves on Metropolis-Hastings) for Bayesian inference
 - **Gymnasium (RL):** The environment step function defines a Markov decision process
+
+> 与真实框架的连接：Hugging Face `diffusers` 的 DDPMScheduler 实现了扩散模型的前向/反向马尔可夫链；NumPyro/PyMC 用 NUTS 采样器（Metropolis-Hastings 的改进版）做贝叶斯推理；Gymnasium 的 step 函数定义了马尔可夫决策过程。
 
 ### Verifying Markov chain convergence
 
@@ -438,10 +478,14 @@ print(f"Approximate mixing time: {1/spectral_gap:.1f} steps")
 
 The spectral gap tells you how fast the chain forgets its initial state. A gap of 0.2 means roughly 5 steps to mix. A gap of 0.01 means roughly 100 steps. Always check this before running long simulations -- a slowly mixing chain wastes compute.
 
+> 谱隙告诉你链多快忘记初始状态。0.2 的间隙大约需要 5 步混合；0.01 大约需要 100 步。运行长仿真前总要检查这个——慢混合的链浪费算力。
+
 ## Ship It | 产出物
 
 This lesson produces:
 - `outputs/prompt-stochastic-process-advisor.md` -- a prompt that helps identify which stochastic process framework applies to a given problem
+
+> 本课产出：帮助识别给定问题适用哪种随机过程框架的提示词。
 
 ## Connections | 概念关联地图
 
@@ -457,6 +501,8 @@ This lesson produces:
 | Mixing time | Convergence speed of MCMC, spectral gap analysis |
 | Absorbing state | End-of-sequence token, terminal states in RL |
 | Detailed balance | Correctness guarantee for MCMC samplers |
+
+> 概念关联：随机游走（Node2Vec、RL 探索）、马尔可夫链（LLM token 生成、MCMC）、布朗运动（DDPM 前向过程）、Langevin 动力学（Score-based 模型、SGLD）、平稳分布（MCMC 收敛目标、PageRank）、Metropolis-Hastings（贝叶斯后验、模拟退火）、Temperature（LLM 采样、Boltzmann 探索）、Mixing time（MCMC 收敛速度）、Absorbing state（序列结束 token、RL 终止状态）、Detailed balance（MCMC 采样器的正确性保证）。
 
 Diffusion models deserve special attention. DDPM (Ho et al., 2020) defines a forward Markov chain:
 
@@ -504,6 +550,8 @@ The key insight across all these connections: stochastic processes are not just 
 | Metropolis-Hastings | "Propose and accept/reject" | MCMC algorithm that uses acceptance ratios to ensure convergence |
 | Temperature | "The randomness knob" | Parameter controlling the tradeoff between exploration and exploitation |
 | Diffusion process | "Noise in, noise out" | Forward: gradually add noise. Reverse: gradually remove it. Generates data. |
+
+> 术语速查：Random walk（随机游走）、Markov property（无记忆性）、Transition matrix（转移矩阵 P[i][j]）、Stationary distribution（平稳分布 π·P=π）、Brownian motion（布朗运动 B(t)~N(0,t)）、Langevin dynamics（带噪声的梯度下降）、MCMC（构造平稳分布为目标分布的马尔可夫链）、Metropolis-Hastings（提议-接受/拒绝 MCMC 算法）、Temperature（探索/利用平衡参数）、Diffusion process（前向加噪、反向去噪生成数据）。
 
 ## Further Reading | 延伸阅读
 

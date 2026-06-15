@@ -2,6 +2,8 @@
 
 > A matrix is a machine that reshapes space. Learn what it does to every point, and you understand the whole transformation.
 
+> 矩阵是一台"重塑空间"的机器。理解它对每个点的作用，就理解了整个变换。
+
 **Type:** Build | **类型:** 动手
 **Languages:** Python, Julia | **语言:** Python, Julia
 **Prerequisites:** Phase 1, Lessons 01-02 (Linear Algebra Intuition, Vectors & Matrices Operations) | **前置知识:** Phase 1, Lessons 01-02（线性代数直觉、向量与矩阵运算）
@@ -10,9 +12,13 @@
 ## Learning Objectives | 学习目标
 
 - Construct rotation, scaling, shearing, and reflection matrices and apply them to 2D and 3D points
+  构造旋转、缩放、剪切、反射矩阵并应用于 2D 和 3D 点
 - Compose multiple transformations by matrix multiplication and verify that order matters
+  通过矩阵乘法组合多个变换，验证顺序的重要性
 - Compute eigenvalues and eigenvectors of 2x2 matrices from the characteristic equation
+  从特征方程计算 2x2 矩阵的特征值和特征向量
 - Explain why eigenvalues determine PCA directions, RNN stability, and spectral clustering behavior
+  解释特征值为何决定 PCA 方向、RNN 稳定性和谱聚类行为
 
 > **【中文解读】**
 > 矩阵是对空间的变换——旋转、缩放、剪切、翻转。理解矩阵的几何意义后，PCA、RNN 稳定性、谱聚类这些概念就变得直观了。
@@ -36,6 +42,8 @@ Every linear transformation in 2D can be written as a 2x2 matrix. The matrix tel
 
 > 二维空间中的每个线性变换都可以写成一个 2x2 矩阵。矩阵告诉你基向量 [1, 0] 和 [0, 1] 变到了哪里，其余一切由此决定。
 
+> 矩阵的列就是变换后的基向量。如果矩阵第一列是 [2, 0]，说明 e1=[1,0] 被映射到 [2,0]（沿 x 轴拉伸 2 倍）。
+
 ```mermaid
 graph LR
     subgraph Before["Standard Basis"]
@@ -58,6 +66,8 @@ graph LR
 A 2D rotation by angle theta keeps distances and angles intact. It moves every point along a circular arc.
 
 > 二维旋转保持距离和角度不变，将每个点沿圆弧移动。
+
+> 旋转矩阵 R(θ) = [[cosθ, -sinθ], [sinθ, cosθ]]。θ 为正表示逆时针旋转。R^T = R^(-1)，转置即逆旋转。
 
 ```mermaid
 graph LR
@@ -100,6 +110,8 @@ Scaling stretches or compresses along each axis independently.
 
 > 缩放沿每个轴独立地拉伸或压缩。
 
+> 缩放矩阵 S = [[sx, 0], [0, sy]]。sx、sy 可以不同。如果某个为负，等价于沿该轴反射。
+
 ```mermaid
 graph LR
     subgraph Before["Before Scaling"]
@@ -123,6 +135,8 @@ Shearing tilts one axis while keeping the other fixed. It turns rectangles into 
 
 > 剪切使一个轴倾斜而保持另一个轴固定，将矩形变成平行四边形。
 
+> 剪切保持面积不变（行列式=1）。想象一摞扑克牌向一边推：底牌不动，顶牌平移。
+
 ```mermaid
 graph LR
     subgraph Before["Before Shear"]
@@ -144,11 +158,15 @@ Shear matrices:
 - `Shx = [[1, k], [0, 1]]` shifts x by k * y
 - `Shy = [[1, 0], [k, 1]]` shifts y by k * x
 
+> 剪切矩阵：`Shx` 沿 y 偏移 x（x 新 = x + k*y），`Shy` 沿 x 偏移 y（y 新 = y + k*x）。
+
 ### Reflection
 
 Reflection mirrors points across an axis or line.
 
 > 反射将点关于某条轴或线做镜像。
+
+> 反射改变方向（行列式=-1）但保持距离。任何正交矩阵的行列式要么 +1（旋转）要么 -1（含反射）。
 
 ```mermaid
 graph LR
@@ -168,11 +186,15 @@ Reflection matrices:
 - Reflect across y-axis: `[[-1, 0], [0, 1]]`
 - Reflect across x-axis: `[[1, 0], [0, -1]]`
 
+> 反射矩阵：关于 y 轴反射 `[[-1, 0], [0, 1]]`，关于 x 轴反射 `[[1, 0], [0, -1]]`。
+
 ### Composition: chaining transformations
 
 Applying transformation A then B is the same as multiplying their matrices: `result = B @ A @ point`. Order matters. Rotate then scale gives different results than scale then rotate.
 
 > 先做变换 A 再做变换 B 等于乘以它们的矩阵：`result = B @ A @ point`。顺序很重要——先旋转再缩放与先缩放再旋转结果不同。
+
+> 这就是为什么 PyTorch 中的 nn.Sequential 严格按顺序应用模块，且矩阵乘法顺序在反向传播中通过转置自动反转。
 
 ```mermaid
 graph LR
@@ -183,6 +205,8 @@ graph LR
 
 Composed: `S @ R = [[0, -2], [0.5, 0]]`
 
+> 先旋转 90° 再缩放 (2, 0.5)：从 (1,0) → 旋转后 (0,1) → 缩放后 (0, 0.5)。组合矩阵 S @ R = [[0, -2], [0.5, 0]]。
+
 ```mermaid
 graph LR
     subgraph Path2["Scale (2, 0.5) then Rotate 90"]
@@ -192,15 +216,19 @@ graph LR
 
 Composed: `R @ S = [[0, -0.5], [2, 0]]`
 
+> 先缩放 (2, 0.5) 再旋转 90°：从 (1,0) → 缩放后 (2, 0) → 旋转后 (0, 2)。组合矩阵 R @ S = [[0, -0.5], [2, 0]]，与上面完全不同。
+
 Different results. Matrix multiplication is not commutative.
 
-> 结果不同。矩阵乘法不满足交换律。
+> 结果不同。矩阵乘法不满足交换律——这就是为什么 Transformer 注意力中 Q、K、V 的相乘顺序至关重要。
 
 ### Eigenvalues and eigenvectors
 
 Most vectors change direction when a matrix hits them. Eigenvectors are special: the matrix only scales them, never rotates them. The scaling factor is the eigenvalue.
 
 > 大多数向量被矩阵变换后会改变方向。特征向量是特殊的：矩阵只对它做缩放，不旋转。缩放倍数就是特征值。
+
+> 几何直觉：特征向量是变换中"方向不变"的方向。如果矩阵是椭圆变换，特征向量指向椭圆的长短轴。
 
 ```
 A @ v = lambda * v
@@ -226,7 +254,9 @@ The matrix stretches space by 3x along [1, 1] and keeps [1, -1] unchanged. Every
 
 If a matrix has n linearly independent eigenvectors, it can be decomposed:
 
-> 如果矩阵有 n 个线性无关的特征向量，它可以分解为：
+> 如果矩阵有 n 个线性无关的特征向量，它可以分解为 A = V D V⁻¹。
+
+> 特征分解的几何意义：把任意变换拆解为"旋转到特征向量坐标系 → 沿轴缩放 → 旋转回来"三步。这就是 PCA 的核心数学。
 
 ```
 A = V @ D @ V^(-1)
@@ -260,6 +290,8 @@ The determinant of a transformation matrix tells you how much it scales area (2D
 
 > 变换矩阵的行列式告诉你它缩放面积（2D）或体积（3D）的程度。
 
+> det=0 是"灾难"——矩阵把空间压缩到低维（如 2D → 1D 线），信息丢失，矩阵不可逆。神经网络初始化时要避免权重矩阵接近奇异。
+
 ```
 det = 1:   area preserved (rotation)
 det = 2:   area doubled
@@ -272,11 +304,15 @@ det = -1:  area preserved but orientation flipped (reflection)
 | det(Reflection) | = -1     (orientation flipped)
 ```
 
+> 行列式含义：det=1 保面积（旋转）；det=2 面积翻倍；det=0 空间塌缩到低维（奇异，矩阵不可逆）；det=-1 保面积但翻转方向（反射）。
+
 ## Build It | 动手实现
 
 ### Step 1: Transformation matrices from scratch (Python)
 
 > 第1步：从零实现变换矩阵
+
+> 从零实现旋转、缩放、剪切、反射矩阵。所有变换都是 2x2 矩阵。还实现 mat_vec_mul 和 mat_mul 用于变换向量和组合变换。
 
 ```python
 import math
@@ -331,6 +367,8 @@ print(f"Reflect (2,1) across y: ({reflected[0]:.1f}, {reflected[1]:.1f})")
 
 > 第2步：变换的组合
 
+> 验证矩阵乘法不可交换：先旋转 90° 再缩放 (2, 0.5) 与先缩放再旋转得到完全不同的结果。这解释了为什么 PyTorch nn.Sequential 中层顺序至关重要。
+
 ```python
 R = rotation_2d(math.pi / 2)
 S = scaling_2d(2, 0.5)
@@ -351,7 +389,11 @@ print(f"Same? {result1 == result2}")
 
 > 第3步：从零计算特征值
 
+> 2x2 矩阵的特征值通过解二次方程 λ² - trace·λ + det = 0 得到，其中 trace=a+d，det=ad-bc。特征向量通过 (A - λI)v = 0 求解。
+
 For a 2x2 matrix `[[a, b], [c, d]]`, eigenvalues solve the characteristic equation: `lambda^2 - (a+d)*lambda + (ad - bc) = 0`.
+
+> 对 2x2 矩阵 `[[a, b], [c, d]]`，特征值满足特征方程 λ² - (a+d)λ + (ad-bc) = 0。其中 (a+d) 是迹（trace），(ad-bc) 是行列式。
 
 ```python
 def eigenvalues_2x2(matrix):
@@ -414,11 +456,15 @@ print(f"det(singular)     = {det_2x2(singular):.1f}")
 print("Singular: columns are proportional, space collapses to a line.")
 ```
 
+> 奇异矩阵示例：[[1, 2], [2, 4]] 的行列式为 0，因为两行成比例。空间被压缩到一条线，变换不可逆。
+
 ## Use It | 用框架实现
 
 NumPy handles all of this with optimized routines.
 
 > NumPy 用优化过的例程处理所有这些操作。
+
+> NumPy 的 `np.linalg.eig` 和 `np.linalg.det` 底层调用 LAPACK（C/Fortran 写的线性代数库），比手写 Python 快 100-1000 倍。
 
 ```python
 import numpy as np
@@ -477,19 +523,26 @@ print(f"Rotate 90 around z: {np.round(rotated_z, 4)}")
 print(f"Rotate 90 around x: {np.round(rotated_x, 4)}")
 ```
 
+> NumPy 实现 3D 旋转矩阵：绕 z 轴和绕 x 轴各有独立的 3x3 旋转矩阵。3D 图形学、机器人学、计算机视觉都依赖这些矩阵。
+
 ## Ship It | 产出物
 
 This lesson builds the geometric foundation for PCA (Phase 2) and neural network weight analysis. The eigenvalue/eigenvector code built here is the same algorithm that powers dimensionality reduction, spectral clustering, and stability analysis in production ML systems.
 
 > 本课构建了 PCA（Phase 2）和神经网络权重分析的几何基础。这里的特征值/特征向量代码与生产 ML 系统中的降维、谱聚类和稳定性分析使用相同的算法。
 
+> 本课产出：从零实现的变换矩阵库 + 特征值/特征向量求解器。代码可以直接用于理解 PCA、谱聚类、GNN 谱方法等高级主题。
+
 ## Exercises | 练习题
 
 1. Apply rotation, scaling, and shearing to a unit square (corners at [0,0], [1,0], [1,1], [0,1]). Print the transformed corners for each. Verify that rotation preserves distances between corners.
+   对单位正方形（角在 [0,0]、[1,0]、[1,1]、[0,1]）应用旋转、缩放、剪切。打印每个变换后的角。验证旋转保持角之间距离不变。
 
 2. Find the eigenvalues of the matrix [[4, 2], [1, 3]] by hand using the characteristic equation. Then verify with your from-scratch function and with NumPy.
+   手工用特征方程求矩阵 [[4, 2], [1, 3]] 的特征值，然后用从零实现的函数和 NumPy 验证。
 
 3. Create a composition of three transformations (rotate 30 degrees, scale by [1.5, 0.8], shear with kx=0.3) and apply it to 8 points arranged in a circle. Print before and after coordinates. Compute the determinant of the composed matrix and verify it equals the product of the individual determinants.
+   组合三个变换（旋转 30°、缩放 [1.5, 0.8]、剪切 kx=0.3），应用到圆上的 8 个点。打印前后坐标。计算组合矩阵的行列式，验证它等于各自行列式的乘积。
 
 ## Key Terms | 术语速查表
 
@@ -505,6 +558,8 @@ This lesson builds the geometric foundation for PCA (Phase 2) and neural network
 | Eigendecomposition | "Break the matrix apart" | Writing a matrix as V @ D @ V^(-1), separating it into its fundamental scaling directions and magnitudes. |
 | Determinant | "A single number from a matrix" | The factor by which the transformation scales area (2D) or volume (3D). Zero means the transformation is irreversible. |
 | Characteristic equation | "Where eigenvalues come from" | det(A - lambda * I) = 0. The polynomial whose roots are the eigenvalues. |
+
+> 术语速查：Rotation matrix（旋转矩阵，正交，行列式=1）、Scaling matrix（缩放矩阵，对角）、Shearing（剪切，矩形→平行四边形）、Reflection（反射，行列式=-1）、Composition（组合，B@A 表示先 A 后 B）、Eigenvector（特征向量，只缩放不旋转的方向）、Eigenvalue（特征值，缩放倍数，可为负或复数）、Eigendecomposition（特征分解 A=VDV⁻¹）、Determinant（行列式，面积/体积缩放因子，0 = 奇异）、Characteristic equation（特征方程 det(A-λI)=0）。
 
 ## Further Reading | 延伸阅读
 

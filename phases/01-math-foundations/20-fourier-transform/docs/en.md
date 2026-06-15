@@ -521,9 +521,13 @@ spectrogram = np.abs(Zxx) ** 2
 
 The spectrogram matrix has shape (n_frequencies, n_time_frames). Each column is the power spectrum at one time window. This is what audio ML models consume as input.
 
+> 频谱图矩阵形状是 (n_frequencies, n_time_frames)。每列是一个时间窗口的功率谱。这就是音频 ML 模型的输入。
+
 ## Ship It | 产出物
 
 Run `code/fourier.py` to generate `outputs/prompt-spectral-analyzer.md`.
+
+> 运行 `code/fourier.py` 生成 `outputs/prompt-spectral-analyzer.md`（频谱分析器提示词）。
 
 ## Exercises | 练习题
 
@@ -557,6 +561,8 @@ Run `code/fourier.py` to generate `outputs/prompt-spectral-analyzer.md`.
 | Linear convolution | Standard convolution without wraparound. Achieved by zero-padding before DFT |
 | Parseval's theorem | Total energy is preserved through the Fourier transform. sum \|x[n]\|^2 = (1/N) sum \|X[k]\|^2 |
 | Aliasing | When frequencies above Nyquist appear as lower frequencies due to insufficient sampling rate |
+
+> 术语速查：DFT（离散傅里叶变换）、FFT（快速傅里叶变换 O(N log N)）、Inverse DFT（逆 DFT）、Frequency bin（频率槽）、DC component（直流分量 X[0]）、Nyquist frequency（奈奎斯特频率 fs/2）、Power spectrum（功率谱 |X[k]|²）、Phase spectrum（相位谱）、Spectral leakage（频谱泄漏）、Window function（窗函数 Hann/Hamming）、Twiddle factor（旋转因子）、Convolution theorem（卷积定理：时域卷积=频域乘法）、Circular/Linear convolution（循环/线性卷积）、Parseval's theorem（能量守恒）、Aliasing（混叠）。
 
 ## Further Reading | 延伸阅读
 

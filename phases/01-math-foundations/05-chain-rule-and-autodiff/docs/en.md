@@ -10,9 +10,13 @@
 ## Learning Objectives | 学习目标
 
 - Build a minimal autograd engine (Value class) that records operations and computes gradients via reverse-mode autodiff
+  构建最小化 autograd 引擎（Value 类），记录运算并通过反向模式自动微分计算梯度
 - Implement forward and backward passes through a computation graph using topological sort
+  用拓扑排序实现计算图的前向和反向传播
 - Construct and train a multi-layer perceptron on XOR using only the from-scratch autograd engine
+  仅用从零实现的 autograd 引擎构建并在 XOR 上训练多层感知机
 - Verify autodiff correctness using gradient checking against numerical finite differences
+  用数值有限差分进行梯度检查，验证 autodiff 的正确性
 
 > **【中文解读】**
 > 链式法则是"函数套函数的导数怎么算"。神经网络就是几百个函数嵌套在一起：矩阵乘法→加偏置→激活函数→再矩阵乘法→Softmax→交叉熵。链式法则让你能从最后一层开始，逐层往回计算每个参数的梯度——这就是反向传播。
@@ -67,6 +71,8 @@ f(g) = sin(g)     f'(g) = cos(g)
 dy/dx = cos(x^2) * 2x
 ```
 
+> 示例：y = sin(x²)。内层 g(x) = x² 的导数是 2x，外层 f(g) = sin(g) 的导数是 cos(g)，链式相乘：dy/dx = cos(x²) × 2x。
+
 For deeper compositions, the chain extends:
 
 ```
@@ -74,6 +80,8 @@ y = f(g(h(x)))
 
 dy/dx = f'(g(h(x))) * g'(h(x)) * h'(x)
 ```
+
+> 更深的复合：y = f(g(h(x)))，导数为 f'(g(h(x))) × g'(h(x)) × h'(x)，每多一层就多乘一项。
 
 Every layer in a neural network is one link in this chain.
 
@@ -84,6 +92,8 @@ Every layer in a neural network is one link in this chain.
 A computational graph makes the chain rule visual. Every operation becomes a node. Data flows forward through the graph. Gradients flow backward.
 
 > 计算图让链式法则可视化。每个操作变成一个节点，数据向前流动，梯度向后流动。
+
+> 计算图是 PyTorch autograd 的底层抽象：节点是运算，前向时存储中间值，反向时计算局部梯度。
 
 **Forward pass (compute values):**
 
@@ -116,7 +126,11 @@ The backward pass applies the chain rule at every node, propagating gradients fr
 
 There are two ways to apply the chain rule through a graph.
 
+> 通过计算图应用链式法则有两种方式。
+
 **Forward mode** starts at the inputs and pushes derivatives forward. It computes `dx/dx = 1` and propagates through each operation. Good when you have few inputs and many outputs.
+
+> **前向模式**从输入开始向前推进导数。它计算 `dx/dx = 1` 并通过每个操作传播。当输入少、输出多时适用。
 
 ```
 Forward mode: seed dx/dx = 1, propagate forward
@@ -127,6 +141,8 @@ Forward mode: seed dx/dx = 1, propagate forward
 ```
 
 **Reverse mode** starts at the output and pulls gradients backward. It computes `dy/dy = 1` and propagates through each operation in reverse. Good when you have many inputs and few outputs.
+
+> **反向模式**从输出开始向后拉回梯度。它计算 `dy/dy = 1` 并反向通过每个操作。当输入多、输出少时适用——这正是神经网络的情况。
 
 ```
 Reverse mode: seed dy/dy = 1, propagate backward
@@ -145,9 +161,13 @@ Neural networks have millions of inputs (weights) and one output (loss). Reverse
 | Forward | `dx_i/dx_i = 1` | Input to output | Few inputs, many outputs |
 | Reverse | `dy/dy = 1` | Output to input | Many inputs, few outputs (neural nets) |
 
+> 两种模式对比：前向模式种子 dx/dx = 1，输入到输出，适合少输入多输出；反向模式种子 dy/dy = 1，输出到输入，适合多输入少输出（神经网络）。
+
 ### Dual Numbers for Forward Mode
 
 Forward mode can be implemented elegantly with dual numbers. A dual number has the form `a + b*epsilon` where `epsilon^2 = 0`.
+
+> 前向模式可以用对偶数优雅地实现。对偶数形式为 `a + b*ε`，其中 `ε² = 0`。
 
 ```
 Dual number: (value, derivative)
@@ -160,7 +180,11 @@ Arithmetic rules:
   sin(a, a')         = (sin(a), cos(a)*a')
 ```
 
+> 对偶数：(值, 导数)。算术规则：加法对应分量相加；乘法用积的求导法则；sin 用链式法则。把输入的导数种子设为 1，导数会自动通过每个运算传播。
+
 Seed the input variable with derivative 1. The derivative propagates automatically through every operation.
+
+> 把输入变量的导数种子设为 1，导数会自动通过每个运算传播。
 
 ### Building an Autograd Engine
 
@@ -169,6 +193,8 @@ An autograd engine needs three things:
 1. **Value wrapping.** Wrap every number in an object that stores its value and gradient.
 2. **Graph recording.** Every operation records its inputs and the local gradient function.
 3. **Backward pass.** Topological sort the graph, then walk it in reverse, applying the chain rule at each node.
+
+> autograd 引擎需要三件事：1. **数值包装**：把每个数字包装成存储值和梯度的对象；2. **图记录**：每个操作记录其输入和局部梯度函数；3. **反向传播**：拓扑排序图，反向遍历并在每个节点应用链式法则。
 
 This is exactly what PyTorch's `autograd` does. The `torch.Tensor` class wraps values, records operations when `requires_grad=True`, and computes gradients when you call `.backward()`.
 
@@ -185,6 +211,8 @@ y.backward()
 print(x.grad)  # 7.0 = 2*x + 3 = 2*2 + 3
 ```
 
+> 当你写 PyTorch 代码时：x 设 requires_grad=True，运算自动记录，调用 backward() 后 x.grad 自动算出梯度 7.0。
+
 PyTorch internally:
 
 1. Creates a `Tensor` node for `x` with `requires_grad=True`
@@ -192,6 +220,8 @@ PyTorch internally:
 3. `y.backward()` triggers reverse-mode autodiff through the recorded graph
 4. Each node's `grad_fn` computes local gradients and passes them to parent nodes
 5. Gradients accumulate in `.grad` attributes via addition (not replacement)
+
+> PyTorch 内部：1) 为 x 创建 Tensor 节点；2) 每个运算（**、*、+）创建新节点并记录反向函数；3) y.backward() 触发反向自动微分；4) 每个节点的 grad_fn 计算局部梯度并传给父节点；5) 梯度通过加法累积到 .grad 属性（不是替换）。
 
 The graph is dynamic (define-by-run). A new graph is built on every forward pass. This is why PyTorch supports control flow (if/else, loops) inside models.
 
@@ -213,6 +243,8 @@ class Value:
     def __repr__(self):
         return f"Value(data={self.data:.4f}, grad={self.grad:.4f})"
 ```
+
+> Value 类是 autograd 的核心数据结构。每个 Value 存储数值、梯度、反向函数闭包和子节点指针。
 
 Every `Value` stores its numeric data, its gradient (initially zero), a backward function, and pointers to child nodes that produced it.
 
@@ -249,7 +281,9 @@ Every `Value` stores its numeric data, its gradient (initially zero), a backward
 
 Each operation creates a closure that knows how to compute local gradients and multiply by the upstream gradient (`out.grad`). The `+=` handles the case where a value is used in multiple operations.
 
-> 每个操作创建一个闭包，知道如何计算局部梯度并乘以上游梯度。`+=` 处理一个值被多个操作使用的情况。
+> 每个操作创建一个闭包，知道如何计算局部梯度并乘以上游梯度。`+=` 处理一个值被多个操作使用的情况（梯度累积）。
+
+> 关键设计：加法的反向是 1（梯度直接传给两个输入），乘法的反向是另一个操作数（链式法则：d(a*b)/da = b）。relu 的反向是 0 或 1（取决于前向是否激活）。
 
 ### Step 3: The backward pass
 
@@ -274,9 +308,13 @@ Topological sort ensures every node's gradient is fully computed before it propa
 
 > 拓扑排序确保每个节点的梯度在传播到子节点之前完全计算。种子梯度是 1.0（dy/dy = 1）。
 
+> backward() 算法：先用递归构建拓扑序（每个节点出现在所有依赖之后），再按拓扑序的逆序依次调用每个节点的 _backward()。
+
 ### Step 4: More operations for a complete engine
 
 The basic Value class handles addition, multiplication, and relu. A real autograd engine needs more. Here are the operations you need to build neural networks:
+
+> 基础 Value 类只支持加、乘、relu。一个真正的 autograd 引擎需要更多操作：减法、幂、除法、exp、log、tanh。
 
 ```python
     def __neg__(self):
@@ -342,11 +380,17 @@ The basic Value class handles addition, multiplication, and relu. A real autogra
 | `log` | (1/x) * upstream | Cross-entropy loss, log probabilities |
 | `tanh` | (1 - tanh^2) * upstream | Classic activation function |
 
+> 各操作的反向规则：减法复用加法+取负；幂用 n*x^(n-1)；除法复用乘法+幂(-1)；exp 用 exp(x)×上游；log 用 (1/x)×上游；tanh 用 (1-tanh²)×上游。
+
 The clever part: `__sub__` and `__truediv__` are defined in terms of existing operations. They get correct gradients for free because the chain rule composes through the underlying add/mul/pow operations.
+
+> 巧妙之处：`__sub__` 和 `__truediv__` 通过已有操作定义，所以梯度通过链式法则自动正确——这是组合性的威力。
 
 ### Step 5: Mini MLP from scratch
 
 With a complete Value class, you can build a neural network. No PyTorch. No NumPy. Just Values and the chain rule.
+
+> 有了完整的 Value 类，你可以构建神经网络。不用 PyTorch、不用 NumPy，只用 Value 和链式法则。这是 Karpathy 的 micrograd 的精髓。
 
 ```python
 import random
@@ -388,7 +432,11 @@ class MLP:
 
 A `Neuron` computes `tanh(w1*x1 + w2*x2 + ... + b)`. A `Layer` is a list of neurons. An `MLP` stacks layers. Every weight is a `Value`, so calling `loss.backward()` propagates gradients to every parameter.
 
+> 一个 `Neuron` 计算 `tanh(w1*x1 + w2*x2 + ... + b)`。一个 `Layer` 是神经元列表。一个 `MLP` 堆叠多层。每个权重都是 `Value`，所以调用 `loss.backward()` 会把梯度传播到每个参数。
+
 **Training on XOR:**
+
+> **在 XOR 上训练**：XOR 是经典的非线性可分问题，单层感知机无法解决，必须用至少一层隐藏层。
 
 ```python
 random.seed(42)
@@ -421,9 +469,13 @@ This is micrograd. A complete neural network training loop in pure Python with a
 
 > 这就是 micrograd。用纯 Python 实现的完整神经网络训练循环和自动微分。每个商业深度学习框架在更大规模上做着同样的事。
 
+> 训练循环 5 步：1) 前向预测；2) 计算损失（MSE）；3) 清零所有参数梯度；4) 反向传播；5) 沿梯度负方向更新参数。这就是 PyTorch 训练循环的核心。
+
 ### Step 6: Gradient checking
 
 How do you know your autodiff is correct? Compare it against numerical derivatives. This is gradient checking.
+
+> 怎么知道你的 autodiff 是正确的？与数值导数对比，这就是梯度检查。
 
 ```python
 def gradient_check(build_expr, x_val, h=1e-7):
@@ -455,6 +507,8 @@ print(f"Difference: {diff:.2e}")
 
 Gradient checking is essential when implementing new operations. If your backward pass has a bug, the numerical check catches it. Every serious deep learning implementation runs gradient checks during development.
 
+> 梯度检查在实现新操作时必不可少。如果反向传播有 bug，数值检查能发现。每个严肃的深度学习实现在开发阶段都跑梯度检查。
+
 **When to use gradient checking:**
 
 | Situation | Do gradient check? |
@@ -463,6 +517,8 @@ Gradient checking is essential when implementing new operations. If your backwar
 | Debugging a training loop that won't converge | Yes, check gradients first |
 | Production training | No, too slow (2x forward passes per parameter) |
 | Unit tests for autograd code | Yes, automate it |
+
+> 何时使用梯度检查：给 autograd 加新操作（永远要）；调试不收敛的训练循环（先查梯度）；生产训练（不要，太慢）；autograd 单元测试（自动化）。
 
 ### Step 7: Verify against manual calculation
 
@@ -480,12 +536,16 @@ print(f"dy/dx1 = {x1.grad}")   # 3.0 (= x2)
 print(f"dy/dx2 = {x2.grad}")   # 2.0 (= x1)
 ```
 
+> 手动验证：y = relu(x1*x2 + 1)，因为 x1*x2 + 1 = 7 > 0，relu 是恒等映射。dy/dx1 = x2 = 3，dy/dx2 = x1 = 2。引擎计算结果完全匹配。
+
 Manual check: `y = relu(x1*x2 + 1)`. Since `x1*x2 + 1 = 7 > 0`, relu is identity.
 `dy/dx1 = x2 = 3`. `dy/dx2 = x1 = 2`. The engine matches.
 
 ## Use It | 用框架实现
 
 ### Verify against PyTorch
+
+> 与 PyTorch 对比验证：用 torch 重写同样表达式，对比梯度结果。
 
 ```python
 import torch
@@ -505,6 +565,18 @@ Same gradients. Your engine computes the same result as PyTorch because the math
 
 > 相同的梯度。你的引擎和 PyTorch 计算出相同的结果，因为数学相同：通过链式法则的反向模式自动微分。
 
+## Ship It | 产出物
+
+This lesson produces:
+- `outputs/skill-autodiff.md` -- a skill for building and debugging autograd systems
+- `code/autodiff.py` -- a minimal autograd engine you can extend
+
+> 本课产出：构建和调试 autograd 系统的技能文档 + 可扩展的最小 autograd 引擎代码。
+
+The Value class built here is the foundation for the neural network training loop in Phase 3.
+
+> 这里构建的 Value 类是 Phase 3 神经网络训练循环的基础。
+
 ### A more complex expression
 
 ```python
@@ -519,23 +591,21 @@ print(f"df/db = {b.grad}")  #  2.0 (= a)
 print(f"df/dc = {c.grad}")  #  1.0
 ```
 
-## Ship It | 产出物
-
-This lesson produces:
-- `outputs/skill-autodiff.md` -- a skill for building and debugging autograd systems
-- `code/autodiff.py` -- a minimal autograd engine you can extend
-
-The Value class built here is the foundation for the neural network training loop in Phase 3.
+> 更复杂的表达式：relu(a*b + c) 在 a=2, b=-3, c=10 处，结果是 relu(4) = 4。df/da = b = -3，df/db = a = 2，df/dc = 1。
 
 ## Exercises | 练习题
 
 1. Add `__pow__` to the Value class so you can compute `x ** n`. Verify that `d/dx(x^3)` at `x=2` equals `12.0`.
+   给 Value 类添加 `__pow__`，让你能计算 `x ** n`。验证 `d/dx(x^3)` 在 `x=2` 处等于 `12.0`。
 
 2. Add `tanh` as an activation function. Verify that `tanh'(0) = 1` and `tanh'(2) = 0.0707` (approx).
+   添加 `tanh` 激活函数。验证 `tanh'(0) = 1`，`tanh'(2) ≈ 0.0707`。
 
 3. Build a computation graph for a single neuron: `y = relu(w1*x1 + w2*x2 + b)`. Compute all five gradients and verify against PyTorch.
+   为单个神经元构建计算图：`y = relu(w1*x1 + w2*x2 + b)`。计算所有五个梯度并与 PyTorch 验证。
 
 4. Implement forward-mode autodiff using dual numbers. Create a `Dual` class and verify it gives the same derivatives as your reverse-mode engine.
+   用对偶数实现前向模式自动微分。创建 `Dual` 类并验证它与你的反向模式引擎给出相同的导数。
 
 ## Key Terms | 术语速查表
 
@@ -553,6 +623,8 @@ The Value class built here is the foundation for the neural network training loo
 | Gradient checking | "Numerical verification" | Comparing autodiff gradients against numerical finite-difference gradients to verify correctness. Essential for debugging. |
 | MLP | "Multi-layer perceptron" | A neural network with one or more hidden layers of neurons. Each neuron computes a weighted sum plus bias, then applies an activation function. |
 | Neuron | "Weighted sum + activation" | The basic unit: output = activation(w1*x1 + w2*x2 + ... + b). The weights and bias are learnable parameters. |
+
+> 术语速查：Chain rule（链式法则，复合函数导数=各局部导数之积）、Computational graph（计算图，运算为节点的有向无环图）、Forward mode（前向模式，输入到输出传播导数）、Reverse mode（反向模式，输出到输入传播梯度，即反向传播）、Autograd（PyTorch 自动微分系统）、Dual numbers（对偶数 a+bε，前向模式实现）、Topological sort（拓扑排序，按依赖关系排序节点）、Gradient accumulation（梯度累积，加法不是替换）、Dynamic graph（动态图，每次前向重建）、Gradient checking（梯度检查，与数值导数对比验证）、MLP（多层感知机）、Neuron（神经元，加权求和+激活）。
 
 ## Further Reading | 延伸阅读
 
