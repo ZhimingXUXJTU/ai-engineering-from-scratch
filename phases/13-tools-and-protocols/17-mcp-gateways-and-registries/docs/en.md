@@ -14,11 +14,11 @@
 ## Learning Objectives | 学习目标
 
 - Explain where an MCP gateway sits (between MCP clients and multiple backend MCP servers).
-  中文翻译：参见英文条目了解详情。
+  中文翻译：解释 MCP 网关的位置（在 MCP 客户端和多个后端 MCP 服务器之间）。
 - Implement the five gateway responsibilities: auth, RBAC, audit, rate limit, policy.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：实现五大网关职责：认证、RBAC、审计、限流、策略。
 - Enforce a pinned-tool-hash manifest at the gateway layer.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：在网关层强制执行锁定的工具哈希清单。
 - Differentiate the Official MCP Registry from metaregistries (Glama, MCPMarket, MCP.so, Smithery, LobeHub).
 
 > **【中文解读】** 学习目标：理解网关在 MCP 客户端和多个后端 MCP 服务器之间的位置；实现五大网关职责（认证、RBAC、审计、限流、策略）；在网关层强制执行工具哈希锁定清单；区分官方 MCP 注册中心与元注册中心。
@@ -29,28 +29,30 @@
 
 A Fortune 500 has 30 approved MCP servers, 5000 developers, compliance and audit requirements, and a security team that wants centralized policy. Letting every developer install arbitrary servers in their IDEs is a non-starter.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> Fortune 500 企业有 30 个批准的 MCP 服务器、5000 名开发者、合规审计要求，以及想要集中策略的安全团队。让每个开发者在其 IDE 中安装任意服务器不可行。
 
 The gateway pattern:
 
+> 网关模式：
+
 1. Gateway runs as a single Streamable HTTP endpoint developers connect to.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：网关作为单一 Streamable HTTP 端点运行，开发者连接到它。
 2. Gateway holds credentials for each backend MCP server.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：网关持有每个后端 MCP 服务器的凭证。
 3. Every developer request is authenticated and scoped via the gateway's own OAuth.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：每个开发者请求通过网关自身的 OAuth 认证和范围限制。
 4. Gateway routes the call to the backend server, applying policy.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：网关将调用路由到后端服务器，应用策略。
 5. All calls logged for audit.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：所有调用记录用于审计。
 
 Cloudflare MCP Portals, Kong AI Gateway, IBM ContextForge, MintMCP, TrueFoundry, Envoy AI Gateway — all shipped gateways or gateway features in 2025-2026.
 
-> **【拓展：MCP 网关供应商格局】** 2025-2026年 MCP 网关领域的主要玩家：Cloudflare MCP Portals（边缘计算）、Kong AI Gateway（API 管理传统强者）、IBM ContextForge（企业级）、MintMCP（轻量开源）。同时，MCP 官方注册中心作为规范上游发布——经过策展、命名空间验证、反向 DNS 命名的服务器。元注册中心（Glama、MCPMarket、Smithery、LobeHub）聚合多个来源。
+> Cloudflare MCP Portals、Kong AI Gateway、IBM ContextForge、MintMCP、TrueFoundry、Envoy AI Gateway——都在 2025-2026 年发布了网关或网关功能。
 
 Meanwhile, the Official MCP Registry launched as the canonical upstream: curated, namespace-verified, reverse-DNS-named servers the gateway can pull from. Metaregistries (Glama, MCPMarket, MCP.so, Smithery, LobeHub) aggregate servers across multiple sources.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 同时，官方 MCP 注册中心作为权威上游发布：策展、命名空间验证、反向 DNS 命名的服务器，网关可从中拉取。元注册中心（Glama、MCPMarket、MCP.so、Smithery、LobeHub）聚合多个来源的服务器。
 
 ## The Concept | 核心概念
 
@@ -61,76 +63,76 @@ Meanwhile, the Official MCP Registry launched as the canonical upstream: curated
 > **【中文解读】** 五大网关职责：(1) 认证——OAuth 2.1 识别开发者，映射到用户角色；(2) RBAC——每用户策略：哪些服务器、哪些工具、哪些范围；(3) 审计——每次调用记录谁、做了什么、何时、结果；(4) 限流——每用户/每工具/每服务器上限；(5) 策略——拒绝投毒描述、强制 Rule of Two、脱敏 PII。
 
 1. **Auth.** OAuth 2.1 to identify the developer; maps to user roles.
-  中文翻译：**Auth.** — 参见英文原文了解详情。
+  中文翻译：**认证。** OAuth 2.1 识别开发者；映射到用户角色。
 2. **RBAC.** Per-user policy: which servers, which tools, which scopes.
-  中文翻译：**RBAC.** — 参见英文原文了解详情。
+  中文翻译：**RBAC。** 每用户策略：哪些服务器、哪些工具、哪些范围。
 3. **Audit.** Every call logged with who, what, when, result.
-  中文翻译：**Audit.** — 参见英文原文了解详情。
+  中文翻译：**审计。** 每次调用记录谁、做了什么、何时、结果。
 4. **Rate limit.** Per-user / per-tool / per-server caps to prevent abuse.
-  中文翻译：**Rate limit.** — 参见英文原文了解详情。
+  中文翻译：**限流。** 每用户/每工具/每服务器上限防止滥用。
 5. **Policy.** Reject poisoned descriptions, enforce Rule of Two, redact PII.
-  中文翻译：**Policy.** — 参见英文原文了解详情。
+  中文翻译：**策略。** 拒绝投毒描述、强制 Rule of Two、脱敏 PII。
 
 ### Gateway as a single endpoint
 
 To developers, the gateway looks like one MCP server. Internally it routes to N backends. Session ids (Phase 13 · 09) are rewritten at the boundary.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 对开发者而言，网关看起来像一个 MCP 服务器。内部它路由到 N 个后端。Session id（Phase 13 · 09）在边界重写。
 
 ### Credential vaulting
 
 Developers never see backend tokens. The gateway holds them (or proxies to an identity provider that does). A developer with `notes:read` on the gateway may transitively access the notes MCP server with the gateway's own backend credentials — but only under policy that binds the transitive access.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 开发者永不见后端 token。网关持有它们（或代理给身份提供商）。开发者在网关上有 `notes:read` 可以传递地用网关自身的后端凭证访问 notes MCP 服务器——但仅在绑定传递访问的策略下。
 
 ### Tool-hash pinning at the gateway
 
 The gateway holds a manifest of approved tool descriptions (SHA256 hashes). At discovery time, it fetches each backend's `tools/list`, compares hashes to the manifest, and removes any tool whose description has mutated. This is the rug-pull defense from Phase 13 · 15 applied centrally.
 
-> 网关与路由相关内容：LLM 请求的智能路由和负载均衡。
+> 网关持有批准工具描述的清单（SHA256 哈希）。发现时，它获取每个后端的 `tools/list`，比较哈希与清单，移除描述变更的工具。这是 Phase 13 · 15 地毯拉扯防御的集中应用。
 
 ### Policy-as-code
 
 Advanced gateways express policy in OPA/Rego, Kyverno, or Styra. Rules like "user `alice` may call `github.open_pr` only on repos in org `acme`" are encoded declaratively. Simple gateways use hand-coded Python. Both shapes are valid.
 
-> 网关与路由相关内容：LLM 请求的智能路由和负载均衡。
+> 高级网关用 OPA/Rego、Kyverno 或 Styra 表达策略。规则如"user `alice` 只能在 `acme` 组织的 repo 上调用 `github.open_pr`"声明式编码。简单网关用手写 Python。两种形态都有效。
 
 ### Session-aware routing
 
 When a user's session includes a mix of servers, the gateway multiplexes: the developer's single MCP session holds N backend sessions, one per server. Notifications from any backend route through the gateway to the developer's session.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 当用户会话包含多服务器混合时，网关多路复用：开发者的单个 MCP 会话持有 N 个后端会话，每个服务器一个。任何后端的通知通过网关路由到开发者的会话。
 
 ### Namespace merging
 
 Gateways merge tool namespaces from all backends, typically with prefix-on-collision. `github.open_pr`, `notes.search`. This makes routing unambiguous.
 
-> 网关与路由相关内容：LLM 请求的智能路由和负载均衡。
+> 网关合并所有后端的工具命名空间，通常冲突时加前缀。`github.open_pr`、`notes.search`。这使路由无歧义。
 
 ### Registries
 
 - **Official MCP Registry (`registry.modelcontextprotocol.io`).** Launched under Anthropic, GitHub, PulseMCP, Microsoft stewardship. Namespace-verified (reverse-DNS: `io.github.user/server`). Pre-filtered for basic quality.
-  中文翻译：**Official MCP Registry (`registry.modelcontextprotocol.io`).** — 参见英文原文了解详情。
+  中文翻译：**官方 MCP 注册中心。** 在 Anthropic、GitHub、PulseMCP、Microsoft 管理下启动。命名空间验证（反向 DNS：`io.github.user/server`）。预过滤基本质量。
 - **Glama.** Search-centric metaregistry aggregating many sources.
-  中文翻译：**Glama.** — 参见英文原文了解详情。
+  中文翻译：**Glama。** 以搜索为中心的元注册中心，聚合多来源。
 - **MCPMarket.** Commercial-leaning directory with vendor listings.
-  中文翻译：**MCPMarket.** — 参见英文原文了解详情。
+  中文翻译：**MCPMarket。** 商业倾向目录，带供应商列表。
 - **MCP.so.** Community directory; open submissions.
-  中文翻译：**MCP.so.** — 参见英文原文了解详情。
+  中文翻译：**MCP.so。** 社区目录；开放提交。
 - **Smithery.** Package-manager-style installation flow.
-  中文翻译：**Smithery.** — 参见英文原文了解详情。
+  中文翻译：**Smithery。** 包管理器风格安装流程。
 - **LobeHub.** UI-integrated registry in their LobeChat app.
-  中文翻译：**LobeHub.** — 参见英文原文了解详情。
+  中文翻译：**LobeHub。** 在其 LobeChat 应用中 UI 集成的注册中心。
 
 Enterprise gateways pull from the Official Registry by default, allow admin-curated additions from metaregistries, and reject anything unpinned.
 
-> 网关与路由相关内容：LLM 请求的智能路由和负载均衡。
+> 企业网关默认从官方注册中心拉取，允许管理员策展从元注册中心添加，拒绝任何未锁定的。
 
 ### Reverse-DNS naming
 
 Official Registry mandates reverse-DNS names for public servers: `io.github.alice/notes`. Namespaces prevent squatting and make trust delegation clearer.
 
-> 笔记服务器相关内容：作为示例的完整 MCP 服务器实现。
+> 官方注册中心要求公共服务器使用反向 DNS 名：`io.github.alice/notes`。命名空间防止抢注并使信任委托更清晰。
 
 ### Vendor survey, April 2026
 
@@ -145,7 +147,7 @@ Official Registry mandates reverse-DNS names for public servers: `io.github.alic
 
 Phase 17 (production infrastructure) dives deeper on gateway operations.
 
-> 网关与路由相关内容：LLM 请求的智能路由和负载均衡。
+> Phase 17（生产基础设施）深入讲解网关运维。
 
 ## Use It | 用框架实现
 
@@ -153,18 +155,18 @@ Phase 17 (production infrastructure) dives deeper on gateway operations.
 
 `code/main.py` ships a minimal gateway in ~150 lines: authenticates users by a fake Bearer token, holds a per-user RBAC policy, routes requests to two backend MCP servers, writes every call to an audit log, enforces a rate limit, and rejects any backend tool whose description hash does not match a pinned manifest.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> `code/main.py` 提供约 150 行的最小网关：用假 Bearer token 认证用户、持有每用户 RBAC 策略、路由请求到两个后端 MCP 服务器、每次调用写入审计日志、强制速率限制，拒绝描述哈希不匹配锁定清单的后端工具。
 
 What to look at:
 
 - `RBAC` dict keyed by `user_id` with allowed `server_tool` entries.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：`RBAC` 字典按 `user_id` 索引，带允许的 `server_tool` 条目。
 - `AUDIT_LOG` is an append-only list of events.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：`AUDIT_LOG` 是仅追加的事件列表。
 - Rate limit uses a token bucket per user.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：限流使用每用户的令牌桶。
 - Pinned manifest is a dict of `server::tool -> hash`.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：锁定清单是 `server::tool -> hash` 的字典。
 
 ## Ship It | 产出物
 
@@ -172,24 +174,24 @@ What to look at:
 
 This lesson produces `outputs/skill-gateway-bootstrap.md`. Given an enterprise MCP plan (users, backends, compliance), the skill produces a gateway configuration spec.
 
-> 网关与路由相关内容：LLM 请求的智能路由和负载均衡。
+> 本课产出 `outputs/skill-gateway-bootstrap.md`。给定企业 MCP 计划（用户、后端、合规），该 skill 生成网关配置规格。
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Make a call as an allowed user; then as a disallowed user; then a rate-limit-exceeded burst. Verify all three flows.
-   中文翻译：运行相关练习。参见英文原文了解完整要求。
+   中文翻译：运行 `code/main.py`。作为允许的用户调用；然后作为不允许的用户；然后超过限流的突发。验证三种流程。
 
 2. Add a policy that redacts PII from results before returning to the client. Use a simple regex pass for SSN-shaped strings; note the gap (emails, phone numbers).
-   中文翻译：添加相关练习。参见英文原文了解完整要求。
+   中文翻译：添加在返回客户端前脱敏 PII 的策略。对 SSN 形状字符串使用简单正则；注意差距（邮箱、电话号码）。
 
 3. Extend the audit log to emit OpenTelemetry GenAI spans. Phase 13 · 20 covers the exact attributes.
-   中文翻译：扩展相关练习。参见英文原文了解完整要求。
+   中文翻译：扩展审计日志发出 OpenTelemetry GenAI span。Phase 13 · 20 涵盖精确属性。
 
 4. Design an RBAC policy for a 50-developer team with five backends (notes, github, postgres, jira, slack). Who gets read-only on each? Who gets write?
-   中文翻译：设计相关练习。参见英文原文了解完整要求。
+   中文翻译：为 50 开发者团队设计带五个后端的 RBAC 策略（notes、github、postgres、jira、slack）。谁在每个上有只读？谁有写？
 
 5. Read the Cloudflare enterprise MCP post top to bottom. Identify one feature Cloudflare ships that this stdlib gateway does not.
-   中文翻译：阅读相关练习。参见英文原文了解完整要求。
+   中文翻译：从头到尾阅读 Cloudflare 企业 MCP 帖子。识别 Cloudflare 发布但此标准库网关未提供的一个功能。
 
 ## Key Terms | 术语速查表
 
@@ -209,12 +211,12 @@ This lesson produces `outputs/skill-gateway-bootstrap.md`. Given an enterprise M
 ## Further Reading | 延伸阅读
 
 - [Official MCP Registry](https://registry.modelcontextprotocol.io/) — canonical upstream, namespace-verified
-  中文翻译：canonical upstream, namespace-verified
+  中文翻译：权威上游，命名空间验证
 - [Cloudflare — Enterprise MCP](https://blog.cloudflare.com/enterprise-mcp/) — gateway pattern with OAuth and policy
-  中文翻译：gateway pattern with OAuth and policy
+  中文翻译：带 OAuth 和策略的网关模式
 - [agentic-community — MCP gateway registry](https://github.com/agentic-community/mcp-gateway-registry) — open-source reference gateway
-  中文翻译：open-source reference gateway
+  中文翻译：开源参考网关
 - [TrueFoundry — What is an MCP gateway?](https://www.truefoundry.com/blog/what-is-mcp-gateway) — feature comparison article
-  中文翻译：feature comparison article
+  中文翻译：功能对比文章
 - [IBM — MCP context forge](https://github.com/IBM/mcp-context-forge) — enterprise gateway from IBM
-  中文翻译：enterprise gateway from IBM
+  中文翻译：IBM 的企业网关

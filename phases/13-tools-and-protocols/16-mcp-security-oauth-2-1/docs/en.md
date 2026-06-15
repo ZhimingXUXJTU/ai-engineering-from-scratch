@@ -14,12 +14,13 @@
 ## Learning Objectives | 学习目标
 
 - Distinguish resource server from authorization server responsibilities.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：区分资源服务器和授权服务器的职责。
 - Walk the PKCE-protected OAuth 2.1 authorization code flow.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：走通 PKCE 保护的 OAuth 2.1 授权码流程。
 - Use `resource` (RFC 8707) and protected-resource metadata (RFC 9728) to prevent confused-deputy attacks.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：使用 `resource`（RFC 8707）和受保护资源元数据（RFC 9728）防止混淆代理攻击。
 - Implement step-up authorization: server responds 403 with WWW-Authenticate asking for a higher scope; client re-prompts user consent and retries.
+  中文翻译：实现逐步授权：服务器响应 403 带 WWW-Authenticate 请求更高范围；客户端重新提示用户同意并重试。
 
 > **【中文解读】** 学习目标：区分资源服务器和授权服务器的职责；走通 PKCE 保护的 OAuth 2.1 授权码流程；使用资源指示器和受保护资源元数据防止混淆代理攻击；实现逐步授权（403 insufficient_scope 触发重新同意）。
 
@@ -29,20 +30,22 @@
 
 Early MCP (pre-2025) shipped remote servers with ad-hoc API keys or even no auth. The 2025-11-25 spec closes that gap with a full OAuth 2.1 profile.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 早期 MCP（pre-2025）发布带临时 API 密钥甚至无认证的远程服务器。2025-11-25 规范用完整的 OAuth 2.1 配置关闭了这一差距。
 
 Three real-world needs:
 
+> 三个现实需求：
+
 - **Ordinary remote servers.** User installs a remote MCP server that accesses their Notion / GitHub / Gmail. OAuth 2.1 with PKCE is the right shape.
-  中文翻译：**Ordinary remote servers.** — 参见英文原文了解详情。
+  中文翻译：**普通远程服务器。** 用户安装访问其 Notion/GitHub/Gmail 的远程 MCP 服务器。带 PKCE 的 OAuth 2.1 是正确形态。
 - **Scope escalation.** A notes server granted `notes:read` can later need `notes:write` for a specific action. Instead of re-doing the whole flow, step-up (SEP-835) asks for the additional scope.
-  中文翻译：**Scope escalation.** — 参见英文原文了解详情。
+  中文翻译：**范围升级。** 已授予 `notes:read` 的笔记服务器之后可能需要 `notes:write` 执行特定动作。逐步授权（SEP-835）请求额外范围而非重做整个流程。
 - **Confused deputy prevention.** Client holds a token audience-scoped for Server A. Server A is malicious and tries to present the token to Server B. Resource indicators (RFC 8707) pin the token to its intended audience.
-  中文翻译：**Confused deputy prevention.** — 参见英文原文了解详情。
+  中文翻译：**混淆代理预防。** 客户端持有 audience-scoped 给服务器 A 的 token。服务器 A 恶意并尝试向服务器 B 呈现 token。资源指示器（RFC 8707）将 token 固定到其预期受众。
 
 OAuth 2.1 is not new. What is new is MCP's profile: specific required flows (authorization code + PKCE only; no implicit, no client credentials by default), resource indicators mandatory on every token request, and protected-resource metadata published so clients know where to go.
 
-> MCP 客户端的核心实现：发现和调用服务器工具，管理会话和命名空间。
+> OAuth 2.1 不是新的。新的是 MCP 的配置：特定必需流程（仅授权码+PKCE；默认无隐式、无客户端凭证），每次 token 请求必须带资源指示器，发布受保护资源元数据让客户端知道去哪里。
 
 ## The Concept | 核心概念
 
@@ -51,14 +54,17 @@ OAuth 2.1 is not new. What is new is MCP's profile: specific required flows (aut
 ### Roles
 
 - **Client.** The MCP client (Claude Desktop, Cursor, etc.).
-  中文翻译：**Client.** — 参见英文原文了解详情。
+  中文翻译：**Client。** MCP 客户端（Claude Desktop、Cursor 等）。
 - **Resource server.** The MCP server (notes, GitHub, Postgres, whatever).
-  中文翻译：**Resource server.** — 参见英文原文了解详情。
+  中文翻译：**Resource server。** MCP 服务器（笔记、GitHub、Postgres 等）。
 - **Authorization server.** Issues tokens. May be the same service as the resource server or a separate IdP (Auth0, Keycloak, Cognito).
+  中文翻译：**Authorization server。** 签发 token。可以是与资源服务器相同的服务或独立 IdP（Auth0、Keycloak、Cognito）。
 
 > **【中文解读】** 三个角色：Client（MCP 客户端，如 Claude Desktop）、Resource Server（MCP 服务器）、Authorization Server（签发 token 的授权服务器，可以是独立的 IdP）。
 
 In MCP's profile, resource and authorization servers CAN be the same host but SHOULD be distinguished by URLs.
+
+> 在 MCP 的配置中，资源服务器和授权服务器可以是同一主机，但应通过 URL 区分。
 
 > **【拓展：MCP OAuth 2.1 配置的独特之处】** MCP 的 OAuth 2.1 配置不是标准 OAuth——它强制要求：(1) 只允许授权码+PKCE 流程，禁止隐式和客户端凭证模式；(2) 每次 token 请求必须包含资源指示器 (RFC 8707)；(3) 发布受保护资源元数据让客户端知道去哪里认证。这使得 MCP 的 OAuth 实现比一般 OAuth 更安全。
 
@@ -69,21 +75,21 @@ In MCP's profile, resource and authorization servers CAN be the same host but SH
 The flow:
 
 1. Client generates `code_verifier` (random) and `code_challenge` (SHA256).
-  中文翻译：参见英文条目了解详情。
+  中文翻译：客户端生成 `code_verifier`（随机）和 `code_challenge`（SHA256）。
 2. Client redirects user to `/authorize?response_type=code&client_id=...&redirect_uri=...&scope=notes:read&code_challenge=...&resource=https://notes.example.com`.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：客户端重定向用户到 `/authorize?...`。
 3. User consents. Authorization server redirects to `redirect_uri?code=...`.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：用户同意。授权服务器重定向到 `redirect_uri?code=...`。
 4. Client POSTs to `/token?grant_type=authorization_code&code=...&code_verifier=...&resource=...`.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：客户端 POST 到 `/token?...`。
 5. Authorization server validates the verifier's hash against the stored challenge and issues an access token.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：授权服务器验证 verifier 的哈希与存储的 challenge 并签发 access token。
 6. Client uses the token: `Authorization: Bearer ...` on every request to the resource server.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：客户端使用 token：每次请求资源服务器带 `Authorization: Bearer ...`。
 
 PKCE prevents authorization-code interception attacks. Resource indicators prevent the token from being valid elsewhere.
 
-> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+> PKCE 防止授权码拦截攻击。资源指示器防止 token 在其他地方有效。
 
 ### Protected-resource metadata (RFC 9728)
 
@@ -91,7 +97,7 @@ PKCE prevents authorization-code interception attacks. Resource indicators preve
 
 The resource server publishes a `.well-known/oauth-protected-resource` document:
 
-> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+> 资源服务器发布 `.well-known/oauth-protected-resource` 文档：
 
 ```json
 {
@@ -103,7 +109,7 @@ The resource server publishes a `.well-known/oauth-protected-resource` document:
 
 Client discovers the authorization server from the resource server. Reduces configuration — the client only needs the resource URL.
 
-> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+> 客户端从资源服务器发现授权服务器。减少配置——客户端只需要资源 URL。
 
 ### Resource indicators (RFC 8707)
 
@@ -111,24 +117,24 @@ Client discovers the authorization server from the resource server. Reduces conf
 
 `resource` parameter in the token request pins the token's intended audience. The issued token contains `aud: "https://notes.example.com"`. Another MCP server receiving this token checks `aud` and rejects it.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> token 请求中的 `resource` 参数将 token 固定到其预期受众。签发的 token 包含 `aud: "https://notes.example.com"`。其他 MCP 服务器收到此 token 时检查 `aud` 并拒绝。
 
 ### Scope model
 
 Scopes are space-separated strings. Common MCP conventions:
 
-> 参见英文原文获取完整的技术说明。
+> Scope 是空格分隔的字符串。常见 MCP 约定：
 
 - `notes:read`, `notes:write`, `notes:delete`
-  中文翻译：参见英文条目了解详情。
+  中文翻译：`notes:read`、`notes:write`、`notes:delete`——笔记读/写/删。
 - `admin:*` for admin capabilities (use sparingly)
-  中文翻译：参见英文条目了解详情。
+  中文翻译：`admin:*`——管理能力（谨慎使用）。
 - `profile:read` for identity
-  中文翻译：参见英文条目了解详情。
+  中文翻译：`profile:read`——身份信息。
 
 Scope selection should be least-privilege: request what you need now, step up when you need more.
 
-> 参见英文原文获取完整的技术说明。
+> Scope 选择应是最小权限：请求当前所需，需要更多时逐步升级。
 
 ### Step-up authorization (SEP-835)
 
@@ -136,7 +142,7 @@ Scope selection should be least-privilege: request what you need now, step up wh
 
 User grants `notes:read`. They later ask the agent to delete a note. The server responds:
 
-> 笔记服务器相关内容：作为示例的完整 MCP 服务器实现。
+> 用户授予 `notes:read`。他们之后要求 Agent 删除笔记。服务器响应：
 
 ```
 HTTP/1.1 403 Forbidden
@@ -146,43 +152,43 @@ WWW-Authenticate: Bearer error="insufficient_scope",
 
 Client sees the insufficient_scope error, prompts the user with a consent dialog for the additional scope, performs a mini OAuth flow for it, retries the request with the new token.
 
-> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+> 客户端看到 insufficient_scope 错误，用同意对话框提示用户授予额外范围，执行 mini OAuth 流程，用新 token 重试请求。
 
 ### Token audience validation
 
 Every request: server checks `token.aud == self.resource_url`. Mismatch = 401. This stops cross-server token reuse.
 
-> 资源相关内容：MCP 资源的暴露、订阅和读取机制。
+> 每次请求：服务器检查 `token.aud == self.resource_url`。不匹配 = 401。这阻止跨服务器 token 重用。
 
 ### Short-lived tokens and rotation
 
 Access tokens SHOULD be short-lived (1 hour default). Refresh tokens rotate on every refresh. The client handles silent refresh in the background.
 
-> 参见英文原文获取完整的技术说明。
+> Access token 应短生命周期（默认 1 小时）。Refresh token 每次刷新轮换。客户端在后台静默刷新。
 
 ### No token passthrough
 
 Sampling servers (Phase 13 · 11) MUST NOT pass the client's token through to other services. The sampling request is the boundary.
 
-> 采样相关内容：服务器请求客户端模型执行补全的机制。
+> Sampling 服务器（Phase 13 · 11）不得将客户端的 token 透传给其他服务。Sampling 请求是边界。
 
 ### Confused deputy prevention
 
 Token binds to `aud`. Client binds to `client_id`. Every request validated against both. The spec explicitly bans the old "pass-the-token" pattern that was common in pre-MCP remote tool ecosystems.
 
-> MCP 客户端的核心实现：发现和调用服务器工具，管理会话和命名空间。
+> Token 绑定到 `aud`。客户端绑定到 `client_id`。每次请求对两者验证。规范明确禁止 pre-MCP 远程工具生态中常见的旧 "pass-the-token" 模式。
 
 ### Client ID discovery
 
 Each MCP client publishes its metadata at a fixed URL. Authorization servers can fetch the client's metadata document to discover redirect URIs and contact info. This removes manual client registration.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 每个 MCP 客户端在固定 URL 发布其元数据。授权服务器可获取客户端的元数据文档以发现 redirect URI 和联系信息。这消除了手动客户端注册。
 
 ### Gateways and OAuth
 
 Phase 13 · 17 shows how an enterprise gateway handles OAuth: gateway holds credentials for upstream servers, tokens to the client are gateway-issued, and upstream tokens never leave the gateway. This flips the trust model — users authenticate with the gateway once; gateway handles N server authorizations.
 
-> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+> Phase 13 · 17 展示企业网关如何处理 OAuth：网关持有上游服务器凭证，给客户端的 token 由网关签发，上游 token 永不离开网关。这翻转了信任模型——用户与网关认证一次；网关处理 N 个服务器授权。
 
 ## Use It | 用框架实现
 
@@ -190,22 +196,22 @@ Phase 13 · 17 shows how an enterprise gateway handles OAuth: gateway holds cred
 
 `code/main.py` simulates the full OAuth 2.1 step-up flow as a state machine. It implements:
 
-> 认证与授权相关内容：OAuth 2.1 协议在 MCP 中的应用。
+> `code/main.py` 将完整 OAuth 2.1 逐步授权流程模拟为状态机。它实现：
 
 - PKCE code-verifier / challenge generation.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：PKCE code-verifier/challenge 生成。
 - Authorization code flow with resource indicator.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：带资源指示器的授权码流程。
 - Protected-resource metadata endpoint.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：受保护资源元数据端点。
 - Token validation with audience check.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：带受众检查的 token 验证。
 - Step-up on `insufficient_scope`.
-  中文翻译：参见英文条目了解详情。
+  中文翻译：`insufficient_scope` 上的逐步升级。
 
 No HTTP server in this lesson; the state machine runs in memory so you can trace every hop. Phase 13 · 17's gateway lesson wires it to an actual transport.
 
-> 传输层相关内容：stdio 用于本地通信，Streamable HTTP 用于远程部署。
+> 本课无 HTTP 服务器；状态机在内存中运行，便于追踪每一步。Phase 13 · 17 的网关课程将其连接到实际传输。
 
 ## Ship It | 产出物
 
@@ -213,24 +219,24 @@ No HTTP server in this lesson; the state machine runs in memory so you can trace
 
 This lesson produces `outputs/skill-oauth-scope-planner.md`. Given a remote MCP server with tools, the skill designs the scope set, pinning rules, and step-up policy.
 
-> MCP 服务器端的核心实现：暴露工具、资源和提示模板，通过 JSON-RPC 2.0 与客户端通信。
+> 本课产出 `outputs/skill-oauth-scope-planner.md`。给定一个带工具的远程 MCP 服务器，该 skill 设计 scope 集合、固定规则和逐步授权策略。
 
 ## Exercises | 练习题
 
 1. Run `code/main.py`. Trace the two-scope step-up flow. Note which hops repeat on step-up.
-   中文翻译：运行相关练习。参见英文原文了解完整要求。
+   中文翻译：运行 `code/main.py`。追踪双 scope 逐步授权流程。注意哪些步骤在升级时重复。
 
 2. Add refresh-token rotation: every refresh issues a new refresh token and invalidates the old one. Simulate a stolen refresh token being used after rotation and confirm it fails.
-   中文翻译：添加相关练习。参见英文原文了解完整要求。
+   中文翻译：添加 refresh-token 轮换：每次刷新签发新 refresh token 并使旧 token 失效。模拟偷来的 refresh token 在轮换后被使用，确认它失败。
 
 3. Implement the protected-resource metadata endpoint as a real HTTP response using stdlib http.server. Mirror the /mcp endpoint from Lesson 09.
-   中文翻译：实现相关练习。参见英文原文了解完整要求。
+   中文翻译：用 stdlib http.server 实现受保护资源元数据端点为真实 HTTP 响应。镜像 Lesson 09 的 `/mcp` 端点。
 
 4. Design a scope hierarchy for a GitHub MCP server: read repo, write PR, approve PR, merge PR, admin. Use step-up between each level.
-   中文翻译：设计相关练习。参见英文原文了解完整要求。
+   中文翻译：为 GitHub MCP 服务器设计 scope 层级：read repo、write PR、approve PR、merge PR、admin。每层之间使用逐步授权。
 
 5. Read RFC 8707 and RFC 9728. Identify the one field in 9728 that MCP uses differently from the RFC's example. (Hint: it concerns `scopes_supported`.)
-   中文翻译：阅读相关练习。参见英文原文了解完整要求。
+   中文翻译：阅读 RFC 8707 和 RFC 9728。识别 9728 中 MCP 与 RFC 示例使用不同的一个字段。（提示：与 `scopes_supported` 有关。）
 
 ## Key Terms | 术语速查表
 
@@ -250,12 +256,12 @@ This lesson produces `outputs/skill-oauth-scope-planner.md`. Given a remote MCP 
 ## Further Reading | 延伸阅读
 
 - [MCP — Authorization spec](https://modelcontextprotocol.io/specification/draft/basic/authorization) — canonical MCP OAuth profile
-  中文翻译：canonical MCP OAuth profile
+  中文翻译：权威 MCP OAuth 配置
 - [den.dev — MCP November authorization spec](https://den.dev/blog/mcp-november-authorization-spec/) — walkthrough of the 2025-11-25 changes
-  中文翻译：walkthrough of the 2025-11-25 changes
+  中文翻译：2025-11-25 变更演练
 - [RFC 8707 — Resource indicators for OAuth 2.0](https://datatracker.ietf.org/doc/html/rfc8707) — the audience-pinning RFC
-  中文翻译：the audience-pinning RFC
+  中文翻译：受众固定 RFC
 - [RFC 9728 — OAuth 2.0 protected resource metadata](https://datatracker.ietf.org/doc/html/rfc9728) — the discovery-document RFC
-  中文翻译：the discovery-document RFC
+  中文翻译：发现文档 RFC
 - [Aembit — MCP OAuth 2.1, PKCE and the future of AI authorization](https://aembit.io/blog/mcp-oauth-2-1-pkce-and-the-future-of-ai-authorization/) — practical step-up-flow walk-through
-  中文翻译：practical step-up-flow walk-through
+  中文翻译：实用逐步授权流程演练
