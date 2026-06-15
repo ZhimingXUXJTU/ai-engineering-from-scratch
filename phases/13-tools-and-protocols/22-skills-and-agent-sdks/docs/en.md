@@ -7,8 +7,8 @@
 > **【拓展】** 三层堆栈是 2026 年 AI Agent 开发的标准模式：AGENTS.md（项目级约定）+ SKILL.md（可复用工作流）+ MCP 服务器（可调用工具）。Anthropic Claude Agent SDK 和 SkillKit 等跨 Agent 分发层让一个 SKILL.md 可以自动翻译为 32+ AI Agent 的原生格式。
 
 **Type:** Learn | **类型:** 学习
-**Languages:** Python (stdlib, SKILL.md parser and loader) | **语言:** Python (stdlib, SKILL.md parser and loader)
-**Prerequisites:** Phase 13 · 07 (MCP server) | **前置知识:** Phase 13 · 07 (MCP server)
+**Languages:** Python (stdlib, SKILL.md parser and loader) | **语言:** Python（标准库，SKILL.md 解析器与加载器）
+**Prerequisites:** Phase 13 · 07 (MCP server) | **前置知识:** Phase 13 · 07（MCP 服务器）
 **Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## Learning Objectives | 学习目标
