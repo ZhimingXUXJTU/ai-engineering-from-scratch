@@ -6,10 +6,10 @@
 
 > **【拓展：提示缓存→RAG生产优化】** Anthropic 的 Prompt Caching 和 OpenAI 的 Cached Response 是 RAG 生产系统降低成本的关键技术，尤其是有固定系统提示和大量检索上下文的场景。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 11 · 01 (Prompt Engineering), Phase 11 · 05 (Context Engineering), Phase 11 · 11 (Caching and Cost)
-**Time:** ~60 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 11 · 01 (Prompt Engineering), Phase 11 · 05 (Context Engineering), Phase 11 · 11 (Caching and Cost) | **前置知识:** Phase 11 · 01 (提示工程)、05 (上下文工程)、11 (缓存与成本)
+**Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## The Problem | 问题引入
 
@@ -196,22 +196,28 @@ Gemini charges storage per token·hour for as long as the cache lives, and reads
 
 See `code/main.py` for a simulated three-provider accountant that tracks write/read/miss counts and computes blended cost per 1K requests. Gate deploys on a target hit rate — most production Anthropic setups should see >80% read fraction after warmup.
 
+> 见 `code/main.py` 获取模拟的三提供商会计师，跟踪写入/读取/未命中计数并计算每千请求的混合成本。按目标命中率门控部署——多数生产 Anthropic 设置在预热后应见 >80% 读取比例。
+
 ## Pitfalls that still ship in 2026
 
+> 2026 年仍在上线的陷阱：
+
 - **Dynamic timestamps at the top.** `"Current time: 2026-04-22 15:30:02"` at the top of the system prompt. Every request misses. Move timestamps below the cache breakpoint.
-  **顶部的动态时间戳。** 在系统提示顶部放动态时间会导致每次请求都未命中。
+  **顶部的动态时间戳。** 系统提示顶部放 `"Current time: 2026-04-22 15:30:02"`。每次请求都未命中。把时间戳移到缓存断点之下。
 - **Tool reordering.** Serialize tools in a stable order — a dict reshuffle between deploys breaks every hit.
-  **工具重排序。** 以稳定顺序序列化工具——部署间的字典重排会破坏每次命中。
+  **工具重排序。** 以稳定顺序序列化工具——部署间的字典重排破坏每次命中。
 - **Free-text near-duplicates.** "You are helpful." vs "You are a helpful assistant." — one byte difference = full miss.
-  **自由文本近似重复。** 一个字节的差异 = 完全未命中。
+  **自由文本近似重复。** "You are helpful." vs "You are a helpful assistant."——一字节差异 = 完全未命中。
 - **Too-small blocks.** Anthropic enforces a 1,024-token floor (2,048 for Haiku). Smaller blocks silently do not cache.
-  **过小的块。** Anthropic 强制 1,024 token 下限。更小的块静默地不缓存。
+  **过小的块。** Anthropic 强制 1,024 token 下限（Haiku 为 2,048）。更小的块静默不缓存。
 - **Blind cost dashboards.** Split "input tokens" into cached vs uncached. Otherwise a traffic drop looks like a cache win.
-  **盲目的成本仪表板。** 将"输入 token"拆分为缓存 vs 未缓存。
+  **盲目的成本仪表板。** 把"输入 token"拆成缓存 vs 未缓存。否则流量下降看起来像缓存赢。
 
 ## Use It | 用框架实现
 
 The 2026 caching stack:
+
+> 2026 缓存技术栈：
 
 | Situation | Pick |
 |-----------|------|
@@ -221,9 +227,17 @@ The 2026 caching stack:
 | Multi-day reuse of a giant code/doc corpus | Gemini explicit `CachedContent` |
 | Cross-provider fallback | Keep the cacheable prefix layout identical across providers so any hit works |
 
+| 场景 | 选择 |
+|------|------|
+| Agent 有稳定 10k+ 系统提示、多轮 | Anthropic `cache_control` 配 5 分钟 TTL |
+| 批处理重用前缀 30+ 分钟 | Anthropic 配 `ttl: "1h"` |
+| GPT-5 上的无服务器端点、无定制基建 | OpenAI 自动（让前缀稳定且够长） |
+| 多天重用大型代码/文档语料 | Gemini 显式 `CachedContent` |
+| 跨提供商回退 | 跨提供商保持可缓存前缀布局一致，任何命中都工作 |
+
 Combine with semantic caching (Phase 11 · 11) for the user-message layer: prompt caching handles *token-identical* reuse, semantic caching handles *meaning-identical* reuse.
 
-> 与语义缓存（第 11 阶段 · 11）结合用于用户消息层：提示缓存处理*token 完全相同*的重用，语义缓存处理*语义相同*的重用。
+> 与语义缓存（Phase 11 · 11）结合用于用户消息层：提示缓存处理*token 完全相同*的重用，语义缓存处理*语义相同*的重用。
 
 ## Ship It | 产出物
 

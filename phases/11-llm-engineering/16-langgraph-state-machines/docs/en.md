@@ -6,10 +6,10 @@
 
 > **【拓展：LangGraph→Agent工程】** LangGraph 是目前最成熟的 Agent 编排框架，将 Agent 执行建模为状态图（StateGraph），支持人机协作、分支逻辑和持久化状态。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 11 · 09 (Function Calling), Phase 11 · 14 (Model Context Protocol)
-**Time:** ~75 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 11 · 09 (Function Calling), Phase 11 · 14 (Model Context Protocol) | **前置知识:** Phase 11 · 09 (函数调用)、14 (模型上下文协议)
+**Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## The Problem | 问题引入
 
@@ -108,6 +108,8 @@ A compiled graph can be a node in another graph. The outer graph sees a single n
 
 ### Step 1: state and nodes
 
+> 步骤 1：状态和节点。
+
 ```python
 from typing import Annotated, TypedDict
 from langchain_core.messages import AnyMessage, HumanMessage, AIMessage
@@ -145,6 +147,8 @@ app = graph.compile(checkpointer=MemorySaver())
 
 ### Step 2: run with a thread
 
+> 步骤 2：用线程运行。
+
 ```python
 config = {"configurable": {"thread_id": "user-42"}}
 for event in app.stream(
@@ -157,9 +161,13 @@ for event in app.stream(
 
 Every update is a dict `{node_name: state_delta}`. Your frontend can stream these to the UI so users see "agent is thinking… calling search_web… got result… answering."
 
+> 每个更新是 `{node_name: state_delta}` 字典。前端可流式传到 UI，让用户看到"agent 思考中... 调用 search_web... 得到结果... 回答中"。
+
 ### Step 3: add a human-in-the-loop interrupt
 
 Mark a node so execution pauses before it runs.
+
+> 步骤 3：添加人机协作中断。标记节点使执行在其运行前暂停。
 
 ```python
 app = graph.compile(
@@ -182,6 +190,8 @@ The state, the checkpoint, and the thread all persist across the interrupt. Noth
 
 ### Step 4: time-travel for debugging
 
+> 步骤 4：调试用时间旅行。
+
 ```python
 history = list(app.get_state_history(config))
 for snapshot in history:
@@ -199,6 +209,8 @@ Passing `None` as the input replays from the given checkpoint; passing a value a
 
 ### Step 5: swap the checkpointer for production
 
+> 步骤 5：生产环境替换检查点器。
+
 ```python
 from langgraph.checkpoint.postgres import PostgresSaver
 
@@ -214,6 +226,7 @@ SQLite, Redis, and Postgres are shipped. `MemorySaver` is for tests. Anything th
 ## The Skill
 
 > You build agents as graphs, not as `while True` loops.
+> 你把 Agent 构建为图，而非 `while True` 循环。
 
 Before you reach for LangGraph, do a 60-second design:
 

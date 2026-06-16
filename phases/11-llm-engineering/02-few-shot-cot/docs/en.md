@@ -6,10 +6,10 @@
 
 > **【拓展：推理策略→AI Agent】** CoT/ToT/ReAct 是现代 AI Agent 的推理基础。ReAct 的 Thought-Action-Observation 循环是 LangChain、CrewAI 等 Agent 框架的核心模式。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Lesson 11.01 (Prompt Engineering)
-**Time:** ~45 minutes
+**Type:** Build | **类型:** 构建
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Lesson 11.01 (Prompt Engineering) | **前置知识:** Phase 11 · 01 (提示工程)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## Learning Objectives | 学习目标
 
@@ -425,6 +425,8 @@ The full implementation is in `code/advanced_prompting.py`. Here are the key com
 
 The first component manages few-shot examples and selects the most relevant ones for a given problem.
 
+> 第一个组件管理少样本示例，并为给定问题选择最相关的示例。
+
 ```python
 GSM8K_EXAMPLES = [
     {
@@ -443,6 +445,8 @@ Each example has three parts: the question, the reasoning chain, and the final a
 ### Step 2: Chain-of-Thought Prompt Builder
 
 The prompt builder assembles a system message, few-shot examples with reasoning chains, and the target question into a single prompt.
+
+> 提示构建器把系统消息、带推理链的少样本示例和目标问题组装成单个提示。
 
 ```python
 def build_cot_prompt(question, examples, num_examples=3):
@@ -469,6 +473,8 @@ The format constraint ("The answer is [number]") is critical. Without it, self-c
 ### Step 3: Self-Consistency Voting
 
 Sample N reasoning paths and take the majority answer.
+
+> 采样 N 条推理路径，取多数答案。
 
 ```python
 def self_consistency_solve(question, examples, client, model, n_samples=5):
@@ -506,6 +512,8 @@ Temperature 0.7 is important. At temperature 0.0, all N samples would be identic
 
 For problems where linear reasoning fails, ToT explores multiple approaches and evaluates which direction is most promising.
 
+> 对线性推理失败的问题，ToT 探索多种方法并评估哪个方向最有前景。
+
 ```python
 def tree_of_thought_solve(question, client, model, breadth=3, depth=3):
     thoughts = generate_initial_thoughts(question, client, model, breadth)
@@ -533,6 +541,8 @@ The evaluator is itself an LLM call. You ask the model: "On a scale of 0.0 to 1.
 
 The pipeline combines all techniques with an escalation strategy.
 
+> 流水线结合所有技术与升级策略。
+
 ```python
 def solve_with_escalation(question, examples, client, model):
     system, user = build_cot_prompt(question, examples)
@@ -559,6 +569,8 @@ The escalation logic: try cheap (single CoT) first. If self-consistency confiden
 ### With LangChain
 
 LangChain provides built-in support for prompt templates and output parsing that simplify few-shot and CoT patterns:
+
+> LangChain 为简化少样本和 CoT 模式提供提示模板和输出解析内置支持：
 
 ```python
 from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate

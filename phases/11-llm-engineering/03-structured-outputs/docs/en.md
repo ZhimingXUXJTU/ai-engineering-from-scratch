@@ -6,11 +6,11 @@
 
 > **【拓展：结构化输出→AI应用开发】** 结构化输出是 Function Calling、RAG 管道、数据提取等 AI 应用的基础。OpenAI 的 `response_format`、Anthropic 的 tool use、Instructor 库都是这个领域的核心工具。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 10, Lessons 01-05 (LLMs from Scratch)
-**Time:** ~90 minutes
-**Related:** Phase 5 · 20 (Structured Outputs & Constrained Decoding) covers the decoder-level theory (FSM/CFG logit processors, Outlines, XGrammar). This lesson focuses on the production SDK surface (OpenAI `response_format`, Anthropic tool use, Instructor) — read Phase 5 · 20 first if you want to understand what is happening below the API.
+**Type:** Build | **类型:** 构建
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 10, Lessons 01-05 (LLMs from Scratch) | **前置知识:** Phase 10 · 01-05 (从零构建 LLM)
+**Time:** ~90 minutes | **时间:** ~90 分钟
+**Related:** Phase 5 · 20 (Structured Outputs & Constrained Decoding) covers the decoder-level theory (FSM/CFG logit processors, Outlines, XGrammar). This lesson focuses on the production SDK surface (OpenAI `response_format`, Anthropic tool use, Instructor) — read Phase 5 · 20 first if you want to understand what is happening below the API. | **相关:** Phase 5 · 20 (结构化输出与约束解码) 讲解码器级理论（FSM/CFG logit 处理器、Outlines、XGrammar）。本课聚焦生产 SDK 表面（OpenAI `response_format`、Anthropic tool use、Instructor）——想了解 API 之下发生什么先读 Phase 5 · 20。
 
 ## Learning Objectives | 学习目标
 
@@ -195,6 +195,8 @@ Even with schema enforcement, structured outputs can fail in subtle ways.
 
 Build a validator from scratch that checks whether a Python object matches a JSON Schema. This is what runs on the output side to verify compliance.
 
+> 从零构建验证器，检查 Python 对象是否匹配 JSON Schema。这是输出侧验证合规性的代码。
+
 ```python
 import json
 
@@ -264,6 +266,8 @@ def _validate(data, schema, path, errors):
 
 Build a minimal class-to-schema converter. Define a Python class and generate its JSON Schema automatically.
 
+> 构建最小类到 schema 转换器。定义 Python 类，自动生成其 JSON Schema。
+
 ```python
 class SchemaField:
     def __init__(self, field_type, required=True, default=None, enum=None, minimum=None, maximum=None):
@@ -320,6 +324,8 @@ def model_to_schema(name, fields):
 ### Step 3: Constrained Token Filter
 
 Simulate constrained decoding. Given a partial JSON string and a schema, determine which token categories are valid at the current position.
+
+> 模拟约束解码。给定部分 JSON 字符串和 schema，确定当前位置哪些 token 类别有效。
 
 ```python
 def next_valid_tokens(partial_json, schema):
@@ -382,6 +388,8 @@ def demonstrate_constrained_decoding():
 
 Combine everything into an extraction pipeline: define a schema, simulate an LLM producing structured output, validate the output, and handle retries.
 
+> 把一切组合成提取流水线：定义 schema、模拟 LLM 产生结构化输出、验证输出、处理重试。
+
 ```python
 def simulate_llm_extraction(text, schema, attempt=0):
     if "headphones" in text.lower() or "sony" in text.lower():
@@ -425,6 +433,8 @@ product_schema = {
 ```
 
 ### Step 5: Run the Full Pipeline
+
+> 步骤 5：运行完整流水线。
 
 ```python
 def run_demo():
@@ -479,6 +489,8 @@ def run_demo():
 
 ### OpenAI Structured Outputs
 
+> OpenAI 结构化输出。
+
 ```python
 # from openai import OpenAI
 # from pydantic import BaseModel
@@ -508,6 +520,8 @@ OpenAI's structured output mode uses constrained decoding internally. Every toke
 > OpenAI 的结构化输出模式在内部使用约束解码。模型生成的每个 token 都保证产生匹配 Pydantic schema 的输出。不需要重试。不需要验证。约束直接嵌入解码过程中。
 
 ### Anthropic Tool Use
+
+> Anthropic 工具使用。
 
 ```python
 # import anthropic
@@ -539,6 +553,8 @@ Anthropic achieves structured output through tool use. The model emits a tool ca
 > Anthropic 通过 tool use 实现结构化输出。模型发出一个工具调用，其结构化参数匹配 input_schema。结果相同，API 接口不同。
 
 ### Instructor Library
+
+> Instructor 库。
 
 ```python
 # pip install instructor

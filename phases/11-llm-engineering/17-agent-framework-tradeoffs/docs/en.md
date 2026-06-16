@@ -6,10 +6,10 @@
 
 > **【拓展：框架选择→Agent工程实践】** LangGraph 适合需要精细控制的有状态工作流；CrewAI 适合多角色协作；AutoGen 适合对话式多 Agent；选错框架是 Agent 项目失败的首要原因。
 
-**Type:** Learn
-**Languages:** Python
-**Prerequisites:** Phase 11 · 09 (Function Calling), Phase 11 · 16 (LangGraph)
-**Time:** ~45 minutes
+**Type:** Learn | **类型:** 学习
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 11 · 09 (Function Calling), Phase 11 · 16 (LangGraph) | **前置知识:** Phase 11 · 09 (函数调用)、16 (LangGraph)
+**Time:** ~45 minutes | **时间:** ~45 分钟
 
 ## The Problem | 问题引入
 
@@ -71,6 +71,15 @@ State is where most framework choices break down in production.
 > 状态是大多数框架选择在生产中出问题的地方。
 
 - **LangGraph.** Typed state (`TypedDict` or Pydantic model), per-field reducers, first-class checkpointer (SQLite/Postgres/Redis). Resume, interrupt, and time-travel are free. *(See Phase 11 · 16.)*
+  **LangGraph。** 类型化状态（`TypedDict` 或 Pydantic 模型）、每字段 reducer、一等公民检查点器（SQLite/Postgres/Redis）。恢复、中断和时间旅行免费。（见 Phase 11 · 16。）
+- **CrewAI.** State flows as strings between tasks via the `context` field, or structured through `output_pydantic`. No durable per-crew store out of the box; you bolt on your own if the crew must survive a restart.
+  **CrewAI。** 状态作为字符串在任务间通过 `context` 字段流动，或通过 `output_pydantic` 结构化。开箱无持久 per-crew 存储；若 crew 须存活重启需自己外挂。
+- **AutoGen.** State is the chat history and any user-defined `context`. Conversation transcripts persist; arbitrary workflow state does not unless you write adapters.
+  **AutoGen。** 状态是聊天历史和任何用户定义的 `context`。对话记录持久化；任意工作流状态不持久化，除非写适配器。
+- **Agno.** Built-in storage drivers (SQLite, Postgres, Mongo, Redis, DynamoDB) attached to an `Agent` via `storage=` — conversation sessions and user memories persist automatically. Not a full graph checkpointer; a session store.
+  **Agno。** 内置存储驱动（SQLite、Postgres、Mongo、Redis、DynamoDB）通过 `storage=` 附在 `Agent` 上——对话会话和用户记忆自动持久化。不是完整图检查点器；是会话存储。
+
+- **LangGraph.** Typed state (`TypedDict` or Pydantic model), per-field reducers, first-class checkpointer (SQLite/Postgres/Redis). Resume, interrupt, and time-travel are free. *(See Phase 11 · 16.)*
 - **CrewAI.** State flows as strings between tasks via the `context` field, or structured through `output_pydantic`. No durable per-crew store out of the box; you bolt on your own if the crew must survive a restart.
 - **AutoGen.** State is the chat history and any user-defined `context`. Conversation transcripts persist; arbitrary workflow state does not unless you write adapters.
 - **Agno.** Built-in storage drivers (SQLite, Postgres, Mongo, Redis, DynamoDB) attached to an `Agent` via `storage=` — conversation sessions and user memories persist automatically. Not a full graph checkpointer; a session store.
@@ -82,6 +91,15 @@ Every non-trivial agent branches. Who decides the branch matters.
 > 每个非平凡的 Agent 都有分支。谁决定分支很重要。
 
 - **LangGraph** — you decide, via conditional edges. Routing is a Python function with named branches. Branches are first-class in the compiled graph; the checkpointer records which branch was taken.
+  **LangGraph**——你决定，通过条件边。路由是带命名分支的 Python 函数。分支是编译图中的一等公民；检查点器记录走哪条。
+- **CrewAI** — the manager decides in hierarchical mode; in sequential mode you decide at build time. Routing is implicit in the task list; there is no first-class "if" outside the manager's prompt.
+  **CrewAI**——分层模式由经理决定；顺序模式你在构建时决定。路由隐含在任务列表中；经理提示外无一等公民"if"。
+- **AutoGen** — the agents decide via chat. Branching is emergent from who speaks next. `GroupChatManager` selects the next speaker; you can hand-write a `speaker_selection_method` but the default is LLM-driven.
+  **AutoGen**——Agent 通过聊天决定。分支从谁下一个说话中涌现。`GroupChatManager` 选下一个发言者；可手写 `speaker_selection_method` 但默认 LLM 驱动。
+- **Agno** — the agent decides by which tool to call next. Teams have a coordinator/router/collaborator mode; branching beyond that is the developer's responsibility.
+  **Agno**——Agent 通过下一个调用哪个工具决定。团队有 coordinator/router/collaborator 模式；之外的分支由开发者负责。
+
+- **LangGraph** — you decide, via conditional edges. Routing is a Python function with named branches. Branches are first-class in the compiled graph; the checkpointer records which branch was taken.
 - **CrewAI** — the manager decides in hierarchical mode; in sequential mode you decide at build time. Routing is implicit in the task list; there is no first-class "if" outside the manager's prompt.
 - **AutoGen** — the agents decide via chat. Branching is emergent from who speaks next. `GroupChatManager` selects the next speaker; you can hand-write a `speaker_selection_method` but the default is LLM-driven.
 - **Agno** — the agent decides by which tool to call next. Teams have a coordinator/router/collaborator mode; branching beyond that is the developer's responsibility.
@@ -91,9 +109,13 @@ Every non-trivial agent branches. Who decides the branch matters.
 > 可观测性问题
 
 - **LangGraph** — OpenTelemetry via LangSmith or any OTel exporter. Every node transition is a trace span; checkpoints double as replayable traces. LangSmith is the first-party option; Langfuse/Phoenix also have adapters.
+  **LangGraph**——通过 LangSmith 或任何 OTel 导出器的 OpenTelemetry。每个节点转换是一个 trace span；检查点兼作可重放追踪。LangSmith 是第一方选项；Langfuse/Phoenix 也有适配器。
 - **CrewAI** — first-class OpenTelemetry since late-2025; integrations with Langfuse, Phoenix, Opik, AgentOps.
+  **CrewAI**——2025 年末起一等公民 OpenTelemetry；集成 Langfuse、Phoenix、Opik、AgentOps。
 - **AutoGen** — OpenTelemetry integration via `autogen-core`; AgentOps and Opik have connectors. Tracing granularity is per-agent-message, not per-node.
+  **AutoGen**——通过 `autogen-core` 的 OpenTelemetry 集成；AgentOps 和 Opik 有连接器。追踪粒度是每 Agent 消息，非每节点。
 - **Agno** — built-in `monitoring=True` flag plus OpenTelemetry exporters; tight integration with Langfuse for session traces.
+  **Agno**——内置 `monitoring=True` 标志加 OpenTelemetry 导出器；与 Langfuse 紧密集成会话追踪。
 
 ### Cost and latency
 
@@ -110,13 +132,18 @@ When cost per run matters, prefer explicit routing (LangGraph edges, AutoGen `sp
 > 互操作性
 
 - **LangGraph** ↔ **LangChain** tools, retrievers, LLMs. First-class MCP adapter (tools imported as MCP servers).
+  **LangGraph** ↔ **LangChain** 工具、检索器、LLM。一等公民 MCP 适配器（工具作为 MCP 服务器导入）。
 - **CrewAI** ↔ tools inherit from `BaseTool`; LangChain tools, LlamaIndex tools, and MCP tools all adapt in. Crew-to-crew delegation via `allow_delegation=True`.
+  **CrewAI** ↔ 工具继承自 `BaseTool`；LangChain 工具、LlamaIndex 工具、MCP 工具都适配进来。Crew-to-crew 委派通过 `allow_delegation=True`。
 - **AutoGen** → `FunctionTool` wraps any Python callable; MCP adapter available. Tight coupling to AG2 ecosystem for agent-to-agent patterns.
+  **AutoGen** → `FunctionTool` 包装任何 Python 可调用；MCP 适配器可用。与 AG2 生态紧密耦合用于 Agent 间模式。
 - **Agno** → `@tool` decorator or BaseTool subclass; MCP adapter; tools can be shared across agents and teams.
+  **Agno** → `@tool` 装饰器或 BaseTool 子类；MCP 适配器；工具可跨 Agent 和团队共享。
 
 ## The Skill
 
 > You can explain, in one sentence, why a given framework is right for a given agent problem.
+> 你能用一句话解释为什么某个框架适合某个 Agent 问题。
 
 Pre-build checklist:
 
@@ -147,6 +174,15 @@ Refuse to reach for a framework before you can draw the graph, the org chart, th
 | Single agent with tools, sessions, memory | Agno | Thinnest setup, built-in storage and memory. |
 | Thousands of parallel fanouts with reducers | LangGraph + `Send` | The only one with a first-class parallel-dispatch API. |
 | Quick prototype, no framework commitment | Plain Python + provider SDK | No framework is the fastest framework. |
+
+| 问题形状 | 推荐框架 | 原因 |
+|---------|---------|------|
+| 类型化状态的工作流 DAG、人工审批、长期运行 | LangGraph | 一等公民状态、检查点、中断、时间旅行 |
+| 研究写作流水线带不同角色 | CrewAI（顺序）或 LangGraph 子图 | CrewAI 表达每任务角色便宜；分支复杂时用 LangGraph |
+| 提议者-评论者或师生对话 | AutoGen | 双 Agent 聊天是其原生形状 |
+| 单 Agent 带工具、会话、记忆 | Agno | 最薄设置，内置存储和记忆 |
+| 数千并行扇出带 reducer | LangGraph + `Send` | 唯一带一等公民并行分派 API 的 |
+| 快速原型、不绑定框架 | 纯 Python + 提供商 SDK | 无框架是最快的框架 |
 
 ## Exercises | 练习题
 
