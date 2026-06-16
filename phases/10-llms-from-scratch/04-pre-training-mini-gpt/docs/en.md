@@ -6,6 +6,8 @@
 
 > **【拓展：大模型三阶段】** 大模型训练三阶段：(1) 预训练（海量无标注数据，学习语言表示）→ (2) SFT（指令微调，学会跟随指令）→ (3) RLHF/DPO（对齐人类偏好）。本课是第一阶段，GPT-2 是所有 GPT 系列的原型。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 10·01-03（分词器、数据管线）——理解 token ID 序列如何输入模型；(2) Transformer 架构（Phase 05）——self-attention、LayerNorm、FFN；(3) numpy 矩阵运算、反向传播手算（Phase 03 微积分与链式法则）；(4) 交叉熵损失函数的梯度推导。本课**用 numpy 实现**，不再依赖 PyTorch autograd，要能自己写 `backward()`。
+
 **Type:** Build
 **Languages:** Python (with numpy)
 **Prerequisites:** Phase 10, Lessons 01-03 (Tokenizers, Building a Tokenizer, Data Pipelines)
@@ -68,6 +70,8 @@ Here is the full computation graph from token IDs to next-token probabilities:
 That is the entire model. No convolutions. No recurrence. Just embeddings, attention, feedforward networks, and layer norms stacked 12 times.
 
 > 这就是整个模型。没有卷积。没有循环。只有嵌入、注意力、前馈网络和层归一化堆叠 12 次。
+
+> 💡 **【类比】** GPT 像一台"流水线打字机"：纸带送进 token ID → 印章 1（token embedding）盖出 768 维向量 → 印章 2（position embedding）叠加位置 → 12 道工人（Transformer block）逐层修改这个向量 → 末端喷墨头（LM head）在 50257 个候选词上喷概率分布 → 选最高概率的词输出 → 把新词再送回纸带开头，循环。一切奥秘都在那 12 道工人怎么"修改"向量——而 self-attention 就是工人们用 12 只眼睛（attention heads）同时看序列里其他 token 的能力。
 
 ```mermaid
 graph TD

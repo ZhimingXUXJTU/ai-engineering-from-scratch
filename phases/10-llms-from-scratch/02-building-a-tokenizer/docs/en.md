@@ -6,6 +6,8 @@
 
 > **【拓展：tiktoken/HuggingFace】** GPT-4 的 tiktoken 和 Llama 的 sentencepiece 都是生产级分词器的实现。理解它们的内部原理有助于优化 prompt 工程和成本控制。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 10·01（Tokenizers: BPE/WordPiece/SentencePiece）——理解 BPE 合并循环和合并表的概念；(2) Unicode 与 UTF-8 编码——codepoint、字节、NFC/NFKC 归一化的区别；(3) 正则表达式——尤其是 `\p{L}`、`\p{N}`、负向先行断言 `(?!\S)`；(4) Python `regex` 库（不是标准 `re`，因为 `re` 不支持 Unicode property）。
+
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 10, Lesson 01 (Tokenizers: BPE, WordPiece, SentencePiece)
@@ -47,6 +49,8 @@ You are going to build that machinery.
 > 你将构建那套机制。
 
 > **【中文解读】** 生产级分词器不是单一算法，而是一个五阶段管线：归一化 → 预分词 → BPE 合并 → 特殊 token 注入 → ID 映射。每个阶段解决不同的问题。例如 NFKC 归一化把 "fi" 连字（U+FB01）变成 "fi" 两个字符，预分词防止 "the cat" 被合并出 "e c" 这样的 token。
+
+> 💡 **【类比】** 生产级分词器像"邮局的信件处理流水线"：归一化是"统一邮编格式"（U+FB01 "fi" → "fi"，全角字母 → 半角），预分词是"按目的地先分堆"（按词边界、数字、标点切，避免跨城市混装），BPE 合并是"高频包裹自动拼箱"（常见词直接整箱），特殊 token 是"挂号信标签"（BOS/EOS/PAD 永远不参与拼箱），最后才是"贴条形码"（ID 映射）。任何一步漏掉，邮件就乱套。
 
 > **【拓展：Llama 3 的分词器升级】** Meta 在 Llama 3 中将词表从 32K（Llama 2 的 SentencePiece BPE）升级到 128K（tiktoken 风格字节级 BPE），专门增加了非英语文字的 token 分配。这个改变使多语言压缩效率提升了约 2 倍，但嵌入矩阵参数量也相应增加了 4 倍（32K→128K）。
 
@@ -157,6 +161,8 @@ Special tokens are never split by BPE. They are matched exactly before the merge
 
 > **【拓展：聊天模板的工程陷阱】** 聊天模板是实际部署中最容易出错的地方。每个模型在训练时使用特定格式的特殊 token，任何偏差——缺少换行、多一个空格、token 顺序错误——都会让输入偏离训练分布，导致模型输出垃圾。HuggingFace 的 `chat_template` Jinja2 模板机制就是为了标准化这个过程。
 
+> ⚠️ **【易错点】** 实现特殊 token 的三个陷阱：(1) **特殊 token 内含正则元字符**——如 `<|im_start|>` 中的 `|`，必须用 `re.escape()` 转义，否则在 GPT-2 预分词的正则上会被解析成选择符；(2) **未从 BPE 词表中排除特殊 token**——若 `<|im_end|>` 不在 split 前被剥离，它的字符序列会被 BPE 拆成 8 个 token，模型永远看不到完整结构标记；(3) **`add_special_tokens=False` 漏配**——调用 `tokenizer.encode(text)` 默认会自动加 BOS/EOS，做拼接时会出现 BOS BOS EOS EOS 序列，破坏 attention mask 对齐。修复：编码时显式传 `add_special_tokens=False`，最后由模板逻辑统一注入。
+
 ### Chat Templates
 
 This is where most people get confused and most implementations break.
@@ -201,6 +207,8 @@ Hi there!<|im_end|>
 Get the template wrong and the model produces garbage. It was trained on one exact format. Any deviation -- a missing newline, a swapped token, an extra space -- puts the input outside the training distribution.
 
 > 模板搞错了模型就会产生垃圾输出。它是在一种精确格式上训练的。任何偏差——缺少换行、交换了 token、多一个空格——都会使输入偏离训练分布。
+
+> 🤔 **【困惑】** Q: Llama 3 为什么放弃 SentencePiece 改用 tiktoken？字节级 BPE 比原版强在哪？ A: 两点关键优势：(1) **SentencePiece 用 ⊗（U+2581）代替空格**，对 ASCII 字符和原始空格的混淆在 chat 场景下导致 token 序列对 prompt 微小变化过于敏感；tiktoken 直接保留前导空格，"hello" 和 " hello" 是不同 token，更稳定；(2) **字节级 BPE 词表恰好 256 个基础 token**，理论上能编码任何字节序列（包括 emoji、私有区字符），不依赖具体语料；SentencePiece 词表若未训练到某字符直接 [UNK]。Llama 3 词表从 32K 扩到 128K，多语言压缩比提升 ~2x，这是为推理成本买单的工程决策。
 
 ### Speed
 
