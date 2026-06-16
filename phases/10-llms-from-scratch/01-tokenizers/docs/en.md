@@ -46,6 +46,8 @@ Every API call you make to GPT-4 or Claude is priced per token. Every token your
 
 > **【拓展：API 定价与分词效率】** GPT-4o 的定价为 $5/M input tokens、$15/M output tokens。同一个中文段落，用 GPT-2 分词器可能消耗 500 tokens，用 GPT-4o 的 o200k_base 分词器只需约 200 tokens，成本差 2.5 倍。这也是为什么 Llama 3 将词表从 32K 扩展到 128K——降低非英语用户的推理成本。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 05（NLP Foundations）——理解文本的向量化表示、词嵌入基础；(2) Python 字典/Counter 与贪心算法的实现模式；(3) UTF-8 编码、Unicode 码点（codepoint）与字节的关系；(4) 概率论基础——频率统计与互信息。不熟悉这些会难以理解 BPE 的合并判据。
+
 ## The Concept | 核心概念
 
 ### Three Approaches That Failed (and One That Won)
@@ -67,6 +69,8 @@ There are three obvious ways to convert text to numbers. Two of them do not work
 > **子词分词**找到了最佳平衡点。常见词保持完整："the" 是一个 token。罕见词分解为有意义的片段："unhappiness" 变成 ["un", "happi", "ness"]。词表保持在可控范围（30K 到 128K 个 token）。序列保持简短。未知 token 基本消失，因为任何词都可以由子词片段构建。
 
 > **【中文解读】** 词级分词（word-level）的问题是词表爆炸——英语有百万级词形，加上代码、URL、科学记数法和其他语言，词表会无限增长。字符级分词（character-level）虽然词表小，但序列太长，模型要学会 "t"+"h"+"e" 组合为 "the"，浪费注意力容量。子词分词在两者之间取得平衡：常见词保持完整，罕见词拆分为有意义的片段。
+
+> 💡 **【类比】** 分词器像"乐高积木分类工厂"：常见词（"the"）做成一整块大积木直接用，罕见词（"unhappiness"）拆成 "un"+"happi"+"ness" 三块标准小积木拼起来。词级是只卖整块定制积木（漏货就崩溃），字符级是只卖单个原点（拼一句话要 100 个）。BPE 是"高频组合自动打包成中块"，自适应找到成本与表达力的平衡点。
 
 Every modern LLM uses subword tokenization. GPT-2, GPT-4, BERT, Llama 3, Claude -- all of them. The question is which algorithm.
 
@@ -148,6 +152,8 @@ The merge table is the tokenizer. To encode new text, apply merges in the order 
 
 > **【拓展：BPE 的压缩原理】** BPE 最初是 1994 年的通用数据压缩算法。Sennrich 等人在 2016 年将其引入 NLP 领域。在生产环境中，tiktoken 在 Rust 中实现了 BPE，编码速度可达每秒数百万 token。GPT-4 的 cl100k_base 编码器在数百 GB 文本上训练了约 100,000 次合并。
 
+> ⚠️ **【易错点】** 手写 BPE 三个常见 bug：(1) **忘了每次合并后重新计数**——直接在初始 pair counts 上循环，导致合并 "we" 后还在用旧频次选 (e,s)，结果合并表全是噪声；(2) **合并顺序错乱**——编码时必须按训练时学到的 merge rank 严格从低到高应用，先合并 "th" 再合并 "the"，颠倒会得到完全不同的 token；(3) **未做预分词（pre-tokenization）**——直接在整个语料上做 BPE，会出现 "e c"（"the cat" 中的跨词合并），训练出无意义的跨词 token。修复：用 GPT-2 的正则先切成词片段，每段独立做 BPE。
+
 ```mermaid
 graph LR
     subgraph Training["BPE Training Loop"]
@@ -172,6 +178,8 @@ GPT-2 introduced this approach. The base vocabulary covers every possible byte. 
 > GPT-2 引入了这种方法。基础词表覆盖每个可能的字节。BPE 合并在其之上构建。OpenAI 的 tiktoken 库实现了字节级 BPE，词表大小如下：
 
 > **【中文解读】** 字节级 BPE（Byte-level BPE）是 GPT-2 引入的关键创新。传统 BPE 操作 Unicode 字符，而字节级 BPE 直接操作原始字节（0-255），基础词表恰好 256 个，理论上可处理任何语言或编码，永远不会出现 [UNK] token。这就是为什么 GPT 系列模型能处理代码、emoji、多语言混合文本而不会"卡住"。
+
+> 🤔 **【困惑】** Q: 为什么 BPE 的合并顺序如此关键？训练好的分词器能"修改"吗？ A: 合并顺序就是分词器的"程序"——编码时必须严格按训练时学到的 rank 从小到大应用：若 rank=5 是 "th"，rank=100 是 "the"，遇到 "the" 时先合成 "th"，再合成 "the"。任意颠倒或单独跳过某步会产生不同 token 序列。生产中**不要修改合并表**，因为它和模型的 embedding 矩阵强绑定——改一个 token 的 ID，模型会输出乱码。需要改词表只能重训分词器 + 重训模型 embedding。
 
 - GPT-2: 50,257 tokens
 - GPT-3.5/GPT-4: ~100,256 tokens (cl100k_base encoding)

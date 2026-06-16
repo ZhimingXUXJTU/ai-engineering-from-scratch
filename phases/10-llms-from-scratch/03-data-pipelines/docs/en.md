@@ -50,6 +50,8 @@ Your data pipeline determines whether your model learns language or learns noise
 
 > **【拓展：数据混合比的工程经验】** Llama 3 公开的数据配比为：约 50% 网页数据、25% 代码、13% 书籍和论文、8% 数学、4% 多语言网页。GPT-4 的训练数据据说包含大量代码（提升推理能力）和学术文献（提升事实准确性）。比例没有公式可循，完全依赖实验和评估。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 10·01 和 02（分词器）——理解 token 与字节流；(2) Phase 10·01 提到的 Chinchilla scaling law——理解参数量与 token 数的最优比例；(3) Python 生成器 / `IterableDataset` / `datasets.stream`——流式处理范式；(4) MinHash + LSH 近似去重算法（不熟悉请先看 Llama 3 / RefinedWeb 论文的相关章节）。本节不会重讲这些基础。
+
 ## The Concept | 核心概念
 
 ### Where the Data Comes From
@@ -101,6 +103,8 @@ Cleaning this is not optional. It is the difference between a model that generat
 
 > 清洗不是可选的。这是生成连贯段落的模型和输出混合 HTML 标签与产品列表的模型之间的区别。
 
+> 💡 **【类比】** 数据管线像"自来水厂的多级过滤系统"：原水（Common Crawl）→ 沉淀池（HTML 剥离）→ 沙滤（语言检测）→ 活性炭（质量分类器过滤 SEO 垃圾）→ 反渗透（MinHash 近似去重）→ 紫外线（PII 脱敏）→ 出水口（打包成 token chunk）。任何一级漏掉，最后流出的"水"就有杂质——模型学到的就是杂质而非语言。Chinchilla 论文指出，决定模型质量的不是模型大小而是"水的洁净度 × 水量"。
+
 ```mermaid
 graph TD
     A[Raw Text] --> B[HTML Strip]
@@ -146,6 +150,8 @@ Each step eliminates a category of noise:
 > **【中文解读】** 数据清洗是预训练中最不性感但最重要的环节。原始网页数据充满噪声：HTML 标签、导航菜单、机器生成的 SEO 垃圾、个人隐私信息（PII）。清洗管线依次执行：HTML 剥离 → 语言检测 → 质量过滤 → 去重 → PII 移除。RefinedWeb 使用困惑度过滤——在 Wikipedia 上训练一个小语言模型，对每篇文档评分，高困惑度文档（像垃圾内容）被删除。
 
 > **【拓展：去重的工程影响】** Llama 团队报告通过去重移除了约 38% 的网页数据。Common Crawl 中超过三分之一的页面是重复或近似重复内容。训练在重复数据上不仅浪费算力，还会导致模型逐字记忆特定段落，增加隐私泄露风险。MinHash+LSH 算法将 O(n^2) 的两两比较降到了近似线性时间。
+
+> ⚠️ **【易错点】** 数据管线四个常见坑：(1) **整库加载进内存**——`datasets.load_dataset("common_crawl", split="train")` 默认会实例化全部 15T token，必 OOM；必须用 `streaming=True` 或 `IterableDataset`；(2) **去重时把"高密度优质内容"误删**——文档 A 包含整篇 Wikipedia（5KB），文档 B 是只引用一句话的博客（500 字），MinHash 误判为高相似度。修复：在 shingle 之前对每篇文档归一化长度，或对小文档用更保守的阈值；(3) **打包（pack）跨文档 attention 漏 mask**——把 3 篇短文拼进 2048 token 但没加 document boundary mask，第 1 篍末尾的 token 会"看到"第 2 篍开头的 token，造成跨文档污染；修复：用 FlashAttention 的 `varlen` 接口或 block-diagonal attention mask；(4) **配比（mix）在 epoch 间漂移**——shuffle 时按"文档级"而非"token 级"采样，结果小文档被过度采样、大文档欠采样。
 
 ### Deduplication with MinHash
 
@@ -208,6 +214,8 @@ Naive approach: pad every document to the maximum sequence length. This wastes e
 Better approach: pack multiple documents into a single sequence, separated by end-of-sequence tokens. A 2048-token sequence might contain three short documents concatenated with [EOS] tokens between them.
 
 > 更好的方法：将多篇文档打包到单个序列中，用序列结束 token 分隔。一个 2048 token 的序列可能包含三篇短文档，中间用 [EOS] token 连接。
+
+> 🤔 **【困惑】** Q: 既然 packing 会跨文档污染，为什么不直接用 padding？多浪费点算力换正确性不是更稳吗？ A: 因为预训练算力极其昂贵——Llama 3 训练成本估计 1 亿美元。Packing 把序列平均填充率从 ~40%（带 padding）提升到 ~95%+，等于把训练成本砍掉一半以上（约省 5000 万美元）。正确做法不是退回 padding，而是用 document boundary mask（FlashAttention 的 `cu_seqlens` 或 block-diagonal attention）让第 1 篍末尾的 query 看不到第 2 篍的 key/value。这在工程上零成本（只多一个 index），但能完全消除污染。
 
 ```mermaid
 graph TD
