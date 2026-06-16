@@ -9,6 +9,8 @@
 **Prerequisites:** Phase 14 · 01 (The Agent Loop) | **前置知识:** Phase 14 · 01 (The Agent Loop)
 **Time:** ~45 minutes | **时间:** ~45 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·01（Agent Loop）——理解 ReAct 循环；Phase 11·05（Context Engineering）——理解长程任务中的上下文管理；Phase 14·26（Failure Modes）——理解为什么长程任务失败概率高。本节是 Phase 15 的开篇，奠定"长程 Agent ≠ 长聊天"的认知。
+
 ## The Problem | 问题引入
 
 A chatbot is a stateless function. It takes a prompt, returns a reply, and forgets. Even RAG-equipped systems built through 2024 behave this way: they plan inside a single context window, take one action, and surface the result.
@@ -18,6 +20,10 @@ A chatbot is a stateless function. It takes a prompt, returns a reply, and forge
 An autonomous agent is different in kind. It runs a loop. It decides when to stop. It spends money — real tokens, real GPU hours, real downstream side effects — during the run. Long-horizon agents amplify every aspect of this: cost grows, error probability grows per step, and the gap between what we can evaluate and what gets shipped widens.
 
 > 自主 Agent 在本质上是不同的。它运行循环。它自行决定何时停止。在运行过程中，它花费金钱——真实的 token、真实的 GPU 时间、真实的下游副作用。长程 Agent 放大了这一切：成本增长、每步错误概率增加、可评估与实际交付之间的差距扩大。
+
+> 💡 **【类比】** 长程 Agent = 单人 14 小时开车从北京到上海。短程聊天机器人 = 下楼买菜。差异：(1) **燃料**——14h 油费 vs 5 分钟；(2) **故障率**——单步 99% 可靠，70 步后只剩 50% 全程成功；(3) **纠错**——买菜走错可重来，长途开错要重新规划；(4) **观测**——买菜不用 GPS，长途必须实时监控。每项都需要新工具：成本预算（cost governor）、检查点（checkpoint）、回滚（rollback）、可观测性（observability）。
+
+> ⚠️ **【易错点】** 长程 Agent 的 3 个坑：(1) **没设 token/成本预算**——14h 任务可能烧光一个月 API 预算；用 Phase 15·13 的 cost governor，超阈值 kill。(2) **不设 checkpoint**——10h 任务在第 8h 崩溃，所有工作丢失；每 N 步存 state，重启可续。(3) **没做 human-in-the-loop**——重要决策（发邮件、转账）自动执行，失控；关键节点暂停等人审。
 
 > **【中文解读】** 聊天机器人是无状态函数——接收提示、返回回复、然后忘记。自主 Agent 则不同：它运行循环、自行决定何时停止、在运行中花费真实资源（Token、GPU 时间、副作用）。长程 Agent 放大了所有这些问题：成本增长、每步错误概率增加、可评估与实际交付之间的差距扩大。
 
