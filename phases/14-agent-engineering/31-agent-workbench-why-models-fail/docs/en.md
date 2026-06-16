@@ -7,6 +7,10 @@
 **Prerequisites:** Phase 14 · 01 (Agent Loop), Phase 14 · 26 (Failure Modes) | **前置知识:** 见原文
 **Time:** ~45 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·01（Agent Loop）、Phase 14·26（Failure Modes）。本节是后续 Phase 14·32-42（Workbench 系列 7 节）的入门，讲为什么"光有好模型不够"。
+
+> 💡 **【类比】** Agent workbench = 厨房的工作台。光有好厨师（强模型）不够，还要有干净的备菜区（state）、清晰的菜谱（instructions）、有限定的食材范围（scope）、尝味检查（verification）、主厨审核（review）。少了任何一项，再好的厨师也会出错——切错食材、漏步骤、用错调料。Phase 14·31-42 详细讲这 7 个 workbench 表面。
+
 ## Learning Objectives | 学习目标
 
 - Separate model capability from execution reliability.

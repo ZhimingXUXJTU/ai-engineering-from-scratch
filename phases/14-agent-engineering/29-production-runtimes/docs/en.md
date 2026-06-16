@@ -7,6 +7,8 @@
 **Prerequisites:** Phase 14 · 13 (LangGraph), Phase 14 · 22 (Voice) | **前置知识:** 见原文
 **Time:** ~60 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·13（LangGraph）——状态图基础；Phase 17（Infrastructure & Production）——本节是其前置概念，深入生产部署看 Phase 17 全部。
+
 ## Learning Objectives | 学习目标
 
 - Name the six production runtime shapes and match each to a framework / product pattern.
@@ -22,6 +24,10 @@ Production agents fail in ways a Jupyter notebook doesn't surface: network timeo
 
 
 > **【中文解读】** 生产环境 Agent 运行时需要处理开发环境不需要的问题：持久化状态、容错恢复、水平扩展、速率限制、成本控制和可观测性。选择运行时（LangGraph、Temporal、自建）取决于任务的关键性和预算。
+
+> 💡 **【类比】** 6 种运行时 = 6 种交通工具：(1) **request-response**=出租车（一次一结，最简单）；(2) **streaming**=高铁（边走边看风景，token 流式）；(3) **durable execution**=房车（睡一觉醒来继续开，LangGraph checkpoint）；(4) **queue-based**=物流公司（任务排队，Celery/RQ）；(5) **event-driven**=外卖平台（事件触发，Claude Managed Agents）；(6) **scheduled**=闹钟（定时执行，cron）。任务多长多复杂决定选哪个。
+
+> ⚠️ **【易错点】** 运行时选错的 3 个坑：(1) **长任务用 request-response**——3 小时任务挂 HTTP 请求，nginx 60s 超时切断；用 durable execution（LangGraph）+ 后台轮询。(2) **observability 当可选**——上线后发现"不知道为啥失败"；从第一天就接 Langfuse/LangSmith，每个工具调用都 trace。(3) **没做 graceful shutdown**——服务重启时正在执行的任务直接死；用 SIGTERM 钩子保存 checkpoint，重启后从 checkpoint 续跑。
 
 > **{【拓展：2026年生产 Agent 运行时的选择：(1) LangGraph Cloud——LangGrap...】}** 2026年生产 Agent 运行时的选择：(1) LangGraph Cloud——LangGraph 的托管服务，内置状态检查点和重放；(2) Temporal——通用工作流引擎，配合 AI SDK 可构建持久化 Agent；(3) 自建——基于 Redis/Kafka 的消息队列 + 自定义 Agent 循环。关键决策因素是是否需要持久化执行——如果 Agent 可能运行数小时甚至数天，Temporal 或 LangGraph 是更安全的选择。
 ## The Concept | 核心概念

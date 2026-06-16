@@ -7,6 +7,10 @@
 **Prerequisites:** Phase 14 · 31 (Why Capable Models Still Fail) | **前置知识:** 见原文
 **Time:** ~45 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·31（Workbench 为什么需要）。本节实现最小可用 workbench：3 个文件（root router、state、task board）。
+
+> 💡 **【类比】** 最小 workbench = 厨房最基础的 3 件物品：菜单板（root router，告诉厨师今天做什么）、备菜笔记（state，记录已切了什么）、待办清单（task board，还剩什么没做）。Claude Code、Cursor 等 Agent 工具底层都是这 3 件套的扩展——`CLAUDE.md` 是 router，`memory/` 是 state，`tasks/` 是 task board。
+
 ## Learning Objectives | 学习目标
 
 - Define the three files that form the minimum viable workbench.
