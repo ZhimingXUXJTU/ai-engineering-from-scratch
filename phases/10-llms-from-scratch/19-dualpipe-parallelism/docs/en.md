@@ -6,6 +6,8 @@
 
 > **【拓展：DualPipe→大规模训练】** DualPipe 是 DeepSeek-V3 高效训练的关键：它将 MoE 的通信开销与前向/反向计算重叠，使得在 2048 卡上的训练效率接近线性扩展。这是大规模 MoE 训练的工程突破。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·05（Scaling Distributed）；MoE（Mixture of Experts）概念；流水线并行（Pipeline Parallelism）基础；all-to-all 通信模式。本节是 Phase 10·20（DeepSeek-V3 Walkthrough）的并行策略详解。
+
 **Type:** Learn
 **Languages:** Python (stdlib, schedule simulator)
 **Prerequisites:** Phase 10 · 05 (distributed training, FSDP, DeepSpeed), Phase 10 · 14 (open-model architectures and MoE)

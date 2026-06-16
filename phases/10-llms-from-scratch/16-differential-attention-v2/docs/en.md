@@ -6,6 +6,9 @@
 
 > **【拓展：长上下文优化】** 差分注意力是长上下文 LLM 优化的重要方向之一。100K+ token 的上下文窗口中，标准注意力的"注意力稀释"问题日益严重，差分注意力提供了一种不牺牲推理速度的解决方案。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 07·01-05（Self-Attention 基础）；softmax 函数。本节是注意力变体之一，对应 Phase 07·15。
+> 💡 **【类比】** 标准 Softmax = 大合唱里听不清独唱（噪音从所有方向传来）。差分注意力 = 双耳降噪耳机——两个麦克风（两个 softmax）录同样声音，相减消掉背景噪音（共享噪声基底），独唱清晰浮现。对长上下文特别有效：100K token 时背景"嗡嗡声"被消除。
+
 **Type:** Build
 **Languages:** Python (stdlib)
 **Prerequisites:** Phase 7 · 02 (self-attention), Phase 7 · 15 (attention variants), Phase 10 · 14 (architecture walkthrough)

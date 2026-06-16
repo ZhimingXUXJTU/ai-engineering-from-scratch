@@ -6,6 +6,9 @@
 
 > **【拓展：DeepSeek架构→开源大模型】** DeepSeek-V3 是 2024-2025 年最重要的开源大模型架构之一。MLA 将 KV-cache 压缩到原来的 1/10，MoE 让 671B 模型只消耗 37B 的推理成本。理解这个架构是理解中国 AI 实验室在大模型领域突破的关键。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·14（Open Models Architecture）——6 个架构旋钮概览；Phase 10·15-19 全部（EAGLE、Diff Attention、NSA、MTP、DualPipe）——DeepSeek-V3 的每个创新。本节把它们组装在一起，是 Phase 10 后半段的综合。
+> 💡 **【类比】** DeepSeek-V3 = "六边形战士"——把 2024 年所有前沿优化全堆上：MLA（省 KV cache）、MoE（省推理算力）、MTP（送投机解码）、DualPipe（省训练通信）、NSA（省长上下文算力）。671B 总参数但每次只激活 37B（5.5%），相当于"功能丰富的瑞士军刀但单次只用一把刀"。
+
 **Type:** Learn
 **Languages:** Python (stdlib, parameter calculator)
 **Prerequisites:** Phase 10 · 14 (open-model walkthroughs), Phase 10 · 17 (NSA), Phase 10 · 18 (MTP), Phase 10 · 19 (DualPipe)
