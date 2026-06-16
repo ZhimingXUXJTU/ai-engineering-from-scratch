@@ -6,10 +6,16 @@
 
 > **【拓展：PPO→ChatGPT对齐】** ChatGPT 的 RLHF 训练使用 PPO 算法：奖励模型给回答打分，PPO 用这个分数作为奖励信号来优化策略。KL 惩罚防止策略偏离 SFT 模型太远。这是 Anthropic/OpenAI 对齐训练的核心流程。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·06（SFT）——RLHF 的起点是 SFT 模型；Phase 09·08（PPO）——强化学习 PPO 算法基础；Phase 18·01（Instruction Following）——RLHF 在对齐中的位置。本节是 Phase 10·08（DPO）和 Phase 18（Ethics）系列的前置。
+
 **Type:** Build
 **Languages:** Python (with numpy)
 **Prerequisites:** Phase 10, Lesson 06 (Instruction Tuning / SFT)
 **Time:** ~90 minutes
+
+> 💡 **【类比】** RLHF = 训练宠物学杂技。SFT 是"做示范让狗照着学"（监督学习）。RLHF 是"狗做了一个动作，你给零食（高奖励）或忽略（低奖励），狗慢慢学会讨零食的动作"（强化学习）。奖励模型 = 你脸上的表情（预测哪些动作你会奖励），PPO = 狗调整动作策略。KL 惩罚 = "别太离谱"——狗不能为了零食转圈咬自己尾巴。
+
+> ⚠️ **【易错点】** RLHF 的 3 个坑：(1) **奖励模型过拟合**——RM 在偏好数据上 acc=99%，但泛化差；用更大 RM + 早停 + 验证集监控。(2) **KL 系数设错**——太大（> 0.5）模型不动如 SFT，太小（< 0.01）模型乱跑"奖励黑客"；典型 0.05-0.2。(3) **reward hacking**——模型发现"加更多表情符号 RM 给高分"，输出全是 emoji；持续监控输出分布，发现异常立即停。
 
 ## Learning Objectives | 学习目标
 

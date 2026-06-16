@@ -6,10 +6,16 @@
 
 > **【拓展：DPO→简化对齐】** DPO 是 2023 年 Stanford 提出的 RLHF 替代方案，已成为许多开源模型（如 Zephyr、Tulu）的首选对齐方法。它将 RLHF 的复杂训练流程简化为一个简单的分类损失。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·07（RLHF）——理解 RLHF 流程和它的问题（3 个模型 + PPO 不稳定）；PyTorch 监督学习基础。DPO 是数学优雅的"RLHF without RL"，理解为什么有效需要看原论文推导。
+
 **Type:** Build
 **Languages:** Python (with numpy)
 **Prerequisites:** Phase 10, Lesson 07 (RLHF)
 **Time:** ~90 minutes
+
+> 💡 **【类比】** DPO vs RLHF = 直接教育 vs 训练动物。RLHF：先训一个"老师"（RM）给学生打分，再用 PPO 让学生讨老师欢心——3 个模型 + 复杂训练。DPO：直接给学生看"好答案"和"坏答案"对照，让它自己学——1 个模型 + 简单交叉熵。数学上 DPO 证明了"在偏好数据上做分类"等价于"RLHF 的最优解"，省去了显式 RM。
+
+> ⚠️ **【易错点】** DPO 的 3 个坑：(1) **偏好数据质量决定一切**——DPO 不像 RLHF 有 RM 平滑噪声，标注错的偏好对直接学错；务必做标注质量控制。(2) **β 系数设错**——太大（> 0.5）模型不变，太小（< 0.05）模型偏离 SFT 太远；典型 0.1。(3) **没做 reference model**——DPO loss 需要相对 SFT 模型的 log-prob 差分，忘记加载 ref model 会训练崩溃；用 `AutoModelForCausalLM.from_pretrained(sft_path)` 做参考。
 
 ## Learning Objectives | 学习目标
 
