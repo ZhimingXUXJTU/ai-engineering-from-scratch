@@ -24,6 +24,9 @@ Agents that cannot delegate cleanly end up stuffing everything into one prompt. 
 > **【中文解读】** OpenAI Agents SDK（原 Swarm）是 OpenAI 官方的 Agent 开发框架。三大核心概念：(1) Handoffs——Agent 之间的任务转移；(2) Guardrails——输入/输出安全护栏；(3) Tracing——内置 OpenTelemetry 追踪。SDK 的设计哲学是'简洁至上'——用最少的抽象实现最常见的 Agent 模式。
 
 > **{【拓展：OpenAI Agents SDK 是 2025-2026 年最流行的轻量级 Agent 框架。其 ...】}** OpenAI Agents SDK 是 2025-2026 年最流行的轻量级 Agent 框架。其 Handoffs 模式将多 Agent 协作建模为'接力赛'——一个 Agent 完成自己的部分后将控制权移交给下一个。这与 AutoGen 的 Actor 模型形成对比。SDK 内置的 Tracing 能力使其特别适合需要可观测性的生产环境。
+
+> 🔗 **【前置】** 必须先掌握：Phase 14·01（Agent Loop）和 Phase 14·06（Tool Use）——OpenAI Agents SDK 就是这些概念的产品化封装。还需要熟悉 OpenAI Responses API（不是旧的 Chat Completions API），因为 SDK 是基于 Responses API 构建的。
+
 ## The Concept | 核心概念
 
 ### Five primitives
@@ -49,6 +52,8 @@ The model sees `transfer_to_billing_agent` in its tool list. Calling it signals 
 This is the supervisor pattern (Lesson 13 / Lesson 28) productized.
 
 > 这就是产品化后的监督者模式（第 13 课 / 第 28 课）。
+
+> 💡 **【类比】** Handoff 像医院的"分诊转诊"：分诊台（triage agent）听完病人描述后说"你去心脏科"——这就是 `transfer_to_cardiology_agent`。病人（对话上下文）从分诊台转到心脏科诊室，心脏科医生接管。**关键**：handoff 是单向的，控制权完全移交，原 agent 不再参与。这跟 LangGraph 的 supervisor 模式不同——supervisor 一直保留控制权，只是"派遣"specialist。
 
 > OpenAI Agents SDK 提供四种核心概念：Agents（带指令和工具的 LLM）、Handoffs（Agent 间移交）、Guardrails（输入/输出验证）、Tracing（运行追踪）。生产级 Agent 开发框架。
 
@@ -93,9 +98,13 @@ On by default. Every LLM generation, tool call, handoff, and guardrail emits a s
 
 ### Where this pattern goes wrong
 
+> ⚠️ **【易错点】** Handoff drift（交接循环）：Agent A 移交给 B，B 又移交给 A，A 再移交给 B...无限循环烧 token。**后果**：账单爆炸且任务永远不完成。**一行修复**：在 Runner 里加 hop counter（如 `max_handoffs=5`），超过就抛 `HandoffBudgetExceeded` 异常。OpenAI SDK 默认没有这个保护，必须自己加。
+
 - **Handoff drift.** Agent A hands off to Agent B which hands back to Agent A. Add a hop counter.
 - **Guardrail bypass.** Tool guardrails only fire on function tools; built-in tools (file reader, web fetch) need separate policy.
 - **Over-tracing.** Sensitive content in spans. Pair with OTel GenAI content-capture rules (Lesson 23) — store externally, reference by ID.
+
+> 🤔 **【困惑】** Q: Guardrail 的 parallel 和 blocking 模式怎么选？看起来 parallel 总是更快。 A: 不一定。Parallel 是"主 LLM 和 guardrail LLM 同时跑"——快但浪费 token（guardrail 触发时主 LLM 已经在跑了，token 已经花了）。Blocking 是"先 guardrail，过了再主 LLM"——慢但省钱。**选择规则**：如果 guardrail 触发率高（如 >20%），用 blocking 省钱；如果触发率低（如 <5%），用 parallel 省延迟。
 
 > **交接漂移。** Agent A 交接给 Agent B，Agent B 又交接回 Agent A。添加跳数计数器。
 > **护栏绕过。** 工具护栏只在函数工具上触发；内置工具（文件读取器、网页抓取）需要单独的策略。

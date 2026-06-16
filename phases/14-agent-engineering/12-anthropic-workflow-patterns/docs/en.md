@@ -30,6 +30,8 @@ Teams reach for multi-agent frameworks for problems that want a single function 
 
 > **【拓展：Anthropic 的工作流模式分类已成为 Agent 工程的事实标准】** LangGraph 用状态图实现这些模式，OpenAI Agents SDK 用 Handoffs 实现路由和编排，CrewAI 用 Crews 实现并行化。关键洞察是：不是每个任务都需要 Agent——对于确定性的多步骤流程，工作流比自主 Agent 更可靠、更便宜。
 
+> 🔗 **【前置】** 必须先过 Phase 14·01（Agent Loop）——本节就是它的"模式提炼"。还需要看过 Phase 14·02（ReWOO）、Phase 14·05（Self-Refine）、Phase 14·10（Skills）——五种工作流模式都对应前面学过的具体技术，没基础会感觉空洞。
+
 ## The Concept | 核心概念
 
 ### Workflows vs agents
@@ -40,6 +42,8 @@ Teams reach for multi-agent frameworks for problems that want a single function 
   中文翻译：**Agent。** LLM 动态指导自己的工具和步骤。模型拥有图。
 
 Both have their place. Workflows are cheaper, faster, and easier to debug. Agents unlock open-ended problems but make failure modes harder to reason about.
+
+> 💡 **【类比】** Workflow vs Agent 像地铁 vs 自驾：地铁（workflow）路线固定、便宜、可靠，但你只能去站点；自驾（agent）灵活、能去任何地方，但可能迷路、烧油、出车祸。日常通勤选地铁（workflow），探索未知地区选自驾（agent）。新手最常见的错误是"所有任务都自驾"——其实 80% 的生产任务是地铁能搞定的。
 
 > 两者都有其用武之地。工作流更便宜、更快、更容易调试。Agent 解锁开放式问题但使失败模式更难推理。
 
@@ -92,6 +96,8 @@ Foundation for all five patterns: one LLM with three capabilities wired in — s
 
 ## Build It | 动手构建
 
+> ⚠️ **【易错点】** 团队最常踩的坑：看到 Anthropic 五种模式就直接全部上 LangGraph/CrewAI 框架。**后果**：本来 30 行 Python 能搞定的 prompt chain 变成 300 行框架配置，可调试性大幅下降。Anthropic 原文核心建议是"**先直接 API 调用，加复杂度只为换取能力**"——一个 prompt chain 用普通 Python 函数串起来就够了，不需要任何框架。**一行修复**：评估每个任务能否用 stdlib 实现，能就别上框架。
+
 `code/main.py` implements all five workflow patterns against a `ScriptedLLM`:
 
 > `code/main.py` 针对 `ScriptedLLM` 实现了所有五种工作流模式：
@@ -113,6 +119,8 @@ python3 code/main.py
 Each pattern prints its trace. Total lines of code per pattern is ~10-15; the cost of a framework is measured in thousands.
 
 > 每种模式打印其轨迹。每种模式的代码行数约 10-15 行；框架的成本以千行计。
+
+> 🤔 **【困惑】** Q: 既然"workflow 优先"那么明确，为什么 LangGraph、CrewAI 这些框架还这么火？ A: 因为生产环境的工程诉求和"原理最优"不一样。框架提供的是**持久化、可观测性、人在回路、监控**这些"运维级"功能。你用 30 行 stdlib 写的 prompt chain 跑挂了，你得自己想怎么从第 17 步恢复；用 LangGraph 写的，框架免费给你 checkpoint。所以结论是"原型阶段用 stdlib，生产化阶段评估是否上框架"——而不是无脑上或无脑不上。
 
 ## Use It | 用框架实现
 

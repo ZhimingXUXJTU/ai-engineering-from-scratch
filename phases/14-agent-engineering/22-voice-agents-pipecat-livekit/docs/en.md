@@ -24,6 +24,9 @@ Voice agents are not a text loop with TTS bolted on. Latency budgets are brutal 
 > **【中文解读】** 语音 Agent 需要实时处理音频流——语音识别（ASR）、LLM 推理、语音合成（TTS）的延迟必须在 300ms 以内才能维持自然对话。Pipecat 和 LiveKit 提供了构建低延迟语音 Agent 的框架和基础设施。
 
 > **{【拓展：Pipecat（开源框架）和 LiveKit（实时音频基础设施）是 2026 年语音 Agent 生...】}** Pipecat（开源框架）和 LiveKit（实时音频基础设施）是 2026 年语音 Agent 生态的核心。Pipecat 提供模块化的音频处理管道，支持多种 ASR/TTS/LLM 后端。LiveKit 提供 WebRTC 基础设施，确保低延迟音频传输。代表产品包括 Pi AI、ChatGPT Voice 和 Claude Voice。
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·01（Agent Loop）——理解 ReAct 循环，本节是在循环外加一层音频管道；Phase 14·12（Workflow Patterns）——理解多阶段工作流的概念。另外最好有数字信号处理基础概念（采样率、帧、流式处理），否则看到 "frame-based pipeline" 会很懵。
+
 ## The Concept | 核心概念
 
 ### Pipecat (pipecat-ai/pipecat)
@@ -42,6 +45,8 @@ VAD (Silero) → STT → LLM (context alternates user/assistant) → TTS → tra
 ```
 
 Transports: Daily, LiveKit, SmallWebRTCTransport, FastAPI WebSocket, WhatsApp.
+
+> 💡 **【类比】** Pipecat 的 frame-based pipeline 像汽车流水线：每个工位（Processor）只做一件事（VAD 工位识别有没有人说话、STT 工位把语音转文字、LLM 工位想回复、TTS 工位把文字转语音），车架（Frame）从前往后流过（DOWNSTREAM），任何一个工位发现质量问题可以按红线停车（UPSTREAM cancel 帧——这就是 barge-in 打断的机制）。关键是：每个工位之间通过标准化的"Frame"格式解耦，所以你可以把 STT 工位从 Whisper 换成 Deepgram 而不动其他工位。
 
 > 语音 Agent 结合 LLM 和实时语音处理。Pipecat 和 LiveKit 是两种主要的语音 Agent 框架，分别处理音频管道和实时通信。
 
@@ -64,6 +69,8 @@ Pipecat Flows adds structured conversations (state machines). Pipecat Cloud is t
 ### Commercial platforms
 
 Vapi (~450–600ms on an optimized premium stack) and Retell (~600ms end-to-end across 180 test calls) build on top of these. Pick a platform when you want a managed voice stack without a WebRTC team.
+
+> 🤔 **【困惑】** Q: MultimodalAgent（音频进音频出）和 VoicePipelineAgent（STT→LLM→TTS 级联）到底选哪个？ A: 看你需要多少控制权。MultimodalAgent 延迟更低（少两次转换），但你看不到中间文本，无法在 LLM 前做敏感词过滤、也无法在 TTS 前修改措辞。VoicePipelineAgent 多 100-200ms 但你可以在每一步插入业务逻辑（如检测到用户说脏话就替换回复）。客服/合规场景选 VoicePipelineAgent，纯聊天助手选 MultimodalAgent。
 
 > Vapi（优化后的高级堆栈约 450-600ms）和 Retell（180 次测试通话端到端约 600ms）构建在这些之上。当你想要一个托管语音堆栈而不需要 WebRTC 团队时，选择平台。
 
@@ -96,6 +103,8 @@ End-to-end 450–600ms is premium. 800–1200ms is common. Anything > 1500ms fee
 > 语音 Agent 结合 LLM 和实时语音处理。Pipecat 和 LiveKit 是两种主要的语音 Agent 框架，分别处理音频管道和实时通信。
 
 ## Build It | 动手实现
+
+> ⚠️ **【易错点】** 新手搭语音管道常踩 3 个坑：(1) **不做 barge-in 处理**——用户打断时 Agent 还在自顾自地说，体验极差，必须在 TTS processor 监听 UPSTREAM cancel frame 并立即停止音频输出。(2) **忽略 STT 置信度**——置信度 0.3 的"嗯哼"被当成用户回答，Agent 走错分支；修复：confidence < 0.7 时让 Agent 反问"我没听清，能再说一遍吗"。(3) **延迟预算算总账**——单独看每个组件都达标（VAD 40ms + STT 200ms + LLM 300ms + TTS 150ms = 690ms），但上线后端到端 1200ms，因为漏算了网络 RTT 和队列等待。修复：用 Phase 14·23 的 OTel span 测真实链路，不要拍脑袋。
 
 `code/main.py` is a frame-based toy pipeline with:
 

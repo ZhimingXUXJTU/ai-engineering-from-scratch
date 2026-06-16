@@ -24,6 +24,9 @@ LangGraph, AutoGen, CrewAI are framework-heavy. Teams that want "just the agent 
 > **【中文解读】** Agno 和 Mastra 代表了 2026 年的两种 Agent 运行时设计哲学。Agno（原 PhiData）追求极简——用最少的代码构建 Agent。Mastra（TypeScript）追求全功能——提供完整的 Agent 生命周期管理。选择取决于团队的技术栈和复杂度需求。
 
 > **{【拓展：Agno (GitHub 15k+ stars) 和 Mastra 是 2026 年 Agent 运...】}** Agno (GitHub 15k+ stars) 和 Mastra 是 2026 年 Agent 运行时的新秀。Agno 的哲学是'Agent 即函数'——每个 Agent 是一个带有工具集的异步函数。Mastra 基于 TypeScript，面向全栈开发者，提供完整的 Agent 生命周期管理（部署、监控、扩展）。两者都支持多模型后端和 MCP 集成。
+
+> 🔗 **【前置】** 必须先掌握：Phase 14·01（Agent Loop）和 Phase 14·13（LangGraph）——本节是这两者的"轻量替代品"。如果你不知道为什么要"轻量化"LangGraph，说明你还没在生产中遇到 LangGraph 的工程负担，建议先用 LangGraph 几周再回头看本节。
+
 ## The Concept | 核心概念
 
 ### Agno
@@ -35,6 +38,8 @@ LangGraph, AutoGen, CrewAI are framework-heavy. Teams that want "just the agent 
 - Native multimodal (text, image, audio, video, file) and agentic RAG.
 
 The speed targets matter when you have thousands of short-lived agents per second (chat fan-in, evaluation pipelines). They matter less when one agent runs for 10 minutes.
+
+> 💡 **【类比】** Agno 像摩托车、LangGraph 像 SUV：摩托车启动快、轻便、能钻小巷（2μs 实例化、3.75 KiB 内存），适合短途高频通勤（每秒数千个短任务）；SUV 装得多、能跑长途、有空调导航（持久化、人在回路、复杂图），但启动慢、占地大。**关键洞察**：选 Agno 不是因为它"更好"，而是因为你的场景是"高频短任务"——LangGraph 在这里浪费资源。
 
 > 速度目标在你每秒有数千个短暂 Agent（聊天聚合、评估管道）时很重要。当一个 Agent 运行 10 分钟时，它们就不那么重要了。
 
@@ -72,9 +77,13 @@ Neither is trying to be LangGraph. They compete on:
 
 ### Where this pattern goes wrong
 
+> ⚠️ **【易错点】** 看到 Agno "2μs 实例化"就无脑选 Agno。**后果**：如果你的场景是"一次请求跑一个 10 分钟的 Agent"，2μs 实例化对总耗时的影响是 0.0000003%——选错了框架还失去了 LangGraph 的持久化能力。**一行修复**：先测量你工作负载的"Agent 实例化次数 × 单次实例化开销 vs 总耗时"，占比 > 30% 才值得为性能选 Agno，否则继续用 LangGraph。
+
 - **Perf-for-perf's-sake.** Picking Agno because "2μs" sounds good when the workload is one slow agent call per request. Overhead is not the bottleneck.
 - **Ecosystem lock-in.** Mastra's Vercel-flavored integration is a plus on Vercel, a minus elsewhere.
 - **Enterprise license confusion.** Mastra's `ee/` directories are source-available, not Apache 2.0. Read the licenses if you're planning to fork.
+
+> 🤔 **【困惑】** Q: 我团队是 Python 后端，又想要 Mastra 的"多模型路由"功能，能用 Agno 实现吗？ A: 能，但要自己写。Agno 也有 ~23 个 model provider，但 Mastra 的 3300+ 模型 94 provider 是基于 Vercel AI SDK 的庞大生态。如果"模型路由"是核心诉求且团队接受 TypeScript，Mastra 是更省时的选择；如果坚持 Python，Agno + 自己封装一层 model router 也行，工作量约 2-3 天。技术栈决定框架，不是反过来。
 
 > **为性能而性能。** 因为"2μs"听起来不错就选择 Agno，而工作负载是每个请求一个慢速 Agent 调用。开销不是瓶颈。
 > **生态系统锁定。** Mastra 的 Vercel 风格集成在 Vercel 上是优势，在其他地方是劣势。

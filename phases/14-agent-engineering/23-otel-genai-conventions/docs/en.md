@@ -24,9 +24,13 @@ Every vendor invents their own span names. Ops teams end up building per-framewo
 
 > **【拓展：OTel GenAI 规范的跨平台统一】** OpenTelemetry GenAI 语义约定 (2024年4月启动) 定义了 Agent 遥测的标准 Schema：span 名称、属性和内容捕获规则跨供应商统一，使 Agent 追踪在 Datadog、Grafana、Jaeger 和 Honeycomb 中具有相同语义。一次埋点，多后端通用。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·01（Agent Loop）——你需要先有 Agent 才能给它埋点；Phase 14·13（LangGraph）——理解状态图，因为 span 的父子层级就是图遍历的镜像。如果完全没接触过 OpenTelemetry（不知道什么是 span、trace、context propagation），先去看 OTel 官方 Python 快速入门——本节只讲 GenAI 专属约定，不重讲 OTel 基础。
+
 ## The Concept | 核心概念
 
 ### Span categories
+
+> 💡 **【类比】** OTel GenAI 的三类 span 像医院的分级诊疗记录：**Model span** 是化验单（最底层，记录"抽了多少血、用什么仪器、结果多少"——对应 token 数、模型名、延迟）；**Agent span** 是门诊病历（这次看病从挂号到离开的全过程，包含多次化验）；**Tool span** 是检查项目（心电图、CT，每次都是独立的一次操作）。父子里包含多次子记录，子记录通过 `parent_span_id` 链回父记录——这样 Datadog 里你能展开看：整个 Agent 调用 → 5 次工具调用 → 每次工具调用里 2 次 LLM 调用。
 
 1. **Model / client spans.** Cover raw LLM calls. Emitted by provider SDKs (Anthropic, OpenAI, Bedrock) and framework model adapters.
 2. **Agent spans.** `create_agent` (when the agent is constructed) and `invoke_agent` (when it runs).
