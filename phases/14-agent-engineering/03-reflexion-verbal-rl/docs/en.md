@@ -6,6 +6,8 @@
 
 > **【拓展：Reflexion → Claude Code 的自我学习】** Claude Code 的 CLAUDE.md 机制本质上就是 Reflexion 的变体——Agent 在工作过程中积累经验教训，存储为规则文件，后续会话自动加载。这也是"从错误中学习"在生产环境中最常见的实现方式。
 
+> 🔗 **【前置】** 本节依赖：Phase 14·01（Agent Loop）——你必须已经能跑通一个 ReAct 循环，因为 Reflexion 的 Actor 内部就是一个 ReAct loop；以及 Phase 14·02（ReWOO）——理解"试验/轨迹"的概念。如果你分不清"一次试验"和"一个 step"，先回去补 ReAct。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib) | **语言:** Python (标准库)
 **Prerequisites:** Phase 14 · 01 (Agent Loop), Phase 14 · 02 (ReWOO) | **前置知识:** Phase 14 · 01 (Agent 循环), Phase 14 · 02 (ReWOO)
@@ -54,6 +56,8 @@ Episodic memory: list of prior reflections, prepended to the next trial's prompt
 
 One trial runs the Actor. Evaluator scores it. If the score is low, Self-Reflector produces a reflection ("I picked the wrong tool because I misread the question as asking about X when it was asking about Y"). The reflection goes into episodic memory. Next trial starts fresh but sees the reflection.
 
+> 💡 **【类比】** Reflexion 像考试做错题后的"错题本"机制：你做错一道题（Actor 失败）→ 拿到对错信号（Evaluator 评分）→ 写下"我为什么错了"（Self-Reflector 写反思）→ 下次考前翻错题本（情景记忆前置到 prompt）。下次再做同类题，错的概率就低了。关键是错题本（反思）用自然语言写，不需要重新训练模型权重。
+
 > 一次试验运行 Actor。Evaluator 对其评分。如果分数低，Self-Reflector 生成一段反思（"我选错了工具，因为我把问题误解为询问 X，实际上询问的是 Y"）。反思存入情景记忆。下一次试验重新开始但能看到反思。
 
 ### Three evaluator types
@@ -66,6 +70,8 @@ One trial runs the Actor. Evaluator scores it. If the score is low, Self-Reflect
    中文翻译：**自评估**——LLM 对自己的轨迹评分。在没有真值时需要。信号较弱；与工具锚定验证（第 5 课——CRITIC）配合使用。
 
 The 2026 default is a mix: scalar when available, self-eval when not, heuristics as safety rails.
+
+> ⚠️ **【易错点】** 三种评估器选错会出大问题：在创意写作这种"无标准答案"的任务上硬上 scalar evaluator（如关键词匹配），会持续生成"失败信号"→ Agent 拼命反思 → 但反思本身没意义 → 浪费 token 直到耗尽预算。**后果**：循环空转烧钱。**一行修复**：先用 5 条样本手工验证"失败信号是否能区分好坏"，区分不开就降级为 self-eval + 迭代上限。
 
 > 2026 年的默认做法是混合使用：有标量时用标量，没有时用自评估，启发式作为安全护栏。
 
@@ -115,6 +121,8 @@ Reflexion does not help when:
   中文翻译：反思变成迷信——存储关于一次性不稳定运行的叙述。
 
 2026 pitfall: memory rot. Reflections accumulate; some are obsolete or wrong; re-runs get slower as the episodic buffer grows. Mitigation: periodic compaction (Lesson 06), TTL on reflections, or a separate sleep-time cleanup agent (Letta).
+
+> 🤔 **【困惑】** Q: Reflexion 真的能"等价于"RL 吗？RL 改的是模型权重，Reflexion 只改 prompt，机制完全不同。 A: 不能等价。论文标题"Verbal RL"是修辞而非数学等价。Reflexion 的优势是**样本效率极高**——用 3-5 次反思就能修复一个失败模式，而 RL 需要数千次梯度更新；劣势是**反思不会持久**到模型权重，每次新会话都得重学。所以 Reflexion 适合"无训练预算的生产场景"，RL 适合"离线训练可蒸馏的小模型"。
 
 > 2026 年的陷阱：记忆腐化。反思不断积累，部分已过时或错误；随着情景缓冲区增长，重新运行变得更慢。缓解措施：定期压缩（第 6 课）、反思的 TTL，或独立的 sleep-time 清理 Agent（Letta）。
 

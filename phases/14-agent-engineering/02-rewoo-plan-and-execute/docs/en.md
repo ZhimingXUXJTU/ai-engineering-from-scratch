@@ -6,6 +6,8 @@
 
 > **【拓展：ReWOO → 现代 Agent 架构】** Anthropic 的 "Building Effective Agents" 博文推荐的五种工作流模式中，计划-执行模式是核心之一。2026 年的生产级 Agent（如 Devin、Claude Code 的多步骤任务）都采用类似模式——先规划、再执行、最后整合结果。
 
+> 🔗 **【前置】** 精通本节前请先掌握：Phase 14·01（Agent Loop / ReAct 循环）——你必须理解 ReAct 的"思考-行动-观察"交替模式，因为 ReWOO 就是为了解决 ReAct 的 token 二次增长问题；以及基础的图论概念（DAG、拓扑排序），不熟悉 DAG 会卡在"依赖解析"那一步。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib) | **语言:** Python (标准库)
 **Prerequisites:** Phase 14 · 01 (Agent Loop) | **前置知识:** Phase 14 · 01 (Agent 循环)
@@ -29,6 +31,8 @@ ReAct's interleaved thought-action-observation loop is simple and flexible, but 
 > ReAct 的交替思考-行动-观察循环简单灵活，但每次工具调用都需要携带完整的前置上下文——包括之前的每一个思考。Token 用量随深度二次增长。更糟的是：当工具在循环中间失败时，模型必须从错误观察中重新推导整个计划。
 
 ReWOO (Xu et al., arXiv:2305.18323, May 2023) noticed this and made a bet: plan the whole thing up front, fetch evidence in parallel, compose the answer at the end. One LLM call to plan, N tool calls for evidence (can be parallel), one LLM call to solve. The trade is less flexibility (the plan is static) for much better token efficiency and clearer failure modes.
+
+> 💡 **【类比】** ReWOO 像装修房子前先出施工图：设计师一次性画完所有工序（规划器）→ 工人按图并行施工互不打扰（工作器）→ 验收时把所有工序结果拼到一起结算（求解器）。ReAct 则像边施工边设计，每个工人都得翻阅前面所有工人的笔记才能动手，所以 10 步之后笔记就堆成山。
 
 > ReWOO（Xu 等人，arXiv:2305.18323，2023 年 5 月）注意到了这一点并提出一个方案：先规划整个任务，并行获取证据，最后组合答案。一次 LLM 调用来规划、N 次工具调用获取证据（可并行）、一次 LLM 调用来求解。代价是灵活性降低（计划是静态的），但换来更好的 token 效率和更清晰的失败模式。
 
@@ -94,9 +98,13 @@ Plan-and-Act scales the pattern to long-horizon web and mobile agents. The key c
 
 Anthropic's Dec 2024 guidance: start with the simplest. If the task is one tool call plus a summary, do not build ReWOO. If the task is a 40-step research assignment, do not do ReAct alone.
 
+> 🤔 **【困惑】** Q: 既然 ReWOO 节省 5 倍 token 还更准确，为什么不全部用 ReWOO？ A: 因为 ReWOO 的计划是"静态"的——一旦发出就不再根据观察调整。如果第 3 步发现"这个问题根本问错了"，ReAct 可以立刻转向，ReWOO 只能在 Solver 阶段"硬拼"。所以动态环境（探索性研究、未知 API）用 ReAct，结构化任务（多跳问答、ETL）用 ReWOO。
+
 > Anthropic 2024 年 12 月的指导：从最简单的开始。如果任务是一个工具调用加一个摘要，不要构建 ReWOO。如果任务是 40 步的研究任务，不要只用 ReAct。
 
 ## Build It | 动手实现
+
+> ⚠️ **【易错点】** 实现 ReWOO 时新手最常踩的坑：忘记对计划 DAG 做环检测。如果 LLM 生成的计划里 `#E1` 依赖 `#E2` 而 `#E2` 又依赖 `#E1`，拓扑排序会无限循环卡死。**后果**：Executor 挂起或栈溢出。**一行修复**：拓扑排序后检查已排序节点数是否等于总节点数，不等就抛 `CycleDetectedError`。
 
 `code/main.py` implements a toy ReWOO:
 

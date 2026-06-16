@@ -6,6 +6,8 @@
 
 > **【拓展：CRITIC → Claude Code 的自我修复】** Claude Code 在编写代码后会自动运行测试验证——这就是 CRITIC 模式的生产实现。当测试失败时，它基于错误反馈修正代码，直到测试通过。
 
+> 🔗 **【前置】** 必须先过：Phase 14·01（Agent Loop）和 Phase 14·03（Reflexion）。Self-Refine 是 Reflexion 的"单次任务内"版本（Reflexion 跨多次试验，Self-Refine 在一次生成内迭代）。不理解 Reflexion 的"反思存到记忆"机制，会混淆 Self-Refine 的"反馈不持久化"特征。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib) | **语言:** Python (标准库)
 **Prerequisites:** Phase 14 · 01 (Agent Loop), Phase 14 · 03 (Reflexion) | **前置知识:** Phase 14 · 01 (Agent 循环), Phase 14 · 03 (Reflexion)
@@ -58,6 +60,10 @@ stop when feedback says "no issues" or budget exhausted.       # 停止条件
 
 Key detail: `refine` sees the full history — all prior outputs and critiques — so it does not repeat mistakes. The paper ablates this: drop history and quality drops sharply.
 
+> 💡 **【类比】** Self-Refine 像写论文的"自改稿"流程：第一稿（generate）→ 通读找问题（feedback）→ 按问题改第二稿（refine，但要看着第一稿和批注改，否则会重复同样的错）→ 再找问题→再改。**关键**：每次 refine 必须把历史稿和批注一起喂给模型，否则模型会"忘了上轮指出的问题"，陷入循环。
+
+> ⚠️ **【易错点】** 常见 bug：只把"上一轮输出"喂给 refine，不喂 feedback。**后果**：refine 后的输出重新引入 feedback 指出的问题，陷入"指出问题→改→再指出→再改"的死循环。**一行修复**：`refine_prompt = task + output_0 + critique_0 + output_1 + critique_1 + ... + output_n`——历史必须全量传入。
+
 > 关键细节：`refine` 能看到完整历史——所有先前的输出和批评——因此不会重复错误。论文对此做了消融实验：去掉历史记录后质量急剧下降。
 
 Headline: +20 absolute improvement averaged across 7 tasks (math, code, acronym, dialog) including GPT-4. No training, no external tools, single model.
@@ -84,6 +90,8 @@ The verifier produces a structured critique grounded in tool results. The refine
 > 验证器产生基于工具结果的结构化批评。精炼器然后基于这个批评进行条件化。
 
 Headline: CRITIC outperforms Self-Refine on factual tasks because the critique is grounded. On tasks without external verifiers (creative writing, formatting), CRITIC reduces to Self-Refine.
+
+> 🤔 **【困惑】** Q: 既然 CRITIC 比 Self-Refine 强，为什么不全部用 CRITIC？ A: 因为 CRITIC 依赖外部工具（搜索、代码解释器、单元测试）。创意写作、邮件润色这类任务没有"对错答案"可言，强行接外部工具反而引入噪声。原则：**事实类用 CRITIC，创造类用 Self-Refine**。
 
 > 核心数据：CRITIC 在事实性任务上超越 Self-Refine，因为批评是有依据的。在没有外部验证器的任务上（创意写作、格式化），CRITIC 退化为 Self-Refine。
 

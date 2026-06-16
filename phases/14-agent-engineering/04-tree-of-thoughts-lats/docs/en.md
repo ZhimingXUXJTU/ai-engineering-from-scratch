@@ -6,6 +6,8 @@
 
 > **【拓展：ToT/LATS → OpenAI o1/o3 的推理搜索】** OpenAI o1/o3 系列模型的"深度思考"本质上就是搜索——在推理空间中探索多条路径，评估并选择最佳。ToT 和 LATS 是这种搜索范式的学术先驱。2026 年的 Coding Agent 在遇到复杂 bug 时也会启用类似搜索。
 
+> 🔗 **【前置】** 本节硬核，前置必须扎实：Phase 14·01（ReAct）——LATS 内部就是 ReAct；Phase 14·03（Reflexion）——LATS 的 Self-Reflector 复用 Reflexion 机制；以及 MCTS（蒙特卡洛树搜索）基础知识——如果你不知道 UCT 公式 `Q(s,a) + c*sqrt(lnN/N)` 的两个项分别代表什么，先去看 AlphaGo 论文或教程。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib) | **语言:** Python (标准库)
 **Prerequisites:** Phase 14 · 01 (Agent Loop), Phase 14 · 03 (Reflexion) | **前置知识:** Phase 14 · 01 (Agent 循环), Phase 14 · 03 (Reflexion)
@@ -52,6 +54,8 @@ Each node is a coherent intermediate step ("a thought"). Each node can expand to
 
 Self-evaluation is the load-bearing piece. The paper shows three variants: `sure / likely / impossible` classification, `1..10` numeric score, and vote among candidates. All three beat CoT substantially on Game of 24 (4% -> 74% with GPT-4).
 
+> 💡 **【类比】** ToT 像下象棋时的"算路"：每走一步先在脑中算 3-5 个变化（扩展），自己评估哪个变化更有利（自评估），剪掉明显劣变化（不可能），深入算有利的变化。CoT 是"凭直觉下一步"——算错一步整盘输。Game of 24 从 4% 到 74% 的提升就是"算路"价值的最直接证据。
+
 > 自评估是核心承载部分。论文展示了三种变体：`sure / likely / impossible` 分类、`1..10` 数值评分和候选投票。三种都在 Game of 24 上大幅超越 CoT（4% -> 74%，使用 GPT-4）。
 
 ### LATS (Zhou et al., ICML 2024)
@@ -94,6 +98,8 @@ UCT formula: `Q(s, a) + c * sqrt(ln N(s) / N(s, a))`. First term is exploitation
 
 Search explodes tokens. ToT on Game of 24 uses 100–1000x the tokens of CoT. LATS is similar. This is not free; reserve search for:
 
+> ⚠️ **【易错点】** 看到 ToT 在 Game of 24 上 +70 个点就以为是"银弹"，套到所有任务上。**后果**：在简单问答上消耗 1000 倍 token 换 0% 提升，账单爆炸。**一行修复**：先用 10 个样本对比 CoT vs ToT，提升 < 5 个点就退回 CoT——搜索只对"单轨迹明显不足"的任务有效。
+
 > 搜索会爆炸 token。ToT 在 Game of 24 上消耗 CoT 的 100-1000 倍 token。LATS 类似。这不是免费的；将搜索留给：
 
 - Tasks where a single trajectory is demonstrably insufficient (Game of 24, complex code).
@@ -104,6 +110,8 @@ Search explodes tokens. ToT on Game of 24 uses 100–1000x the tokens of CoT. LA
   中文翻译：有廉价可靠价值函数的任务（代码的单元测试、数学的明确目标）。
 
 If your task has a single right answer and a noisy evaluator, search often makes things worse — it finds a "good-scoring" wrong answer.
+
+> 🤔 **【困惑】** Q: LATS 把 ToT/ReAct/Reflexion 三个都"统一"了，那是不是学了 LATS 就够了？ A: 不够。LATS 是"重型武器"——一次完整搜索要展开上百节点，单任务 token 成本可达百万级。生产环境的 95% 任务用 ReAct + 简单 Reflexion 已经够。LATS 只在"价值函数廉价可靠"（如代码任务的单元测试）时才值得。先掌握轻量模式，再学 LATS。
 
 > 如果你的任务只有一个正确答案但评估器有噪声，搜索往往使情况更糟——它会找到一个"高分但错误"的答案。
 

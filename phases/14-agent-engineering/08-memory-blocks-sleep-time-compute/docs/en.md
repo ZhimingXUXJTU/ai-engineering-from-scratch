@@ -41,6 +41,8 @@ Letta (letta.com) is the 2026 rewrite. Memory blocks make structure explicit; sl
 
 > **【拓展：Letta 的演进】** Letta（原 MemGPT）在 2024-2025 年的演进中引入了记忆块和休眠计算两个关键概念。记忆块将上下文窗口划分为系统指令、核心记忆、对话历史等固定分区，避免信息混淆。休眠计算利用空闲时间做记忆整理和预计算，类似于操作系统的后台内存整理（compaction）。
 
+> 🔗 **【前置】** 必须先过 Phase 14·07（MemGPT）——本节是它的直接延续。如果你不理解 MemGPT 的"主上下文 vs 外部上下文"两层模型，那么 Letta 的三层（core/recall/archival）扩展会把你搞晕。
+
 ## The Concept | 核心概念
 
 ### Three tiers
@@ -103,6 +105,8 @@ Properties that fall out:
 
 The shape matches how humans work: you do the task, you sleep on it, the long-term memory settles overnight.
 
+> 💡 **【类比】** Sleep-time compute 像夜晚的清洁工：白天你（主 Agent）忙于响应客户，办公室（主上下文）堆满今天的会议记录、文件、咖啡杯；晚上清洁工（sleep-time agent）进来——擦桌子、归档文件、把"明天要跟进的事"贴到便利贴上（写入 Human/Task 块）。第二天你来上班，看到整洁的桌面和清晰的待办清单。**关键**：清洁工可以慢一点、贵一点（用更强的模型），因为客户不在等。
+
 > 这种形态与人类工作方式一致：你做任务，你睡一觉，长期记忆在夜间沉淀。
 
 ### Letta V1 and native reasoning
@@ -113,12 +117,16 @@ Letta V1 (`letta_v1_agent`, 2026) deprecates `send_message`/heartbeat and inline
 
 ### Where this pattern goes wrong
 
+> ⚠️ **【易错点】** "静默漂移"是 Letta 部署中最阴险的 bug：sleep-time agent 在后台改了 Persona 块（比如把"始终用中文回复"改成"中英文混用"），但主 Agent 不知道。**后果**：用户发现 Agent 行为突变却查不出原因——因为对话日志只记录主 Agent 的输出。**一行修复**：每次 sleep-time 写入后版本化 block 内容，并在主 Agent 的下一轮 prompt 里注入"自上次以来 block 变化：..."的 diff 提示。
+
 - **Block bloat.** Infinite `block_append` hits the limit fast. Wire a block summarizer before the write that pushes over the cap.
   中文翻译：**块膨胀。** 无限的 `block_append` 很快达到上限。在超出上限的写入之前接入块摘要器。
 - **Silent drift.** Sleep-time agent rewrites a block and the primary agent never notices. Version blocks and surface diffs in the trace.
   中文翻译：**静默漂移。** 休眠 Agent 重写块但主 Agent 从未注意到。版本化块并在轨迹中显示差异。
 - **Poisoned consolidation.** Sleep-time agent processes attacker-reachable content into core. Lesson 27 applies to the sleep-time surface too.
   中文翻译：**投毒合并。** 休眠 Agent 将攻击者可达的内容处理进 core。第 27 课也适用于休眠接口。
+
+> 🤔 **【困惑】** Q: Sleep-time agent 用更强的模型不会更贵吗？为什么是省钱而不是烧钱？ A: 看时间维度。Sleep-time 不在关键路径上，可以挑低峰时段（如凌晨 3 点）用更便宜的 batch API（OpenAI batch 半价、Anthropic batch 50% 折扣）；更重要的是它**避开了关键路径的高价**——主 Agent 必须用 streaming + 高优先级，单价是 batch 的 2-3 倍。把"可以慢"的工作批量迁移到 sleep-time，整体反而便宜。
 
 ## Build It | 动手构建
 

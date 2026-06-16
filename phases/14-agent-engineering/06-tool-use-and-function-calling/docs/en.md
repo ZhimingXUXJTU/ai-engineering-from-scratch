@@ -34,6 +34,8 @@ Toolformer established the baseline: models can learn when to call tools with se
 
 > **【拓展：BFCL V4 评估体系的演进】** Berkeley Function Calling Leaderboard V4 是 2026 年事实上的评估标准。V3 引入了基于状态的评估（检查 API 实际状态而非匹配 AST），V4 添加了 Web 搜索、记忆和格式敏感性类别。关键发现：单轮函数调用已接近解决，失败集中在记忆（跨轮次上下文传递）、动态决策（基于先前结果选择工具）和长链漂移（20+ 步后偏离任务）。
 
+> 🔗 **【前置】** 必读：Phase 13·01（Function Calling Deep Dive）——本节假设你已经能写 JSON Schema 并理解 Anthropic 的 `input_schema` vs OpenAI 的 `function.parameters` 区别；Phase 14·01（Agent Loop）——工具调用是在 Agent 循环里发生的，离开循环单独看工具调用会失去上下文。
+
 ## The Concept | 核心概念
 
 ### Toolformer (Schick et al., NeurIPS 2023)
@@ -91,6 +93,10 @@ input_schema: JSON Schema (properties, required, types, enums)
 
 Anthropic uses `input_schema` directly. OpenAI uses `function.parameters`. Both accept JSON Schema. Descriptions are load-bearing — the model reads them to pick the right tool. Bad tool descriptions are the #1 root cause of wrong-tool-picked failures.
 
+> 💡 **【类比】** 工具描述就像给实习生写的"使用说明书"。模型从没见过你的工具，它唯一能依赖的就是 description。如果你写 `name: get_user, description: "gets user"`，模型根本不知道是按 ID 还是按邮箱查、返回的是完整对象还是仅姓名。**好描述包含三要素**：做什么 + 何时用 + 输入输出的语义。
+
+> ⚠️ **【易错点】** 最常见的灾难：信任模型返回的参数类型。模型经常把 `"5"`（字符串）返回给期望 `int` 的 schema。**后果**：你的工具函数 `TypeError` 崩溃，整个 Agent loop 中断。**一行修复**：在工具执行入口统一做 `pydantic.BaseModel.parse_obj` 或类似校验，验证失败时返回结构化错误（如 `{"error": "expected int, got str"}`）让模型重试。
+
 > Anthropic 直接使用 `input_schema`。OpenAI 使用 `function.parameters`。两者都接受 JSON Schema。描述是核心承载——模型通过阅读描述来选择正确的工具。糟糕的工具描述是选错工具失败的头号根因。
 
 ### Argument validation
@@ -126,6 +132,8 @@ Modern providers support parallel tool calls in one assistant turn. The loop:
    中文翻译：每个结果作为 `tool_result` 块返回，通过 `tool_use_id` 关联。
 
 Engineering rule: treat correlation IDs as load-bearing. Swap them and you get wrong-tool-to-wrong-result routing.
+
+> 🤔 **【困惑】** Q: BFCL V4 中 40% 是 agentic，是不是说明单轮已经不重要了？ A: 不是。40% agentic 是为了反映生产实际，但单轮准确率仍是基础——agentic 任务里每一步都是一次单轮调用，单轮准确率掉 5%，agentic 10 步链路的成功率就会跌到 60%。单轮是地基，地基不牢高楼必塌。
 
 > 工程规则：将关联 ID 视为核心承载。交换它们会导致错误的工具-结果路由。
 

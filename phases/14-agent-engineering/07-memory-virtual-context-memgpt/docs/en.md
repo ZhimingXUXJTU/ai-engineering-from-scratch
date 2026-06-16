@@ -41,6 +41,8 @@ Bigger windows help but do not fix this. Mem0's 2025 paper measured that 128k-wi
 
 > **【拓展：MemGPT → 现代 Agent 记忆系统】** MemGPT (Packer et al., 2023) 将上下文管理类比为操作系统虚拟内存：主上下文=RAM，外部存储=磁盘，记忆工具=页面换入换出。这是 2026 年所有记忆系统的基本模式。Mem0 的 2025 年论文测量发现，128k 窗口的基线仍然会遗漏 4k 窗口 + 外部记忆 Agent 能捕获的长程事实。
 
+> 🔗 **【前置】** 必须先掌握：Phase 14·01（Agent Loop）——MemGPT 的记忆工具是普通工具调用的扩展；Phase 14·06（Tool Use）——记忆操作通过工具实现。还需要操作系统基础知识——如果你不知道"虚拟内存""页面错误"是什么，先去补操作系统课，否则类比看不懂。
+
 ## The Concept | 核心概念
 
 ### MemGPT: the OS analogy
@@ -58,6 +60,8 @@ Packer et al. (arXiv:2310.08560, v2 Feb 2024) map context management to operatin
 | OS kernel | agent control loop | ReAct loop with memory tools / 带记忆工具的 ReAct 循环 |
 
 The agent runs a normal ReAct loop. One extra class of tools lets it page data in and out of main context.
+
+> 💡 **【类比】** MemGPT 像你电脑的内存管理：RAM（主上下文）只有 8GB 但要跑 Photoshop + 浏览器 + IDE；操作系统通过页面换入换出（page in/out）让你"感觉"有无穷内存。MemGPT 让 Agent 也这样做——主上下文塞不下时，Agent 自己调用 `archival_memory_search` 把相关内容"换入"，调用 `core_memory_replace` 把无关内容"换出"。Agent 像操作系统内核，记忆工具像系统调用。
 
 > Agent 运行普通的 ReAct 循环。额外的一类工具让它可以在主上下文和外部存储之间换入换出数据。
 
@@ -114,12 +118,16 @@ The MemGPT paper is the 2026 foundation even if production systems run Letta, Me
 
 ### Where this pattern goes wrong
 
+> ⚠️ **【易错点】** MemGPT 新手最容易忽略"记忆投毒"：把外部网页、用户消息直接 `archival_memory_insert` 进外部存储。**后果**：攻击者在网页里藏 prompt injection（如"忽略之前所有指令"），下次 Agent 检索到这条记忆时，指令被执行。**一行修复**：所有进入 archival 的外部内容必须先做安全过滤（参考 Phase 14·27 prompt injection 防护），并存储 source 字段用于追溯。
+
 - **Memory rot.** Writes accumulate faster than reads; retrieval drowns in stale facts. Fix: periodic consolidation (Letta sleep-time), explicit invalidation (Mem0 conflict detector).
   中文翻译：**记忆腐化。** 写入积累速度快于读取；检索被过时事实淹没。修复：定期合并（Letta sleep-time）、显式失效（Mem0 冲突检测器）。
 - **Memory poisoning.** External memory is retrieved text. If attacker-controlled content lands in a memory note, the agent re-ingests it next session. This is the Greshake et al. (Lesson 27) attack restated over time.
   中文翻译：**记忆投毒。** 外部记忆是检索到的文本。如果攻击者控制的内容进入了记忆笔记，Agent 在下次会话中会重新摄取它。这是 Greshake 等人（第 27 课）攻击的跨时间版本。
 - **Citation loss.** Agent recalls "the user asked me to ship X" but cannot cite which turn. Store source references (session ID, turn ID) with every archival write.
   中文翻译：**引用丢失。** Agent 回忆"用户让我发布 X"但无法引用哪一轮。每次归档写入时存储来源引用（会话 ID、轮次 ID）。
+
+> 🤔 **【困惑】** Q: 既然 2026 年模型上下文窗口已经 1M token 了（Gemini 1.5 Pro），还需要 MemGPT 这种"虚拟内存"吗？ A: 需要。窗口大不代表用得对——硬塞 1M token 会触发"中段遗忘"（lost in the middle 现象）和注意力稀释，模型对中间内容的注意力显著低于首尾。MemGPT 的核心价值不是"装下"，而是"在正确时刻只让相关内容可见"。
 
 ## Build It | 动手构建
 
