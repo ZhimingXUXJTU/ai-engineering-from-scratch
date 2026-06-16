@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 12 · 05 (LLaVA), Phase 15 (Autonomous Systems, referenced)
 **Time:** ~180 minutes
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·05（LLaVA VLM 基础）、Phase 15·01（Agent 循环）、控制理论基础（关节空间、末端执行器位姿）。VLA = VLM 输出从文本变成机器人动作，是 Phase 12 到 Phase 15（自主系统）的桥梁。
+> 💡 **【类比】** VLA = "给机器人装大脑和眼睛"。传统机器人 = 程序员写死的 if-else 规则（看到红色就停下）；VLA = 像人一样看图说话做事（"把红色杯子放到桌上"→看到杯子→规划路径→控制关节执行）。RT-2 把动作离散成 token = 把动作当文字写进 prompt；π0 流匹配 = 输出连续动作而非离散 token，更精确。
+
 ## Learning Objectives
 
 - Describe action tokenization: discrete bin encoding (RT-2), FAST efficient action tokens, continuous flow-matching actions (π0).

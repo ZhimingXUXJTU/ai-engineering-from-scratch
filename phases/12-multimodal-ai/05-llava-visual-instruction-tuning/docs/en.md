@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 12 · 02 (CLIP), Phase 11 (LLM Engineering — instruction tuning)  | **前置：阶段12第02课（CLIP）、阶段11（LLM工程——指令微调）**
 **Time:** ~180 minutes  | **时长：约180分钟**
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·02（CLIP 视觉编码器）；Phase 12·03（BLIP-2 桥接，对照学习）；Phase 11·08（Instruction Tuning 指令微调）。LLaVA 是 BLIP-2 的反面——刻意简化桥接，靠数据取胜。
+> 💡 **【类比】** LLaVA = "把图片直接打印出来贴在文档里"。BLIP-2 Q-Former = "把 256 页书压成 32 页摘要再交给 LLM"；LLaVA MLP = "576 页原文整本贴给 LLM"。前者省纸张但丢信息，后者费纸张但 LLM 看得到全部细节——LLM 上下文变长后，"费纸张"不再是问题，LLaVA 自然就赢了。
+
 ## Learning Objectives  | 学习目标
 
 - Build a 2-layer MLP projector that maps ViT patch embeddings (dim 1024) to an LLM's embedding dim (dim 4096).  | 构建一个2层MLP投影器，将ViT补丁嵌入（维度1024）映射到LLM嵌入维度（维度4096）。
@@ -31,6 +34,8 @@ Second, the Q-Former takes 188M params, and at LLaVA's 2023 scale you had to co-
 The LLaVA answer was embarrassing in its simplicity: take the ViT's 576 patch tokens, pass each through a 2-layer MLP (`1024 → 4096 → 4096`), and dump all 576 into the LLM's input sequence. No bottleneck. No stage 1 pretraining on weird objectives. Just train the MLP on a direct LM loss.
 
 > **【中文解读】** LLaVA 的方案简单到令人尴尬：直接把 ViT 的 576 个补丁 token 通过一个 2 层 MLP（`1024 → 4096 → 4096`），然后全部丢进 LLM 的输入序列。没有瓶颈，没有奇怪的训练目标，只用语言建模损失训练 MLP。
+
+> ⚠️ **【易错点】** 第一阶段必须训练！很多人误以为可以跳过阶段 1 直接做指令微调——不行！没训练过的投影器输出随机向量，LLM 完全看不懂视觉 token 含义，阶段 2 会让 LLM 把视觉 token 当噪声忽略掉。修复：阶段 1 必须训完，让 MLP 学会"把 ViT 嵌入翻译成 LLM 能理解的语义"。
 
 Where does the data come from? LLaVA's second insight: use GPT-4 (text-only) to generate instruction data. Feed GPT-4 the COCO caption and bounding-box data for an image, ask it to produce conversations, descriptions, and complex reasoning questions. 158k instruction-response turns for free. No human annotation.
 
@@ -94,6 +99,9 @@ None of this touches the image directly — only the text description. GPT-4 hal
 
 > **【中文解读】** 关键创新：数据生成完全不接触图像本身——只用文本描述。GPT-4 会"幻觉"出合理的图像内容，虽然会有噪声，但 158k 条数据足以解锁对话能力。这种"用强模型生成弱模型训练数据"的思路后来被广泛采用（如 Self-Instruct、Alpaca 等）。
 
+> 🤔 **【困惑】** Q: GPT-4 没看图只看描述，那 LLaVA 训练时实际学的"视觉"是什么？A: LLaVA 学的是两件事：(1) 投影器把 ViT 的视觉特征翻译成 LLM 能理解的语义；(2) LLM 学会"看到图片 → 生成符合 GPT-4 风格的描述"。GPT-4 的"幻觉"实际上是合理的描述（基于 caption），所以最终 LLaVA 也能产出合理描述。
+> ⚠️ **【易错点】** 自己训练 LLaVA 时数据不清洗 → GPT-4 的幻觉污染训练集，模型可能描述图中没有的东西。修复：用 GPT-4V（多模态版本）替代纯文本 GPT-4，让 GPT-4V 真的看图生成描述（ShareGPT4V 就是这个思路），质量更高。
+
 > **【拓展：数据合成的范式意义】** LLaVA 的数据合成方法（GPT-4 生成指令数据）开创了 VLM 数据工程的新范式。后续的 ShareGPT4V（100万高质量描述）、ALLaVA（更大规模合成）都沿用了这一思路。在垂直领域（如医疗影像、金融图表），同样可以用 GPT-4V 生成领域特定的指令数据来微调 VLM。
 
 ### Why the community copied this  | 为什么社区纷纷效仿
@@ -138,6 +146,8 @@ Lesson 12.08 covers OneVision in depth. Short version: same projector, but train
 MLP wins on simplicity and token flexibility. Q-Former wins on token budget. By late 2023 the token budget was no longer the binding constraint (LLM contexts grew to 32k-128k+) and simplicity dominated.
 
 > **【中文解读】** MLP 在简洁性和 token 灵活性上胜出，Q-Former 在 token 预算上胜出。但到 2023 年底，随着 LLM 上下文窗口增长到 32k-128k+，token 预算不再是瓶颈，简洁性成为决定因素。这体现了 AI 工程中的一个重要原则：当约束条件变化时，最优解也会改变。
+
+> 🤔 **【困惑】** 学完本节还会问：1) 为什么不在 LLaVA 上加 Q-Former？— 加了复杂度变高、训练难度大、收益小（除非视频这种 token 预算紧张场景）。2) LLaVA-1.5 和 LLaVA-NeXT 该选哪个？— 默认 LLaVA-NeXT（支持高分辨率 AnyRes，OCR 和文档任务更强）。
 
 ### The prompt format  | 提示词格式
 

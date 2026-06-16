@@ -9,6 +9,9 @@
 **Prerequisites:** Phase 12 · 17 (video temporal tokens) | **前置知识:** Phase 12 · 17（视频时间 token）
 **Time:** ~180 minutes | **时间:** ~180 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·17（视频时间 token 与采样）；Phase 10·34（Ring Attention 分布式注意力）；Phase 14（Agent 检索，VideoAgent 思路）。本节是长视频理解的极限挑战：百万 token 上下文。
+> 💡 **【类比】** 长视频理解 = "看完一整部电影后能回答细节"。三种策略：(1) Gemini 1.5 路线 = 把整部电影硬塞进脑子（10M token 上下文，硬件怪兽）；(2) Video-XL 路线 = 看完写摘要+检索原始片段（token 压缩）；(3) VideoAgent 路线 = 当数据库查，问题导向地拉取相关片段（Agent 检索）。第一条最优雅但最贵，第三条最便宜但最复杂。
+
 ## Learning Objectives
 
 - Compute total visual-token counts for long-form video at varying FPS and pooling.

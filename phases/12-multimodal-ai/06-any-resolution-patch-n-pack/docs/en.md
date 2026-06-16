@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 12 · 01 (ViT patches), Phase 12 · 05 (LLaVA)  | **前置知识:** Phase 12 · 01（ViT补丁）、Phase 12 · 05（LLaVA）
 **Time:** ~120 minutes  | **时间:** ~120 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·01（ViT 把图切成 patch）；Phase 12·05（LLaVA 投影器）；Phase 7·04（RoPE 位置编码，本节用 2D-RoPE）。
+> 💡 **【类比】** NaViT 的 patch-n'-pack = "搬家打包"。传统 ViT = 把所有东西按一个箱子大小裁切（家具腿砍掉塞进去）；NaViT = 各种大小的箱子按形状打包，一辆卡车里塞进多个箱子（块对角掩码就是箱子之间的隔板，互不串扰）。
+> ⚠️ **【易错点】** 实现 NaViT 时忘记块对角掩码 → 三张图的 patch 会互相做注意力，模型训练完全失败。修复：必须构建 (N,N) 的注意力矩阵，只在每张图对应的 patch 索引块内允许注意力，块外为 -inf。
+
 ## Learning Objectives  | 学习目标
 
 - Pack patches from a batch of variable-resolution images into one sequence and build the block-diagonal attention mask.
@@ -137,6 +141,8 @@ Pick your strategy by task:
 The 2026 production rule: pick a per-task max-pixels cap, encode at native aspect ratio up to that cap, pack the batch, and skip padding. Qwen2.5-VL exposes `min_pixels` and `max_pixels` for exactly this knob.
 
 > **【拓展：Token 预算与成本优化】** 在生产环境中，token 预算直接影响 API 成本和延迟。为 OCR 任务分配 1024+ token 是必要的（文字密度高），但自然照片用 256 token 就够了。按任务动态调整分辨率是 2026 年 VLM 部署的最佳实践。
+
+> 🤔 **【困惑】** 学完本节还会问：1) 真要部署 OCR 系统，min_pixels 和 max_pixels 该设多少？— 文档类 min=28*28*4、max=28*28*2560（Qwen2-VL 默认）；过高会爆显存，过低会丢失小字。2) 为什么不直接用 2k×2k？— token 二次爆炸，长文档一张图就吃掉整个 LLM 上下文。3) NaFlex vs AnyRes 哪个更通用？— NaFlex（SigLIP 2）更现代，单一 checkpoint 适配所有分辨率；AnyRes 是过渡方案。
 
 ## Use It  | 动手实践
 

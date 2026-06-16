@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 12 · 13 (Transfusion), Phase 12 · 14 (Show-o) | **前置知识:** Phase 12 · 13（Transfusion），Phase 12 · 14（Show-o）
 **Time:** ~120 minutes | **时间:** ~120 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·02（SigLIP 语义编码器）、Phase 12·13-14（Transfusion/Show-o 统一模型）、Phase 8（VQ-VAE 重建编码器）。Janus-Pro = "理解 vs 生成的编码器分离"——是 Phase 12 多模态生成模型的最终答案之一。
+> 💡 **【类比】** Janus-Pro = "左右脑分工"。左脑 = SigLIP（语义理解，认识"猫"的概念）；右脑 = VQ-VAE（像素重建，能画出猫的细节）。其他统一模型 = 强迫一个脑区同时干两件事，两边都不极致；Janus-Pro = 接受左右脑分工，共享脑干（Transformer 主体）做高层推理。这就像人类视觉皮层（理解）和运动皮层（绘画）本来就在不同脑区。
+
 ## Learning Objectives  | 学习目标
 
 - Explain why a single shared encoder compromises either understanding or generation quality.

@@ -9,6 +9,9 @@
 **Prerequisites:** Phase 12 · 08 (LLaVA-OneVision)
 **Time:** ~180 minutes
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·08（LLaVA-OneVision 统一视觉 token 预算）、Phase 7·04（RoPE 旋转位置编码，本节升级为 TMRoPE 三轴）。视频 VLM 的核心挑战：token 爆炸（1 分钟视频 = 35 万 token）+ 时间维度建模。
+> 💡 **【类比】** 视频 VLM 处理时间维度 = "看足球比赛回放"。均匀采样 = 每 10 秒截一帧（错过进球瞬间）；事件驱动采样 = 进球时密集采样+其他时间稀疏（捕捉关键时刻）；动态 FPS = 根据画面变化自动调密度。TMRoPE 让模型能理解"4.2 秒发生的进球"而不是"第 15 帧"，这是产品级视频理解的关键。
+
 ## Learning Objectives
 
 - Explain why temporal positional encoding changes video VLM performance independently of the vision encoder.

@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 12 · 05 (LLaVA), Phase 12 · 06 (any-resolution)  | **前置：阶段12第05课（LLaVA）、阶段12第06课（任意分辨率）**
 **Time:** ~180 minutes  | **时长：约180分钟**
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·05（LLaVA 投影器）、Phase 12·06（AnyRes/NaFlex 分辨率调度）、Phase 11·07（Curriculum Learning 课程学习）。本节是 LLaVA 系列的集大成——一个模型干三件事。
+> 💡 **【类比】** LLaVA-OneVision = "全能瑞士军刀"。其他 VLM = 专门的单功能刀（单图刀、多图刀、视频刀）。瑞士军刀每项功能都不如专业刀精专，但能应对未知场景；维护一个统一 token 预算（3000-4000）= 钩子和刀片的总长度恒定，根据场景切换主功能。
+
 ## Learning Objectives  | 学习目标
 
 - Design a visual-token budget that holds constant across single-image, multi-image, and video inputs.  | 设计在单图、多图和视频输入中保持恒定的视觉 token 预算。
@@ -57,6 +60,9 @@ LLaVA-OneVision trains in three stages:
 3. Task transfer (stage TT) / 任务迁移. Continue with a target task mix, typically heavier on multi-image or video depending on product. Optional fine-tune for deployment.
 
 Critical: the curriculum order matters. Training video-first or multi-image-first produces worse image performance than single-image-first, even with the same data. The paper ablates this explicitly.
+
+> ⚠️ **【易错点】** 自己训练统一 VLM 时课程顺序搞反了（先训视频再训单图）→ 单图性能大幅下降。原因：视频低分辨率输入让模型先学到"模糊是正常的"，再训高分辨率单图时模型适应不过来。修复：必须单图 → 多图 → 视频的顺序，先学精细再学粗糙。
+> 🤔 **【困惑】** Q: 为什么固定 token 预算这么重要？— 因为 LLM 的上下文窗口是固定的，单图突然占 5000 token、视频 10000 token 会破坏 batching 和推理预算。固定预算 = 可预测的推理成本，是产品部署的关键。
 
 > **【中文解读】** 课程顺序至关重要：先单图、再多图+视频、最后任务迁移。如果先训练视频或多图，单图性能会下降。这是因为单图训练建立了感知基础，多图和视频的时序/空间推理需要以此为基础。
 

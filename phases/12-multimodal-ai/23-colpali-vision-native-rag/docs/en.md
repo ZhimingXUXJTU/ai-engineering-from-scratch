@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 11 (LLM Engineering — RAG basics), Phase 12 · 05 (LLaVA)
 **Time:** ~180 minutes
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 11·14-16（RAG 基础：embedding/chunking/retrieval）、Phase 11·13（ColBERT 延迟交互检索，ColPali 直接借鉴）、Phase 12·05（LLaVA 视觉编码器）。ColPali = "ColBERT for images"。
+> 💡 **【类比】** 传统 RAG vs ColPali = "看书先扫描成纯文本" vs "直接看图找答案"。传统 = OCR 提取文字→分块→embedding（图表数据全部丢失）；ColPali = 直接对页面图像做 patch embedding（图表、表格、布局全保留）。在金融报告这种"图表为王"的文档上，ColPali 准确率高 20-40%。
+
 ## Learning Objectives
 
 - Explain the difference between bi-encoder retrieval (one vector per document) and late-interaction retrieval (many vectors per document).

@@ -9,6 +9,9 @@
 **Prerequisites:** Phase 12 · 23 (ColPali), Phase 11 (RAG basics)
 **Time:** ~180 minutes
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·23（ColPali 视觉文档 RAG）、Phase 11·14-17（RAG 检索/融合/reranking）、Phase 12·02（CLIP 跨模态对齐）。本节是 ColPali 的扩展——多种模态一起检索+融合。
+> 💡 **【类比】** 多模态 RAG = "全科医生诊断"。病人说"我胸口疼"（文本）+ 给你看心电图（图像）+ 让你听心跳录音（音频）。医生要同时检索医学文献（文本）、心电图案例库（图像）、心跳声纹库（音频），融合多源信息后给出诊断。融合策略：分数融合 = 各源给分加权平均；注意力融合 = 让 LLM 自己决定哪源重要；MoE 融合 = 不同专家处理不同模态。
+
 ## Learning Objectives
 
 - Design cross-modal retrieval: text → image, image → text, audio → video, etc.

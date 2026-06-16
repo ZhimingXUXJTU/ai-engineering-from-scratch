@@ -9,6 +9,9 @@
 **Prerequisites:** Phase 12 · 19 (audio-LLMs), Phase 12 · 16 (any-to-any)
 **Time:** ~180 minutes
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·16（MIO 任意到任意流式）、Phase 12·19（音频 LLM）、Phase 6·04（VAD 语音活动检测）。Qwen2.5-Omni = "开源版 GPT-4o"，核心是 Thinker-Talker 双流架构，并行化降低延迟到 250ms 内。
+> 💡 **【类比】** Thinker-Talker 架构 = "翻译员 + 同传播音员"。其他 omni 模型 = 一个人又要思考又要说话（串行，慢）；Qwen2.5-Omni = Thinker（大脑，想"说什么"）+ Talker（嘴巴，把文字变语音）并行工作。Thinker 流式吐出文本 token，Talker 一边接收一边合成语音，用户听到的是流水线输出，总延迟大幅降低。
+
 ## Learning Objectives
 
 - Split the inference pipeline into Thinker (text reasoning) and Talker (speech synthesis) and explain why parallel streaming works.

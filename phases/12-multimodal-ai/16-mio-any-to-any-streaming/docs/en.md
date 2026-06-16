@@ -9,6 +9,9 @@
 **Prerequisites:** Phase 12 · 11 (Chameleon), Phase 6 (Speech and Audio) | **前置知识:** Phase 12 · 11（Chameleon），Phase 6（语音与音频）
 **Time:** ~120 minutes | **时间:** ~120 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·11（Chameleon 早期融合 token 思路）、Phase 6·01-03（语音/音频 tokenizer：SpeechTokenizer、EnCodec）、Phase 8（VQ-VAE）。MIO = 把 Chameleon 思路扩展到 4 种模态（文本+图像+语音+音乐）。
+> 💡 **【类比】** MIO = "万能翻译耳机"。其他多模态系统 = 一堆翻译器接力（视觉翻译→文本→语音翻译→音频），每跳延迟+信息损失；MIO = 一个大脑同时听、看、说，像 GPT-4o 那样端到端低延迟。挑战是每种模态都要 tokenizer，且 token 不能互相冲突。
+
 ## Learning Objectives | 学习目标
 
 - Design a shared vocabulary that hosts text, image, speech, and music tokens without collisions.

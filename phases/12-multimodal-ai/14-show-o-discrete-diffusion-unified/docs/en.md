@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 12 · 13 (Transfusion) | **前置知识:** Phase 12 · 13（Transfusion）
 **Time:** ~120 minutes | **时间:** ~120 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·13（Transfusion 双损失）、Phase 12·11-12（Chameleon/Emu3 离散 token）、Phase 8（MaskGIT 离散扩散概念）。Show-o = 全离散 + 图像用 MaskGIT 风格并行解码，速度比 Emu3 快 60 倍。
+> 💡 **【类比】** Show-o = "并行开锁"。Emu3 = 一把钥匙开 1024 把锁（自回归逐个 token）；Show-o = 16 步内同时尝试所有锁（掩码扩散并行解码）。代价：图像质量略差（VQ 量化损失），但推理快得多。
+
 ## Learning Objectives  | 学习目标
 
 - Explain masked discrete diffusion: the schedule that masks tokens uniformly then asks the transformer to recover them.
