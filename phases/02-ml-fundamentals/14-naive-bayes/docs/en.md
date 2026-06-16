@@ -154,9 +154,13 @@ Spam wins by a large margin. The word "free" appearing twice is strong evidence 
 
 Naive Bayes comes in three flavors. Each models `P(feature | class)` differently.
 
+> 朴素贝叶斯有三种变体。每种对 `P(feature | class)` 建模方式不同。
+
 #### Multinomial Naive Bayes
 
 Models each feature as a count. Best for text data where features are word frequencies or TF-IDF values.
+
+> 把每个特征建模为计数。最适合特征是词频或 TF-IDF 值的文本数据。
 
 ```
 P(word_i | class) = (count of word_i in class + alpha) / (total words in class + alpha * vocab_size)
@@ -164,9 +168,13 @@ P(word_i | class) = (count of word_i in class + alpha) / (total words in class +
 
 The `alpha` is Laplace smoothing (explained below). This variant is the workhorse for text classification.
 
+> `alpha` 是 Laplace 平滑（下面解释）。这个变体是文本分类的主力。
+
 #### Gaussian Naive Bayes
 
 Models each feature as a normal distribution. Best for continuous features.
+
+> 把每个特征建模为正态分布。最适合连续特征。
 
 ```
 P(x_i | class) = (1 / sqrt(2 * pi * var)) * exp(-(x_i - mean)^2 / (2 * var))
@@ -174,15 +182,21 @@ P(x_i | class) = (1 / sqrt(2 * pi * var)) * exp(-(x_i - mean)^2 / (2 * var))
 
 Each class gets its own mean and variance per feature. This works well when features genuinely follow a bell curve within each class.
 
+> 每个类别对每个特征有自己的均值和方差。当特征在每个类别中真的服从钟形曲线时效果很好。
+
 #### Bernoulli Naive Bayes
 
 Models each feature as binary (present or absent). Best for short text or binary feature vectors.
+
+> 把每个特征建模为二值（出现或不出现）。最适合短文本或二值特征向量。
 
 ```
 P(word_i | class) = (docs in class containing word_i + alpha) / (total docs in class + 2 * alpha)
 ```
 
 Unlike Multinomial, Bernoulli explicitly penalizes the absence of a word. If "free" typically appears in spam but is absent from this email, Bernoulli counts that as evidence against spam.
+
+> 与多项式不同，伯努利明确惩罚词的不出现。如果"free"通常出现在垃圾邮件中但这封邮件没有，伯努利把这算作反对垃圾邮件的证据。
 
 ### When to Use Each Variant
 
@@ -192,13 +206,25 @@ Unlike Multinomial, Bernoulli explicitly penalizes the absence of a word. If "fr
 | Gaussian | Continuous values | Tabular data with normal-ish features | Iris classification, sensor data |
 | Bernoulli | Binary (0/1) | Short text, binary feature vectors | SMS spam, presence/absence features |
 
+| 变体 | 特征类型 | 最适合 | 示例 |
+|------|---------|--------|------|
+| Multinomial | 计数或频率 | 文本分类、词袋 | 邮件垃圾过滤、主题分类 |
+| Gaussian | 连续值 | 近正态的表格数据 | 鸢尾花分类、传感器数据 |
+| Bernoulli | 二值（0/1） | 短文本、二值特征向量 | 短信垃圾过滤、出现/缺失特征 |
+
 ### Laplace Smoothing
 
 What happens when a word appears in the test data but never appeared in the training data for a particular class?
 
+> 如果一个词在测试数据中出现，但在某个类别的训练数据中从未出现，会发生什么？
+
 Without smoothing: `P(word | class) = 0/N = 0`. One zero multiplied through the entire product makes `P(class | features) = 0`, regardless of all other evidence. A single unseen word destroys the entire prediction, no matter how much other evidence supports it.
 
+> 不加平滑：`P(word | class) = 0/N = 0`。一个零乘到整个乘积中会使 `P(class | features) = 0`，无论其他证据如何。一个没见过的词摧毁整个预测，无论其他证据多支持。
+
 Laplace smoothing adds a small count `alpha` (usually 1) to every feature count:
+
+> Laplace 平滑给每个特征计数加一个小计数 `alpha`（通常为 1）：
 
 ```
 P(word_i | class) = (count(word_i, class) + alpha) / (total_words_in_class + alpha * vocab_size)
@@ -206,9 +232,15 @@ P(word_i | class) = (count(word_i, class) + alpha) / (total_words_in_class + alp
 
 With alpha=1, every word gets at least a tiny probability. The word "discombobulate" appearing in a test email no longer kills the spam probability. The smoothing has a Bayesian interpretation: it is equivalent to placing a uniform Dirichlet prior on the word distributions.
 
+> alpha=1 时，每个词至少得到一个极小的概率。"discombobulate"出现在测试邮件中不再摧毁垃圾邮件概率。平滑有贝叶斯解释：等价于在词分布上放一个均匀 Dirichlet 先验。
+
 Higher alpha means stronger smoothing (more uniform distributions). Lower alpha means the model trusts the data more. Alpha is a hyperparameter you tune.
 
+> 更高的 alpha 意味着更强的平滑（更接近均匀分布）。更低的 alpha 意味着模型更相信数据。Alpha 是你要调的超参数。
+
 The effect of alpha:
+
+> alpha 的影响：
 
 | Alpha | Effect | When to use |
 |-------|--------|-------------|
@@ -217,17 +249,30 @@ The effect of alpha:
 | 1.0 | Standard Laplace smoothing | Default starting point |
 | 10.0 | Heavy smoothing, flattens distributions | Very small training set, many unseen features expected |
 
+| Alpha | 效果 | 使用场景 |
+|-------|------|---------|
+| 0.001 | 几乎不平滑，相信数据 | 非常大的训练集，预期不会有未见特征 |
+| 0.1 | 轻度平滑 | 大训练集 |
+| 1.0 | 标准 Laplace 平滑 | 默认起点 |
+| 10.0 | 重度平滑，拉平分布 | 非常小的训练集，预期有很多未见特征 |
+
 ### Log-Space Computation
 
 Multiplying hundreds of probabilities (each less than 1) causes floating-point underflow. The product becomes zero in floating point even though the true value is a very small positive number.
 
+> 把数百个概率（每个都小于 1）相乘会导致浮点下溢。即使真实值是一个极小的正数，乘积在浮点下也变成零。
+
 The solution: work in log space. Instead of multiplying probabilities, add their logarithms:
+
+> 解决方案：在对数空间计算。把概率相乘改为对数相加：
 
 ```
 log P(class | x1, x2, ..., xn) = log P(class) + sum_i log P(xi | class)
 ```
 
 This turns the prediction into a dot product:
+
+> 这把预测变成了点积：
 
 ```
 log_scores = X @ log_feature_probs.T + log_class_priors
@@ -236,9 +281,13 @@ prediction = argmax(log_scores)
 
 Matrix multiplication. That is why Naive Bayes prediction is so fast -- it is the same operation as a single-layer linear model.
 
+> 矩阵乘法。这就是朴素贝叶斯预测如此快的原因——它和单层线性模型是同一个操作。
+
 ### Naive Bayes vs Logistic Regression
 
 Both are linear classifiers for text. The difference is in what they model.
+
+> 两者都是文本的线性分类器。区别在于它们建模的对象。
 
 | Aspect | Naive Bayes | Logistic Regression |
 |--------|------------|-------------------|
@@ -250,7 +299,19 @@ Both are linear classifiers for text. The difference is in what they model.
 | Speed | Single pass, very fast | Iterative optimization |
 | Calibration | Poor probabilities | Better probabilities |
 
+| 方面 | 朴素贝叶斯 | 逻辑回归 |
+|------|----------|---------|
+| 类型 | 生成式（建模 P(X\|Y)） | 判别式（建模 P(Y\|X)） |
+| 训练 | 统计频率 | 优化损失函数 |
+| 小数据 | 更好（强先验有帮助） | 更差（数据不足以估计权重） |
+| 大数据 | 更差（错误假设有害） | 更好（灵活边界） |
+| 特征 | 假设独立 | 能处理相关性 |
+| 速度 | 单次遍历，极快 | 迭代优化 |
+| 校准 | 概率校准差 | 概率校准更好 |
+
 Rule of thumb: start with Naive Bayes. If you have enough data and NB plateaus, switch to logistic regression.
+
+> 经验法则：先用朴素贝叶斯。如果数据足够且 NB 性能停滞，换逻辑回归。
 
 ### Classification Pipeline
 

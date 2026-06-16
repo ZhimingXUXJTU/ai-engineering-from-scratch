@@ -71,13 +71,19 @@ A Linear layer is a Module. A ReLU activation is a Module. A dropout layer is a 
 
 Dropout randomly zeroes neurons during training but passes everything through during evaluation. Batch normalization uses batch statistics during training but running averages during evaluation. The `train()` and `eval()` methods toggle this behavior. Every Module has a `training` flag.
 
+> Dropout 在训练时随机把神经元置零，但在评估时全部通过。Batch normalization 在训练时用 batch 统计量，在评估时用滑动平均。`train()` 和 `eval()` 方法切换这个行为。每个 Module 都有一个 `training` 标志。
+
 ### Optimizer | 优化器
 
 The optimizer updates parameters using their gradients. SGD: `param -= lr * grad`. Adam: maintains momentum and variance estimates, then updates. The optimizer does not know about the network architecture -- it only sees a flat list of parameters and their gradients.
 
+> 优化器用梯度更新参数。SGD：`param -= lr * grad`。Adam：维护动量和方差估计后再更新。优化器不知道网络架构——它只看到一个扁平的参数列表和它们的梯度。
+
 ### DataLoader | 数据加载器
 
 Batching matters for two reasons. First, you cannot fit the entire dataset in memory for large problems. Second, mini-batch gradient descent provides noise that helps escape local minima. The DataLoader splits data into batches and optionally shuffles between epochs.
+
+> 分批重要的原因有两个。第一，大问题的整个数据集放不进内存。第二，mini-batch 梯度下降提供的噪声有助于跳出局部最小值。DataLoader 把数据切成批次，可选地在 epoch 之间打乱。
 
 > **【拓展：DataLoader 在大模型训练中的演进】** PyTorch 的 DataLoader 是单机的。大模型训练需要分布式 DataLoader：(1) WebDataset 用于流式加载 TB 级数据；(2) Meta 的 SPDL (Streaming Parallel Data Loader) 支持从 S3/GCS 直接流式加载；(3) HuggingFace datasets 库使用 memory-mapped 文件处理超大数据集。Llama 3 的训练数据约 15T token，不可能全部加载到内存。
 
@@ -212,6 +218,8 @@ class Module:
 The fundamental building block. Stores weights and biases, computes Wx + b forward, and weight/input gradients backward.
 
 > 基本构建块。存储权重和偏置，前向计算 Wx + b，反向计算权重/输入梯度。
+
+> Linear 层是 PyTorch `nn.Linear` 的简化版。前向传播：对每个输出神经元 i，计算 `sum(W[i][j] * x[j]) + b[i]`。反向传播用链式法则：权重的梯度是 `grad[i] * input[j]`，输入的梯度是 `grad[i] * W[i][j]`。注意 fan_in 维度初始化用 Kaiming（`std = sqrt(2/fan_in)`），适配 ReLU。
 
 ```python
 import math
@@ -420,6 +428,8 @@ Chains modules. Forward goes left-to-right, backward goes right-to-left.
 
 > 串联模块。前向从左到右，反向从右到左。
 
+> Sequential 容器实现组合模式——它本身是一个 Module，但内部维护一个 Module 列表。`train()` 和 `eval()` 递归调用每个子模块。`parameters()` 聚合所有子模块的参数。这就是 PyTorch `nn.Sequential` 的核心实现。
+
 ```python
 class Sequential(Module):
     def __init__(self, *modules):
@@ -458,6 +468,8 @@ class Sequential(Module):
 MSE and Binary Cross-Entropy. Each returns the loss value and provides a backward() that returns the gradient.
 
 > MSE 和二元交叉熵。每个返回损失值，并提供返回梯度的 backward() 方法。
+
+> 损失函数是训练循环的起点——反向传播从损失函数的梯度开始。MSE 的梯度是 `2 * (pred - target) / n`，BCE 的梯度是 `(-target/p + (1-target)/(1-p)) / n`。注意 BCE 中要用 eps 裁剪防止 log(0)。
 
 ```python
 class MSELoss:
@@ -501,6 +513,8 @@ class BCELoss:
 Both take a parameter list and update weights using gradients.
 
 > 两者都接收参数列表，使用梯度更新权重。
+
+> SGD 简单：参数 -= 学习率 × 梯度。Adam 维护一阶矩 m 和二阶矩 v，加上偏差修正（前几步梯度估计有偏），效果在大多数任务上优于 SGD。AdamW 在 Adam 基础上加解耦权重衰减。参数列表中的每个元素是 (容器, i, j, 梯度容器) 四元组，j=None 表示偏置（一维）。
 
 ```python
 class SGD:
@@ -597,6 +611,8 @@ Wire everything together. Define a model, pick a loss, pick an optimizer, run th
 
 > 将一切组装在一起。定义模型，选择损失函数，选择优化器，运行训练循环。
 
+> 训练循环的标准模式：每个 epoch 遍历所有 batch，每个 batch 中：(1) zero_grad 清零梯度；(2) forward 前向计算预测；(3) 计算损失；(4) backward 反向传播梯度；(5) optimizer.step() 更新参数。圆形分类任务：点是 (x, y)，标签是 x²+y²<1.5 → 1，否则 0。
+
 ```python
 def make_circle_data(n=500, seed=42):
     random.seed(seed)
@@ -686,6 +702,8 @@ Here is the PyTorch equivalent of what you just built:
 
 > 下面是你刚才构建的框架的 PyTorch 等价实现：
 
+> PyTorch 的 `nn.Sequential`、`nn.Linear`、`nn.ReLU`、`nn.Sigmoid`、`nn.BCELoss`、`torch.optim.Adam` 与你的迷你框架一一对应。最大的不同是 PyTorch 用 autograd 自动计算梯度（你不需要手写 backward），并支持 GPU 和混合精度。但心智模型完全一样——这就是为什么理解了迷你框架就能直接读 PyTorch 代码。
+
 ```python
 import torch
 import torch.nn as nn
@@ -734,17 +752,29 @@ This lesson produces:
 
 > 本课产出：`outputs/prompt-framework-architect.md` - 一个使用框架抽象设计神经网络架构的提示词
 
+> 这个提示词会引导 LLM 根据任务特点（输入维度、输出类型、数据量）推荐合适的网络架构——多少层、每层多少神经元、用什么激活、是否加 Dropout/BatchNorm、用什么损失和优化器。
+
 ## Exercises | 练习题
 
 1. Add a `SoftmaxCrossEntropyLoss` class for multi-class classification. Softmax the predictions, compute cross-entropy loss, and handle the combined backward pass. Test it on a 3-class spiral dataset.
 
+   1. 添加 `SoftmaxCrossEntropyLoss` 类用于多分类。对预测做 Softmax，计算交叉熵损失，处理组合反向传播。在 3 类螺旋数据集上测试。
+
 2. Implement learning rate scheduling in the optimizer: add a `set_lr()` method and wire in the cosine schedule from Lesson 09. Train the circle classifier with warmup + cosine and compare to constant LR.
+
+   2. 在优化器中实现学习率调度：添加 `set_lr()` 方法，接入第 9 课的余弦调度。用 warmup + 余弦训练圆形分类器，与恒定 LR 对比。
 
 3. Add a `save()` and `load()` method to Sequential that serializes all weights to a JSON file and loads them back. Verify that a loaded model produces the same predictions as the original.
 
+   3. 给 Sequential 加 `save()` 和 `load()` 方法，把所有权重序列化到 JSON 文件并加载回来。验证加载的模型产生和原模型相同的预测。
+
 4. Implement weight decay (L2 regularization) in the Adam optimizer. Add a `weight_decay` parameter that shrinks weights toward zero each step. Compare training with decay=0 vs decay=0.01.
 
+   4. 在 Adam 优化器中实现权重衰减（L2 正则化）。添加 `weight_decay` 参数，每步把权重往零收缩。对比 decay=0 和 decay=0.01 的训练。
+
 5. Replace the per-sample training loop with proper mini-batch gradient accumulation: accumulate gradients across all samples in a batch, then divide by batch size and take one optimizer step. Measure whether this changes convergence speed.
+
+   5. 用正确的 mini-batch 梯度累积替换逐样本训练循环：在一个 batch 中累积所有样本的梯度，然后除以 batch 大小，做一次优化器步进。测量这是否改变收敛速度。
 
 ## Key Terms | 术语速查表
 
@@ -760,6 +790,19 @@ This lesson produces:
 | Training mode | "model.train()" | A flag that enables stochastic behavior like dropout and batch normalization with batch stats |
 | Evaluation mode | "model.eval()" | A flag that disables dropout and uses running statistics for batch normalization |
 | Zero grad | "Clear the gradients" | Resetting all parameter gradients to zero before computing the next batch's gradients |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| Module / 模块 | "一层" | 框架中的基础抽象——任何有 forward()、backward()、parameters() 的对象 |
+| Sequential / 顺序容器 | "按顺序叠层" | 一个把模块串联起来的容器，前向按顺序、反向按逆序 |
+| Forward pass / 前向传播 | "跑网络" | 把输入依次通过每个模块计算输出 |
+| Backward pass / 反向传播 | "算梯度" | 把损失梯度反向通过每个模块计算参数梯度 |
+| Parameters / 参数 | "可训练权重" | 网络中优化器能更新的所有值——权重和偏置 |
+| Optimizer / 优化器 | "更新权重的东西" | 用梯度更新参数的算法，实现 SGD、Adam 或其他规则 |
+| DataLoader / 数据加载器 | "喂数据的东西" | 把数据集切成批次的迭代器，可选地在 epoch 间打乱 |
+| Training mode / 训练模式 | "model.train()" | 启用 Dropout、BN 用 batch 统计等随机行为的标志 |
+| Evaluation mode / 评估模式 | "model.eval()" | 关闭 Dropout、BN 用运行统计量的标志 |
+| Zero grad / 清零梯度 | "清掉梯度" | 在计算下一批梯度前把所有参数梯度重置为零 |
 
 ## Further Reading | 延伸阅读
 

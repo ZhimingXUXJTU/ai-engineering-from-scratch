@@ -344,6 +344,8 @@ def cross_validate(X, y, model_fn, k=5, metric_fn=None, stratified=False):
 
 ### Step 3: Confusion matrix and classification metrics
 
+> 第三步：混淆矩阵和分类指标。从零实现 TP/TN/FP/FN 计数，再推导出准确率、精确率、召回率、F1。ROC 曲线扫描所有可能阈值，记录每点的 (FPR, TPR)，AUC 是曲线下面积（用梯形法计算）。
+
 ```python
 def confusion_matrix(y_true, y_pred):
     tp = sum(1 for yt, yp in zip(y_true, y_pred) if yt == 1 and yp == 1)
@@ -415,6 +417,8 @@ def auc_roc(y_true, y_scores):
 
 ### Step 4: Regression metrics
 
+> 第四步：回归指标。MSE（均方误差）对大误差二次惩罚、敏感于异常值；RMSE 与目标单位一致便于解释；MAE（平均绝对误差）线性处理、对异常值鲁棒；R²（决定系数）= 1 - 残差平方和 / 总平方和，表示模型解释了多少方差。
+
 ```python
 def mse(y_true, y_pred):
     n = len(y_true)
@@ -440,6 +444,8 @@ def r_squared(y_true, y_pred):
 ```
 
 ### Step 5: Learning curves
+
+> 第五步：学习曲线。逐步增加训练数据量，记录训练分数和验证分数。两条曲线都低→高偏差（欠拟合）；训练高但验证低→高方差（过拟合）。这是诊断模型问题最直观的工具。
 
 ```python
 def learning_curve(X, y, model_fn, metric_fn, train_sizes=None, val_ratio=0.2, seed=42):
@@ -479,6 +485,8 @@ def learning_curve(X, y, model_fn, metric_fn, train_sizes=None, val_ratio=0.2, s
 ```
 
 ### Step 6: A simple classifier for testing, plus the full demo
+
+> 第六步：一个简单的逻辑回归分类器，用于测试评估代码。手动实现前向传播（线性组合 + sigmoid）、梯度下降更新。然后用前面定义的交叉验证、指标、学习曲线完整评估这个模型。
 
 ```python
 class SimpleLogistic:
@@ -599,6 +607,8 @@ if __name__ == "__main__":
     print(f"  Train: {len(X_train)}, Val: {len(X_val)}, Test: {len(X_test)}")
     print(f"  Train class distribution: {sum(y_train)}/{len(y_train)} positive")
     print(f"  Val class distribution: {sum(y_val)}/{len(y_val)} positive")
+
+    # 主程序：完整演示训练/验证/测试划分、分类指标（含混淆矩阵、F1、AUC-ROC）、K 折交叉验证、回归指标（MSE/RMSE/MAE/R²）、学习曲线、不平衡数据评估。每个环节都展示具体数值，让评估方法变得具体。
 
     model = SimpleLogistic(lr=0.1, epochs=200)
     model.fit(X_train, y_train)

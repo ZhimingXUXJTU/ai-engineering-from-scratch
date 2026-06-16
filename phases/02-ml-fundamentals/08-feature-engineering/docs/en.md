@@ -271,6 +271,8 @@ def target_encode(feature_values, target_values, smoothing=10):
 
 ### Step 3: Text features from scratch
 
+> 第三步：文本特征。词频向量（CountVectorizer）统计每个词在文档中出现的次数；TF-IDF 在词频基础上乘以逆文档频率，降低常见词权重、提升稀有词权重。sklearn 的 `TfidfVectorizer` 是这个实现的生产版。
+
 ```python
 def count_vectorize(documents):
     vocab = {}
@@ -330,6 +332,8 @@ def tfidf(documents):
 
 ### Step 4: Missing value imputation from scratch
 
+> 第四步：缺失值填充。均值填充对正态分布数据合适，中位数对异常值鲁棒，众数用于类别特征。关键技巧：加缺失指示列——"这个值是否缺失"本身可能是预测性信号（如医疗数据中某项检查未做可能暗示病情）。
+
 ```python
 def impute_mean(values):
     present = [v for v in values if v is not None]
@@ -367,6 +371,8 @@ def add_missing_indicator(values):
 ```
 
 ### Step 5: Feature selection from scratch
+
+> 第五步：特征选择。皮尔逊相关系数衡量线性关系（-1 到 +1）；互信息能捕获非线性关系，更全面但需要离散化；方差阈值移除几乎不变的特征；相关性过滤移除冗余特征（保留一对高度相关特征中的一个）。sklearn 的 `SelectKBest`、`VarianceThreshold` 是这些方法的生产封装。
 
 ```python
 def correlation(x, y):

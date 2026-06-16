@@ -60,11 +60,15 @@ But "random" is not enough. The *scale* of the randomness determines whether the
 
 Consider a single layer with fan_in inputs:
 
+> 考虑一个有 fan_in 个输入的单层：
+
 ```
 z = w1*x1 + w2*x2 + ... + w_n*x_n
 ```
 
 If each weight wi is drawn from a distribution with variance Var(w) and each input xi has variance Var(x), the output variance is:
+
+> 如果每个权重 wi 来自方差为 Var(w) 的分布，每个输入 xi 的方差为 Var(x)，输出方差是：
 
 ```
 Var(z) = fan_in * Var(w) * Var(x)
@@ -72,9 +76,15 @@ Var(z) = fan_in * Var(w) * Var(x)
 
 If Var(w) = 1 and fan_in = 512, the output variance is 512x the input variance. After 10 layers: 512^10 = 1.2e27. Your signal has exploded.
 
+> 如果 Var(w) = 1 且 fan_in = 512，输出方差是输入方差的 512 倍。10 层后：512^10 = 1.2e27。你的信号已经爆炸。
+
 If Var(w) = 0.001, the output variance shrinks by 0.001 * 512 = 0.512 per layer. After 10 layers: 0.512^10 = 0.00013. Your signal has vanished.
 
+> 如果 Var(w) = 0.001，输出方差每层缩小 0.001 * 512 = 0.512。10 层后：0.512^10 = 0.00013。你的信号已经消失。
+
 The goal: choose Var(w) so that Var(z) = Var(x). Signal magnitude stays constant across layers.
+
+> 目标：选择 Var(w) 使 Var(z) = Var(x)。信号幅度逐层保持恒定。
 
 > **【中文解读】** 方差传播的数学：Var(z) = fan_in * Var(w) * Var(x)。如果 fan_in=512 且 Var(w)=1，输出方差是输入的 512 倍。10 层后：512^10 = 1.2e27，信号爆炸。Xavier 和 Kaiming 的目标都是让 Var(z) = Var(x)，使信号幅度逐层保持恒定。
 
@@ -420,13 +430,23 @@ This lesson produces:
 
 1. Add LeCun initialization (Var = 1/fan_in, designed for SELU activation). Run the 50-layer experiment with LeCun init + tanh and compare to Xavier + tanh.
 
+   1. 添加 LeCun 初始化（Var = 1/fan_in，为 SELU 激活设计）。用 LeCun 初始化 + tanh 跑 50 层实验，和 Xavier + tanh 对比。
+
 2. Implement the GPT-2 residual scaling: multiply the output of each layer by 1/sqrt(2*N) before adding to the residual stream. Run 50 layers with and without scaling, measure how fast the residual magnitude grows.
+
+   2. 实现 GPT-2 残差缩放：把每层输出乘以 1/sqrt(2*N) 再加到残差流。跑 50 层有缩放和无缩放，测量残差幅度增长速度。
 
 3. Create an "init health check" function that takes a network's layer dimensions and activation type, then recommends the correct initialization and warns if the current init will cause problems.
 
+   3. 创建"初始化健康检查"函数：接收网络层维度和激活类型，推荐正确初始化，警告当前初始化是否会导致问题。
+
 4. Run the experiment with fan_in = 16 vs fan_in = 1024. Xavier and Kaiming adapt to fan_in, but random init doesn't. Show how the gap between "works" and "breaks" widens with larger layers.
 
+   4. 用 fan_in = 16 和 fan_in = 1024 跑实验。Xavier 和 Kaiming 自适应 fan_in，但随机初始化不会。展示"能用"和"崩溃"之间的差距如何随层增大而扩大。
+
 5. Implement orthogonal initialization (generate a random matrix, compute its SVD, use the orthogonal matrix U). Compare to Kaiming for ReLU networks at 50 layers.
+
+   5. 实现正交初始化（生成随机矩阵，计算 SVD，用正交矩阵 U）。在 50 层 ReLU 网络上和 Kaiming 对比。
 
 ## Key Terms | 术语速查表
 
@@ -442,6 +462,19 @@ This lesson produces:
 | Residual scaling | "GPT-2's init trick" | Scaling residual connection weights by 1/sqrt(2N) to prevent variance growth through N transformer layers |
 | Dead network | "Nothing trains" | A network where poor initialization causes all gradients to be zero or all activations to saturate |
 | Exploding activations | "Values go to infinity" | When weight variance is too high, causing activation magnitudes to grow exponentially through layers |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| Weight initialization / 权重初始化 | "随机设置初始权重" | 选择初始权重值的策略，决定网络能否训练 |
+| Symmetry breaking / 对称性破除 | "让神经元不同" | 用随机初始化确保神经元学到不同特征，而不是计算相同函数 |
+| Fan-in / 输入连接数 | "神经元的输入数" | 入连接数，决定加权和里输入方差如何累积 |
+| Fan-out / 输出连接数 | "神经元的输出数" | 出连接数，与反向传播时保持梯度方差相关 |
+| Xavier/Glorot init / Xavier 初始化 | "sigmoid 初始化" | Var(w) = 2/(fan_in + fan_out)，旨在通过 sigmoid/tanh 保持方差 |
+| Kaiming/He init / Kaiming 初始化 | "ReLU 初始化" | Var(w) = 2/fan_in，补偿 ReLU 把一半激活置零 |
+| Variance propagation / 方差传播 | "信号在层间如何放大或缩小" | 关于激活方差如何基于权重尺度逐层变化的数学分析 |
+| Residual scaling / 残差缩放 | "GPT-2 的初始化技巧" | 把残差连接权重缩放 1/sqrt(2N)，防止 N 个 Transformer 层后方差增长 |
+| Dead network / 死亡网络 | "什么都不训练" | 初始化不当导致所有梯度为零或所有激活饱和的网络 |
+| Exploding activations / 激活爆炸 | "值到无穷" | 权重方差太高，激活幅度在层间指数增长 |
 
 ## Further Reading | 延伸阅读
 

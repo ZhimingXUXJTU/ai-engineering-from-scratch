@@ -275,6 +275,8 @@ flowchart TD
 
 ### Step 1: Dropout (Train and Eval Mode) | 第一步：Dropout（训练/评估模式）
 
+> 第一步：Dropout 实现。关键是 inverted dropout——训练时按概率 p 置零，剩余值除以 (1-p) 保持期望不变；推理时直接通过。这样推理代码不需要知道 dropout 的存在。backward 也要应用相同 mask（除以 (1-p)）。
+
 ```python
 import random
 import math
@@ -312,6 +314,8 @@ class Dropout:
 
 ### Step 2: L2 Weight Decay | 第二步：L2 权重衰减
 
+> 第二步：L2 正则化的损失和梯度。损失项 = (lambda/2) × 平方和；梯度 = lambda × 权重。每个权重在每步都被往零方向拉一点点。Adam 中要用 AdamW（解耦权重衰减）才等价。
+
 ```python
 def l2_regularization(weights, lambda_reg):
     penalty = 0.0
@@ -324,6 +328,8 @@ def l2_gradient(weights, lambda_reg):
 ```
 
 ### Step 3: Batch Normalization | 第三步：批归一化
+
+> 第三步：BatchNorm 实现。训练时：用当前 batch 的均值方差归一化，同时累积运行平均（指数滑动）。推理时：用累积的运行平均归一化。gamma/beta 是可学习参数让网络"撤销"归一化的能力。注意 eps 防止除以零。
 
 ```python
 class BatchNorm:
@@ -398,6 +404,8 @@ class LayerNorm:
 
 ### Step 5: RMSNorm | 第五步：均方根归一化
 
+> 第五步：RMSNorm 是 LayerNorm 的简化版——只算 RMS（均方根），不减均值，没有 beta。LLaMA、Mistral 等现代 LLM 都用 RMSNorm。10% 的加速看似不多，但在万亿 token 训练中相当于节省数千 GPU 小时。
+
 ```python
 class RMSNorm:
     def __init__(self, num_features, eps=1e-6):
@@ -414,6 +422,8 @@ class RMSNorm:
 ```
 
 ### Step 6: Training With and Without Regularization | 第六步：正则化对比训练
+
+> 第六步：在圆形分类数据集上对比有/无正则化的训练效果。无正则化的网络在训练集上能达到 100% 准确率，但测试集上只有 65%（过拟合）。加入 Dropout + 权重衰减后，训练准确率降到 95%，但测试准确率升到 90%（泛化更好）。这就是正则化的价值。
 
 ```python
 def sigmoid(x):

@@ -93,6 +93,8 @@ Real numbers: SGD alone on a badly conditioned loss landscape might take 10,000 
 
 The first per-parameter adaptive learning rate method that actually worked. Proposed by Hinton in a Coursera lecture (never formally published).
 
+> 第一个真正有效的每参数自适应学习率方法。Hinton 在 Coursera 课程中提出（从未正式发表）。
+
 ```
 s_t = beta * s_{t-1} + (1 - beta) * gradient^2
 w = w - lr * gradient / (sqrt(s_t) + epsilon)
@@ -100,9 +102,15 @@ w = w - lr * gradient / (sqrt(s_t) + epsilon)
 
 s_t tracks the running average of squared gradients. Parameters with consistently large gradients get divided by a large number (smaller effective learning rate). Parameters with small gradients get divided by a small number (larger effective learning rate).
 
+> s_t 追踪平方梯度的运行平均。梯度持续大的参数被一个大数除（有效学习率更小）。梯度小的参数被一个小数除（有效学习率更大）。
+
 This solves the "one learning rate for all parameters" problem. A weight that's already been getting large updates is probably near its target -- slow it down. A weight that's been getting tiny updates might be undertrained -- speed it up.
 
+> 这解决了"所有参数共用一个学习率"的问题。一个已经获得大更新的权重可能接近目标——慢下来。一个只获得微小更新的权重可能欠训练——加快。
+
 Epsilon (typically 1e-8) prevents division by zero when a parameter hasn't been updated.
+
+> Epsilon（通常 1e-8）防止参数未被更新时除以零。
 
 ### Adam: Momentum + RMSProp | Adam：动量 + 自适应学习率
 
@@ -117,6 +125,8 @@ v_t = beta2 * v_{t-1} + (1 - beta2) * gradient^2       (second moment: variance)
 
 **Bias correction** is the key detail most explanations skip. At step 1, m_1 = (1 - beta1) * gradient. With beta1 = 0.9, that's 0.1 * gradient -- ten times too small. The moving average hasn't warmed up yet. Bias correction compensates:
 
+> **偏差修正**是大多数解释跳过的关键细节。第 1 步，m_1 = (1 - beta1) * gradient。当 beta1 = 0.9 时，是 0.1 * gradient——小了十倍。移动平均还没"热身"完。偏差修正做补偿：
+
 ```
 m_hat = m_t / (1 - beta1^t)
 v_hat = v_t / (1 - beta2^t)
@@ -124,13 +134,19 @@ v_hat = v_t / (1 - beta2^t)
 
 At step 1 with beta1 = 0.9: m_hat = m_1 / (1 - 0.9) = m_1 / 0.1 = the actual gradient. At step 100: (1 - 0.9^100) is approximately 1.0, so the correction vanishes. Bias correction matters for the first ~10 steps and is irrelevant after ~50.
 
+> 第 1 步 beta1 = 0.9 时：m_hat = m_1 / (1 - 0.9) = m_1 / 0.1 = 实际梯度。第 100 步：(1 - 0.9^100) 大约等于 1.0，修正消失。偏差修正对前 ~10 步重要，~50 步后无关紧要。
+
 The update:
+
+> 更新公式：
 
 ```
 w = w - lr * m_hat / (sqrt(v_hat) + epsilon)
 ```
 
 Adam defaults: lr = 0.001, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8. These defaults work for 80% of problems. When they don't, change lr first. Then beta2. Almost never change beta1 or epsilon.
+
+> Adam 默认值：lr = 0.001，beta1 = 0.9，beta2 = 0.999，epsilon = 1e-8。这些默认值适用于 80% 的问题。不适用时，先调 lr，再调 beta2。几乎从不需要改 beta1 或 epsilon。
 
 > **【拓展：Adam 的局限性】** 尽管 Adam 是最常用的优化器，它并不完美：(1) 在某些 convex 问题上收敛不如 SGD；(2) Adam 的泛化性有时比 SGD 差（因为自适应学习率可能导致过拟合）；(3) Adam 的内存开销是 SGD 的 2-3 倍（需要存储 m 和 v）。2024 年的 AdamW + ScheduleFree 是新的改进方向。
 
@@ -177,10 +193,16 @@ graph TD
 
 If you tune one hyperparameter, tune the learning rate. A 10x change in learning rate matters more than any architectural decision you'll make. Common defaults:
 
+> 如果你只调一个超参数，调学习率。学习率 10 倍的变化比任何架构决策都重要。常见默认值：
+
 - SGD: lr = 0.01 to 0.1
+  SGD：lr = 0.01 到 0.1
 - Adam/AdamW: lr = 1e-4 to 3e-4
+  Adam/AdamW：lr = 1e-4 到 3e-4
 - Fine-tuning pretrained models: lr = 1e-5 to 5e-5
+  微调预训练模型：lr = 1e-5 到 5e-5
 - Learning rate warmup: linear ramp over first 1-10% of steps
+  学习率 warmup：在前 1-10% 步数内线性升温
 
 ### Optimizer Comparison | 优化器对比
 
@@ -216,6 +238,8 @@ flowchart TD
 
 ### Step 1: Vanilla SGD | 第一步：原始 SGD
 
+> 原始 SGD：参数直接减去学习率乘梯度。简单但容易振荡。
+
 ```python
 class SGD:
     def __init__(self, lr=0.01):
@@ -227,6 +251,8 @@ class SGD:
 ```
 
 ### Step 2: SGD with Momentum | 第二步：带动量的 SGD
+
+> SGD+Momentum：引入速度变量，累积历史梯度。指向一致方向的梯度相互叠加，振荡方向相互抵消。
 
 ```python
 class SGDMomentum:
@@ -244,6 +270,8 @@ class SGDMomentum:
 ```
 
 ### Step 3: Adam | 第三步：Adam 优化器
+
+> Adam：维护一阶矩 m（梯度均值）和二阶矩 v（梯度方差），加上偏差修正。80% 的问题用默认参数就能跑。
 
 ```python
 import math
@@ -276,6 +304,8 @@ class Adam:
 ```
 
 ### Step 4: AdamW | 第四步：AdamW 优化器
+
+> AdamW：在 Adam 基础上把权重衰减从梯度中解耦——直接对参数本身做衰减，不经过 m 和 v 的缩放。这是训练 Transformer 的标准选择。
 
 ```python
 class AdamW:
@@ -310,6 +340,8 @@ class AdamW:
 ### Step 5: Training Comparison | 第五步：训练对比
 
 Train the same two-layer network on the circle dataset from lesson 05 with all four optimizers. Compare convergence.
+
+> 用第 5 课的圆形数据集训练同一个两层网络，对比四种优化器的收敛速度。
 
 ```python
 import random

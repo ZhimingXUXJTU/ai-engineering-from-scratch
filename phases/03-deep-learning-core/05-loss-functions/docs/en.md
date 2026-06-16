@@ -142,13 +142,19 @@ MSE gradients flatten when predictions are near 0 or 1 (due to sigmoid saturatio
 
 Standard one-hot labels say "this is 100% class 3 and 0% everything else." That's a strong claim. Label smoothing softens it:
 
+> 标准的 one-hot 标签说"这是 100% 类别 3，其他都是 0%"。这是个强声明。标签平滑软化它：
+
 ```
 smooth_label = (1 - alpha) * one_hot + alpha / num_classes
 ```
 
 With alpha = 0.1 and 10 classes: instead of [0, 0, 1, 0, ...], the target becomes [0.01, 0.01, 0.91, 0.01, ...]. The model targets 0.91 instead of 1.0.
 
+> alpha = 0.1、10 个类别时：目标从 [0, 0, 1, 0, ...] 变成 [0.01, 0.01, 0.91, 0.01, ...]。模型目标从 1.0 变成 0.91。
+
 Why this works: a model trying to output exactly 1.0 through a softmax needs to push logits to infinity. This causes overconfidence, hurts generalization, and makes the model brittle to distribution shift. Label smoothing caps the target at 0.9 (with alpha=0.1), keeping logits in a reasonable range. GPT and most modern models use label smoothing or its equivalent.
+
+> 为什么有效：要让 softmax 输出恰好 1.0，需要把 logit 推到无穷大。这导致过度自信、损害泛化、使模型对分布漂移脆弱。标签平滑把目标上限设为 0.9（alpha=0.1），让 logit 保持在合理范围。GPT 和大多数现代模型都用标签平滑或等价机制。
 
 > **【中文解读】** 标签平滑把硬标签 [0, 0, 1, 0, ...] 变成软标签 [0.01, 0.01, 0.91, 0.01, ...]。因为要让 softmax 输出 1.0 需要 logit 趋近无穷大，这会导致过拟合和过度自信。标签平滑把目标上限降到 0.9，保持 logit 在合理范围。GPT 和大多数现代模型都用标签平滑。
 
@@ -178,14 +184,20 @@ Where sim() is cosine similarity, z_i and z_j are the positive pair, the sum is 
 
 For imbalanced datasets. Standard cross-entropy treats all correctly classified examples equally. Focal loss down-weights easy examples:
 
+> 为不平衡数据集设计。标准交叉熵同等对待所有正确分类的样本。Focal loss 降低简单样本的权重：
+
 ```
 FL = -alpha * (1 - p_t)^gamma * log(p_t)
 ```
 
 Where p_t is the predicted probability of the true class and gamma controls the focusing. With gamma = 0, this is standard cross-entropy. With gamma = 2 (the default):
 
+> 其中 p_t 是真实类别的预测概率，gamma 控制聚焦程度。gamma = 0 时退化为标准交叉熵。gamma = 2 时（默认值）：
+
 - Easy example (p_t = 0.9): weight = (0.1)^2 = 0.01. Effectively ignored.
+  简单样本（p_t = 0.9）：权重 = (0.1)^2 = 0.01。实际被忽略。
 - Hard example (p_t = 0.1): weight = (0.9)^2 = 0.81. Full gradient signal.
+  困难样本（p_t = 0.1）：权重 = (0.9)^2 = 0.81。完整梯度信号。
 
 > **【中文解读】** Focal Loss 为类别不平衡设计。简单样本（p_t=0.9）的权重只有 0.01，几乎被忽略；困难样本（p_t=0.1）的权重 0.81，获得完整梯度信号。这让模型专注于困难案例。用于目标检测（RetinaNet），99% 是背景、1% 是目标。
 

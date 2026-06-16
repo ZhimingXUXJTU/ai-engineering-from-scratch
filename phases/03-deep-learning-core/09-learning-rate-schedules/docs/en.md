@@ -466,13 +466,23 @@ This lesson produces:
 
 1. Implement exponential decay: lr(t) = lr_0 * gamma^t where gamma = 0.999. Compare to cosine annealing on the circle dataset.
 
+   1. 实现指数衰减：lr(t) = lr_0 * gamma^t，gamma = 0.999。在圆形数据集上和余弦退火对比。
+
 2. Implement the learning rate range test (Leslie Smith): train for a few hundred steps while exponentially increasing the LR from 1e-7 to 1. Plot loss vs LR. The optimal max LR is just before the loss starts increasing.
+
+   2. 实现学习率范围测试（Leslie Smith）：训练几百步，同时把 LR 从 1e-7 指数增加到 1。绘制 loss vs LR 曲线。最优 max LR 是 loss 开始上升前的值。
 
 3. Train with warmup + cosine but vary the warmup length: 0%, 1%, 5%, 10%, 20% of total steps. Find the sweet spot where training is most stable.
 
+   3. 用 warmup + 余弦训练，但变化 warmup 长度：总步数的 0%、1%、5%、10%、20%。找到训练最稳定的最佳点。
+
 4. Implement cosine annealing with warm restarts (SGDR): reset the learning rate to lr_max every T steps and decay again. Compare to standard cosine on a longer training run.
 
+   4. 实现带热重启的余弦退火（SGDR）：每 T 步把学习率重置为 lr_max 并再次衰减。在更长的训练上和标准余弦对比。
+
 5. Build a "schedule surgeon" that monitors training loss and automatically switches from warmup to cosine when the loss stabilizes, and reduces lr if the loss plateaus for too long.
+
+   5. 构建"调度医生"：监控训练 loss，loss 稳定时自动从 warmup 切换到余弦，loss 停滞太久时降低 lr。
 
 ## Key Terms | 术语速查表
 
@@ -488,6 +498,19 @@ This lesson produces:
 | Cosine with warm restarts | "Reset and repeat" | Periodically resetting the LR to lr_max and decaying again (SGDR) |
 | Eta min | "The floor for the LR" | The minimum learning rate that the schedule decays to |
 | Peak learning rate | "The maximum LR" | The highest LR reached during training, typically after warmup |
+
+| 术语 | 俗称 | 实际含义 |
+|------|------|---------|
+| Learning rate / 学习率 | "模型学得多快" | 乘以梯度决定参数更新大小的标量 |
+| Schedule / 调度 | "随时间变 LR" | 把训练步数映射到学习率的函数，旨在优化收敛 |
+| Warmup / 预热 | "从小 LR 开始" | 在前 N 步把 LR 从近零线性升到目标值，稳定优化器统计 |
+| Cosine annealing / 余弦退火 | "平滑 LR 衰减" | 训练中按余弦曲线从 lr_max 降到 lr_min |
+| Step decay / 阶梯衰减 | "里程碑式降 LR" | 在固定 epoch 间隔把 LR 乘以一个因子（通常 0.1） |
+| 1cycle policy / 1cycle 策略 | "先升后降" | Leslie Smith 的方法：单周期内先升 LR 后降，加速收敛 |
+| LR range test / LR 范围测试 | "找最佳学习率" | 短训练中增加 LR，找到 loss 开始发散的点 |
+| Cosine with warm restarts / 带热重启的余弦 | "重置并重复" | 周期性把 LR 重置为 lr_max 再次衰减（SGDR） |
+| Eta min / 最小学习率 | "LR 的下限" | 调度衰减到的最小学习率 |
+| Peak learning rate / 峰值学习率 | "最大 LR" | 训练期间达到的最高 LR，通常在 warmup 之后 |
 
 ## Further Reading | 延伸阅读
 
