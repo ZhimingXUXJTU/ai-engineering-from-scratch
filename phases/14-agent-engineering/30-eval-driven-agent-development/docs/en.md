@@ -7,6 +7,8 @@
 **Prerequisites:** All of Phase 14. | **前置知识:** 见原文
 **Time:** ~60 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·01-29 全部——本节是 Phase 14 的综合应用。还需要 Phase 11·10（Evaluation）的基础。本节是 Phase 14·26（Failure Modes）的"预防版"——用 eval 提前发现失败模式。
+
 ## Learning Objectives | 学习目标
 
 - Name the three evaluation layers — static benchmarks, custom offline, online production — and what each is for.
@@ -17,6 +19,10 @@
 ## The Problem | 问题引入
 
 Agents pass demos. They fail in production in ways demos cannot predict. Benchmarks answer "is this model broadly capable?" not "is this agent shipping the right patches for my product?" The answer: evaluation at three layers, running continuously, with every guardrail and learned rule mapped to an eval case.
+
+> 💡 **【类比】** Agent eval 像给运动员做体检——3 个层级：(1) **静态基准**（SWE-bench、BFCL）=国家体能测试，比平均水平；(2) **定制离线 eval**=针对你的项目设计（如"修这种 bug 的成功率"）=队内训练赛；(3) **在线生产 eval**=真实用户反馈=A/B 测试。三层缺一不可——只看基准会过拟合，只看生产反馈周期太长。
+
+> ⚠️ **【易错点】** Agent eval 的 3 个坑：(1) **只测 happy path**——eval 集全是简单查询，复杂情况没覆盖；务必构造 adversarial 测试（模糊指令、攻击、边界值）。(2) **eval 不进 CI**——开发时手工跑一次就过，上线后没人跑；eval 必须进 GitHub Actions，PR 不过 eval 不能合并。(3) **eval 集污染**——eval 数据混进 prompt 的 few-shot 示例，分数虚高；eval 数据严格隔离。
 
 > Agent 通过了演示。它们在生产中以演示无法预测的方式失败。基准回答的是"这个模型是否有广泛的能力？"而不是"这个 Agent 是否在为我的产品交付正确的补丁？"答案是：三层评估，持续运行，每个护栏和学习规则都映射到一个评估用例。
 

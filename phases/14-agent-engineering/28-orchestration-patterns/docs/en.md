@@ -7,6 +7,8 @@
 **Prerequisites:** Phase 14 · 12 (Workflow Patterns), Phase 14 · 25 (Multi-Agent Debate) | **前置知识:** 见原文
 **Time:** ~60 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·01（Agent Loop）——单 Agent 基础；Phase 14·12（Workflow Patterns）——Anthropic 的 5 种工作流模式；Phase 14·25（Multi-Agent Debate）——多 Agent 协作基础。**重要原则**：先用单 Agent + 工作流，不够时再上多 Agent 拓扑。
+
 ## Learning Objectives | 学习目标
 
 - Name the four recurring orchestration patterns and when each fits.
@@ -22,6 +24,10 @@ Teams reach for "multi-agent" before they need it. Four patterns recur across fr
 
 
 > **【中文解读】** Agent 编排模式定义了多 Agent 系统中的任务分配和协调方式。四种核心模式：(1) 顺序——任务在 Agent 之间线性传递；(2) 并行——多个 Agent 同时处理不同子任务；(3) 分层——管理者 Agent 分配任务给工作者 Agent；(4) 对等——Agent 之间平等协作。
+
+> 💡 **【类比】** 4 种编排模式 = 4 种公司组织：(1) **Supervisor-Worker** = 老板分活给员工（最常见，LangGraph supervisor）；(2) **Swarm/P2P** = 同事互相协作（适合讨论类任务，AutoGen GroupChat）；(3) **Hierarchical** = 多层老板（CEO→总监→员工，超复杂任务）；(4) **Debate** = 委员会投票（事实核查类任务）。
+
+> ⚠️ **【易错点】** 编排选错的 3 个坑：(1) **简单任务用多 Agent**——单 Agent + 5 工具能解决 80% 需求，过早用 supervisor 反而增加复杂度；Anthropic 明确建议"先简单再拓扑"。(2) **Supervisor 成瓶颈**——所有任务都过 supervisor 转发，单点延迟 + 单点失败；让 worker 间直接通信（仅必要时报 supervisor）。(3) **没设 worker 超时**——慢 worker 卡住整个流程；每个 worker 调用必须设 timeout，超时返回降级结果。
 
 > **{【拓展：Agent 编排是 2026 年生产 Agent 系统的核心挑战。Anthropic 的模式分类（P...】}** Agent 编排是 2026 年生产 Agent 系统的核心挑战。Anthropic 的模式分类（Prompt Chaining、Routing、Parallelization、Orchestrator-Workers）已成为标准。实际应用中，大多数系统混合使用多种模式——例如客服系统先用路由模式分类请求，再用分层模式分配给专门 Agent。LangGraph 的状态图是实现复杂编排的主流工具。
 ## The Concept | 核心概念

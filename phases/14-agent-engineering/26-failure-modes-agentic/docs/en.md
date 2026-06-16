@@ -7,6 +7,10 @@
 **Prerequisites:** Phase 14 · 05 (Self-Refine and CRITIC), Phase 14 · 24 (Observability) | **前置知识:** 见原文
 **Time:** ~60 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·05（Self-Refine / CRITIC）——理解单 Agent 自我纠错的局限；Phase 14·24（Observability）——本节假设你已能用 OpenTelemetry 看完整 trace。本节教你**识别 trace 中的失败模式**，是 Phase 14·29（Production Runtimes）的前置。
+
+> 🤔 **【困惑】** Q: 为什么 Agent 失败比传统软件失败更难发现？ A: 因为 Agent 失败是"软失败"——代码没崩、API 没返回错误，但 Agent 用错误的工具调用、错误参数、错误顺序"成功完成"了任务。传统测试断言只能看 API 返回码，看不到语义错误。需要 LLM-as-judge 或 trace 级别的人审才能发现。
+
 ## Learning Objectives | 学习目标
 
 - Name MASFT's three failure categories and at least four specific modes in each.
@@ -24,6 +28,11 @@ Teams ship agents that work on 90% of traces. The 10% failures are not random no
 > **【中文解读】** Agent 系统的失败模式与普通软件不同：(1) 级联失败——一个错误决策触发后续一系列错误；(2) 目标漂移——Agent 在长链执行中偏离原始目标；(3) 过度自信——Agent 在错误结果上编造成功叙事。理解这些模式是构建可靠 Agent 的前提。
 
 > **{【拓展：2025-2026 年的 Agent 事故报告揭示了系统性失败模式。典型案例如下：(1) 编码 Ag...】}** 2025-2026 年的 Agent 事故报告揭示了系统性失败模式。典型案例如下：(1) 编码 Agent 修改了无关文件导致系统崩溃（级联失败）；(2) 研究 Agent 在第 15 步开始讨论哲学问题（目标漂移）；(3) 客服 Agent 告诉用户'操作成功'但实际未执行（过度自信）。解决这些需要熔断器、意图验证和结果检查。
+
+> 💡 **【类比】** Agent 的 5 大失败模式像开车出事故的 5 种典型原因：(1) **幻觉动作**=看错导航开错路；(2) **范围蔓延**=本来买菜开到了邻省；(3) **级联错误**=小刮擦后慌乱撞墙；(4) **上下文丢失**=忘了从哪出发；(5) **工具误用**=把油门当刹车。每种失败有对应防御：导航验证、明确终点、紧急停车按钮、定期回顾、工具白名单。
+
+> ⚠️ **【易错点】** Agent 失败排查的 3 个坑：(1) **只看最终输出**——Agent 自信说"完成"，但中间步骤全错；务必看完整 trace，不只看 finish() 的输出。(2) **不设失败预算**——同一错误连续重试 20 次烧光预算；用 max_retries=3 + 失败计数器。(3) **没做意图验证**——Agent 决定"删除文件 X"，但 X 是 /etc/passwd；高危操作必须用户二次确认 + 路径白名单。
+
 ## The Concept | 核心概念
 
 ### MASFT (Berkeley, arXiv:2503.13657)
