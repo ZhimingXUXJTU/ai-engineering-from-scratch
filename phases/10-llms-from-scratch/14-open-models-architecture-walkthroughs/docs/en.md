@@ -6,6 +6,10 @@
 
 > **【拓展：DeepSeek架构】** DeepSeek-V3 的关键创新：MLA（多头潜在注意力，压缩 KV-cache）、无辅助损失的 MoE 负载均衡、MTP（多 token 预测）和 DualPipe 训练。理解这些架构选择是理解 2025-2026 年大模型发展方向的关键。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·04（Pre-Training Mini GPT）——理解原始 GPT 架构；Phase 10·05（Scaling）；Phase 10·12（Inference Optimization）——理解 KV cache 才能懂 MLA。本节是后续 15-22 节（架构创新详解）的概览。
+
+> 💡 **【类比】** 看 2026 开源模型 = 看不同品牌的电动车。Llama 3 = 特斯拉（务实，GQA + RoPE 标准配置）；DeepSeek-V3 = 比亚迪（堆料王，MLA + MoE + MTP + DualPipe 全套）；Mixtral = 大众 ID（MoE 老牌）；Qwen = 小鹏（多尺寸覆盖）；Gemma = 沃尔沃（精简安全）。底层都是 Transformer（电动车底盘），差异在 5-6 个关键模块。
+
 **Type:** Learn
 **Languages:** Python (stdlib)
 **Prerequisites:** Phase 10, Lessons 04, 05, 12 (Pre-training, Scaling, Inference)

@@ -6,6 +6,10 @@
 
 > **【拓展：投机解码→生产推理】** 2026 年所有主流推理框架（vLLM、TensorRT-LLM）都内置了投机解码。DeepSeek-V3 的 MTP 头在推理时也被用作投机解码的草稿器，接受率 80%+，实现 1.8 倍吞吐提升。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 07·16（Speculative Decoding 数学证明）；Phase 10·12（Inference Optimization）；Transformer 隐藏状态概念。本节是生产部署投机解码的工程视角。
+
+> 💡 **【类比】** 投机解码 = 老板让实习生先起草邮件。实习生（draft model）秒写 5 段草稿，老板（大模型）只校对一遍。校对一段比从头写一段快得多。校对时如果某段错了，从那段开始重写。EAGLE-3 的关键：实习生看过老板以前写的邮件隐藏思考（hidden states），起草更像老板风格，接受率 90%+。
+
 **Type:** Build
 **Languages:** Python (stdlib)
 **Prerequisites:** Phase 7 · 16 (speculative decoding math), Phase 10 · 12 (inference optimization)
