@@ -6,6 +6,8 @@
 
 > **【拓展：MCP→Claude生态核心协议】** MCP 是 Claude 生态系统的核心协议，定义了工具、资源和提示模板的标准接口。Phase 13 将深入讲解 MCP 的服务端、客户端、传输层和安全机制。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 11·09（Function Calling）——理解工具调用基础；(2) Phase 11·03（Structured Outputs）——理解 JSON Schema；(3) JSON-RPC 2.0 基本概念（请求-响应、通知、批量）；(4) 命令行 stdio 通信。如果不会写 JSON-RPC，本节末尾的 Build It 会用 Python `stdio` 实现，可以照搬。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 11 · 09 (Function Calling), Phase 11 · 03 (Structured Outputs) | **前置知识:** Phase 11 · 09 (函数调用)、03 (结构化输出)
@@ -31,6 +33,8 @@ As of early 2026, MCP is the default tool-and-context protocol across the big th
 
 
 > **【中文解读】** MCP 解决了工具集成的碎片化问题：之前每个外部工具都需要写专用集成代码，MCP 定义了统一协议。就像 USB 标准统一了设备接口一样，MCP 统一了 AI 模型与外部世界的接口。Anthropic、OpenAI、Google 都已采纳。
+
+> 💡 **【类比】** MCP 之于 AI Agent = USB 之于电脑。USB 出现前，每个外设（打印机、键盘、鼠标）都用专用接口，电脑厂商要为每个外设开模做端口。USB 后：一个口插所有。MCP 之前：每个 LLM 应用要为每个工具（GitHub、数据库、Slack）写专用集成代码——给 Claude 写一遍、给 ChatGPT 写一遍、给 Cursor 写一遍。MCP 后：写一个 MCP server，所有 host 即插即用。
 
 
 ## The Concept | 核心概念
@@ -61,6 +65,8 @@ As of early 2026, MCP is the default tool-and-context protocol across the big th
 
 > **宿主 vs 客户端 vs 服务器。** 宿主是 LLM 应用（如 Claude Desktop）。客户端是宿主内部与一个服务器通信的子组件。服务器是你的代码。一个宿主可以同时挂载多个服务器。
 
+> 💡 **【类比】** 用浏览器打比方：浏览器是**宿主**（Chrome），每个网站的连接器是**客户端**（你访问 github.com 时 Chrome 内部维护的 HTTP 客户端），网站本身是**服务器**（GitHub 的 web server）。一个浏览器可以同时打开多个网站（多个客户端），但每个客户端只对应一个服务器。MCP 中：Claude Desktop 是宿主，它内部为每个 MCP server 维护一个客户端，你可以同时挂载 GitHub MCP + Postgres MCP + Filesystem MCP。
+
 ### The handshake
 
 Every session opens with `initialize`. The client sends protocol version and its capabilities. The server responds with its version, name, and the capability set it supports (`tools`, `resources`, `prompts`, `logging`, `roots`). Everything after is negotiated against those capabilities.
@@ -75,6 +81,10 @@ Every session opens with `initialize`. The client sends protocol version and its
   不是 Agent 框架。MCP 是管道；LangGraph、PydanticAI 和 OpenAI Agents SDK 等框架构建在其之上。
 - Not tied to Anthropic. The spec and reference implementations are open source under the `modelcontextprotocol` org.
   不绑定 Anthropic。规范和参考实现在 `modelcontextprotocol` 组织下开源。
+
+> 🤔 **【困惑】** Q: MCP 和 RAG 是什么关系？我该用哪个？ A: 不冲突，层级不同。RAG 解决"从知识库里捞什么内容"（语义检索、向量库）；MCP 解决"把工具/数据源接给模型用"（统一接口）。常见组合：用 RAG 在文档库中检索 → 把检索结果作为 MCP Resource 暴露 → Claude 通过 MCP 读这些 Resource 答题。RAG 在"决定取什么"，MCP 在"如何传输"。
+
+> ⚠️ **【易错点】** MCP 落地的 3 个坑：(1) **stdio 传输并发限制**——stdio 是单进程通信，多个 host 不能共享一个 MCP server 进程；如果 Claude Desktop 和 Cursor 同时要用，每个起一个独立 server 进程。多 host 场景用 streamable HTTP。(2) **资源没限制读取权限**——MCP Resource 暴露文件系统时，路径校验不严会导致 Claude 读取 `/etc/passwd` 或 `.env`；务必在 server 端做 allowlist。(3) **没设超时**——慢工具（如复杂 SQL 查询）会让整个会话卡住；MCP 调用必须设 timeout，超时返回错误而非挂起。
 
 ## Build It | 动手实现
 
