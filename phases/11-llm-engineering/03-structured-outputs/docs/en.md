@@ -6,6 +6,8 @@
 
 > **【拓展：结构化输出→AI应用开发】** 结构化输出是 Function Calling、RAG 管道、数据提取等 AI 应用的基础。OpenAI 的 `response_format`、Anthropic 的 tool use、Instructor 库都是这个领域的核心工具。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 10·01-05（LLM 基础）——理解 token 生成；(2) JSON Schema 基础（`type`、`properties`、`required`）；(3) Python `pydantic` 库或 `dataclasses`——本节用 Pydantic 做验证。如果不懂 JSON Schema，先看 jsonschema.org 的 5 分钟教程。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 10, Lessons 01-05 (LLMs from Scratch) | **前置知识:** Phase 10 · 01-05 (从零构建 LLM)
@@ -44,9 +46,15 @@ This is not a prompt engineering problem. It is a decoding problem. The model ge
 
 > 这不是提示工程问题。这是解码问题。模型从左到右生成 token。在每个位置，它从 10 万+ 个选项的词表中选取最可能的下一个 token。其中大部分选项在任何给定位置都会产生无效 JSON。如果模型刚刚输出了 `{"price":`，下一个 token 必须是数字、引号（用于字符串）、`null`、`true`、`false` 或负号。其他任何东西都会产生无效 JSON。没有约束的话，模型可能会选一个完全合理的英语单词，但在语法上是灾难性的错误。
 
+> 💡 **【类比】** 不带约束的 LLM 输出 JSON 像让人"边说边造句"——说到一半可能临时改主意用别的词，结果语法错乱。约束解码（constrained decoding）像给说话的人"语法监工"——每说一个词监工都检查"这能接下去吗"，不能接就强制换。技术上：模型算出 logits 后，把所有非法 token 的 logit 设为 -∞，softmax 后概率变 0，模型只能选合法 token。
+
+> ⚠️ **【易错点】** 结构化输出的 3 个坑：(1) **Schema 字段过多**——超过 20 个字段模型记不住，会漏字段或填错；修复：拆成嵌套对象，每层不超过 5 个字段。(2) **要求 LLM 输出"创造性"字段但又强 Schema**——比如"起个有创意的标题"配合 `title: str`，模型被 Schema 约束后变得保守；修复：用 `temperature=0.9` + Schema 中加 `min_length: 10` 留余地。(3) **没用 Pydantic 验证**——直接 `json.loads()` 万一字符串里有数字（"348"）就成 str 而非 float；用 Pydantic 自动强制类型转换。
+
 ## The Concept | 核心概念
 
 > **【中文解读】** 结构化输出是让 LLM 生成 JSON、XML 等格式的可控输出。关键技术：函数调用（Function Calling）让模型输出预定义的 JSON schema，JSON mode 强制模型生成合法 JSON，约束解码（constrained decoding）在 token 级别保证输出格式。
+
+> 🤔 **【困惑】** Q: OpenAI 的 `response_format={"type": "json_object"}` 和 `response_format={"type": "json_schema", ...}` 有什么区别？ A: 前者是"JSON mode"——保证输出合法 JSON，但不保证字段。后者是"Structured Outputs"——你给 JSON Schema，模型保证按 Schema 输出（用约束解码实现）。前者便宜但不严格，后者每次贵几分钱但 100% 按规格。生产环境一律用 `json_schema` 模式。
 
 > **【拓展：结构化输出的工程实践】** OpenAI 的 Structured Outputs（2024）保证模型输出严格匹配给定的 JSON Schema，可靠性从约 90% 提升到 100%。Instructor 库（Python）将 Pydantic 模型自动转为 JSON Schema 并验证输出。这是将 LLM 集成到生产系统的关键技术。
 

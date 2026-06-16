@@ -6,6 +6,8 @@
 
 > **【拓展：上下文工程→Claude生态】** Claude 的 MCP 协议本质上就是上下文工程的标准实现——通过统一的协议管理模型可见的工具、资源和提示模板。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 11·01-02（Prompt Engineering、Few-shot CoT）；(2) Phase 11·04（Embeddings）和 Phase 11·06（RAG）——理解检索如何取文档；(3) token 概念——本节重度讨论 token 预算。如果不知道 "200K context window" 指什么，先看 Phase 10。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 10 (LLMs from Scratch), Phase 11 Lesson 01-02 | **前置知识:** Phase 10（从零理解 LLM）、Phase 11 Lesson 01-02
@@ -35,6 +37,10 @@ Claude Opus 4.7 has a 200K token window (1M in beta). GPT-5 has 400K. Gemini 3 P
 Here is a real breakdown for a coding assistant. System prompt: 500 tokens. Tool definitions for 50 tools: 8,000 tokens. Retrieved documentation: 4,000 tokens. Conversation history (10 turns): 6,000 tokens. Current user query: 200 tokens. Generation budget (max output): 4,000 tokens. Total: 22,700 tokens. That is only 18% of a 128K window.
 
 > 这是一个编程助手的真实分解。系统提示：500 token。50 个工具定义：8,000 token。检索文档：4,000 token。对话历史（10 轮）：6,000 token。当前查询：200 token。生成预算：4,000 token。总计：22,700 token。这只占 128K 窗口的 18%。
+
+> 💡 **【类比】** 上下文窗口像书桌桌面——200K token 听起来很大，但放上"教科书（system prompt）"+"参考书（retrieved docs）"+"草稿纸（history）"+"计算器（tools）"就快满了。**Lost in the Middle** 现象像找东西：书桌上摆满东西时，最容易被忽略的是中间堆着的——你只会注意桌面开头（最近放的）和结尾（手边的）。修复：把关键信息放最前或最后，中间放可丢的内容。
+
+> ⚠️ **【易错点】** 上下文管理的 3 个坑：(1) **历史无限增长**——对话越长 history 越大，最终撞窗口；修复：用 summarization（每 N 轮压缩成摘要）或 sliding window（只保留最近 K 轮 + 第一轮）。(2) **工具定义重复发送**——每次调用都把 50 个工具 schema 全发一遍；修复：用 prompt caching（Phase 11·15），Claude / OpenAI 都支持，省 90% cost。(3) **检索文档全塞**——召回 50 个 chunk 全塞 prompt 模型迷失；修复：top-5 高质量块 + cross-encoder 重排。
 
 But attention does not scale linearly with context length. A model with 128K tokens of context pays quadratic attention cost (O(n^2) in vanilla transformers, though most production models use efficient attention variants). More importantly, retrieval accuracy degrades. The "Needle in a Haystack" test shows that models struggle to find information placed in the middle of long contexts. Research by Liu et al. (2023) showed that LLMs retrieve information at the start and end of long contexts with near-perfect accuracy, but accuracy drops 10-20% for information placed in the middle (positions 40-70% of the context). This "lost-in-the-middle" effect varies by model but affects all current architectures.
 

@@ -6,6 +6,8 @@
 
 > **【拓展：LangGraph→Agent工程】** LangGraph 是目前最成熟的 Agent 编排框架，将 Agent 执行建模为状态图（StateGraph），支持人机协作、分支逻辑和持久化状态。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 11·09（Function Calling）；(2) Phase 14·01（Agent Loop）——理解 ReAct 循环；(3) 状态机概念（有限状态机 FSM、节点、边）。本节会用 `langgraph`、`langchain-core`。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 11 · 09 (Function Calling), Phase 11 · 14 (Model Context Protocol) | **前置知识:** Phase 11 · 09 (函数调用)、14 (模型上下文协议)
@@ -27,6 +29,10 @@ LangGraph is the library that ships this abstraction. It is not an agent framewo
 
 
 > **【中文解读】** LangGraph 的核心优势是支持复杂控制流：循环（Agent 遇到错误时重试）、条件分支（根据任务类型选择不同工具）、人工审批（高风险操作需人工确认）。简单的 LangChain Chain 无法表达这些复杂逻辑。
+
+> 💡 **【类比】** 手写 ReAct 循环像在沙滩上画流程图——画完就没了，潮水一冲就消失。LangGraph 像在白板上画流程图并保存——每个节点（"模型思考"、"工具执行"、"人工审批"）和边（条件跳转）都是显式的，可以检查点保存（暂停后继续）、时间旅行（回到某节点试不同分支）、人工中断（等用户确认）。
+
+> ⚠️ **【易错点】** LangGraph 的 3 个坑：(1) **状态 schema 太松散**——用 `dict` 当 state 没类型约束，运行时 key 拼错发现不了；用 `TypedDict` 或 Pydantic Model 定义 State。(2) **条件边写得太复杂**——一个 edge 函数里 if/else 嵌套 5 层，调试地狱；拆成多个简单 edge 函数，每个返回单一节点名。(3) **checkpoint 用 SQLite 不持久化**——重启服务丢状态；生产用 Postgres 或 Redis 做 checkpointer。
 
 
 ## The Concept | 核心概念

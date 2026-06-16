@@ -6,6 +6,8 @@
 
 > **【拓展：安全护栏→企业AI部署】** 金融、医疗等受监管行业部署 AI 时，护栏（输入过滤、输出审核、内容分类器）是合规要求，不是可选项。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 11·01（Prompt Engineering）；(2) Phase 11·09（Function Calling）；(3) 基础安全概念——XSS、SQL injection、CSRF。本节会用 `guardrails-ai`、`neuraltrust` 或 Anthropic 的 `Llama Guard` / ` Constitutional Classifier`。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 11 Lesson 01 (Prompt Engineering), Phase 11 Lesson 09 (Function Calling) | **前置知识:** Phase 11 · 01 (提示工程)、09 (函数调用)
@@ -24,6 +26,10 @@
   用红队提示集测试护栏，测量假阳性/假阴性率
 
 > **【中文解读】** 本课目标：为 LLM 应用构建安全护栏——输入过滤、输出验证、内容审核、PII 检测。安全是 LLM 部署到企业环境的必要条件。
+
+> 💡 **【类比】** 不带护栏的 LLM 应用像不设门卫的大楼——任何人都能进任何房间。护栏是三层门禁：(1) **输入门**——查身份证（检测 prompt injection、jailbreak），可疑人员拒绝进入；(2) **室内规则**——告诉访客"这些房间不能进"（系统 prompt 加固，限定可讨论话题）；(3) **出门检查**——访客离开前检查背包（输出护栏，过滤 PII、敏感信息、政策违规）。三层叠加才能挡住 99% 攻击。
+
+> ⚠️ **【易错点】** 护栏的 3 个坑：(1) **只防输入不防输出**——攻击者诱导模型生成 SQL 注入代码，没做输出过滤，下游数据库被删；务必双向护栏。(2) **关键词黑名单太死板**——禁掉"密码"导致用户问"忘记密码怎么办"也被拒；用语义分类器（Llama Guard）而非关键词。(3) **没测对抗样本**——红队测试集只有 50 条，真实攻击变体上万；用 `garak`、`PyRIT` 等开源红队工具自动生成对抗样本。
 
 
 ## The Problem | 问题引入
