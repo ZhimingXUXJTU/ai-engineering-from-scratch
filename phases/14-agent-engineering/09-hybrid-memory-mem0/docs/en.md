@@ -35,11 +35,15 @@ One store is wrong for one of three query classes:
 
 Production agents issue all three in one session. A single-store memory is always wrong for two of them. Mem0's contribution is wiring all three behind a single `add`/`search` surface with a scoring function that fuses them.
 
+> 💡 **【类比】** Mem0 的三存储像图书馆的三种索引系统：向量库像"按主题相关性"的智能推荐（适合"找类似的书"），KV 库像"按书名/ISBN"的精确查找（适合"查具体一本书"），图库像"按作者-出版社-引用关系"的网络（适合"找这位作者的所有合著者"）。一本书三种索引都建，读者查哪种需求都找得到——只用一种索引的图书馆一定漏查。
+
 > 生产 Agent 在一次会话中发出所有三种查询。单一存储记忆对其中两种总是错误的。Mem0 的贡献是将三者连接在统一的 `add`/`search` 接口后面，并用评分函数融合它们。
 
 > **【中文解读】** 混合记忆系统（Mem0）结合了短期工作记忆和长期持久化记忆。短期记忆存储在上下文窗口中，长期记忆使用向量数据库和图数据库。Mem0 的核心创新是自动记忆提取——从对话中自动识别需要持久化的信息并存储。
 
 > **【拓展：Mem0 是目前最流行的 Agent 记忆解决方案之一】** Mem0 (2024-2025) 是目前最流行的 Agent 记忆解决方案之一，GitHub 25k+ stars。它的三层架构：短期记忆（上下文窗口）、长期记忆（向量 + 图数据库）、episodic 记忆（事件序列）。Mem0 的自动记忆提取能力意味着开发者不需要手动管理记忆——Agent 自动决定什么值得记住。
+
+> 🔗 **【前置】** 必须先掌握：Phase 14·07（MemGPT）和 Phase 14·08（Letta Blocks）——Mem0 是它们的"存储后端升级版"。还需要理解三种数据库范式的差异：向量数据库（如 Qdrant）、KV 存储（如 Redis）、图数据库（如 Neo4j）。如果三种数据库都没用过，建议先各跑一个 hello world。
 
 ## The Concept | 核心概念
 
@@ -88,6 +92,8 @@ score = w_relevance * relevance(q, record)
 
 Weights are tuned per product. Higher `w_recency` for chat agents; higher `w_importance` for compliance agents; higher `w_relevance` for retrieval agents.
 
+> ⚠️ **【易错点】** 三种权重照搬 Mem0 论文默认值（如 0.4/0.4/0.2）直接上线。**后果**：在合规类 Agent 上，重要的政策事实（如"该用户是受限用户"）被新的"昨天聊的天气"压下去，检索不到——因为 `w_recency` 太高，老的高重要性事实被时间衰减淹没。**一行修复**：上线前用 20-30 个真实查询做 A/B 测试调权重，不同产品方向完全不同（聊天靠 recency，合规靠 importance）。
+
 > 权重按产品调优。聊天 Agent 使用更高的 `w_recency`；合规 Agent 使用更高的 `w_importance`；检索 Agent 使用更高的 `w_relevance`。
 
 ### Mem0g and temporal reasoning
@@ -128,6 +134,8 @@ Mem0 splits memory by scope:
   中文翻译：**Agent 记忆**——每个 Agent 实例状态。
 
 Every write picks one scope. Retrieval can query across scopes with per-scope weights. Mixing scopes without thought is how you get "the assistant told Alice about Bob's project" incidents.
+
+> 🤔 **【困惑】** Q: Mem0 三种存储都要部署运维，对小团队来说成本太高，能不能只用向量库？ A: 可以，但要看任务。**纯聊天机器人**用向量库 + KV 就够了（少 90% 复杂度）；**多用户企业 Agent**（涉及权限、关系、合规）必须用图库，否则会出现"Alice 看到 Bob 的数据"这种事故。Mem0 的三存储是"为合规而生"的设计，不是所有场景都需要。
 
 > 每次写入选择一个范围。检索可以跨范围查询，带每个范围的权重。不经思考地混合范围会导致"助手告诉 Alice 关于 Bob 项目"的事件。
 
