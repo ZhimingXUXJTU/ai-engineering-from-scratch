@@ -82,6 +82,8 @@ Claude computer use, OpenAI CUA, Gemini 2.5 Computer Use (Lesson 21) all train o
 - **Ignoring trajectory length.** Scoring only success-rate misses the 1.4-2.7x step inefficiency OSWorld-Human surfaces.
 - **Stale self-hosted apps.** WebArena's apps pin specific versions; update without re-curation breaks comparability.
 
+> 🤔 **【困惑】** Q: WebArena 上 SOTA 才 35%，OSWorld 才 12%，这是不是说明 Computer Use Agent 现在不能用？ A: 不能这么看。基准测试的任务是"最难的那批"——长程（20+ 步）、多模态、需要精确 grounding。生产环境的应用是**针对性优化**的：固定的几个网页、清晰的任务流、人在回路兜底。Claude Code 在 WebArena 上可能也低分，但它在 IDE 这种结构化环境里能用。**结论**：基准测的是"上限能力"，生产用"专门优化"，两者不可直接换算。
+
 > **仅截图评估。** OSWorld 是截图驱动的；在 OSWorld 上评估使用 DOM 或无障碍 API 的 Agent 会错过接地挑战。
 > **忽略轨迹长度。** 仅评分成功率会错过 OSWorld-Human 揭示的 1.4-2.7 倍步骤低效。
 > **过时的自托管应用。** WebArena 的应用固定了特定版本；不重新策划就更新会破坏可比性。
