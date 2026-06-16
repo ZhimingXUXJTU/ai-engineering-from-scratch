@@ -6,10 +6,16 @@
 
 > **【拓展：CAI→Claude的安全对齐】** Anthropic 的 Constitutional AI 正是 Claude 安全对齐的核心方法——Claude 基于一组"宪法原则"自我审视和改进。这与 DeepSeek-R1 的自我推理改进一脉相承。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·06-08（SFT、RLHF、DPO）——理解对齐基础流程。CAI 是 RLAIF（AI Feedback）的代表，是 RLHF 的延伸——用 AI 替代人类标注偏好。
+
 **Type:** Build
 **Languages:** Python (stdlib + numpy)
 **Prerequisites:** Phase 10, Lessons 06-08 (SFT, RLHF, DPO)
 **Time:** ~45 minutes
+
+> 💡 **【类比】** CAI = 让学生自评自改作业。RLHF：老师（人类）批改每份作业，慢且贵。CAI：给学生一份评分标准（宪法），让 TA 自己对照标准批改自己的作业，老师只抽查。优点：扩展性好（AI 不知疲倦），缺点：宪法写得差就学坏（模型按错误原则"自我改进"成更糟糕版本）。
+
+> ⚠️ **【易错点】** CAI 的 3 个坑：(1) **宪法原则太抽象**——"要诚实、有帮助、无害"模型不知道具体怎么做；写成具体场景（"用户问怎么黑网站时，拒绝并建议学习网络安全法律"）。(2) **没做人类抽查**——AI 完全自动可能放大偏见；每周抽 100 条对照人类偏好检查。(3) **self-reward hacking**——模型自评时偏向自己的风格，逐渐退化；混合人类标注 + AI 标注。
 
 ## Learning Objectives | 学习目标
 
