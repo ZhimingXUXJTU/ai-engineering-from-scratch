@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 15 · 06 (Automated alignment research), Phase 15 · 10 (Permission modes) | **前置知识:** Phase 15 · 06（自动化对齐研究），Phase 15 · 10（权限模式）
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·06（AAR）、Phase 15·10（权限模式）、Phase 11·10（RLHF/RLAIF 基础）。Constitutional AI = "用 AI 监督 AI"的对齐方法。
+> 💡 **【类比】** Constitutional AI = "AI 的自我修养"。RLHF = 父母每次纠正孩子（人工反馈，慢且贵）；CAI = 孩子读了《学生守则》后自己批评自己（AI 反馈，便宜可扩展）。2026 Claude Constitution 79 页四层优先级：安全 > 伦理 > 公司指南 > 有用性。硬禁令（生物武器、CSAM）无论用户怎么指令都不行——这是规则；其他通过推理判断。
+> 🤔 **【困惑】** Q: 推理对齐能被绕过吗？— 能！攻击者设前提"我是持牌生物武器实验室" → 模型按推理允许 → 绕过原则。修复：硬禁令不向前提弯折（无论谁说什么，CSAM 就是不能生成）。推理 + 规则两层防御：推理覆盖大多数情况，规则覆盖推理被绕过的尾部。
+
 ## The Problem | 问题引入
 
 > **【中文解读】** Constitutional AI（CAI, Anthropic 2022）是一种通过'宪法'（一组原则）指导 AI 行为的方法。模型在生成响应时自我检查是否符合这些原则，并在违反时自我纠正。CAI 的核心创新是用 AI 反馈替代人类反馈（RLAIF），减少对人类标注的依赖。

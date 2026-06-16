@@ -10,6 +10,10 @@
 **Prerequisites:** Phase 15 · 01 (Long-horizon agents), Phase 15 · 19 (RSP) | **前置知识:** Phase 15 · 01（长程 Agent）、Phase 15 · 19（RSP）
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·01（长程 Agent）、Phase 15·19-20（RSP 框架）、统计基础（逻辑回归）。METR = 独立第三方评估机构，把"AI R&D-4"等政策阈值变成可测量数字。
+> 💡 **【类比】** METR = "AI 能力的第三方体检中心"。RSP 说"AI R&D-4 阈值"是抽象的；METR 的 Time Horizon 基准把"AI 能完成多复杂任务"压缩成一个标量——"模型 50% 可靠性能完成专家花 X 小时的任务"。类似用 IQ 分数概括智力，但 METR 的数字有可重复测量方法。
+> ⚠️ **【易错点】** 把 METR Time Horizon 当成部署预测 → 错。METR 测试是理想化的（无真人监督、无真实后果），实际部署时能力会打折。修复：Time Horizon 是上限不是下限，部署前必须在自己的真实任务上复测。
+
 ## The Problem | 问题引入
 
 Scaling policies (Lessons 19, 20) are only as useful as the measurements they reference. "AI R&D-4 threshold" and "Long-range Autonomy" are defined in policy prose; they become actionable only when specific evaluations produce specific numbers.

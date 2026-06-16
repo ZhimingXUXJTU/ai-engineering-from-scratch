@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 13 · 01-03 (Reasoning and CoT), Phase 15 · 01 (long-horizon framing) | **前置知识:** Phase 13 · 01-03（推理与 CoT），Phase 15 · 01（长程框架）
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 13·01-03（CoT 思维链）、Phase 11·08（SFT 监督微调）、Phase 15·01（长程 Agent 框架）。STaR 是"自蒸馏 + 推理增强"的最小闭环。
+> 💡 **【类比】** STaR = "学生自我批改"。普通学习 = 老师改作业学生订正（人工标注推理过程）；STaR = 学生写推理→对答案→对的推理保留并自己再练一遍（自我生成训练数据）。问题是：有时推理过程是错的但答案碰巧对了（蒙对），STaR 会强化这种"蒙对"的推理——V-STaR 加一个判官（verifier）筛掉错误推理。
+> ⚠️ **【易错点】** STaR 训练时只看"答案是否正确"会强化"捷径推理"（错误过程但正确结果）。修复：用过程奖励（PRM，Phase 13·03）替代结果奖励，每一步推理都打分；或用 V-STaR 加 verifier 检查推理质量。
+
 ## The Problem | 问题引入引入
 
 The straightforward way to teach a model to reason is to collect human-written reasoning traces. That is expensive, slow, and bounded by how much high-quality chain-of-thought humans are willing to write.

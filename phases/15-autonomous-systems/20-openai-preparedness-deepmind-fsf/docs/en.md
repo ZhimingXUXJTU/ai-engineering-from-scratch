@@ -10,6 +10,10 @@
 **Prerequisites:** Phase 15 · 19 (Anthropic RSP) | **前置知识:** Phase 15 · 19（Anthropic RSP）
 **Time:** ~45 minutes | **时间:** ~45 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·19（Anthropic RSP）、Phase 15·07（RSI）、Phase 15·04（DGM 自主 Agent）。本节对比三大前沿实验室的安全框架——发现他们口径不一致。
+> 💡 **【类比】** 三大实验室 RSP 对比 = "三家航空公司的安全手册"。Anthropic = 严格但商业压力大（删除暂停）；OpenAI = 双轨（Tracked 严格+Research 灵活）；DeepMind = 域整合（自主性折进 ML R&D 和网络安全）。同一能力（如长程自主）在三家触发级别不同——监管必须统一标准才能避免"安全套利"（哪家松去哪家）。
+> 🤔 **【困惑】** Q: 为什么 RSP 都是自愿承诺？— 因为没有强制法律。EU AI Act 是首个区域性法律但只覆盖欧盟。修复：行业需要国际协调（类似核不扩散条约），SAFELA、CAIS、Frontier Model Forum 在做这个工作。
+
 ## The Problem | 问题引入
 
 Lesson 19 read Anthropic's scaling policy closely. This lesson completes the picture by reading OpenAI's and DeepMind's. The three documents are cousin artifacts addressing the same question — when should a frontier lab pause or gate a model — and they converge on a small set of categories and diverge in specific places that matter.
