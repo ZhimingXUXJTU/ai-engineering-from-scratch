@@ -6,6 +6,8 @@
 
 > **【拓展：Function Calling→MCP与Agent】** Function Calling 是 AI Agent 的核心机制，MCP 协议在此基础上标准化了工具描述和调用流程，是 Claude 生态的基础协议。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 11·01（Prompt Engineering）——理解 LLM 如何处理 prompt；(2) Phase 11·03（Structured Outputs）——理解 JSON Schema，本节重度依赖；(3) Python 字典、JSON 序列化、try/except 异常处理。如果不会写 JSON Schema，先看 jsonschema 库文档——本节不会从头讲。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 11 Lesson 03 (Structured Outputs) | **前置知识:** Phase 11 · 03 (结构化输出)
@@ -52,6 +54,8 @@ Without function calling, LLMs are encyclopedias. With it, they become agents.
 
 > 没有函数调用，LLM 是百科全书。有了它，它们变成 Agent。
 
+> 💡 **【类比】** LLM 像一位"嘴强王者"——能讲清楚任何概念，但不能动手。函数调用就是给这位嘴强王者配一个"小弟"系统：它说"小弟，去查东京天气"→小弟照做→回来报告"18度阴天"→它转述给用户。模型从不离开王座（生成 token），但通过发号施令（JSON）和接收战报（tool_result），它能调用整个外部世界。
+
 ## The Concept | 核心概念
 
 > **【中文解读】** 函数调用（Function Calling）让 LLM 生成结构化的工具调用请求，而不是纯文本回复。这是构建 AI Agent 的基础——模型通过调用外部工具（搜索、数据库查询、API）来获取信息和执行操作。
@@ -90,6 +94,8 @@ The model never executes anything. It only decides what to call and with what ar
 
 > 模型从不执行任何东西。它只决定调用什么、用什么参数。你的代码才是执行者。
 
+> 🤔 **【困惑】** Q: 为什么模型不直接执行代码？这样不就省了一步？ A: 三个原因：(1) **隔离**——模型在沙盒外执行会有安全风险（删数据库、发恶意邮件）；分两步让你能在执行前校验。(2) **可观测**——执行在你的进程里，能加日志、限流、审计；(3) **可移植**——同一模型能驱动不同语言（Python/JS/Go）的工具集，模型本身不绑定运行时。
+
 ### Tool Definitions: The JSON Schema Contract
 
 Each tool is defined by a JSON Schema that tells the model what the function does, what arguments it takes, and what types those arguments must be.
@@ -124,6 +130,8 @@ Each tool is defined by a JSON Schema that tells the model what the function doe
 The `description` fields are critical. The model reads them to decide when and how to use the tool. A vague description like "gets weather" produces worse tool selection than "Get current weather for a city. Returns temperature in Celsius and conditions." The description is a prompt for tool selection.
 
 > `description` 字段至关重要。模型读这些描述来决定何时以及如何使用工具。模糊描述如"获取天气"产生的工具选择效果差于"获取城市当前天气，返回摄氏温度和天气状况"。描述本身就是工具选择的提示。
+
+> ⚠️ **【易错点】** 工具描述的 3 个坑：(1) **描述太短**——"获取数据"这种描述，模型分不清该用 `get_weather` 还是 `get_stock_price`，会乱选；修复：每个描述至少 30 字，写清"做什么 + 输入 + 输出"。(2) **描述互相重叠**——两个工具都写"获取信息"，模型选哪个全凭运气；修复：每个描述强调独特场景（"获取实时天气" vs "获取历史天气"）。(3) **隐藏前置条件**——比如 `delete_file(path)` 需要先 `confirm()`，但描述没说，模型会直接删；修复：把约束写进 description 或拆成两个工具。
 
 ### Provider Comparison
 
@@ -174,6 +182,8 @@ Your code executes both (ideally concurrently), returns both results, and the mo
 
 > 你的代码执行两者（理想情况并发执行），返回两个结果，模型综合出单一回复。这把往返次数从 2 减到 1。对每次查询要 5-10 次工具调用的 agent，并行调用减少 60-80% 延迟。
 
+> ⚠️ **【易错点】** 并行调用的 2 个坑：(1) **顺序依赖未声明**——用户问"先查 A 公司股价，再查 B 公司"，模型可能并行调用两个 `get_price`，但你无法保证 A 先返回；修复：让 `get_price` 工具的 description 写明"用于独立查询"，需要顺序时用 `compare_stocks(A, B)` 单工具封装。(2) **共享状态竞争**——并行调用 `increment_counter()` 两次，结果只加了 1；修复：工具实现里加锁，或让模型串行调用副作用工具。
+
 ### Structured Outputs vs Function Calling
 
 Lesson 03 covered structured outputs. Function calling uses the same JSON Schema machinery, but for a different purpose.
@@ -210,6 +220,8 @@ Function calling is the most dangerous capability you can give an LLM. The model
 **Rule 5: Rate limit tool calls.** A model in a loop can call tools hundreds of times. Set a maximum (10-20 calls per conversation is reasonable). Break infinite loops.
 **规则 5：限流工具调用。** 循环中的模型可能调用工具几百次。设上限（每次对话 10-20 次合理）。打破无限循环。
 
+> ⚠️ **【易错点】** 循环失控的实战案例：模型调 `get_weather("Tokyo")`→东京返回 "rainy"→模型"觉得不对"→再调一次→还是 rainy→继续调... 5 分钟烧了 200 次调用。修复：(1) 全局 `max_tool_calls=20` 计数器，超过即终止；(2) 相同参数相同工具的连续调用，3 次后强制跳出；(3) 用 Phase 15·13 的 cost governor 监控 token 消耗，超阈值 kill switch。
+
 ### Error Handling
 
 Tools fail. APIs time out. Databases go down. Files do not exist. The model needs to know when a tool fails and why.
@@ -232,6 +244,8 @@ The model reads this, adjusts its arguments, and retries. Models are good at sel
 
 > 模型读这个，调整参数重试。模型擅长从结构化错误信息中自我纠正。但不擅长从空响应或泛化的"出错了"错误中恢复。
 
+> 🤔 **【困惑】** Q: 为什么不直接抛异常让上层 try/except 处理？ A: 因为抛异常会让 Agent 循环崩溃，模型永远看不到错误——它不知道工具失败了，会以为成功继续推理，最终输出"幻觉答案"。把错误格式化为 JSON 返回给模型，模型能看到 `"error": true` 并决定下一步：换参数重试、换工具、或老实告诉用户"我做不到"。这是 Agent 自我纠正的基础。
+
 ### MCP: Model Context Protocol
 
 MCP is Anthropic's open standard for tool interoperability. Instead of every application defining its own tools, MCP provides a universal protocol: tools are served by MCP servers, consumed by MCP clients (like Claude Code, Cursor, or your application).
@@ -245,6 +259,8 @@ One MCP server can expose tools to any compatible client. A Postgres MCP server 
 MCP is to function calling what HTTP is to networking. It standardizes the transport layer so tools become portable.
 
 > MCP 之于函数调用，就像 HTTP 之于网络。它标准化传输层，使工具变得可移植。
+
+> 🔗 **【前置】** 何时从内联函数调用升级到 MCP？三个信号：(1) 工具超过 10 个，prompt 装不下；(2) 同一工具要在多个 Agent 框架（Claude Code、Cursor、Cline）间共享；(3) 工具有独立维护团队，需要版本管理。学了 Phase 11·14（MCP）和 Phase 13·06-18 后，你就能把工具做成独立 server，Agent 通过协议消费。
 
 ## Build It | 动手实现
 

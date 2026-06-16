@@ -6,6 +6,8 @@
 
 > **【拓展：RAG→企业AI应用】** RAG 是企业落地 AI 的首选方案：知识库问答、合同审查、技术文档助手、金融研报分析等场景都依赖 RAG 管道。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 11·04（Embeddings）——理解向量空间、相似度、HNSW；(2) Phase 05·23（Chunking Strategies）——理解文档切分；(3) Phase 10（LLM from scratch）——理解 prompt 如何影响生成。本节会用到 `chromadb` 或 `faiss`、`langchain` 或 `llamaindex`。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 10 (LLMs from Scratch), Phase 11 Lessons 01-05 | **前置知识:** Phase 10（从零理解 LLM）、Phase 11 Lesson 01-05
@@ -39,6 +41,8 @@ Fine-tuning is one solution. Take the LLM, train it on your internal docs, and d
 RAG is the other solution. Leave the model untouched. When a question comes in, search your document store for relevant passages, paste them into the prompt before the question, and let the model answer using those passages as context. The document store can be updated in minutes. You can see exactly which documents were retrieved. The model itself never changes. This is why RAG is the dominant pattern in production: it's cheaper, fresher, more auditable, and works with any LLM.
 
 > RAG 是另一种解决方案。保持模型不变。当问题进来时，搜索你的文档存储找到相关段落，将它们粘贴到提示中问题的前面，让模型使用这些段落作为上下文来回答。这就是为什么 RAG 是生产中的主流模式：更便宜、更新鲜、更可审计，适用于任何 LLM。
+
+> 💡 **【类比】** RAG 像开卷考试：学生（LLM）不必把所有课本背下来（fine-tuning），而是带一本笔记本（向量库）进场。考题一来，先翻笔记本找相关章节（检索），把翻到的几页摊开放桌上（augment），然后看着这些章节答题（generate）。换教材时（知识更新）只需重印笔记本，不用让学生重学四年。
 
 ## The Concept | 核心概念
 
@@ -81,6 +85,8 @@ Query -> Retrieve -> Augment prompt -> Generate. Every RAG system follows this p
 
 > 查询 -> 检索 -> 增强提示 -> 生成。每个 RAG 系统都遵循这个模式。生产 RAG 系统的差异在每个步骤的细节：如何分块、如何嵌入、如何搜索、如何构造提示。
 
+> 🤔 **【困惑】** Q: 为什么不直接把整个文档塞进 prompt？现在 Claude 有 200K 上下文窗口，装得下吧？ A: 三个原因：(1) **精度下降**——研究显示（如 Lost in the Middle, Liu et al. 2023），LLM 在长上下文中召回中间内容的能力显著下降，超过 32K 后准确率掉 20%+；(2) **成本爆炸**——200K tokens 输入约 $3/查询，而 RAG 检索 top-5 块只占 2K tokens（$0.03）；(3) **响应慢**——长 prompt 推理延迟数倍于短 prompt。RAG 用精准检索换全量加载。
+
 ### Why RAG Beats Fine-Tuning
 
 | Concern | Fine-tuning | RAG |
@@ -98,6 +104,8 @@ Fine-tuning changes the model's weights permanently. RAG changes the model's con
 The one case where fine-tuning wins: when you need the model to adopt a specific style, tone, or reasoning pattern that cannot be achieved through prompting alone. For factual knowledge retrieval, RAG wins every time.
 
 > 微调胜出的唯一情况：当你需要模型采用特定风格、语气或推理模式，而这是仅靠提示无法达到的。对于事实知识检索，RAG 每次都赢。
+
+> ⚠️ **【易错点】** RAG 落地的 3 个常见坑：(1) **切分粒度错误**——块太大（> 1024 token）嵌入被稀释召回不到，块太小（< 64 token）丢失上下文；起点：256-512 token + 50 重叠。(2) **没做 query 改写**——用户问"它怎么用？"指代不明，向量库找不到；修复：先用 LLM 把问题改写成包含上下文的完整查询。(3) **只看召回率不看准确率**——top-10 召回 90% 但只有 3 条相关，模型被噪声干扰幻觉；加 cross-encoder 重排到 top-3 高质量块。
 
 ### Embedding Models
 
@@ -278,6 +286,8 @@ We build a simple embedding function. TF-IDF (Term Frequency-Inverse Document Fr
 
 > 我们构建简单的嵌入函数。TF-IDF（词频-逆文档频率）不是神经嵌入，但它以捕获词重要性的方式将文本转为向量。文档中的频繁词得较高 TF。语料库中的稀有词得较高 IDF。乘积给出重要、独特词具有高值的向量。
 
+> 🤔 **【困惑】** Q: 教程为什么用 TF-IDF 而不是真正的神经嵌入（如 OpenAI text-embedding-3）？ A: 三个原因：(1) **零依赖**——本节用纯 Python 标准库教学，不要求你注册 API 或下模型；(2) **可读**——TF-IDF 的数学简单到能写在黑板上看懂，神经嵌入是黑盒；(3) **教学聚焦**——本节核心是 RAG 流程（chunk→embed→retrieve→prompt→generate），嵌入器换掉流程不变。**生产环境务必换神经嵌入**——TF-IDF 不理解语义，"付款失败"和"扣款不成功"在 TF-IDF 下完全不匹配，但神经嵌入能识别它们含义相同。
+
 ```python
 import math
 from collections import Counter
@@ -332,6 +342,8 @@ def search(query_embedding, stored_embeddings, top_k=5):
 This is where the "augmented" in RAG happens. Take the retrieved chunks, format them into a prompt, and ask the LLM to answer based on the provided context.
 
 > 这是 RAG 中"增强"发生的地方。取检索块，格式化为提示，让 LLM 基于提供的上下文回答。
+
+> ⚠️ **【易错点】** Prompt 模板的 3 个坑：(1) **没说"基于上下文回答"**——模型会调用自己的参数知识回答（产生幻觉），把 "Answer based ONLY on the following context" 加到 prompt 最前；(2) **没给"不知道就说不知道"的退路**——模型宁可瞎编也不承认无能为力，必须显式写 "If context doesn't contain answer, say 'I don't have enough information'"；(3) **没要求引用来源**——答案无法追溯，审计失败；修复：要求模型在答案末尾加 `[Source N]` 标记，让用户能点开看原文。
 
 ```python
 def build_rag_prompt(query, retrieved_chunks):
