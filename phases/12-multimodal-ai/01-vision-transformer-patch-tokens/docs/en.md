@@ -6,6 +6,8 @@
 
 > **【拓展：ViT Patch→多模态基础】** Patch-Token 是所有视觉语言模型的基础——无论是 CLIP 的视觉编码器、LLaVA 的图像输入还是文档理解模型，都从 Patch 切分开始。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 7·01-05（Transformer 基础）——理解 Self-Attention、Position Embedding；(2) Phase 4·03（CNNs）——理解卷积特征提取，对比 ViT 的 patch 方法；(3) Phase 10·01（Tokenizers）——理解文本 token，本节是其视觉对应；(4) numpy 矩阵运算。本节是 Phase 12 全部 25 节的基础，跳过会看不懂后续。
+
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, patch tokenizer + geometry calculator) | **语言:** Python（标准库，patch tokenizer + 几何计算器）
 **Prerequisites:** Phase 7 (Transformers), Phase 4 (Computer Vision) | **前置知识:** Phase 7（Transformer），Phase 4（计算机视觉）
