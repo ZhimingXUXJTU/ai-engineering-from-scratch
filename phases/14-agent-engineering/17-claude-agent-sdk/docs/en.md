@@ -24,6 +24,9 @@ A raw LLM API gets you one round-trip. A production agent needs tool execution, 
 > **【中文解读】** Claude Agent SDK 是 Anthropic 官方的 Agent 开发框架。核心特性：(1) 内置工具（文件读写、代码执行等）；(2) 子 Agent 支持——Agent 可以生成子 Agent 处理子任务；(3) 生命周期钩子——在 Agent 执行的关键节点插入自定义逻辑。SDK 深度集成 Claude 的 Extended Thinking 能力。
 
 > **{【拓展：Claude Agent SDK 是 2026 年 Claude 生态的核心开发工具。与 OpenA...】}** Claude Agent SDK 是 2026 年 Claude 生态的核心开发工具。与 OpenAI Agents SDK 相比，它更注重深度集成 Claude 的独特能力（如 Extended Thinking、Computer Use）。SDK 的子 Agent 模式允许 Agent 将复杂任务分解为子任务，每个子任务由专门的子 Agent 处理，类似于组织中的部门分工。
+
+> 🔗 **【前置】** 必须先掌握：Phase 14·01（Agent Loop）和 Phase 14·10（Skill Libraries）——Claude Agent SDK 内置了 skill 系统作为子 Agent 的标准模式。如果你没用过 Claude Code CLI，强烈建议先用几天——本 SDK 就是 Claude Code 的库形式，理解 CLI 的行为模式对学习 SDK 事半功倍。
+
 ## The Concept | 核心概念
 
 ### Client SDK vs Agent SDK
@@ -54,6 +57,8 @@ Two purposes documented by Anthropic:
 Python SDK recent additions: `list_subagents()`, `get_subagent_messages()` for reading subagent transcripts.
 
 > Python SDK 最近的新增功能：`list_subagents()`、`get_subagent_messages()` 用于读取子 Agent 的对话记录。
+
+> 💡 **【类比】** 子 Agent 像大公司的"项目组"：CEO（主 Agent）抓全局，但每个具体项目由专门的项目组（子 Agent）执行，项目组有独立的会议室（独立上下文窗口）。**关键收益是上下文隔离**：如果"调研竞品"这种工作要读 100 篇文章塞满上下文，主 Agent 自己做就会被淹没；交给子 Agent，子 Agent 的 100 篇文章阅读不会污染主 Agent 的视野，只返回"竞品分析的 3 个结论"。
 
 > Claude Agent SDK 是 Anthropic 的官方 Agent 框架。核心概念：Agent（带系统提示和工具的 LLM）、Tools（可调用函数）、Subagents（子代理委派）、Session Store（会话持久化）。
 
@@ -112,9 +117,13 @@ The hosted alternative (beta header `managed-agents-2026-04-01`). Long-running a
 
 ### Where this pattern goes wrong
 
+> ⚠️ **【易错点】** 最常见的灾难：为 100 个小任务生成 100 个子 Agent。**后果**：每个子 Agent 有自己的 system prompt + 工具注册 + 上下文初始化，开销 30-60 秒/个，100 个就是 1 小时；并发又有限制（Anthropic 每分钟 token 限制），最终任务跑一晚上。**一行修复**：能批量的任务用主 Agent 串行做（如"读 100 个文件"用 Read 工具循环），只有真正需要"独立上下文窗口"的任务（如深度调研）才 spawn 子 Agent。
+
 - **Subagent over-spawn.** Spawning 100 subagents for 100 tiny tasks. Overhead dominates. Batch instead.
 - **Hook creep.** Every team adds hooks; startup time balloons. Review hooks quarterly.
 - **Session bloat.** Sessions accumulate; size grows. Use `list_sessions` + expiry policy.
+
+> 🤔 **【困惑】** Q: Claude Agent SDK 和直接用 anthropic Python SDK 写 agent loop 有什么本质区别？为什么要用 SDK？ A: 三个不可替代的能力：(1) **内置工具开箱即用**（文件、shell、grep 等 10+ 工具，自己写至少两天）；(2) **Session 持久化协议**（包括子 Agent 会话级联删除）；(3) **Hook 生命周期**（PreToolUse、PostCompact 等 7 个钩子点）。如果你的 Agent 只是简单问答，用 anthropic SDK 就够；如果要写 Claude Code 那种生产级 Agent，SDK 省你几周工程时间。
 
 > **子 Agent 过度生成。** 为 100 个小任务生成 100 个子 Agent。开销占主导。改为批量处理。
 > **钩子膨胀。** 每个团队都添加钩子；启动时间膨胀。每季度审查钩子。

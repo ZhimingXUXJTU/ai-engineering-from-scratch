@@ -35,6 +35,8 @@ Know the three anchoring benchmarks and their failure modes before you quote a n
 
 > 在引用数据之前，先了解这三个基准测试及其失败模式。
 
+> 🔗 **【前置】** 建议先过：Phase 14·06（Tool Use）——理解 Agent 如何调用工具是看懂 GAIA 的前提；以及基本的"机器学习评估方法论"——precision/recall、contamination（数据污染）、test set leakage。如果你引用过模型 benchmark 但不知道 contamination 是什么，本节必须学。
+
 ## The Concept | 核心概念
 
 ### SWE-bench (Jimenez et al., ICLR 2024 oral)
@@ -45,6 +47,8 @@ Know the three anchoring benchmarks and their failure modes before you quote a n
 - Evaluator: apply patch, run the repo's test suite. The patch must flip FAIL_TO_PASS tests (previously failing, now passing) without breaking PASS_TO_PASS tests.
 
 SWE-agent (Yang et al., 2024) hit 12.5% at release by emphasizing agent-computer interfaces (file editor commands, search syntax the model understands).
+
+> 💡 **【类比】** SWE-bench 像考"开卷实操"：给 Agent 一个真实的代码库（开卷）、一个 issue 描述（考题）、一套已有的单元测试（评分标准）。Agent 要像人类工程师一样——读代码定位 bug、写补丁、跑测试。**关键设计**：测试用 FAIL_TO_PASS（修复前失败、修复后通过）+ PASS_TO_PASS（不能破坏已有功能），杜绝"修了 A 破了 B"的伪通过。
 
 > SWE-agent（Yang 等，2024）在发布时达到 12.5%，通过强调 Agent-计算机接口（文件编辑器命令、模型能理解的搜索语法）。
 
@@ -65,6 +69,8 @@ OpenAI, Aug 2024. Human-curated 500-task subset. Removes ambiguous issues, unrel
 - Verified is cleaner but not contamination-free.
 
 Practical implication: a model that scores 50% on SWE-bench may score 35% on SWE-bench+. Always report both if you claim SWE-bench performance.
+
+> ⚠️ **【易错点】** 引用 SWE-bench 分数时不提 Verified/SWE-bench+。**后果**：被审稿人/同事/客户当场打脸——SWE-bench 50% 中可能有 32% 是"模型在 issue 文本里看到了答案"（contamination）。这是 AI 圈最普遍的"虚高分数"陷阱。**一行修复**：任何引用 SWE-bench 数字时，必须同时给出 Verified 子集分数和 SWE-bench+（去污染版）分数，注明数据来源日期。
 
 > 实际影响：一个在 SWE-bench 上得分 50% 的模型在 SWE-bench+ 上可能只得到 35%。如果你声称 SWE-bench 性能，请务必同时报告两者。
 
@@ -101,6 +107,8 @@ GAIA is what you run to measure "generalist capability." Do not confuse with cod
 - **Single-number fixation.** SWE-bench 50% tells you less than the P50/P75/P95 cost + step distribution.
 - **Contaminated claims.** Reporting SWE-bench without mentioning Verified or SWE-bench+ is misleading.
 - **Benchmark-as-development-target.** Optimizing for the benchmark diverges from production usefulness.
+
+> 🤔 **【困惑】** Q: SWE-bench Verified 上 70%+ 的模型出来了，是不是说软件工程师要失业了？ A: 还早。三个原因：(1) SWE-bench 的 issue 都是"有明确测试用例、有清晰复现路径"的 well-formed issue，生产中 50% 的 issue 不满足；(2) 70% 意味着每 3 个任务失败 1 个，生产环境失败修复的成本远高于成功修复的收益；(3) **生产代码库比 SWE-bench 的 12 个开源 Python 仓库复杂得多**——私有代码、跨语言、几十年遗留代码。Benchmark 上的 70% 不等于生产环境的 70%。
 
 > **单一数字执念。** SWE-bench 50% 告诉你的信息少于 P50/P75/P95 成本 + 步骤分布。
 > **污染声明。** 报告 SWE-bench 时不提及 Verified 或 SWE-bench+ 是误导性的。

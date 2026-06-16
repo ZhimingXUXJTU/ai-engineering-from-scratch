@@ -34,6 +34,8 @@ LangGraph's design answer: state is a first-class typed object, mutations are ex
 
 > **【拓展：LangGraph → 状态图编排】** LangGraph 是 2026 年底层有状态编排的参考实现。它将 Agent 建模为状态机——节点是函数，边是条件转换，状态在每个步骤后被检查点保存。LangChain 生态系统的核心框架，广泛用于生产级 Agent 编排。
 
+> 🔗 **【前置】** 必须先掌握：Phase 14·01（Agent Loop）和 Phase 14·12（Anthropic Workflow Patterns）——LangGraph 就是工作流模式的"持久化版本"。还需要状态机/有限状态自动机（FSM）的基本概念——节点、边、状态、迁移条件。如果这些术语陌生，先去看一节编译原理或离散数学。
+
 ## The Concept | 核心概念
 
 ### The graph
@@ -62,6 +64,8 @@ After each node returns, the runtime serializes the state and writes it to a che
 > 每个节点返回后，运行时序列化状态并写入检查点器（SQLite、Postgres、Redis、自定义）。在步骤 N 失败时，运行时可以 `resume(session_id)` 并从步骤 N+1 用精确状态继续。
 
 The LangGraph docs explicitly highlight production users where this matters: Klarna, Uber, J.P. Morgan. The claim isn't the graph shape; it's that the graph shape plus checkpointing makes recovery cheap.
+
+> 💡 **【类比】** LangGraph 的 checkpoint 像游戏的"自动存档"：每过一个关卡（节点）就自动存档一次。第 38 关 boss 战挂了，你不用从第 1 关重打——读第 37 关的档接着打就行。生产 Agent 跑 40 步长任务在第 38 步失败时，没有 checkpoint 就要从头重跑（烧 token），有了 checkpoint 直接 `resume(session_id)` 接着干。
 
 > LangGraph 文档明确强调了对这一点的生产用户：Klarna、Uber、J.P. Morgan。声明不是图的形状；而是图的形状加上检查点使恢复成本很低。
 
@@ -94,12 +98,16 @@ Short-term (within a run — conversation history in state) and long-term (acros
 
 ### Where this pattern goes wrong
 
+> ⚠️ **【易错点】** 最常见的失败：节点里用了 `datetime.now()` 或随机数，恢复时这些值会变。**后果**：从 checkpoint 恢复后，节点重新执行得到与原运行不同的结果，整个状态机进入混乱。**一行修复**：所有非确定性来源（时间、随机、外部 API 返回）都必须捕获到 state 里，节点函数读 state 而非直接调用 `datetime.now()`。
+
 - **Checkpoints too small.** Only checkpointing conversation turns leaves tool state and memory writes unrecoverable. Full state must serialize.
   中文翻译：**检查点太小。** 仅检查点对话轮次会留下不可恢复的工具状态和记忆写入。必须序列化完整状态。
 - **Non-deterministic nodes.** Resume assumes node inputs produce the same state update. Random seeds, wall-clock, external APIs must be captured.
   中文翻译：**非确定性节点。** 恢复假设节点输入产生相同的状态更新。随机种子、挂钟时间、外部 API 必须被捕获。
 - **Over-use of conditional edges.** A graph with every edge conditional is a state machine that cannot be reasoned about. Prefer linear chains with occasional branches.
   中文翻译：**过度使用条件边。** 每条边都是条件的图是无法推理的状态机。优先使用带偶尔分支的线性链。
+
+> 🤔 **【困惑】** Q: 三种拓扑（supervisor、swarm、hierarchical）到底该选哪个？ A: 三个原则：(1) **任务可分解为独立角色**（如客服/退款/技术）选 supervisor；(2) **Agent 之间是协作关系而非派发关系**（如辩论、互相 review）选 swarm；(3) **任务有天然层次结构**（如"产品线 A 下分 5 个团队"）选 hierarchical。LangChain 团队 2026 年建议：能直接用工具调用解决就别上 supervisor——直接工具调用上下文控制更精细。
 
 ## Build It | 动手构建
 

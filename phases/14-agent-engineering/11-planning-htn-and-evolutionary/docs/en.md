@@ -39,6 +39,8 @@ HTN planning and AlphaEvolve solve the two different problems. Both use LLMs as 
 
 > **【拓展：2026 年 Agent 规划的前沿】** AlphaEvolve 和 Darwin-Godel Machine 将进化算法应用于 Agent 自身的策略优化——不仅是规划任务，更是规划和优化规划过程本身。HTN 在传统 AI 中已成熟数十年，但在 LLM Agent 中的应用仍是一个活跃的研究方向。
 
+> 🔗 **【前置】** 必须先过 Phase 14·02（ReWOO/Plan-and-Execute）——HTN 是其"严格形式化"版本；以及基本的经典 AI 规划知识（状态、前置条件、效果）。如果你没听过 STRIPS 或 PDDL，建议先补一两节"经典符号 AI"教程——本节的"可证明正确性"依赖这套形式化语言。
+
 ## The Concept | 核心概念
 
 ### Hierarchical Task Networks
@@ -83,6 +85,8 @@ ChatHTN (arXiv:2505.11814) interleaves symbolic HTN with LLM queries:
 
 The paper's central claim: every plan produced is provably sound because LLM suggestions only enter as candidate decompositions, never as direct plan edits. The symbolic layer owns correctness; the LLM expands the method library.
 
+> 💡 **【类比】** ChatHTN 像严格的审计员（符号层）+ 创意实习生（LLM）。实习生提建议："我觉得这个目标可以这样分解..."审计员严格检查："你的子任务的前置条件在当前状态下是否成立？效果是否符合 operator schema？" 不符合就拒绝，符合才采纳。**结果**：所有最终采纳的计划都被审计过，可靠性有保证。LLM 是"建议者"而非"决策者"。
+
 > 论文的核心主张：每个产生的计划都可证明是可靠的，因为 LLM 建议只作为候选分解进入，从不作为直接计划编辑。符号层拥有正确性；LLM 扩展方法库。
 
 Online method learning (OpenReview `gwYEDY9j2x`, 2025 follow-up) adds a learner that generalizes LLM-produced decompositions by regression — cutting LLM query frequency up to 75%.
@@ -121,6 +125,8 @@ Published wins:
 
 The hard constraint: the fitness function must be machine-checkable. Evolutionary search over prose answers does not converge.
 
+> ⚠️ **【易错点】** 把 AlphaEvolve 套到"创意写作优化"上——让 LLM 用进化算法改写小说，用 LLM 评分作为 fitness。**后果**：完全不会收敛，因为 fitness 函数本身是 LLM（随机+不稳定），同一篇小说跑两次得分可能差 30%。**一行修复**：只对"有客观指标的程序化任务"用 AlphaEvolve（代码性能、测试覆盖率、调度效率），创意类任务退回 Self-Refine/CRITIC。
+
 > 硬约束：适应度函数必须是机器可检查的。对文本答案的进化搜索不会收敛。
 
 ### When to use which
@@ -142,6 +148,8 @@ The hard constraint: the fitness function must be machine-checkable. Evolutionar
   中文翻译：**没有真正评估器的 AlphaEvolve。** "问 LLM 代码是否更好"不是适应度函数。评估器必须是确定性和快速的。
 - **Over-engineering.** Most agent tasks don't need either. Reach for ReAct or ReWOO first.
   中文翻译：**过度工程。** 大多数 Agent 任务不需要任何一个。先使用 ReAct 或 ReWOO。
+
+> 🤔 **【困惑】** Q: ChatHTN 论文说"LLM 只提建议不直接进计划"——这跟 LangChain Agent 调用工具不是一回事吗？ A: 不一样。普通 Agent 里 LLM 决定调用哪个工具就直接执行了，没人验证"调用这个工具在当前状态是否合法"。ChatHTN 强制 LLM 提议后经过符号层的 precondition 检查——只有 precondition 满足才执行。这个"强制审计"层就是"可证明可靠性"的来源，普通 Agent 没有这层。
 
 ## Build It | 动手构建
 

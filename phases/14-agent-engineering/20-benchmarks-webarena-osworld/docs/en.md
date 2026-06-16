@@ -24,6 +24,9 @@ Generalist agents can call tools. Can they drive a browser across 20 clicks to c
 > **【中文解读】** WebArena 和 OSWorld 评估 Agent 在真实计算环境中的操作能力。WebArena 测试 Web 浏览器操作（购物、论坛、CMS）。OSWorld 测试桌面操作系统操作（文件管理、应用操作）。两者都是端到端评估——不看中间步骤，只看最终结果是否正确。
 
 > **{【拓展：WebArena (CMU, 2023) 创建了真实的 Web 环境（电商、论坛、GitLab），A...】}** WebArena (CMU, 2023) 创建了真实的 Web 环境（电商、论坛、GitLab），Agent 需要像人类一样浏览和操作。2026 年 SOTA 约 35% 成功率，人类约 80%。OSWorld (HKU, 2024) 提供真实的 Ubuntu/Windows/macOS 桌面环境，Agent 需要操作 GUI 完成任务。成功率更低，最好的 Agent 约 12%。
+
+> 🔗 **【前置】** 建议先过：Phase 14·19（SWE-bench/GAIA）——本节是其姊妹篇，专门评估"GUI 操作"能力；以及 Phase 14·21（Computer Use Agents）——本节是评估那些 Agent 的"考试题"。理解 GUI 操作和工具调用的区别（GUI 是像素+点击，工具调用是 API+JSON）是关键。
+
 ## The Concept | 核心概念
 
 ### WebArena (Zhou et al., ICLR 2024)
@@ -36,6 +39,8 @@ Generalist agents can call tools. Can they drive a browser across 20 clicks to c
 The self-hosted framing matters — the benchmark is not flaky because the target apps are pinned and reproducible.
 
 > 自托管的框架很重要——基准不会因为目标应用被固定且可重现而不稳定。
+
+> 💡 **【类比】** WebArena 和 OSWorld 的区别像"模拟驾驶舱"和"真车上路"：WebArena 是模拟驾驶舱——四个固定的网页应用（电商、论坛等），环境完全可控可复现，像驾校的标准化场地；OSWorld 是真车上路——真实的 Ubuntu/Windows/macOS 系统，每个版本的 UI 都可能不一样，还可能弹窗、卡顿、广告。**关键**：WebArena 测的是"Agent 能不能用 Web"，OSWorld 测的是"Agent 能不能用电脑"——后者难一个量级。
 
 > WebArena 和 OSWorld 是计算机使用 Agent 的评估环境。WebArena 模拟网页操作，OSWorld 模拟完整桌面环境。两者都测试 Agent 在真实 GUI 中的操作能力。
 
@@ -55,6 +60,8 @@ The self-hosted framing matters — the benchmark is not flaky because the targe
 
 1. **GUI grounding.** Pixel → element mapping. Models struggle to localize UI elements reliably in 1920×1080.
 2. **Operational knowledge.** Which menu has the setting, which keyboard shortcut, which preference pane. Knowledge tail that humans build over years.
+
+> ⚠️ **【易错点】** 用 DOM 或 accessibility API 跑 OSWorld 然后报告"高分"。**后果**：分数虚高且无意义——OSWorld 设计目的就是测**视觉 grounding**（像素到元素的映射），用 DOM API 等于绕过了核心挑战。**一行修复**：在 OSWorld 上只能用 screenshot-as-input 的 agent，否则不算"在 OSWorld 上评估"。如果要测 DOM-based agent，请用 WebArena 或 Mind2Web。
 
 ### Follow-ups
 

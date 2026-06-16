@@ -41,6 +41,8 @@ Voyager's answer: treat each reusable capability as a named chunk of code stored
 
 > **【拓展：Voyager 的技能库概念已被 2026 年的编码 Agent 普遍采用】** Claude Code 的 CLAUDE.md、Cursor 的 .cursorrules 和 Codex 的技能系统都是这一思想的变体——将有效的操作模式编码为可复用的技能。Voyager 在 Minecraft 中用 160 个自动发现的技能完成了需要人类玩家数小时才能完成的任务。
 
+> 🔗 **【前置】** 需要先掌握：Phase 14·05（Self-Refine/CRITIC）——Voyager 的"迭代提示机制"本质是 Self-Refine + 环境反馈；Phase 14·07（MemGPT）——技能库的检索机制类似 archival memory 的语义搜索。还需要理解"代码即行动"（code-as-action）的概念，区别于"文本即行动"。
+
 ## The Concept | 核心概念
 
 ### Three components
@@ -83,6 +85,8 @@ This is the 2026 Claude Agent SDK skill: a named, retrievable chunk of code plus
 
 > 这就是 2026 年 Claude Agent SDK skill：一个命名的、可检索的代码块加上 Agent 按需加载的指令。
 
+> 💡 **【类比】** 技能库像程序员的"代码片段库"或 IDE 的 snippets：你不用每次写 Python 都重新设计 `read_file` 函数，调用已有的就行。Voyager 的洞察是让 Agent 也这么做——它"发明"了一次"挖铁矿"的代码，存进库，下次再要挖铁矿就直接检索调用。**关键**：技能是**代码**而非**提示词**——代码可以被环境执行、获得明确反馈，提示词不行。
+
 ### Skill retrieval
 
 New task "make a diamond pickaxe." Agent:
@@ -121,11 +125,15 @@ Voyager's feedback loop:
 
 This is Self-Refine (Lesson 05) applied to code generation with environment-grounded verification. CRITIC (Lesson 05) is the same pattern with external tools as the verifier.
 
+> ⚠️ **【易错点】** 把失败技能直接覆盖到技能库里。**后果**：原本工作的旧版本丢失，下次检索到的就是有 bug 的新版。**一行修复**：技能库用版本化 key（如 `craft_pickaxe_v3`），失败时新增版本，不覆盖旧版本；只有 self-verification 通过才标记为 `latest`。
+
 > 这是 Self-Refine（第 5 课）应用于带环境锚定验证的代码生成。CRITIC（第 5 课）是用外部工具作为验证器的相同模式。
 
 ### Curriculum and exploration
 
 Voyager's curriculum module proposes tasks like "build a shelter near the lake" based on what the agent has and what it has not yet done. The proposer uses the environment state + skill inventory to pick a task just above current capability — the exploration sweet spot.
+
+> 🤔 **【困惑】** Q: Voyager 的"技能是 JavaScript 代码"——为什么不是 Python？是不是 Minecraft Mineflayer API 限制了？ A: 部分是。Mineflayer 是 Node.js 库，所以代码必须是 JavaScript。但更深层的原因是：**代码作为动作空间必须可执行**——语言不重要，重要的是"能不能被环境直接执行并返回成功/失败信号"。在浏览器 Agent 里可能是 Playwright TS 代码，在数据库 Agent 里可能是 SQL。语言选型看环境，不在 Voyager 模式本身。
 
 > Voyager 的课程模块基于 Agent 已有的和尚未完成的内容提出任务，如"在湖边建一个庇护所"。提议器使用环境状态 + 技能清单来选择略高于当前能力的任务——探索的最佳点。
 

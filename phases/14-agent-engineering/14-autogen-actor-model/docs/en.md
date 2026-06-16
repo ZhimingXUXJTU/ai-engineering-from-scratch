@@ -34,6 +34,8 @@ AutoGen v0.4's answer: the actor model. Each agent is an actor with a private in
 
 > **【拓展：AutoGen 的演进】** AutoGen 由微软研究院开发，v0.4 (2025) 是一次重大重构。从 v0.3 的对话模式转向 Actor 模型，灵感来自 Erlang/Akka 的并发模型。核心概念：每个 Agent 是一个 Actor，有独立的状态和消息队列，通过异步消息传递协作。这使得 AutoGen 特别适合多 Agent 分布式场景。
 
+> 🔗 **【前置】** 必须先掌握：Phase 14·01（Agent Loop）和 Phase 14·12（Anthropic Workflow Patterns）——本节是这些模式在"并发场景"下的延伸。还需要"Actor 模型"的基本概念——如果不知道 Erlang/Akka 是什么，先去补一节分布式系统课。本节硬核在"异步消息传递"而非"LLM 调用"。
+
 ## The Concept | 核心概念
 
 ### Actors
@@ -50,6 +52,8 @@ An actor has:
   中文翻译：处理器：`receive(message) -> effects`，效果可以是"回复"、"发送给其他 Actor"、"创建新 Actor"、"更新状态"、"停止自己"。
 
 Two actors cannot share memory. They can only send messages.
+
+> 💡 **【类比】** Actor 模型像办公室里互不相见的同事：每个人有自己的工位（私有状态）和收件箱（消息队列）。你想让同事帮忙，不能直接去翻他的工位（共享内存），只能发邮件（发消息）。同事处理完邮件可能回信（reply）、转发给另一个人（send to other）、招实习生（spawn new actor）。**关键**：一个同事生病（崩溃）不影响其他人——这就是故障隔离。
 
 > 两个 Actor 不能共享内存。它们只能发送消息。
 
@@ -75,6 +79,8 @@ In the v0.2 model, calling `agent_a.chat(agent_b)` synchronously blocks agent_a 
 - **Distribution-ready.** Inbox + transport is the same abstraction whether the actor is in-process or on another host.
   中文翻译：**分布式就绪。** 收件箱 + 传输是相同的抽象，无论 Actor 在进程内还是在另一台主机上。
 
+> ⚠️ **【易错点】** 用 Actor 模型但忘了"消息必须可序列化"。**后果**：本地开发跑通（消息传递的是 Python 对象引用），上生产分布到多机就崩——对方进程拿不到你的对象。**一行修复**：所有消息必须用 pydantic/dataclass/JSON-schema 定义，禁止传 lambda、文件句柄、数据库连接等不可序列化对象。
+
 ### Topologies
 
 - **RoundRobinGroupChat.** Agents take turns in a fixed rotation.
@@ -93,6 +99,8 @@ OpenTelemetry support is built in. Every message emits a span; tool calls carry 
 ### Status: maintenance mode
 
 Early 2026: AutoGen v0.7.x is stable for research and prototyping. Microsoft has shifted active development to the Microsoft Agent Framework (public preview Oct 1 2025; 1.0 GA targeted end of Q1 2026). AutoGen patterns port forward cleanly — the actor model is the durable idea.
+
+> 🤔 **【困惑】** Q: AutoGen 已经进入维护模式了，我还该学吗？ A: 学"Actor 模型"这一节思想，但**别在生产上选 AutoGen**。原因：(1) 微软已转向 Microsoft Agent Framework（MAF），AutoGen 不再获得新特性；(2) Actor 模型本身是个**经久不衰的分布式设计思想**（来自 1973 年 Hewitt 论文，比 LLM 老 50 年），理解它对你评估 MAF、Erlang、Akka、Ray 都有帮助。把 AutoGen 当"教材"，把 MAF 或 LangGraph 当"生产工具"。
 
 > 2026 年初：AutoGen v0.7.x 在研究和原型开发方面稳定。微软已将活跃开发转移到 Microsoft Agent Framework（2025 年 10 月 1 日公开预览；1.0 GA 目标 2026 年 Q1 末）。AutoGen 模式可以干净地向前移植——Actor 模型是持久的理念。
 

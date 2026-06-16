@@ -35,6 +35,8 @@ CrewAI's split is honest about the trade. Crews for collaborative, role-based, e
 
 > CrewAI 的分裂诚实地面对了这个权衡。Crew 用于协作式、基于角色的探索性工作。Flow 用于事件驱动、代码控制、可审计的生产环境。同一框架，两种形态，按场景选择。
 
+> 🔗 **【前置】** 必须先掌握：Phase 14·12（Anthropic Workflow Patterns）——CrewAI 的 Flow 就是这些模式的实现，Crew 是"自主版"工作流；以及 Phase 14·14（Actor Model）——Crew 内部的 Agent 协作本质上是消息传递。还需要理解 Pydantic（结构化输出验证），因为 Task 的 `output_pydantic` 是核心契约。
+
 ## The Concept | 核心概念
 
 ### Four primitives
@@ -46,6 +48,8 @@ CrewAI's surface is small. Memorize this and the rest is config.
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 - **Agent.** `role + goal + backstory + tools + (optional) llm`. The backstory is load-bearing. It shapes tone, judgment, when the agent stops. Tools are functions the agent can call (more below).
+
+> 💡 **【类比】** CrewAI 的 Agent 定义像招聘 JD（职位描述）：role 是职位名（"资深数据分析师"），goal 是 KPI（"找出数据中的关键趋势"），backstory 是企业文化洗脑（"你是 IBM 工作 20 年的资深专家，注重严谨..."）。**关键洞察**：backstory 不是装饰，它真的会影响 LLM 的判断风格——把同一个 agent 写成"严谨学者"或"激进创业者"，输出风格完全不同。
 - **Task.** `description + expected_output + agent + (optional) context + (optional) output_pydantic`. A reusable unit of work. `expected_output` is the contract. `context` lists upstream tasks whose outputs are passed in. `output_pydantic` forces a structured shape.
 - **Crew.** Container. Owns the list of `agents`, the list of `tasks`, the `process`, and optional `memory` + `verbose` + `manager_llm` settings.
 - **Process.** Execution strategy. Sequential, Hierarchical, Consensus (planned). Picks the shape of the run.
@@ -63,6 +67,8 @@ Agents do not see each other directly. Tasks reference agents. The Crew sequence
 - **Consensus.** Planned, not currently implemented in the public API. The docs reserve the name for a future voting-based process. Do not rely on it today.
 
 Hierarchical adds a per-round LLM call (the manager) on top of every specialist call. Token cost can triple on a five-step run. Pay for it only when you need the routing.
+
+> ⚠️ **【易错点】** 看到 CrewAI 文档示例都用 Hierarchical 模式就跟着用。**后果**：账单爆炸——Hierarchical 每轮多一次 manager LLM 调用，5 步任务变 10 次 LLM 调用，token 成本翻 3 倍。**一行修复**：默认用 Sequential（成本最低、最可预测），只有任务顺序真的依赖前一步输出（如客服分流）才升级到 Hierarchical。
 
 > 层级模式在每次专家调用之上增加了每轮的 LLM 调用（管理者）。在五步运行中，Token 成本可能增加三倍。只有在你需要路由时才值得为此付费。
 
@@ -163,6 +169,8 @@ Enable on the Crew with `memory=True` or per-type config. Backed by an embedding
 Lesson 17 (Agent Framework Tradeoffs) lays this out in a matrix. The short version: CrewAI sits in the "collaborative role-based" corner.
 
 > 第 17 课（Agent 框架权衡）用矩阵展示了这一点。简短版本：CrewAI 位于"协作式基于角色"的角落。
+
+> 🤔 **【困惑】** Q: CrewAI 文档说"生产环境从 Flow 开始"，但我看 YouTube 教程全是 Crew 例子，到底该信谁？ A: 信文档。YouTube 教程偏向 demo 效果（Crew 自主协作看起来更酷），但生产环境要的是**可重放、可审计、可监控**——这些只有 Flow 能给。建议路径：用 Crew 做原型验证想法（一两小时搞定），稳定后用 Flow 重写为生产版本。Crew 不是不能用，而是不能直接上生产。
 
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
