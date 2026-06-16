@@ -7,6 +7,9 @@
 **Prerequisites:** Phases 14 · 31 to 14 · 41 | **前置知识:** 见原文
 **Time:** ~75 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·31-41 全部 11 节 Workbench 课程。本节是 Phase 14 的 Capstone（顶点课），把所有 workbench 表面打包成可复用的目录。
+> 💡 **【类比】** Capstone pack = 现成的厨房套件。前 11 节学了"刀、砧板、锅、调料"分别怎么用，本节把它们装进一个箱子——你拿去任何仓库 `cp -r` 就能用，第二天 Agent 就能可靠干活。这就是 Claude Code、Cursor 等工具的"workbench 模板"思路。
+
 ## Learning Objectives | 学习目标
 
 - Package the seven workbench surfaces into one drop-in directory.

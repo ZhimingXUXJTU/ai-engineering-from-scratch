@@ -7,6 +7,9 @@
 **Prerequisites:** Phase 14 · 34 (Repo Memory), Phase 14 · 38 (Verification), Phase 14 · 39 (Reviewer) | **前置知识:** 见原文
 **Time:** ~50 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·34（Repo Memory）、Phase 14·38（Verification）、Phase 14·39（Reviewer）。本节讲会话如何"交接班"。
+> 💡 **【类比】** Handoff packet = 班次交接表。早班护士下班前写给晚班的"病患状态摘要"——不能靠晚班自己翻病历。Agent 一次会话结束前，必须生成结构化交接包（已完成、待办、决策、风险），下次会话或下个 Agent 1 分钟内进入状态。
+
 ## Learning Objectives | 学习目标
 
 - Identify the seven fields every handoff packet needs.

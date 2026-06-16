@@ -7,6 +7,9 @@
 **Prerequisites:** Phase 14 · 33 (Rules), Phase 14 · 36 (Scope), Phase 14 · 37 (Feedback) | **前置知识:** 见原文
 **Time:** ~55 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·33（Rules）、Phase 14·36（Scope）、Phase 14·37（Feedback）——3 个前置都做完才能学验证门控。
+> 💡 **【类比】** Verification gate = 出厂质检。Agent 自己说"我做完了"不算数——gate 独立检查"测试是否通过、scope 是否守住、规则是否满足、diff 是否合理"。门控失败，任务不算完成。这是 Phase 14·39（Reviewer Agent）的简化版——gate 是脚本，reviewer 是 LLM。
+
 ## Learning Objectives | 学习目标
 
 - Define a verification gate as a deterministic function over workbench artifacts.

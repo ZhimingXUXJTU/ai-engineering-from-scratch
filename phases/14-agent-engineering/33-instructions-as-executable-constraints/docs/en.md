@@ -7,6 +7,9 @@
 **Prerequisites:** Phase 14 · 32 (Minimal Workbench) | **前置知识:** 见原文
 **Time:** ~50 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·32（Minimal Workbench）。本节把"模糊的指令"变成"可机器检查的约束"。
+> 💡 **【类比】** 散文指令 vs 可执行约束 = "好好做饭" vs "盐不超过 5 克、油温 180 度、出锅前尝味"。前者靠厨师自觉（容易翻车），后者像菜谱可量化检查（稳定）。Claude Code 的 `CLAUDE.md` 里写"测试通过才能提交"是散文，写"运行 pytest 必须返回 0 失败"是可执行约束。
+
 ## Learning Objectives | 学习目标
 
 - Separate routing prose from operational rules.

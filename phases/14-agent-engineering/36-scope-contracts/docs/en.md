@@ -7,6 +7,9 @@
 **Prerequisites:** Phase 14 · 32 (Minimal Workbench), Phase 14 · 33 (Rules as Constraints) | **前置知识:** 见原文
 **Time:** ~50 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·32（Minimal Workbench）、Phase 14·33（Rules as Constraints）。本节讲"任务范围契约"——防止 Agent 改无关文件。
+> 💡 **【类比】** Scope contract = 装修合同。"只刷客厅墙、不动家具、不改水电"。Agent 不知道边界（"反正都是这个项目的代码，我顺手把那个 bug 也修了"），scope contract 让 Agent 知道哪些文件能改、哪些不能，越界就报警。
+
 ## Learning Objectives | 学习目标
 
 - Write a scope contract that an agent reads at task start and a verifier reads at task end.

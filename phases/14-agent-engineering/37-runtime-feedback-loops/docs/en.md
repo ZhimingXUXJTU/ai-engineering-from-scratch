@@ -7,6 +7,9 @@
 **Prerequisites:** Phase 14 · 32 (Minimal Workbench), Phase 14 · 35 (Init Script) | **前置知识:** 见原文
 **Time:** ~50 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·32（Minimal Workbench）、Phase 14·35（Init Script）。本节讲"运行时反馈"——让 Agent 看到命令的真实输出而非自己猜测。
+> 💡 **【类比】** 反馈循环 = 闭眼做饭 vs 睁眼做饭。盲猜"煮 5 分钟应该熟了"= 不看输出；睁眼看到"水还没开"= 看真实反馈再决定。Agent 不读 stderr，等于盲改代码；本节教如何把 stdout/stderr 结构化给 Agent 看。
+
 ## Learning Objectives | 学习目标
 
 - Distinguish runtime feedback from observability telemetry.
