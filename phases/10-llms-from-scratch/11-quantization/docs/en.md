@@ -6,6 +6,10 @@
 
 > **【拓展：量化→llama.cpp/GGUF】** llama.cpp 和 GGUF 格式让大模型能在消费级硬件上运行。GPTQ、AWQ、GGUF 等量化方法是将 70B+ 模型部署到本地设备的关键。理解量化是理解大模型部署的基础。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·01-10（LLM 基础）；浮点数表示（FP32/FP16/BF16/INT8/INT4）；numpy 矩阵运算。
+
+> 💡 **【类比】** 量化 = 压缩图片。原照片（FP16）每像素 16 位，肉眼分辨不出和 8 位（FP8）的差别，但文件大小一半。再压到 4 位（INT4）肉眼开始看到锯齿（精度损失），但文件小 4 倍。模型量化同理：FP16→INT4 大小变 1/4，性能损失通常 < 5%。GGUF 格式让你能在 MacBook 上跑 Llama-70B。
+
 **Type:** Build
 **Languages:** Python (with numpy)
 **Prerequisites:** Phase 10, Lessons 01-10 (LLMs from Scratch)

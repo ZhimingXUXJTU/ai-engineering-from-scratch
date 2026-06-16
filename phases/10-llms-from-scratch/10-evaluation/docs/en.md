@@ -6,6 +6,10 @@
 
 > **【拓展：LLM评测→实际应用】** LLM 评测体系包括：MMLU（知识）、HumanEval（代码）、MATH（数学）、Arena（人类偏好）。但真实应用中最重要的是你自己的评测——在你自己的任务和数据上测试。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·01-05（LLM 基础）；Phase 11·10（Evaluation）——生产 LLM 应用的评估。本节聚焦模型本身的评估。
+
+> 💡 **【类比】** 通用 benchmark = 全国高考（适合筛人，但和具体工作能力无关）。自家 eval = 公司面试题（精准对应你的需求）。选模型时高考分数（MMLU）只能初筛，最终要看面试（自家 eval）表现。Goodhart 定律警告：刷高考分数的学生不一定工作能力强。
+
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 10, Lessons 01-05 (LLMs from Scratch)
