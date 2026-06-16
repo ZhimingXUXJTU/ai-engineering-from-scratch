@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 12 · 05, Phase 12 · 07 (recipes)  | **前置：阶段12第05课、阶段12第07课（配方）**
 **Time:** ~120 minutes  | **时长：约120分钟**
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·05（LLaVA 后装方案）、Phase 12·07（开源 VLM 配方）。本节是"反 LLaVA"——拒绝后装，主张原生多模态预训练。
+> 💡 **【类比】** 后装 VLM（LLaVA）= "成年后学外语"——已经掌握母语（文本），再艰难学第二语言（视觉）。原生 VLM（InternVL3）= "双语家庭长大"——两种语言同时学，没有翻译损耗。后装方案便宜但有口音（对齐债务），原生方案昂贵但流利。
+> 🤔 **【困惑】** Q: 既然原生预训练这么好，为什么 LLaVA 仍然主流？— 成本！原生预训练需要数百万 GPU 小时从头跑（一次 ~ 数百万美元），后装 LLaVA 只需 8×A100 跑一天。除非你是大厂从头训新模型，否则 LLaVA 路线性价比高得多。
+
 ## Learning Objectives  | 学习目标
 
 - Explain why post-hoc VLM training accumulates alignment debt, citing the three measurable symptoms (catastrophic forgetting, answer drift, visual-text inconsistency).  | 解释后装 VLM 训练为什么积累对齐债务，列举三个可测量症状（灾难性遗忘、回答漂移、视觉-文本不一致）。

@@ -9,6 +9,10 @@
 **Prerequisites:** Phase 12 · 05 (LLaVA), Phase 12 · 09 (Qwen-VL JSON), Phase 14 (Agent Engineering)
 **Time:** ~240 minutes
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12 全部（VLM 演进）、Phase 14·01-10（Agent 循环、工具调用）、Phase 14·30+（工作台系列 Agent 实践）。本节是 Phase 12 的毕业课——所有多模态 + Agent 技术整合成一个能操作电脑的产品。
+> 💡 **【类比】** 多模态 Agent = "AI 实习生"。看截图（感知）+ 想"下一步该点哪里"（推理）+ 输出点击坐标（行动）+ 看新页面（观察）+ 循环。普通 VLM = 看图说话（描述）；Agent VLM = 看图做事（执行动作）。困难在于：坐标精度（点错按钮）、长程规划（10 步订票流程）、错误恢复（弹窗、广告、登录页）。
+> ⚠️ **【易错点】** 让 Agent 直接执行动作不设人工审核 = 灾难（可能误转账、误删除）。修复：所有"破坏性动作"（点击提交、确认、删除按钮）必须人类审核或 dry-run 模式。Anthropic Computer Use 的设计哲学就是"提案→人类批准→执行"，对应 Phase 15·15 propose-then-commit 模式。
+
 ## Learning Objectives | 学习目标
 
 - Design a multimodal agent loop: perceive → reason → act → observe → repeat.

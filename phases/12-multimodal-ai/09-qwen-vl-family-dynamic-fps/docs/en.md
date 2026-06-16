@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 12 · 06 (patch-n'-pack)  | **前置：阶段12第06课（补丁打包）**
 **Time:** ~120 minutes  | **时长：约120分钟**
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·06（patch-n'-pack 任意分辨率）；Phase 7·04（RoPE 旋转位置编码，本节升级为 3D M-RoPE）；Phase 14·04（Agent 工具调用，本节讲解 VLM 如何输出 JSON）。
+> 💡 **【类比】** Qwen-VL 系列 = "中文 VLM 旗舰"。和 LLaVA 系列的区别：LLaVA 主打英文 + 简单架构；Qwen-VL 主打中英双语 + 高分辨率 + 结构化输出。如果你做中文场景（财报、合同、票据），Qwen-VL 是默认选择。
+> ⚠️ **【易错点】** Qwen-VL 输出边界框坐标时混淆"绝对像素 vs 相对比例"——不同代次用不同约定。Qwen2-VL 用绝对像素（0-1000 范围），Qwen2.5-VL 改用归一化比例（0-1）。修复：使用前查文档，按代次正确解析坐标。
+
 ## Learning Objectives  | 学习目标
 
 - Compute M-RoPE's three-axis rotations (temporal, height, width) and explain why all three are needed.  | 计算 M-RoPE 的三轴旋转（时间、高度、宽度），解释为什么三者都需要。

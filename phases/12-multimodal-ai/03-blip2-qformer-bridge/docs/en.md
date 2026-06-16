@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 12 · 02 (CLIP), Phase 7 (Transformers) | **前置知识:** Phase 12 · 02（CLIP），Phase 7（Transformer）
 **Time:** ~180 minutes | **时间:** ~180 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·02（CLIP 对比学习）；Phase 7（Transformer 自注意力和交叉注意力）；Phase 11·04（Embeddings）。核心数学是交叉注意力 Q·K^T·V。
+> 💡 **【类比】** Q-Former = "记者采访"。32 个记者（query）站在 ViT 出来的 256 个 patch 前面，每人提自己的问题，听完回答后写下 32 条新闻摘要。这 32 条摘要就是喂给 LLM 的"新闻简报"，LLM 不用看完整 256 张原始图片。
+
 ## Learning Objectives | 学习目标
 
 - Explain why a trainable bottleneck between a frozen vision encoder and frozen LLM beats end-to-end finetuning in cost and stability.
@@ -52,6 +55,9 @@ The Q-Former's core trick: instead of letting the LLM's text tokens attend to im
 
 > Q-Former 的核心技巧：不让 LLM 的文本 token 关注图像 patch，而是引入一组新的 32 个可学习查询向量 `Q`，让*它们*关注图像 patch。查询是模型的参数——在训练中学习，且每张图像都使用相同的 32 个查询。
 
+> ⚠️ **【易错点】** 以为"32 个 query 是 32 张不同图片的查询"——错！32 个 query 是固定的、对所有图片都一样。它们学的是"如何从图片里提取 32 种信息维度"（比如颜色、物体、空间关系）。每张图通过 Q-Former 都输出相同的 32 维结构。
+> 🤔 **【困惑】** Q: 32 个 query 怎么知道每个该看什么？A: 训练时三个损失（ITC/ITM/ITG）会反向传播梯度告诉每个 query 该专精什么。最终学到的 32 维编码是"损失下降最快的那个方向"，并不是人为指定的"颜色/物体/背景"。
+
 After cross-attention, each query holds a compressed summary of the image — "describe the main object", "describe the background", "count the objects", etc. The queries do not literally specialize on semantic labels; they learn whatever encoding makes downstream losses drop.
 
 > 交叉注意力后，每个查询持有图像的压缩摘要——"描述主要对象"、"描述背景"、"计算对象数量"等。查询并非字面上专精于语义标签；它们学习使下游损失下降的任何编码。
@@ -84,6 +90,8 @@ Stage 1: representation learning (no LLM). Three losses:
   中文翻译：ITM（图文匹配）：二分类器——这个图文对是否匹配？使用难负例挖掘。
 - ITG (image-grounded text generation): causal LM head on text, conditioned on the queries. Forces queries to encode text-generatable content.
   中文翻译：ITG（图像条件文本生成）：文本上的因果 LM 头，以查询为条件。强制查询编码可生成文本的内容。
+
+> 💡 **【类比】** 三损失的分工：ITC = "看图找文字"（粗粒度对齐）；ITM = "判断这对图文是不是真的配"（细粒度区分）；ITG = "看着图把对应的文字写出来"（生成能力）。三个一起训练，让 query 学到既能检索又能描述的视觉摘要。
 
 Only the Q-Former trains. The ViT is frozen. No LLM involved.
 
@@ -124,6 +132,8 @@ MiniGPT-4 kept the Q-Former but trained only the output linear projection while 
 LLaVA (2023, Lesson 12.05) replaced the Q-Former with a plain 2-layer MLP that projects every ViT patch token into LLM space — 576 tokens per image for a 24x24 grid, all fed to the LLM. Worse compression but lets the LLM attend over raw patches. At the time this was controversial; by late 2023 it was dominant because visual instruction data (LLaVA-Instruct-150k) proved that the MLP could be trained to preserve enough signal. The tradeoff: LLaVA's context fills faster, but it scales naturally to multi-image and video.
 
 > LLaVA（2023，第 12.05 课）用简单的 2 层 MLP 替换了 Q-Former，将每个 ViT patch token 投影到 LLM 空间——24x24 网格下每张图像 576 个 token，全部喂给 LLM。压缩更差但让 LLM 可以关注原始 patch。当时这有争议；到 2023 年底它已成为主流，因为视觉指令数据（LLaVA-Instruct-150k）证明 MLP 可以被训练以保留足够的信号。权衡是：LLaVA 的上下文填充更快，但它自然扩展到多图像和视频。
+
+> 🤔 **【困惑】** 学完本节还会问：Q-Former vs LLaVA MLP 该选哪个？— 短上下文 + 高质量 → Q-Former（压缩 32 token 精心训练）；长上下文 + 多图/视频 → LLaVA MLP（每 token 信息量大但灵活）。2026 年大多数 VLM 用 MLP，因为视觉指令数据够多时，MLP 学到的足够好且更易扩展。
 
 By 2026 the field split: Q-Former survives where token budget matters (long video, many images); MLP projector dominates where raw quality per token is the priority.
 

@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 12 · 11 (Chameleon) | **前置知识:** Phase 12 · 11（Chameleon）
 **Time:** ~120 minutes | **时间:** ~120 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·11（Chameleon 早期融合 token）、Phase 8·01-03（扩散模型基础，对照学习）、Phase 7（自回归 next-token 训练）。Emu3 = Chameleon 思路 + 更好的 VQ 分词器 + 大规模训练。
+> 💡 **【类比】** 扩散模型 vs Emu3 = "画油画" vs "拼乐高"。扩散 = 从噪声开始一步步精修（连续去噪），每步都重新画整张图；Emu3 = 一个个 token 往下拼（离散乐高块），按顺序拼出图片。乐高看起来粗糙，但块够小+种类够多时也能拼出逼真画面，而且和文本生成同一套机制（都是 next-token）。
+> 🤔 **【困惑】** Q: 既然 Emu3 这么强，为什么 Stable Diffusion 仍然主流？— 推理成本！扩散模型 50 步去噪就能出图，Emu3 自回归要生成上千 token 才能出图，慢 20 倍。生成质量 Emu3 接近 SDXL 但推理慢，所以生产仍然偏爱扩散。统一生成的价值在于"一个模型干所有事"，不是"每个任务都最快"。
+
 ## Learning Objectives  | 学习目标
 
 - Explain why Emu3's single-loss next-token objective works despite the long-held assumption that diffusion is required for image quality.

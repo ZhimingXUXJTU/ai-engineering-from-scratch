@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 12 · 05 (LLaVA), Phase 5 (NLP)
 **Time:** ~180 minutes
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·05（LLaVA）、Phase 12·06（AnyRes 高分辨率，对文档至关重要）、Phase 5·08（LayoutLM 系列文档布局模型）。文档 AI 是 VLM 的高价值应用，金融场景尤其重要。
+> 💡 **【类比】** 文档理解三时代 = "会计报表的演进"。OCR 管道 = 人工核对+表格软件（先识别文字再解析布局）；OCR-free（Donut）= 一体化软件（看图直接生成结构化数据）；VLM 原生（Claude）= 全能 AI（看图就能理解、回答、推理，无需专门训练）。每一代都让前一代的方法过时，但 2026 年三个时代的技术都还在用——按场景选最便宜的方案。
+> ⚠️ **【易错点】** 简单 OCR 任务用 VLM = 杀鸡用牛刀（成本 10 倍）。例如纯文本发票用 Tesseract + LayoutLMv3 只需几分钱，用 GPT-4V 要几毛钱。修复：先评估任务复杂度，简单的 OCR 管道，复杂的（手写、混合布局、多语言）才上 VLM。
+
 ## Learning Objectives
 
 - Explain the three eras of document AI: OCR pipeline, OCR-free, VLM-native.

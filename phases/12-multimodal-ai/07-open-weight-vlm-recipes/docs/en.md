@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 12 · 05 (LLaVA baseline)  | **前置：阶段12第05课（LLaVA基线）**
 **Time:** ~180 minutes  | **时长：约180分钟**
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·02-06（CLIP/BLIP-2/Flamingo/LLaVA/NaFlex 全套）；Phase 11·08（Instruction Tuning）。本节是 Phase 12 前半段的总结：所有架构都学过了，现在看哪些选择真正重要。
+> 💡 **【类比】** 开源 VLM 五轴选择 = "买车选配置"。编码器 = 发动机（性能差 5-7 分）；连接器 = 中控台界面（几乎不影响驾驶）；LLM = 车身大小；数据 = 油品（差油再好的发动机也跑不快）；分辨率 = 轮胎（决定能跑什么地形）。纠结界面（连接器）是新手陷阱，老司机优先看发动机和油。
+
 ## Learning Objectives  | 学习目标
 
 - Name the five-axis VLM design space: image encoder, connector, LLM, data mix, resolution schedule.  | 列出 VLM 五轴设计空间：图像编码器、连接器、LLM、数据混合、分辨率调度。
@@ -53,6 +56,8 @@ Cambrian-1's "Cambrian Vision Encoders Match-Up" (Tong et al., 2024) ran 20+ enc
 The 2026 default encoder for open VLMs is SigLIP 2 SO400m/14 for semantic + dense features, sometimes concatenated with DINOv2 ViT-g/14 features (Cambrian's "Spatial Vision Aggregator" does this).
 
 > **【中文解读】** 换编码器（CLIP→SigLIP）加 3+ 分 MMMU，换连接器（MLP→Perceiver）加不到 1 分。2026 年开源 VLM 的默认编码器是 SigLIP 2 SO400m/14，有时与 DINOv2 ViT-g/14 拼接（Cambrian 的"空间视觉聚合器"就是这么做的）。
+
+> ⚠️ **【易错点】** 新手常陷入"调连接器架构"的陷阱——以为 Q-Former 更优雅就更值得研究。事实是连接器架构只贡献 1% 方差，把时间花在换更好编码器（CLIP→SigLIP 2）和增加 token 数上更有性价比。修复：先用 2 层 MLP + SigLIP 2 跑基线，再考虑复杂化。
 
 ### Axis 2: connector design is a wash  | 连接器设计几乎无影响
 

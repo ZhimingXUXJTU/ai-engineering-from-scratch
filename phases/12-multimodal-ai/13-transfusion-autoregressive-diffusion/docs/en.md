@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 12 · 11 (Chameleon), Phase 8 (Generative AI) | **前置知识:** Phase 12 · 11（Chameleon），Phase 8（生成式 AI）
 **Time:** ~180 minutes | **时间:** ~180 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·11（Chameleon 离散 token）、Phase 12·12（Emu3 next-token 生成）、Phase 8·01-03（扩散模型 / Flow Matching）。Transfusion = 两套思路的融合：文本离散 + 图像连续，一个 Transformer 两个损失。
+> 💡 **【类比】** Transfusion = "双拼户型"。Chameleon = 一居室（所有内容用同一种 token）；LLaVA = 联排别墅（视觉和文本完全分开，靠桥接连接）；Transfusion = 双拼（一边文本 next-token loss，一边图像扩散 loss，共享承重墙 = 同一个 Transformer 骨干）。两个损失共同优化一套参数，保留各自模态的优势。
+> ⚠️ **【易错点】** 两个损失直接相加而不调权重 → 一个损失主导训练（通常扩散 MSE 数值大，文本 NTP 被淹没）。修复：用 loss weighting（如 λ_text=1.0, λ_image=0.1）或 GradNorm 自适应平衡。
+
 ## Learning Objectives  | 学习目标
 
 - Wire a transformer that runs two losses (NTP on text tokens, diffusion MSE on image patches) on one backbone.

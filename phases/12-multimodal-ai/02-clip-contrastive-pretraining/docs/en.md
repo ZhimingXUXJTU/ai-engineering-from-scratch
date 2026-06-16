@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 12 · 01 (ViT patches), Phase 7 (Transformers) | **前置知识:** Phase 12 · 01（ViT patch），Phase 7（Transformer）
 **Time:** ~180 minutes | **时间:** ~180 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·01（ViT 把图像切成 patch）；Phase 11·04（Embeddings 向量空间概念）；Phase 7（Transformer 自注意力）。本节核心数学是 softmax + 交叉熵，Phase 7·04 有详细推导。
+> 💡 **【类比】** CLIP 训练 = "中外文词典配对游戏"。给 32k 对（图片，描述），让模型学会把每张图片和它自己的描述拉到向量空间的同一位置，把其他 31999 张图片的描述推开。训完之后，模型就能把"a photo of a cat"和真正的猫图拉到一起——即使训练时没见过这只猫。
+
 ## Learning Objectives | 学习目标
 
 - Derive InfoNCE loss from mutual information and implement a numerically-stable vectorized version.
@@ -65,6 +68,9 @@ Both towers normalize their outputs to unit length. Similarity is `cos(f(x), g(y
 
 > 两个塔都将输出归一化为单位长度。相似度为 `cos(f(x), g(y)) = f(x)^T g(y)`，因为两者都是单位向量。
 
+> ⚠️ **【易错点】** 忘记归一化（L2 normalize）就计算相似度 → 向量模长大的样本天然有更大的点积，模型会偏向"长向量"而不是"语义匹配"。修复：每次 forward 后必须 `f = f / ||f||`，然后才算 `cos`。
+> 🤔 **【困惑】** Q: 为什么用余弦相似度不用欧氏距离？A: 余弦只看方向不看模长，对"亮度不同但内容相同"的图片鲁棒；欧氏距离会被向量模长主导。
+
 For a batch of N (image, caption) pairs, build the similarity矩阵 `S` of shape `(N, N)`:
 
 > 对于一批 N 个（图像，描述）对，构建形状为 `(N, N)` 的相似度矩阵 `S`：
@@ -93,6 +99,9 @@ This is InfoNCE. The softmax in CE forces each image to match its caption more t
 
 > 这就是 InfoNCE。CE 中的 softmax 强制每张图像与自己的描述的匹配度高于批次中所有其他描述。"负样本"是批次中所有其他项。批次越大 = 负样本越多 = 信号越强。CLIP 在 32k 批次下训练；规模很重要。
 
+> ⚠️ **【易错点】** batch_size 太小（如 64）训不出好 CLIP——负样本太少，模型学不到"什么算真正的相似"。CLIP 原论文 batch_size=32768 才有效果。如果你只能跑 batch=256，要么用 SigLIP（不需要大 batch），要么用梯度累积模拟大 batch（但不等价）。
+> 💡 **【类比】** InfoNCE 像"找卧底游戏"：32k 张图片对应 32k 个描述，每个图片要在一堆描述里找出自己的真配对。卧底（负样本）越多，游戏越难，学到的东西越扎实。
+
 ### Temperature
 
 `tau` controls the sharpness of the softmax. Low tau → sharp distribution, hard negative mining effect. High tau → soft, all samples contribute. CLIP learns log(1/tau), clipped to prevent collapse. SigLIP 2 fixes the initial tau and uses a learned bias instead.
@@ -108,6 +117,9 @@ Softmax needs the whole similarity matrix in sync. In distributed training you m
 SigLIP replaces softmax with element-wise sigmoid: for each pair `(i, j)`, the loss is a binary classification of "are these the matching pair?" positive class labels are the diagonal, everything else is negative. The loss is:
 
 > SigLIP 用逐元素 sigmoid 替换 softmax：对于每对 `(i, j)`，损失是对"它们是否是匹配对？"的二分类。正类标签是对角线，其他都是负类。损失为：
+
+> 🤔 **【困惑】** Q: 为什么 softmax 需要 all-gather 而 sigmoid 不需要？A: softmax 的分母是"所有 N² 个配对的相似度之和"，每张 GPU 必须看到全部；sigmoid 只看每个 (i,j) 配对独立判断是/否匹配，不依赖全局信息。多 GPU 训练时 sigmoid 损失可以本地计算后 reduce。
+> 💡 **【类比】** InfoNCE = "32k 选 1 选择题"，必须看完整张卷子才能做；SigLIP = "32k 个判断题（这对配对吗？）"，每个独立答。前者需要老师收齐所有卷子，后者每个学生自己批改。
 
 ```
 L = -1/N sum over (i, j) [ y_ij log sigmoid(S[i,j]) + (1-y_ij) log sigmoid(-S[i,j]) ]
@@ -130,6 +142,9 @@ Given N class names, for each class build a text template:
 Embed each template with the text encoder. Embed your image with the image encoder. Argmax cosine similarity = predicted class. No training on the target classes.
 
 > 用文本编码器嵌入每个模板。用图像编码器嵌入图像。Argmax 余弦相似度 = 预测类别。无需在目标类别上训练。
+
+> ⚠️ **【易错点】** 直接用 `"cat"` 作为提示 → 比 `"a photo of a cat"` 差 10+ 个百分点。CLIP 训练时文本端看到的描述大多是完整句子，单词作为提示会让分布偏移。修复：始终用模板 `"a photo of a {class}"`，多模板集成更好。
+> 🤔 **【困惑】** Q: ImageNet 1000 类全算一遍 text embedding 不是很慢吗？A: 只算一次然后缓存。1000 个 prompt 在文本编码器里跑一遍（毫秒级），后面每张新图片只需要 1 次 image embedding + 1000 次余弦相似度（向量化矩阵乘）。
 
 Prompt templates matter. CLIP's original paper used 80 templates per class (plain, artistic, photo, painting, etc.) and averaged the embeddings. +3 ImageNet points. Modern usage typically picks one or two templates.
 
@@ -171,6 +186,8 @@ ALIGN (Google, 2021): same idea as CLIP, 1.8B pair scale, 90% noisy. Proved nois
 CLIP-class models cap around 76% ImageNet zero-shot (CLIP-G, OpenCLIP-G). Beyond requires either much larger data (SigLIP 2 gets 80%+) or architecture changes (supervised heads, more parameters). The benchmark is saturating; the real value is the embedding space that downstream VLMs consume.
 
 > CLIP 类模型在 ImageNet 零样本分类上的上限约为 76%（CLIP-G、OpenCLIP-G）。超越这一水平需要更大的数据（SigLIP 2 达到 80%+）或架构变更（监督头、更多参数）。基准测试正在饱和；真正的价值在于下游 VLM 消费的嵌入空间。
+
+> 🤔 **【困惑】** 学完本节还会问：1) 为什么 CLIP 的 zero-shot 不能像 GPT-4 那样理解"图中两个人在做什么"？— CLIP 只学到了"图文匹配"，没有学到细粒度的关系推理，那是 VLM（如 LLaVA）的工作。2) 真要部署该用 CLIP 还是 SigLIP 2？— 2026 年默认 SigLIP 2（多语言、NaFlex、更准），除非要做 LAION 数据的检索任务。
 
 ## Use It | 用框架实现
 

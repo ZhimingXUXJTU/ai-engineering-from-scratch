@@ -9,6 +9,9 @@
 **Prerequisites:** Phase 6 (Speech and Audio), Phase 12 · 03 (Q-Former)
 **Time:** ~180 minutes
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 6·01-02（语音信号处理：FFT/Mel 频谱图/Whisper）；Phase 12·03（Q-Former 桥接，本节复用为音频 Q-Former）；Phase 7（Transformer 编码器-解码器）。音频 LLM = 视觉 LLM 的"听觉版"，只是输入从图像 patch 变成 Mel 频谱图 patch。
+> 💡 **【类比】** 音频 LLM = "为 LLM 装耳朵"。Whisper = 助听器（只能转录不能思考）；SALMONN = 聋哑学校的翻译员（Whisper 转录→LLM 思考）；AF3 = 直接给 LLM 装耳蜗（端到端听+想+答）。端到端的好处：能捕捉转录丢失的信息（语调、情绪、停顿），这些是推理的关键。
+
 ## Learning Objectives
 
 - Compute a log-Mel spectrogram from a waveform: windowing, FFT, filter banks, log transform.

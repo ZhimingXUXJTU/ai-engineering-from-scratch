@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 12 · 03 (BLIP-2 Q-Former) | **前置知识:** Phase 12 · 03（BLIP-2 Q-Former）
 **Time:** ~120 minutes | **时间:** ~120 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·03（BLIP-2 Q-Former，理解交叉注意力和 learnable query）；Phase 7（Transformer 残差结构）；Phase 11·05（In-context Learning 概念）。Flamingo 和 BLIP-2 最大的不同：BLIP-2 在 LLM 输入端桥接一次；Flamingo 在 LLM 每隔几层插入门控层。
+> 💡 **【类比】** Flamingo 的门控交叉注意力 = "外科手术式的微创改造"。BLIP-2 = "在 LLM 大门口装一个翻译员"（输入端桥接一次）；Flamingo = "在 LLM 的每一层办公室里安一个窗口"（每 4 层一个门控交叉注意力）。门控初始为 0 = 窗口一开始是关的，模型行为和原 LLM 完全一样；训练慢慢开窗 = 视觉信息逐渐注入但不破坏原有文本能力。
+
 ## Learning Objectives | 学习目标
 
 - Explain how gated cross-attention preserves a frozen LLM's text capability at initialization via tanh(gate) = 0.
@@ -58,6 +61,8 @@ For each image in the prompt, the ViT produces N patch tokens. The Perceiver res
 
 > 对于提示中的每张图像，ViT 产生 N 个 patch token。Perceiver resampler 有 K 个固定的可学习潜在向量（Flamingo 使用 K=64）。每个 resampler 块有两个子步骤：
 
+> 🤔 **【困惑】** Q: Perceiver resampler 和 BLIP-2 的 Q-Former 有什么区别？A: 思想几乎一样（learnable query 从 patch 提取信息），但 Flamingo 的 Perceiver resampler 只做视觉特征压缩、不参与对比损失训练；Q-Former 是 transformer 结构且有 ITC/ITM/ITG 三个损失。可以认为 Perceiver resampler 是 Q-Former 的简化版。
+
 1. Cross-attention: the K latents attend over the N patch tokens (Q from latents, K/V from patches).
    中文翻译：交叉注意力：K 个潜在向量关注 N 个 patch token（Q 来自潜在向量，K/V 来自 patch）。
 2. Self-attention + FFN within the latents.
@@ -97,6 +102,9 @@ This is the single most important design choice in Flamingo: visual conditioning
 
 > 这是 Flamingo 中最重要的设计选择：视觉条件是可加的、门控的、初始化为零。第 0 步的 Flamingo 在纯文本输入上就是完美的 Chinchilla 70B。
 
+> ⚠️ **【易错点】** 自己实现时忘记初始化 alpha=0，直接随机初始化 → 训练前几步 LLM 文本能力就会崩塌。原因：未训练的交叉注意力输出是噪声，混入 LLM 内部表示会破坏文本知识。修复：alpha 必须初始化为 0，让模型从"完美 LLM"出发，缓慢学习。
+> 💡 **【类比】** 零初始化门控 = "新员工入职模式"。新员工（视觉层）第一周只观察、不说话（gate=0）；熟悉业务后逐渐发言（gate 慢慢打开）。直接让新员工主导决策（gate≠0 初始化）会扰乱团队原有节奏（破坏 LLM 文本能力）。
+
 ### Masked cross-attention for interleaved inputs
 
 In a prompt like "<image A> caption A <image B> caption B <image C> ?", each text token should only see images that came before it in the sequence. The cross-attention mask enforces: text token at position `t` attends only to image resampler tokens whose image index `i < i_t` where `i_t` is the most recent image before position `t`. "Sees only the last preceding image" or "sees all preceding images" are both valid choices; Flamingo chose the former.
@@ -116,6 +124,8 @@ A Flamingo prompt looks like:
 The model sees the completion pattern and outputs "bird" (or whatever image3 shows). No gradient steps. The frozen LLM's in-context learning capability carries through the gated cross-attention — this is the punchline of the paper and why it matters.
 
 > 模型看到补全模式并输出"bird"（或 image3 显示的任何内容）。无需梯度步骤。冻结 LLM 的上下文学习能力通过门控交叉注意力传递——这是论文的关键点，也是它重要的原因。
+
+> 🤔 **【困惑】** Q: 为什么 Flamingo 能 in-context learn 而 BLIP-2 不能？A: Flamingo 在 LLM 每隔 4 层注入视觉信息，LLM 内部的 in-context learning（在 Phase 11·05 学过）依然完整工作；BLIP-2 把 32 个视觉 token 直接拼到 prompt 前面，LLM 把它们当普通 token 处理，但训练目标里没有显式的 few-shot 模式，所以能力弱。
 
 ### Training data
 

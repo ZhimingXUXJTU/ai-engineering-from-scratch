@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 12 · 05, Phase 8 (Generative AI) | **前置知识:** Phase 12 · 05，Phase 8（生成式 AI）
 **Time:** ~180 minutes | **时间:** ~180 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 12·05（LLaVA 后期融合方案）、Phase 8（VQ-VAE 离散表示）、Phase 7（Transformer next-token 训练）。Chameleon 是"反 LLaVA"的另一个极端：所有模态都用 next-token loss。
+> 💡 **【类比】** Chameleon = "世界语"。LLaVA = 翻译机（视觉编码器把图片翻成 LLM 能懂的语言）；Chameleon = 世界语（图片和文本都用同一种人造语言，模型不用翻译）。世界语的好处是模型可以无缝交替生成文本和图片；坏处是每种模态都要离散化（VQ-VAE 给图片"造词"），信息损失大。
+
 ## Learning Objectives  | 学习目标
 
 - Explain why a shared vocabulary + single loss changes what the model can do.
