@@ -6,6 +6,8 @@
 
 > **【拓展：投机解码→推理加速】** 投机解码是 2025-2026 年推理加速的标准技术。DeepSeek-V3 的 MTP 头在推理时被复用为草稿器，接受率 80%+。vLLM、TensorRT-LLM 都已内置支持。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 07·16（投机解码数学证明）；Phase 10·12（推理优化基础）。本节是 Phase 10·15（EAGLE-3）的更早版本（基础+ EAGLE），Phase 10·15 是 V3 升级版。
+
 **Type:** Build
 **Languages:** Python (with numpy)
 **Prerequisites:** Phase 10 Lesson 12 (Inference Optimization), Phase 10 Lesson 04 (Pre-training Mini-GPT)

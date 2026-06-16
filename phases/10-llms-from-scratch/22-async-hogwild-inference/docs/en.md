@@ -6,6 +6,9 @@
 
 > **【拓展：多Agent推理→LLM Agent】** Hogwild! 推理是多 LLM Agent 协作的一种新模式。不同于传统的投票或子任务分配，它通过共享上下文实现自发协调，类似于人类团队在同一白板上协作。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·15（Speculative Decoding）；Phase 10·12（Inference Optimization + KV cache 概念）；多 Agent 协作基础。本节是实验性前沿——QwQ、DeepSeek-R1 等推理模型才能用。
+> 💡 **【类比】** Hogwild! = 多人共写一份 Google Doc。每个 worker（人）看到其他人实时打字，自发分工（你写这段我写那段）。传统多 Agent = 多人各自写 Word 然后邮件合并，需要主编协调。共享 KV cache 让模型自然涌现协作能力。
+
 **Type:** Build
 **Languages:** Python (stdlib)
 **Prerequisites:** Phase 10 · 12 (inference optimization), Phase 10 · 15 (speculative decoding)

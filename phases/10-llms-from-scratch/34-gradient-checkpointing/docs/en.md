@@ -6,6 +6,9 @@
 
 > **【拓展：梯度检查点→大模型训练】** 梯度检查点是训练大模型的标配技术。PyTorch 的 torch.utils.checkpoint、DeepSpeed 的 activation checkpointing 都是这一思想的实现。在 128K 上下文训练中，选择性检查点可以节省 60%+ 的显存。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·04（Pre-Training GPT）；反向传播算法；GPU 显存层次（SRAM vs HBM）。本节是训练超大模型 + 长上下文时的关键技术。
+> 💡 **【类比】** 梯度检查点 = 出差只带必要文件。反向传播 = 工作完成后回顾所有材料；不检查点 = 把出差路上所有材料都背着（占满行李箱）；全检查点 = 只带护照，需要时重新打印（重算成本高）；选择性检查点 = 只扔可重算的（如草稿），保留难重建的（如合同）——平衡显存和速度。
+
 **Type:** Build
 **Languages:** Python (with numpy, optional torch)
 **Prerequisites:** Phase 10 Lesson 04 (Pre-Training Mini-GPT), Phase 10 Lesson 05 (Scaling & Distributed)

@@ -6,6 +6,9 @@
 
 > **【拓展：SSM+Transformer→未来架构】** 纯 SSM 和纯 Transformer 在长上下文任务上各有局限。混合架构（Jamba、Mamba-3）结合了两者的优势，可能是 2026-2027 年长上下文模型的主流方向。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 07（Transformers）；状态空间模型（SSM, Mamba）概念；MoE（Mixture of Experts）。本节是 SSM 和 Transformer 混合架构的代表作。
+> 💡 **【类比】** Jamba = "长短记忆组合"。Transformer = 短期记忆（精确但贵，每件事都要算注意力）；Mamba = 长期记忆（粗略但便宜，用状态压缩历史）。1:7 比例 = 偶尔做精确回忆，多数时候用快速压缩记忆。两者结合在 256K 上下文下既精确又便宜。
+
 **Type:** Learn
 **Languages:** Python (stdlib, layer-mix calculator)
 **Prerequisites:** Phase 10 · 14 (open-model architectures), Phase 10 · 17 (native sparse attention)
