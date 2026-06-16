@@ -6,6 +6,8 @@
 
 > **【拓展：RLHF → 现代 AI 对齐】** RLHF（基于人类反馈的强化学习）是 ChatGPT 成功的关键技术。InstructGPT 的三阶段管线——SFT→RM→PPO——已成为行业标准。2026 年的变体包括 DPO（直接偏好优化）、Constitutional AI（宪法 AI）等，但核心思路相同：用人类偏好信号引导模型行为。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·06（SFT 监督微调）、Phase 10·07（RLHF）、Phase 10·08（DPO）——理解三阶段对齐管线的技术细节。本节是 Phase 18 的开篇，从工程视角审视对齐——后续 29 节都基于此基础。
+
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy three-stage pipeline) | **语言:** Python（标准库，玩具三阶段管线）
 **Prerequisites:** Phase 10 · 06 (SFT), Phase 10 · 07 (RLHF), Phase 10 · 08 (DPO) | **前置知识:** Phase 10 · 06 (SFT), Phase 10 · 07 (RLHF), Phase 10 · 08 (DPO)
