@@ -6,6 +6,9 @@
 
 > **【拓展：MTP→DeepSeek-V3创新】** MTP 是 DeepSeek-V3 的四大架构创新之一（MLA + MoE + MTP + DualPipe）。它同时改善了训练（更丰富的梯度信号）和推理（免费获得投机解码草稿器），是"训练时投资、推理时回报"的典范。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·04（Pre-Training GPT）；Phase 10·15（Speculative Decoding）——MTP 在推理时变成草稿器；因果链（causal chain）概念。本节是 Phase 10·20（DeepSeek-V3 Walkthrough）的前置。
+> 💡 **【类比】** 传统 next-token = 学英语时一次记一个单词。MTP = 同时记"这个单词"和"下一个常用搭配"——训练时学更多结构（梯度信号丰富），推理时把"搭配预测器"当草稿器免费加速（80% 接受率）。一举两得。
+
 **Type:** Build
 **Languages:** Python (stdlib)
 **Prerequisites:** Phase 10 · 04 (pre-training a mini GPT), Phase 10 · 15 (speculative decoding)

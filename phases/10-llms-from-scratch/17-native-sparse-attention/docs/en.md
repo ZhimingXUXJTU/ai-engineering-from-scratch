@@ -6,6 +6,9 @@
 
 > **【拓展：稀疏注意力→长上下文】** 长上下文（64K-128K token）是 2025-2026 年大模型的核心能力。NSA、MHA、GQA 都是降低注意力计算复杂度的方案。DeepSeek 的创新在于稀疏性是端到端可微分的，可以在预训练阶段直接使用。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·16（差分注意力）；FlashAttention 概念；softmax 门控机制。本节是注意力优化进阶。
+> 💡 **【类比】** NSA = 看长文档的三种策略同时进行：(1) **压缩分支** = 看目录摘要（粗粒度）；(2) **选择分支** = 重点看自己感兴趣的章节（细粒度）；(3) **滑动窗口** = 当前页前后 5 页仔细看（局部上下文）。门控（gate）= 决定每个位置该用哪种策略，自动学习最佳组合。
+
 **Type:** Build
 **Languages:** Python (stdlib)
 **Prerequisites:** Phase 7 · 12 (KV cache, flash-attention), Phase 7 · 15 (attention variants), Phase 10 · 16 (differential attention)
