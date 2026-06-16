@@ -6,6 +6,8 @@
 
 > **【拓展：嵌入→RAG与搜索】** 嵌入是 RAG（检索增强生成）系统的核心基础设施。文本转向量后存入向量数据库，通过余弦相似度实现语义搜索，这是所有现代 AI 搜索和推荐系统的底层技术。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Python 基础（numpy 向量运算、字典、列表推导）；(2) 高中向量数学——点积、夹角、模长（不知道这些先看 Phase 01·02 Vectors Matrices）；(3) Phase 05·03（Word Embeddings Word2Vec）会讲词嵌入基础，本节是其延伸到句子/文档级。本节会用到 `numpy`、`scikit-learn`、可选 `chromadb` 或 `qdrant`。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 11, Lesson 01 (Prompt Engineering) | **前置知识:** Phase 11 · 01 (提示工程)
@@ -35,6 +37,8 @@ You have 10,000 support tickets. A customer writes "my payment didn't go through
 This is the vocabulary mismatch problem. Human language has dozens of ways to say the same thing. Keyword search treats each word as an independent symbol with no meaning. It cannot know that "declined" and "didn't go through" refer to the same concept.
 
 > 这就是词汇不匹配问题。人类语言有几十种方式来表达同一件事。关键词搜索将每个词视为没有意义的独立符号。它无法知道"declined"和"didn't go through"指的是同一个概念。
+
+> 💡 **【类比】** 关键词搜索像用"按拼音查字典"——"水果"和"fruit"是两条目，互相找不到。嵌入像"按含义分类"——"水果""fruit""果实""apple"都被放进"可食用植物产品"这个语义盒子里，能跨语言、跨表达方式匹配。这就是为什么 ChatGPT 能理解你的提问即使你打错字或用罕见说法。
 
 You need a representation of text where meaning, not spelling, determines similarity. You need a way to place "my payment didn't go through" and "transaction was declined" close together in some mathematical space, while pushing "my payment arrived on time" far away despite sharing the word "payment."
 
@@ -78,6 +82,8 @@ king - man + woman = queen
 Vector arithmetic on word embeddings captures semantic relationships. The direction from "man" to "woman" is roughly the same as the direction from "king" to "queen." This was the moment the field realized that geometry could encode meaning.
 
 > 词嵌入的向量算术能捕捉语义关系。"man" 到 "woman" 的方向大致等同于 "king" 到 "queen" 的方向。这是领域意识到几何可以编码含义的时刻。
+
+> 💡 **【类比】** 向量空间的方向就是"含义维度"。比如某个方向编码"性别"（man↔woman、king↔queen、uncle↔aunt），另一个方向编码"时态"（walk↔walked、go↔went），第三个编码"复数"（cat↔cats、dog↔dogs）。模型在训练时自动发现了这些方向——没有任何人告诉它"性别"是什么，它纯粹从共现统计里学出来。300 维向量可能编码了几十个这样的语义轴。
 
 Word2Vec produced 300-dimensional vectors. Each word got one vector regardless of context. "Bank" in "river bank" and "bank account" had the same embedding. This limitation drove the next decade of research.
 
@@ -154,6 +160,8 @@ Given two embedding vectors, three ways to measure how similar they are:
 
 > **余弦相似度**：两个向量间夹角的余弦值。范围 -1（相反）到 1（同向）。忽略幅度——10 词句子和 500 词文档若指向同一方向可得分 1.0。这是 90% 场景的默认选择。
 
+> 🤔 **【困惑】** Q: 为什么大多数场景用余弦相似度而不是欧氏距离？ A: 因为嵌入向量的"长度"（magnitude）通常没意义——同一句话用 10 词或 100 词说，含义一样但向量长度可能差很多。余弦只看"方向"，对长度不敏感，所以更适合比较"含义方向"。欧氏距离会让长文档"看起来很远"——但其实它讲的是同一件事。
+
 ```
 cosine_sim(a, b) = dot(a, b) / (||a|| * ||b||)
 ```
@@ -209,6 +217,8 @@ HNSW trades a small accuracy loss (typically 95-99% recall) for massive speed ga
 
 > HNSW 以少量精度损失（通常 95-99% 召回率）换取巨大速度提升。1000 万向量下，暴力搜索需要几秒；HNSW 只需几毫秒。
 
+> 💡 **【类比】** HNSW 像地图搜索："全国地图"只画大城市（顶层稀疏），"省地图"画到县城（中层），"街道地图"画到每个建筑物（底层稠密）。找"北京大学"时，先在全国层跳到北京（一次大跳），再在省层跳到海淀区（中跳），最后在街道层找到具体位置（小跳）。比一栋一栋楼挨个查快几个数量级。
+
 ```mermaid
 graph TD
     subgraph "HNSW Layers"
@@ -219,6 +229,8 @@ graph TD
     Q["Query vector"] -->|"enter at top"| L2
     L0 -->|"nearest neighbors"| R["Top-k results"]
 ```
+
+> ⚠️ **【易错点】** HNSW 的 3 个坑：(1) **召回率随参数变化**——`ef_construction` 太低（< 100）会导致图结构质量差，召回率掉到 70% 以下；生产建议 200-500。(2) **删除代价高**——HNSW 是图结构，删除节点会破坏连接，多数实现是"软删除"（标记为已删），需要定期重建。(3) **过滤性能差**——先做向量搜索再过滤会拿到大量不符合条件的结果；解决方案：用 Qdrant 的 filtered search 或 Pinecone 的 sparse-dense hybrid，先过滤再搜索。
 
 Production options:
 
@@ -266,6 +278,8 @@ The sweet spot for most systems: 256-512 token chunks with 50-token overlap.
 
 > 大多数系统的最佳点：256-512 token 块加 50 token 重叠。
 
+> ⚠️ **【易错点】** 分块的 3 个实战坑：(1) **块太大**（> 1024 token）——嵌入被稀释，每个块都"既像 A 又像 B"，检索精度暴跌；-rule of thumb：不超过模型 max input 的 1/4。(2) **块太小**（< 64 token）——上下文丢失，"它"指代的前文消失了，嵌入变成无意义噪声。(3) **重叠设为 0**——边界处的关键句被切断，比如"... 不要。**删除**这个文件。"可能被切到两个块里，搜索"删除文件"找不到匹配。修复：始终设 10-20% 的重叠。
+
 ### Bi-Encoders vs Cross-Encoders
 
 A bi-encoder embeds the query and documents independently, then compares vectors. Fast -- you embed the query once and compare against pre-computed document embeddings. This is what you use for retrieval.
@@ -279,6 +293,8 @@ A cross-encoder takes the query and a document as a single input and outputs a r
 The production pattern: bi-encoder retrieves top-100 candidates, cross-encoder reranks them to top-10. This is the retrieve-then-rerank pipeline.
 
 > 生产模式：双编码器检索 top-100 候选，交叉编码器重排为 top-10。这就是先检索后重排管线。
+
+> ⚠️ **【易错点】** 性能灾难：直接用 Cross-Encoder 做检索。100 万文档意味着每次查询要做 100 万次完整的 Transformer forward pass——单查询要几十秒甚至几分钟。正确姿势：**永远用 Bi-Encoder 召回 + Cross-Encoder 重排**。Cross-Encoder 只对 top-100 候选运行 100 次，毫秒级完成。这个组合是 BGE、Cohere Rerank 等所有生产 RAG 系统的标准做法。
 
 ```mermaid
 graph LR
@@ -297,6 +313,8 @@ Reranking models: Cohere Rerank 3.5 ($2 per 1000 queries), BGE-reranker-v2 (free
 Traditional embeddings are all-or-nothing. A 1536-dimensional vector uses 1536 floats. You cannot truncate to 256 dimensions without retraining.
 
 > 传统嵌入是非此即彼的。1536 维向量使用 1536 个浮点数。不重新训练就无法截断到 256 维。
+
+> 🤔 **【困惑】** Q: Matryoshka 嵌入的"截断"是什么意思？为什么要做？ A: 类比俄罗斯套娃（Matryoshka doll）——大套娃里套小套娃，前 256 维是"最重要含义"（小套娃），加到 768 维是"中等细节"，加到 1536 维是"完整精细含义"（最大套娃）。模型训练时被强制让前 N 维也能工作。**收益**：存储省 6 倍（1536→256），检索快 6 倍，精度只掉 1-3 个点。RAG 系统常用 256 维存向量 + 1536 维重排，兼顾速度和精度。
 
 Matryoshka Representation Learning (Kusupati et al., 2022) fixes this. The model is trained so that the first N dimensions capture the most important information, like a Russian nesting doll. Truncating a 1536-d Matryoshka embedding to 256 dimensions loses some accuracy but remains functional.
 
