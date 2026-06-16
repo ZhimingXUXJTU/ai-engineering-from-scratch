@@ -6,6 +6,8 @@
 
 > **【拓展：MCP→Claude 协议生态】** MCP 是 Claude 生态的核心协议。Claude Desktop、Cursor、VS Code Copilot 等 300+ 客户端都支持 MCP。一个 MCP 服务器可以在所有这些客户端中工作，无需重复开发。MCP 的六原语模型（tools/resources/prompts + roots/sampling/elicitation）是理解整个协议的基础。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·01 到 05——理解工具接口、函数调用、Schema 设计；(2) JSON-RPC 2.0 基础（request/response/notification 三种消息类型）；(3) Phase 11·14（MCP 简介）有过整体认识。本节是 MCP 系列的基础课，后续 7-18 节都基于此。
+
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, JSON-RPC parser) | **语言:** Python (stdlib, JSON-RPC parser)
 **Prerequisites:** Phase 13 · 01 through 05 (the tool interface and function calling) | **前置知识:** Phase 13 · 01 through 05 (the tool interface and function calling)
@@ -35,6 +37,8 @@ The result was a Cambrian explosion of one-off integrations and a ceiling on eco
 MCP fixes this by standardizing the wire format. A single MCP server works in every MCP client: Claude Desktop, ChatGPT, Cursor, VS Code, Gemini, Goose, Zed, Windsurf, 300+ clients by April 2026. 110M monthly SDK downloads. 10,000+ public servers. The Linux Foundation took stewardship in December 2025 under the new Agentic AI Foundation.
 
 > MCP 通过标准化线格式解决了这个问题。一个 MCP 服务器可以在每个 MCP 客户端中工作：Claude Desktop、ChatGPT、Cursor、VS Code、Gemini、Goose、Zed、Windsurf，截至 2026 年 4 月有 300+ 客户端。月 SDK 下载 1.1 亿。1 万+ 公开服务器。Linux 基金会于 2025 年 12 月在新成立的 Agentic AI Foundation 下接管了管理工作。
+
+> 💡 **【类比】** MCP 像 USB-C 标准。USB-C 之前，每个设备都有自己的充电口（Micro-USB、Lightning、专用圆口），出差要带 5 根线。USB-C 后：一根线充所有。MCP 之前：每个 AI 应用（Claude/Cursor/ChatGPT）都有自己的工具集成 API，开发者要给每个写一遍适配。MCP 后：写一个 MCP server，所有 host 即插即用。MCP 的六原语就像 USB-C 规范里定义的"功率/数据/视频"通道标准。
 
 > **【中文解读】** MCP 之前，Cursor、Claude Desktop、VS Code Copilot 各有自己的工具协议。一个"Postgres 查询"工具要写三次。MCP 通过标准化线格式解决了这个问题：一个 MCP 服务器可在所有 MCP 客户端中工作。截至 2026 年 4 月，已有 300+ 客户端、月 SDK 下载 1.1 亿、1 万+ 公开服务器。
 
@@ -66,6 +70,8 @@ The spec revision used in this phase is **2025-11-25**. It adds async Tasks (SEP
 6. **Elicitation.** Server asks the client's user for structured input mid-flight. Forms or URLs (SEP-1036).
    中文翻译：**Elicitation。** 服务器在执行过程中请求客户端用户输入结构化信息。表单或 URL（SEP-1036）。
 
+> 🤔 **【困惑】** Q: Sampling 不就是服务器反过来调用客户端的模型吗？为什么不直接让服务器用自己的 API key？ A: 三个理由：(1) **成本归属**——API 调用费用算在用户头上，用户已经付费，不让用户重复付费；(2) **模型选择权**——用户用 Claude 还是 GPT 由用户决定，服务器不应该锁死；(3) **隐私**——服务器可能不可信，让它直接拿到 API key 等于把用户凭证外泄。Sampling 是"借用"客户端能力，权限边界清晰。
+
 Every capability in MCP belongs to exactly one of these six. Phase 13 · 10 through 14 cover each in depth.
 
 > MCP 中的每个能力恰好属于这六个之一。Phase 13 · 10 到 14 分别深入讲解。
@@ -84,6 +90,8 @@ Every message is a JSON object with these fields:
   中文翻译：响应：`{jsonrpc: "2.0", id, result | error}`。
 - Notifications: `{jsonrpc: "2.0", method, params}` — no `id`, no response expected.
   中文翻译：通知：`{jsonrpc: "2.0", method, params}`——无 `id`，不需要响应。
+
+> ⚠️ **【易错点】** 场景：把通知当请求处理并回复响应 / 后果：客户端会忽略该响应（无 id），但若你在循环里"等待响应才继续"会导致死锁；或反之，把请求当通知不回 / 后果：客户端超时报错 / 修复：实现 dispatch 时先 `if "id" in msg` 判断分支；通知如 `notifications/initialized` 直接 ack 后丢弃，请求如 `tools/call` 必须以相同 id 回响应。
 
 The base spec has ~15 methods, grouped by primitive. The important ones:
 

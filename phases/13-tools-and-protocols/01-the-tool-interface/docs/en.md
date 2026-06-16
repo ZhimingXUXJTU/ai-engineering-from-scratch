@@ -6,6 +6,8 @@
 
 > **【拓展：工具接口→AI Agent基础】** 工具接口是 AI Agent 的核心抽象。MCP 的 `tools/call`、OpenAI 的 `tool_calls`、A2A 的 task parts 都是这一抽象的不同实现。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 11·01（Prompt Engineering）——理解 LLM 如何生成 token；(2) Phase 11·03（Structured Outputs）——JSON Schema 基础，本节输入 schema 全靠它；(3) Python 字典、JSON 序列化基础。本节不需要真实 LLM，用 stdlib 模拟，重点在理解循环结构而非 API。
+
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, no LLM) | **语言:** Python (标准库，无 LLM)
 **Prerequisites:** Phase 11 (LLM completion APIs) | **前置知识:** Phase 11 (LLM 补全 API)
@@ -63,6 +65,8 @@ The host declares each tool with three fields.
 - **Input schema.** A JSON Schema object (draft 2020-12) describing the tool's arguments.
   中文翻译：**输入模式。** 一个 JSON Schema 对象（2020-12 草案），描述工具的参数。
 
+> 💡 **【类比】** 工具接口像餐厅点餐：菜单上每道菜=工具，菜名=tool name，菜单上的描述=description（"招牌牛肉面，清真可选，配辣油"），点餐时填的选项（辣度、加蛋）=JSON Schema 参数。服务员（模型）看菜单决定推荐哪道菜，把订单（tool_call）递给厨房（执行器），厨房做好端上来（tool_result），服务员转交给顾客。模型从不进厨房，只递单子。
+
 The model receives the list. Modern providers serialize these declarations into the system prompt using a provider-specific template, so you as the caller only deal with the structured form.
 
 > 模型接收这个列表。现代提供商使用特定的模板将这些声明序列化到系统提示中，因此作为调用者，你只需处理结构化形式。
@@ -95,6 +99,8 @@ A tool call payload has three stable fields: a call `id`, a tool `name`, and a J
 The host receives the call, validates arguments against the declared schema, and runs the executor. Invalid arguments mean the model hallucinated a field or used the wrong type — a very common failure mode on weak models. Production hosts do one of three things on invalid arguments: fail fast and surface the error to the model, repair the JSON with a constrained parser, or retry the model with the validation error included in the prompt.
 
 > 宿主接收调用，根据声明的模式验证参数，然后运行执行器。无效参数意味着模型幻觉了一个字段或使用了错误的类型——这是弱模型上非常常见的失败模式。生产环境宿主对无效参数做三件事之一：快速失败并向模型展示错误、用约束解析器修复 JSON、或将验证错误包含在提示中重试模型。
+
+> ⚠️ **【易错点】** 场景：跳过 schema 验证直接执行 / 后果：弱模型（Haiku、GPT-4o-mini）会幻觉字段（如 `get_weather({ cityy: "Tokyo" })` 拼错 key），执行器要么 KeyError 崩溃要么拿到 None 走错分支 / 修复：在执行器前**必加** `jsonschema.validate()`，失败时把错误以 `tool_result` 形式返回给模型让它重试，而不是抛异常给宿主。
 
 The executor itself is ordinary code. Python, TypeScript, a shell command, a database query. It produces a result, which is usually a string but can be any JSON value or a structured content block (text, image, or resource reference in MCP). The result must be serializable.
 
@@ -144,6 +150,8 @@ Meta's 2026 "Rule of Two" for agent security says a single turn may combine at m
 Everywhere, the same four steps. The column names change; the structure does not.
 
 > 无论何处，都是相同的四步。列名改变了；结构没有改变。
+
+> 🤔 **【困惑】** Q: 既然都是同一个四步循环，为什么还要 MCP、A2A 这么多协议？ A: 循环不变的是"逻辑步骤"，变的是"通信边界"。原生 function calling 在同一进程内；MCP 把 describe 步骤跨进程化（让一个 server 服务多个 host）；A2A 把 execute 步骤跨网络化（让 agent 调 agent）。本质都是把循环的某一步从"进程内"搬到"网络边界"，需要标准化协议来描述谁负责什么。
 
 > **【拓展：MCP 统一工具协议】** Model Context Protocol (MCP, 2024年11月发布) 将工具接口标准化，使得一个工具注册表可以服务所有模型。MCP 已被 Anthropic、OpenAI、Google 等主要厂商采纳，2026年已成为事实上的工具协议标准，类似于 USB-C 对充电器的统一作用。
 

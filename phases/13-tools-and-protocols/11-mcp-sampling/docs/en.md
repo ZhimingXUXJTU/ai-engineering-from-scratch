@@ -6,6 +6,8 @@
 
 > **【拓展：Sampling→MCP Agent 循环】** Sampling 是 MCP 实现 Agent 循环的关键原语。传统模式下，MCP 服务器只是被动执行工具。通过 Sampling，服务器可以主动请求客户端的 LLM 进行推理，从而在不持有 API 密钥的情况下实现多步 Agent 工作流。这是 MCP 与 Function Calling 的重要区别之一。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·06 到 10——理解 MCP 六原语和方向（client→server 是 tools/call，server→client 是 sampling）；(2) Phase 11·01 Prompt Engineering 基础；(3) Agent 循环概念（多轮工具调用），可参考 Phase 13·01。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, sampling harness) | **语言:** Python (stdlib, sampling harness)
 **Prerequisites:** Phase 13 · 07 (MCP server), Phase 13 · 10 (resources and prompts) | **前置知识:** Phase 13 · 07 (MCP server), Phase 13 · 10 (resources and prompts)
@@ -45,6 +47,8 @@ Option C: the server asks the client's LLM via `sampling/createMessage`. The ser
 Sampling is option C. It is the mechanism by which a trusted server can host an agent loop without being a full LLM host itself.
 
 > Sampling 是选项 C。它是受信任服务器托管 Agent 循环而自身不必是完整 LLM 宿主的机制。
+
+> 💡 **【类比】** Sampling 像大学实验室借用学校算力。你的实验室（MCP server）有自己的研究方向（业务逻辑：读哪些文件、做什么分析），但没有 GPU 预算（API key）。学校计算中心（client/LLM host）有 GPU 但不管你研究什么。你提交"我需要跑这个任务"的请求（sampling/createMessage），计算中心用自己的资源跑完后把结果给你。所有权、计费、研究方向分离得清清楚楚。
 
 ## The Concept | 核心概念
 
@@ -97,6 +101,10 @@ Three floats summing to 1.0:
 Plus `hints`: named models the server prefers. Client may or may not honor hints; the client's user config always wins.
 
 > 加上 `hints`：服务器偏好的命名模型。客户端可能或可能不遵从提示；客户端的用户配置始终优先。
+
+> ⚠️ **【易错点】** 场景：sampling 请求里写死 `hints: [{name: "gpt-4"}]` / 后果：用户用 Claude Desktop（只有 Anthropic 模型）时客户端忽略 hints，但开发者以为生效了，调试时困惑；或者强行降级到便宜模型导致质量崩盘 / 修复：把 `hints` 当作"偏好"而非"要求"，业务逻辑不能依赖具体模型；用 `intelligencePriority` > 0.7 表达"这步推理很关键"，让客户端选合适模型。
+
+> 🤔 **【困惑】** Q: 既然客户端可以拒绝 sampling 请求（用户没登录、超预算），服务器该怎么办？ A: 服务器必须实现 **decline 路径**：(1) 收到 `error` 或 `result.stopReason: "declined"` 时降级到选项 B（返回原始内容让客户端自己处理）；(2) 永远不要在 sampling 失败时让整个工具调用崩溃——返回一个可用的兜底结果；(3) 在 capability 协商时检查客户端是否声明 `sampling` 能力，没声明就不要发起 sampling 请求。
 
 ### `includeContext`
 

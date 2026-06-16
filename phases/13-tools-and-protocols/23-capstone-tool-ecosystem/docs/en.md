@@ -6,6 +6,8 @@
 
 > **【拓展】** 这是 Phase 13 的集大成课程，整合了全部23课内容为一个可运行的端到端系统。架构模式：用户 -> 客户端 -> OAuth 2.1 + RBAC 网关 -> 研究 MCP 服务器（工具/资源/提示词/任务/UI/A2A 调用/OTel span）。这是 Anthropic（Claude Research）和 OpenAI（GPTs with Apps SDK）2026年发布的生产研究助手系统的精确形状。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·01 到 22 的全部内容——本节是它们的整合；(2) 系统架构能力，能画清楚组件间的数据流；(3) 端到端调试技巧——这种系统出问题最常见的是"组件都正常但整体失败"，需要靠 OTel trace 定位。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, end-to-end ecosystem harness) | **语言:** Python (stdlib, end-to-end ecosystem harness)
 **Prerequisites:** Phase 13 · 01 through 21 | **前置知识:** Phase 13 · 01 through 21
@@ -40,6 +42,8 @@ Ship the "research and report" system:
 All the primitives from Phase 13 show up. This is not a toy — production research-assistant systems shipped in 2026 by Anthropic (the Claude Research product), OpenAI (GPTs with Apps SDK), and third parties have this exact shape.
 
 > Phase 13 所有原语都出现。这不是玩具——2026 年 Anthropic（Claude Research 产品）、OpenAI（带 Apps SDK 的 GPTs）和第三方发布的生产研究助手系统有此精确形态。
+
+> 💡 **【类比】** 这个 capstone 像盖一栋"智能办公楼"。地基是 MCP（标准化接口）、电梯是 OAuth 2.1 网关（带身份验证和访客权限）、楼层是各类工具（搜索/写作/渲染）、外立面是 MCP Apps UI（玻璃幕墙让用户能看到结果）、内部通信系统是 OTel（每个员工动作都打卡）、跨楼协作是 A2A（呼叫其他公司）、办公室门牌是 AGENTS.md/SKILL.md（让外人知道你公司做什么）。盖完这栋楼你才能说"我懂 AI Agent 工程"——每一块都不是孤立的，整合本身才是难点。
 
 ## The Concept | 核心概念
 
@@ -77,6 +81,10 @@ agent.invoke_agent
 One trace id. Every span has the right `gen_ai.*` attributes.
 
 > 一个 trace id。每个 span 有正确的 `gen_ai.*` 属性。
+
+> ⚠️ **【易错点】** 场景：在没读完前 22 课的情况下直接做 capstone / 后果：每个组件单独看都似懂非懂，集成时遇到任何一个组件的细节卡壳（如 OAuth state 失效、A2A 状态机未处理 input_required、OTel span 跨进程没传）就查不出来 / 修复：(1) 务必先做完 Phase 13·06-22 至少一遍；(2) capstone 实现时按层加：先打通 MCP server+client（无安全层），加 OAuth，加 RBAC，加 OTel，加 A2A，最后加 UI；(3) 每加一层跑一遍端到端测试确保不破已有功能。
+
+> 🤔 **【困惑】** Q: 这么复杂的系统实际生产中真的需要全部上吗？ A: 不是。生产系统按需选层：(1) **个人/小团队工具**——只有 MCP server（stdio），无 OAuth/网关，足够；(2) **企业内部**——MCP server + OAuth + RBAC 网关 + OTel，省 A2A 和 UI；(3) **面向公众的产品**（如 Claude Research）——全套。capstone 价值在于**让你知道每一层是什么、何时加、如何加**，而不是要求每个项目都全上。技术债是"过早引入复杂度"，按业务规模渐进式采用才是工程智慧。
 
 ### Security posture
 

