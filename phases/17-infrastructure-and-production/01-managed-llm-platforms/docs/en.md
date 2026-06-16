@@ -4,6 +4,7 @@
 
 > **【中文解读】** 本节介绍了托管 LLM 平台——OpenAI、Anthropic、Google 等提供的模型服务平台的选型和对比。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 11（LLM Engineering）全部——你已经会用 OpenAI/Anthropic API 调模型；Phase 13（Tools & Protocols）——理解 MCP 等协议。本节讲生产部署选哪个云——不是技术问题，是商业+合规+技术综合决策。
 
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy cost-and-latency comparator) | **语言:** Python（标准库，成本-延迟比较器）
@@ -13,6 +14,10 @@
 ## Learning Objectives | 学习目标
 
 - Name the three platform strategies (marketplace vs exclusive vs Gemini-first) and match each to a product use case.
+
+> 💡 **【类比】** 三大云平台 LLM 服务 = 三种餐厅：(1) **AWS Bedrock** = 美食广场（一个 API 调多家模型，Claude/Llama/Titan，灵活但延迟略高）；(2) **Azure OpenAI** = 米其林餐厅（OpenAI 独家合作，PTU 专属容量，延迟最低 ~50ms，但贵且绑定 OpenAI）；(3) **Vertex AI** = 主题餐厅（Google Gemini 主打，长上下文和多模态最强，2M token 窗口）。选哪个看你的菜谱（用 Claude 还是 GPT 还是 Gemini）和预算。
+
+> ⚠️ **【易错点】** 托管平台选型的 3 个坑：(1) **只看标价**——Bedrock 上 Claude 比 Anthropic 直连贵 15-20%（云税），但合规和统一计值钱；做 TCO（总拥有成本）而非单价比较。(2) **忽略数据驻留**——欧洲用户数据必须留在欧洲，选 Azure EU 区域或 Bedrock eu-central-1；跨境数据传输违反 GDPR。(3) **没做厂商锁定评估**——用 OpenAI PTU 后想换 Bedrock 要重写 SDK 和 prompt 格式；用 LiteLLM 等抽象层降低锁定风险。
   中文翻译：说出三种平台策略（集市 vs 独家合作 vs Gemini 优先），并将每种匹配到产品用例。
 - Explain what Provisioned Throughput Units (PTUs) buy you in Azure OpenAI and why on-demand Bedrock typically reads ~25 ms slower at the 405B scale.
   中文翻译：解释 Azure OpenAI 的预置吞吐量单位（PTU）带来了什么，以及为什么 Bedrock 按量部署在 405B 规模下通常慢约 25ms。
