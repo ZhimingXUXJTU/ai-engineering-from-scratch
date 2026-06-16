@@ -10,6 +10,10 @@
 **Prerequisites:** Phase 15 · 19 (RSP), Phase 15 · 20 (PF + FSF) | **前置知识:** Phase 15 · 19（RSP）、Phase 15 · 20（PF + FSF）
 **Time:** ~45 minutes | **时间:** ~45 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·19-20（实验室 RSP）、Phase 15·21（METR 外部评估）。本节是"第三视角"——民间社会和政府对 AI 风险的态度。
+> 💡 **【类比】** CAIS = "AI 风险的智囊团"（民间研究，发声明、推框架）；CAISI = "AI 风险的政府办公室"（NIST 下属，协调自愿协议）。两者名字押韵但使命不同。CAIS 的四风险框架（恶意使用、AI 军备竞赛、组织风险、失控 AI）是行业共识的分类法。
+> 🤔 **【困惑】** Q: 这些组织对我做 AI 工程有什么用？— 直接用途是合规：如果你的产品涉及高风险场景（医疗、金融、招聘），需要参考 CAIS 框架做风险评估，可能需要符合 EU AI Act、加州 SB-53 等法规。修复：建立组织内部的安全文化（CAIS 四风险中的"组织风险"是最可控的）。
+
 ## The Problem | 问题引入
 
 Lessons 19 and 20 covered lab-internal scaling policies. Lesson 21 covered independent capability evaluation. This lesson covers the third perspective: civil society and government organizations who shape public discussion and regulatory baseline for catastrophic AI risk.

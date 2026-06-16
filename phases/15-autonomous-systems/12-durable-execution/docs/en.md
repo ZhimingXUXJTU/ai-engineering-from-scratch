@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 15 · 10 (Permission modes), Phase 15 · 01 (Long-horizon agents) | **前置知识:** Phase 15 · 10（权限模式），Phase 15 · 01（长程 Agent）
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·10（权限模式）、Phase 15·01（长程 Agent）、分布式系统基础（检查点、重试、幂等）。Durable Execution = 把 Agent 当工作流编排。
+> 💡 **【类比】** Durable Execution = "Agent 的存档点"。普通 Agent = 玩游戏没存档（崩溃=重头）；Durable = 每个 LLM 调用后自动存档（崩溃=读最近的存档）。关键技巧：把每个 LLM 调用包装为"活动"，记录输入输出到日志，崩溃时重放日志而不是重新调用——既省钱又避免副作用重复执行（如重复转账）。
+> ⚠️ **【易错点】** 副作用工具（写数据库、调外部 API）不存 idempotency key → 恢复时重复执行可能造成业务错误（用户被扣两次款）。修复：每个副作用调用必须带幂等键（如 `idempotency-key: uuid`），后端按键去重。
+
 ## The Problem | 问题引入
 
 > **【中文解读】** 持久执行确保 Agent 任务在故障后能恢复。传统 Agent 在内存中运行，进程崩溃意味着从头开始。持久执行将状态保存到外部存储（数据库、文件系统），任何时刻都可以从最近的检查点恢复。Temporal 和 LangGraph 是实现持久执行的两个主流框架。

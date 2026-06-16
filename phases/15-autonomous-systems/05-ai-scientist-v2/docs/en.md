@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 15 · 03 (AlphaEvolve), Phase 15 · 04 (DGM) | **前置知识:** Phase 15 · 03（AlphaEvolve），Phase 15 · 04（DGM）
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·03-04（AlphaEvolve/DGM）、Phase 14·30+（工作台 Agent 实践）、学术论文写作基础。AI Scientist = 开放式研究任务，评估器是"同行评审"（弱信号），所以安全模型完全不同。
+> 💡 **【类比】** AI Scientist = "AI 博士生"。AlphaEvolve/DGM = 工程师（评估器=单元测试，强信号）；AI Scientist = 博士生（评估器=审稿人，弱信号）。同样跑实验-评估-迭代循环，但弱信号评估让 Agent 容易自欺——42% 的实验代码有 bug，文献综述把已知概念当新发现。修复：(1) Docker 隔离（执行 LLM 代码必须沙箱化）；(2) 人类复核（披露 AI 生成）；(3) 引入强信号检查（如复现性测试）。
+
 ## The Problem | 问题引入
 
 Research is an open-ended task.

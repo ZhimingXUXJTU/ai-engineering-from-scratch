@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 15 · 10 (Permission modes), Phase 15 · 17 (Constitution) | **前置知识:** Phase 15 · 10（权限模式），Phase 15 · 17（宪法）
 **Time:** ~45 minutes | **时间:** ~45 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·10（权限模式）、Phase 15·17（Constitutional AI）、Phase 18·04（Prompt Injection 攻击）。Llama Guard = 输入输出安全分类器，是 Agent 栈最窄的咽喉点。
+> 💡 **【类比】** Llama Guard = "机场安检"。每个进站旅客（输入）和每个出站行李（输出）都过一遍。优点：快速分类（13 种风险类别）、移动端可跑（INT4 30+ token/s）。缺点：可被绕过——Emoji Smuggling 100% 突破率，越狱 72% 成功率。所以 Llama Guard 是一层防御，不是解决方案，必须和 Constitutional AI、Kill Switch、HITL 组合使用。
+> ⚠️ **【易错点】** 只用 Llama Guard 不加其他防御 = 虚假安全感。攻击者用 emoji/同形字/语义改写就能绕过。修复：分类器 + 规则硬禁令 + 行为监控（Kill Switch）+ HITL 多层防御。
+
 ## The Problem | 问题引入
 
 > **【中文解读】** Llama Guard（Meta）是一个专门用于内容安全分类的 LLM。它检查输入和输出是否违反安全策略，分为多个风险类别（暴力、自残、仇恨言论等）。Llama Guard 3 (2025) 支持多语言和自定义安全策略，是开源安全工具链的核心组件。

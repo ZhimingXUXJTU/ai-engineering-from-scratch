@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 15 · 01 (long-horizon framing), Phase 15 · 02 (self-taught reasoning) | **前置知识:** Phase 15 · 01（长程框架），Phase 15 · 02（自我教学推理）
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·01（长程 Agent）、Phase 15·02（STaR 自我改进）、进化算法基础（变异/交叉/选择）。AlphaEvolve = LLM 作为智能变异算子的进化算法。
+> 💡 **【类比】** AlphaEvolve = "AI 实验室里的博士生群体"。传统进化算法 = 随机打字员（多数是乱码）；AlphaEvolve = 一群 AI 博士生，每人提出有意义的修改（"试试把循环展开两倍"），评估器跑实验打分，高分修改进入下一代种群。LLM 解决"如何提出合理变异"，评估器解决"如何辨别真伪"——两者结合 56 年首次突破 Strassen 矩阵乘法。
+> 🤔 **【困惑】** Q: 为什么 AlphaEvolve 能超越人类专家？— 因为它跑数百万次变异，每次用真实 benchmark 验证。人类专家靠直觉和有限试验，AlphaEvolve 靠穷举+LLM 智能引导。但前提是有"机器可检查的评估器"——没有客观评估的任务（创意写作、产品设计）不适用。
+
 ## The Problem | 问题引入
 
 Large language models can write code. Evolutionary algorithms can search over code. Both have been tried separately for decades; both hit ceilings.

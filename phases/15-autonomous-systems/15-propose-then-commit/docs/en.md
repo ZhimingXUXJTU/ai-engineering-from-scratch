@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 15 · 12 (Durable execution), Phase 15 · 14 (Tripwires) | **前置知识:** Phase 15 · 12（持久执行），Phase 15 · 14（触发器）
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·12（Durable Execution）、Phase 15·14（Kill Switches）、Phase 14·15（HITL Agent 模式）。本节是 HITL 的工程化标准——四步状态机。
+> 💡 **【类比】** Propose-then-Commit = "银行大额转账审批"。普通 LLM 调用 = 即时转账（错了找客服）；Propose-then-Commit = 提交转账申请（含收款人、金额、用途、回滚预案）→ 审查员看到元数据 → 批准 → 执行 → 验证到账。每一步都不能省。这是 Anthropic Computer Use、Claude Code Plan Mode、Stripe API 幂等键的统一模式。
+> ⚠️ **【易错点】** "Approve?" 弹窗被用户惯性点"是" → 橡皮章失效。修复：(1) 多选清单（每个动作独立确认）；(2) 强制延迟（3 秒倒计时）；(3) 关键动作双确认（输入金额数字）；(4) 显示"爆炸半径"（影响 N 个文件、M 个用户）。
+
 ## The Problem | 问题引入
 
 > **【中文解读】** 先提议后提交（Propose-Then-Commit）模式要求 Agent 先生成修改方案但不立即执行，而是展示给用户或其他 Agent 审查，审查通过后才提交。这是 Agent 安全的关键模式——将'思考'和'执行'分离，给人类或系统一个在执行前检查和纠正的机会。

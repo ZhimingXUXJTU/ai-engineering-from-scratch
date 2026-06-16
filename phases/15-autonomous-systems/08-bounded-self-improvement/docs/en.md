@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 15 · 07 (RSI), Phase 15 · 04 (DGM) | **前置知识:** Phase 15 · 07（RSI），Phase 15 · 04（DGM）
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·07（RSI 风险）、Phase 15·04（DGM 自修改）、Phase 15·14（kill-switches）、形式化方法概念（不变量、定理证明）。Bounded RSI = 把 RSI 装进笼子。
+> 💡 **【类比】** Bounded RSI = "AI 自我改进的护栏"。四个原语 = 四道闸门：(1) 不变量检查（哈希签名，不能改）；(2) 对齐锚点（价值观不能改）；(3) 多目标评估（性能涨但安全不能掉）；(4) 回归检测（任何轴下降就停）。每次自修改必须四道闸门全过。但理论上：Lob 定理 + Kolmogorov 复杂性 = 系统永远无法完全证明自己的后继者——这些只是缓解，不是保证。
+> 🤔 **【困惑】** Q: 既然不能保证安全，为什么还要研究？— 因为"提高失败成本"也有价值。攻击者要花更多资源才能绕过四道闸门。这是工程化防御（深度防御）而非数学证明——和密码学类似：没有绝对安全，只有"破解成本高于攻击收益"。
+
 ## The Problem | 问题引入
 
 Lesson 7's race simulator showed that small rate differences compound into large gaps. Lesson 4's DGM case study showed that loops can actively game their own evaluators.

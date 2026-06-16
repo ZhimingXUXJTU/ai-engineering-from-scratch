@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 15 · 05 (AI Scientist v2), Phase 15 · 04 (DGM) | **前置知识:** Phase 15 · 05（AI Scientist v2），Phase 15 · 04（DGM）
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·05（AI Scientist v2 开放研究）、Phase 15·04（DGM 自我修改）、Phase 18·11（Scalable Oversight 弱到强监督）。AAR = AI Scientist 用于"AI 安全研究本身"——既是工具也是风险。
+> 💡 **【类比】** AAR = "AI 给自己写体检报告"。AI Scientist v2 = AI 做普通科研；AAR = AI 研究怎么让 AI 自己更安全。问题：医生能给自己开刀吗？Anthropic 的设计 = 多个 AI 在隔离沙箱里独立工作，通过"论坛"交流，但论坛日志存在沙箱外（AI 删不掉自己的工作记录）。这种 trust-but-verify 模式是关键安全机制。
+> 🤔 **【困惑】** Q: 既然 AI 能做对齐研究，为什么还需要人类？— AI 能加速但无法保证完整性。弱到强监督的根本困境（Phase 18·11）：弱监督者（人类或弱 AI）可能漏掉强 AI 的隐蔽行为。AAR 是加速器不是替代品——人类仍需把关研究方向和评估标准。
+
 ## The Problem | 问题引入
 
 > **【中文解读】** 自动化对齐研究探索 AI 系统是否能自主发现和修复自身的安全问题。核心问题是：AI 能否成为自己安全研究的助手？Anthropic 和 Redwood Research 的实验表明，LLM 可以生成对齐研究人员认为有用的安全洞见，但还不具备独立完成端到端安全研究的能力。

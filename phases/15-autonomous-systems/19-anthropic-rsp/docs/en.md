@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 15 · 06 (AAR), Phase 15 · 07 (RSI) | **前置知识:** Phase 15 · 06（AAR），Phase 15 · 07（RSI）
 **Time:** ~45 minutes | **时间:** ~45 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·06（AAR）、Phase 15·07（RSI）、Phase 15·08（Bounded RSI）。RSP = 前沿实验室的"安全扩展承诺"——既是技术文档也是治理信号。
+> 💡 **【类比】** RSP = "AI 公司的安全宪法"。2023 版 = 严格（定量阈值+暂停承诺）；v3.0 = 灵活（定性阈值+删除暂停）。SaferAI 评分从 2.2 降到 1.9（"弱"类别）。新增 AI R&D-4 阈值 = 一旦 AI 能自动化 AI 研发达到某水平，必须强制披露——这是 RSI 的刹车。
+> 🤔 **【困惑】** Q: 为什么删除暂停承诺？— 商业压力。暂停 = 竞争对手超越你。OpenAI、Google 都没暂停，Anthropic 单方面暂停=自杀。修复：行业协调（RAND SL-4 标准）+ 监管介入（EU AI Act）才能避免囚徒困境。
+
 ## The Problem | 问题引入
 
 Frontier labs publish scaling policies that are partly technical documents, partly governance documents, and partly signals to regulators.

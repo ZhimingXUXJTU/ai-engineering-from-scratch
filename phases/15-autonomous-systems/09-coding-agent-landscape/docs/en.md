@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 14 · 07 (Tool use), Phase 15 · 01 (Long-horizon agents) | **前置知识:** Phase 14 · 07（工具使用），Phase 15 · 01（长程 Agent）
 **Time:** ~45 minutes | **时间:** ~45 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·07（工具调用）、Phase 14·30+（工作台 Agent 实践）、Phase 15·01（长程 Agent）。本节是 2026 年编码 Agent 全景图——选型必读。
+> 💡 **【类比】** 选编码 Agent = "选车"而不是"选发动机"。同一发动机（Claude Sonnet 4.5）装在不同车上（SWE-agent vs Cline）速度差 16 个百分点。脚手架（检索层、规划器、沙箱、edit-verify 循环）才是产品，模型只是组件。所以不要只看模型排行榜，要看"我的任务+我的脚手架"的端到端可靠性。
+> ⚠️ **【易错点】** 看 SWE-bench Verified 分数选 Agent = 被基准骗了。500 个任务里 161 个只需 1-2 行修改（容易），看 SWE-bench Pro（10+ 行真实任务）分数才有参考价值。修复：选 Agent 前用自己代码库的真实 issue 测试，而不是看营销基准。
+
 ## The Problem | 问题引入
 
 > **【中文解读】** 编码 Agent 景观是 2025-2026 年变化最快的 AI 应用领域之一。主要玩家包括 Claude Code、Cursor、GitHub Copilot、Devin、Windsurf 等。关键差异化因素：(1) 自主性级别——从补全建议到完全自主编码；(2) 上下文管理——如何处理大型代码库；(3) 工具集成——支持哪些开发工具。

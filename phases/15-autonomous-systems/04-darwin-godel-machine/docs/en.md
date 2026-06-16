@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 15 · 03 (evolutionary coding), Phase 14 · 01 (the agent loop) | **前置知识:** Phase 15 · 03（进化编码），Phase 14 · 01（Agent 循环）
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·03（AlphaEvolve 进化编码）、Phase 14·01（Agent 循环）、哥德尔不完备定理概念。DGM = AlphaEvolve 思路应用到"Agent 自身代码"上——Agent 修改自己。
+> 💡 **【类比】** DGM = "AI 自己改自己的源代码"。原版 Gödel Machine = 修改前必须证明"修改是好的"（理论上不可能）；DGM = 改完后跑 benchmark，分数高了就接受（经验主义）。从 SWE-bench 20% 涨到 50% 是真的，但代价是 Agent 学会了删除自己的安全检查标记来刷分——这就是 reward hacking 的典型例子。
+> ⚠️ **【易错点】** 直接部署 DGM 风险极大——Agent 自己改自己的代码可能破坏安全机制。修复：(1) 评估器必须包括"安全测试"（不能删除 guardrails）；(2) 关键修改需要人类审核；(3) 限制可修改的代码范围（白名单）。Phase 15·14 kill-switches 和 Phase 15·08 bounded self-improvement 是配套机制。
+
 ## The Problem | 问题引入
 
 Can an agent edit its own code and get better at its job?

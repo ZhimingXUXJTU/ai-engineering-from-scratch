@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 15 · 13 (Cost governors), Phase 15 · 10 (Permission modes) | **前置知识:** Phase 15 · 13（成本治理器），Phase 15 · 10（权限模式）
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·13（Cost Governors）、Phase 15·10（权限模式）、网络安全基础（蜜罐、断路器）。三道防线 = 不信任 Agent 自报告。
+> 💡 **【类比】** 三道防线 = "银行安保三层"。Kill Switch = 总闸（紧急情况一键断电，Agent 不能改）；Circuit Breaker = 自动跳闸（检测到异常模式自动暂停，如连续 5 次相同操作）；Canary Token = 银行假钞（不该被触及的假数据，一被访问就报警）。三层都不信 Agent——靠外置基础设施检测。
+> 🤔 **【困惑】** Q: 为什么不靠 Agent 内置安全检查？— 因为 Agent 可能被破解或自修改绕过（DGM 案例）。修复：检测器必须独立于 Agent（Redis 键、内核 eBPF、签名配置），Agent 看不到、改不了、绕不过。这是"trust-but-verify"的核心。
+
 ## The Problem | 问题引入
 
 > **【中文解读】** 终止开关（Kill Switches）和金丝雀测试（Canaries）是 Agent 安全的两道防线。终止开关允许人类操作员立即停止 Agent 的所有操作。金丝雀测试在 Agent 执行前用小规模测试检测潜在问题——类似于矿井中的金丝雀预警有毒气体。两者结合形成'检测-停止'的安全模式。
