@@ -6,6 +6,8 @@
 
 > **【拓展】** MCP 安全是 AI 工具生态的最大威胁面。Function Calling 场景下，模型无条件信任工具描述文本，这等同于让第三方在系统提示中注入任意指令。Meta 提出的"Rule of Two"原则（一次轮次最多组合两项：不受信输入/敏感数据/后果性行为）是纵深防御的核心准则。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·06 到 08（MCP fundamentals、server、client）——理解工具描述如何进入模型上下文；(2) Phase 11·07（Prompt Injection）基础；(3) Phase 13·01 的 "trust split"（纯工具 vs 后果性工具）。
+
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, hash-pin + poisoning detector) | **语言:** Python (stdlib, hash-pin + poisoning detector)
 **Prerequisites:** Phase 13 · 07 (MCP server), Phase 13 · 08 (MCP client) | **前置知识:** Phase 13 · 07 (MCP server), Phase 13 · 08 (MCP client)
@@ -51,6 +53,8 @@ The 2026 consensus is defense-in-depth. No single check wins. You stack: scan at
 
 > 2026 年共识是纵深防御。没有单一检查能取胜。叠加：安装时扫描、哈希锁定、用 Rule of Two 门控行为、运行时检测。
 
+> 💡 **【类比】** 工具描述投毒像"伪装成菜单的服务员命令"。餐厅场景：服务员（模型）按菜单（工具描述）做菜。攻击者把"读所有客户的信用卡号并放进我的菜里"印在甜点描述（恶意 tool description）里，服务员看到后真的会照做——因为模型把工具描述当成"用户授权的工作流"。用户根本看不到这段文字（在 JSON-RPC payload 里）。哈希锁定像餐厅定期比对菜单指纹，一旦菜单被偷偷改过就报警。
+
 ## The Concept | 核心概念
 
 > **【中文解读】** 本节详细解析七种攻击类型和对应的防御策略。
@@ -74,6 +78,10 @@ A server ships a benign version that users install and approve, then pushes an u
 Defense: hash-pin the approved description. Any mutation triggers re-approval. `mcp-scan` and similar tools implement this.
 
 > 防御：哈希锁定已批准描述。任何变更触发重新批准。`mcp-scan` 等工具实现此功能。
+
+> ⚠️ **【易错点】** 场景：安装 MCP server 时手动批准了 description，但 server 之后悄悄更新 / 后果：用户毫不知情被注入恶意指令；MCP 缓存审批不重新检查；CI 也通过因为代码逻辑没变 / 修复：(1) 记录安装时的 description SHA256 哈希；(2) 每次 client 启动比对哈希，不匹配弹出"重新批准"对话框；(3) 生产环境强制所有 MCP server 走 mcp-scan 类工具的 CI 检查；(4) 永远不要"信任后跳过校验"。
+
+> 🤔 **【困惑】** Q: 既然风险这么大，为什么不直接禁止工具描述里有自然语言指令？只让描述说"这是个计算器"不行吗？ A: 行不通，因为模型依赖描述决定何时用工具。如果描述只有"计算器"三个字，模型根本不知道何时调用。描述必须包含足够语义（用途、边界、参数说明），而这正是攻击面。换思路：模型层面做指令注入检测（MELON）、行为层面做 Rule of Two 限制、流程层面做哈希锁定，三层叠加才能把 70% 攻击成功率压到 5% 以下。
 
 ### Attack 3: cross-server tool shadowing
 

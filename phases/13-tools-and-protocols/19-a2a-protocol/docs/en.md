@@ -6,6 +6,8 @@
 
 > **【拓展】** A2A 与 MCP 是互补而非替代关系。MCP 用于调用具体工具（透明），A2A 用于将整个任务委托给另一个 Agent（不透明）。许多生产系统两者并用：Agent 用 MCP 作为工具层，用 A2A 作为协作层。Agent Card（`/.well-known/agent.json`）类似 MCP 的工具发现机制，但描述的是 Agent 的能力而非工具。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·06（MCP fundamentals）和 13·08（MCP client）——理解 MCP 是 agent-to-tool，本节是 agent-to-agent；(2) HTTP + JSON-RPC 基础；(3) SSE 或轮询机制——A2A Task 状态订阅；(4) 异步任务概念，可参考 Phase 13·13。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, Agent Card + Task harness) | **语言:** Python (stdlib, Agent Card + Task harness)
 **Prerequisites:** Phase 13 · 06 (MCP fundamentals), Phase 13 · 08 (MCP client) | **前置知识:** Phase 13 · 06 (MCP fundamentals), Phase 13 · 08 (MCP client)
@@ -45,6 +47,8 @@ A2A fills the gap. It models the interaction as one agent sending a Task to anot
 A2A is the "let agents across frameworks talk to each other" protocol. It does not replace MCP; the two are complementary.
 
 > A2A 是"让跨框架 Agent 互相交谈"的协议。它不替代 MCP；两者互补。
+
+> 💡 **【类比】** A2A vs MCP 像公司"外包项目" vs "公司内调用工具"。MCP 是工程师（agent）用计算器（tool）——他知道计算器怎么工作、用完就完了，是工具调用。A2A 是公司 A 把整个项目（task）外包给公司 B（另一个 agent）——A 不知道 B 内部怎么做的（不透明），只看交付物（artifact）；B 是独立法人有自己的工作流、自己的工具、自己的内部状态。A2A 关心的是任务边界、交付格式、状态回报，不关心 B 用什么框架（LangChain 还是 AutoGen）实现。
 
 ## The Concept | 核心概念
 
@@ -98,6 +102,10 @@ submitted -> working -> completed | failed | canceled | rejected
 Clients initiate with `tasks/send`. The called agent transitions through states; clients subscribe to state updates via SSE or poll.
 
 > 客户端用 `tasks/send` 发起。被调用 Agent 通过状态转换；客户端通过 SSE 或轮询订阅状态更新。
+
+> ⚠️ **【易错点】** 场景：A2A 调用方在 `submitted` 状态后立刻等 `completed` 而不处理 `input_required` / 后果：被调用 Agent 需要补充信息时卡在 `input_required`，调用方误以为还在 `working` 永久等待，整个工作流死锁 / 修复：(1) 调用方必须实现完整的 task 生命周期状态机，每个状态都有 handler；(2) `input_required` 时主动拉取消息内容并触发新一轮 `tasks/send`；(3) 设置总超时（如 10 分钟），到达后 cancel task 并报错。
+
+> 🤔 **【困惑】** Q: 既然 A2A 是 agent-to-agent，那 agent A 怎么知道 agent B 信任它、会不会拒绝？ A: 信任通过 Agent Card + AP2 签名建立：(1) Agent Card 描述能力，AP2 用 JWT 签名防冒充；(2) 调用前 A 通常已通过 OAuth 等机制拿到 B 的访问 token；(3) B 可以拒绝（`rejected` 状态），如调用方没付费（AP2 支付扩展）、权限不足、负载过满；(4) A 需要实现拒绝后的降级路径——找别的 agent 或回退到本地处理。A2A 假设"协作但有边界"。
 
 ### Messages and Parts
 

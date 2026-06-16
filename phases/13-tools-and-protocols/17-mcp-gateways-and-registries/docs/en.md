@@ -6,6 +6,8 @@
 
 > **【拓展】** MCP 网关是企业部署 MCP 的核心架构模式。Cloudflare MCP Portals、Kong AI Gateway、IBM ContextForge 等都在 2025-2026 年推出了网关产品。网关模式将 Phase 13 · 15（工具投毒防御）和 Phase 13 · 16（OAuth 2.1）集中化执行，是企业安全合规的必备组件。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·09（MCP transports）——网关对外暴露为 Streamable HTTP；(2) Phase 13·15（Tool Poisoning）和 13·16（OAuth 2.1）——网关的核心职责就是集中执行这两节的安全机制；(3) RBAC、限流、审计日志基础概念。
+
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, minimal gateway) | **语言:** Python (stdlib, minimal gateway)
 **Prerequisites:** Phase 13 · 15 (tool poisoning), Phase 13 · 16 (OAuth 2.1) | **前置知识:** Phase 13 · 15 (tool poisoning), Phase 13 · 16 (OAuth 2.1)
@@ -54,6 +56,8 @@ Meanwhile, the Official MCP Registry launched as the canonical upstream: curated
 
 > 同时，官方 MCP 注册中心作为权威上游发布：策展、命名空间验证、反向 DNS 命名的服务器，网关可从中拉取。元注册中心（Glama、MCPMarket、MCP.so、Smithery、LobeHub）聚合多个来源的服务器。
 
+> 💡 **【类比】** MCP 网关像公司的"采购中心"。员工（开发者）不能自己淘宝下单买工具（直连各 MCP server），所有采购走采购中心：采购中心谈好合同（持有后端凭证）、限制每人能买什么（RBAC）、记录谁买了什么（审计）、防止供应商偷偷换货（哈希锁定）、超量限购（限流）。员工只看到一个"内部采购网站"（单一 MCP 端点），背后是采购中心和众多供应商打交道。注册中心像"行业白名单"——官方 Registry 是 ISO 认证目录，元注册中心是各类比价网站。
+
 ## The Concept | 核心概念
 
 > **【中文解读】** 本节详解五大网关职责、网关作为单一端点、凭证保险库、工具哈希锁定、策略即代码、会话感知路由、命名空间合并、注册中心生态和供应商格局。
@@ -90,6 +94,10 @@ Developers never see backend tokens. The gateway holds them (or proxies to an id
 The gateway holds a manifest of approved tool descriptions (SHA256 hashes). At discovery time, it fetches each backend's `tools/list`, compares hashes to the manifest, and removes any tool whose description has mutated. This is the rug-pull defense from Phase 13 · 15 applied centrally.
 
 > 网关持有批准工具描述的清单（SHA256 哈希）。发现时，它获取每个后端的 `tools/list`，比较哈希与清单，移除描述变更的工具。这是 Phase 13 · 15 地毯拉扯防御的集中应用。
+
+> ⚠️ **【易错点】** 场景：网关只做认证不做工具哈希校验 / 后果：后端 MCP server 暗中更新工具描述（rug pull 投毒），网关无感知透传给所有用户；个人用户无法自己审计 / 修复：(1) 网关必须维护 `tool_hashes.json` 清单文件；(2) 每次 tools/list 比对，不匹配的 tool 标记为 disabled 并告警安全团队；(3) 清单更新走 code review 流程而非自动同步——这是企业纵深防御的关键一层。
+
+> 🤔 **【困惑】** Q: 网关集中化会不会成为单点故障？ A: 会，所以必须做高可用：(1) 网关水平扩展（多个实例 + 负载均衡）；(2) 状态外置（Redis/Postgres，不在实例内存）；(3) 优雅降级——网关挂了各 IDE 可以临时直连"白名单内"的本地 MCP server 应急；但安全策略（哈希、限流）必须失效关闭（fail-closed）而非失效开放。生产建议至少 99.9% SLA。
 
 ### Policy-as-code
 

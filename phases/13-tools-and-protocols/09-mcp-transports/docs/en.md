@@ -6,6 +6,8 @@
 
 > **【拓展：传输层→Claude 远程 MCP】** Claude Desktop 使用 stdio 传输与本地 MCP 服务器通信。对于远程 MCP 服务器（如部署在 Cloudflare Workers 上），使用 Streamable HTTP 传输。Streamable HTTP 的单端点模式（`/mcp`）简化了部署，`Mcp-Session-Id` 头确保会话连续性，`Origin` 验证防止 DNS 重绑定攻击。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·07、08（MCP server 和 client）——理解 stdio 通信细节；(2) HTTP 协议基础（method、header、SSE）；(3) DNS 重绑定攻击概念——本节会讲防御；(4) 至少部署过一个 web 服务，理解 CORS/Origin 校验。
+
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, Streamable HTTP endpoint skeleton) | **语言:** Python (stdlib, Streamable HTTP endpoint skeleton)
 **Prerequisites:** Phase 13 · 07, 08 (MCP server and client) | **前置知识:** Phase 13 · 07, 08 (MCP server and client)
@@ -38,6 +40,8 @@ And stdio still matters for local servers. Claude Desktop, VS Code, and every ID
 
 > stdio 对本地服务器仍很重要。Claude Desktop、VS Code 和每个 IDE 形态的客户端都通过 stdio 生成服务器。正确的心智模型：stdio 用于"本机"、Streamable HTTP 用于"网络"。无交叉。
 
+> 💡 **【类比】** stdio vs Streamable HTTP 像"打电话给楼下便利店" vs "打电话给国外分公司"。楼下便利店（本地服务器）：你直接喊一嗓子（stdin/stdout），声音在屋子里传，不用拨号、不用付费、没有窃听风险。国外分公司（远程服务器）：必须走电话网（HTTP），要拨分机号（端点）、要确认对方是分公司不是骗子（Origin 验证）、要保持通话不掉线（session-id）。两种通信方式各有适用场景，不能混用。
+
 ## The Concept | 核心概念
 
 ### stdio
@@ -65,6 +69,8 @@ Single endpoint `/mcp` (or any path). Supports three HTTP methods:
   中文翻译：**POST /mcp。** 客户端发送 JSON-RPC 消息。服务器回复单个 JSON 响应，或一个或多个响应的 SSE 流（用于批量响应和与该请求相关的通知）。
 - **GET /mcp.** Client opens a long-lived SSE channel. Server uses it for server-to-client requests (sampling, notifications, elicitation).
   中文翻译：**GET /mcp。** 客户端打开长连接 SSE 通道。服务器用它发送服务器到客户端的请求（sampling、通知、elicitation）。
+
+> 🤔 **【困惑】** Q: 既然 stdio 简单又安全，为什么还要搞 Streamable HTTP？ A: 因为 stdio 强制"服务器必须和客户端在同一台机器"，这在三种场景下不可行：(1) **远程托管**——MCP server 在云端、Claude Desktop 在本地，必须走网络；(2) **多用户共享**——一个公司部署一个 GitHub MCP，所有员工共用，stdio 要每人起一个；(3) **沙盒隔离**——服务器要在容器里跑防止访问本机文件。Streamable HTTP 是远程协作的必需品。
 - **DELETE /mcp.** Client explicitly terminates the session.
   中文翻译：**DELETE /mcp。** 客户端显式终止会话。
 
@@ -89,6 +95,8 @@ Browsers are not MCP clients (today), but an attacker can craft a webpage that c
 The 2025-11-25 spec requires servers to reject requests whose `Origin` is not on an allowlist. The allowlist typically contains the MCP client host (`https://claude.ai`, `vscode-webview://*`) and localhost variants for local UIs.
 
 > 2025-11-25 规范要求服务器拒绝 `Origin` 不在白名单上的请求。白名单通常包含 MCP 客户端宿主（`https://claude.ai`、`vscode-webview://*`）和本地 UI 的 localhost 变体。
+
+> ⚠️ **【易错点】** 场景：Streamable HTTP server 忽略 `Origin` 校验 / 后果：DNS 重绑定攻击——攻击者把 evil.com 解析到 127.0.0.1，用户访问 evil.com 后浏览器 POST 到 localhost:3000/mcp，server 直接执行；用户完全无感 / 修复：(1) 服务端在所有请求入口校验 `Origin` 头是否在白名单；(2) localhost 调试模式必须要求 `Mcp-Session-Id` 才放行；(3) session-id 必须服务器生成（128 位以上随机），拒绝客户端自选 id。
 
 ### Session id lifecycle
 

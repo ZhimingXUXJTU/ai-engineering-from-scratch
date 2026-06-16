@@ -6,6 +6,8 @@
 
 > **【拓展：并行调用→Agent 效率优化】** 并行工具调用是 AI Agent 效率的关键优化。当 Agent 需要同时查询多个数据源（如多城市天气、多股票价格）时，并行调用可将延迟降低 60-70%。MCP 协议天然支持并行调用，Claude 的 `disable_parallel_tool_use` 参数和 OpenAI 的 `parallel_tool_calls` 参数都控制这一行为。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·02（Function Calling Deep Dive）——掌握三家 API 形态差异，本节是它的并发延伸；(2) Python `concurrent.futures` 或 `asyncio.gather` 基础，本节会用线程池并行执行器；(3) JSON 拼接技巧——流式 `arguments` 是分片到达，必须累积后再 `json.loads`，不能中途解析。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, thread pool + streaming harness) | **语言:** Python（标准库，线程池 + 流式线束）
 **Prerequisites:** Phase 13 · 02 (function calling deep dive) | **前置知识:** Phase 13 · 02（函数调用深入）
@@ -60,6 +62,8 @@ One LLM round trip. Executor time is the maximum of the three, not the sum. Prod
 
 > 一次 LLM 往返。执行器时间是三个中的最大值，而非总和。OpenAI、Anthropic 和 Gemini 上的生产基准测试显示，扇出工作负载的挂钟时间减少 60-70%。
 
+> 💡 **【类比】** 并行调用像超市结账。串行调用 = 你一个人排队买完肉、再排队买菜、再排队买酒，总时间=三个队伍时间相加。并行调用 = 你给三个朋友打电话"你们各排一个队，同时结账"，总时间=最慢那个队伍的时间。前提是三个购物任务互相独立（朋友买什么不依赖别人买到了什么），这就是为什么"工具间有依赖"时必须串行。
+
 The price is correlation complexity. When the three calls complete out of order, your results must carry the matching `tool_call_id` so the model can line them up. When results stream, you must assemble partial argument fragments into complete JSON before executing. Gemini 3 added unique ids in part to solve a real-world issue where two parallel calls to the same tool were indistinguishable.
 
 > 代价是关联复杂性。当三个调用乱序完成时，结果必须携带匹配的 `tool_call_id`，以便模型对齐。流式场景下，必须在执行前将部分参数片段组装成完整 JSON。Gemini 3 增加唯一 ID 部分是为了解决两个同名工具的并行调用无法区分的现实问题。
@@ -85,6 +89,8 @@ Disable parallel when tools have ordering dependencies (`create_file` then `writ
 
 > **【中文解读】** 当工具有顺序依赖（先 `create_file` 再 `write_file`）、一个调用的输出影响另一个的输入、或速率限制器无法处理扇出时，应禁用并行。
 
+> 🤔 **【困惑】** Q: 模型怎么知道哪些调用可以并行？A: 模型并不知道，它只决定"现在要调这几个工具"；并发执行是宿主的事。模型发出 `[get_weather(Tokyo), get_weather(Zurich)]` 时，宿主自己判断这两个无依赖就可以并发；如果模型发出 `[create_file, write_file]`，宿主必须串行（通常做法是禁用并行+顺序执行，或者执行器内做依赖检查）。所以"是否并行"是宿主配置+模型决定共同决定的。
+
 ### Id correlation
 
 Every call the model emits has an `id`. Every result the host returns must include the same id. Without this, results are ambiguous.
@@ -103,6 +109,8 @@ Every call the model emits has an `id`. Every result the host returns must inclu
 The host runs each call's executor on its own thread, coroutine, or remote worker. The simplest harness uses a thread pool; production uses asyncio with `asyncio.gather` or structured concurrency. Order of completion is unpredictable — the id is the identifier.
 
 > 宿主在每个调用的执行器上运行自己的线程、协程或远程工作器。最简单的线束使用线程池；生产环境使用 asyncio 的 `asyncio.gather` 或结构化并发。完成顺序不可预测——id 是标识符。
+
+> ⚠️ **【易错点】** 场景：流式模式下对每个 `arguments` 分片立即 `json.loads` / 后果：JSON 不完整触发 `JSONDecodeError`，因为流式可能在你收到 `{"city":"To` 时就触发回调 / 修复：每个 `tool_call_id` 维护一个 `accumulator` 字符串，所有分片 `+=` 后等 `finish_reason="tool_calls"` 才整体解析；并行时用 `{id: accumulator}` 字典隔离。
 
 One common bug: reply with results in call-list order instead of completion order. This usually works because the model only cares about `tool_call_id`, but if a result is dropped or duplicated, out-of-order submission makes debugging harder. Prefer to reply in completion order with explicit ids.
 

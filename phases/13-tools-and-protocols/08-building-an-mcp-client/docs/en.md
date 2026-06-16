@@ -6,6 +6,8 @@
 
 > **【拓展：MCP 客户端→Agent 编排核心】** MCP 客户端是 Agent 宿主的核心。Claude Desktop、Cursor 等都实现了 MCP 客户端，同时加载多个 MCP 服务器（如文件系统、Postgres、GitHub），将工具列表合并后提供给模型。命名空间冲突解决（前缀 vs 拒绝）是实际部署中的关键设计决策。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·07（Building an MCP Server）——理解服务器端的 initialize/tools/call 协议；(2) Python `subprocess.Popen` 和管道 I/O；(3) asyncio 或 threading 基础，多服务器并发必须；(4) Phase 13·06 的 JSON-RPC 信封格式。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, multi-server MCP client) | **语言:** Python (stdlib, multi-server MCP client)
 **Prerequisites:** Phase 13 · 07 (building an MCP server) | **前置知识:** Phase 13 · 07 (building an MCP server)
@@ -45,6 +47,8 @@ Hand-rolling all of that is what separates "toy" from "serviceable". The officia
 
 > **【中文解读】** 真正的 Agent 宿主同时加载多个 MCP 服务器。客户端的工作：(1) 生成每个服务器；(2) 独立握手；(3) 在每个服务器上调用 `tools/list` 并扁平化结果；(4) 当模型发出 `notes_search` 时，在合并命名空间中查找并路由到正确服务器；(5) 处理任意服务器的通知而不阻塞；(6) 传输失败时重连。
 
+> 💡 **【类比】** MCP 客户端像医院分诊台。病人（用户请求）进来后，分诊台要快速判断该往哪个科室（哪个 MCP 服务器）送——挂号的（filesystem server）、化验的（postgres server）、放射的（github server）。分诊台手里有一本"科室能力清单"（合并的工具列表），并能同时指挥多科室会诊（并发调用）。每个科室是独立子进程，分诊台要在它们之间高效路由，还要应对某个科室突然掉线（重连）。
+
 ## The Concept | 核心概念
 
 ### Child-process spawning
@@ -74,6 +78,8 @@ Requests are async by nature; a `tools/call` sent to server A while server B is 
 
 > 请求天然是异步的；当服务器 B 正在执行调用时，发给服务器 A 的 `tools/call` 不应阻塞。使用带队列的线程或 asyncio。
 
+> ⚠️ **【易错点】** 场景：单线程同步实现，循环读取每个服务器的 stdout / 后果：一个慢工具（如长 SQL）阻塞整个客户端，其他服务器即使响应快也无法处理 / 修复：每个服务器必须有独立的 reader 线程/任务，主循环只负责 dispatch；用 `selectors` 或 `asyncio` 监听多个 stdin，按到达顺序处理。stdout 写入也要加锁避免消息交错。
+
 ### Merged namespace
 
 > **【拓展：多 MCP 服务器命名空间冲突处理】** 当多个服务器有同名工具时，客户端有三种处理策略：(1) 按服务器名前缀（`notes/search`、`files/search`），清晰但冗长——Claude Desktop 和 VS Code 用这种方式；(2) 先到先得，后加载的覆盖先加载的——风险高，隐藏冲突；(3) 碰撞拒绝，拒绝加载第二个服务器——Cursor 用这种方式，对安全敏感的宿主最安全。
@@ -92,6 +98,8 @@ When the client sees the aggregate tool list, names can collide. Two servers mig
 Claude Desktop uses prefix-by-server. Cursor uses collision rejection with a clear error. VS Code MCP adopts prefix-by-server as well.
 
 > Claude Desktop 使用按服务器加前缀。Cursor 使用带清晰错误的冲突拒绝。VS Code MCP 也采用按服务器加前缀。
+
+> 🤔 **【困惑】** Q: 加了前缀（如 `notes/search`）后，模型会不会因为名字带斜号而选不准？ A: 实测影响很小，因为前缀本身有语义（"notes"是领域），模型反而更准。但要注意：(1) 不要混用——一会儿前缀一会儿不前缀会让模型困惑；(2) 描述里要呼应——`notes/search` 的描述里要写"在笔记中搜索"；(3) 测试时跑 StableToolBench 验证选择准确率，前缀通常带来 3-5% 提升。
 
 ### Routing
 

@@ -6,6 +6,8 @@
 
 > **【拓展】** OAuth 2.1 是 MCP 远程服务器的标准认证方案。与早期 OAuth 2.0 相比，2.1 强制 PKCE、禁止隐式流程。资源指示器（RFC 8707）将 token 绑定到特定服务器，防止"混淆代理"攻击。逐步授权（Step-up）允许按需请求更多权限，而非一次性获取全部——这是最小权限原则的实践。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·09（MCP transports）——Streamable HTTP 才需要 OAuth；(2) Phase 13·15（MCP Security I）——理解威胁面；(3) OAuth 2.0/2.1 概念、PKCE 流程、JWT/Bearer token 基础；(4) RFC 8707（资源指示器）和 RFC 9728（受保护资源元数据）——本节会用到。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, OAuth state machine simulator) | **语言:** Python (stdlib, OAuth state machine simulator)
 **Prerequisites:** Phase 13 · 09 (transports), Phase 13 · 15 (security I) | **前置知识:** Phase 13 · 09 (transports), Phase 13 · 15 (security I)
@@ -46,6 +48,8 @@ Three real-world needs:
 OAuth 2.1 is not new. What is new is MCP's profile: specific required flows (authorization code + PKCE only; no implicit, no client credentials by default), resource indicators mandatory on every token request, and protected-resource metadata published so clients know where to go.
 
 > OAuth 2.1 不是新的。新的是 MCP 的配置：特定必需流程（仅授权码+PKCE；默认无隐式、无客户端凭证），每次 token 请求必须带资源指示器，发布受保护资源元数据让客户端知道去哪里。
+
+> 💡 **【类比】** OAuth 2.1 + PKCE 像酒店代客停车。普通 OAuth 2.0（无 PKCE）像你直接把车钥匙给代客（access token），代客可去任何地方——风险高。OAuth 2.1 + PKCE：你给代客一个"专用临时钥匙"（PKCE challenge），这把钥匙只能启动你的车（resource indicator 锁定），代客没法用这把钥匙开别人的车（混淆代理防御）。Step-up 授权：代客原本只能停车，你要他顺便加油，临时升级权限（重新走同意流程），办完事降回原权限——最小权限原则。
 
 ## The Concept | 核心概念
 
@@ -90,6 +94,10 @@ The flow:
 PKCE prevents authorization-code interception attacks. Resource indicators prevent the token from being valid elsewhere.
 
 > PKCE 防止授权码拦截攻击。资源指示器防止 token 在其他地方有效。
+
+> ⚠️ **【易错点】** 场景：客户端忽略 `resource` 参数 / 后果：拿到 Server A 的 token 后被 Server A 转交给 Server B 使用（混淆代理攻击），因为 token 没有 audience 锁定 / 修复：(1) 每次 `/token` 请求必须带 `resource=<服务器 URL>`；(2) 资源服务器校验 token 的 audience 字段是否匹配自己；(3) 短期 token（< 1 小时）+ refresh token 轮换；(4) 永远不要让 token 在不同服务器间共享——MCP 规范明确禁止 token 透传。
+
+> 🤔 **【困惑】** Q: 为什么 MCP 强制用 PKCE？普通授权码流程不是也有吗？ A: 因为 MCP client 通常不是机密的——Claude Desktop、Cursor 装在用户机器上，client_secret 会被反编译出来。PKCE 让 client 不存 secret，每次请求生成临时 verifier，授权服务器只验证哈希匹配。这样即使攻击者拿到客户端代码也无法伪造请求。OAuth 2.1 把"PKCE 选填"升级为"PKCE 必填"，就是为移动/桌面端 client 设计的。
 
 ### Protected-resource metadata (RFC 9728)
 

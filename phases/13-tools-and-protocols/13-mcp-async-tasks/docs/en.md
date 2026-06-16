@@ -6,6 +6,8 @@
 
 > **【拓展：异步任务→MCP 长时运行工作】** 异步任务是 MCP 处理长时运行工作的标准模式。与传统同步 `tools/call` 不同，Tasks 允许服务器立即返回 `taskId`，客户端稍后通过 `tasks/status` 轮询进度或通过 `tasks/result` 获取最终结果。这是 MCP 从"简单工具执行"进化到"复杂工作流编排"的关键一步。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·07（MCP server）和 13·09（transports）——理解同步 `tools/call` 和远程传输的连接管理；(2) 状态机概念（working/completed/failed 等状态转移）；(3) 后台任务 + 持久化基础（任务状态必须能扛重启）。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, async task state machine) | **语言:** Python (stdlib, async task state machine)
 **Prerequisites:** Phase 13 · 07 (MCP server), Phase 13 · 09 (transports) | **前置知识:** Phase 13 · 07 (MCP server), Phase 13 · 09 (transports)
@@ -40,6 +42,8 @@ A `generate_report` tool runs a multi-minute extraction pipeline. Options under 
 None are good. SEP-1686 adds a fourth: task augmentation. Any request (typically `tools/call`) can be tagged as a task. The server returns a task id immediately. The client polls `tasks/status` and fetches `tasks/result` when done. Server-side state survives restarts.
 
 > 没一个是好的。SEP-1686 添加了第四个：任务增强。任何请求（通常是 `tools/call`）可标记为任务。服务器立即返回 task id。客户端轮询 `tasks/status` 并在完成时获取 `tasks/result`。服务器端状态在重启后存活。
+
+> 💡 **【类比】** 异步任务像餐厅点餐的"取餐号"。同步模式：你点了一份煲仔饭（20 分钟），服务员说"请站在柜台等"——你站着不动 20 分钟（连接挂着）。任务模式：服务员给你一张"取餐号 42"的小票（task_id），说"20 分钟后来取"——你可以坐下玩手机（client 不阻塞），服务员做好了叫号（state=completed），你拿号去取餐（tasks/result）。状态在服务员的小本子上（持久化），即使换班也不丢。
 
 ## The Concept | 核心概念
 
@@ -97,6 +101,10 @@ working  -> cancelled
 State machine is append-only: once `completed`, `failed`, or `cancelled`, the task is terminal.
 
 > 状态机是 append-only：一旦 `completed`、`failed` 或 `cancelled`，任务即终止。
+
+> ⚠️ **【易错点】** 场景：任务状态只存在内存里 / 后果：服务器进程重启（部署、OOM、崩溃）后所有 in-flight 任务全部丢失，客户端轮询永远拿不到结果，用户体验是"卡死了" / 修复：(1) 状态必须持久化（Redis/SQLite/文件），每次状态转移立即写盘；(2) 进程启动时扫描未完成任务，根据策略恢复（继续/标记 failed/通知用户）；(3) `ttl` 字段不能太短，至少覆盖预期最长任务 + 重启窗口。
+
+> 🤔 **【困惑】** Q: 轮询（polling）会不会浪费资源？为什么不用纯推送（push）？ A: 推送需要长连接（SSE/websocket），而 Streamable HTTP 客户端不一定持续监听。MCP 选择"轮询 + 可选推送"组合：(1) 客户端默认每 5-10 秒 poll 一次；(2) 若客户端打开了 GET /mcp SSE 通道，server 主动推 `notifications/tasks/progress` 减少轮询频率；(3) 进入 `completed` 后客户端停止轮询。这样既兼容简单客户端（纯轮询），又给高级客户端优化空间。
 
 ### Methods
 

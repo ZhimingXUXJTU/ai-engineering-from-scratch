@@ -6,6 +6,8 @@
 
 > **【拓展】** OpenTelemetry 是 AI 应用从实验走向生产的必备可观测性基础设施。OTel GenAI 语义约定定义了稳定的属性名称，使得 Datadog、Langfuse、Phoenix 等后端都能解析相同的 span。一次仪表化，发送到任何后端。MCP 调用可通过 W3C traceparent 头传播追踪上下文。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·07、08（MCP server/client）——要在 MCP 调用上加 span；(2) OpenTelemetry 基础（trace、span、span context、exporter）；(3) 分布式追踪概念（trace_id、span_id、parent_id）；(4) W3C traceparent 头格式——跨进程上下文传播。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, OTel span emitter) | **语言:** Python (stdlib, OTel span emitter)
 **Prerequisites:** Phase 13 · 07 (MCP server), Phase 13 · 08 (MCP client) | **前置知识:** Phase 13 · 07 (MCP server), Phase 13 · 08 (MCP client)
@@ -35,6 +37,8 @@ Without end-to-end tracing, you cannot find this. OTel GenAI fixes it.
 
 > 没有端到端追踪，你找不到这个。OTel GenAI 修复它。
 
+> 💡 **【类比】** 分布式追踪像快递的"物流单号"。你寄一个包裹（user 请求），途经多个中转站（agent → LLM → tool → MCP server），每个站点扫一次单号（生成一个 span）。最后你能看到一个时间线："9:01 寄出 → 9:02 收件 → 9:05 分拣 → 9:30 转运 → 9:45 派送"。OTel GenAI 是快递公司约定的"扫码字段标准"——每家公司（Datadog/Langfuse）都按相同字段（gen_ai.operation.name 等）记录，所以你换物流公司时不需要重新贴单。
+
 The conventions settled in 2025-2026 under the OpenTelemetry semantic-conventions group. They define stable attribute names so Datadog, Langfuse, Phoenix, OpenLLMetry, and AgentOps all parse the same spans. Instrument once; ship to any backend.
 
 > 约定在 2025-2026 年在 OpenTelemetry 语义约定组下稳定。它们定义稳定属性名，使 Datadog、Langfuse、Phoenix、OpenLLMetry 和 AgentOps 都解析相同 span。一次仪表化；发送到任何后端。
@@ -59,6 +63,10 @@ agent.invoke_agent  (top, INTERNAL span)
 The whole thing nests under one trace id. Span ids link the parent-child relationships.
 
 > 整个嵌套在一个 trace id 下。Span id 链接父子关系。
+
+> ⚠️ **【易错点】** 场景：跨进程调用 MCP server 时不传 traceparent / 后果：客户端的 trace 在 MCP 调用处断裂，看到的是"tool.execute 100ms 完成"，但看不到 MCP server 内部到底卡在哪；多个独立 trace 无法串联 / 修复：(1) HTTP 调用 MCP 时在 header 加 `traceparent: 00-<trace_id>-<span_id>-01`；(2) stdio MCP 把 trace context 序列化到 JSON-RPC `params._meta.trace_context`；(3) 接收端取出 context 续接 span。没有上下文传播，分布式追踪就是空话。
+
+> 🤔 **【困惑】** Q: span 里应该记录完整的 prompt 和 response 吗？便于调试。 A: 默认**不记录**，只记长度和 token 数。原因：(1) **隐私**——prompt 含用户敏感信息；(2) **存储成本**——大量请求时全量记录会让 trace 后端存储爆炸；(3) **合规**——GDPR/CCPA 要求最小化数据收集。做法：默认 redact，生产环境通过显式 `gen_ai.content.capture=full` opt-in 才记录，且加密存储 + 短期 TTL。
 
 ### Required attributes
 

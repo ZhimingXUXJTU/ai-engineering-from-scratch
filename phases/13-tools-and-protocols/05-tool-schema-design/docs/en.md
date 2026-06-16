@@ -6,6 +6,8 @@
 
 > **【拓展：Schema 设计→MCP 服务器质量】** Schema 设计是 MCP 服务器和 Function Calling 质量的关键。MCP 服务器的工具描述直接进入模型的上下文，好的命名（`snake_case`）和描述（"Use when X. Do not use for Y." 模式）能显著提高工具选择准确率。建议在 CI 中运行 Schema lint，确保工具注册表的质量。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·01（The Tool Interface）——理解工具三元组 name+schema+executor；(2) Phase 13·04（Structured Output）——理解 JSON Schema 约束语法；(3) 写过至少 1 个 function calling 工具（任意供应商），有过"模型选错工具"的痛点。
+
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, tool schema linter) | **语言:** Python (stdlib, tool schema linter)
 **Prerequisites:** Phase 13 · 01 (the tool interface), Phase 13 · 04 (structured output) | **前置知识:** Phase 13 · 01 (the tool interface), Phase 13 · 04 (structured output)
@@ -43,6 +45,8 @@ Composio's 2025 field guide measured 10 to 20 percentage-point accuracy swings o
 Description and name quality is the cheapest lever you have.
 
 > 描述和命名质量是你最廉价的优化杠杆。
+
+> 💡 **【类比】** 工具描述像简历上的"自我评价"。如果两个人都写"擅长开发"，HR（模型）分不清。但一个写"精通 React 前端开发，**不**做后端数据库"，另一个写"全栈开发，**不**做 UI"，HR 立刻能根据岗位匹配。"Use when X. Do not use for Y." 模式就是给工具加这种"反例"，让模型在多个相似工具间做明确区分。描述写得清楚，模型少犯 20% 的选错错误。
 
 > **【中文解读】** 想象一个有 30 个工具的 Agent。两种失败：(1) 选错工具——`search_contacts` 和 `get_customer_details` 描述都写"查找人"导致混淆；(2) 该用工具时没用——用户问股价，模型幻觉了一个数字。Composio 2025 年的实地指南表明，仅通过重命名和重写描述就能带来 10-20 个百分点的准确率提升。描述和命名质量是你最廉价的优化杠杆。
 
@@ -90,6 +94,8 @@ Stay under 1024 characters. OpenAI truncates longer descriptions on strict mode.
 
 > 保持在 1024 字符以内。OpenAI 在 strict mode 下会截断更长的描述。
 
+> ⚠️ **【易错点】** 场景：把工具描述写得像 API 文档（写满功能、参数细节、返回值） / 后果：超过 1024 字符被截断，截断处可能正是关键"Do not use for..."部分，导致模型在两个相似工具间混淆 / 修复：描述只写"何时用 + 何时不用"，参数细节放到 schema 的 description 字段里；如果实在超长，写成两段，把关键的"不要用于"放前面。
+
 Include format hints: "Accepts city names in English. Returns temperature in Celsius unless `units` says otherwise." The model uses these to fill parameters correctly.
 
 > 包含格式提示："接受英文城市名。除非 `units` 另有说明，否则返回摄氏温度。"模型使用这些提示来正确填充参数。
@@ -109,6 +115,8 @@ do_everything(action: str, target: str, options: dict)
 looks DRY but forces the model to pick `action` and `options` from strings and untyped dicts, the two worst surfaces for selection. Benchmarks show 15 to 30 percent worse selection on monolithic tools.
 
 > 看起来 DRY 但迫使模型从字符串和未类型化字典中选择 `action` 和 `options`——选择准确率最差的两种表面。基准测试显示单体工具的选择准确率差 15-30%。
+
+> 🤔 **【困惑】** Q: 我有 100 个工具，按"原子化"原则全拆开，模型的上下文会不会爆炸？ A: 会，所以要做分层。常见做法：(1) 服务端按"领域"分组（notes_* / files_* / db_*），用 MCP 多服务器隔离；(2) 客户端做"工具检索"——先用 embedding 检索相关工具，再只把 top-K（如 10 个）发给模型；(3) 工具数量超过 50 个时必须配 MCP Gateway（Phase 13·17）。原子化≠一次性塞给模型。
 
 Atomic tools:
 

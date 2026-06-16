@@ -6,6 +6,8 @@
 
 > **【拓展：MCP 服务器→Claude 生态开发】** MCP 服务器是 Claude 生态的核心开发模式。通过 stdio 传输，Claude Desktop 等客户端可以启动你的服务器作为子进程。FastMCP (Python) 和 TypeScript SDK 提供装饰器风格的高级 API，使开发更简洁。理解 stdlib 实现有助于排查 SDK 层面的问题。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·06（MCP Fundamentals）——六原语、三阶段生命周期、JSON-RPC 2.0 信封；(2) Python 子进程和 stdin/stdout 通信；(3) JSON-RPC 错误码（-32700 解析错误、-32600 无效请求、-32601 方法不存在、-32602 无效参数、-32603 内部错误）。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, stdio MCP server) | **语言:** Python (stdlib, stdio MCP server)
 **Prerequisites:** Phase 13 · 06 (MCP fundamentals) | **前置知识:** Phase 13 · 06 (MCP fundamentals)
@@ -38,6 +40,8 @@ A notes server is a good shape because it exercises all three server primitives.
 
 > 笔记服务器是好的范例，因为它练习了所有三个服务器原语。Tools 做变更（`notes_create`）。Resources 暴露数据（`notes://{id}`）。Prompts 提供模板（`review_note`）。本课的形态可泛化到任何领域。
 
+> 💡 **【类比】** MCP server 像快递公司网点。网点提供三类服务：(1) **Tools**——你能让网点"做动作"（寄件、付费、退货）；(2) **Resources**——网点展示只读信息（价目表、营业时间，看不能改）；(3) **Prompts**——网点提供预制模板（"国内小包"是预填好的运单，你填几个变量就能用）。客户端（你）通过网点统一的"运单格式"（JSON-RPC）跟所有网点通信，不用每家快递学一套新规矩。
+
 ## The Concept | 核心概念
 
 ### Dispatch loop
@@ -62,6 +66,8 @@ Three rules:
   中文翻译：每个请求必须匹配一个携带相同 `id` 的响应。
 - Notifications MUST NOT be responded to.
   中文翻译：通知不得被响应。
+
+> ⚠️ **【易错点】** 场景：调试时用 `print()` 输出变量到 stdout / 后果：客户端解析 JSON-RPC 失败断连，因为 stdout 里混入了非 JSON 文本 / 修复：所有调试输出**必须**走 `sys.stderr` 或 `logging` 模块（默认 stderr）；在 Python 中可以加全局 monkey patch 把 stdout 重定向到 stderr 仅在调试期间；正确做法是 `print(json.dumps(response))` 严格控制只有 JSON 进 stdout。
 
 ### Implementing `initialize`
 
@@ -103,6 +109,8 @@ Content blocks are typed. The most common:
 Tool errors come in two shapes. Protocol-level errors (unknown method, bad params) are JSON-RPC errors. Tool-level errors (valid call but the tool failed) are returned as `{content: [...], isError: true}`. That lets the model see the failure in its context.
 
 > 工具错误有两种形式。协议级错误（未知方法、参数错误）是 JSON-RPC 错误。工具级错误（调用合法但工具失败）以 `{content: [...], isError: true}` 返回。这让模型能在其上下文中看到失败信息。
+
+> 🤔 **【困惑】** Q: 为什么工具失败不直接抛 JSON-RPC error？这样客户端更省事。 A: 因为模型需要"看到"错误内容才能自我修复。如果用 JSON-RPC error，客户端通常会按协议错误处理（断连、重试、报错），但模型没机会读错误信息。`{content, isError: true}` 让错误内容进入对话历史，模型可以读到"文件不存在"然后调用 `list_files` 探索再重试。这是 MCP 设计上让 agent 更鲁棒的关键决定。
 
 ### Implementing resources
 

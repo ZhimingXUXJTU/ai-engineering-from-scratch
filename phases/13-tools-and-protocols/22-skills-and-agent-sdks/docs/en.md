@@ -6,6 +6,8 @@
 
 > **【拓展】** 三层堆栈是 2026 年 AI Agent 开发的标准模式：AGENTS.md（项目级约定）+ SKILL.md（可复用工作流）+ MCP 服务器（可调用工具）。Anthropic Claude Agent SDK 和 SkillKit 等跨 Agent 分发层让一个 SKILL.md 可以自动翻译为 32+ AI Agent 的原生格式。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·07（MCP server）——MCP 是三层中的工具层；(2) Markdown + YAML frontmatter 基础；(3) 至少用过 Claude Code 或 Cursor 等 AI coding agent，体会"项目上下文"的痛点。
+
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, SKILL.md parser and loader) | **语言:** Python（标准库，SKILL.md 解析器与加载器）
 **Prerequisites:** Phase 13 · 07 (MCP server) | **前置知识:** Phase 13 · 07（MCP 服务器）
@@ -50,6 +52,8 @@ Three layers, one portable artifact.
 
 > 三层，一个可移植工件。
 
+> 💡 **【类比】** 三层堆栈像软件公司的"职位说明书 + 操作手册 + 工具箱"分工：(1) **AGENTS.md** = 公司入职手册——告诉新人"我们用 TypeScript、跑 pnpm test"，每个项目一份；(2) **SKILL.md** = 操作手册——"如何写发版说明"是具体流程，可跨公司复用（你跳槽到下家也能用）；(3) **MCP server** = 工具箱——里面是具体工具（GitHub CLI、Slack API）。新人入职读手册（AGENTS.md）、按需学操作手册（SKILL.md）、用工具（MCP）干活。三者解耦，每个都能独立复用。
+
 ## The Concept | 核心概念
 
 ### AGENTS.md (agents.md)
@@ -74,6 +78,10 @@ Launched late 2025, adopted by 60,000+ repos by April 2026. One file at repo roo
 Agents read this on session start and use it to calibrate their behavior for that project. Every coding agent in 2026 supports AGENTS.md: Claude Code, Cursor, Codex, Copilot Workspace, opencode, Windsurf, Zed.
 
 > Agent 在会话启动时读此并用它为该项目校准行为。2026 年每个编码 Agent 都支持 AGENTS.md：Claude Code、Cursor、Codex、Copilot Workspace、opencode、Windsurf、Zed。
+
+> ⚠️ **【易错点】** 场景：把 SKILL.md 写成 5000 字的详尽文档 / 后果：每次触发技能模型上下文被爆掉，反而降低质量；YAML frontmatter 字段缺失或不规范，跨 Agent 加载失败 / 修复：(1) SKILL.md 主体 < 500 字，详细资源放 `resources/*.md` 用渐进式披露；(2) frontmatter 必填 `name` 和 `description`，描述用"Use when X. Do not use for Y." 模式；(3) 测试技能在多个 Agent（Claude Code/Cursor）下加载是否成功，差异通常是 frontmatter 字段命名。
+
+> 🤔 **【困惑】** Q: SKILL.md 和 MCP prompts 有什么区别？不都是预设工作流吗？ A: 三点核心差异：(1) **载体**——MCP prompts 是协议消息（运行时获取），SKILL.md 是文件（文件系统加载）；(2) **触发**——MCP prompts 是 slash command 显式触发，SKILL.md 是模型读 description 后自动决定何时用；(3) **可移植性**——SKILL.md 跨所有 Agent 通用，MCP prompts 只在支持 MCP 的客户端用。两者互补：复杂逻辑放 MCP prompts（能调 sampling），简单工作流放 SKILL.md（更轻量）。
 
 ### SKILL.md format
 

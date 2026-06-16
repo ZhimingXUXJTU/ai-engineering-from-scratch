@@ -6,6 +6,8 @@
 
 > **【拓展：Roots→MCP 安全边界】** Roots 是 MCP 安全模型的基础。客户端通过声明 roots 控制服务器可以访问的文件/资源范围。例如 Claude Desktop 只允许 MCP 服务器访问用户打开的项目目录。Elicitation 则让工具在需要额外信息时安全地向用户请求，而非假设或幻觉参数值。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·06（MCP Fundamentals）——roots 是六原语之一，elicitation 同样；(2) Phase 13·07（MCP server）——理解 server 端 capability 声明；(3) 表单 / JSON Schema 基础，elicitation 用 schema 描述用户要填的内容。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, roots + elicitation demo) | **语言:** Python (stdlib, roots + elicitation demo)
 **Prerequisites:** Phase 13 · 07 (MCP server) | **前置知识:** Phase 13 · 07 (MCP server)
@@ -42,6 +44,8 @@ Roots fix the first: the client declares at `initialize` the set of URIs the ser
 
 > Roots 修复第一个：客户端在 `initialize` 声明服务器可触及的 URI 集合。Elicitation 修复第二个：服务器暂停工具调用并发送 `elicitation/create` 请求用户选择哪一个。
 
+> 💡 **【类比】** Roots 像酒店的房卡授权。前台（client）发卡时设定"只能开 305 房间和健身房"（roots 列表），客房服务（MCP server）拿着这张卡只能进这些地方，不能去其他客人的房间。Elicitation 像客房服务过程中服务员敲门问"您要哪种枕头？"——服务器在工作时遇到歧义，暂停一下问用户，用户回答后继续。两种原语都把"用户控制权"显式化：前者控制范围，后者控制判断。
+
 ## The Concept | 核心概念
 
 ### Roots
@@ -70,6 +74,8 @@ Servers MUST treat roots as the boundary: any file read or write outside the roo
 
 > 服务器必须将 roots 视为边界：根集外的任何文件读写都被拒绝。这不是客户端强制执行的（服务器仍是用户信任的代码），但规范合规的服务器遵守它。
 
+> ⚠️ **【易错点】** 场景：服务器忽略 roots 检查，直接用绝对路径访问文件 / 后果：(1) 用户在 Claude Desktop 切换项目后，服务器还按旧路径读写，写错地方覆盖用户数据；(2) 安全审计失败——CI/CD 检查 roots 合规性会拒绝发布 / 修复：所有文件操作前必须 `if not path.startswith(root): raise PermissionError`，并在测试用例里覆盖"越界访问"场景。
+
 When the user adds or removes a root, the client sends `notifications/roots/list_changed`. The server re-calls `roots/list` and updates its boundary.
 
 > 当用户添加或删除根时，客户端发送 `notifications/roots/list_changed`。服务器重新调用 `roots/list` 并更新其边界。
@@ -79,6 +85,8 @@ When the user adds or removes a root, the client sends `notifications/roots/list
 Roots are declared by the client because they represent the user's consent model. The user told Claude Desktop "give this notes server access to these two directories". The server cannot widen that scope.
 
 > Roots 由客户端声明，因为它们代表用户的同意模型。用户告诉 Claude Desktop"给这个笔记服务器访问这两个目录"。服务器无法扩大该范围。
+
+> 🤔 **【困惑】** Q: 既然 elicitation 可以问用户，那为什么不每次工具调用都用 elicitation 确认参数？这样最安全。 A: 因为 elicitation 是阻塞的——会暂停整个工具调用，弹出表单让用户填，**严重破坏 Agent 流畅性**。规则：(1) 仅在"信息不足、无法安全继续"时用（如多选项无法消歧）；(2) 不要让用户做模型本可以做的事（如"猜一个城市"应该让模型自己猜，而非问用户）；(3) 生产环境 10 次工具调用里最多 1 次 elicitation，超过就是 UX 设计错误。
 
 ### Elicitation: the form-mode default
 

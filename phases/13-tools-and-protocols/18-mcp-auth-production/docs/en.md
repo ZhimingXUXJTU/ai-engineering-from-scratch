@@ -6,6 +6,8 @@
 
 > **【拓展】** iii 原语（registerTrigger、registerFunction、state::set/get）是本课的核心抽象。每个认证端点和后台作业都是 iii 原语——HTTP 触发器返回函数输出，JWKS 轮换是 cron 触发器写入 state，JWT 验证是通过 iii.trigger 调用的函数。重启引擎后触发器注册表重建、state 存活，认证面无需手工恢复。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·16（OAuth 2.1 state machine）——本节是其生产化；(2) Phase 13·17（Gateways）——网关会用到这些机制；(3) JWT 结构、JWKS 概念、PKCE/S256 流程；(4) RFC 7591（DCR）、RFC 8414（AS metadata）、RFC 8707（resource indicators）、RFC 9728（PR metadata）——本节会逐一实现。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, iii primitives mocked for the lesson environment) | **语言:** Python（标准库，iii 原语为本课环境模拟）
 **Prerequisites:** Phase 13 · 16 (OAuth 2.1 state machine), Phase 13 · 17 (gateways) | **前置知识:** Phase 13 · 16（OAuth 2.1 状态机）、Phase 13 · 17（网关）
@@ -41,6 +43,8 @@ The first gap is enrollment. A real org runs hundreds of MCP servers and thousan
 The second gap is key rotation. JWT validation depends on the authorization server's signing keys, published as a JSON Web Key Set (JWKS). The authorization server rotates these on a schedule (often hourly, sometimes faster under incident response). An MCP server that fetches JWKS once at boot validates fine until the rotation window — then every request fails until restart. Production wires JWKS as a cached value with a refresh job that overwrites the cache before the previous keys expire, plus a fall-back fetch on cache miss for the case where a token signed by a key newer than the cache arrives.
 
 > 第二个缺口是密钥轮换。JWT 验证依赖授权服务器的签名密钥，以 JSON Web Key Set (JWKS) 发布。授权服务器按计划轮换（通常每小时，事件响应时更快）。启动时只获取一次 JWKS 的 MCP 服务器在轮换窗口前验证正常——之后每次请求失败直到重启。生产环境将 JWKS 连线为缓存值，刷新任务在密钥过期前覆盖缓存，加上缓存未命中时的回退获取（当 token 用比缓存更新的密钥签名时）。
+
+> 💡 **【类比】** JWKS 轮换像消防演习。授权服务器（消防局）每年换一次演习暗号（签名密钥），所有消防站（MCP server）必须及时收到新暗号，否则演习时（用户请求）认证失败。生产策略：(1) 每个消防站提前订阅"暗号更新通知"（cron 触发器定时刷新）；(2) 旧的暗号在过渡期还能用（保留旧 key 几小时）；(3) 万一有人用更新的暗号来认证，消防站现场打电话核实（缓存未命中时回退 fetch）。这套机制能扛半夜 3 点的密钥轮换而不挂服务。
 
 The third gap is audience binding. Lesson 16 introduced RFC 8707 resource indicators.
 
@@ -97,6 +101,10 @@ The contract you verify before trusting an IdP for MCP:
 If any of those is missing, the MCP server refuses to deploy against this IdP. The deployment manifest is wrong, not the code.
 
 > 如果任何缺失，MCP 服务器拒绝在此 IdP 上部署。部署清单错了，不是代码。
+
+> ⚠️ **【易错点】** 场景：JWKS 缓存只在启动时 fetch 一次 / 后果：IdP 按计划轮换密钥（如每小时），轮换后所有 token 用新密钥签名，MCP server 还在用旧 key 校验——所有用户认证失败直到重启服务；凌晨 3 点的故障就是这样发生的 / 修复：(1) cron 触发器每 15-30 分钟刷新 JWKS；(2) 缓存 TTL < 密钥 TTL 的 50%；(3) JWT 校验失败时先回退重新 fetch JWKS 再判定，避免缓存陈旧导致的误判；(4) 同时保留新旧 key 在缓存里覆盖过渡期。
+
+> 🤔 **【困惑】** Q: DCR（动态客户端注册）让任何客户端都能 `POST /register` 拿到 client_id，不会被滥用吗？ A: 不会，前提是配置正确：(1) DCR 端点本身受访问控制（IP 白名单、API key、initial token）；(2) 注册的客户端默认权限极低（如只能拿到 user 模式的 scope），高权限需管理员显式批准；(3) IdP 会做滥用检测（同 IP 大量注册告警）；(4) 注册时可要求 `software_statement`（签名的客户端元数据）做信任锚。DCR 不是"任何人都能注册"，是"自动化注册流程而非人工工单"。
 
 ### RFC 9728 (recap) — Protected Resource Metadata
 

@@ -6,6 +6,8 @@
 
 > **【拓展】** LLM 路由层解决的核心问题：按任务复杂度自动路由到最优模型（成本优化）、供应商故障自动切换（高可用）、延迟敏感路由（用户体验）、合规区域路由（数据主权）、A/B 测试路由（实验）。这是 AI 工程从单模型走向多模型架构的关键基础设施。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·02（Function Calling Deep Dive）——理解三家供应商的 API 差异，本节是统一它们的方案；(2) Phase 13·17（Gateways）——网关和路由经常一起部署；(3) HTTP 代理基础、重试与超时机制。
+
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, routing + failover + cost tracker) | **语言:** Python (stdlib, routing + failover + cost tracker)
 **Prerequisites:** Phase 13 · 02 (function calling), Phase 13 · 17 (gateways) | **前置知识:** Phase 13 · 02 (function calling), Phase 13 · 17 (gateways)
@@ -50,6 +52,8 @@ Hand-coding all of this per integration is repetitive. A routing gateway gives o
 
 > 每个集成手写所有这些很重复。路由网关提供统一 OpenAI 兼容 API 并处理其余。
 
+> 💡 **【类比】** LLM 路由网关像"万能充电转接头"。每个手机厂商（OpenAI/Anthropic/Google）有自己的快充协议（API 形态），原本你出差要带三根线。路由网关是一个"中间转换器"——你的代码只对着 USB-C 接口（OpenAI 兼容 API）编程，转换器内部根据任务自动选最快的协议、协议失败时切换备用协议（fallback）、计算每度电花了多少钱（成本追踪）。换手机厂商你不需要重写代码。
+
 ## The Concept | 核心概念
 
 ### OpenAI-compatible proxy shape
@@ -63,6 +67,10 @@ Everyone speaks OpenAI-shape. The routing gateway exposes `/v1/chat/completions`
 Instead of `claude-3-5-sonnet-20251022`, your code says `our_smart_model`. The gateway maps aliases to real models. When Anthropic ships Claude 4, you change the alias server-side; your code does not touch a thing.
 
 > 你的代码不说 `claude-3-5-sonnet-20251022`，而是 `our_smart_model`。网关将别名映射到真实模型。当 Anthropic 发布 Claude 4 时，你在服务器端改别名；代码不动。
+
+> ⚠️ **【易错点】** 场景：fallback 链设了 5 个供应商且不做预算限制 / 后果：上游故障时 5 个供应商都重试一遍，单请求成本飙升 5 倍；某些故障（如 prompt 违规）所有供应商都会拒绝，重试无意义却烧钱 / 修复：(1) 设全局 budget cap，超出直接拒绝；(2) 区分"重试有意义"的错误（5xx、超时）和"重试无意义"的错误（4xx、内容违规）；(3) 同一请求总重试 ≤ 3 次；(4) 监控 fallback 触发率，异常飙升告警。
+
+> 🤔 **【困惑】** Q: 既然 LiteLLM 开源自托管，为什么还要用 OpenRouter 或 Portkey？ A: 取决于团队能力：(1) **LiteLLM** 适合有 DevOps 团队的公司，自己维护可控成本，但要负责升级、监控、故障处理；(2) **OpenRouter** SaaS 适合早期项目或个人开发者，零运维但单价更高；(3) **Portkey** 介于两者之间，开源但有商业版本。生产级（>10M req/day）通常 LiteLLM 自托管 + 商业 Portkey 混合：核心流量自托管，溢出走 Portkey。
 
 ### Fallback chains
 

@@ -6,6 +6,8 @@
 
 > **【拓展：Resources vs Tools 选择】** 在 MCP 设计中，Resources 用于只读数据暴露（如文件内容、数据库记录），Tools 用于有副作用的操作（如创建、删除、发送）。错误地将读操作包装为 tool 会增加不必要的模型决策负担。Prompts 作为斜杠命令模板，让用户快速触发预设工作流。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·06（MCP Fundamentals）——理解 resources 和 prompts 是六原语中的两个；(2) Phase 13·07（Building an MCP Server）——掌握 tools/list、tools/call 的实现，本节是平行扩展；(3) URI 概念（`file://`、`http://`、自定义 scheme）。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, resource + prompt handler) | **语言:** Python (stdlib, resource + prompt handler)
 **Prerequisites:** Phase 13 · 07 (MCP server) | **前置知识:** Phase 13 · 07 (MCP server)
@@ -40,6 +42,8 @@ A naive MCP server for a notes app exposes everything as tools: `notes_read`, `n
 The right split: expose data as a resource, expose mutating or computed actions as tools, expose reusable multi-step workflows as prompts. Each primitive has its UX affordance and its access pattern.
 
 > 正确的拆分：将数据暴露为资源，将变更或计算动作暴露为工具，将可复用的多步工作流暴露为提示。每个原语有其 UX 特性和访问模式。
+
+> 💡 **【类比】** MCP 三原语像图书馆的三种资源：(1) **Tools** = 借阅台工作人员——你请他"帮我查这本书在哪""帮我办张卡"，他执行动作（带副作用）；(2) **Resources** = 书架上的书——你可以自己取下来读（只读），但不需要每次都请示工作人员，能直接附加到对话上下文；(3) **Prompts** = 馆内的"自助导览路线"——预制的多步骤流程（"先看 2 楼、再看 3 楼"），你按一个按钮就走完整个流程。把书当成工具是浪费，把工作人员当成书是错配。
 
 ## The Concept | 核心概念
 
@@ -80,6 +84,8 @@ URIs can be anything addressable:
 
 > `contents[]` 同时支持文本和二进制。二进制使用 `blob` 作为 base64 编码字符串加 `mimeType`。
 
+> ⚠️ **【易错点】** 场景：把 100MB 大文件作为 Resource 一次性返回 / 后果：客户端 OOM 或者 LLM 上下文爆炸（超过 token 限制），整个对话卡死 / 修复：(1) Resource 在 server 端分页或预览（只返回前 N 字符 + 总大小元数据）；(2) 大文件用专门的 "search_in_file" tool 而非 Resource；(3) 在 `resources/list` 里声明 `size` 字段，让客户端能预判；(4) 二进制（图片/PDF）先在 server 端提取文本再返回，blob 仅用于必需场景。
+
 ### Resource subscriptions
 
 Declare `{resources: {subscribe: true}}` in capabilities. Client calls `resources/subscribe {uri}`. Server sends `notifications/resources/updated {uri}` when the resource changes. Client re-reads.
@@ -117,6 +123,8 @@ Claude Desktop, VS Code, and Cursor expose prompts as slash-commands in the chat
 Not every client supports prompts yet — check capability negotiation. A server with prompt capability declared but a client without prompt support simply will not see the slash commands.
 
 > 不是每个客户端都支持提示——检查能力协商。声明了 prompt 能力的服务器，但客户端不支持 prompt，则看不到斜杠命令。
+
+> 🤔 **【困惑】** Q: Prompt 和我直接在 system prompt 里写"如何做代码评审"有什么区别？ A: 三点关键差异：(1) **触发方式**——prompt 是斜杠命令显式触发（用户主动选择），system prompt 是隐式常驻；(2) **参数化**——prompt 支持 `arguments`（如 `file_path`），system prompt 难以优雅参数化；(3) **可发现性**——`prompts/list` 让客户端 UI 自动列出可用命令，用户不需要记忆。如果你的"system 提示"实际上是个工作流模板（"读文件→分析→给建议"），用 prompt 才是正解。
 
 ### The "list changed" notification
 

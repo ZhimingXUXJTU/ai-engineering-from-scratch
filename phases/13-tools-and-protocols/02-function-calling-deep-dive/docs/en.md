@@ -6,6 +6,8 @@
 
 > **【拓展：Function Calling】** 函数调用（Function Calling）是 LLM 与外部世界交互的核心机制。LLM 不直接执行操作，而是输出结构化的"调用意图"（工具名+参数），由宿主程序执行后返回结果。三大供应商的 API 形状不同但语义等价：声明工具→模型选择调用→宿主执行→结果注入→模型继续推理。理解这一循环是构建跨平台 Agent 的基础。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·01（The Tool Interface）——本节是它的展开，必须先吃透四步循环；(2) Phase 11·03（Structured Outputs）——理解 JSON Schema，三大供应商的 `parameters`/`input_schema` 都用它；(3) 至少读过一家供应商（OpenAI 或 Anthropic）的 function calling 文档。如果不会区分 `tool_choice` 的三种模式，先回去看 Phase 13·01 的"决策"步骤。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, schema translators) | **语言:** Python（标准库，模式翻译器）
 **Prerequisites:** Phase 13 · 01 (the tool interface) | **前置知识:** Phase 13 · 01（工具接口）
@@ -46,6 +48,8 @@ Same loop. Different field names, different nesting, different string-vs-object 
 
 > 同样的循环。不同的字段名、不同的嵌套方式、不同的字符串与对象约定、不同的关联机制。一个在 OpenAI 上写天气 agent 的团队移植到 Anthropic 需要两天，再到 Gemini 又需要一天——仅仅是管道工程。
 
+> 💡 **【类比】** 三大供应商像三种不同的快递公司。都能寄包裹（同一循环），但运单格式不同：OpenAI 把物品清单写在面单上需要收件人自己看（`arguments` 是 JSON 字符串）；Anthropic 把清单内容已经填好直接看（`input` 已解析对象）；Gemini 用专门的运单号 UUID 区分包裹（Gemini 3+）。本质都是寄快递，但每家公司运单设计不同，所以你需要一个"统一运单翻译器"才能在多公司间切换。
+
 This lesson builds a translator that unifies the three formats into one canonical tool declaration and routes at the edge. Phase 13 · 17 generalizes the same pattern into an LLM gateway.
 
 > 本课构建一个翻译器，将三种格式统一为一个规范的工具声明，并在边缘进行路由。Phase 13 · 17 将同一模式泛化为 LLM 网关。
@@ -72,6 +76,8 @@ Every provider needs five things:
 > **【中文解读】** 每个供应商都需要五样东西：工具列表（名称+描述+输入 Schema）、工具选择（强制/禁止/自动）、调用输出（结构化的工具名和参数）、调用 ID（关联响应到正确的调用，并行时关键）、结果注入（将结果绑回调用的消息或块）。
 
 ### Shape diffs, field by field
+
+> ⚠️ **【易错点】** 场景：把 OpenAI 代码原样贴到 Anthropic / 后果：`tool_calls` 字段不存在导致 `KeyError`，且 OpenAI 的 `arguments` 是 string 需 `json.loads()`，Anthropic 的 `input` 已是 dict，直接访问会得到字符串而非字段值 / 修复：必须写适配层或用 LiteLLM 这类统一 SDK；若手写，每个供应商独立测试用例覆盖。
 
 | Aspect | OpenAI | Anthropic | Gemini |
 |--------|--------|-----------|--------|
@@ -105,6 +111,8 @@ Every provider needs five things:
   中文翻译：**Anthropic。** 每个请求 64 个工具。Schema 深度实际上无限制但实际约 10。无严格模式标志；模式是契约，模型倾向于遵守。
 - **Gemini.** 64 functions per request. Schema types are OpenAPI 3.0 subset (slight divergence from JSON Schema 2020-12). Parallel calls unique-id since Gemini 3.
   中文翻译：**Gemini。** 每个请求 64 个函数。Schema 类型是 OpenAPI 3.0 子集（与 JSON Schema 2020-12 有细微差异）。Gemini 3 起支持并行调用的唯一 ID。
+
+> 🤔 **【困惑】** Q: 既然三家形状不同，为什么不直接用 LangChain 或 LiteLLM 抽象掉？ A: 抽象层确实能省 80% 代码，但要警惕"抽象泄漏"：strict mode 限制（OpenAI 不支持 `$ref`）、`tool_choice` 的特殊语义（Anthropic 没有 `required`）、错误格式差异都不会被抽象。生产级项目建议抽象业务逻辑，但保留直接调用供应商 API 的调试路径，遇到 bug 时能快速定位是抽象层还是供应商问题。
 
 ### `tool_choice` behavior
 

@@ -6,6 +6,8 @@
 
 > **【拓展：结构化输出→Function Calling 的质量保障】** 结构化输出是所有数据提取管道的基础。在 Function Calling 场景中，结构化输出确保工具参数的 JSON 格式始终有效。OpenAI 的 strict mode 通过 constrained decoding 在解码时屏蔽违反 Schema 的 token，Anthropic 通过 `input_schema` 在 tool_use 中实现类似保证。这消除了"模型返回无效 JSON"这一最常见的生产故障模式。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 11·03（Structured Outputs）——基础；(2) Phase 13·01（The Tool Interface）和 13·02（Function Calling Deep Dive）——理解 strict mode 出现前的"prompt for JSON"失败模式；(3) Pydantic v2 或 Zod 基础语法，本节会用它们生成 Schema。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python (stdlib, JSON Schema 2020-12 subset) | **语言:** Python（标准库，JSON Schema 2020-12 子集）
 **Prerequisites:** Phase 13 · 02 (function calling deep dive) | **前置知识:** Phase 13 · 02（函数调用深入）
@@ -39,6 +41,8 @@ An agent reading a purchase-order email needs to turn free text into `{customer,
 **Approach three: constrained decoding.** The provider enforces the schema at decode time. Invalid tokens are masked out of the sampling distribution. The output is guaranteed to parse and guarantee to validate. Failure collapses to one mode: refusal (the model decides the input does not fit the schema).
 
 > **方法三：约束解码。** 提供商在解码时强制执行 Schema。无效 token 从采样分布中被屏蔽。输出保证可解析且可验证。失败归结为一种模式：拒绝（模型判定输入不适合 Schema）。
+
+> 💡 **【类比】** 约束解码像填空题的"格子"约束。普通生成是写作文，想写啥写啥，可能跑题（无效 JSON）。约束解码是给你一张表格，每个格子已经标好"姓名/年龄/邮箱"，模型只能在格子里填对应类型的内容，不会出现"年龄"那栏填了"小明"。技术实现：在每个 token 采样时，预先屏蔽掉所有会导致 Schema 违规的 token，让概率为零。
 
 > **【中文解读】** 第三种方法——约束解码——在解码时强制执行 Schema。无效 token 被从采样分布中屏蔽。输出保证可解析且可验证。失败只归结为一种模式：拒绝（模型认为输入不符合 Schema）。
 
@@ -90,6 +94,8 @@ OpenAI strict mode adds three requirements: every property must be listed in `re
 
 > OpenAI strict mode 增加了三个要求：每个属性都必须列在 `required` 中、所有层级 `additionalProperties: false`、不得使用未解析的 `$ref`。如果违反这些要求，API 会在请求时返回 400。
 
+> ⚠️ **【易错点】** 场景：OpenAI strict mode 下用 Pydantic 的 `Optional[int] = None` / 后果：API 返回 400 报"additionalProperties or required"错误，因为 strict mode 要求**所有**字段在 `required`，即使可选 / 修复：用 `Union[int, None]` 并显式 `required=[..., "field_name"]`；或者 Pydantic AI 框架会自动处理这个转换；最佳实践是定义所有字段都必填，缺省值用空字符串/null 而非"省略"。
+
 ### Pydantic, the Python binding
 
 > **【拓展：Pydantic AI 在结构化输出中的地位】** Pydantic AI 是 2024-2025 年兴起的 Python Agent 框架，其核心竞争力就是利用 Pydantic v2 的 `model_json_schema()` 自动生成供应商兼容的 Schema。开发者只需定义一个 `BaseModel` 类，框架自动处理 strict mode 兼容性、类型验证和拒绝处理。据统计，Pydantic AI 在 2025 年 GitHub 增长最快的 AI 框架中排名前三。
@@ -118,6 +124,9 @@ Zod (`z.object({customer: z.string(), ...})`) is the TS equivalent. OpenAI's Nod
 ### Refusals
 
 Strict mode cannot force the model to answer. If the input cannot fit the schema ("the email was a poem, not an invoice"), the model emits a `refusal` field containing the reason. Your code must handle this as a first-class outcome, not a failure. The refusal is also useful as a safety signal: a model asked to extract a credit card number from a protected-content email returns a refusal with the safety reason attached.
+
+> 🤔 **【困惑】** Q: refusal 算"成功"还是"失败"？返回什么 HTTP 状态码？ A: 算**业务成功**，HTTP 200。因为模型按 schema 约定给出了正确的"无法处理"信号（不是技术错误）。代码上把它当成 `Result<T, Refusal>` 处理：要么走"拒绝分支"（如记录到日志、回退到人工审核），要么再次提示用户。把 refusal 当 500 错误是新手最常见误判，会导致监控告警噪音。
+
 
 > Strict mode 不能强制模型回答。如果输入无法适配 Schema（"邮件是诗歌而非发票"），模型会发出包含原因的 `refusal` 字段。你的代码必须将其作为一等公民结果处理，而非失败。拒绝也可用作安全信号：当模型被要求从受保护内容邮件中提取信用卡号时，会返回附带安全原因的拒绝。
 
