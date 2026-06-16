@@ -6,6 +6,8 @@
 
 > **【拓展：提示工程→AI应用开发】** 提示工程是 AI 应用开发的第一步。掌握系统提示、角色设定、Few-shot 示例、约束条件等技术，能让同一个模型的表现从"平庸"提升到"优秀"。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 10·01-05（LLM 基础）——理解模型如何生成 token、temperature 等概念；(2) Python 基础——本节会用 OpenAI/Anthropic SDK 调 API；(3) 一个 API key（OpenAI 或 Anthropic，国内可用智谱 GLM 或通义千问替代）。如果完全没调过 LLM API，先注册账号跑通 "Hello world"。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 10, Lessons 01-05 (LLMs from Scratch) | **前置知识:** Phase 10 · 01-05 (从零构建 LLM)
@@ -48,6 +50,10 @@ The first prompt activates a generic distribution of marketing emails in the mod
 
 > 第一个提示激活了模型训练数据中营销邮件的通用分布。第二个则激活了一个狭窄的、高质量的切片。同样的模型，同样的参数，截然不同的输出。
 
+> 💡 **【类比】** LLM 像一个无边际的图书馆，每个 prompt 都是"目录检索词"。模糊 prompt（"营销邮件"）让图书管理员把整个营销书架上的书都扫一遍，平均后给你中庸答案；精确 prompt（"资深 B2B SaaS 文案、工程经理受众、150 字..."）让管理员直接锁定那一两本最契合的书。模型权重不变，但 prompt 决定了从权重空间里激活哪一片。
+
+> ⚠️ **【易错点】** 新手最常犯的 3 个错：(1) **没指定角色**——"写一篇..."模型用"通用作者"语气，结果平庸；写"You are a senior copywriter..."立刻专业感拉满。(2) **没指定输出格式**——让模型"列出原因"，得到 5 段散文；改成"输出 JSON 数组，每项 {reason, impact}"立即可用。(3) **约束太多互相矛盾**——"详细但简短、专业但活泼、严肃但幽默"模型无所适从；每次只加 1-2 个明确约束。
+
 This gap between what you ask and what you get is the entire discipline of prompt engineering. It is not a hack or a workaround. It is the primary interface between human intent and machine capability. And it is a subset of a larger discipline -- context engineering (covered in Lesson 05) -- that deals with everything that goes into the model's context window, not just the prompt itself.
 
 > 你所问的与你所得到的之间的差距，就是提示工程这整个学科。它不是一种花招或变通方法。它是人类意图与机器能力之间的主要接口。它也是一个更大门类——上下文工程（第 05 课会讲到）——的子集，上下文工程处理的是所有进入模型上下文窗口的内容，而不仅仅是提示本身。
@@ -55,6 +61,8 @@ This gap between what you ask and what you get is the entire discipline of promp
 Prompt engineering is not dead. The people who say it is are the same people who said CSS was dead in 2015. What changed is that it became table stakes. Every serious AI engineer needs it. The question is not whether to learn it but how deep to go.
 
 > 提示工程并没有死。说它已死的人，和 2015 年说 CSS 已死的是同一批人。变化在于它已成为基本要求。每个认真对待 AI 的工程师都需要它。问题不是要不要学，而是要学多深。
+
+> 🤔 **【困惑】** Q: 都 2026 年了，模型自己会推理，提示工程还需要吗？ A: 需要，但角色变了。2023 年的"咒语式 prompt"（"think step by step"）确实过时——原生推理模型（Claude Extended Thinking、o3）自己会思考。但**结构化指令**（角色、格式、约束、Few-shot 示例）依然关键——决定模型"该做什么"，而不是"怎么想"。Prompt engineering 从"哄模型"变成了"spec 工程师"，更接近软件需求文档的写法。
 
 ## The Concept | 核心概念
 
