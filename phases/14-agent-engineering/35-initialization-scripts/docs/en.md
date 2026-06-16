@@ -7,6 +7,9 @@
 **Prerequisites:** Phase 14 · 32 (Minimal Workbench), Phase 14 · 34 (Repo Memory) | **前置知识:** 见原文
 **Time:** ~45 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·32（Minimal Workbench）、Phase 14·34（Repo Memory）。本节讲"启动脚本"——让 Agent 不用每次冷启动重新探索 repo。
+> 💡 **【类比】** Init script = 项目 README 的可执行版。新员工入职第一天不用自己摸索"测试怎么跑、依赖装哪些、环境变量是什么"——init script 自动做完写到 state 文件。Agent 每次启动先跑 init，省下 10-30% 的 token 预算。
+
 ## Learning Objectives | 学习目标
 
 - Identify the work an agent should never have to redo per session.

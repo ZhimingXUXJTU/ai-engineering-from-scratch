@@ -7,6 +7,9 @@
 **Prerequisites:** Phase 14 · 38 (Verification Gate) | **前置知识:** 见原文
 **Time:** ~55 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·38（Verification Gate）。本节是 gate 的 LLM 版——用第二个 Agent 审查第一个 Agent 的产出。
+> 💡 **【类比】** Builder + Reviewer = 作家 + 编辑。作家写完初稿容易自我感觉良好（"我觉得很清楚"），编辑以读者视角挑刺（"这段逻辑跳跃、那个名词没解释"）。让同一个 Agent 兼任两者等于没有审查——人类作家都不行，LLM 更不行。
+
 ## Learning Objectives | 学习目标
 
 - State why the same agent cannot reliably review its own work.

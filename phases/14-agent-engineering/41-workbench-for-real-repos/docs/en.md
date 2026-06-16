@@ -7,6 +7,9 @@
 **Prerequisites:** Phases 14 · 32 to 14 · 40 | **前置知识:** 见原文
 **Time:** ~60 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·32-40 全部（Workbench 系列 9 节）。本节是 workbench 的实战综合——在真实小项目上跑 prompt-only vs workbench-guided 对比。
+> 💡 **【类比】** Workbench on real repo = 驾校场地训练 vs 真车上路。前 9 节是驾校学操作（油门、刹车、变道），本节是第一次开真车出门——会暴露你没想到的问题（小区出口有盲区、停车场拐角太窄）。预期：workbench 版本在真实 repo 上仍然比 prompt-only 强 30-50%。
+
 ## Learning Objectives | 学习目标
 
 - Bring the seven workbench surfaces together on a small application.

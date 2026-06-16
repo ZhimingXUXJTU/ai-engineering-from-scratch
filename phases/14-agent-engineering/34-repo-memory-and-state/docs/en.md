@@ -7,6 +7,9 @@
 **Prerequisites:** Phase 14 · 32 (Minimal Workbench) | **前置知识:** 见原文
 **Time:** ~60 minutes | **时间:** 见原文
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·32（Minimal Workbench）。本节讲如何用仓库本身（不是 chat history）作为 Agent 的"长期记忆"。
+> 💡 **【类比】** Chat history = 短期记忆（睡一觉就忘），Repo memory = 笔记本（写下来长期保留）。Agent 完成长任务时不能依赖短期记忆——上下文窗口会满，需要把关键信息写到 repo 里（如 `STATE.md`、`DECISIONS.md`），下次启动时从这些文件读起。
+
 ## Learning Objectives | 学习目标
 
 - Define what belongs in repo memory and what belongs in chat history.
