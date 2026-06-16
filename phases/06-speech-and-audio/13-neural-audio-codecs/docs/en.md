@@ -43,21 +43,35 @@ The 2024-2026 insight: **a pure reconstruction codec gives you blurry speech whe
 
 Rather than one big codebook (which would need millions of codes for good quality), all modern audio codecs use **RVQ**: a cascade of small codebooks. The first codebook quantizes the encoder output; the second quantizes the residual; etc. Each codebook is 1024 codes. 8 codebooks = effective vocabulary of 1024^8 = 10^24.
 
+> 与其使用一个大型码本（高质量需要数百万个码），所有现代音频编解码器都使用 **RVQ**：一组小码本的级联。第一个码本量化编码器输出；第二个量化残差；以此类推。每个码本 1024 个码。8 个码本 = 有效词表 1024^8 = 10^24。
+
 At inference time, the decoder sums all chosen codes per frame to reconstruct.
+
+> 推理时，解码器将每帧选中的所有码本向量求和以重建波形。
 
 ### The four codecs that matter in 2026
 
 **EnCodec (Meta, 2022).** The baseline. Encoder-decoder over waveform, RVQ bottleneck. 24 kHz, 32 codebooks possible, default 4 codebooks @ 1.5 kbps. Uses `1D conv + transformer + 1D conv` architecture. Used by MusicGen.
 
+> **EnCodec（Meta，2022）。** 基线。波形上的编码器-解码器，RVQ 瓶颈。24 kHz，最多 32 个码本，默认 4 个码本 @ 1.5 kbps。使用 `1D conv + transformer + 1D conv` 架构。MusicGen 使用。
+
 **DAC (Descript, 2023).** RVQ with L2-normalized codebooks, periodic activation functions, improved losses. Highest reconstruction fidelity of any open codec — sometimes indistinguishable from original speech with 12 codebooks. 44.1 kHz full-band.
+
+> **DAC（Descript，2023）。** 采用 L2 归一化码本、周期性激活函数和改进损失的 RVQ。开源编解码器中重建保真度最高——12 个码本时有时与原始语音无法区分。44.1 kHz 全频带。
 
 **SNAC (Hubert Siuzdak, 2024).** Multi-scale RVQ — the coarse codebooks operate at a lower frame rate than fine ones. Effectively models audio hierarchically: a coarse "sketch" at ~12 Hz plus detail at 50 Hz. Used by Orpheus-3B because the hierarchical structure maps well onto LM-based generation.
 
+> **SNAC（Hubert Siuzdak，2024）。** 多尺度 RVQ——粗码本以比细码本更低的帧率运行。有效地分层建模音频：约 12 Hz 的粗"草图"加 50 Hz 的细节。Orpheus-3B 使用，因为分层结构很好地映射到基于 LM 的生成。
+
 **Mimi (Kyutai, 2024).** The 2026 game-changer. 12.5 Hz frame rate (extremely low), 8 codebooks @ 4.4 kbps. Codebook 0 is **distilled from WavLM** — trained to predict WavLM's speech-content features. Codebooks 1-7 are acoustic residuals. This split powers Moshi (Lesson 15) and Sesame CSM.
+
+> **Mimi（Kyutai，2024）。** 2026 年的游戏规则改变者。12.5 Hz 帧率（极低），8 个码本 @ 4.4 kbps。码本 0 **从 WavLM 蒸馏**——训练来预测 WavLM 的语音内容特征。码本 1-7 是声学残差。这种分离驱动了 Moshi（第 15 课）和 Sesame CSM。
 
 ### Frame rates matter for language modeling
 
 Lower frame rate = shorter sequence = faster LM.
+
+> 帧率对语言建模很重要：帧率越低 = 序列越短 = LM 越快。
 
 | Codec | Frame rate | 1 s = N frames | Good for |
 |-------|-----------|----------------|---------|
@@ -75,16 +89,24 @@ Lower frame rate = shorter sequence = faster LM.
 
 At 12.5 Hz, a 10-second utterance is only 125 codec frames — a transformer can easily predict them.
 
+> 在 12.5 Hz 帧率下，一段 10 秒的语音只有 125 个编解码帧——Transformer 可以轻松预测。
+
 ### Semantic vs acoustic tokens
+
+> 语义 vs 声学 token
 
 ```
 frame_t → [semantic_token_t, acoustic_token_0_t, acoustic_token_1_t, ..., acoustic_token_6_t]
 ```
 
 - **Semantic token (codebook 0 in Mimi).** Encodes what was said — phonemes, words, content. Distilled from WavLM via an auxiliary prediction loss.
+  **语义 token（Mimi 中的码本 0）。** 编码说了什么——音素、单词、内容。通过辅助预测损失从 WavLM 蒸馏。
 - **Acoustic tokens (codebooks 1-7).** Encode timbre, speaker identity, prosody, background noise, fine detail.
+  **声学 token（码本 1-7）。** 编码音色、说话人身份、韵律、背景噪声、精细细节。
 
 An AR LM predicts the semantic token first (conditioned on text), then predicts acoustic tokens (conditioned on semantic + speaker reference). This factorization is why modern TTS can zero-shot-clone voices: the semantic model handles content; the acoustic model handles timbre.
+
+> 自回归 LM 先预测语义 token（以文本为条件），再预测声学 token（以语义 + 说话人参考为条件）。这种分解正是现代 TTS 能够零样本克隆声音的原因：语义模型处理内容，声学模型处理音色。
 
 ### 2026 reconstruction quality (bits per sec, lower bitrate is better)
 
@@ -105,6 +127,8 @@ An AR LM predicts the semantic token first (conditioned on text), then predicts 
 | Mimi-4.4kbps | 4.4 kbps | 3.1 | 3.7 |
 
 Traditional codecs like Opus still win per bit on perceptual quality. Neural codecs win on **discrete tokens** (which Opus does not produce) and **generative-model quality** (what the LM can do with those tokens).
+
+> 传统编解码器（如 Opus）在每比特感知质量上仍然胜出。神经编解码器在**离散 token**（Opus 不产生）和**生成模型质量**（LM 能用这些 token 做什么）上胜出。
 
 > **【拓展：语音 AI 的产品化】** 语音技术在产品化中面临独特挑战：不同口音、背景噪声、远场拾音、多人说话等。Siri、Alexa、小爱同学等产品都投入了大量工程优化来解决这些 "长尾问题"。实时性要求（<300ms 延迟）也是语音产品的核心指标。
 
@@ -135,6 +159,8 @@ codes, scale = encoded[0]
 
 `n_codebooks=8` at 6 kbps. Each code is 0-1023 (10-bit).
 
+> 6 kbps 下 `n_codebooks=8`。每个码取值 0-1023（10 比特）。
+
 ### Step 2: decode and measure reconstruction
 
 ```python
@@ -162,6 +188,8 @@ acoustic = codes[:, 1:]
 
 Semantic codebook 0 is WavLM-aligned. You can train a text-to-semantic transformer — much smaller vocabulary than going direct-to-audio. Then a separate acoustic-to-waveform decoder conditions on a speaker reference.
 
+> 语义码本 0 与 WavLM 对齐。你可以训练一个文本→语义 Transformer——词表比直接到音频小得多。然后一个独立的声学→波形解码器以说话人参考为条件。
+
 ### Step 4: why AR LM over codec tokens works
 
 For a 10 s speech clip at Mimi's 12.5 Hz × 8 codebooks:
@@ -174,6 +202,8 @@ N_tokens = 10 * 12.5 * 8 = 1000 tokens
 
 
 1000 tokens is a trivial context for a transformer. A 256M-parameter transformer can generate 10 seconds of speech in milliseconds on a modern GPU.
+
+> 1000 个 token 对 Transformer 来说是微不足道的上下文。一个 2.56 亿参数的 Transformer 在现代 GPU 上可以在几毫秒内生成 10 秒语音。
 
 
 
@@ -204,14 +234,20 @@ Map problem → codec:
 
 Rule of thumb: **if you're building a generative model, start with Mimi or SNAC. If you're building a compression pipeline, use Opus.**
 
+> 经验法则：**如果你在构建生成模型，从 Mimi 或 SNAC 开始。如果在构建压缩流水线，使用 Opus。**
+
 
 
 ## Pitfalls
 
 - **Too many codebooks.** Adding codebooks increases fidelity linearly but LM sequence length linearly too. Stop at 8-12.
+  **码本过多。** 增加码本会线性提高保真度，但 LM 序列长度也线性增长。停在 8-12。
 - **Frame-rate mismatch.** Training LM on 12.5 Hz Mimi then fine-tuning on 50 Hz EnCodec fails silently.
+  **帧率不匹配。** 在 12.5 Hz Mimi 上训练 LM，然后在 50 Hz EnCodec 上微调会静默失败。
 - **Assuming all codebooks equal.** In Mimi, codebook 0 carries content; losing it destroys intelligibility. Losing codebook 7 is barely noticeable.
+  **假设所有码本同等重要。** 在 Mimi 中，码本 0 承载内容；丢失它会破坏可懂度。丢失码本 7 几乎察觉不到。
 - **Using reconstruction quality as the only metric.** A codec can have great reconstruction but be useless for LM-based generation if the semantic structure is bad.
+  **仅用重建质量作为唯一指标。** 一个编解码器可能重建质量很好，但如果语义结构差，对基于 LM 的生成就没用。
 
 > **【中文解读】** 本节关注如何将模型部署为可用的产品。从原型到生产级系统需要考虑性能优化、错误处理、监控等多个维度。
 
