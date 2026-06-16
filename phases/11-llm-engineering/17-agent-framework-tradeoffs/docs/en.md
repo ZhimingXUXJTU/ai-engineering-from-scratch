@@ -6,6 +6,8 @@
 
 > **【拓展：框架选择→Agent工程实践】** LangGraph 适合需要精细控制的有状态工作流；CrewAI 适合多角色协作；AutoGen 适合对话式多 Agent；选错框架是 Agent 项目失败的首要原因。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 11·09（Function Calling）、Phase 11·16（LangGraph）。本节是 Phase 11 的最后一节，对比 4 个主流框架（LangGraph、CrewAI、AutoGen、Agno）的优劣。最好已经分别用过其中 2 个。
+
 **Type:** Learn | **类型:** 学习
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 11 · 09 (Function Calling), Phase 11 · 16 (LangGraph) | **前置知识:** Phase 11 · 09 (函数调用)、16 (LangGraph)
@@ -27,6 +29,10 @@ The fix is not "pick the best framework." It is to match the framework's core ab
 
 
 > **【中文解读】** Agent 框架选型的三个维度：(1) 任务复杂度——简单 RAG 用 LlamaIndex，复杂 Agent 用 LangGraph；(2) 团队经验——新手用 LangChain 模板，专家用原生 API；(3) 生产要求——需要 LangSmith 集成选 LangChain 生态。
+
+> 💡 **【类比】** 选 Agent 框架像选交通工具——短途买菜用自行车（stdlib + function calling），跨城出差用轿车（LangGraph 状态机），多人旅行用面包车（CrewAI 角色），即时通讯用电话（AutoGen 对话）。每种工具有适用场景，"哪个最好"是错误的问题，"哪个匹配你的问题形状"才是。
+
+> ⚠️ **【易错点】** 框架选错的 3 个常见原因：(1) **跟风最热门**——AutoGen 火就上 AutoGen，结果发现任务只是单 Agent + 工具，过度工程；先评估任务复杂度再选框架。(2) **被 demo 误导**——CrewAI 的"研究员+作家"demo 看起来很酷，但实际任务里角色边界模糊，CrewAI 的角色抽象反而拖累；先做 PoC 验证抽象匹配。(3) **低估迁移成本**——开始用 Agno 简单，后期要加多 Agent 时发现 Agno 不支持，重写到 LangGraph 花两周；选框架时看 6 个月后的需求。
 
 
 ## The Concept | 核心概念

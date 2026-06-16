@@ -6,6 +6,8 @@
 
 > **【拓展：生产化→AI工程全栈】** 这是 Phase 11 的集大成课程。将提示工程、RAG、安全、缓存等能力整合为端到端应用，是从"会用 AI API"到"能构建生产系统"的关键一步。
 
+> 🔗 **【前置】** 这是 Phase 11 的 Capstone（顶点课），要求先学完 Phase 11·01-12。还需要：(1) FastAPI 或 Flask 基础——本节用 FastAPI 构建服务；(2) Docker 基础——容器化部署；(3) 至少一种可观测性工具（Langfuse、Helicone、OpenTelemetry）。
+
 **Type:** Build (Capstone) | **类型:** 构建（顶点课）
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 11 Lessons 01-15 | **前置知识:** Phase 11 · 01-15
@@ -24,6 +26,10 @@
   部署应用，含健康检查、限流和提供商宕机的回退策略
 
 > **【中文解读】** 本课目标：将 LLM 应用从原型部署到生产环境——API 网关、负载均衡、推理引擎、监控告警、版本管理、A/B 测试。
+
+> 💡 **【类比】** Demo vs 生产 = 学生作业 vs 银行系统。Demo：单进程、单用户、不持久化、无监控、API 失败就崩。生产：多进程、并发限流、状态持久化、全链路监控、API 失败自动 fallback、灰度发布、版本回滚。差距是工程量，不是 AI 能力。
+
+> ⚠️ **【易错点】** 生产部署的 3 个坑：(1) **没做 provider fallback**——OpenAI 宕机整个产品挂掉；用 LiteLLM 或自己写一层，OpenAI 失败自动转 Anthropic。(2) **没用流式输出**——长回答让用户等 10s 才看到第一个字；用 `stream=True` + SSE，首字延迟降到 500ms。(3) **没追踪成本**——上线 3 天烧光一个月预算；每次 API 调用记 token 数 + 成本到 Langfuse/Helicone，设日均预算告警。
 
 
 ## The Problem | 问题引入

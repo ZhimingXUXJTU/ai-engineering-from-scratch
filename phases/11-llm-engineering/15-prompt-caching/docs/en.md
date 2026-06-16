@@ -6,6 +6,8 @@
 
 > **【拓展：提示缓存→RAG生产优化】** Anthropic 的 Prompt Caching 和 OpenAI 的 Cached Response 是 RAG 生产系统降低成本的关键技术，尤其是有固定系统提示和大量检索上下文的场景。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 11·01（Prompt Engineering）、Phase 11·05（Context Engineering）、Phase 11·11（Caching Cost）。本节是其延伸，讲 provider 层（Anthropic cache_control、OpenAI 自动缓存、Gemini CachedContent）。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 11 · 01 (Prompt Engineering), Phase 11 · 05 (Context Engineering), Phase 11 · 11 (Caching and Cost) | **前置知识:** Phase 11 · 01 (提示工程)、05 (上下文工程)、11 (缓存与成本)
@@ -20,6 +22,10 @@ A coding agent sends the same 15,000-token system prompt to Claude on every turn
 You cannot shrink the prompt without hurting quality. You cannot avoid sending it — the model needs it on every turn. The only move is to stop paying full price for a prefix the provider has already seen.
 
 > 你不能缩小提示而不损害质量。你不能避免发送它——模型每轮都需要它。唯一的办法是停止为供应商已经见过的前缀支付全价。
+
+> 💡 **【类比】** Prompt caching 像"快递公司记住你的常用地址"——第一次发货要详细说明"北京市朝阳区..."，之后每次发货只需说"老地方"，快递公司自动调出地址。技术上：供应商把 prefix 的 KV cache 存在自己服务器，下次请求来时直接复用，不用重新计算 attention 的 K/V 矩阵。对用户透明——你只需在 API 调用加个 `cache_control` 标记。
+
+> ⚠️ **【易错点】** Prompt caching 的 3 个坑：(1) **prefix 顺序敏感**——cache 命中要求 prefix 完全相同（包括空格、换行），system prompt 末尾多一个空格就 miss；务必把可变部分（用户输入）放最后。(2) **cache TTL 5 分钟**——Anthropic 默认 5 分钟过期，没流量时 cache 失效；用 extended TTL（1 小时）保住冷启动场景。(3) **没监控命中率**——不知道命中率就无法判断收益；Anthropic API response 里有 `cache_creation_input_tokens` 和 `cache_read_input_tokens`，记录到监控面板。
 
 That move is prompt caching. Anthropic shipped it in August 2024 (with a 1-hour extended-TTL variant in 2025), OpenAI automated it later that year, Google shipped explicit context caching alongside Gemini 1.5, and all three now offer it as a first-class feature on their frontier models.
 

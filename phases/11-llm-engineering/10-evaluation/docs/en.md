@@ -6,6 +6,8 @@
 
 > **【拓展：LLM评估→AI工程质量】** LLM 应用的不确定性远超传统软件。自动化评估（准确率、相关性、安全性的回归测试）是 AI 工程化从"实验"走向"生产"的关键。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 11·01（Prompt Engineering）、Phase 11·09（Function Calling）；(2) Pytest 或 unittest 基础——评估集本质是测试用例；(3) CI/CD 概念（GitHub Actions、GitLab CI）。会用 `pytest`、`langfuse` 或 `promptfoo`。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 11 Lesson 01 (Prompt Engineering), Lesson 09 (Function Calling) | **前置知识:** Phase 11 · 01 (提示工程)、09 (函数调用)
@@ -24,6 +26,10 @@
   设计评测指标，捕捉用例关键维度（正确性、语调、格式合规、延迟）
 
 > **【中文解读】** 本课目标：为 LLM 应用建立评测体系——不只是评估模型本身，而是评估整个系统（prompt + 模型 + RAG + 工具）的性能。
+
+> 💡 **【类比】** 评估 LLM 应用像给运动员做体检——不能只看"今天的成绩"，要看一组指标的趋势（速度、力量、耐力、心率）。LLM 系统也一样：单一指标（如准确率）不够，要测一组（准确率 + 完整性 + 安全性 + 延迟 + 成本），每次改 prompt 都跑全量评估，对比趋势。
+
+> ⚠️ **【易错点】** LLM-as-judge 的 3 个坑：(1) **位置偏见**——judge 偏好第一个或最后一个答案；修复：随机化答案顺序，跑两次取平均。(2) **冗长偏见**——judge 偏好长答案（即使内容差）；修复：在 judge prompt 里明确"长度不是评分标准"。(3) **自吹偏见**——用 G-4 评判 G-4 的输出会过度宽容；修复：用更强模型（GPT-5 评判 Claude 输出）或不同家族模型（Claude 评判 GPT 输出）。
 
 
 ## The Problem | 问题引入
