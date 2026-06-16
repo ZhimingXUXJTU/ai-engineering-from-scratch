@@ -6,6 +6,8 @@
 
 > **【拓展：推理策略→AI Agent】** CoT/ToT/ReAct 是现代 AI Agent 的推理基础。ReAct 的 Thought-Action-Observation 循环是 LangChain、CrewAI 等 Agent 框架的核心模式。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 11·01（Prompt Engineering）——理解 system prompt、role、constraints 等基本模式。本节是其延伸，要求你已经能写出结构化的 prompt。本节会用到 OpenAI/Anthropic SDK。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Lesson 11.01 (Prompt Engineering) | **前置知识:** Phase 11 · 01 (提示工程)
@@ -39,6 +41,10 @@ This is not a hack. It is how reasoning works. Humans do not solve multi-step pr
 
 > 这不是花招。这是推理的工作方式。人类不会一次性完成多步骤问题的推理。Transformer 也不会。当你强制模型生成中间 token 时，这些 token 就成为下一个 token 的上下文的一部分。每个推理步骤都在为下一步提供信息。模型确实是在通过计算来得出答案。
 
+> 💡 **【类比】** 不用 CoT 像让人"心算 17 × 24"——大多数人会算错或卡住。用 CoT 像给一张草稿纸："17 × 24 = 17 × 20 + 17 × 4 = 340 + 68 = 408"——一步步写下来就不会错。LLM 一样：每个生成的 token 会成为下一轮 forward pass 的输入，"显式写过程"等于让模型用"外部记忆"做长链推理，而不是一次 forward pass 算完。
+
+> ⚠️ **【易错点】** Few-shot/CoT 的 3 个坑：(1) **示例数量错误**——0-shot CoT 加 "Let's think step by step" 就够，再加 3-5 个 few-shot 示例能再涨 2-5 点；超过 8 个示例性价比下降（prompt 太长、cost 上涨）。(2) **示例顺序敏感**——同 3 个示例按 A,B,C 排和 C,B,A 排，准确率差 5-10%；务必把"最相关示例"放最后（靠近问题）。(3) **CoT 不适用于简单任务**——"今天几号？"加 CoT 反而让模型啰嗦出错；CoT 只对多步推理（数学、逻辑、规划）有效。
+
 But "think step by step" is the beginning, not the end. What if you sampled five reasoning paths and took a majority vote? What if you let the model explore a tree of possibilities, evaluating and pruning branches? What if you interleaved reasoning with tool use? These are not hypotheticals. They are published techniques with measured improvements, and you will build all of them in this lesson.
 
 > 但是"逐步思考"只是开始，不是终点。如果你采样五条推理路径然后进行多数投票会怎样？如果你让模型探索一棵可能性的树，评估和剪枝分支会怎样？如果你将推理与工具使用交替进行会怎样？这些不是假设。它们是已发表的、有量化改进的技术，你将在本课中构建所有这些技术。
@@ -48,6 +54,8 @@ But "think step by step" is the beginning, not the end. What if you sampled five
 > **【中文解读】** 少样本学习（Few-shot）和思维链（Chain-of-Thought, CoT）是 Prompt Engineering 的两大核心技术。Few-shot 通过在 prompt 中提供几个示例来引导模型输出格式；CoT 通过要求模型"一步步思考"来提升推理能力。
 
 > **【拓展：CoT 的推理提升效果】** Google 2022 年的论文证明，在数学推理任务上，CoT 将 PaLM 540B 的准确率从 17% 提升到 56%。Auto-CoT（自动生成推理链）和 Tree-of-Thought（搜索多个推理路径）进一步提升了复杂推理的可靠性。o1 系列模型的"深度思考"本质上是自动化的 CoT。
+
+> 🤔 **【困惑】** Q: 2026 年原生推理模型（Claude Extended Thinking、o3）都自带 CoT 了，我还需要手写 "think step by step" 吗？ A: 不需要，但有前提：(1) 用的是支持原生推理的模型——Claude 4.5+、GPT-5、o3、DeepSeek-R1 等；(2) 任务确实需要推理——简单分类任务原生思考反而拖慢。对老模型（GPT-4、Claude 3）或开源模型（Llama 3）仍然要手写 CoT。判断：如果模型有 `reasoning_effort` 或 `thinking` 参数，用它；否则用 prompt。
 
 
 ### Zero-Shot vs Few-Shot: When Examples Beat Instructions
