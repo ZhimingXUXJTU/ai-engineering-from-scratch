@@ -20,12 +20,16 @@ OTel GenAI (Lesson 23) gives you the schema. You still need the platform that in
 
 > OTel GenAI（第 23 课）给了你 schema。你仍然需要一个平台来接收 span、运行评估、存储提示版本并显示回归。三个竞争者各自强调生命周期的不同部分。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·23（OTel GenAI Conventions）——本节是把上一节的 schema 落到具体平台上，不知道 `invoke_agent` span 长什么样你看不懂任何平台的界面；可选 Phase 14·05（Self-Refine/CRITIC）——理解 LLM-as-judge 的本质就是 CRITIC 模式，否则你会把 judge 当成"另一个 LLM 调用"而非"基于外部证据的事实核查"。
+
 
 > **【中文解读】** Agent 可观测性平台提供对 Agent 执行的端到端可见性——从用户请求到最终响应的每一步。核心能力：追踪（每步执行记录）、指标（延迟/成本/成功率）、日志（详细执行过程）。主要平台包括 LangSmith、AgentOps、Braintrust 和 Phoenix。
 
 ## The Concept | 核心概念
 
 ### Langfuse (MIT)
+
+> 💡 **【类比】** 三个观测平台像三种医院信息系统的分工：**Langfuse** 是综合医院 HIS（住院、门诊、药房全打通——tracing+prompt 管理+eval 一站式，强调"你改了提示版本 v3 后，第三天崩了的 trace 都能 bisect 到这个版本"）；**Phoenix** 是专科检验中心（专攻 RAG 检索质量、行为漂移聚类，trace clustering 能告诉你"这周 Agent 行为和上周不像了"但不管你改了哪个提示）；**Opik** 是临床试验管理系统（专做 A/B 自动优化、guardrail 强制执行，自动跑 100 次实验找最优提示）。同一份 OTel span 可以同时发给三者——不是二选一。
 
 - 6M+ SDK installs/month, 19k+ GitHub stars.
 - Features: tracing, prompt management with versioning + playground, evaluations (LLM-as-judge, user feedback, custom), session replays.
@@ -66,6 +70,8 @@ Per Maxim (2026 field analysis): 89% of organizations have agent observability i
 
 ### Where this pattern goes wrong
 
+> 🤔 **【困惑】** Q: 89% 组织都说自己有 Agent 可观测性了，但为什么事故还在涨？ A: 多数团队只做了"接入 OTel → trace 进了 Langfuse"这一步，等于装了监控摄像头但没人看。真正的可观测性需要：eval 策略（哪些 trace 该被打分）、prompt 版本和 trace 强绑定（回归能 bisect）、LLM-judge 有 ground truth 校准。行业 32% 把"质量问题"列为生产首要障碍，说明装平台容易，建评估闭环难。
+
 - **No eval strategy.** Tracing without evaluation is just expensive logging.
 - **Self-rolled LLM-judge without grounding.** CRITIC pattern (Lesson 05) applies — judges need external tools for factual verification.
 - **Prompt versions not tied to traces.** When prod regresses, you cannot bisect to the prompt that caused it.
@@ -75,6 +81,8 @@ Per Maxim (2026 field analysis): 89% of organizations have agent observability i
 > **提示版本未与追踪关联。** 当生产回归时，你无法定位到导致问题的提示。
 
 ## Build It | 动手实现
+
+> ⚠️ **【易错点】** 场景：团队把 OTel trace 接到 Langfuse 后，写了个 LLM-judge 给每条 trace 打 1-5 分，但 rubric 只有一句"回答得好不好" → 后果：分数毫无意义，judge 把"礼貌但答错"打 5 分、"正确但简短"打 2 分，dashboard 上 95% 满意度但客户投诉暴涨 → 修复：rubric 必须分维度（factual correctness、scope adherence、tone），每维度有可操作的失败定义（如 "scope adherence: agent 是否做了用户没要求的额外操作"），且必须配 50-100 条人工标注做 baseline 校准 judge——这就是为什么 Phoenix 强调 "grounding"，Opik 强调"benchmark on your own corpus"。
 
 `code/main.py` implements a stdlib trace collector + LLM-judge evaluator:
 

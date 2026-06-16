@@ -58,6 +58,8 @@ Technology-specific conventions exist for Anthropic, Azure AI Inference, AWS Bed
 
 ### Content capture
 
+> ⚠️ **【易错点】** 场景：开发者图省事在 `invoke_agent` span 里把完整 prompt（含用户 PII、API key、客户合同条款）作为 attribute 直接塞进去 → 后果：运维在 Jaeger 网页里点开就能看见所有明文，Datadog 还会索引做全文检索，等于把合规风险扩散到整个观测链路 → 修复：默认关闭 content capture，需要时只在 span 里存指针 ID（如 `gen_ai.input.message_id=row42`），原文落到带 ACL 的对象存储 S3 里，运维要查时通过 ID 跳转授权访问。这就是本节反复强调的 "external-reference recommendation"。
+
 The default rule: instrumentations SHOULD NOT capture inputs/outputs by default. Capture is opt-in via:
 
 > OpenTelemetry GenAI 语义约定定义了 LLM 和 Agent 的可观测性标准。关键属性包括 `gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.agent.name` 等。
@@ -83,6 +85,8 @@ OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental
 ```
 
 Datadog v1.37+ maps GenAI attributes natively into its LLM Observability schema. Other backends (Grafana, Honeycomb, Jaeger) support the raw attributes.
+
+> 🤔 **【困惑】** Q: `invoke_agent` span 什么时候标 CLIENT，什么时候标 INTERNAL？看起来很绕。 A: 看被调用的 Agent 是不是 "另一个进程/服务"。如果你直接在 Python 进程里 import LangChain 跑一个 ReAct，这是 INTERNAL——你自己代码内的子调用。如果你调 OpenAI Assistants API 或 AWS Bedrock Agents，那是远程 HTTP 调用，标 CLIENT。CLIENT span 还会自动带 RPC 相关属性（如 `rpc.system`、`rpc.service`），方便和传统微服务追踪对齐。
 
 > Datadog v1.37+ 原生将 GenAI 属性映射到其 LLM Observability schema。其他后端（Grafana、Honeycomb、Jaeger）支持原始属性。
 
