@@ -46,18 +46,30 @@ Latency target: first TTS audio byte within 800 ms of the user finishing their u
 ### The seven components
 
 1. **Audio capture.** Mic → 16 kHz mono → 20 ms chunks. Usually `sounddevice` in Python or native AudioUnit/ALSA/WASAPI in production.
+   **音频捕获。** 麦克风 → 16 kHz 单声道 → 20 ms 块。Python 中通常用 `sounddevice`，生产环境用原生 AudioUnit/ALSA/WASAPI。
 2. **VAD (Lesson 11).** Silero VAD @ threshold 0.5, min speech 250 ms, silence hang-over 500 ms. Signals "start" and "end."
+   **VAD（第 11 课）。** Silero VAD @ 阈值 0.5，最小语音 250 ms，静音持续 500 ms。信号"开始"和"结束"。
 3. **Streaming STT (Lesson 4-5).** Whisper-streaming, Parakeet-TDT, or Deepgram Nova-3 (API). Partial + final transcripts.
+   **流式 STT（第 4-5 课）。** Whisper-streaming、Parakeet-TDT 或 Deepgram Nova-3（API）。部分 + 最终转录。
 4. **LLM with tool calling.** GPT-4o / Claude 3.5 / Gemini 2.5 Flash. JSON schema for tools. Stream tokens.
+   **带工具调用的 LLM。** GPT-4o / Claude 3.5 / Gemini 2.5 Flash。工具的 JSON schema。流式 token。
 5. **Streaming TTS (Lesson 7).** Kokoro-82M (fastest open) or Cartesia Sonic (commercial). Start TTS after 20 LLM tokens.
+   **流式 TTS（第 7 课）。** Kokoro-82M（最快的开源）或 Cartesia Sonic（商业）。在 20 个 LLM token 后启动 TTS。
 6. **Playback.** Speaker out; opus-encode for low-bandwidth networks.
+   **回放。** 扬声器输出；低带宽网络用 opus 编码。
 7. **Interruption handler.** If VAD fires during TTS playback, stop playback, cancel LLM, restart STT.
+   **打断处理器。** 如果 TTS 播放期间 VAD 触发，停止播放、取消 LLM、重启 STT。
 
 ### The three failure modes you will hit
 
+> ### 你会遇到的三种失败模式
+
 1. **First-word clip.** VAD starts a beat too late. User's "hey" is missing. Start threshold at 0.3, not 0.5.
+   **首词截断。** VAD 启动晚了一拍。用户的"嘿"丢失。起始阈值用 0.3 而非 0.5。
 2. **Mid-response interrupt confusion.** LLM keeps generating after user interrupts; assistant talks over user. Wire VAD → cancel-LLM.
+   **回应中打断混乱。** 用户打断后 LLM 继续生成；助手压过用户说话。连接 VAD → 取消 LLM。
 3. **Silence hallucination.** Whisper outputs "Thanks for watching" on the silent warm-up frames. Always VAD-gate.
+   **静音幻觉。** Whisper 在静音预热帧上输出"Thanks for watching"。务必用 VAD 过滤。
 
 ### 2026 production reference stacks
 
@@ -179,11 +191,11 @@ See `code/main.py` for a runnable simulation that wires all seven components wit
 
 > 参见 `code/main.py` 获取可运行的模拟，将七个组件用桩模块连接，无需硬件即可看到流水线形状。实际实现时，将桩模块替换为：
 
-- `silero-vad` (`pip install silero-vad`)
-- `deepgram-sdk` or `openai-whisper`
-- `openai` (`gpt-4o`) or `anthropic`
-- `kokoro` or `cartesia`
-- `sounddevice` for I/O
+- `silero-vad` (`pip install silero-vad`) / VAD 模块
+- `deepgram-sdk` or `openai-whisper` / 流式 STT
+- `openai` (`gpt-4o`) or `anthropic` / LLM + 工具调用
+- `kokoro` or `cartesia` / 流式 TTS
+- `sounddevice` for I/O / 音频输入输出
 
 
 

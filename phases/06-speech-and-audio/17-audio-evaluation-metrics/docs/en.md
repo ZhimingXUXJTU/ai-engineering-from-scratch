@@ -187,13 +187,13 @@ Imbalanced: **macro F1** + **per-class recall**. Report per-class — aggregate 
 
 | Leaderboard | Tracks | URL |
 |------------|--------|-----|
-| Open ASR Leaderboard (HF) | English + multilingual + long-form | `huggingface.co/spaces/hf-audio/open_asr_leaderboard` |
-| TTS Arena (HF) | English TTS | `huggingface.co/spaces/TTS-AGI/TTS-Arena` |
-| Artificial Analysis Speech | TTS + STT, ELO from paired votes | `artificialanalysis.ai/speech` |
-| MMAU-Pro | LALM reasoning | `mmaubenchmark.github.io` |
-| SpeakerBench / VoxSRC | Speaker recognition | `voxsrc.github.io` |
-| MMAU music subset | Music LALM | (within MMAU) |
-| HEAR benchmark | Self-supervised audio | `hearbenchmark.com` |
+| Open ASR Leaderboard (HF) / 开源 ASR 排行榜（HF） | English + multilingual + long-form / 英语 + 多语言 + 长音频 | `huggingface.co/spaces/hf-audio/open_asr_leaderboard` |
+| TTS Arena (HF) / TTS 竞技场（HF） | English TTS / 英语 TTS | `huggingface.co/spaces/TTS-AGI/TTS-Arena` |
+| Artificial Analysis Speech / Artificial Analysis 语音 | TTS + STT, ELO from paired votes / TTS + STT，配对投票 ELO | `artificialanalysis.ai/speech` |
+| MMAU-Pro / MMAU-Pro | LALM reasoning / LALM 推理 | `mmaubenchmark.github.io` |
+| SpeakerBench / VoxSRC / 说话人基准 / VoxSRC | Speaker recognition / 说话人识别 | `voxsrc.github.io` |
+| MMAU music subset / MMAU 音乐子集 | Music LALM / 音乐 LALM | （在 MMAU 内） |
+| HEAR benchmark / HEAR 基准 | Self-supervised audio / 自监督音频 | `hearbenchmark.com` |
 
 > **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
 
@@ -339,15 +339,15 @@ Save as `outputs/skill-audio-evaluator.md`. Pick metrics, benchmarks, and report
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
-| WER | ASR score | `(S+D+I)/N` at word level after normalization. |
-| CER | Character WER | For tone languages or char-level systems. |
-| MOS | Human opinion | 1-5 rating; 20+ listeners × 100 samples. |
-| UTMOS | ML MOS predictor | Learned model; correlates ~0.9 with human MOS. |
-| SECS | Voice-clone similarity | ECAPA cosine between reference and clone. |
-| EER | Speaker verif score | Threshold where FAR = FRR. |
-| DER | Diarization score | (FA + Miss + Confusion) / total. |
-| FAD | Music-gen quality | Fréchet distance on VGGish embeddings. |
-| RTFx | Throughput | Audio seconds per wall-clock second. |
+| WER | ASR score | `(S+D+I)/N` at word level after normalization. / 标准化后的词级 `(S+D+I)/N` |
+| CER | Character WER | For tone languages or char-level systems. / 用于声调语言或字符级系统 |
+| MOS | Human opinion | 1-5 rating; 20+ listeners × 100 samples. / 1-5 分评分；20+ 听者 × 100 样本 |
+| UTMOS | ML MOS predictor | Learned model; correlates ~0.9 with human MOS. / 学习型模型；与人类 MOS 相关性约 0.9 |
+| SECS | Voice-clone similarity | ECAPA cosine between reference and clone. / 参考与克隆之间的 ECAPA 余弦相似度 |
+| EER | Speaker verif score | Threshold where FAR = FRR. / FAR = FRR 的阈值 |
+| DER | Diarization score | (FA + Miss + Confusion) / total. / (虚警 + 漏检 + 混淆) / 总时间 |
+| FAD | Music-gen quality | Fréchet distance on VGGish embeddings. / VGGish 嵌入上的 Fréchet 距离 |
+| RTFx | Throughput | Audio seconds per wall-clock second. / 每实际秒处理的音频秒数 |
 
 > **【中文解读】** 延伸阅读提供了深入学习的高质量资源。这些论文和教程是该领域的经典参考文献，适合需要深入理解的读者。
 
@@ -355,12 +355,19 @@ Save as `outputs/skill-audio-evaluator.md`. Pick metrics, benchmarks, and report
 ## Further Reading | 延伸阅读
 
 - [jiwer](https://github.com/jitsi/jiwer) — WER/CER library with normalization utilities.
+  jiwer——带标准化工具的 WER/CER 库。
 - [UTMOS (Saeki et al. 2022)](https://arxiv.org/abs/2204.02152) — learned MOS predictor.
+  UTMOS（Saeki 等 2022）——学习型 MOS 预测器。
 - [Fréchet Audio Distance (Kilgour et al. 2019)](https://arxiv.org/abs/1812.08466) — the music-gen standard.
+  Fréchet Audio Distance（Kilgour 等 2019）——音乐生成的标准指标。
 - [Open ASR Leaderboard](https://huggingface.co/spaces/hf-audio/open_asr_leaderboard) — 2026 live rankings.
+  Open ASR 排行榜——2026 实时排名。
 - [TTS Arena](https://huggingface.co/spaces/TTS-AGI/TTS-Arena) — human-vote TTS leaderboard.
+  TTS Arena——人类投票的 TTS 排行榜。
 - [MMAU-Pro benchmark](https://mmaubenchmark.github.io/) — LALM reasoning leaderboard.
+  MMAU-Pro 基准——LALM 推理排行榜。
 - [HEAR benchmark](https://hearbenchmark.com/) — audio SSL benchmarks.
+  HEAR 基准——音频 SSL 评估基准。
 
 > **【中文解读】** 延伸阅读提供了深入学习的高质量资源，包括论文、教程和工具。建议按需选读，优先阅读标注为 "the critical read" 的核心论文。
 

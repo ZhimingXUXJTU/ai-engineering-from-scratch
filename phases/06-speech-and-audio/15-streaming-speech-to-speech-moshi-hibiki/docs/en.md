@@ -114,12 +114,12 @@ Sesame CSM (2025) uses a similar idea — a Llama-3 backbone with a Mimi codec h
 
 | Model | Latency | Use case | License |
 |-------|---------|----------|---------|
-| Moshi | 200 ms (L4) | full-duplex English / French dialogue | CC-BY 4.0 |
-| Hibiki | 12.5 Hz framerate | French ↔ English streaming translation | CC-BY 4.0 |
-| Hibiki-Zero | same | 5 language-pairs, no aligned data | CC-BY 4.0 |
-| Sesame CSM-1B | 200 ms TTFA | context-conditioned TTS | Apache-2.0 |
-| GPT-4o Realtime | ~300 ms | closed, OpenAI API | commercial |
-| Gemini 2.5 Live | ~350 ms | closed, Google API | commercial |
+| Moshi | 200 ms (L4) | full-duplex English / French dialogue / 全双工英/法对话 | CC-BY 4.0 |
+| Hibiki | 12.5 Hz framerate | French ↔ English streaming translation / 法↔英流式翻译 | CC-BY 4.0 |
+| Hibiki-Zero | same | 5 language-pairs, no aligned data / 5 语言对，无需对齐数据 | CC-BY 4.0 |
+| Sesame CSM-1B | 200 ms TTFA | context-conditioned TTS / 上下文条件 TTS | Apache-2.0 |
+| GPT-4o Realtime | ~300 ms | closed, OpenAI API / 闭源，OpenAI API | commercial |
+| Gemini 2.5 Live | ~350 ms | closed, Google API / 闭源，Google API | commercial |
 
 > **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
 
@@ -230,12 +230,12 @@ Moshi does not win:
 
 | Situation | Pick |
 |-----------|------|
-| Lowest-latency voice companion | Moshi |
-| Live translation call | Hibiki |
-| Voice demo / research | Moshi, CSM |
-| Enterprise agent with tools | Pipeline (Lesson 12), not Moshi |
-| Custom-voice TTS in context | Sesame CSM |
-| Speech-to-speech, any languages | GPT-4o Realtime or Gemini 2.5 Live (commercial) |
+| Lowest-latency voice companion / 最低延迟语音伴侣 | Moshi |
+| Live translation call / 实时翻译通话 | Hibiki |
+| Voice demo / research / 语音演示/研究 | Moshi, CSM |
+| Enterprise agent with tools / 企业级带工具的 agent | Pipeline（第 12 课），不是 Moshi |
+| Custom-voice TTS in context / 上下文中的自定义音色 TTS | Sesame CSM |
+| Speech-to-speech, any languages / 任意语言的语音到语音 | GPT-4o Realtime 或 Gemini 2.5 Live（商业） |
 
 
 
@@ -277,12 +277,12 @@ Save as `outputs/skill-duplex-pipeline.md`. Pick pipeline vs full-duplex archite
 
 | Term | What people say | What it actually means |
 |------|-----------------|-----------------------|
-| Full-duplex | Hear-and-speak at once | Two audio streams active simultaneously on the same model. |
-| Inner monologue | Model's text stream | Moshi emits text tokens alongside its audio output. |
-| Depth transformer | Inter-codebook predictor | Small transformer that predicts 8 codebooks within one 80 ms frame. |
-| Mimi | Kyutai's codec | 12.5 Hz × 8 codebooks; semantic+acoustic; powers Moshi. |
-| Streaming S2S | Audio → audio live | Chunk-by-chunk translation/dialogue, no pipeline stages. |
-| Back-channeling | "Mhm" reactions | Moshi can emit small acknowledgments without breaking its turn. |
+| Full-duplex | Hear-and-speak at once | Two audio streams active simultaneously on the same model. / 同一模型同时维护两条音频流 |
+| Inner monologue | Model's text stream | Moshi emits text tokens alongside its audio output. / Moshi 在音频输出同时输出文本 token |
+| Depth transformer | Inter-codebook predictor | Small transformer that predicts 8 codebooks within one 80 ms frame. / 在一个 80 ms 帧内预测 8 个码本的小型 Transformer |
+| Mimi | Kyutai's codec | 12.5 Hz × 8 codebooks; semantic+acoustic; powers Moshi. / 12.5 Hz × 8 码本；语义+声学；驱动 Moshi |
+| Streaming S2S | Audio → audio live | Chunk-by-chunk translation/dialogue, no pipeline stages. / 逐块翻译/对话，无流水线阶段 |
+| Back-channeling | "Mhm" reactions | Moshi can emit small acknowledgments without breaking its turn. / Moshi 可发出小反馈而不打断自己的轮次 |
 
 > **【中文解读】** 延伸阅读提供了深入学习的高质量资源。这些论文和教程是该领域的经典参考文献，适合需要深入理解的读者。
 
@@ -290,11 +290,17 @@ Save as `outputs/skill-duplex-pipeline.md`. Pick pipeline vs full-duplex archite
 ## Further Reading | 延伸阅读
 
 - [Défossez et al. (2024). Moshi — speech-text foundation model](https://arxiv.org/html/2410.00037v2) — the paper.
+  Défossez 等（2024）. Moshi——语音-文本基础模型——原始论文。
 - [Kyutai Labs (2026). Hibiki-Zero](https://arxiv.org/abs/2602.12345) — streaming translation without aligned data.
+  Kyutai Labs（2026）. Hibiki-Zero——无需对齐数据的流式翻译。
 - [Sesame (2025). Crossing the uncanny valley of voice](https://www.sesame.com/research/crossing_the_uncanny_valley_of_voice) — CSM spec.
+  Sesame（2025）. 跨越语音的恐怖谷——CSM 规范。
 - [Kyutai — Moshi repo](https://github.com/kyutai-labs/moshi) — install + server.
+  Kyutai——Moshi 仓库——安装 + 服务器。
 - [OpenAI — Realtime API](https://platform.openai.com/docs/guides/realtime) — closed commercial peer.
+  OpenAI——Realtime API——闭源商业对应方。
 - [Kyutai — Delayed Streams Modeling](https://github.com/kyutai-labs/delayed-streams-modeling) — the STT/TTS framework under the hood.
+  Kyutai——Delayed Streams Modeling——底层 STT/TTS 框架。
 
 > **【中文解读】** 延伸阅读提供了深入学习的高质量资源，包括论文、教程和工具。建议按需选读，优先阅读标注为 "the critical read" 的核心论文。
 
