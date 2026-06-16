@@ -6,6 +6,10 @@
 
 > **【拓展：推理优化→生产部署】** vLLM、TensorRT-LLM、TGI 等推理框架都实现了 KV-cache 管理、连续批处理 (continuous batching)、PagedAttention 等优化。理解这些技术是将大模型部署到生产环境的关键。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·01-08（Transformer 架构、Attention）；GPU 计算 vs 显存带宽概念。本节是 Phase 17（Infrastructure & Production）的前置——生产 LLM 部署核心。
+
+> 💡 **【类比】** LLM 推理 = 读书 + 写读书笔记。**Prefill**（处理 prompt）= 快速翻完书（并行扫所有 token，计算密集）；**Decode**（生成）= 逐字写笔记（一次写一个字，显存带宽密集）。**KV cache** = 翻书时做的书签（记住了每页关键信息，写笔记时不用重翻）；**continuous batching** = 同时给多人读书会服务（动态拼组）。
+
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 10, Lessons 01-08 (Transformer architecture, attention)
