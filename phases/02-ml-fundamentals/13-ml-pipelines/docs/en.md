@@ -138,9 +138,21 @@ When you call `pipe.predict(X_test)`:
 
 The scaler never sees test data during fitting. This is the whole point.
 
+> 当你调用 `pipe.fit(X_train, y_train)`：
+> 1. 缩放器对 X_train 调用 `fit_transform`
+> 2. 模型对缩放后的 X_train 调用 `fit`
+>
+> 当你调用 `pipe.predict(X_test)`：
+> 1. 缩放器对 X_test 调用 `transform`（不是 fit_transform）
+> 2. 模型对缩放后的 X_test 调用 `predict`
+>
+> 缩放器在拟合期间永远看不到测试数据。这就是全部意义。
+
 ### ColumnTransformer: Different Pipelines for Different Columns
 
 Real datasets have numeric and categorical columns that need different preprocessing. `ColumnTransformer` handles this.
+
+> 真实数据集有数值列和类别列，需要不同的预处理。`ColumnTransformer` 处理这个。
 
 ```python
 from sklearn.compose import ColumnTransformer
@@ -170,11 +182,17 @@ full_pipeline = Pipeline([
 
 The `handle_unknown="ignore"` in OneHotEncoder is critical for production. When a new category appears (a city the model has never seen), it produces a zero vector instead of crashing.
 
+> OneHotEncoder 中的 `handle_unknown="ignore"` 对生产至关重要。当出现新类别（模型从未见过的城市）时，它产生零向量而不是崩溃。
+
 ### Experiment Tracking
 
 A pipeline makes training reproducible, but you also need to track what happened across experiments: which hyperparameters were used, which dataset version, what the metrics were, which code was running.
 
+> 管线让训练可复现，但你还需要追踪实验间发生了什么：用了哪些超参数、哪个数据集版本、指标是什么、运行的是哪段代码。
+
 **MLflow** is the most common open-source solution:
+
+> **MLflow** 是最常见的开源方案：
 
 ```python
 import mlflow
@@ -193,7 +211,11 @@ with mlflow.start_run():
 
 Every run is recorded with parameters, metrics, artifacts, and the full model. You can compare runs, reproduce any experiment, and deploy any model version.
 
+> 每次运行都记录参数、指标、构件和完整模型。你可以比较运行、复现任何实验、部署任何模型版本。
+
 **Weights & Biases (wandb)** provides the same functionality with a hosted dashboard:
+
+> **Weights & Biases (wandb)** 提供相同功能，带托管仪表盘：
 
 ```python
 import wandb
@@ -211,15 +233,23 @@ wandb.log({"accuracy": accuracy})
 
 After experiment tracking, you need to manage model versions. Which model is in production? Which is staging? Which was last week's?
 
+> 实验追踪之后，你需要管理模型版本。哪个模型在生产中？哪个是 staging？上周的是哪个？
+
 MLflow's Model Registry provides:
 - **Version tracking:** Every saved model gets a version number
+  **版本追踪：** 每个保存的模型获得版本号
 - **Stage transitions:** "Staging", "Production", "Archived"
+  **阶段转换：** "Staging"、"Production"、"Archived"
 - **Approval workflow:** Models must be explicitly promoted to production
+  **审批工作流：** 模型必须显式提升到生产
 - **Rollback:** Switch back to a previous version instantly
+  **回滚：** 立即切回之前的版本
 
 ### Data Versioning with DVC
 
 Code is versioned with git. Data should be versioned too, but git cannot handle large files. DVC (Data Version Control) solves this.
+
+> 代码用 git 版本化。数据也应该版本化，但 git 不能处理大文件。DVC（Data Version Control）解决这个问题。
 
 ```
 dvc init
@@ -231,16 +261,26 @@ dvc push
 
 DVC stores the actual data in remote storage (S3, GCS, Azure) and keeps a small `.dvc` file in git that records the hash. When you checkout a git commit, `dvc checkout` restores the exact data that was used.
 
+> DVC 把实际数据存储在远端（S3、GCS、Azure），在 git 中保留一个小的 `.dvc` 文件记录哈希。当你 checkout 一个 git 提交时，`dvc checkout` 恢复当时使用的精确数据。
+
 This means every git commit pins both the code and the data. Full reproducibility.
+
+> 这意味着每个 git 提交同时固定了代码和数据。完全可复现。
 
 ### Reproducible Experiments
 
 A reproducible experiment requires four things:
 
+> 一个可复现的实验需要四件事：
+
 1. **Fixed random seeds:** Set seeds for numpy, random, and the framework (torch, sklearn)
+   **固定随机种子：** 为 numpy、random 和框架（torch、sklearn）设置种子
 2. **Pinned dependencies:** requirements.txt or poetry.lock with exact versions
+   **固定依赖：** requirements.txt 或 poetry.lock 锁定精确版本
 3. **Versioned data:** DVC or similar
+   **版本化数据：** DVC 或类似工具
 4. **Config files:** All hyperparameters in a config, not hardcoded
+   **配置文件：** 所有超参数放配置里，不要硬编码
 
 ```python
 import numpy as np
@@ -276,14 +316,24 @@ flowchart TD
 
 The typical progression:
 
+> 典型演进：
+
 1. **Notebook exploration:** Quick experiments, visualizations, feature ideas
+   **notebook 探索：** 快速实验、可视化、特征想法
 2. **Extract functions:** Move preprocessing, feature engineering, evaluation into modules
+   **抽取函数：** 把预处理、特征工程、评估移到模块里
 3. **Build Pipeline:** Chain transformations into a sklearn Pipeline or custom class
+   **构建 Pipeline：** 把变换链成 sklearn Pipeline 或自定义类
 4. **Config management:** Move all hyperparameters into a YAML/JSON config
+   **配置管理：** 把所有超参数移到 YAML/JSON 配置
 5. **Experiment tracking:** Add MLflow or wandb logging
+   **实验追踪：** 添加 MLflow 或 wandb 日志
 6. **Data validation:** Check schema, distributions, and missing value patterns before training
+   **数据验证：** 训练前检查 schema、分布、缺失模式
 7. **Tests:** Unit tests for transformers, integration tests for the full pipeline
+   **测试：** 变换器的单元测试、完整管线的集成测试
 8. **Deployment:** Serialize the pipeline, wrap in an API (FastAPI, Flask), containerize
+   **部署：** 序列化管线、包成 API（FastAPI、Flask）、容器化
 
 ### Common Pipeline Mistakes
 
@@ -295,6 +345,15 @@ The typical progression:
 | Hardcoded column names | Breaks when schema changes | Use column name lists from config |
 | No data validation | Silently wrong predictions on bad data | Add schema checks before prediction |
 | Training/serving skew | Model sees different features in prod | One Pipeline object for both |
+
+| 错误 | 为什么坏 | 修复 |
+|------|---------|------|
+| 划分前在全量数据上 fit | 数据泄漏 | 用 Pipeline 配合 cross_val_score |
+| 管线外做特征工程 | 训练和服务变换不同 | 把所有变换放进 Pipeline |
+| 不处理未知类别 | 生产中新值导致崩溃 | OneHotEncoder(handle_unknown="ignore") |
+| 硬编码列名 | schema 改变时失效 | 用配置中的列名列表 |
+| 没有数据验证 | 坏数据上预测错误无提示 | 预测前加 schema 检查 |
+| 训练/服务偏差 | 生产中模型看到不同特征 | 训练和服务用同一个 Pipeline 对象 |
 
 ## Build It | 动手实现
 
