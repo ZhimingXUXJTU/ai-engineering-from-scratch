@@ -36,8 +36,6 @@
 
 > **【拓展：偏导数就是"只动一个旋钮看效果"]** 神经网络的损失函数 L(w1, w2, ..., wn) 有百万个变量。偏导数 ∂L/∂w_i 告诉你"只改 w_i 一个权重，损失变化多少"。梯度就是把所有偏导数组合成一个向量，指向"最陡的上坡方向"，所以沿负梯度走就是最快的下坡路。
 
-## The Concept | 核心概念
-
 ### What is a derivative?
 
 A derivative measures the rate of change. For a function y = f(x), the derivative f'(x) tells you: if you nudge x by a tiny amount, how much does y change?
@@ -45,8 +43,6 @@ A derivative measures the rate of change. For a function y = f(x), the derivativ
 > 导数衡量变化率。对于函数 y = f(x)，导数 f'(x) 告诉你：如果 x 微小变化，y 变化多少？
 
 Geometrically, the derivative is the slope of the tangent line at a point.
-
-> 几何上，导数是某一点切线的斜率。
 
 > 几何上，导数是某一点切线的斜率。
 
@@ -80,8 +76,6 @@ In code, you skip the limit and just use a very small h. That is the numerical d
 Real functions have many inputs. A neural network loss depends on thousands of weights. A partial derivative holds all variables constant except one, then takes the derivative with respect to that one.
 
 > 真实函数有多个输入。神经网络损失函数依赖数千个权重。偏导数保持其他变量不变，只对一个变量求导——这正好对应"只动一个旋钮看效果"的直觉。
-
-> 真实函数有多个输入。神经网络损失函数依赖数千个权重。偏导数保持其他变量不变，只对一个变量求导。
 
 ```
 f(x, y) = x^2 + 3xy + y^2

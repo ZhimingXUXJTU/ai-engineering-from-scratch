@@ -308,7 +308,11 @@ I = Matrix.identity(2)
 print("A @ A^-1 =", A.matmul(A.inverse_2x2()).data)
 ```
 
+> 验证 Matrix 类：A+B、A@B、A^T、det(A)、A⁻¹ 都正确。最关键的验证是 A @ A⁻¹ = I（单位矩阵），这确认了逆矩阵实现正确。
+
 ### Step 4: Connect to neural networks | 连接到神经网络
+
+> 第4步：连接到神经网络——用从零实现的 Matrix 类构建一个完整的神经网络层。
 
 ```python
 import random

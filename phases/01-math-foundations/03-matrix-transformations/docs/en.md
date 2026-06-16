@@ -385,6 +385,8 @@ print(f"Scale then rotate 90: ({result2[0]:.2f}, {result2[1]:.2f})")
 print(f"Same? {result1 == result2}")
 ```
 
+> 验证：先旋转后缩放，结果与先缩放后旋转不同。这就是矩阵乘法不可交换律——B@A ≠ A@B。在神经网络中，这意味着层的顺序至关重要。
+
 ### Step 3: Eigenvalues from scratch (2x2)
 
 > 第3步：从零计算特征值
@@ -437,6 +439,8 @@ for val in vals:
     print(f"    A@v = {[round(x,4) for x in result]}")
     print(f"    l*v = {[round(x,4) for x in scaled]}")
 ```
+
+> 验证 A=[[2,1],[1,2]] 的特征值是 3 和 1，对应特征向量 [1,1]/√2 和 [1,-1]/√2。验证 A@v = λ×v 成立。
 
 ### Step 4: Determinant as volume scaling factor
 
@@ -502,6 +506,8 @@ print(f"\nEigendecomposition A = V @ D @ V^-1:")
 print(f"Original:\n{B}")
 print(f"Reconstructed:\n{reconstructed}")
 ```
+
+> 特征分解验证：A = V @ D @ V⁻¹ 应能完美重建原矩阵。这证明了任何可对角化矩阵都能分解为"旋转 → 缩放 → 旋转回来"三步。
 
 ### 3D rotations with NumPy
 
