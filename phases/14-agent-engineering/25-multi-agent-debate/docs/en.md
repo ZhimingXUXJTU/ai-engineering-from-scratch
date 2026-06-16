@@ -20,6 +20,8 @@ Self-Refine (Lesson 05) is one model critiquing itself — risks groupthink. CRI
 
 > Self-Refine（第 5 课）是一个模型自我批评——存在群体思维的风险。CRITIC（第 5 课）将批评基于外部工具——并非总是可用。辩论引入了第三种模式：多个实例、交叉批评、通过分歧达成收敛。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14·05（Self-Refine / CRITIC）——辩论是 Self-Refine 的多实例扩展，不理解"一个模型自我批评为什么会陷入群体思维"就看不出辩论为什么要 N 个实例；Phase 14·12（Workflow Patterns）——理解 orchestrator-workers 和 supervisor 模式，本节的 hub-and-spoke 拓扑就是 supervisor 的具体实现。
+
 
 > **【中文解读】** 多 Agent 辩论通过让多个 LLM 实例从不同角度讨论同一问题来提高推理质量。核心洞察：单个 LLM 可能自信地给出错误答案，但多个 LLM 辩论时，错误更容易被识别和纠正。这与人类专家小组讨论的原理相似。
 
@@ -27,6 +29,8 @@ Self-Refine (Lesson 05) is one model critiquing itself — risks groupthink. CRI
 ## The Concept | 核心概念
 
 ### Society of Minds (Du et al., ICML 2024)
+
+> 💡 **【类比】** 多 Agent 辩论像学术同行评审：你写论文（N=3 个独立作者各写一版）→ 投稿后 3 个审稿人读对方的版本写 review（R 轮交叉批评）→ 作者根据 review 修改 → 几轮后论文收敛。关键洞察：单个作者会自信地写错（Self-Refine 的群体思维），3 个独立作者互相挑错更容易揪出幻觉。但全连接（每人都读所有人）的评审成本是 O(N²)——所以会议用 "area chair + reviewers" 的星形拓扑（hub-and-spoke），审稿人只和 chair 沟通，成本降到 O(N)。
 
 - N model instances independently propose answers to the same question.
 - Over R rounds, each model reads the others' proposals and critiques them.
@@ -77,6 +81,8 @@ Implications:
 
 ### Where this pattern goes wrong
 
+> 🤔 **【困惑】** Q: 辩论到底什么时候值得用？N×R 的延迟和成本看起来很高。 A: 只用在"单模型错一次代价远高于辩论成本"的场景。判断公式：辩论成本 = N×R×单次推理成本；单模型错的期望损失 = 错误率 × 单次错误损失。当代码生成（一次 bug 进生产 = 几十万损失）、法律文书事实核查、医疗诊断这些场景，单模型哪怕 95% 准确率也值得用 N=3,R=2 辩论把准确率推到 99%。"今天天气怎么样""帮我总结邮件"这类一次错的损失就是用户重问一次的，千万别用辩论。
+
 - **Convergence collapse.** All agents converge on the first wrong answer. Mitigate with required disagreement rounds.
 - **Hub failure.** In a star topology, a bad hub corrupts everyone. Rotate or use multiple hubs.
 - **Prompt homogenization.** All agents use the same prompt; they produce the same answers. Use diverse prompts and/or models.
@@ -86,6 +92,8 @@ Implications:
 > **提示同质化。** 所有 Agent 使用相同的提示；产生相同的答案。使用多样化的提示和/或模型。
 
 ## Build It | 动手实现
+
+> ⚠️ **【易错点】** 场景：开发者用同一个 prompt 起了 5 个 debater 实例期待"多样化观点" → 后果：5 个实例给出几乎一样的答案（甚至一样的错误），辩论沦为 N 倍成本的 Self-Refine，这叫 "prompt homogenization" → 修复：要么用不同模型（GPT-4o + Claude + Gemini，异构带来真分歧），要么给每个 debater 不同角色 prompt（"你是怀疑论者""你是乐观派""你是细节核查员"），要么至少随机化 temperature。论文里 ChatGPT + Bard 组合胜过单模型就是这个道理。
 
 `code/main.py` implements stdlib debate:
 
