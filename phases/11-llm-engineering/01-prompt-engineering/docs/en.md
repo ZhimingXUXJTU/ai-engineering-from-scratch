@@ -6,11 +6,11 @@
 
 > **【拓展：提示工程→AI应用开发】** 提示工程是 AI 应用开发的第一步。掌握系统提示、角色设定、Few-shot 示例、约束条件等技术，能让同一个模型的表现从"平庸"提升到"优秀"。
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 10, Lessons 01-05 (LLMs from Scratch)
-**Time:** ~90 minutes
-**Related:** Phase 11 · 05 (Context Engineering) for what else goes in the window; Phase 5 · 20 (Structured Outputs) for token-level format control.
+**Type:** Build | **类型:** 构建
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 10, Lessons 01-05 (LLMs from Scratch) | **前置知识:** Phase 10 · 01-05 (从零构建 LLM)
+**Time:** ~90 minutes | **时间:** ~90 分钟
+**Related:** Phase 11 · 05 (Context Engineering) for what else goes in the window; Phase 5 · 20 (Structured Outputs) for token-level format control. | **相关:** Phase 11 · 05 (上下文工程) 讲窗口里还放什么；Phase 5 · 20 (结构化输出) 讲 token 级格式控制。
 
 ## Learning Objectives | 学习目标
 
@@ -405,6 +405,8 @@ The best prompts are model-agnostic. They work on GPT-5, Claude Opus 4.7, Gemini
 
 Define 10 reusable prompt patterns as structured data. Each pattern has a name, template, variables, and recommended settings.
 
+> 定义 10 个可复用的提示模式作为结构化数据。每个模式有名、模板、变量和推荐设置。
+
 ```python
 PROMPT_PATTERNS = {
     "persona": {
@@ -551,6 +553,8 @@ PROMPT_PATTERNS = {
 
 Build prompts from patterns by filling in variables and assembling the full message structure (system + user + optional prefill).
 
+> 通过填变量和组装完整消息结构（系统 + 用户 + 可选预填充）从模式构建提示。
+
 ```python
 def build_prompt(pattern_name, variables, system_override=None):
     pattern = PROMPT_PATTERNS.get(pattern_name)
@@ -597,7 +601,11 @@ def build_multi_turn(pattern_name, turns, system_override=None):
 
 ### Step 3: Multi-Model Testing Harness
 
+> 步骤 3：多模型测试工具。
+
 A harness that sends the same prompt to multiple LLM APIs and collects results for comparison. Uses a provider abstraction to handle API differences.
+
+> 一个把相同提示发送给多个 LLM API 并收集结果做对比的工具。用提供商抽象处理 API 差异。
 
 ```python
 import json
@@ -730,6 +738,8 @@ def run_prompt_test(prompt, models=None):
 
 Score and compare outputs across models. Measures length, format compliance, and structural similarity.
 
+> 评分并跨模型比较输出。测量长度、格式合规性和结构相似度。
+
 ```python
 def score_response(response_text, criteria):
     scores = {}
@@ -799,6 +809,8 @@ def compare_models(test_results, criteria):
 ### Step 5: Test Suite Runner
 
 Run a suite of prompt tests across patterns and models.
+
+> 跨模式和模型运行一套提示测试。
 
 ```python
 TEST_SUITE = [
@@ -927,6 +939,8 @@ def run_test_suite():
 
 ### Step 6: Run Everything
 
+> 步骤 6：运行全部。
+
 ```python
 def run_pattern_catalog_demo():
     print("=" * 70)
@@ -976,6 +990,8 @@ if __name__ == "__main__":
 
 ### OpenAI: Temperature and System Messages
 
+> OpenAI：温度和系统消息。
+
 ```python
 # from openai import OpenAI
 #
@@ -1004,6 +1020,8 @@ OpenAI's system message is processed first and given high attention weight. Temp
 > OpenAI 的系统消息首先被处理，并被赋予高注意力权重。Temperature=0.0 使输出具有确定性——相同的输入每次都产生相同的输出。这对于测试和可重现性至关重要。
 
 ### Anthropic: System Message + Assistant Prefill
+
+> Anthropic：系统消息 + 助手预填充。
 
 ```python
 # import anthropic
@@ -1037,6 +1055,8 @@ The assistant prefill (`"{"`) forces Claude to continue producing JSON without a
 
 ### Google: Gemini with Safety Settings
 
+> Google：Gemini 配安全设置。
+
 ```python
 # import google.generativeai as genai
 #
@@ -1060,6 +1080,8 @@ Gemini processes system instructions as part of the model configuration, not as 
 > Gemini 将系统指令作为模型配置的一部分处理，而不是作为消息。2M token 的上下文窗口意味着你可以包含在 GPT-4o 或 Claude 中放不下的大量少样本示例集。
 
 ### LangChain: Provider-Agnostic Prompts
+
+> LangChain：与提供商无关的提示。
 
 ```python
 # from langchain_core.prompts import ChatPromptTemplate
