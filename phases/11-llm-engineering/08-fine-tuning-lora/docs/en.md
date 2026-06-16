@@ -6,6 +6,8 @@
 
 > **【拓展：LoRA微调→定制大模型】** LoRA 是企业定制大模型的核心技术：用少量领域数据微调基础模型，获得专业能力（如金融分析、法律推理、代码生成等）。
 
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 10·06（Instruction Tuning SFT）——理解监督微调的基本流程；(2) 线性代数基础——矩阵乘法、秩、SVD 分解（看 Phase 01·11 SVD）；(3) PyTorch 基础——`nn.Linear`、`backward()`、`optimizer.step()`；(4) HuggingFace `transformers` 库的基本用法。本节会用 `peft` 和 `trl` 库。
+
 **Type:** Build | **类型:** 构建
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 10, Lesson 06 (Instruction Tuning / SFT) | **前置知识:** Phase 10 · 06（指令微调/SFT）
@@ -48,11 +50,15 @@ You need a method that trains fewer parameters, uses less memory, and doesn't de
 
 > 你需要一种训练更少参数、使用更少内存、且不破坏模型现有知识的方法。
 
+> 💡 **【类比】** 全量微调像"把整本教科书重写一遍"——每个字（参数）都改，工作量大还容易把原来对的内容改错（灾难性遗忘）。LoRA 像"在教科书的页边贴便利贴"——原文（W）冻结不动，你只在边上贴小纸条（A×B 矩阵）写新注释。最终输出 = 原文 + 便利贴。换任务时，撕掉旧便利贴贴新的即可，原文保留。
+
 ## The Concept | 核心概念
 
 > **【中文解读】** LoRA（Low-Rank Adaptation）是参数高效微调（PEFT）的核心方法：冻结原始权重，仅训练低秩分解矩阵（A*B），将可训练参数从数十亿降到数百万。QLoRA 进一步量化基础模型到 4-bit，在单张消费级 GPU 上微调大模型。
 
 > **【拓展：LoRA 的工程实践】** LoRA 的秩（rank）通常设为 8-64，应用于 Q/V 投影矩阵效果最好。QLoRA（4-bit 基础模型 + LoRA）让你在单张 RTX 4090 上微调 Llama-3-8B。HuggingFace PEFT 库让 LoRA 微调几行代码即可实现。LoRA 的成本约为全参数微调的 1/10，且效果接近。
+
+> 🤔 **【困惑】** Q: QLoRA 是什么？和 LoRA 区别？ A: QLoRA = Quantized LoRA。基础模型用 4-bit 量化（NF4）存储，LoRA 适配器用 bf16 训练。这样 Llama-3-8B 的 16GB 权重压缩到 4GB，加上 LoRA 的训练开销（约 100MB），总共 6GB 显存就能微调——单张 RTX 4090 / 3090 即可。代价：训练速度比纯 LoRA 慢约 30%（因为要边反量化边 forward），但成本可控。
 
 
 ### LoRA: Low-Rank Adaptation
@@ -60,6 +66,8 @@ You need a method that trains fewer parameters, uses less memory, and doesn't de
 Edward Hu and colleagues at Microsoft published LoRA in June 2021. The paper's insight: the weight updates during fine-tuning have low intrinsic rank. You don't need to update all 16.7 million parameters in a 4096x4096 weight matrix. The useful information in the update can be captured by a matrix of rank 16 or 32.
 
 > Edward Hu 和 Microsoft 同事于 2021 年 6 月发表 LoRA。论文洞察：微调期间的权重更新具有低内在秩。你不需要更新 4096x4096 权重矩阵中全部 1670 万参数。更新中的有用信息可被秩 16 或 32 的矩阵捕获。
+
+> 🤔 **【困惑】** Q: 为什么低秩矩阵能捕获微调更新的信息？ A: Empirical observation——Aghajanyan 等（2020）发现预训练模型的权重更新ΔW 在内在维度（intrinsic dimension）上很低，通常只有几百到几千维就能学好一个新任务。直觉：基础模型已经"知道"很多，微调只是"轻微调整方向"，不需要全方位重写。秩 r=16 的两个矩阵 A(d×16) 和 B(16×d) 只有 2*16*4096 = 131K 参数，比原 16.7M 少 99.2%。
 
 Here's the math. A standard linear layer computes:
 
@@ -76,6 +84,8 @@ Where W is a d_out x d_in matrix. For a 4096x4096 attention projection, that's 1
 LoRA freezes W and adds a low-rank decomposition:
 
 > LoRA 冻结 W 并添加低秩分解：
+
+> ⚠️ **【易错点】** LoRA 微调的 3 个坑：(1) **秩 r 设太大**——r=64 起步就太大，参数量逼近全量微调，省显存优势消失；起点 r=8 或 r=16，效果不够再加倍。(2) **target_modules 选错**——只对 `q_proj` 加 LoRA 效果有限，标准做法是 `["q_proj", "v_proj", "k_proj", "o_proj"]` 都加，更激进可加上 MLP 的 `gate_proj`/`up_proj`/`down_proj`。(3) **学习率没调高**——LoRA 参数是新初始化的，需要比预训练权重更大的 lr；典型 lr=1e-4 到 3e-4（比全量微调的 2e-5 高 5-10 倍）。
 
 ```
 y = Wx + BAx
