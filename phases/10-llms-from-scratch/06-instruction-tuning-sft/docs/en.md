@@ -6,10 +6,16 @@
 
 > **【拓展：SFT→ChatGPT】** ChatGPT 的训练流程：GPT-3.5 预训练 → SFT（用人类标注的对话数据微调）→ RLHF（用人类偏好数据对齐）。SFT 是让基础模型变成对话助手的关键一步。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·04（Pre-Training Mini GPT）——理解预训练如何得到基础模型；Phase 11·08（LoRA）——理解微调的具体技术（本节是全参微调，LoRA 是其轻量版）；PyTorch 训练循环基础（loss、optimizer、backward）。
+
 **Type:** Build
 **Languages:** Python (with numpy)
 **Prerequisites:** Phase 10, Lesson 04 (Pre-Training a Mini GPT)
 **Time:** ~90 minutes
+
+> 💡 **【类比】** SFT = 给"博学的鹦鹉"上课。预训练让鹦鹉会说所有人话（语言能力），但不会对话（你说"你好"，它说"今天天气不错"——纯统计接龙）。SFT 用 1 万对"问-答"示范教它"问你好应该答回答你好"——从统计鹦鹉变成会聊天的鹦鹉。
+
+> ⚠️ **【易错点】** SFT 数据准备的 3 个坑：(1) **指令格式不统一**——有的样本用 `User:`/`Assistant:`，有的用 `<|user|>`/`<|assistant|>`，模型学不会统一格式；务必固定模板（如 ChatML）。(2) **拒绝样本不足**——10 万对话里只有 50 条"拒绝有害请求"，模型不会拒绝；至少 5-10% 拒绝样本覆盖各种攻击。(3) ** catastrophic forgetting**——SFT 数据太窄（全是客服对话），模型忘了通用能力；混入 20-30% 通用数据（Alpaca、FLAN）保住基础能力。
 
 ## Learning Objectives | 学习目标
 
