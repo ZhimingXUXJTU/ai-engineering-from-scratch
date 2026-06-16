@@ -6,10 +6,16 @@
 
 > **【拓展：DeepSeek-V3的2048卡训练】** DeepSeek-V3 使用 2048 张 H800 GPU 训练，采用 DualPipe 流水线并行 + MoE 专家并行。理解分布式训练是理解前沿大模型如何被训练出来的基础。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·04（Pre-Training Mini GPT）——单 GPU 训练基础；PyTorch DDP 概念；多 GPU 通信（NCCL、AllReduce）。本节是 Phase 10·19（DualPipe）和 Phase 10·20（DeepSeek-V3 Walkthrough）的前置。
+
 **Type:** Build
 **Languages:** Python
 **Prerequisites:** Phase 10, Lesson 04 (Pre-Training a Mini GPT)
 **Time:** ~120 minutes
+
+> 💡 **【类比】** 分布式训练 = 多人合作搬大箱子。**数据并行**（DP）= 4 个人各搬一个相同的小箱子（同模型不同数据，结果 AllReduce 平均）。**张量并行**（TP）= 4 个人一起抬一个大箱子的四角（同一层分到 4 卡）。**流水线并行**（PP）= 4 个人流水线，第 1 人搬一层传给第 2 人（模型按层切分）。**FSDP** = DP + 把模型切片分到各卡，用时再聚合（省显存）。生产场景一般 3 种组合用（3D parallelism）。
+
+> ⚠️ **【易错点】** 分布式训练的 3 个坑：(1) **batch size 设错**——单卡 bs=8，4 卡应该 bs=32（4×8）而非 bs=8；用 effective batch size 计算 lr。(2) **AllReduce 瓶颈**——卡间通信比 GPU 计算慢 10 倍，bs 太小会让 GPU 等通信；bs 至少 32+ 才划算。(3) **没设 seed**——每卡随机初始化不同，结果不可复现；`torch.manual_seed(42) + torch.cuda.manual_seed_all(42)`。
 
 ## Learning Objectives | 学习目标
 
