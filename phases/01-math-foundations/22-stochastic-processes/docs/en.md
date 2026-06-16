@@ -114,13 +114,19 @@ P(X_{t+1} = j | X_t = i, X_{t-1} = ...) = P(X_{t+1} = j | X_t = i)
 
 This is the Markov property. It means you can describe the entire dynamics with a transition matrix P:
 
+> 这就是马尔可夫性质。它意味着你可以用转移矩阵 P 描述整个动态。
+
 ```
 P[i][j] = probability of going from state i to state j
 ```
 
 Each row of P sums to 1 (you must go somewhere).
 
+> P 的每行和为 1（你必须去某个地方）。
+
 **Example -- Weather:**
+
+> **示例——天气：**
 
 ```
 States: Sunny (0), Rainy (1), Cloudy (2)
@@ -156,17 +162,29 @@ graph LR
 1. **Power method**: multiply any initial distribution by P repeatedly. After enough iterations, it converges.
 2. **Eigenvalue method**: find the left eigenvector of P with eigenvalue 1. This is the eigenvector of P^T with eigenvalue 1.
 
+> **计算平稳分布。** 两种方法：1. **幂法**：反复用任意初始分布乘 P，足够多次后收敛。2. **特征值法**：求 P 的特征值为 1 的左特征向量（即 P^T 的特征值为 1 的右特征向量）。
+
 Both approaches require the chain to satisfy convergence conditions.
+
+> 两种方法都要求链满足收敛条件。
 
 **Convergence conditions.** A Markov chain converges to a unique stationary distribution if it is:
 - **Irreducible**: every state is reachable from every other state
 - **Aperiodic**: the chain does not cycle with a fixed period
 
+> **收敛条件。** 马尔可夫链收敛到唯一平稳分布需满足：**不可约**（每个状态都能从其他状态到达）；**非周期**（链不会以固定周期循环）。
+
 Most chains you encounter in ML satisfy both conditions.
+
+> 你在 ML 中遇到的大多数链都满足这两个条件。
 
 **Absorbing states.** A state is absorbing if once you enter it, you never leave (P[i][i] = 1). Absorbing Markov chains model processes with terminal states -- a game that ends, a customer who churns, a token sequence that hits the end-of-text token.
 
+> **吸收状态。** 一旦进入就永不离开的状态（P[i][i]=1）。吸收马尔可夫链建模有终止状态的过程——结束的游戏、流失的客户、命中结束 token 的序列。
+
 **Mixing time.** How many steps until the chain is "close" to the stationary distribution? Formally, the number of steps until the total variation distance from stationarity drops below some threshold. Fast mixing = few steps needed. The spectral gap of P (1 minus the second-largest eigenvalue) controls the mixing time. Larger gap = faster mixing.
+
+> **混合时间。** 链"接近"平稳分布需要多少步？形式上，是与平稳分布的总变差距离降到阈值以下的步数。快混合 = 步数少。谱间隙（1 - 第二大特征值）控制混合时间：间隙越大，混合越快。
 
 ### Connection to Language Models
 
@@ -313,6 +331,8 @@ The chain is guaranteed to converge to p(x) under mild conditions. But convergen
 
 ### Step 1: Random walk simulator
 
+> 第1步：随机游走模拟器。1D 用累加和，2D 用四个方向（上下左右）的累加。
+
 ```python
 import numpy as np
 
@@ -342,6 +362,8 @@ The 1D walk stores cumulative sums. Each step is +1 or -1. After n steps, the po
 > 一维随机游走存储累加和。每步是 +1 或 -1。n 步后位置是总和。方差线性增长 n，标准差按 √n 增长。
 
 ### Step 2: Markov chain
+
+> 第2步：马尔可夫链。step() 按转移概率选下一状态；simulate() 跑多步生成轨迹；stationary_distribution() 用特征分解求平稳分布。
 
 ```python
 class MarkovChain:
@@ -379,6 +401,8 @@ The stationary distribution is the left eigenvector of P with eigenvalue 1. We f
 
 ### Step 3: Langevin dynamics
 
+> 第3步：Langevin 动力学。梯度下降 + 高斯噪声 = 探索能量景观并采样。
+
 ```python
 def langevin_dynamics(grad_U, x0, dt, temperature, n_steps, seed=None):
     rng = np.random.RandomState(seed)
@@ -396,6 +420,8 @@ The gradient pushes x toward low energy. The noise prevents it from getting stuc
 > 梯度把 x 推向低能量区，噪声防止陷入局部最优。平衡时样本分布 ∝ exp(-U(x)/温度)。
 
 ### Step 4: Metropolis-Hastings
+
+> 第4步：Metropolis-Hastings MCMC。从目标分布（无需归一化常数）采样的经典算法。
 
 ```python
 def metropolis_hastings(target_log_prob, proposal_std, x0, n_samples, seed=None):
@@ -434,6 +460,8 @@ print(f"Expected distance: {np.sqrt(10000):.1f}")
 print(f"Actual distance: {abs(walk[-1])}")
 ```
 
+> NumPy 实现随机游走：一行代码生成 10000 步 ±1 随机游走，验证实际距离与理论值 √10000 = 100 接近。
+
 ### numpy for transition matrices
 
 ```python
@@ -449,6 +477,8 @@ for _ in range(100):
 
 print(f"Stationary distribution: {np.round(distribution, 4)}")
 ```
+
+> NumPy 处理转移矩阵：从 [1,0,0] 出发，反复左乘 P 100 次，自动收敛到平稳分布。这就是 PageRank 等算法的核心。
 
 Multiply the initial distribution by P repeatedly. After enough iterations, it converges to the stationary distribution regardless of where you started. This is the power method for finding the dominant left eigenvector.
 

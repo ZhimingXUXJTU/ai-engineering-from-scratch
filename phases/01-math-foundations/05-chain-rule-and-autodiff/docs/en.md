@@ -505,6 +505,8 @@ print(f"Difference: {diff:.2e}")
 # Difference should be < 1e-5
 ```
 
+> 测试复杂表达式：(x³ + 2x + 1) 的 tanh 在 x=0.5 处的梯度。autodiff 和数值导数的差异应 < 1e-5，验证反向传播实现正确。
+
 Gradient checking is essential when implementing new operations. If your backward pass has a bug, the numerical check catches it. Every serious deep learning implementation runs gradient checks during development.
 
 > 梯度检查在实现新操作时必不可少。如果反向传播有 bug，数值检查能发现。每个严肃的深度学习实现在开发阶段都跑梯度检查。
