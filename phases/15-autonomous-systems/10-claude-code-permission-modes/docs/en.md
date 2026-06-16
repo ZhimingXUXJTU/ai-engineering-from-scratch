@@ -6,6 +6,8 @@
 
 > **【拓展：权限阶梯 → 安全分级】** Claude Code 的七模式本质是"自主性阶梯"：plan → default → acceptEdits → … → bypassPermissions。每个模式是速度与每动作审查的不同权衡。Auto Mode 的两阶段分类器把审批从用户关键路径上移除（对分类器判断安全的动作），同时为标记动作保留审查层。研究预览的框架也反映了评估-部署差距——通过离线评估的分类器在真实会话中可能行为不同。
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 15·01（Long-Horizon Agents）——理解为什么长程 Agent 需要权限系统；Phase 14·27（Prompt Injection Defense）——理解为什么 Agent 看到的内容不能全信。本节直接讲 Claude Code 的实际权限模式，是最贴近日常使用的 Agent 安全课。
+
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, two-stage classifier simulator) | **语言:** Python（标准库，两阶段分类器模拟器）
 **Prerequisites:** Phase 15 · 01 (Long-horizon agents), Phase 15 · 09 (Coding-agent landscape) | **前置知识:** Phase 15 · 01（长程 Agent），Phase 15 · 09（编码 Agent 全景）
@@ -28,6 +30,10 @@ The attack surface is everything the agent can reach — file system, network, c
 Claude Code's permission system is Anthropic's answer. Rather than one "autonomous / not autonomous" switch, there are seven modes spanning a capability ladder: plan → default → acceptEdits → … → bypassPermissions. Each mode is a different trade-off between speed and review-per-action. Auto Mode (March 2026) adds a two-stage classifier that moves approval off the user's critical path for actions the classifier judges safe, while preserving a review layer for actions the classifier flags.
 
 > Claude Code 的权限系统是 Anthropic 的答案。不是一个"自主/不自主"开关，而是跨越能力阶梯的七种模式：plan → default → acceptEdits → … → bypassPermissions。每个模式是速度与每动作审查的不同权衡。Auto Mode（2026 年 3 月）添加两阶段分类器，将分类器判断为安全的动作审批移出用户关键路径，同时为分类器标记的动作保留审查层。
+
+> 💡 **【类比】** Claude Code 权限模式 = 银行卡额度阶梯。(1) **plan** = 每笔交易都打电话问你；(2) **default** = 大额交易问你（> 1000），小额自动；(3) **acceptEdits** = 储蓄卡（消费自动，转账问）；(4) **bypassPermissions (YOLO)** = 信用卡无限额。Auto Mode = 智能风控：99% 交易秒过，可疑交易（异地、大额、特殊商户）触发人工复核。每种模式有适用场景——YOLO 模式只在隔离容器里用，本机部署永远不用。
+
+> ⚠️ **【易错点】** Claude Code 权限的 3 个致命错误：(1) **本机用 bypassPermissions**——一个 prompt injection 就能 rm -rf /；只在不敏感的临时容器用。(2) **没设 max_budget_usd**——一个跑飞的循环 1 小时烧 $50；务必设 `max_budget_usd=5` 起步。(3) **完全信任 Auto Mode 分类器**——Anthropic 明确说"分类器单独不充分"；高危操作（rm、转账、发邮件）必须双重确认，即使分类器说安全。
 
 
 > **【中文解读】** 本节介绍了 AI Agent 的核心概念和实现方法。Agent 是 LLM 驱动的自主系统，能够观察环境、思考决策、执行行动并循环迭代直到完成目标。
