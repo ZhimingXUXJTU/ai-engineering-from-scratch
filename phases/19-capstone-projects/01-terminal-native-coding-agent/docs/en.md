@@ -4,6 +4,7 @@
 
 > **【中文解读】** 本节是综合项目——构建终端原生编码 Agent，整合 Agent 循环、工具使用和记忆系统。
 
+> 🔗 **【前置】** 这是 Phase 19 的第 1 个 Capstone（顶点项目），35 小时工作量。前置要求覆盖整个 Phase 11-17——务必先做完：(1) Phase 14（Agent Engineering）全部，特别是 Phase 14·01（Agent Loop）和 Phase 14·32-42（Workbench）；(2) Phase 13（Tools & Protocols）—— MCP 工具调用；(3) Phase 17（Infrastructure）—— 生产部署。**不要在没学完 Phase 14 的情况下尝试本节**——会完全看不懂。
 
 **Type:** Capstone | **类型:** 综合项目
 **Languages:** TypeScript / Bun (harness), Python (eval scripts) | **语言:** TypeScript / Bun（框架）, Python（评估脚本）
