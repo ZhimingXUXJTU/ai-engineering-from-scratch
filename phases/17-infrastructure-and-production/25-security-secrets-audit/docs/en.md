@@ -8,6 +8,10 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy PII-scrubber + audit-log writer) | **语言:** Python
 **Prerequisites:** Phase 17 · 19 (AI Gateways), Phase 17 · 13 (Observability) | **前置知识:** Phase 17 · 19 (AI Gateways), Phase 17 · 13 (Observability)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·19（AI Gateway）、Phase 17·13（可观测性）、零信任架构基础。安全核心：消除密钥散落+集中化保管。
+> 💡 **【类比】** LLM 安全 = "金库管理"。集中化 vault（HashiCorp Vault/AWS Secrets Manager/Azure Key Vault）= 钱放银行；config/env/电子表格存密钥 = 藏在床垫下。AI Gateway 模式 = 应用→网关→模型商，网关运行时从 vault 取密钥；轮换 ≤90 天，所有应用自动跟上，无需 redeploy。零信任：MFA+SSO+RBAC+短时 token。PII 脱敏：实体识别遮蔽 PHI/PII。egress 白名单只放 api.openai.com 等。
+> ⚠️ **【易错点】** Vercel 2026 供应链攻击案例：CI/CD 凭证被攻破→泄露数千客户 env vars。修复：CI/CD 用 OIDC 而非长期密钥。
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标

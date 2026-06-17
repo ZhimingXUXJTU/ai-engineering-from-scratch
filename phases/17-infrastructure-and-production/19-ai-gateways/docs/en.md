@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy gateway-routing simulator) | **语言:** Python
 **Prerequisites:** Phase 17 · 01 (Managed LLM Platforms), Phase 17 · 16 (Model Routing) | **前置知识:** Phase 17 · 01 (Managed LLM Platforms), Phase 17 · 16 (Model Routing)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·01（平台）、Phase 17·16（路由）。AI Gateway = 应用和模型商之间的代理（路由/回退/限流/审计）。
+> 💡 **【类比】** AI Gateway = "AI 流量交警"。LiteLLM = 开源 MIT 100+ provider，但 < 500 RPS 适合；Portkey = 控制面（PII 脱敏/越狱检测/审计）$49/月；Kong = 性能王（自家基准比 Portkey 快 228%、比 LiteLLM 快 859%），适合已用 Kong 的企业；Bifrost = 自动重试+回退；Cloudflare/Vercel = 托管零运维。选型按：是否需自托管（数据驻留）+ 已有基础设施栈。
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标

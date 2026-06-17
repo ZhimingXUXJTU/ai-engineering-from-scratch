@@ -8,6 +8,10 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** (Python optional — compliance is policy + process, not code) | **语言:** Python
 **Prerequisites:** Phase 17 · 25 (Security), Phase 17 · 13 (Observability) | **前置知识:** Phase 17 · 25 (Security), Phase 17 · 13 (Observability)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·25（安全）、Phase 17·13（可观测性）。多框架合规 = 2026 企业单的桌面赌注。
+> 💡 **【类比】** 合规框架 = "AI 公司的驾照"。EU AI Act（2024.8 生效，2026.8 高风险全执行）= 欧盟驾照，罚款最高营业额 7%；SOC 2 Type II = B2B 必备（fintech 必须 Type II）；GDPR = 隐私（Clearview AI 被罚 €30.5M）；HIPAA = 医疗（无 BAA 不能传 PHI）；PCI-DSS = 支付；ISO 42001 = 新兴 AI 治理。跨框架映射减审计负担（访问控制在 ISO/GDPR/HIPAA 通用）。OpenAI 是参考画像：SOC 2 Type 2 + ISO 27001/27701 + GDPR/CCPA/HIPAA(BAA)/FERPA + PCI-DSS。
+> ⚠️ **【易错点】** 实时 PII 脱敏是底线，后处理清洗不够（已被 GDPR 罚款）。
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标

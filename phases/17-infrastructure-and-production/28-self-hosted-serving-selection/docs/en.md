@@ -8,6 +8,10 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, engine-decision tree walker) | **语言:** Python
 **Prerequisites:** All Phase 17 lessons covering engines (04, 06, 07, 09, 18) | **前置知识:** All Phase 17 lessons covering engines (04, 06, 07, 09, 18)
+
+> 🔗 **【前置】** 本节是 Phase 17 收官课，整合 04/06/07/09/18 的引擎知识。四大自托管引擎选型矩阵。
+> 💡 **【类比】** 自托管引擎 = "AI 服务器品牌"。llama.cpp = CPU 王者（最广模型支持、量化全控制）；Ollama = 笔记本一键安装（比 llama.cpp 慢 15-30%）；TGI 已进入维护模式（2025.12.11）只修 bug，新项目别选；vLLM = 通用生产默认（v0.15.1+ PyTorch 2.10+Blackwell）；SGLang = Agent 多轮+前缀密集专家（40 万+ GPU 在 xAI/LinkedIn/Cursor）。
+> 🤔 **【困惑】** Q: 我的场景该选哪个？— CPU-only→llama.cpp；AMD/非 NVIDIA→vLLM（TRT-LLM 锁 NVIDIA）；Agent 多轮→SGLang；通用→vLLM。2026 流水线：dev=Ollama、staging=llama.cpp、prod=vLLM/SGLang，全用 GGUF/HF 权重一致。
 **Time:** ~45 minutes | **时间:** ~45 minutes
 
 ## Learning Objectives | 学习目标

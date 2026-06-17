@@ -8,6 +8,10 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy cascading router simulator) | **语言:** Python
 **Prerequisites:** Phase 17 · 01 (Managed LLM Platforms), Phase 17 · 19 (AI Gateways) | **前置知识:** Phase 17 · 01 (Managed LLM Platforms), Phase 17 · 19 (AI Gateways)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·01（托管平台）、Phase 17·19（AI Gateway）。模型路由 = 动态 broker 按任务复杂度选便宜或贵模型。
+> 💡 **【类比】** 模型路由 = "医院分诊"。简单感冒→社区医生（Haiku/Sonnet）；疑难杂症→专家（Opus）；急诊→主任（GPT-4）。20-60% 成本降，30% 路由效率改进=六位数年省。背景：LLM 价格 2022-2026 降 10 倍/年，多数降来自服务栈改进而非硬件——路由把降价转成利润。
+> ⚠️ **【易错点】** 便宜模型漂移：40% 路由到弱模型→推理质量降 3-5%→一个季度没人发现。修复：用在线质量监控（不只离线评估）守住底线。
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标

@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy KV-spill simulator) | **语言:** Python
 **Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 06 (SGLang/RadixAttention) | **前置知识:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 06 (SGLang/RadixAttention)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·04（vLLM）、Phase 17·06（RadixAttention）。vLLM production-stack = K8s 部署参考，LMCache = KV offload 到 CPU/磁盘。
+> 💡 **【类比】** LMCache = "GPU 内存搬家"。KV cache 装不下 HBM → 溢出到 CPU DRAM 再到磁盘。GPU 满时 preempted 请求可从 CPU 恢复（无需重算 prefill）。异步、对用户透明。即使无共享前缀也值。16x H100 benchmark：KV 超 HBM 时大幅提升吞吐；低 KV 占用时开销很小。
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标

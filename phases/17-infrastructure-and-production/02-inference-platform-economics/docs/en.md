@@ -8,7 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy per-call economics comparator) | **语言:** Python（标准库，每次调用经济性比较器）
 **Prerequisites:** Phase 17 · 01 (Managed LLM Platforms), Phase 17 · 04 (vLLM Serving Internals) | **前置知识:** Phase 17 · 01（托管 LLM 平台）, Phase 17 · 04（vLLM 服务内部）
-**Time:** ~60 minutes | **时间:** ~60 分钟
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·01（托管 LLM 平台）、Phase 17·04（vLLM 内部）。本节是 2026 推理平台选型矩阵。
+> 💡 **【类比】** 推理平台 = "AI 云服务商"。三类：(1) 定制芯片（Groq/Cerebras/SambaNova）= 专用 CPU；(2) GPU 平台（Baseten/Together/Fireworks/Modal）= 通用云；(3) API 市场（Replicate/DeepInfra）= 应用商店。选型口诀：Fireworks 低延迟、Together 模型多、Baseten 企业级、Modal Python 原生、Replicate 多模态广、Anyscale 分布式 Python。
 
 ## Learning Objectives | 学习目标
 

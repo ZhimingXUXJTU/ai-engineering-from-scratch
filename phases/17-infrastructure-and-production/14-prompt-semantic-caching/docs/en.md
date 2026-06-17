@@ -12,6 +12,10 @@
 **Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 06 (SGLang RadixAttention) | **前置知识:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 06 (SGLang RadixAttention)
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·04（vLLM）、Phase 17·06（RadixAttention）、Phase 11·04（Embeddings 用于语义缓存）。两层缓存：L2 提供商级 + L1 应用级。
+> 💡 **【类比】** 缓存 = "翻历史聊天记录"。L2 提示缓存（Anthropic/OpenAI）= 服务商帮你存（90% 成本降，85% 延迟降）；L1 语义缓存 = 自己用 embedding 找相似问题直接返回。陷阱：并行请求会破坏缓存、前缀里塞动态内容（时间戳）= 永远命中不了。ProjectDiscovery 把动态文本挪出可缓存前缀后，命中率 7%→74%。
+> ⚠️ **【易错点】** 厂商宣传"95% 准确率"指的是匹配正确性而非命中率。实际生产命中率：开放对话 10%、结构化 FAQ 70%。
+
 ## Learning Objectives | 学习目标
 
 - Distinguish L2 prompt/prefix caching (KV reuse at provider) from L1 semantic caching (LLM bypass on similar prompts).

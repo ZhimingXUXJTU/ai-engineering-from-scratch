@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy FP8/NVFP4 memory and cost calculator) | **语言:** Python（标准库，FP8/NVFP4 内存和成本计算器）
 **Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 10 · 13 (Quantization) | **前置知识:** Phase 17 · 04（vLLM 服务内部）, Phase 10 · 13（量化）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·04（vLLM）、Phase 10·13（量化基础）。TensorRT-LLM 是 NVIDIA 专属优化栈，在 Blackwell GPU 上性能最强。
+> 💡 **【类比】** TensorRT-LLM = "NVIDIA 专属跑车"。GB200 NVL72 上 SemiAnalysis 测：120B 模型 $0.012/百万 token（H100+vLLM $0.09）—— 7 倍经济性差距。三套浮点叠加：FP8（KV cache+attention 动态范围）+ NVFP4（4-bit 权重激活）+ MTP/解耦 prefill-decode 再加 2-3 倍。代价：闭源 NVIDIA 栈，可移植性换吞吐。选型前必须按你的模型/硬件组合算账。
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标

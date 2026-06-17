@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy canary-progression simulator) | **语言:** Python
 **Prerequisites:** Phase 17 · 13 (Observability), Phase 17 · 21 (A/B Testing) | **前置知识:** Phase 17 · 13 (Observability), Phase 17 · 21 (A/B Testing)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·13（可观测性）、Phase 17·21（A/B 测试）。LLM 上线 = 软件部署最难的组合：无单元测试、失败模式分散、信号延迟。
+> 💡 **【类比】** LLM 部署三步 = "飞机首飞流程"。Shadow = 地面模拟（复制 prod 请求，零用户影响，对比但不切换）；Canary = 真飞但逐步开载客（10%→25%→50%→100%，每步有门禁）；A/B = 商业航班对比（稳定后测不同方案）。关键：非确定性不可消除（GPU 浮点+batch 差异致 15% 准确率波动）；成本是变量（好 20% 的模型可能贵 3 倍）；回滚速度决定性（必须秒级 flag 切换不能 redeploy）。
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标

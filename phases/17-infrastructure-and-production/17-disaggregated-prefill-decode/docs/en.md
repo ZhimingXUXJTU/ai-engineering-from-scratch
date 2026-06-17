@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy disaggregated-vs-colocated simulator) | **语言:** Python
 **Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 08 (Inference Metrics) | **前置知识:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 08 (Inference Metrics)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·04（vLLM）、Phase 17·08（指标）。分离式 prefill/decode = 把两种瓶颈阶段（计算密集 vs 内存密集）分到不同 GPU 池。
+> 💡 **【类比】** 分离式推理 = "餐厅分工"。Prefill（计算密集）= 厨师做菜（CPU/GPU 算力）；Decode（内存密集）= 服务员端菜（带宽密集）。同一 GPU 跑两者 = 厨师又做菜又端菜，浪费某种资源。Dynamo/llm-d 把两者分池，KV cache 通过 NIXL（RDMA）传输。NVIDIA 发布：DeepSeek-R1 在 GB200+Dynamo 提速 ~6 倍；GB300+Dynamo MoE 吞吐最高 50 倍。$2M 推理账单可省 30-40%（即 $600-800K/年）。短请求（<512 token）不值得。
 **Time:** ~75 minutes | **时间:** ~75 minutes
 
 ## Learning Objectives | 学习目标

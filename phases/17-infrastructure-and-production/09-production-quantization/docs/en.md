@@ -8,6 +8,10 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy memory and throughput comparison across formats) | **语言:** Python
 **Prerequisites:** Phase 10 · 13 (Quantization foundations), Phase 17 · 04 (vLLM Serving Internals) | **前置知识:** Phase 10 · 13 (Quantization foundations), Phase 17 · 04 (vLLM Serving Internals)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·13（量化基础）、Phase 17·04（vLLM）。量化格式不是普适选择——按硬件+引擎+工作负载选。
+> 💡 **【类比】** 量化格式 = "压缩行李"。GGUF Q4_K_M = 适合火车/edge（CPU 友好）；GPTQ = vLLM 多 LoRA 场景；AWQ + Marlin 内核 = 数据中心默认（7B 模型 741 tok/s，INT4 最佳）；FP8 = Hopper/Ada/Blackwell 中庸选择（近乎无损）；NVFP4/MXFP4 = 激进，需逐块验证。
+> ⚠️ **【易错点】** 两个陷阱：(1) 校准数据集必须匹配部署领域（医疗模型用通用文本校准会失真）；(2) "我的模型只有 4GB" 忘了 KV cache（生产 batch 下 10-30GB）。
 **Time:** ~75 minutes | **时间:** ~75 minutes
 
 ## Learning Objectives | 学习目标

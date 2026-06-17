@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy multi-agent incident triage simulator) | **语言:** Python
 **Prerequisites:** Phase 17 · 13 (Observability), Phase 17 · 24 (Chaos Engineering) | **前置知识:** Phase 17 · 13 (Observability), Phase 17 · 24 (Chaos Engineering)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·13（可观测性）、Phase 17·24（混沌工程）、SRE 基础（runbook/incident 响应）。AI SRE = LLM 加持的故障响应。
+> 💡 **【类比】** AI SRE = "AI 急诊医生"。多 Agent 编排：日志 Agent+指标 Agent+runbook Agent 协调；AI 提假设+查日志，人类批准判断。Datadog Bits AI、Azure SRE Agent 是托管产品。NeuBird Hawkeye 用对抗评估（两模型同分析事件，一致=高置信）。自动修复保持谨慎：AI 建议+人批准。前沿：预故障预测（MIT 用历史日志+GPU 温度+API 错误模式预测 89% 故障提前 10-15 分钟）。
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
