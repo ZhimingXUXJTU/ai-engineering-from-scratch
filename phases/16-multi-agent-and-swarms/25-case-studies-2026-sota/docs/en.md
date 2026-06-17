@@ -10,6 +10,9 @@
 **Type:** Learn (capstone) | **类型:** 学习（顶点）
 **Languages:** — | **语言:** —
 **Prerequisites:** all of Phase 16 (Lessons 01-24) | **前置知识:** Phase 16 全部（第 01-24 课）
+
+> 🔗 **【前置】** 本节是 Phase 16 收官课，整合 01-24 所有内容。三个生产级案例：Anthropic Research（supervisor 典范）、MetaGPT/ChatDev（角色分工典范）、OpenClaw/Moltbook（群体规模涌现典范）。
+> 💡 **【类比】** 三个案例 = "三种规模的多 Agent 社会"。Anthropic Research = 精锐小队（10 个 Agent，深度研究）；MetaGPT = 标准开发团队（角色分工，SOP 编码）；OpenClaw/Moltbook = 城市级社会（百万 Agent 涌现经济、被政府监管）。2026 框架格局：LangGraph + CrewAI 领跑生产、AG2 接 AutoGen、微软 AutoGen 已合并、OpenAI Agents SDK 是 Swarm 生产版、Google ADK 是 A2A 原生。
 **Time:** ~90 minutes | **时间:** ~90 分钟
 
 ## Problem | 问题引入

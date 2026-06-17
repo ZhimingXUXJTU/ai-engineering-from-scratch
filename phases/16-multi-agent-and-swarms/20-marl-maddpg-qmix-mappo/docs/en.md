@@ -10,6 +10,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, small NumPy-free implementations) | **语言:** Python（标准库，无 NumPy 的小型实现）
 **Prerequisites:** Phase 09 (Reinforcement Learning), Phase 16 · 09 (Parallel Swarm Networks) | **前置知识:** Phase 09（强化学习），Phase 16 · 09（并行群体网络）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 09（RL 基础 PPO/Q-learning）、Phase 16·09（Swarm）。MARL = 多 Agent 强化学习，CTDE（集中训练分散执行）是核心范式。
+> 💡 **【类比】** MARL = "球队训练"。MADDPG = 教练看全场训练（集中 critic），比赛时球员各自决策（分散 actor）；QMIX = 每人一个 Q 值，单调混合保证最优解可分；MAPPO = PPO 多 Agent 版本。MAPPO 是 2026 合作 MARL 默认基线（"surprisingly effective"），SMAC、Google Football、Hanabi 都能少调参跑通。LLM Agent 训练也借鉴这套范式。
 **Time:** ~90 minutes | **时间:** ~90 分钟
 
 ## Problem | 问题引入

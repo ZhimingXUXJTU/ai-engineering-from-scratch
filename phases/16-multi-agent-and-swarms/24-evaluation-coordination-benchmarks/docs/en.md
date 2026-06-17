@@ -10,6 +10,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib) | **语言:** Python（标准库）
 **Prerequisites:** Phase 16 · 15 (Voting and Debate Topology), Phase 16 · 23 (Failure Modes) | **前置知识:** Phase 16 · 15（投票与辩论拓扑），Phase 16 · 23（失败模式）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·15（投票拓扑）、Phase 16·23（失败模式）、SWE-bench 概念。5 个 2026 主流多 Agent 基准横向对比。
+> 💡 **【类比】** 多 Agent 基准 = "AI 团队的标准化考试"。MARBLE 测拓扑（图最佳做研究）；COMMA 测多模态不对称信息协调（GPT-4o 都难超随机基线）；MedAgentBoard 测医疗（多 Agent 常不胜单 LLM）；SWE-bench Pro 测真实代码（1865 题/41 仓库，前沿模型仅 23%，对比 Verified 70%+，揭露污染问题）。Claude Opus 4.7 多 Agent 协调达 64.3%。
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Problem | 问题引入

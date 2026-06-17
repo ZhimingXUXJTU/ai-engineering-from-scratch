@@ -12,6 +12,9 @@
 **Prerequisites:** Phase 16 · 04 (Primitive Model), Phase 16 · 05 (Supervisor) | **前置知识:** Phase 16 · 04 (Primitive Model), Phase 16 · 05 (Supervisor)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·04-05（原语+Supervisor）。本节是 2026 最常见的多 Agent 分解模式：Planner + Critic + Executor + Verifier。
+> 💡 **【类比】** 角色专业化 = "电影制作团队"。Planner = 编剧（定方向）、Executor = 演员（执行）、Critic = 内审、Verifier = 质检员。MetaGPT、ChatDev、CrewAI 都用这种角色分解。Cemri 等人 MAST 论文：所有多 Agent 失败都能追溯到"缺少或破损的 Verifier"——验证是承重墙。PwC 案例：加 Verifier 让准确率从 10% 飙到 70%（7 倍）。
+
 ## Problem | 问题引入
 
 Generic multi-agent systems produce generic output. Three coders in a group chat write three flavors of the same mediocre code. You can add more agents, add more rounds, and still not cross the quality threshold.

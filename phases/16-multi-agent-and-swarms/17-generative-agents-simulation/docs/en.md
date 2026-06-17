@@ -10,6 +10,9 @@
 **Type:** Learn + Build | **类型:** 学习 + 构建
 **Languages:** Python (stdlib) | **语言:** Python（标准库）
 **Prerequisites:** Phase 16 · 04 (Primitive Model), Phase 16 · 13 (Shared Memory) | **前置知识:** Phase 16 · 04（原语模型），Phase 16 · 13（共享内存）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·04（原语）、Phase 16·13（共享内存）、Phase 11·04（Embeddings，记忆流检索用）。Stanford Smallville = 多 Agent 涌现社会行为的里程碑实验。
+> 💡 **【类比】** Smallville = "AI 版模拟人生"。25 个 AI 居民各有人生、记忆、计划。情人节派对奇迹：一个 Agent 想办派对→邀请传开→其他人调整日程→派对真发生——全是涌现，无脚本。三件套：memory stream（经历日志）+ reflection（自我总结）+ plan（日计划）。三者缺一不可，去掉任一 Agent 行为变得不可信。
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Problem | 问题引入

@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 16 · 04 (Primitive Model) | **前置知识:** Phase 16 · 04 (原语模型)
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·04（4 个原语）、Phase 14·01（Agent 循环）。Supervisor 模式 = 多 Agent 中最常用的一种——一个主管 + 多个工作器。
+> 💡 **【类比】** Supervisor 模式 = "项目经理 + 工程师团队"。主管（Opus）分解任务+审查，工作器（Sonnet）各干一摊。Anthropic 数据：BrowseComp 80% 方差由 token 使用解释——多 Agent 赢是因为每个子 Agent 有独立上下文窗口（fresh context），不是协调本身魔法。
+
 ## Problem | 问题引入
 
 Research is the prototypical task that single-agent systems fail. You ask "what changed in multi-agent systems between 2023 and 2026?" A single agent reads five papers sequentially, fills half its context with their text, and then has to reason about all of them together. It forgets the first paper by the time it reaches the fifth. It cannot parallelize.

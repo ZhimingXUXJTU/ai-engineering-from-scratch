@@ -12,6 +12,9 @@
 **Prerequisites:** Phase 16 · 04 (Primitive Model), Phase 16 · 09 (Parallel Swarm Networks) | **前置知识:** Phase 16 · 04 (原语模型), Phase 16 · 09 (并行群体网络)
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·04（原语）、Phase 16·09（Swarm）、并发编程（锁、竞态）。共享记忆 = 多 Agent 协调的核心数据结构。
+> 💡 **【类比】** 共享记忆两种模式 = "办公场景"。消息池（AutoGen GroupChat）= 开放办公区（大家都听见）；黑板+订阅（Context-Aware MCP）= 公告板（按订阅推送）。失败模式 = 记忆投毒（一个 Agent 幻觉，其他 Agent 当真）——比崩溃更难调试。修复：版本号 + 来源标记 + 多源验证。
+
 ## Problem | 问题引入
 
 Multi-agent systems need a place for agents to share facts. A literal option is "pass everything in messages" — but that reinvents shared state with extra copying. Another is "give everyone a global log" — but global logs grow unbounded and poison easily. A third is "project a view per agent" — scalable but schema-heavy.

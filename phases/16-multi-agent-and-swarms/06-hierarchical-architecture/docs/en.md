@@ -12,6 +12,10 @@
 **Prerequisites:** Phase 16 · 05 (Supervisor Pattern) | **前置知识:** Phase 16 · 05 (监督者模式)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·05（Supervisor 模式）。本节 = Supervisor 嵌套 Supervisor——多层管理。失败模式 = "经理们开会议而不做事"。
+> 💡 **【类比】** 分层架构 = "公司层级"。1 层 = 创业公司（CEO 直接带工程师）；2-3 层 = 中型公司（最优）；4+层 = 大企业病（信息失真、决策缓慢、经理们扯皮）。Agent 也一样——2-3 层最优，多了就"管理循环"：经理 Agent 互相指派却不真做事。
+> ⚠️ **【易错点】** 看到"任务复杂"就加层级 → 管理开销压垮系统。修复：先用 sequential 或 supervisor 单层跑，确认不够再分层；2-3 层是上限。
+
 ## Problem | 问题引入
 
 Once the supervisor pattern clicks, the natural next step is "what if the workers are themselves supervisors?" Teams have sub-teams; companies have departments of departments. Hierarchical architectures mirror that.

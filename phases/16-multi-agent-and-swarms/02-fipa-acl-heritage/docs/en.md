@@ -12,6 +12,9 @@
 **Prerequisites:** Phase 16 · 01 (Why Multi-Agent) | **前置知识:** Phase 16 · 01 (为什么需要多 Agent)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·01（为什么需要多 Agent）、Phase 13（MCP/工具协议）。本节是历史课——理解 FIPA ACL 才能看懂 2026 协议（MCP/A2A/ACP）是重新发明还是真创新。
+> 💡 **【类比】** FIPA-ACL = "AI 界的拉丁语"。2000 年的标准，2026 年的协议（MCP/A2A）大量继承其思想。区别：FIPA 用形式化本体（重）、现代协议用 JSON+自然语言（轻）。学历史的价值：避免重蹈覆辙——FIPA 因为"本体太重"而死，现代协议要保持轻量。
+
 ## Problem | 问题引入
 
 The 2026 agent-protocol landscape is busy: MCP for tools, A2A for agents, ACP for enterprise audit, ANP for decentralized trust, NLIP for natural-language content, plus CA-MCP and two dozen research proposals. Each spec announces itself as foundational.

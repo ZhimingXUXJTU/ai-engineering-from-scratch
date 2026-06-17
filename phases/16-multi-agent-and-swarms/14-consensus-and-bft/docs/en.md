@@ -10,6 +10,9 @@
 **Type:** Learn + Build | **类型:** 学习 + 构建
 **Languages:** Python (stdlib) | **语言:** Python（标准库）
 **Prerequisites:** Phase 16 · 07 (Society of Mind and Debate), Phase 16 · 13 (Shared Memory) | **前置知识:** Phase 16 · 07（心智社会与辩论），Phase 16 · 13（共享内存）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·07（辩论）、Phase 16·13（共享内存）、分布式系统 BFT（PBFT、Raft）。LLM Agent 的"故障"=幻觉、被注入、拒绝执行。
+> 💡 **【类比】** BFT = "陪审团投票但要防内鬼"。经典 BFT = 容忍 1/3 节点说谎（PBFT 3f+1）；LLM 版 = 加权投票（按置信度）+ 几何中位数聚合 + 层级聚类。三类攻击：拜占庭说谎、谄媚附和、相关错误（同一 base model 全错）。结论：BFT 必要但不充分，"Can AI Agents Agree?"论文显示单一欺骗 Agent 就能破坏 Mixture-of-Agents。
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Problem | 问题引入

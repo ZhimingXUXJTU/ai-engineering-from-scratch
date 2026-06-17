@@ -10,6 +10,9 @@
 **Type:** Learn + Build | **类型:** 学习 + 构建
 **Languages:** Python (stdlib) | **语言:** Python（标准库）
 **Prerequisites:** Phase 16 · 07 (Society of Mind and Debate), Phase 16 · 17 (Generative Agents) | **前置知识:** Phase 16 · 07（心智社会与辩论），Phase 16 · 17（生成式 Agent）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·07（辩论）、Phase 16·17（生成式 Agent）、认知科学 Theory of Mind 概念。ToM = Agent 推理"其他 Agent 在想什么"。
+> 💡 **【类比】** ToM = "Agent 的同理心"。无 ToM Agent = 自说自话；有 ToM Agent = 站在对方角度思考——"他认为我知道这件事吗？"高阶 ToM = 嵌套推理（A 想 B 想 C 想...）。LLM 能涌现高阶 ToM，但长程规划失败（上下文管理 + 幻觉）。Riedl 2025 关键：ToM 涌现是 prompt 条件性和模型依赖的，不是免费的——弱模型 + 无 ToM prompt = 伪涌现。
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Problem | 问题引入

@@ -10,6 +10,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib) | **语言:** Python（标准库）
 **Prerequisites:** Phase 16 · 13 (Shared Memory), Phase 16 · 14 (Consensus and BFT), Phase 16 · 15 (Voting and Debate Topology) | **前置知识:** Phase 16 · 13（共享内存），Phase 16 · 14（共识与 BFT），Phase 16 · 15（投票与辩论拓扑）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·13-15（共享内存/BFT/投票）。MAST = 2026 多 Agent 失败模式的标准分类法。
+> 💡 **【类比】** MAST 失败分类 = "医院急诊分诊"。三类根因：规格问题（42%—角色不清）、协调失败（37%—通信失灵）、验证缺失（21%—无质检）。MAST 1642 条 trace 显示 41-87% 失败率——多 Agent 不是银弹。Groupthink 家族：单一文化崩溃（同 base model 全错）、群体盲从、级联错误（支付失败触发重试风暴，10 秒 10 倍负载）。修复：异见 Agent + 随机化发言顺序 + 断路器。
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Problem | 问题引入
