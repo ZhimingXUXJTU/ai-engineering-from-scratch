@@ -12,6 +12,9 @@
 **Prerequisites:** Phase 16 · 04 (Primitive Model) | **前置知识:** Phase 16 · 04 (Primitive Model)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·04（原语模型）、Phase 13·01-03（CoT 推理）。Minsky 心智社会理论 + LLM 辩论算法。
+> 💡 **【类比】** 多 Agent 辩论 = "学术同行评审"。单 Agent = 一个作者写论文（容易自洽但片面）；多 Agent 辩论 = 多位审稿人 + 作者多轮回应，最终共识更稳健。Du et al. 2023 证明：多 Agent + 多轮独立贡献提升——不是简单加法，是协同效应。3-5 个 Agent 最优（多了反而吵成一团）。
+
 ## Problem | 问题引入
 
 Self-consistency — sample one model many times and take the majority answer — is the cheapest reasoning improvement you can bolt on. It works, but it saturates fast. You can double your samples and not see another meaningful jump.

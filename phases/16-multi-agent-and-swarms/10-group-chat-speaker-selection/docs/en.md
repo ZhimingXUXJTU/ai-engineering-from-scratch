@@ -12,6 +12,9 @@
 **Prerequisites:** Phase 16 · 04 (Primitive Model) | **前置知识:** Phase 16 · 04 (Primitive Model)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·04（原语模型）、AutoGen 基础。群聊 = N 个 Agent 共享一个对话池，发言者选择决定谁说话。
+> 💡 **【类比】** 群聊发言者选择 = "会议主持"。轮流制 = 圆桌按序；相关性制 = 谁懂谁说；仲裁制 = 主持人指定。AutoGen GroupChat 用 LLM 当主持人——成本高但灵活。2026 注意：AutoGen 已被微软合并到 Microsoft Agent Framework，AG2 是社区 fork，两者都保留 GroupChat 原语。
+
 ## Problem | 问题引入
 
 Static graphs (LangGraph) are great when the workflow is known. Real conversations are not static: sometimes the coder asks the reviewer, sometimes the researcher, sometimes the writer. Hardcoding every possible handoff produces an edge explosion. You want *agents reacting to a shared pool*, with some function deciding who talks next.

@@ -12,6 +12,9 @@
 **Prerequisites:** Phase 16 · 04 (Primitive Model) | **前置知识:** Phase 16 · 04 (原语模型)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·04（原语模型）、Phase 14·07（工具调用）。OpenAI Swarm 把多 Agent 简化为 2 原语：routine（系统提示+工具）+ handoff（返回另一个 Agent 的工具）。
+> 💡 **【类比】** Handoff = "客服转接"。用户问技术问题→客服 A 接听→判断需要技术支持→转接给技术专员 B。Swarm 的天才之处：handoff 就是一个普通工具调用（返回 Agent），LLM 自动路由。无状态机、无 DSL，几百行代码搞定。OpenAI Agents SDK 是生产版本。
+
 ## Problem | 问题引入
 
 Every multi-agent framework wants you to learn its DSL: LangGraph nodes and edges, CrewAI crews and tasks, AutoGen GroupChat and managers. The DSLs are real abstractions, but they make the thing feel heavier than it needs to be.

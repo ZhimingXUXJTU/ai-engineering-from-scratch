@@ -12,6 +12,9 @@
 **Prerequisites:** Phase 14 (Agent Engineering), Phase 16 · 01 (Why Multi-Agent) | **前置知识:** Phase 14 (Agent 工程), Phase 16 · 01 (为什么需要多 Agent)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14（Agent 工程）、Phase 16·01（多 Agent 动机）。本节是 Phase 16 的核心——4 个原语（agent/handoff/shared-state/orchestrator）定义所有框架的设计空间。
+> 💡 **【类比】** 4 原语 = "音乐四件套"：agent（乐手）、handoff（独奏接力）、shared state（总谱）、orchestrator（指挥）。AutoGen 偏消息传递、LangGraph 偏共享状态、CrewAI 偏角色分工——都是这 4 个原语的不同组合。学会原语后看任何新框架都能 1 段话读懂。
+
 ## Problem | 问题引入
 
 Every six months a new multi-agent framework ships. AutoGen in 2023. CrewAI in 2024. LangGraph and OpenAI Swarm in 2024. Google ADK in April 2025. Microsoft Agent Framework RC in February 2026. Each press release claims to be "the right abstraction."

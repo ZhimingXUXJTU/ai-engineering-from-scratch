@@ -10,6 +10,9 @@
 **Type:** Learn + Build | **类型:** 学习 + 构建
 **Languages:** Python (stdlib) | **语言:** Python（标准库）
 **Prerequisites:** Phase 16 · 02 (FIPA-ACL Heritage), Phase 16 · 09 (Parallel Swarm Networks) | **前置知识:** Phase 16 · 02（FIPA-ACL 遗产），Phase 16 · 09（并行群体网络）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·02（FIPA Contract Net）、Phase 16·09（Swarm）、博弈论基础（纳什均衡）。Agent 协商 = 资源/价格/任务分配的讨价还价。
+> 💡 **【类比】** Agent 协商 = "二手市场砍价"。LLM 通过 persona 操纵（装穷）能多榨 20%；隐藏推理过程的 Agent 赢——对手看不到你的底线。OG-Narrator 把协商拆为"确定性提议生成"+"LLM 叙述"，deal rate 26%→89%。模型差异：Llama-3 最有效、Claude-3 强势、GPT-4 最公平——选模型即选风格。
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Problem | 问题引入

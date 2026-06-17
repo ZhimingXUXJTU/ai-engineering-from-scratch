@@ -10,6 +10,9 @@
 **Type:** Learn + Build | **类型:** 学习 + 构建
 **Languages:** Python (stdlib, `asyncio`, `sqlite3`) | **语言:** Python（标准库，`asyncio`，`sqlite3`）
 **Prerequisites:** Phase 16 · 09 (Parallel Swarm Networks), Phase 16 · 13 (Shared Memory) | **前置知识:** Phase 16 · 09（并行群体网络），Phase 16 · 13（共享内存）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·09（Swarm）、Phase 16·13（共享内存）、Phase 15·12（Durable Execution）、异步编程（asyncio）。多 Agent 生产扩展 = 分布式系统工程问题。
+> 💡 **【类比】** 多 Agent 扩展 = "外卖平台架构"。检查点（thread_id+Postgres）= 订单状态存档；消息队列 = 餐厅订单系统；fiber/async > thread-per-job = 协程比线程适合 I/O 密集（99% 时间等 token）。务实建议：FastAPI + Postgres + 啥都不加，先跑起来。简单架构往往比预期走得远。
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Problem | 问题引入

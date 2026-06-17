@@ -10,6 +10,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib) | **语言:** Python（标准库）
 **Prerequisites:** Phase 16 · 16 (Negotiation and Bargaining), Phase 16 · 09 (Parallel Swarm Networks) | **前置知识:** Phase 16 · 16（协商与讨价还价），Phase 16 · 09（并行群体网络）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·16（协商）、Phase 16·09（Swarm）、机制设计基础（Shapley 值、拍卖理论）。Agent 经济 = 多 Agent 系统的市场层。
+> 💡 **【类比】** Agent 经济 = "AI 自由市场"。5 层栈：DePIN（算力）+ 身份（DID+声誉）+ 认知（RAG+MCP）+ 结算（账户抽象）+ 治理（Agentic DAO）。Bittensor 子网奖励专门模型，Fetch.ai 用 ASI-1 Mini + FET token，Gonka 用 transformer PoW 把算力导向生产任务。学术：Shapley 值给多 Agent 公平分润、二价 token 拍卖防操纵。
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Problem | 问题引入

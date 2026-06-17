@@ -12,6 +12,9 @@
 **Prerequisites:** Phase 16 · 05 (Supervisor Pattern), Phase 16 · 04 (Primitive Model) | **前置知识:** Phase 16 · 05 (Supervisor Pattern), Phase 16 · 04 (Primitive Model)
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·04-05（原语+Supervisor）。本节是 Supervisor 的反面——无中心协调器的群体网络。
+> 💡 **【类比】** Swarm vs Supervisor = "去中心化" vs "层级制"。Supervisor = 公司（CEO 调度）；Swarm = 开源社区（每人看 issue 板自己领取）。Swarm 适合独立子任务（多文件编辑、多源查询），不适合需要单一计划的任务。5-10 个 Agent 是最优——太多会聚合时打架。
+
 ## Problem | 问题引入
 
 Supervisor scales to a few workers. What about hundreds? The supervisor itself becomes the bottleneck: every decision about who does what funnels through one agent. One slow plan step stalls the whole system.

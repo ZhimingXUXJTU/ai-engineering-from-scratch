@@ -10,6 +10,9 @@
 **Type:** Learn + Build | **类型:** 学习 + 构建
 **Languages:** Python (stdlib) | **语言:** Python（标准库）
 **Prerequisites:** Phase 16 · 07 (Society of Mind and Debate), Phase 16 · 14 (Consensus and BFT) | **前置知识:** Phase 16 · 07（心智社会与辩论），Phase 16 · 14（共识与 BFT）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·07（辩论）、Phase 16·14（BFT 共识）、Phase 13·03（Self-Consistency CoT）。投票拓扑 = 多 Agent 决策的几何形状。
+> 💡 **【类比】** 投票拓扑 = "会议桌摆放方式"。星形 = 圆桌投票（独立）；链形 = 接力修改（前面 Agent 的输出传给下一个）；图形 = 圆桌讨论（多轮交互）。MultiAgentBench 结论：图形适合研究任务但有"协调税"（>4 个 Agent 性价比下降）。异质性是关键——不同模型/温度/prompt 防单一文化错误。
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Problem | 问题引入

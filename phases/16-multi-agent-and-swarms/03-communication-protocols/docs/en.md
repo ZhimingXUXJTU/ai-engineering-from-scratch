@@ -12,6 +12,9 @@
 **Prerequisites:** Phase 14 (Agent Engineering), Lesson 16.01 (Why Multi-Agent) | **前置知识:** Phase 14 (Agent 工程), Lesson 16.01 (为什么需要多 Agent)
 **Time:** ~120 minutes | **时间:** ~120 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 14（Agent 工程基础）、Phase 16·01-02（多 Agent 动机与 FIPA 历史）、Phase 13（MCP 协议）。本节动手实现多 Agent 通信——选协议要按延迟和协作范围权衡。
+> 💡 **【类比】** 多 Agent 通信 = "团队沟通工具"。HTTP+JSON（A2A）= 邮件（异步、跨组织）；JSON-RPC（MCP）= Slack（工具调用）；gRPC = 内部电话（低延迟、强类型）。选错协议 = 团队效率灾难。
+
 ## Learning Objectives | 学习目标
 
 - Implement MCP tool discovery and invocation so agents can use tools exposed by external servers

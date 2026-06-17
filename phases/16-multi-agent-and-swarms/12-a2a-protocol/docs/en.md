@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 16 · 04 (Primitive Model) | **前置知识:** Phase 16 · 04 (原语模型)
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 13·15-20（MCP 协议套件）、Phase 16·04（原语）。A2A 是 MCP 的水平补充：MCP=Agent 调工具（垂直），A2A=Agent 找 Agent（横向）。
+> 💡 **【类比】** MCP + A2A = "电话黄页 + 直接通话"。MCP = 工具目录（agent 找工具用）；A2A = Agent 间通话协议（agent 找 agent 协作）。2026 生产系统标配：MCP（连工具）+ A2A（连其他 Agent）+ Agent Card（发现）。Google 主导，150+ 组织支持。
+
 ## Problem | 问题引入
 
 Your agent needs to call another agent on another system. How? You can expose an HTTP endpoint, define a bespoke JSON schema, and hope the other side speaks it. Every pair of agents becomes a custom integration.

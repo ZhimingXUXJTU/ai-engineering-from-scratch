@@ -10,6 +10,9 @@
 **Type:** Learn + Build | **类型:** 学习 + 构建
 **Languages:** Python (stdlib) | **语言:** Python（标准库）
 **Prerequisites:** Phase 16 · 09 (Parallel Swarm Networks), Phase 16 · 14 (Consensus and BFT) | **前置知识:** Phase 16 · 09（并行群体网络），Phase 16 · 14（共识与 BFT）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 16·09（Swarm 网络）、Phase 16·14（BFT）、经典优化算法（PSO/ACO/GA）。本节把生物启发算法应用到 LLM 时代——prompt 优化、模型路由。
+> 💡 **【类比】** LLM + PSO/ACO = "蚁群找最佳 prompt"。PSO = 每个 Agent 是粒子，速度=prompt，向全局最优移动；ACO = Agent 在 prompt 空间留下信息素，后来者跟随强信息素。LMPSO 适合结构化输出（数学表达式、代码）；Model Swarms 把每个 LLM 专家当粒子，比 12 个基线平均高 13.3%；AMRO-S 用 ACO 做 agent 路由，4.7 倍加速。
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Problem | 问题引入
