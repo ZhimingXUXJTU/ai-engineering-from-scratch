@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 18 · 16 (red-team tooling), Phase 14 (agent engineering) | **前置知识:** Phase 18 · 16 (红队工具), Phase 14 (Agent 工程)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·16（红队工具）、Phase 14。WMDP = 大规模杀伤性武器相关能力评估基准。
+> 💡 **【类比】** WMDP = "AI 武器化潜力体检"。4157 题（生物 1520+网安 2225+化学 412），"黄色区域"= 接近使能知识但非直接配方。双重用途：(1) 评估 AI 双重用途能力；(2) 遗忘基准（RMU 方法降 WMDP 分但保通用能力）。2025 OpenAI PF v2 警告模型"在显著帮助新手制造已知生物威胁的边缘"——ASL-3 触发线。
+
 ## Learning Objectives | 学习目标
 
 - Describe WMDP's three domains, question counts, and "yellow zone" filter criterion.

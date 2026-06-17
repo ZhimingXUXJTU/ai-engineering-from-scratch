@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 18 · 15 (indirect prompt injection) | **前置知识:** Phase 18 · 15 (间接提示注入)
 **Time:** ~45 minutes | **时间:** ~45 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·15（间接提示注入 IPI）。EchoLeak = AI 系统首个公开零点击 CVE，证明 IPI 不是理论威胁。
+> 💡 **【类比】** EchoLeak = "邮件里的木马"。CVE-2025-32711（CVSS 9.3）：攻击者发邮件给员工→员工 Copilot 检索邮件作 RAG 上下文→隐藏指令执行→通过微软 CSP 批准域名外泄数据。绕过 XPIA 过滤+链接脱敏。Aim Labs 术语："LLM Scope Violation"——外部不可信输入操纵模型访问机密。
+> ⚠️ NIST 称 IPI 为"生成 AI 最大安全缺陷"，OWASP 2025 排 LLM 应用威胁第 1。CamoLeak（Copilot Chat 9.6）、Copilot RCE CVE-2025-53773 等持续涌现。
+
 ## Learning Objectives | 学习目标
 
 - Describe the EchoLeak attack chain from email delivery to data exfiltration.

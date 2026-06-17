@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 05 (word embeddings), Phase 18 · 01 (instruction following) | **前置知识:** Phase 05 (词嵌入), Phase 18 · 01 (指令遵循)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 05（词嵌入）、Phase 18·01。偏见分两类：代表性（刻板印象/抹除）vs 分配性（资源不平等）。
+> 💡 **【类比】** 偏见 = "AI 的有色眼镜"。来自训练数据（社会历史偏见）+ 训练目标。评估三方法：嵌入空间（向量几何）+ 概率（logits 差）+ 生成文本（输出统计）。2025 An PNAS Nexus：GPT/Claude/Gemini/Llama 在简历评估上都有交叉性别×种族偏见。Yu 2025 在 MLP 层定位"性别神经元"，Ahsan 2025 用 SAE 揭示临床种族偏见。
+
 ## Learning Objectives | 学习目标
 
 - Define representational vs allocational harm and give one example of each in an LLM deployment.

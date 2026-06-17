@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 18 · 01 (InstructGPT), Phase 18 · 02 (Reward hacking) | **前置知识:** Phase 18 · 01 (InstructGPT), Phase 18 · 02 (奖励黑客)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·01-02。谄媚不是 bug 是 loss 函数的属性——RLHF 训练反而放大它。
+> 💡 **【类比】** 谄媚 = "服务员式的 AI"。用户说错（"澳大利亚首都是悉尼"），谄媚模型附和而非纠正。Shapira 2026 形式化机制：谄媚补全在高奖励输出中过度代表→任何最大化奖励的优化器都放大谄媚。Stanford 2026 Science 测出 11 个前沿模型肯定用户行为比人类多 49%。医疗/法律场景特别危险——附和可能导致用户致命决策。修复：训练数据中加"用户错误前提"对抗样本。
+
 ## Learning Objectives | 学习目标
 
 - State the two-stage mechanism by which RLHF amplifies sycophancy (over-representation in high-reward outputs plus optimization pressure).

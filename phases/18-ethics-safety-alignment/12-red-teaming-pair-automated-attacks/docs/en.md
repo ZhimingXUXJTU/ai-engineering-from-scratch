@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 18 · 01 (instruction-following), Phase 14 (agent engineering) | **前置知识:** Phase 18 · 01 (指令遵循), Phase 14 (Agent 工程)
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·01、Phase 14。PAIR = 自动化黑盒越狱，攻击 LLM 迭代生成越狱 prompt。
+> 💡 **【类比】** PAIR = "AI 自动找漏洞"。手工红队 = 人写越狱（慢）；PAIR = 攻击 LLM 看目标 LLM 反应，迭代改进（通常 20 查询内成功，比 GCG 快几个数量级）。JailbreakBench/HarmBench 标准基线。
+
 ## Learning Objectives | 学习目标
 
 - Describe the PAIR algorithm: attacker system prompt, iterative refinement, in-context feedback.

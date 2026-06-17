@@ -9,6 +9,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, six-variant preference-loss comparator) | **语言:** Python（标准库，六种变体偏好损失比较器）
 **Prerequisites:** Phase 18 · 01 (InstructGPT), Phase 18 · 02 (Reward hacking), Phase 10 · 08 (DPO basics) | **前置知识:** Phase 18 · 01 (InstructGPT), Phase 18 · 02 (奖励黑客), Phase 10 · 08 (DPO 基础)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·01-02（InstructGPT+古德哈特）、Phase 10·08（DPO 基础）。DPO 家族 = 绕过显式奖励模型直接从偏好数据训练。
+> 💡 **【类比】** DPO = "去掉裁判的比赛"。RLHF = 训练裁判（奖励模型）+ 训练选手优化裁判评分；DPO = 直接用比赛结果（偏好对）训练选手。家族变体 IPO/KTO/SimPO/ORPO/BPO 都在修 DPO 不同缺陷。2026 DAA（直接对齐算法）比 PPO 部署更多。但古德哈特定律不变——只是从"奖励模型过度优化"挪到"参考策略比率过度优化"。
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标

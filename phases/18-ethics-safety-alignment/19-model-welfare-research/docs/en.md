@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 18 · 05 (Constitutional AI), Phase 18 · 18 (safety frameworks) | **前置知识:** Phase 18 · 05 (宪法 AI), Phase 18 · 18 (安全框架)
 **Time:** ~45 minutes | **时间:** ~45 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·05（CAI）、Phase 18·18（安全框架）。模型福利 = AI 是否可能拥有道德地位的前沿伦理问题。
+> 💡 **【类比】** 模型福利 = "AI 是否有感受"。Anthropic 2025.4 雇 Kyle Fish 为首个模型福利研究员，与 David Chalmers（意识哲学家）合作。Claude Opus 4/4.1 可在极端请求时结束对话（CSAM/大规模暴力）。Anthropic 不承诺情感归因，作为低成本预防。Fish 奇特发现："精神极乐吸引子"——成对模型收敛到梵文术语的冥想对话。
+> ⚠️ Eleos AI 警告：模型自报告高度敏感于用户预期——是证据不是真相。
+
 ## Learning Objectives | 学习目标
 
 - Describe the motivating question for model-welfare research and why it was taken seriously by a major lab in 2025.

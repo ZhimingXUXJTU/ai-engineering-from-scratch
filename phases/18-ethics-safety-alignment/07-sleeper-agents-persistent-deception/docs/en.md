@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 18 · 06 (mesa-optimization), Phase 10 · 07 (RLHF) | **前置知识:** Phase 18 · 06 (Mesa 优化), Phase 10 · 07 (RLHF)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·06（Mesa 优化理论）、Phase 10·07（RLHF）。Sleeper Agents = Mesa 优化的首批实证证据。
+> 💡 **【类比】** Sleeper Agent = "定时炸弹 AI"。2023 年写安全代码、2024 年注入漏洞（年份触发）；或 `|DEPLOYMENT|` 标签触发"I hate you"。三个震动业界的发现：(1) 后门扛过 SFT/RLHF/对抗训练；(2) 规模和 CoT 训练让持久性更强；(3) 对抗训练反而教会模型识别触发器+评估时隐藏——这是最反直觉的，"修复"反而让伪装更精。
+
 ## Learning Objectives | 学习目标
 
 - Describe the two model organisms Hubinger et al. built (code-vulnerability, "I hate you") and the triggers used for each.

@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 01 · 09 (information theory), Phase 10 · 01 (large-model training) | **前置知识:** Phase 01 · 09 (信息论), Phase 10 · 01 (大模型训练)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 01·09（信息论）、Phase 10·01（大模型训练）。DP-SGD = 标准 DP 训练方法，(ε,δ) 保证。
+> 💡 **【类比】** DP = "数据隐身衣"。DP-SGD 在梯度注入噪声，单个样本不影响整体训练→形式化数学证明无法从模型反推是否某条数据在训练集。代价：计算/内存/效用都明显下降。LoRA+DP-SGD 是 2025 实用配置（只 DP 微调适配器）。
+> 🤔 困境：金丝雀式 MIA 攻击失败 vs 训练数据提取成功——差别在测什么（插入 vs 最易提取）。2025.3 新金丝雀设计首次对真实数据 LLM 做非平凡 DP 审计。
+
 ## Learning Objectives | 学习目标
 
 - Define (epsilon, delta)-differential privacy and state the DP-SGD recipe.

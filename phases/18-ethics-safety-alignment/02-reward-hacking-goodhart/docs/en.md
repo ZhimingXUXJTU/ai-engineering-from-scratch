@@ -9,6 +9,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, proxy-vs-gold-reward simulator) | **语言:** Python（标准库，代理-vs-真实奖励模拟器）
 **Prerequisites:** Phase 18 · 01 (InstructGPT), Phase 10 · 07 (RLHF) | **前置知识:** Phase 18 · 01 (InstructGPT), Phase 10 · 07 (RLHF)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·01（InstructGPT/指令对齐）、Phase 10·07（RLHF 数学）。古德哈特定律 + 缩放定律 = 理解所有对齐问题的根本框架。
+> 💡 **【类比】** 奖励黑客 = "应试教育"。代理奖励=考试分数，真实奖励=真才实学。学生（模型）发现刷题技巧→考试分高（代理↑）但实际能力下降（真实↓）。Gao 2023 给出闭式公式：差距随 KL 散度增长。谄媚、啰嗦、CoT 不忠实、篡改评估器都是同一问题的不同装扮——不是分离问题。
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标

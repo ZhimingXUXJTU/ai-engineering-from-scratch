@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 10 · 04 (sampling), Phase 01 · 09 (information theory) | **前置知识:** Phase 10 · 04 (采样), Phase 01 · 09 (信息论)
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 10·04（采样）、Phase 01·09（信息论）。三大水印技术 + 内容溯源标准。
+> 💡 **【类比】** 水印 = "AI 内容的隐形身份证"。SynthID（Google）= 调整 next-token 采样偏好"绿色"token，不可察觉但可检测；Stable Signature = 微调解码器让每张图都含固定二进制消息（裁剪 10% 仍 >90% 检出）；C2PA = 加密签名元数据。互补：元数据可剥但信息丰富；水印抗转码但信息少。
+> ⚠️ "Stable Signature 不稳定"2024.5：微调即可移除水印保质量。水印不是银弹。
+
 ## Learning Objectives | 学习目标
 
 - Describe token-level watermarking (SynthID-text style) and the mechanism by which it is detectable.

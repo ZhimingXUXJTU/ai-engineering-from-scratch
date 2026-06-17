@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 18 · 12 (PAIR), Phase 18 · 13 (MSJ) | **前置知识:** Phase 18 · 12 (PAIR), Phase 18 · 13 (MSJ)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·12-13。视觉越狱 = 用 ASCII 艺术/树状图/JSON 等编码攻击绕过文本过滤器。
+> 💡 **【类比】** ASCII 越狱 = "隐形墨水"。安全过滤器看到无害的标点网格，模型视觉理解为一个词。ArtPrompt ACL 2024：GPT-4/Gemini/Claude/Llama-2 全失败，>75% 攻击成功率。绕过 PPL 过滤、改写、重 token 化防御。结构性变种（StructuralSleight）扩展到树/图/嵌套 JSON——所有非语义视觉提示都是攻击面。
+
 ## Learning Objectives | 学习目标
 
 - Describe the ArtPrompt attack: word-identification step, ASCII-art substitution, final cloaked prompt.

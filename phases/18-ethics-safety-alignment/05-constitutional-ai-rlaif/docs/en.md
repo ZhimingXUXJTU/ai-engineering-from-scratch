@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 18 · 01 (InstructGPT), Phase 18 · 02 (Reward hacking) | **前置知识:** Phase 18 · 01 (InstructGPT), Phase 18 · 02 (奖励黑客)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·01-02。Constitutional AI = 用 AI 监督 AI（RLAIF），创造 RLAIF 一词。也参考 Phase 15·17。
+> 💡 **【类比】** RLAIF = "AI 当自己的老师"。RLHF = 父母手把手教（贵且慢）；CAI = 给 AI 一本《学生守则》让它自我批评+修订。2026 Claude 宪法 79 页四级优先级（安全>伦理>指南>有用），首次明确承认"AI 道德地位的不确定性"——这反映前沿 AI 安全的哲学转向。
+
 ## Learning Objectives | 学习目标
 
 - Describe the two phases of Constitutional AI (critique-and-revise SFT, RL from AI feedback) and the role of the constitution in each.
