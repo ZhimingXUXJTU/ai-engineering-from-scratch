@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy sequential test simulator) | **语言:** Python
 **Prerequisites:** Phase 17 · 13 (Observability), Phase 17 · 20 (Progressive Deployment) | **前置知识:** Phase 17 · 13 (Observability), Phase 17 · 20 (Progressive Deployment)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·13（可观测性）、Phase 17·20（渐进部署）、统计基础（CUPED、序贯测试）。传统 A/B 不为非确定性 LLM 设计。
+> 💡 **【类比】** LLM A/B 测试 = "用科学方法代替拍脑袋"。关键区别：eval 问"模型能做吗"；A/B 问"用户在乎吗"。两者都要。测什么：prompt 措辞、模型选择、生成参数（temperature/top-p）。案例：聊天机器人变体+70% 对话长度+30% 留存；Nextdoor AI 标题+1% CTR；Khanmigo 在延迟 vs 数学准确率间取舍。平台：Statsig（被 OpenAI 11 亿收购，全功能）、GrowthBook（开源、warehouse 原生、贝叶斯+频率+序贯引擎）。
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标

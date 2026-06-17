@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy bandwidth-bound decode simulator) | **语言:** Python
 **Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 09 (Production Quantization) | **前置知识:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 09 (Production Quantization)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·04（vLLM）、Phase 17·09（量化）。边缘推理核心约束 = 内存带宽（不是算力）。
+> 💡 **【类比】** 边缘 vs 数据中心 = "手机 vs 超算"。手机 DRAM 50-90 GB/s，数据中心 HBM3 2-3 TB/s——30-50 倍差距，解码（内存绑定）下决定性。2026 四大平台：Apple NE（38 TOPS 统一内存）、Qualcomm Hexagon（45 TOPS）、WebGPU+WebLLM（M3 Max 跑 Llama 3.1 8B 41 tok/s）、Jetson（Orin AGX 跑 gpt-oss-20b 40 tok/s）。TensorRT Edge-LLM 支持 EAGLE-3 + NVFP4 + chunked prefill。
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标

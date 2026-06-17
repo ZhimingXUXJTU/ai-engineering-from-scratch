@@ -9,6 +9,10 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy cost-attribution simulator with kill switch) | **语言:** Python
 **Prerequisites:** Phase 17 · 13 (Observability), Phase 17 · 14 (Caching) | **前置知识:** Phase 17 · 13 (Observability), Phase 17 · 14 (Caching)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·13（可观测性）、Phase 17·14（缓存）、云 FinOps 基础。LLM FinOps = 传统 FinOps 失效后的新方法。
+> 💡 **【类比】** LLM FinOps = "按用收费的水电费"。传统 FinOps = 按服务器 uptime（标签=资产）；LLM FinOps = 按 token 交易（标签=交易）。三大归因维度（day-one 必埋）：per-user（席位定价）、per-task（产品成本）、per-tenant（单位经济）。四层 token（prompt/tool/memory/response）必须分桶——合并一个桶会掩盖真实开销。
+> ⚠️ **【易错点】** 单位指标用 $/M tokens 是错的，应该用"每次解决查询的成本"。强制阶梯：限流（2-3x 峰值）→日上限（1.5-3x 合约）→ kill switch（z-score>4 自动暂停）。
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标

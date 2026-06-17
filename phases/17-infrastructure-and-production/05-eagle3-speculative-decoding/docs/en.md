@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy acceptance-rate simulator) | **语言:** Python（标准库，接受率模拟器）
 **Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 10 · 18 (Multi-Token Prediction) | **前置知识:** Phase 17 · 04（vLLM 服务内部）, Phase 10 · 18（多 Token 预测）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·04（vLLM）、Phase 10·18（MTP 多 token 预测）、Phase 10·25（投机解码原理）。本节是生产版 EAGLE-3。
+> 💡 **【类比】** EAGLE-3 = "翻译员打草稿"。草稿模型（draft）快速猜 K 个 token，目标模型一次验证。猜对=免费，猜错=多一次验证开销。EAGLE-3 创新：用目标模型隐藏状态训练 draft（而非原始 token），接受率 α 提到 0.6-0.8。生产关键问题：α 在你的流量上多少？<0.55 时反而拖慢（拒绝的 draft 浪费算力）——必须先测 α 再开 flag。
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标

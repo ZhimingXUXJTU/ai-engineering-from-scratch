@@ -10,6 +10,9 @@
 **Prerequisites:** Phase 17 · 14 (Prompt & Semantic Caching) | **前置知识:** Phase 17 · 14 (Prompt & Semantic Caching)
 **Time:** ~45 minutes | **时间:** ~45 minutes
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·14（提示缓存）。批处理 API = 全行业标配 50% 折扣 + ~24 小时回转。
+> 💡 **【类比】** 批处理 API = "物流拼车"。同步 = 急件快递（贵）；批处理 = 整车发货（半价）。规则：非交互式任务必须上 batch。三层分流：交互式（同步+缓存）、半交互（异步队列+回退）、批处理（过夜+缓存叠加可降到 10%）。伪装成交互的"5 分钟可接受延迟"任务最浪费——必须分类。
+
 ## Learning Objectives | 学习目标
 
 - Name the three provider batch APIs (OpenAI, Anthropic, Google) and the common 50% discount + 24h turnaround guarantees.

@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy prefix-cache-aware router simulator) | **语言:** Python
 **Prerequisites:** Phase 17 · 04 (vLLM Serving), Phase 17 · 06 (SGLang RadixAttention) | **前置知识:** Phase 17 · 04 (vLLM Serving), Phase 17 · 06 (SGLang RadixAttention)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·04（vLLM）、Phase 17·06（RadixAttention）。多区域部署必须用 cache-aware router，不能 round-robin。
+> 💡 **【类比】** 多区域 LLM = "连锁餐厅中央厨房"。Round-robin = 随机送单到分店（缓存命中率 0，每次重新做）；Cache-aware router = 按前缀哈希送到已有缓存的分店（命中 80ms vs 未命中 800ms）。JPMorgan/Mayo Clinic 2024 灾备演练 22 分钟切换。失败教训：32% LLM DR 失败因为只备份了权重忘了 tokenizer 或量化配置——文件清单必须完整。
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标

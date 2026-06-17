@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** 学习
 **Languages:** Python (stdlib, toy realistic-prompt generator + latency collector) | **语言:** Python
 **Prerequisites:** Phase 17 · 08 (Inference Metrics), Phase 17 · 03 (GPU Autoscaling) | **前置知识:** Phase 17 · 08 (Inference Metrics), Phase 17 · 03 (GPU Autoscaling)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·08（指标）、Phase 17·03（GPU 扩缩）。传统负载测试器不为流式响应+变长输出设计。
+> 💡 **【类比】** LLM 负载测试 = "测自动驾驶 vs 测传统车"。两个陷阱：(1) GIL 陷阱：Locust 在 Python GIL 下做 token 化，与请求生成抢锁→报告的 token 间延迟虚高（客户端是瓶颈不是服务端）；(2) Prompt 一致性陷阱：循环同一 prompt 只测分布一个点，真实流量有多样化前缀匹配。LLMPerf 用 `--mean-input-tokens+stddev` 修复。2026 工具：GenAI-Perf/LLMPerf/LLM-Locust（LLM 专用）+ k6 v2026.1（流式+K8s）+ Vegeta（Go 常速率）+ Locust（仅配 LLM-Locust 扩展）。
 **Time:** ~75 minutes | **时间:** ~75 minutes
 
 ## Learning Objectives | 学习目标

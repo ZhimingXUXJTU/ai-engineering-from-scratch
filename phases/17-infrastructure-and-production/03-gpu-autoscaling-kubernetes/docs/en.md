@@ -8,7 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy queue-depth autoscaler simulator) | **语言:** Python（标准库，队列深度自动扩缩模拟器）
 **Prerequisites:** Phase 17 · 02 (Inference Platform Economics), Phase 17 · 04 (vLLM Serving Internals) | **前置知识:** Phase 17 · 02（推理平台经济学）, Phase 17 · 04（vLLM 服务内部）
-**Time:** ~75 minutes | **时间:** ~75 分钟
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·02（平台经济学）、Phase 17·04（vLLM）、Kubernetes 基础。三层扩缩：Karpenter（节点层）+ KAI Scheduler（Pod 层 gang scheduling）+ 应用层（队列深度/KV 利用率）。
+> 💡 **【类比】** GPU 扩缩 = "餐厅运力调度"。Karpenter = 开新店（分钟级）；KAI = 桌位组合（gang scheduling 防 7/8 部分分配，7 桌等 1 桌）；应用层 = 服务员按等位队列长度调座。HPA 陷阱：DCGM 利用率是占空比，100% 可能是 10 个或 100 个请求——必须用 Goodput（Phase 17·08）替代。
 
 ## Learning Objectives | 学习目标
 

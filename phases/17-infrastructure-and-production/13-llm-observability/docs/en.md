@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy trace-sampling simulator) | **语言:** Python
 **Prerequisites:** Phase 17 · 08 (Inference Metrics), Phase 14 (Agent Engineering) | **前置知识:** Phase 17 · 08 (Inference Metrics), Phase 14 (Agent Engineering)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·08（推理指标）、Phase 14（Agent 工程）。LLM 可观测性两类工具：开发平台 + Gateway/遥测。
+> 💡 **【类比】** 可观测性工具 = "AI 应用的体检设备"。开发平台（LangSmith/Langfuse/Phoenix）= 全身体检（含评估、prompt 管理、会话回放）；Gateway（Helicone/Portkey）= 心率手环（轻量代理、15-30 分钟部署）。Langfuse 开源 50K 事件/月免费；LangSmith 在 LangChain 生态领先 $39/用户/月；Helicone 100K 请求/月免费。生产典型组合：Gateway + 评估平台 + OpenTelemetry 胶水。
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标

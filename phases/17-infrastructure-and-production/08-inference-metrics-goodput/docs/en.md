@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy percentile calculator and goodput reporter) | **语言:** Python（标准库，百分位计算器和 Goodput 报告器）
 **Prerequisites:** Phase 17 · 04 (vLLM Serving Internals) | **前置知识:** Phase 17 · 04（vLLM 服务内部）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·04（vLLM）、统计基础（百分位）。推理指标四件套：TTFT（首 token 时间）+ TPOT（每 token 时间）+ 吞吐量 + Goodput。
+> 💡 **【类比】** 推理指标 = "餐厅 KPI"。TTFT = 顾客坐下到第一道菜上桌（prefill+queue+network）；TPOT = 后续每道菜间隔（解码成本）；吞吐量 = 餐厅每小时出餐总数；Goodput = 满足所有 SLO 的请求比例（关键！）。陷阱：高吞吐低 Goodput = 做了很多菜但客人没按时吃到。必须报 P50/P90/P99 不能只报均值。GenAI-Perf 和 LLMPerf 对 TPOT 口径不同——同一运行两工具结果会冲突。
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
 ## Learning Objectives | 学习目标

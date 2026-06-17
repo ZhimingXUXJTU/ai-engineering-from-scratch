@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 17 · 01 (Model Serving), Phase 11 (LLM Engineering) | **前置知识:** Phase 17 · 01（模型服务）, Phase 11（LLM 工程）
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 11·12（推理优化基础）、KV cache 概念、连续批处理。vLLM 是 2026 开源推理引擎的事实标准。
+> 💡 **【类比】** vLLM 三件套 = "高效餐厅厨房"。PagedAttention = 分块管理 KV cache（像操作系统虚拟内存分页，碎片率 < 4%）；Continuous Batching = 动态拼单（新请求随时插入运行 batch）；Chunked Prefill = 切长 prompt（长输入切片避免阻塞解码）。Llama 3.3 70B FP8 在 H100 上 128 并发达 2200-2400 tok/s，比朴素实现快 3-4 倍。
+
 ## Learning Objectives | 学习目标
 
 - Explain PagedAttention as a KV cache allocator: blocks, block tables, and why fragmentation stays under 4% at production load.

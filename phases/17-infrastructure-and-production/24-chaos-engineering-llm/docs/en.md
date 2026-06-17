@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy chaos experiment runner) | **语言:** Python
 **Prerequisites:** Phase 17 · 23 (SRE for AI), Phase 17 · 13 (Observability) | **前置知识:** Phase 17 · 23 (SRE for AI), Phase 17 · 13 (Observability)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·23（SRE）、Phase 17·13（可观测性）、SRE 基础（SLI/SLO/错误预算）。LLM 混沌工程 = 主动注入故障测韧性。
+> 💡 **【类比】** LLM 混沌工程 = "消防演习"。前提：SLI/SLO 定义好、可观测、自动回滚、runbook、on-call。四平面：控制（实验调度）+目标（服务/数据/基础设施）+安全（守卫/中止/流量过滤）+可观测。必须护栏：错误预算燃烧率 > 2x 时暂停实验。节奏：每周小 canary+月度 game day+季度跨团队审计。LLM 专属实验：内存过载、网络故障、provider 宕机、坏 prompt、KV cache 驱逐风暴。
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标

@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy radix-tree cache + cache-aware scheduler) | **语言:** Python（标准库，radix tree 缓存 + 缓存感知调度器模拟）
 **Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 14 (Agentic RAG) | **前置知识:** Phase 17 · 04（vLLM 服务内部）, Phase 14（Agentic RAG）
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·04（vLLM）、Phase 14（Agentic RAG）。SGLang 用 radix tree 复用 KV cache——比 vLLM FCFS 更智能的调度。
+> 💡 **【类比】** SGLang RadixAttention = "记忆图书馆"。vLLM = 每次重新查目录；SGLang = 热门前缀（系统提示+RAG context）存 radix tree 复用。Llama 3.1 8B 在 ShareGPT 上比 vLLM 快 29%；RAG 工作负载快 6.4 倍；语音克隆场景缓存命中 86%。2026 部署在 40 万+ GPU（xAI、LinkedIn、Cursor）。关键：前缀必须稳定排序才有效。
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标

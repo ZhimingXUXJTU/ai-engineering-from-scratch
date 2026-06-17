@@ -8,6 +8,9 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy cold-start path simulator) | **语言:** Python
 **Prerequisites:** Phase 17 · 02 (Inference Platform Economics), Phase 17 · 03 (GPU Autoscaling) | **前置知识:** Phase 17 · 02 (Inference Platform Economics), Phase 17 · 03 (GPU Autoscaling)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 17·02（平台经济学）、Phase 17·03（GPU 扩缩）。Serverless LLM 冷启动 = 5-20 分钟（不是热身，是停服）。
+> 💡 **【类比】** 冷启动缓解 = "汽车预热"。朴素加载 = 钥匙一拧从零启动（20 分钟）；五层加速：(1) 预热节点镜像；(2) 模型流式加载；(3) GPU 内存快照（Modal 10 倍提速）；(4) 暖池 min_workers=1；(5) 分层加载（ServerlessLLM NVMe→DRAM→HBM，10-200 倍延迟降低）。Modal 实测 2-4 秒冷启动，Baseten 5-10 秒（预热版亚秒）。
 **Time:** ~60 minutes | **时间:** ~60 minutes
 
 ## Learning Objectives | 学习目标
