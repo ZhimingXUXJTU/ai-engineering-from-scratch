@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 18 · 20 (bias), Phase 02 (classical ML) | **前置知识:** Phase 18 · 20 (偏见), Phase 02 (经典 ML)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·20（偏见）、Phase 02（经典 ML）、因果推断基础。公平性三大家族。
+> 💡 **【类比】** 公平 = "AI 的正义天平"。群体公平（demographic parity/equalized odds）= 平均上各组别结果相等；个体公平（Dwork 2012）= 相似个体得相似决策；反事实公平（Kusner 2017）= 改变敏感属性决策不变。三者不能同时满足——选择是政策决定。
+> 🤔 NeurIPS 2024：CF-vs-accuracy 有内在权衡，但有界损失转换方法存在。
+
 ## Learning Objectives | 学习目标
 
 - State the three group-fairness criteria (demographic parity, equalized odds, conditional use accuracy equality) and one impossibility result.

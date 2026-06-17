@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 18 · 01 (instruction-following), Phase 18 · 10 (AI Control), Phase 09 (RL foundations) | **前置知识:** Phase 18 · 01 (指令遵循), Phase 18 · 10 (AI 控制), Phase 09 (RL 基础)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·01+10、Phase 09（RL）。W2SG = 弱监督者能否帮强模型学到正确东西，是超级对齐的核心问题。
+> 💡 **【类比】** W2SG = "小学生教中学生"。如果中学生能从小学老师那里正确学到，说明对齐方法可扩展到超人 AI。PGR 指标（Performance Gap Recovered）= 弱监督弥合差距的比例。Burns 2023 测出 PGR 约 20-80%——强模型能"理解"意图超越弱监督者的错误。
+> 🤔 可扩展监督（debate/递归奖励建模）+ W2SG 互补：前者提升监督者能力，后者确保强模型从不完美监督中泛化。
+
 ## Learning Objectives | 学习目标
 
 - Define scalable oversight and weak-to-strong generalization and explain how they are complementary.

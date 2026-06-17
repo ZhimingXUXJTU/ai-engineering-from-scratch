@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 18 · 18 (frontier frameworks), Phase 18 · 27 (data governance) | **前置知识:** Phase 18 · 18 (前沿框架), Phase 18 · 27 (数据治理)
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·18（前沿框架）、Phase 18·27（数据治理）。四大监管体制对比。
+> 💡 **【类比】** AI 监管 = "四国交通法规"。EU AI Act（最严，罚款 3% 全球营业额）；UK AISI→AI 安全研究所（2025.2 改名，范围收窄）；US AISI→CAISI（2025.6 转 NIST，亲增长倾向）；Korean AI Framework Act（2024.12 通过，要求外企派本地代表）。GPAI 行为准则（2025.7.10）三章 12 项承诺，2026.8 执行。
+
 ## Learning Objectives | 学习目标
 
 - Describe the EU AI Act risk tiers (prohibited, high-risk, general-purpose, limited-risk) and the August 2025 / August 2026 / August 2027 timeline.

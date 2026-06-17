@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 18 · 18 (safety frameworks), Phase 18 · 24 (regulatory) | **前置知识:** Phase 18 · 18 (安全框架), Phase 18 · 24 (监管)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·18+24。三种透明度文档：模型卡 + 数据集卡 + 系统卡。
+> 💡 **【类比】** 透明度卡 = "AI 的产品说明书"。Model Cards = 营养标签（训练数据/分析/伦理）；Datasheets = 电子元件规格书（数据集动机/组成/收集）；System Cards = 整机蓝图（端到端系统）。问题：仅 0.3% HF 模型卡含伦理考量。
+> 🤔 详细卡 → 下载量涨 29%（HF 2024 数据）——透明度有商业价值。2024-2025 新趋势：LLM 自动生成卡（CardGen）、可验证证明（Laminator）、可持续性报告（碳/水）。
+
 ## Learning Objectives | 学习目标
 
 - Describe the original Mitchell et al. 2019 model card and the Gebru et al. 2018 datasheet.

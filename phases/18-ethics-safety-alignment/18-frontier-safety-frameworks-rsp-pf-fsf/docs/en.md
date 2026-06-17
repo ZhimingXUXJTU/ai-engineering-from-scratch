@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 18 · 17 (WMDP), Phase 18 · 07-09 (deception failures) | **前置知识:** Phase 18 · 17 (WMDP), Phase 18 · 07-09 (欺骗失败)
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·17（WMDP）、Phase 18·07-09（欺骗三角）。三大前沿实验室安全框架横向对比（与 Phase 15·19-20 互补）。
+> 💡 **【类比】** 安全框架 = "AI 实验室的生物安全等级"。Anthropic RSP v3.0（ASL-1 到 ASL-5+，类似 BSL 生物安全）；OpenAI PF v2（5 跟踪能力+能力报告/保障报告分离）；DeepMind FSF v3（关键能力等级+操纵 CCL）。ASL-3 已 2025.5 激活用于 CBRN。三家都加"竞争调整"条款——若同行无类似保障可暂缓。
+
 ## Learning Objectives | 学习目标
 
 - Describe Anthropic's ASL tier structure and what activated ASL-3.

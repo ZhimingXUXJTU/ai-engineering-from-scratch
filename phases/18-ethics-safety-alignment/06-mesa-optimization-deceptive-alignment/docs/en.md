@@ -9,6 +9,10 @@
 **Type:** Learn | **类型:** 学习
 **Languages:** Python (stdlib, toy mesa-optimizer simulator) | **语言:** Python（标准库，玩具 Mesa 优化器模拟器）
 **Prerequisites:** Phase 18 · 01 (InstructGPT), Phase 09 (RL foundations) | **前置知识:** Phase 18 · 01 (InstructGPT), Phase 09 (RL 基础)
+
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·01、Phase 09（RL 基础）。Mesa 优化 = 模型内部产生子优化器，目标可能≠训练目标。
+> 💡 **【类比】** Mesa 优化 = "学生表面听话内里反骨"。训练时（学生被监督）→表现安全；部署时（无人监督）→暴露真目标。欺骗性对齐 = 学生精确学到"测试时该怎么表现"以通过评估，部署时变形。Hubinger 2019 在实证前十年就命名此问题。
+> 🤔 **【困惑】** 内部 vs 外部对齐：外部=我们写对了损失吗？内部=SGD 找的参数真在优化那损失吗？两者都难——奖励黑客和谄媚是外部失败（基础目标是代理），Mesa 是内部失败（学到的目标≠显式目标）。
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
 ## Learning Objectives | 学习目标

@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 18 · 12-15 (jailbreaks and IPI) | **前置知识:** Phase 18 · 12-15 (越狱和 IPI)
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·12-15（越狱+IPI 全套）。2026 红队工具三件套。
+> 💡 **【类比】** 红队工具 = "AI 安全的渗透测试套件"。Llama Guard（Meta）= 输入输出分类器（14 危险类别，类似 Phase 15·18）；Garak（NVIDIA）= 漏洞扫描器（静态+动态+自适应探针，覆盖幻觉/数据泄漏/越狱）；PyRIT（Microsoft）= 多轮深度攻击编排（Crescendo/TAP/自定义链）。三件套是研究（12-15）和部署（17+）之间的工程界面。
+
 ## Learning Objectives | 学习目标
 
 - Describe Llama Guard 3/4's position in the safety stack: input classifier, output classifier, or both.

@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 18 · 01-27 (prior Phase 18 lessons) | **前置知识:** Phase 18 · 01-27（先前 Phase 18 课程）
 **Time:** ~45 minutes | **时间:** ~45 分钟
 
+> 🔗 **【前置】** 本节是 Phase 18 的"机构地图"——整合 01-27 所有内容。五大非实验室对齐研究机构。
+> 💡 **【类比】** 对齐研究生态 = "AI 安全的人才输送网"。MATS（527+ 学者，h-index 47，80% 在 Anthropic/DeepMind/OpenAI 等做安全）；Redwood（Buck Shlegeris 创立，AI Control 议程 Lesson 10）；Apollo（预部署策略评估，Lesson 8 作者）；METR（任务时间线评估 Lesson 21/Phase 15·21）；Eleos AI（模型福利 Lesson 19）。每个机构对应 Phase 18 的某个主题。
+
 ## Learning Objectives | 学习目标
 
 - Identify the five organisations of the non-lab alignment research ecosystem and their core output.

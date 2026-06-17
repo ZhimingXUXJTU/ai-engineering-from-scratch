@@ -11,6 +11,9 @@
 **Prerequisites:** Phase 18 · 12 (PAIR), Phase 10 · 04 (in-context learning) | **前置知识:** Phase 18 · 12 (PAIR), Phase 10 · 04 (上下文学习)
 **Time:** ~45 minutes | **时间:** ~45 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·12（PAIR）、Phase 10·04（ICL 上下文学习）。MSJ = 长上下文塞 256 个伪 user-assistant 越狱示例。
+> 💡 **【类比】** MSJ = "用样本淹没模型"。5 个示例失败、256 个示例可靠——幂律增长。关键：MSJ 和良性 ICL 共享机制（都是上下文模式提取），所以防御不能简单关 ICL。修复：分类器修改 prompt，攻击成功率从 61% 降到 2%。
+
 ## Learning Objectives | 学习目标
 
 - Describe the many-shot jailbreaking attack and the context-window property it exploits.

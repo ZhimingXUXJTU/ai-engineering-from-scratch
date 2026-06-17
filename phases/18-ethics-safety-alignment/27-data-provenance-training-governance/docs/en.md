@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 18 · 24 (regulatory), Phase 18 · 26 (cards) | **前置知识:** Phase 18 · 24 (监管), Phase 18 · 26 (卡片)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·24-26。数据溯源 + 训练治理——AI 训练数据的合法性和可追溯。
+> 💡 **【类比】** 数据溯源 = "食材来源标签"。EU AI Act 要求 2025.8 前机器可读 opt-out 标准（TDM 例外）；California AB 2013 要求发布 12 字段数据集摘要。关键不可逆性：cookie 同意框架是实时可逆的；数据进权重后无法手术擦除——训练后的神经网络没有实际 GDPR 被遗忘权。合规窗口在收集时。
+> ⚠️ Data Provenance Initiative 2024.7：AI 数据共享生态快速衰退，出版方加 robots.txt 限制。
+
 ## Learning Objectives | 学习目标
 
 - Describe California AB 2013's 12 mandated fields for Generative AI training-data transparency.

@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 18 · 16 (Llama Guard / Garak / PyRIT) | **前置知识:** Phase 18 · 16 (Llama Guard / Garak / PyRIT)
 **Time:** ~60 minutes | **时间:** ~60 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·16（红队工具）。内容审核 = 把 12-16 课的安全政策操作化的产品层。
+> 💡 **【类比】** 审核系统 = "AI 服务台的保安"。OpenAI Moderation API（GPT-4o 驱动）= 一次调用分类 13 类（骚扰/仇恨/非法/自残/性/暴力等）；Llama Guard 3/4（14 MLCommons 类别，多模态）；Perspective API（Google Jigsaw，毒性打分，LLM 前的旧时代）。
+> 💡 三层默认配置：输入审核（pre-gen）+ 输出审核（post-gen）+ 自定义审核（域规则）。异步并行调用来藏延迟。
+
 ## Learning Objectives | 学习目标
 
 - Describe the OpenAI Moderation API's category taxonomy and how it differs from Llama Guard 3's MLCommons set.

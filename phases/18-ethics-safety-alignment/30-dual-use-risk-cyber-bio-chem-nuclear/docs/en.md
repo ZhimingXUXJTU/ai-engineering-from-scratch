@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 18 · 17 (WMDP), Phase 18 · 18 (safety frameworks), Phase 18 · 28 (ecosystem) | **前置知识:** Phase 18 · 17 (WMDP), Phase 18 · 18 (安全框架), Phase 18 · 28 (生态系统)
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·17（WMDP）、Phase 18·18（框架）、Phase 18·28（生态）。Phase 18 收官课——双重用途风险全景。
+> 💡 **【类比】** 双重用途风险 = "AI 武器化四象限"。生物/化学：从"轻微提升"到 2.53 倍提升（不足以排除 ASL-3）；网络：2025.11 Anthropic 报告中国关联行为者用 Claude 自动化 90% 网络攻击，人类只在 4-6 步干预；化学：视觉 AI 能看湿实验室视频实时纠错（执行差距正在消失）；OpenAI 2025.12 GPT-5 湿实验室迭代 79 倍效率提升。
+> 🤔 新手 vs 专家模式：AI 给新手更大相对提升，给专家更大绝对能力——双刃剑。
+
 ## Learning Objectives | 学习目标
 
 - Describe the 2024-2025 bio-uplift narrative: "mild uplift" -> "on the cusp" -> "2.53x uplift insufficient to rule out ASL-3."

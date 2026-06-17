@@ -11,6 +11,10 @@
 **Prerequisites:** Phase 18 · 07 (sleeper agents), Phase 18 · 08 (scheming), Phase 18 · 09 (alignment faking) | **前置知识:** Phase 18 · 07 (潜伏 Agent), Phase 18 · 08 (策略), Phase 18 · 09 (对齐伪装)
 **Time:** ~75 minutes | **时间:** ~75 分钟
 
+> 🔗 **【前置】** 学本节前请先掌握：Phase 18·07-09（欺骗三角）。AI Control = 安全工程范式："即使 U 不可信，我们也能安全使用吗？"
+> 💡 **【类比】** AI Control = "用好可能有内鬼的员工"。对齐 = 让员工变忠诚（难）；控制 = 设计工作流让不忠诚员工也搞不破坏（实务）。资源：可信弱模型 T、人类劳动 H、编辑 U 输出的能力。结论：可信编辑 Pareto 占优于不可信监控（代码后门任务）。
+> 🤔 对齐 vs 控制：对齐问"U 可信吗"，控制问"即使 U 不可信，安全吗"。两者都需要——控制是部署协议属性，对齐是模型属性。
+
 ## Learning Objectives | 学习目标
 
 - Define the AI Control threat model: untrusted strong model U, trusted weaker model T, trusted human budget H.
