@@ -10,6 +10,9 @@
 **Prerequisites:** Phase 04 lessons, Phase 07 transformer lessons, Lesson 30 of this phase | **前置知识:** Phase 04 lessons, Phase 07 transformer lessons, Lesson 30 of this phase
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
+> 🔗 【前置】Track B 2/20。基于 Lesson 30 的 BPE 分词器。
+> 💡 滑动窗口数据集 = "训练的传送带"。预训练=token id→梯度的函数。这课建喂入 id 的传送带：滑动窗口生成 (context, target) 对，处理 batch、padding、attention mask。
+
 ## Learning Objectives | 学习目标
 - Convert a raw corpus into a stream of token ids by calling the tokenizer once.
   中文翻译：Convert a raw corpus into a stream of token ids by calling the tokenizer once.

@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** Capstone
 **Languages:** Python (pipeline), TypeScript (UI) | **语言:** Python (pipeline), TypeScript (UI)
-**Prerequisites:** Phase 4 (CV), Phase 6 (speech), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 17 (infrastructure) | **前置知识:** Phase 4 (CV), Phase 6 (speech), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 17 (infrastructure)
+**Prerequisites:** Phase 4 (CV), Phase 6 (speech), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 17 (infrastructure)
+
+> 🔗 **【前置】** 顶点项目 12 = 综合 Phase 4/6/7/11/12/17。视频理解流水线 = Twelve Labs（Marengo+Pegasus）+ VideoDB + AI2 Molmo 2 + Gemini 长上下文 + TimeLens-100K。
+> 💡 **【类比】** 视频理解 = "AI 视频助理"。2026 标准：场景分割→per-scene 字幕+嵌入→转录对齐→多向量索引→query 返回 (start, end) 时间戳+帧预览。目标：100 小时长+公开基准+计数/动作幻觉测量。| **前置知识:** Phase 4 (CV), Phase 6 (speech), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 17 (infrastructure)
 **Phases exercised:** P4 · P6 · P7 · P11 · P12 · P17 | **涉及阶段:** P4 · P6 · P7 · P11 · P12 · P17
 **Time:** 30 hours | **时间:** 30 hours
 

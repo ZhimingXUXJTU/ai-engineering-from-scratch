@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 50-53 | **前置知识:** Phase 19 lessons 50-53
+
+> 🔗 【前置】Track D 7/8。参考 Phase 15·03 AlphaEvolve 进化选择 + Phase 15·13 Cost Governors。
+> 💡 迭代调度器 = "研究循环的放弃艺术"。无调度器的研究循环=有妄想的队列。调度器是循环决定停止探索什么的地方，这个决定就是整个游戏。预算约束下的资源分配。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

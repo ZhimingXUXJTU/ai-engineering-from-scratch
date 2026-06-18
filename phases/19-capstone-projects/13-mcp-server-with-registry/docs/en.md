@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** Capstone
 **Languages:** Python (server, via FastMCP) or TypeScript (@modelcontextprotocol/sdk), Go (registry service) | **语言:** Python (server, via FastMCP) or TypeScript (@modelcontextprotocol/sdk), Go (registry service)
-**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools and MCP), Phase 14 (agents), Phase 17 (infrastructure), Phase 18 (safety) | **前置知识:** Phase 11 (LLM engineering), Phase 13 (tools and MCP), Phase 14 (agents), Phase 17 (infrastructure), Phase 18 (safety)
+**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools and MCP), Phase 14 (agents), Phase 17 (infrastructure), Phase 18 (safety)
+
+> 🔗 **【前置】** 顶点项目 13 = 综合 Phase 11/13/14/17/18。MCP 服务器+注册中心 = 2026 默认工具规范（Anthropic/OpenAI/Google/IDE 全支持）。
+> 💡 **【类比】** MCP 注册中心 = "AI 工具的应用商店"。2026 生产栈：StreamableHTTP 传输+OAuth 2.1 scope+OPA 策略门+AAIF 注册中心（`.well-known` 能力元数据）。参考 Pinterest 内部生态+AWS ECS 无状态部署+Block goose-agent。要求平台团队发现/验证/启用服务器。| **前置知识:** Phase 11 (LLM engineering), Phase 13 (tools and MCP), Phase 14 (agents), Phase 17 (infrastructure), Phase 18 (safety)
 **Phases exercised:** P11 · P13 · P14 · P17 · P18 | **涉及阶段:** P11 · P13 · P14 · P17 · P18
 **Time:** 25 hours | **时间:** 25 hours
 

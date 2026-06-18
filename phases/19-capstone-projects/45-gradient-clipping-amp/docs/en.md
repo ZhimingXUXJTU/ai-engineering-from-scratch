@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 30-37 | **前置知识:** Phase 19 lessons 30-37
+
+> 🔗 【前置】Track B 16/20。Track C 第 4 节。
+> 💡 梯度裁剪+AMP = "训练的安全带"。生产训练离不开两个：梯度裁剪（全局 L2 范数）+混合精度（autocast+GradScaler 检测 NaN/Inf 干净跳过+记录 scale 因子）。单坏 batch 能让梯度范数涨 3 个数量级，FP16 会放大溢出。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

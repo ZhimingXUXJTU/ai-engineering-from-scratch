@@ -10,6 +10,9 @@
 **Prerequisites:** Phase 13 lessons 01-07, Phase 14 lesson 01 | **前置知识:** Phase 13 lessons 01-07, Phase 14 lesson 01
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
+> 🔗 【前置】Agent Harness 4/10。Phase 14·07 工具调用的工程化版本。
+> 💡 分派器 = schema 兑现承诺的地方。超时、重试、去重、错误映射——所有麻烦都在这一层。这是 LLM 调用工具到真实工具执行的桥。
+
 ## Learning Objectives | 学习目标
 - Wrap a tool handler in a per-call timeout that returns a typed error instead of hanging the loop.
   中文翻译：Wrap a tool handler in a per-call timeout that returns a typed error instead of hanging the loop.

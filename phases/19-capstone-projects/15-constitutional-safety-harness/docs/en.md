@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** Capstone
 **Languages:** Python (safety pipeline, red team), YAML (policy configs) | **语言:** Python (safety pipeline, red team), YAML (policy configs)
-**Prerequisites:** Phase 10 (LLMs from scratch), Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 18 (ethics, safety, alignment) | **前置知识:** Phase 10 (LLMs from scratch), Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 18 (ethics, safety, alignment)
+**Prerequisites:** Phase 10 (LLMs from scratch), Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 18 (ethics, safety, alignment)
+
+> 🔗 **【前置】** 顶点项目 15 = 综合 Phase 10/11/13/14/18。宪法安全线束+红队靶场 = 整合 Phase 18 所有安全工具的实战。
+> 💡 **【类比】** 安全线束 = "AI 应用的安全带+气囊"。2026 分类器栈：Anthropic Constitutional Classifiers+Llama Guard 4+Google ShieldGemma-2+NVIDIA Nemotron 3+X-Guard（多语言）。红队工具：garak/PyRIT/NVIDIA Aegis/promptfoo。NeMo Guardrails v0.12 串起来。要求：分层守护+自主红队（6+ 攻击家族）+宪法自评产生可测无害性 delta。| **前置知识:** Phase 10 (LLMs from scratch), Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 18 (ethics, safety, alignment)
 **Phases exercised:** P10 · P11 · P13 · P14 · P18 | **涉及阶段:** P10 · P11 · P13 · P14 · P18
 **Time:** 25 hours | **时间:** 25 hours
 

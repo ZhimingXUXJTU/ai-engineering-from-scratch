@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** Capstone
 **Languages:** TypeScript (UI), Python / TypeScript (ingest + evals), SQL (ClickHouse) | **语言:** TypeScript (UI), Python / TypeScript (ingest + evals), SQL (ClickHouse)
-**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 17 (infrastructure), Phase 18 (safety) | **前置知识:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 17 (infrastructure), Phase 18 (safety)
+**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 17 (infrastructure), Phase 18 (safety)
+
+> 🔗 **【前置】** 顶点项目 11 = 综合 Phase 11/13/17/18。可观测性仪表板 = Langfuse（开源核心）+ Arize Phoenix（GenAI semtemp）+ Helicone/Braintrust（per-user 成本）+ OpenLLMetry（SDK 插桩）。
+> 💡 **【类比】** 仪表板 = "AI 应用的体检中心"。栈：ClickHouse 存 trace+Postgres 存元数据+Next.js UI+eval 作业（DeepEval/RAGAS/LLM-judge）。要求：自托管+≥4 个 SDK 家族接入+5 分钟内捕获注入回归。| **前置知识:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 17 (infrastructure), Phase 18 (safety)
 **Phases exercised:** P11 · P13 · P17 · P18 | **涉及阶段:** P11 · P13 · P17 · P18
 **Time:** 25 hours | **时间:** 25 hours
 

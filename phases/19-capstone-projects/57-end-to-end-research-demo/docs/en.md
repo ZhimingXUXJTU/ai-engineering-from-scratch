@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 50-53 | **前置知识:** Phase 19 lessons 50-53
+
+> 🔗 【前置】Track D 8/8（Phase 19 + 全课程收官）。基于 Track D 全部 + Phase 19 全部。
+> 💡 端到端研究 Demo = "整门课的毕业项目"。Demo 是所有先前契约组合的地方——任何一个泄漏，Demo 就是抓住它的课程。这是 AI Scientist v2 类系统的最小可工作版本，整合 Track A（harness）+ Track B（LLM）+ Track C（训练工程）+ Track D（研究 Agent）全部知识。Phase 19 全部 57 节完成。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

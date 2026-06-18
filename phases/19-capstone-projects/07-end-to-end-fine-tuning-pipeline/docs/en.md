@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** 综合项目
 **Languages:** Python (pipeline), YAML (configs), Bash (scripts) | **语言:** Python（管道）, YAML（配置）, Bash（脚本）
-**Prerequisites:** Phase 2 (ML), Phase 3 (DL), Phase 7 (transformers), Phase 10 (LLMs from scratch), Phase 11 (LLM engineering), Phase 17 (infrastructure), Phase 18 (safety) | **前置知识:** Phase 2（ML）, Phase 3（DL）, Phase 7（Transformer）, Phase 10（从头构建 LLM）, Phase 11（LLM 工程）, Phase 17（基础设施）, Phase 18（安全）
+**Prerequisites:** Phase 2 (ML), Phase 3 (DL), Phase 7 (transformers), Phase 10 (LLMs from scratch), Phase 11 (LLM engineering), Phase 17 (infrastructure), Phase 18 (safety)
+
+> 🔗 **【前置】** 顶点项目 07 = 综合几乎全部 Phase。端到端微调流水线：data→SFT→DPO→serve。
+> 💡 **【类比】** 微调流水线 = "AI 训练厨房"。2026 开源栈：Axolotl v0.8（配置）+ TRL 0.15（训练）+ Unsloth（迭代加速）+ GPTQ/AWQ/GGUF（量化）+ vLLM 0.7+EAGLE-3（服务）。目标：8B 模型在自有数据上 SFT+DPO+量化+投机解码+可测 $/1M tokens，YAML 输入→服务端点输出，附 2026 Model Openness Framework 模型卡。| **前置知识:** Phase 2（ML）, Phase 3（DL）, Phase 7（Transformer）, Phase 10（从头构建 LLM）, Phase 11（LLM 工程）, Phase 17（基础设施）, Phase 18（安全）
 **Phases exercised:** P2 · P3 · P7 · P10 · P11 · P17 · P18 | **涉及阶段:** P2 · P3 · P7 · P10 · P11 · P17 · P18
 **Time:** 35 hours | **时间:** 35 小时
 

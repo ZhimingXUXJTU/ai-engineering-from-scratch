@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 42 to 45 | **前置知识:** Phase 19 lessons 42 to 45
+
+> 🔗 【前置】Track B 20/20（Track C 收官）。LM 评估 harness。
+> 💡 评估 harness = "任务定义+指标+运行器+排行榜"。在无法定义的任务上表现好的模型=偶然好。harness 是这一切的统一可替换形态。整合 Phase 19·42-48 的训练管线做评估。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

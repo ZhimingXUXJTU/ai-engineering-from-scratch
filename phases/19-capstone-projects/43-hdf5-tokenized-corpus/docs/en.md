@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 30-37 | **前置知识:** Phase 19 lessons 30-37
+
+> 🔗 【前置】Track B 14/20。Track C 第 2 节。
+> 💡 HDF5 tokenized 语料 = "训练数据的航空餐车"。JSONL 在 16 个 dataloader worker 下撑不住。HDF5 可调整大小+分块整数数据集可以。流式 token 化→可调 HDF5→多文件分片写→训练时内存映射读→滑动窗口 dataloader 输出固定长度打包序列。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

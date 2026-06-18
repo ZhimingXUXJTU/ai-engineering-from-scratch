@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 42 to 45 | **前置知识:** Phase 19 lessons 42 to 45
+
+> 🔗 【前置】Track B 19/20。Track C 第 7 节。Phase 10·33（分布式训练）的从零版。
+> 💡 多 rank 训练 = "两个集合通信+一条规则"。启动时广播参数+反向后平均梯度+永不许 rank 对步数有分歧。DDP（数据并行）和 FSDP（完全分片数据并行）都基于这个核心。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 Track A lessons 20-29 | **前置知识:** Phase 19 Track A lessons 20-29
+
+> 🔗 【前置】Track D 3/8。参考 Phase 19·26（沙箱运行器）。
+> 💡 实验运行器 = "测量的诚实度"。循环只和测量一样诚实。建运行器：取规格→沙箱 subprocess 执行→输出可信的 JSON 指标 blob 给评估器。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

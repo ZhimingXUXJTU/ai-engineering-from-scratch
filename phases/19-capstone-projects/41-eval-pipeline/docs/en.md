@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python (torch, numpy) | **语言:** Python (torch, numpy)
 **Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity) | **前置知识:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
+
+> 🔗 【前置】Track B 12/20。LLM 评估综合。
+> 💡 评估管线 = "训练的反面"。训练能用 loss 曲线监控；评估必须设计。四维评估覆盖每个上线模型所需：语言建模（困惑度）+短答正确性（exact-match）+开放相似性（token F1）+定性评分（judge）。本地 mock LLM-as-judge 让循环无网跑。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

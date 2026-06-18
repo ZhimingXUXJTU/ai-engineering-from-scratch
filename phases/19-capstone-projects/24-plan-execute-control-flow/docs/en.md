@@ -10,6 +10,9 @@
 **Prerequisites:** Phase 13 lessons 01-07, Phase 14 lesson 01 | **前置知识:** Phase 13 lessons 01-07, Phase 14 lesson 01
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
+> 🔗 【前置】Agent Harness 5/10。参考 Phase 14·08（ReAct 计划-执行）。
+> 💡 Plan-execute = "能重规划才叫 Agent"。计划扛不住失败=脚本；能重规划的脚本=Agent。先建重规划器，再建初始规划器。失败→观察→重新规划是 Agent 的灵魂。
+
 ## Learning Objectives | 学习目标
 - Represent a plan as an ordered list of typed steps so the executor can reason about progress and outcome.
   中文翻译：Represent a plan as an ordered list of typed steps so the executor can reason about progress and outcome.

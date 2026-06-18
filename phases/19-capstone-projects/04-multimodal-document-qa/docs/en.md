@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** 综合项目
 **Languages:** Python (pipeline), TypeScript (viewer UI) | **语言:** Python（管道）, TypeScript（查看器 UI）
-**Prerequisites:** Phase 4 (computer vision), Phase 5 (NLP), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 17 (infrastructure) | **前置知识:** Phase 4（计算机视觉）, Phase 5（NLP）, Phase 7（Transformer）, Phase 11（LLM 工程）, Phase 12（多模态）, Phase 17（基础设施）
+**Prerequisites:** Phase 4 (computer vision), Phase 5 (NLP), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 17 (infrastructure)
+
+> 🔗 **【前置】** 顶点项目 04 = 综合 Phase 4/5/7/11/12/17。文档 QA 走视觉优先（ColPali 风格，参考 Phase 12·23）。
+> 💡 **【类比】** 文档 QA = "PDF 直接看"。2026 前沿：从"OCR→文本"转向"视觉优先 + 延迟交互"（ColPali/ColQwen2.5/ColQwen3-omni）。把 PDF 页面当图像，多向量嵌入，query 直接关注 patch。在金融 10-K、科学论文、手写笔记上大幅胜 OCR 方案。| **前置知识:** Phase 4（计算机视觉）, Phase 5（NLP）, Phase 7（Transformer）, Phase 11（LLM 工程）, Phase 12（多模态）, Phase 17（基础设施）
 **Phases exercised:** P4 · P5 · P7 · P11 · P12 · P17 | **涉及阶段:** P4 · P5 · P7 · P11 · P12 · P17
 **Time:** 30 hours | **时间:** 30 小时
 

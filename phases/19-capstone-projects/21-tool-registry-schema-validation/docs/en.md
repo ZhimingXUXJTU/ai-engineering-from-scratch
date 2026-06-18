@@ -10,6 +10,9 @@
 **Prerequisites:** Phase 13 lessons 01-07, Phase 14 lesson 01 | **前置知识:** Phase 13 lessons 01-07, Phase 14 lesson 01
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
+> 🔗 **【前置】** Agent Harness 2/10。参考 Phase 13·07（工具 Schema）。
+> 💡 工具注册中心 = 工具调用的"型检器"。Agent 不能验证的工具=不能调用的工具。先建 registry+schema 检查，再建工具。
+
 ## Learning Objectives | 学习目标
 - Hold a typed registry of tool name → schema → handler that the dispatcher can ask once and trust afterwards.
   中文翻译：Hold a typed registry of tool name → schema → handler that the dispatcher can ask once and trust afterwards.

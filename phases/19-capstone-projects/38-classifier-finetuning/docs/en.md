@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python (torch, numpy) | **语言:** Python (torch, numpy)
 **Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity) | **前置知识:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
+
+> 🔗 【前置】Track B 9/20（第一个 capstone）。基于完整 30-37 LLM 基础。
+> 💡 分类器微调 = "把 LM 变成分类器"。预训练 LM 主体对，但预测头错。撕掉 LM head，粘两层线性分类器到池化表示。两种训练策略：仅最终层 vs 全量微调。评估 precision/recall/F1。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

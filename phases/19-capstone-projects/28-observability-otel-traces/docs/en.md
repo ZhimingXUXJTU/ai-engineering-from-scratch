@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python (stdlib) | **语言:** Python (stdlib)
 **Prerequisites:** Phase 19 · 25 (verification gates), Phase 19 · 26 (sandbox), Phase 19 · 27 (eval harness), Phase 13 · 20 (OpenTelemetry GenAI), Phase 14 · 23 (OTel GenAI conventions) | **前置知识:** Phase 19 · 25 (verification gates), Phase 19 · 26 (sandbox), Phase 19 · 27 (eval harness), Phase 13 · 20 (OpenTelemetry GenAI), Phase 14 · 23 (OTel GenAI conventions)
+
+> 🔗 【前置】Agent Harness 9/10。参考 Phase 13·20（OTel GenAI）+ Phase 14·23（OTel 约定）。
+> 💡 可观测性 = "黑盒的玻璃外壳"。手写 span builder 生成 OTel GenAI 兼容记录→JSON-Lines（一行一 span）+ Prometheus 计数器+直方图。纯 stdlib Python 离线跑。无观测的 harness=烧钱的黑盒。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

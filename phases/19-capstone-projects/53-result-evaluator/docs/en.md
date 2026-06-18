@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 Track A lessons 20-29 | **前置知识:** Phase 19 Track A lessons 20-29
+
+> 🔗 【前置】Track D 4/8。基于 52 实验运行器。
+> 💡 结果评估器 = "数字变成结论"。运行器产数字；评估器决定是改进、回归还是噪声。建判决路径：指标→一行结论。统计显著性检验是关键。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

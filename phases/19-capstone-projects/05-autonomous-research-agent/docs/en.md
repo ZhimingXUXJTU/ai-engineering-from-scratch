@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** 综合项目
 **Languages:** Python (agent + sandbox), LaTeX (output) | **语言:** Python（Agent + 沙箱）, LaTeX（输出）
-**Prerequisites:** Phase 2 (ML), Phase 3 (deep learning), Phase 7 (transformers), Phase 10 (LLMs from scratch), Phase 14 (agents), Phase 15 (autonomous), Phase 16 (multi-agent), Phase 18 (safety) | **前置知识:** Phase 2（ML）, Phase 3（深度学习）, Phase 7（Transformer）, Phase 10（从头构建 LLM）, Phase 14（Agent）, Phase 15（自主系统）, Phase 16（多 Agent）, Phase 18（安全）
+**Prerequisites:** Phase 2 (ML), Phase 3 (deep learning), Phase 7 (transformers), Phase 10 (LLMs from scratch), Phase 14 (agents), Phase 15 (autonomous), Phase 16 (multi-agent), Phase 18 (safety)
+
+> 🔗 **【前置】** 顶点项目 05 = 综合几乎所有 Phase（2/3/7/10/14/15/16/18）。自主研究 Agent = Phase 15·05 的实战版。
+> 💡 **【类比】** 自主研究 Agent = "AI 研究生"。参考 Sakana AI-Scientist-v2 / Allen AI / Agent Laboratory。架构：plan-execute-verify 树搜索 + 预算约束 + 沙箱代码执行 + 视觉反馈 LaTeX 写作 + 自动 NeurIPS 评审 ensemble。挑战：每篇论文 <$30 + 抵御沙箱逃逸红队（Sakana 已记录）。| **前置知识:** Phase 2（ML）, Phase 3（深度学习）, Phase 7（Transformer）, Phase 10（从头构建 LLM）, Phase 14（Agent）, Phase 15（自主系统）, Phase 16（多 Agent）, Phase 18（安全）
 **Phases exercised:** P0 · P2 · P3 · P7 · P10 · P14 · P15 · P16 · P18 | **涉及阶段:** P0 · P2 · P3 · P7 · P10 · P14 · P15 · P16 · P18
 **Time:** 40 hours | **时间:** 40 小时
 

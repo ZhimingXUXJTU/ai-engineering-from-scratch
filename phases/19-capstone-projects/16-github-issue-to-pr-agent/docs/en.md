@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** Capstone
 **Languages:** Python (agent), TypeScript (GitHub App), YAML (Actions) | **语言:** Python (agent), TypeScript (GitHub App), YAML (Actions)
-**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 17 (infrastructure) | **前置知识:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 17 (infrastructure)
+**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 17 (infrastructure)
+
+> 🔗 **【前置】** 顶点项目 16 = 综合 Phase 11/13/14/15/17。GitHub Issue→PR Agent = AWS Remote SWE / Cursor Background / OpenAI Codex cloud / Google Jules 共识产品形态。
+> 💡 **【类比】** Issue→PR Agent = "AI 修 bug 工程师"。流程：标 issue→云端沙箱跑 Agent→测试通过→发可审 PR（带 rationale）。难点：(1) 自动重现仓库构建环境；(2) 防凭证泄漏；(3) 强制 per-repo 预算；(4) 禁止 force-push。要求：自建+与托管方案对比成本+通过率。| **前置知识:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 17 (infrastructure)
 **Phases exercised:** P11 · P13 · P14 · P15 · P17 | **涉及阶段:** P11 · P13 · P14 · P15 · P17
 **Time:** 30 hours | **时间:** 30 hours
 

@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** Capstone
 **Languages:** Python / TypeScript (agents), Shell (worktree scripts) | **语言:** Python / TypeScript (agents), Shell (worktree scripts)
-**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 16 (multi-agent), Phase 17 (infrastructure) | **前置知识:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 16 (multi-agent), Phase 17 (infrastructure)
+**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 16 (multi-agent), Phase 17 (infrastructure)
+
+> 🔗 **【前置】** 顶点项目 10 = 综合 Phase 11/13/14/15/16/17。多 Agent 软件团队 = SWE-AF / MetaGPT / AutoGen 0.4 / Devin / Factory Droids 共识形态。
+> 💡 **【类比】** 多 Agent 软件团队 = "AI 开发组"。架构师规划→N 个 coder 并行 worktree→reviewer 守门→tester 验证。并行 worktree 把挂钟时间转成吞吐。共享状态+handoff 协议成失败面。目标：SWE-bench Pro 评估+报告哪些 handoff 破坏+频率。| **前置知识:** Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 16 (multi-agent), Phase 17 (infrastructure)
 **Phases exercised:** P11 · P13 · P14 · P15 · P16 · P17 | **涉及阶段:** P11 · P13 · P14 · P15 · P16 · P17
 **Time:** 40 hours | **时间:** 40 hours
 

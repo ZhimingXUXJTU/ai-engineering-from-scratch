@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 42 to 45 | **前置知识:** Phase 19 lessons 42 to 45
+
+> 🔗 【前置】Track B 17/20。Track C 第 5 节。
+> 💡 梯度累积 = "穷人版大 batch"。用买不起的有效 batch 训练：一个 micro-batch 一时。缩放损失+持有优化器步+让梯度堆积。多 GPU 不可得时模拟大 batch 的标准技术。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 30 to 33 (tokenizer, embeddings, attention math, batched data loader) | **前置知识:** Phase 19 lessons 30 to 33 (tokenizer, embeddings, attention math, batched data loader)
+
+> 🔗 【前置】Track B 5/20。基于 30-33。
+> 💡 Transformer 块 = "现代解码器 LLM 的乐高单元"。LayerNorm+多头注意力+残差+MLP+残差。pre-LN（不需 warmup 稳定）vs post-LN（原始论文版）。本课并排实现两个，看哪个能在 12 层堆叠+常见学习率下存活。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

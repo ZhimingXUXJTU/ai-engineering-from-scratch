@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python (stdlib) | **语言:** Python (stdlib)
 **Prerequisites:** Phase 19 · 25 (verification gates), Phase 19 · 26 (sandbox), Phase 19 · 27 (eval harness), Phase 19 · 28 (observability), Phase 14 · 38 (verification gates), Phase 14 · 41 (workbench for real repos), Phase 14 · 42 (agent workbench capstone) | **前置知识:** Phase 19 · 25 (verification gates), Phase 19 · 26 (sandbox), Phase 19 · 27 (eval harness), Phase 19 · 28 (observability), Phase 14 · 38 (verification gates), Phase 14 · 41 (workbench for real repos), Phase 14 · 42 (agent workbench capstone)
+
+> 🔗 【前置】Agent Harness 10/10（Track A 收官）。整合 20-28 全部 + Phase 14·38/41/42。
+> 💡 端到端编码 Agent = "组装完成的车"。把门链、沙箱、eval harness、OTel 缝成一个能修真实多文件 Python bug 的 Agent。关键设计：用确定性策略替代 LLM（让课程可复现），证明 harness 才是有趣的部分——真模型在策略接口处接入即可。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

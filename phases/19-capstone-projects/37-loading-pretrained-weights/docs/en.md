@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 30 to 36 | **前置知识:** Phase 19 lessons 30 to 36
+
+> 🔗 【前置】Track B 8/20。基于 30-36。
+> 💡 加载预训练权重 = "站在巨人肩膀上"。从零训练 124M 模型=预算决策；加载已发布 checkpoint=日常操作。本课从 safetensors 加载 GPT-2 风格权重到 35 课的架构，逐个走参数名映射，生成续写证明加载成功。无网络、无第三方 loader、无黑魔法。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

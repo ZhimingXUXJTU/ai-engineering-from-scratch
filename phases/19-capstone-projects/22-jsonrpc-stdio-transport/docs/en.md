@@ -10,6 +10,9 @@
 **Prerequisites:** Phase 13 lessons 01-07, Phase 14 lesson 01 | **前置知识:** Phase 13 lessons 01-07, Phase 14 lesson 01
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
+> 🔗 【前置】Agent Harness 3/10。参考 Phase 13·15-18（MCP 协议套件用 JSON-RPC）。
+> 💡 JSON-RPC over stdio = MCP 标准传输。手写一次让你看懂每个 framing 层在付什么代价。换行分隔消息（NDJSON），简单可靠，跨进程无网络栈。
+
 ## Learning Objectives | 学习目标
 - Speak JSON-RPC 2.0 framed as newline-delimited JSON over stdin and stdout.
   中文翻译：Speak JSON-RPC 2.0 framed as newline-delimited JSON over stdin and stdout.

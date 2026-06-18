@@ -10,6 +10,9 @@
 **Prerequisites:** Phase 13 lessons 01-07, Phase 14 lesson 01 | **前置知识:** Phase 13 lessons 01-07, Phase 14 lesson 01
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
+> 🔗 **【前置】** Agent Harness 系列 1/10（lesson 20-29）。综合 Phase 13·01-07 + Phase 14·01。
+> 💡 **【类比】** Harness = "AI 的躯壳"，模型是"大脑"。loop 契约 = 大脑和躯壳的接口标准。Phase 14·30+ 工作台系列的延续，从单 Agent 进阶到完整 harness。本系列 10 节将搭建完整编码 Agent harness：循环契约→工具注册→JSON-RPC 传输→函数调用→plan-execute→验证门→沙箱→评估→可观测→端到端。
+
 ## Learning Objectives | 学习目标
 - Specify an agent harness loop as a deterministic state machine with explicit transitions.
   中文翻译：Specify an agent harness loop as a deterministic state machine with explicit transitions.
