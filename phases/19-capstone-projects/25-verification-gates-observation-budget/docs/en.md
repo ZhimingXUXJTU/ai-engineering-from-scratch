@@ -10,6 +10,9 @@
 **Prerequisites:** Phase 19 · 20-24 (Track A1: agent loop, tool registry, message store, prompt builder, model router), Phase 14 · 33 (instructions as constraints), Phase 14 · 36 (scope contracts), Phase 14 · 38 (verification gates) | **前置知识:** Phase 19 · 20-24 (Track A1: agent loop, tool registry, message store, prompt builder, model router), Phase 14 · 33 (instructions as constraints), Phase 14 · 36 (scope contracts), Phase 14 · 38 (verification gates)
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
+> 🔗 【前置】Agent Harness 6/10。综合 Phase 14·33/36/38（约束/范围/验证）。
+> 💡 验证门+观测预算 = Agent harness 的"安检+限流"。三层确定性门：(1) 工具调用是否允许触发；(2) 工具输出模型能看多少；(3) 循环何时停（模型已读太多）。观测账本追踪每个 token。
+
 ## Learning Objectives | 学习目标
 
 - Build a `VerificationGate` protocol with a deterministic `evaluate(call)` method.

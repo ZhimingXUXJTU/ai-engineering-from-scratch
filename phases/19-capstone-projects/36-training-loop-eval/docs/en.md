@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 30 to 35 | **前置知识:** Phase 19 lessons 30 to 35
+
+> 🔗 【前置】Track B 7/20。基于 30-35 的完整 GPT 模型。
+> 💡 训练循环 = "会测量的循环"。不测量的循环=说谎的循环。AdamW（权重衰减拆分）+warmup+cosine 学习率+损失助手+保留集评估+每 K 步定性样本+JSONL 日志。同一骨架训练所有未来要建的解码器 LLM。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

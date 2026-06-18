@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** Capstone
 **Languages:** Python (backend, learner model), TypeScript (web app), SQL (curriculum graph via Postgres + Neo4j) | **语言:** Python (backend, learner model), TypeScript (web app), SQL (curriculum graph via Postgres + Neo4j)
-**Prerequisites:** Phase 5 (NLP), Phase 6 (speech), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 14 (agents), Phase 17 (infrastructure), Phase 18 (safety) | **前置知识:** Phase 5 (NLP), Phase 6 (speech), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 14 (agents), Phase 17 (infrastructure), Phase 18 (safety)
+**Prerequisites:** Phase 5 (NLP), Phase 6 (speech), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 14 (agents), Phase 17 (infrastructure), Phase 18 (safety)
+
+> 🔗 **【前置】** 顶点项目 17 = 综合 Phase 5/6/11/12/14/17/18。个人 AI 导师 = Khanmigo / Duolingo Max / LearnLM / Quizlet Q-Chat / Synthesis Tutor。
+> 💡 **【类比】** AI 导师 = "苏格拉底式 AI 老师"。共通要素：苏格拉底策略（绝不直接给答案）+学习者模型（贝叶斯知识追踪，每次互动更新）+语音/文本/拍照数学输入+课程图检索+间隔重复+年龄安全过滤。要求：科目特定导师（K-12 代数/Python 入门）+两周 10 人效果研究+内容安全审计通过。| **前置知识:** Phase 5 (NLP), Phase 6 (speech), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 14 (agents), Phase 17 (infrastructure), Phase 18 (safety)
 **Phases exercised:** P5 · P6 · P11 · P12 · P14 · P17 · P18 | **涉及阶段:** P5 · P6 · P11 · P12 · P14 · P17 · P18
 **Time:** 30 hours | **时间:** 30 hours
 

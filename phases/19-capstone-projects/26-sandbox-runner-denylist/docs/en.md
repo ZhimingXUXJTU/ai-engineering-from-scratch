@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python (stdlib) | **语言:** Python (stdlib)
 **Prerequisites:** Phase 19 · 25 (verification gates and observation budget), Phase 14 · 33 (instructions as constraints), Phase 14 · 38 (verification gates) | **前置知识:** Phase 19 · 25 (verification gates and observation budget), Phase 14 · 33 (instructions as constraints), Phase 14 · 38 (verification gates)
+
+> 🔗 【前置】Agent Harness 7/10。验证门决定是否运行，沙箱决定运行时发生什么。
+> 💡 沙箱 = "OS 防火墙"。subprocess 运行器拒绝危险可执行+危险 argv+路径锁项目根+输出截断+wall-clock 超时杀进程。这是模型和 OS 之间的两层防御之二（一是验证门）。Phase 15·14 Kill Switches 的实现细节。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

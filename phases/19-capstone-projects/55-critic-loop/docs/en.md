@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 50-53 | **前置知识:** Phase 19 lessons 50-53
+
+> 🔗 【前置】Track D 6/8。参考 Phase 16·07（多 Agent 辩论）+ Phase 16·08（Verifier 角色）。
+> 💡 批评循环 = "AI 同行评审"。第一次就"看起来不错"=坏了；永远"需要改进"=坏了。有趣的批评者会收敛，你必须工程化收敛。MAST（Phase 16·23）证明 verifier 是承重墙——本课是它的具体实现。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

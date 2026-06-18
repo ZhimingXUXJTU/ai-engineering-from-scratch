@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python (stdlib) | **语言:** Python (stdlib)
 **Prerequisites:** Phase 19 · 25 (verification gates), Phase 19 · 26 (sandbox runner), Phase 14 · 30 (eval-driven agent development), Phase 14 · 19 (SWE-bench and GAIA benchmarks) | **前置知识:** Phase 19 · 25 (verification gates), Phase 19 · 26 (sandbox runner), Phase 14 · 30 (eval-driven agent development), Phase 14 · 19 (SWE-bench and GAIA benchmarks)
+
+> 🔗 【前置】Agent Harness 8/10。参考 Phase 14·19+30（SWE-bench/GAIA + eval 驱动开发）。
+> 💡 Eval harness = "编码 Agent 的体检中心"。fixture 任务文件夹→候选 Agent 跑→确定性验证器打分→聚合 pass@1/pass@k/延迟/成本。这是辨别"回归 vs 重构"的唯一真相源。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

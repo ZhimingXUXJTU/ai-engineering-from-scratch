@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** 综合项目
 **Languages:** Python (pipeline + API), TypeScript (chat UI) | **语言:** Python（管道 + API）, TypeScript（聊天 UI）
-**Prerequisites:** Phase 5 (NLP), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 17 (infrastructure), Phase 18 (safety) | **前置知识:** Phase 5（NLP）, Phase 7（Transformer）, Phase 11（LLM 工程）, Phase 12（多模态）, Phase 17（基础设施）, Phase 18（安全）
+**Prerequisites:** Phase 5 (NLP), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 12 (multimodal), Phase 17 (infrastructure), Phase 18 (safety)
+
+> 🔗 **【前置】** 顶点项目 08 = 综合 Phase 5/7/11/12/17/18。生产 RAG 聊天机器人 = Harvey/Glean/Mendable/LlamaCloud 都在做。
+> 💡 **【类比】** 生产 RAG = "企业 AI 法律顾问"。栈：docling/Unstructured + ColPali 摄入 → 混合搜索 → bge-reranker-v2-gemma 重排 → Claude Sonnet 4.7 + 提示缓存（60-80% 命中）→ Llama Guard 4 + NeMo Guardrails 守护 → Langfuse + Phoenix 监控 → RAGAS 在 200 题金标准上评分。要求在受监管领域（法律/医疗/保险）通过金标准 + 红队 + 漂移仪表板。| **前置知识:** Phase 5（NLP）, Phase 7（Transformer）, Phase 11（LLM 工程）, Phase 12（多模态）, Phase 17（基础设施）, Phase 18（安全）
 **Phases exercised:** P5 · P7 · P11 · P12 · P17 · P18 | **涉及阶段:** P5 · P7 · P11 · P12 · P17 · P18
 **Time:** 30 hours | **时间:** 30 小时
 

@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python (torch, numpy) | **语言:** Python (torch, numpy)
 **Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity) | **前置知识:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
+
+> 🔗 【前置】Track B 10/20。参考 Phase 11·08（Instruction Tuning）。
+> 💡 SFT = "教会 LM 听指令"。基础模型能续写但不能跟指令。Alpaca 风格 SFT：(指令, 期望回复) 对训练主体预测回复 token。关键技巧：损失只算回复不算指令（用 `ignore_index=-100` 掩码）。200 条指令-回复训练+exact-match 评估。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

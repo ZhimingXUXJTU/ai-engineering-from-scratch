@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 30 to 34 | **前置知识:** Phase 19 lessons 30 to 34
+
+> 🔗 【前置】Track B 6/20。组装完整 GPT 模型。
+> 💡 12 层堆叠+token 嵌入+学习位置嵌入+最终 LayerNorm+绑定的 LM head = 124M 参数 GPT。本课组装成可工作类，验证参数量匹配参考 124M，用多项采样+温度+top-k 生成文本。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

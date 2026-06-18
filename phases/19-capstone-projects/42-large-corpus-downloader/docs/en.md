@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 30-37 | **前置知识:** Phase 19 lessons 30-37
+
+> 🔗 【前置】Track B 13/20。预训练工程实践 Track C 第 1 节。
+> 💡 大语料下载器 = "数据工程的开始"。训练模型远早于首次前向传播——语料必须落盘、解压、去重、可寻址，且断点续传在网络断时已设计好。流式下载+Zstandard 实时解压+MinHash+LSH 近重复指纹+分片 manifest。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

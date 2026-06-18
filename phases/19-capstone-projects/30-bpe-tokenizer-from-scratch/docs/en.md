@@ -10,6 +10,9 @@
 **Prerequisites:** Phase 04 lessons, Phase 07 transformer lessons | **前置知识:** Phase 04 lessons, Phase 07 transformer lessons
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
+> 🔗 【前置】LLM 从零 Track B 第 1 节（30-49）。综合 Phase 04 + Phase 07。
+> 💡 BPE = "所有现代文本模型的入口"。字节进→id 出→id 回到相同字节。20 节系列将一步步从零搭出完整 LLM 训练管线：分词器→数据集→嵌入→注意力→transformer 块→GPT 组装→训练循环→加载预训练权重→分类器微调→SFT→DPO→评估→大数据下载→HDF5 语料→学习率→梯度裁剪→累积→检查点→分布式→评估 harness。
+
 ## Learning Objectives | 学习目标
 - Train a Byte-Pair Encoding vocabulary from a raw text corpus by repeatedly merging the most frequent adjacent symbol pair.
   中文翻译：Train a Byte-Pair Encoding vocabulary from a raw text corpus by repeatedly merging the most frequent adjacent symbol pair.

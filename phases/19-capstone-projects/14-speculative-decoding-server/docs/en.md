@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** Capstone
 **Languages:** Python (serving), C++ / CUDA (kernel inspection), YAML (configs) | **语言:** Python (serving), C++ / CUDA (kernel inspection), YAML (configs)
-**Prerequisites:** Phase 3 (deep learning), Phase 7 (transformers), Phase 10 (LLMs from scratch), Phase 17 (infrastructure) | **前置知识:** Phase 3 (deep learning), Phase 7 (transformers), Phase 10 (LLMs from scratch), Phase 17 (infrastructure)
+**Prerequisites:** Phase 3 (deep learning), Phase 7 (transformers), Phase 10 (LLMs from scratch), Phase 17 (infrastructure)
+
+> 🔗 **【前置】** 顶点项目 14 = 综合 Phase 3/7/10/17。投机解码服务器 = EAGLE-3 vLLM 0.7（2.5-3 倍吞吐）+ P-EAGLE（AWS 并行）+ SGLang SpecForge + Red Hat Speculators hub + TensorRT-LLM。
+> 💡 **【类比】** 投机解码服务 = "AI 推理的涡轮增压器"。2026 栈：vLLM/SGLang + EAGLE 系列 draft + FP8/INT4 量化 + HPA 按 queue-wait 扩缩。目标：两个开源模型达 2.5x+ 基线吞吐+完整尾部延迟报告。参考 Phase 17·05 EAGLE-3 生产实践。| **前置知识:** Phase 3 (deep learning), Phase 7 (transformers), Phase 10 (LLMs from scratch), Phase 17 (infrastructure)
 **Phases exercised:** P3 · P7 · P10 · P17 | **涉及阶段:** P3 · P7 · P10 · P17
 **Time:** 30 hours | **时间:** 30 hours
 

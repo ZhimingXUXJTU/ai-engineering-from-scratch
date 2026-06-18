@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 Track A lessons 20-29 | **前置知识:** Phase 19 Track A lessons 20-29
+
+> 🔗 【前置】Track D 研究 Agent 第 1 节（50-57）。基于 Track A（20-29）harness。
+> 💡 假设生成器 = "AI 研究的提问机器"。问同一问题两次=浪费 token。技巧：强制每次草稿落到新地方。本系列 8 节搭建自主研究 Agent：假设生成→文献检索→实验运行→结果评估→论文写作→批评循环→迭代调度→端到端演示。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

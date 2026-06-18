@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 Track A lessons 20-29 | **前置知识:** Phase 19 Track A lessons 20-29
+
+> 🔗 【前置】Track D 2/8。参考 Phase 11·14-17（RAG 检索）。
+> 💡 文献检索 = "避免重复造轮子"。假设很便宜，知道是否有人证明过才是贵的部分。在 sandbox 跑实验前必须先建检索层回答这问题。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

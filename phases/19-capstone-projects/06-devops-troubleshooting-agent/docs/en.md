@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** 综合项目
 **Languages:** Python (agent), TypeScript (Slack integration) | **语言:** Python（Agent）, TypeScript（Slack 集成）
-**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools and MCP), Phase 14 (agents), Phase 15 (autonomous), Phase 17 (infrastructure), Phase 18 (safety) | **前置知识:** Phase 11（LLM 工程）, Phase 13（工具与 MCP）, Phase 14（Agent）, Phase 15（自主系统）, Phase 17（基础设施）, Phase 18（安全）
+**Prerequisites:** Phase 11 (LLM engineering), Phase 13 (tools and MCP), Phase 14 (agents), Phase 15 (autonomous), Phase 17 (infrastructure), Phase 18 (safety)
+
+> 🔗 **【前置】** 顶点项目 06 = 综合 Phase 11/13/14/15/17/18。K8s DevOps Agent = AWS DevOps Agent / Resolve AI / NeuBird / Metoro 都在做。
+> 💡 **【类比】** K8s Agent = "AI 运维工程师"。流程：alert webhook→Agent 读 telemetry→遍历 K8s 对象图→排根因假设→Slack 简报（带批准按钮）。默认只读，所有修复 HITL。20 个合成事故评估 + 与 AWS Agent 对比 3 个共享案例。| **前置知识:** Phase 11（LLM 工程）, Phase 13（工具与 MCP）, Phase 14（Agent）, Phase 15（自主系统）, Phase 17（基础设施）, Phase 18（安全）
 **Phases exercised:** P11 · P13 · P14 · P15 · P17 · P18 | **涉及阶段:** P11 · P13 · P14 · P15 · P17 · P18
 **Time:** 30 hours | **时间:** 30 小时
 

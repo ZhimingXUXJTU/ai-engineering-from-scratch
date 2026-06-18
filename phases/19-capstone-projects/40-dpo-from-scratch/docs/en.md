@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python (torch, numpy) | **语言:** Python (torch, numpy)
 **Prerequisites:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity) | **前置知识:** Phase 19 lessons 30-37 (NLP LLM track: tokenizer, embedding table, attention block, transformer body, pre-training loop, checkpointing, generation, perplexity)
+
+> 🔗 【前置】Track B 11/20。参考 Phase 10·08（DPO 基础）+ Phase 18·03（DPO 家族）。
+> 💡 DPO = "RLHF 的捷径"。经典 RLHF=奖励模型+PPO（复杂）；DPO=单一监督损失直接对偏好对训练。从奖励差恒等式推导 DPO loss，建参考模型+策略模型，计算 per-token log-prob，在小 transformer 上训练偏好 fixture。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

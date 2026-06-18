@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** 综合项目
 **Languages:** Python (ingestion), TypeScript (API + UI) | **语言:** Python（摄取）, TypeScript（API + UI）
-**Prerequisites:** Phase 5 (NLP foundations), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 13 (tools), Phase 17 (infrastructure) | **前置知识:** Phase 5（NLP 基础）, Phase 7（Transformer）, Phase 11（LLM 工程）, Phase 13（工具）, Phase 17（基础设施）
+**Prerequisites:** Phase 5 (NLP foundations), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 13 (tools), Phase 17 (infrastructure)
+
+> 🔗 **【前置】** 顶点项目 02 = 综合 Phase 5/7/11/13/17。代码库 RAG = 2026 工程组织标配（Sourcegraph/Cursor/Augment/Aider/Pinterest 都在做）。
+> 💡 **【类比】** 代码 RAG = "Google for 你的代码"。流程：tree-sitter 解析→函数/类级 chunk→embedding→混合搜索→rerank→带引用答案。本课要求处理 2M 行/10 仓库，且每次 git push 增量重索引。难点：大型 monorepo 的 chunk 边界（按 AST 而非行号）、增量索引的版本一致性。| **前置知识:** Phase 5（NLP 基础）, Phase 7（Transformer）, Phase 11（LLM 工程）, Phase 13（工具）, Phase 17（基础设施）
 **Phases exercised:** P5 · P7 · P11 · P13 · P17 | **涉及阶段:** P5 · P7 · P11 · P13 · P17
 **Time:** 30 hours | **时间:** 30 小时
 

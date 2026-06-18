@@ -10,6 +10,9 @@
 **Prerequisites:** Phase 04 lessons, Phase 07 transformer lessons, Lessons 30 and 31 of this phase | **前置知识:** Phase 04 lessons, Phase 07 transformer lessons, Lessons 30 and 31 of this phase
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
+> 🔗 【前置】Track B 3/20。基于 30+31。
+> 💡 id 是整数，模型要向量。两个查找表（token+position）夹在中间。位置编码选择（绝对/相对/RoPE）决定模型能学到什么。参考 Phase 7·04 RoPE。
+
 ## Learning Objectives | 学习目标
 - Build a token-embedding lookup table that maps vocabulary ids to dense vectors.
   中文翻译：Build a token-embedding lookup table that maps vocabulary ids to dense vectors.

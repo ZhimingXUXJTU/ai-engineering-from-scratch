@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 30-37 | **前置知识:** Phase 19 lessons 30-37
+
+> 🔗 【前置】Track B 15/20。Track C 第 3 节。
+> 💡 学习率调度 = "训练的油门曲线"。是损失函数之后第二重要决策。AdamW+cosine 衰减+线性 warmup 是 LM 训练现代默认——前 1000 步脆弱期小步长，爬升到峰值，平滑衰减回零。本课建调度+绘图+日志梯度范数+验证 warmup/peak/decay 边界。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

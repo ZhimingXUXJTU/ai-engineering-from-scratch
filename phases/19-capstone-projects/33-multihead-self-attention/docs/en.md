@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 04 lessons, Phase 07 transformer lessons, Lessons 30 through 32 of this phase | **前置知识:** Phase 04 lessons, Phase 07 transformer lessons, Lessons 30 through 32 of this phase
+
+> 🔗 【前置】Track B 4/20。Phase 7·01-03 注意力数学的从零实现。
+> 💡 多头注意力 = "并行多视角观察"。一次线性投影→三个视图（Q/K/V）→H 个并行头→一个掩码。这就是模型实际用的注意力块。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

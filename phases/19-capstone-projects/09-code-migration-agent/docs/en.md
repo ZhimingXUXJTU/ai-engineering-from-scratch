@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** Capstone
 **Languages:** Python (agent), Java / Python (targets), TypeScript (dashboard) | **语言:** Python (agent), Java / Python (targets), TypeScript (dashboard)
-**Prerequisites:** Phase 5 (NLP), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 17 (infrastructure) | **前置知识:** Phase 5 (NLP), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 17 (infrastructure)
+**Prerequisites:** Phase 5 (NLP), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 17 (infrastructure)
+
+> 🔗 **【前置】** 顶点项目 09 = 综合 Phase 5/7/11/13/14/15/17。代码迁移 Agent = Amazon MigrationBench / Google App Engine 迁移器 / Moderne OpenRewrite / Grit。
+> 💡 **【类比】** 代码迁移 = "AI 翻译官"。Java 8→17、Python 2→3。生产模式：确定性 AST 重写（OpenRewrite）处理简单情况 + Agent 处理模糊情况 + 沙箱分支构建 + 测试通过才开 PR。目标：迁移 50 个真实仓库+发布通过率+失败分类。| **前置知识:** Phase 5 (NLP), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 15 (autonomous), Phase 17 (infrastructure)
 **Phases exercised:** P5 · P7 · P11 · P13 · P14 · P15 · P17 | **涉及阶段:** P5 · P7 · P11 · P13 · P14 · P15 · P17
 **Time:** 30 hours | **时间:** 30 hours
 

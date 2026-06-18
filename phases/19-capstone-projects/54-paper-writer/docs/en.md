@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 50-53 | **前置知识:** Phase 19 lessons 50-53
+
+> 🔗 【前置】Track D 5/8。基于 50-53。
+> 💡 论文写作器 = "LaTeX 骨架的契约精神"。LaTeX 骨架是研究者和排版者的契约——契约破了文档不编译，失败响亮。先建骨架，再填内容。AI Scientist v2（Phase 15·05）的写作模块。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

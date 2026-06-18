@@ -8,6 +8,9 @@
 **Type:** Build | **类型:** Build
 **Languages:** Python | **语言:** Python
 **Prerequisites:** Phase 19 lessons 42 to 45 | **前置知识:** Phase 19 lessons 42 to 45
+
+> 🔗 【前置】Track B 18/20。Track C 第 6 节。Phase 15·16（检查点回滚）的训练版。
+> 💡 检查点 = "训练的存档点"。训练中断杀 run；检查点让它们继续。原子保存：模型+优化器+调度器+损失历史+步数计数器+RNG 状态——任意时刻被杀都能在磁盘上留下有效文件。
 **Time:** ~90 minutes | **时间:** ~90 minutes
 
 ## Learning Objectives | 学习目标

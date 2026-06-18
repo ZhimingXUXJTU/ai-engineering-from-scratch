@@ -7,7 +7,10 @@
 
 **Type:** Capstone | **类型:** 综合项目
 **Languages:** Python (agent + pipeline), TypeScript (web client) | **语言:** Python（Agent + 管道）, TypeScript（Web 客户端）
-**Prerequisites:** Phase 6 (speech and audio), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 17 (infrastructure) | **前置知识:** Phase 6（语音与音频）, Phase 7（Transformer）, Phase 11（LLM 工程）, Phase 13（工具）, Phase 14（Agent）, Phase 17（基础设施）
+**Prerequisites:** Phase 6 (speech and audio), Phase 7 (transformers), Phase 11 (LLM engineering), Phase 13 (tools), Phase 14 (agents), Phase 17 (infrastructure)
+
+> 🔗 **【前置】** 顶点项目 03 = 综合 Phase 6/7/11/13/14/17。实时语音助手（ASR→LLM→TTS）。
+> 💡 **【类比】** 实时语音助手 = "开源版 GPT-4o"。2026 商业参考：Retell/Vapi/LiveKit/Pipecat。难点：端到端延迟 <800ms、知道用户何时说完、barge-in（打断）、工具调用不卡。架构：流式 ASR+turn-detector+流式 LLM+流式 TTS+WebRTC。参考 Phase 12·20 Thinker-Talker。指标：WER/MOS/误切断率。| **前置知识:** Phase 6（语音与音频）, Phase 7（Transformer）, Phase 11（LLM 工程）, Phase 13（工具）, Phase 14（Agent）, Phase 17（基础设施）
 **Phases exercised:** P6 · P7 · P11 · P13 · P14 · P17 | **涉及阶段:** P6 · P7 · P11 · P13 · P14 · P17
 **Time:** 30 hours | **时间:** 30 小时
 
