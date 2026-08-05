@@ -116,6 +116,11 @@ eval:
 > **【中文解读】** 构建 8 个阶段：语料摄入（Unstructured/docling 解析 + ColPali 视觉页面）、索引（pgvector 密集向量 + Tantivy BM25）、混合检索（RRF 融合 + 角色过滤）、重排序（Cohere Rerank 3）、上下文压缩、对话记忆、RAG 评估（RAGAS 框架）和合规审计（GDPR/HIPAA 标签）。
 
 > **【拓展：生产 RAG 系统在 2026 年的最佳实践】** Airbnb、Notion、Dropbox 的 AI 搜索都基于 RAG 架构。2026 年的关键改进：1）混合检索（dense + sparse）比纯向量搜索准确率高 10-15%；2）ColPali 视觉检索直接在文档截图上做检索，跳过 OCR；3）chunk 级别的角色标签和权限过滤确保合规；4）RAGAS 评估框架提供 faithfulness、relevancy、context recall 等维度。
+```figure
+canary-rollout
+```
+
+## Build It
 
 1. **Ingestion.** Parse your corpus (1000-10000 documents for a serious build) with Unstructured or docling. For scanned / visual-heavy pages, route through ColPali. Produce chunks with summaries, role-labels, jurisdiction tags.
    中文翻译：1. **Ingestion.** Parse your corpus (1000-10000 documents for a serious build) with Unstructured or docling. For scanned / visual-heavy pages, route through ColPali. Produce chunks with summaries, role-labels, jurisdiction tags.
@@ -240,6 +245,7 @@ answer:
   中文翻译：开发者文档 RAG 参考
 - [LlamaCloud Parse + Index](https://docs.llamaindex.ai/en/stable/examples/llama_cloud/llama_parse/) — managed ingestion
   中文翻译：托管摄取
+- [LlamaCloud Parse + Index](https://docs.cloud.llamaindex.ai/llamaparse/getting_started) — managed ingestion
 - [Anthropic prompt caching](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching) — the cost-lever reference
   中文翻译：成本杠杆参考
 - [RAGAS 0.2 documentation](https://docs.ragas.io/) — the canonical RAG eval framework
@@ -248,5 +254,6 @@ answer:
   中文翻译：参考漂移可观测性
 - [Llama Guard 4](https://ai.meta.com/research/publications/llama-guard-4/) — 2026 safety classifier
   中文翻译：2026 安全分类器
+- [Llama Guard 4](https://www.llama.com/docs/model-cards-and-prompt-formats/llama-guard-4/) — 2026 safety classifier
 - [NeMo Guardrails v0.12](https://docs.nvidia.com/nemo-guardrails/) — policy rail framework
   中文翻译：策略护栏框架

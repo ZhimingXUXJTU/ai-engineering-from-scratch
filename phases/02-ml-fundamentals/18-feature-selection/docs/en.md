@@ -296,6 +296,11 @@ flowchart TD
 
 > **【拓展：特征选择在 LLM 时代的新意义】**
 > 虽然深度学习号称"自动学习特征"，但特征选择在以下场景仍然关键：(1) 表格数据——特征选择可提升 XGBoost/LightGBM 的性能和训练速度；(2) 可解释性要求——医疗和金融领域需要解释哪些特征被使用；(3) 嵌入空间——即使是 Transformer，也需要在 embedding 维度上做"特征选择"（注意力机制本质上是一种动态特征选择）。OpenAI 的 GPT-4 技术报告提到，训练时使用了基于重要性的数据选择策略。
+```figure
+f3-feature-prune
+```
+
+## Build It
 
 ### Step 1: Generate synthetic data with known feature structure
 

@@ -97,6 +97,11 @@ The fixture bug is an off-by-one in `fizz.py`. The deterministic policy detects 
 
 
 ## Architecture | 架构
+```figure
+cg-harness-weave
+```
+
+## Architecture
 
 ```mermaid
 flowchart TD

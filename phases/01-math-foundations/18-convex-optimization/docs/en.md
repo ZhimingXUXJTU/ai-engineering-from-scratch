@@ -524,6 +524,11 @@ Pure Newton's method is impractical for large models. Several approximations mak
 | K-FAC | O(n) | O(n) per layer | Research, large-batch training |
 
 ## Build It | 动手实现
+```figure
+convex-vs-nonconvex
+```
+
+## Build It
 
 ### Step 1: Convexity checker
 

@@ -142,6 +142,11 @@ EU customer PHI cannot leave EU. If your cache-aware router sends a Paris-origin
 - JPMorgan us-east-1 failover Nov 2024: 22 minutes (30-min SLA).
 
 ## Use It | 用框架实现
+```figure
+cache-aware-router
+```
+
+## Use It
 
 `code/main.py` simulates three routing strategies (round-robin, cache-aware regional, cache-aware global) on a multi-region workload. Reports cache hit rate, TTFT P50/P99, and cross-region bill.
 

@@ -5,6 +5,7 @@
 > **【中文解读】** 网络编译了、运行了、输出了数字——但数字是错的，没有报错信息。这是最难的调试：没有错误信息。本章系统介绍深度学习的调试方法论：过拟合单个 batch → 检查梯度 → 追踪数值稳定性 → 诊断学习率问题。
 
 **Type:** Practice
+**Type:** Build
 **Languages:** Python, PyTorch
 **Prerequisites:** Phase 03 Lessons 01-10 (especially backpropagation, loss functions, optimizers)
 **Time:** ~90 minutes
@@ -323,6 +324,11 @@ These are the bugs that waste the most collective hours in the PyTorch community
 ## Build It | 动手实现
 
 > **【中文解读】** 构建一个 NetworkDebugger 诊断工具：用 PyTorch 的 forward hook 和 backward hook 自动记录每层的激活统计和梯度统计。然后故意制造三种错误（学习率太高、dead ReLU、忘记 zero_grad），用工具诊断。最后实现学习率搜索器和梯度检查器。
+```figure
+learning-curves
+```
+
+## Build It
 
 A diagnostic toolkit that monitors activations, gradients, and loss curves. You will deliberately break a network and use the toolkit to diagnose each problem.
 

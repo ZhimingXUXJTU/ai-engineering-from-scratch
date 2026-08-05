@@ -41,6 +41,11 @@ Why it still matters in 2026 despite LLMs: LLMs handle simple state implicitly b
 > **【拓展：大语言模型的工程实践】** 从 GPT 到 ChatGPT，NLP 领域经历了范式转变。
 
 > **【拓展：RAG 与企业知识库】** 检索增强生成（RAG）是当前企业 AI 应用最流行的架构。
+```figure
+n5-slot-tracker
+```
+
+## Build It
 
 > **【拓展：NLP 的多语言挑战】** 全球有 7000+ 种语言，但 NLP 研究主要集中在英语等少数语言。
 

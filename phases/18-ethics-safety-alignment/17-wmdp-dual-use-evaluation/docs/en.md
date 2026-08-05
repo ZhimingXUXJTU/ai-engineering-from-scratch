@@ -127,6 +127,11 @@ Lessons 12-16 are attack and defense tooling on model outputs. Lesson 17 is the 
 > **【拓展：测量陷阱 → 能力代理非部署测量】** WMDP 是能力代理，不是部署测量。WMDP 得分高的模型在实践中不一定可被新手利用——取决于引出抗性（不触发安全过滤器获得能力的难度）、隐性知识（需要湿实验室技能的能力）和执行壁垒（采购、设备）。Anthropic 2025 生物武器获取试验在 WMDP 式能力之上添加了新手引出层：测量实际任务成功而非多项选择能力。
 
 ## Use It | 使用方法
+```figure
+al-wmdp-yellow-zone
+```
+
+## Use It
 
 `code/main.py` builds a toy WMDP-shaped evaluation harness. A mock model is tested on category-binned questions; scores per domain are reported. A simple unlearning intervention (zero out domain-specific representation) reduces scores; you can measure the trade-off against general capability.
 

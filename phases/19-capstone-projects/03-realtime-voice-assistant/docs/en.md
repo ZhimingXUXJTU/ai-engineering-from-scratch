@@ -121,6 +121,11 @@ browser / Twilio PSTN
 > **【中文解读】** 构建分为 9 个阶段：WebRTC 会话建立、ASR 流式处理（20ms PCM 帧）、VAD 与轮次检测（500ms 静音 + 完整度 > 0.6）、LLM 流式输出、TTS 流式输出（首 chunk 200ms 内）、Barge-in 处理（取消 TTS + 丢弃 LLM 输出 + 重新启动 ASR）、工具侧通道（> 300ms 时发送填充语）、评估套件（100 路通话测 WER/误切断/延迟/MOS）、负载测试（单台 50 路并发）。
 
 > **【拓展：SWE-bench 评估体系】** SWE-bench 是目前编码 Agent 最权威的评测基准，包含真实 GitHub issue 和对应 patch。SWE-bench Verified 子集经过人工验证，确保 issue 描述足够明确。2026 年排行榜上，排名靠前的系统 pass@1 在 60-80% 区间。衡量维度不仅看通过率，还包括每任务轮次、token 消耗和美元成本。mini-swe-agent 作为最简基线实现，通常作为对比起点。
+```figure
+ce-voice-latency
+```
+
+## Build It
 
 1. **WebRTC session.** Stand up a LiveKit room and a web client that streams microphone audio. On the server, attach an agent worker that joins the room.
    中文翻译：1. **WebRTC session.** Stand up a LiveKit room and a web client that streams microphone audio. On the server, attach an agent worker that joins the room.

@@ -143,6 +143,11 @@ Smallville is the proof of concept that multi-agent emergence is cheap when the 
 > Smallville 是概念验证，表明当组件正确时，多 Agent 涌现是廉价的。该架构已在开源模型上复现（较小的 LLM 优雅地而非剧烈地失去可信度）。任何需要**涌现社会行为**的生产系统都使用这种形式。任何需要**紧密任务执行**的系统都使用本阶段早期的监督者/角色/原语模式。
 
 ## Build It | 动手构建
+```figure
+a5-memory-reflection
+```
+
+## Build It
 
 `code/main.py` implements the three components in stdlib Python with scripted agent policies (no real LLM). The demo reproduces the Valentine's-party emergence in miniature:
 

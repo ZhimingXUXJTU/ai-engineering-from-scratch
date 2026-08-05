@@ -1,6 +1,7 @@
 # CrewAI: Role-Based Crews and Flows | CrewAI 团队 角色
+# Role-Based Agent Teams — Roles, Tasks, Processes
 
-> CrewAI is the 2026 role-based multi-agent framework. Four primitives: Agent, Task, Crew, Process. Two top-level shapes: Crews (autonomous, role-based collaboration) and Flows (event-driven, deterministic). The docs are blunt: "for any production-ready application, start with a Flow."
+> Four primitives: Agent, Task, Crew, Process. Two top-level shapes: Crews (autonomous, role-based collaboration) and Flows (event-driven, deterministic). CrewAI is the 2026 reference implementation, and its docs are blunt: "for any production-ready application, start with a Flow."
 
 **Type:** Learn + Build | **类型:** 构建
 **Languages:** Python (stdlib) | **语言:** Python (标准库)
@@ -155,12 +156,13 @@ Enable on the Crew with `memory=True` or per-type config. Backed by an embedding
 > CrewAI 将多 Agent 协作建模为角色团队（Crew）和事件驱动流程（Flow）两种模式。四种原语：Agent（角色+目标+背景故事）、Task（任务）、Crew（团队容器）、Process（执行策略）。
 
 ### When CrewAI fits
+### When role-based teams fit
 
 - Three to six agents with named roles and a collaborative workflow. Drafting, reviewing, planning, brainstorming.
 - Routing where the LLM's judgment about the next step is part of the value (Hierarchical).
 - Anywhere the team is happier reading `role + goal + backstory` than reading a graph definition.
 
-### When CrewAI does not fit
+### When they do not
 
 - Deterministic DAGs with strict ordering. Use LangGraph (Lesson 13). The graph shape is the right abstraction; CrewAI's role framing is friction.
 - Sub-second latency budgets. Hierarchical adds round trips. Even Sequential serializes prompts that include backstories and prior outputs.
@@ -198,6 +200,11 @@ Independent of LangChain. Python 3.10 to 3.13. Uses `uv`. Star count: see [crewA
 > **Crew 直接上生产。** 没有包装成 Flow 就将自由形式 Crew 发布到生产环境。输出变异性高；无法重放；值班人员无法对比好坏运行。用 Flow 包装。
 
 ## Build It | 动手实现
+```figure
+ae-crew-vs-flow
+```
+
+## Build It
 
 `code/main.py` implements stdlib versions of both shapes plus a three-agent crew.
 

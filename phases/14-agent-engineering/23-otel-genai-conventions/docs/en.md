@@ -105,6 +105,11 @@ Datadog v1.37+ maps GenAI attributes natively into its LLM Observability schema.
 > **不设置稳定性选择加入。** 你的属性可能在后端升级时被重命名。
 
 ## Build It | 动手实现
+```figure
+ae-genai-span-tree
+```
+
+## Build It
 
 `code/main.py` implements a stdlib span emitter matching GenAI conventions:
 

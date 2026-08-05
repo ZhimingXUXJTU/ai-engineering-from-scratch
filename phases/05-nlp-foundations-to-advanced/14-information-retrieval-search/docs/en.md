@@ -59,6 +59,11 @@ Three-way retrieval (BM25 + dense + learned-sparse like SPLADE) outperforms two-
 
 > **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
 
+```figure
+gx-hybrid-retrieval
+```
+
+## Build It
 
 ### Step 1: BM25 from scratch
 > 两个参数值得了解。`k1=1.5` 控制词频饱和；更高意味着词重复的权重更大。`b=0.75` 控制长度归一化；0 忽略文档长度，1 完全归一化。默认值是 Robertson 原始论文中的推荐值，很少需要调整。

@@ -175,6 +175,11 @@ Every decision in that config traces back to a paper you can read.
 > 该配置中的每个决策都可以追溯到你可以阅读的论文。
 
 ## Use It | 用框架实现
+```figure
+image-patch-tokens
+```
+
+## Use It
 
 `code/main.py` is a patch tokenizer and geometry calculator. It takes (image H, W, patch P, hidden D, depth L) and reports:
 

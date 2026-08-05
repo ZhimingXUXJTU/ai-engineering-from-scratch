@@ -208,6 +208,11 @@ HNSW is the dominant algorithm in modern vector databases.
 > HNSW 是现代向量数据库中的主流算法。
 
 ## Build It | 动手实现
+```figure
+norm-unit-balls
+```
+
+## Build It
 
 ### Step 1: All norm and distance functions | 第1步：所有范数和距离函数
 

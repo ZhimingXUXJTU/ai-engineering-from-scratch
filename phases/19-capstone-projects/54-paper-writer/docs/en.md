@@ -26,6 +26,10 @@
 - Emit a single `paper.tex` plus a `references.bib` plus a manifest that lists every figure referenced and every citation used.
   中文翻译：Emit a single `paper.tex` plus a `references.bib` plus a manifest that lists every figure referenced and every citation used.
 
+```figure
+ch-paper-skeleton
+```
+
 ## Why a skeleton first
 
 > **【中文解读】** 以散文开始的草稿积累结构性债务：引言混入相关工作、图表在定义前被引用、参考文献出现重复键。骨架反转了这一过程——结构先声明为数据：章节是有名称和顺序的槽位，图表是有 id 和标题的槽位，文献键在顶部声明。Harness 可以在写任何散文之前验证每个图表有槽位、每个引用有条目、每个章节出现在目录中。

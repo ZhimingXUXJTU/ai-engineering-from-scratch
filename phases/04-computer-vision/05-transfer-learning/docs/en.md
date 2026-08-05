@@ -168,6 +168,11 @@ If fine-tuned is less than pretrained-only, you have a learning-rate or BN bug. 
 
 
 ## Build It | 动手实现
+```figure
+transfer-learning
+```
+
+## Build It
 
 ### Step 1: Load a pretrained backbone and inspect it
 

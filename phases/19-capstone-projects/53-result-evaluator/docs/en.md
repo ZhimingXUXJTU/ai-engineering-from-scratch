@@ -84,6 +84,11 @@ A flat threshold (`improvement_threshold=0.02`, two percent) decides whether the
 ## Architecture | 架构
 
 > **【拓展：自动化评估在 MLOps 流水线中的位置】** 评估器位于 CI/CD 流水线的关键节点：模型训练完成后、部署之前。Google 的 Vertex AI Model Evaluation、AWS SageMaker Model Monitor 都提供类似的自动化评估。评估器输出的 Verdict 结构直接驱动部署决策——"improved" 触发金丝雀部署，"noise" 保持当前版本，"regressed" 阻止部署。本课的 Verdict 是这些系统的核心抽象。
+```figure
+cg-paired-verdict
+```
+
+## Architecture
 
 ```mermaid
 flowchart TD

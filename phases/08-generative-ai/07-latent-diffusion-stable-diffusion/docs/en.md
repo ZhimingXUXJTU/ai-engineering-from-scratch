@@ -70,6 +70,11 @@ The trend: replace U-Net with DiT (transformer over latent patches), scale the t
 > 趋势：用 DiT 替代 U-Net，扩展文本编码器（T5 在 prompt 遵循上优于 CLIP），增加潜在通道（4→16 给更多细节余量）。
 
 ## Build It | 动手实现
+```figure
+noise-schedule
+```
+
+## Build It
 
 `code/main.py` stacks a toy 1-D "VAE" (identity encoder + decoder, for demonstration; a real VAE would be a conv net) on top of the DDPM from Lesson 06 and adds class conditioning with classifier-free guidance. It shows that the same diffusion loss works whether you run on raw 1-D values or on encoded values — the key insight.
 

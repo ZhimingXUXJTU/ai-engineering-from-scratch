@@ -132,6 +132,11 @@ Reported results (Microsoft 2024): 5–10% lower perplexity, 1.5–2× longer ef
 | 差分 | O(2·N²) | O(2N) | 困惑度降低 5-10% | DIFF Transformer, 2026 早期模型 |
 
 ## Build It | 动手实现
+```figure
+gqa-kv-sharing
+```
+
+## Build It
 
 See `code/main.py`. We implement a causal mask comparator that shows full, SWA, local+strided, and differential attention side by side on a toy sequence.
 

@@ -194,6 +194,11 @@ Open SOTA (AF3) at 0.72; proprietary frontier ~0.78 (Gemini 2.5 Pro, Claude Opus
 > 开放 SOTA（AF3）0.72；闭源前沿约 0.78（Gemini 2.5 Pro、Claude Opus 4.7）。差距小于 VideoMME 的开源-闭源差距，说明音频 LLM 正在成熟。
 
 ## Use It | 用框架实现
+```figure
+audio-text-ctc
+```
+
+## Use It
 
 `code/main.py`:
 

@@ -98,6 +98,11 @@ You will re-answer these five for every lesson in this phase. By the end, they w
 > **【中文解读】** 这五个问题（建模对象、显式/隐式密度、采样方式、条件类型、评估指标）是分析任何生成模型的通用框架。在后续每节课中反复回答这五个问题，可以帮助你快速理解新论文的核心贡献和技术选择。
 
 ## Build It | 动手实现
+```figure
+autoencoder-bottleneck
+```
+
+## Build It
 
 The code for this lesson is a lightweight visualization: fit a 1-D mixture-of-Gaussians from samples using three toy approaches (kernel density, discrete histogram, and a nearest-sample "GAN-ish" generator) so you can see the difference between explicit vs implicit density on a problem you can print on one screen.
 

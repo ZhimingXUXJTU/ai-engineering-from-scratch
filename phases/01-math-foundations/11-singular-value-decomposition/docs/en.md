@@ -364,6 +364,11 @@ This means everything you learned about dimensionality reduction in Lesson 10 is
 > 这意味着你在 Lesson 10 学到的降维内容底层都是 SVD。PCA 是 SVD 在机器学习中最常见的应用。
 
 ## Build It | 动手实现
+```figure
+svd-rank-reconstruction
+```
+
+## Build It
 
 ### Step 1: SVD from scratch using power iteration | 第1步：用幂迭代从零实现 SVD
 

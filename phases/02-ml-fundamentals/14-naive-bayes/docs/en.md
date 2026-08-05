@@ -341,6 +341,11 @@ log P(class | features) = log P(class) + sum_i log P(feature_i | class)
 
 > **【拓展：朴素贝叶斯在现代 NLP 中的角色演变】**
 > 虽然 Transformer 模型（BERT、GPT）在 NLP 任务上大幅超越了朴素贝叶斯，但朴素贝叶斯仍有其用武之地：实时垃圾邮件过滤（毫秒级延迟）、大规模文本预分类（成本极低）、作为 baseline 快速验证特征工程效果。在医疗诊断中，高斯朴素贝叶斯因输出概率可解释而被广泛使用——医生需要知道"有多大把握"，而不是黑箱输出。
+```figure
+naive-bayes
+```
+
+## Build It
 
 The code in `code/naive_bayes.py` implements both MultinomialNB and GaussianNB from scratch.
 

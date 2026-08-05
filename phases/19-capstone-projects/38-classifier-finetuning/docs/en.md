@@ -153,6 +153,11 @@ A confusion matrix prints the four counts as a 2x2 grid. The demo writes this to
 
 
 ## Architecture | 架构
+```figure
+cap-classifier-head-swap
+```
+
+## Architecture
 
 ```mermaid
 flowchart TD

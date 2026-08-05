@@ -25,6 +25,10 @@
 - Contrast learned and sinusoidal embeddings on length generalization and parameter count.
   中文翻译：Contrast learned and sinusoidal embeddings on length generalization and parameter count.
 
+```figure
+cc-embedding-lookup
+```
+
 ## The frame
 
 > **【中文解读】** 模型与 token ID 的第一次接触是 token 嵌入矩阵的行查找。矩阵有 V 行（每行对应一个词汇 ID）和 D 列（模型维度）。Token ID 本身没有顺序信息，模型需要第二个信号区分位置 1 和位置 17。两种主流选择：学习型位置嵌入（第二个查找表）和固定正弦位置嵌入（数学公式，无参数）。

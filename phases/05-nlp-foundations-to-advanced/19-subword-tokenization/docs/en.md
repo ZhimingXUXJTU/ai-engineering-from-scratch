@@ -64,6 +64,11 @@ Rule of thumb:
   **两者兼有：** HF Tokenizers — 一个库，训练 + 服务。
 
 > **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
+```figure
+bpe-merge
+```
+
+## Build It
 
 > **【拓展：大语言模型的工程实践】** 从 GPT 到 ChatGPT，NLP 领域经历了从 "每个任务训练一个模型" 到 "一个模型解决所有任务" 的范式转变。在实际工程中，LLM 的部署需要考虑 Token 限制、延迟、成本、安全审查等问题。LangChain、LlamaIndex 等框架简化了 LLM 应用的开发。
 

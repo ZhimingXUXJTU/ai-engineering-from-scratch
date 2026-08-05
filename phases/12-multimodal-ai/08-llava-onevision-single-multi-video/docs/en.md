@@ -105,6 +105,11 @@ The 2025 follow-up (LLaVA-OneVision-1.5, arXiv 2509.23661) is "fully open" in tr
 Qwen2.5-VL (Lesson 12.09) makes different choices. It uses M-RoPE and dynamic FPS instead of fixed pooling. Its budget scales with input — a 1-minute video uses more tokens than a 5-second video. LLaVA-OneVision fixes the budget and scales the pooling. Both work; they trade configurability for predictability.
 
 > **【中文解读】** Qwen2.5-VL 用 M-RoPE 和动态帧率，token 预算随输入缩放；LLaVA-OneVision 固定预算、调整池化。两种策略各有优劣：前者灵活但成本不可预测，后者成本可控但可能浪费或不足。
+```figure
+l5-onevision-budget
+```
+
+## Use It
 
 ## Use It  | 动手实践
 

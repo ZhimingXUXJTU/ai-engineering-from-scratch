@@ -263,6 +263,11 @@ The simplest ensemble. Just combine predictions directly.
 
 > **【中文解读】**
 > 从零实现三种集成方法：Bagging（并行训练独立模型取平均）、AdaBoost（串行训练加权投票）、Gradient Boosting（串行训练纠正残差）。AdaBoost 的核心是给被前一个模型误分类的样本增加权重，Gradient Boosting 每棵新树拟合前一棵树的残差。
+```figure
+f3-ensemble-average
+```
+
+## Build It
 
 ### Step 1: Decision Stump (Base Learner)
 

@@ -63,6 +63,11 @@ The script lives on disk; the runner writes the config to a temp file path that 
 
 
 ## Architecture | 架构
+```figure
+cg-runner-limits
+```
+
+## Architecture
 
 ```mermaid
 flowchart TD

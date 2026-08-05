@@ -98,6 +98,11 @@ Open weights are closing the gap faster than in the image space: HunyuanVideo + 
 > 开源权重正在比图像领域更快地缩小差距。
 
 ## Build It | 动手实现
+```figure
+video-diffusion-denoise
+```
+
+## Build It
 
 `code/main.py` simulates the core spatiotemporal DiT idea: patchify a small synthetic video, add a per-patch position embedding, and denoise the whole sequence with a transformer-style attention over patches. No numpy; pure Python. We show that temporal coherence emerges even in 1-D when adjacent-frame patches share a denoiser and position embeddings.
 

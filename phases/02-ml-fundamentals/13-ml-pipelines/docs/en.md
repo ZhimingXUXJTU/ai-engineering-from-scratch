@@ -362,6 +362,11 @@ The typical progression:
 
 > **【拓展：sklearn Pipeline 在 Kaggle 和工业界的标准模式】**
 > Kaggle Grandmaster 的标准代码模板几乎总是包含一个 sklearn Pipeline：数值特征用 SimpleImputer + StandardScaler，类别特征用 SimpleImputer + OneHotEncoder，通过 ColumnTransformer 组合后输入模型。这确保了：交叉验证中每折独立 fit、新数据推理时变换一致、代码简洁可维护。在生产中，Pipeline 可以用 joblib 序列化保存，部署时直接加载使用。
+```figure
+f3-pipeline-flow
+```
+
+## Build It
 
 The code in `code/pipeline.py` builds a complete ML pipeline from scratch:
 

@@ -67,6 +67,11 @@ In 2026, unpaired image-to-image is mostly done via diffusion (ControlNet, IP-Ad
 > 2026 年，非配对图像翻译主要通过扩散模型（ControlNet、IP-Adapter）而非 CycleGAN 完成，但循环一致性思想几乎存在于每篇非配对域适应论文中。
 
 ## Build It | 动手实现
+```figure
+gx-patchgan
+```
+
+## Build It
 
 `code/main.py` implements a tiny conditional GAN on 1-D data. The condition `c` is a class label (0 or 1). The task: produce a sample from the conditional distribution for the given class.
 

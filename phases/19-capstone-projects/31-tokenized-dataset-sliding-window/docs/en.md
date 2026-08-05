@@ -25,6 +25,10 @@
 - Reason about the trade-off between stride, redundancy, and effective dataset size.
   中文翻译：Reason about the trade-off between stride, redundancy, and effective dataset size.
 
+```figure
+cap-sliding-window
+```
+
 ## The frame
 
 > **【中文解读】** 预训练运行每次读取一个 batch 的 token ID 并更新模型。Batch 的形状固定为 `(B, T)` 输入 ID 和 `(B, T)` 目标 ID（目标 = 输入左移一位）。本节构建数据管线：分词器将文本转为扁平 ID 列表，滑动窗口将其切为训练样本，Dataset 暴露为张量，DataLoader 负责批处理和确定性洗牌。

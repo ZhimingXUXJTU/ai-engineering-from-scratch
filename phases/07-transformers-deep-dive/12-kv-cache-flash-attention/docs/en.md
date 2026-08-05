@@ -78,6 +78,11 @@ That 10 GB is why Llama 3 70B at 128K context needs most of a 40 GB A100 just fo
 **GQA is the KV-cache win.** MHA with 64 heads would be 32 GB. MLA compresses even further.
 
 > **GQA 是 KV 缓存的胜利。** 64 头的 MHA 需要 32 GB。MLA 压缩得更进一步。
+Drag the dimensions and watch the cache size move. Push the sequence length or batch up and see how fast it blows past a single GPU:
+
+```figure
+kv-cache-sizer
+```
 
 ### Flash Attention — the tiling trick
 
@@ -165,6 +170,11 @@ vLLM's headline feature. KV cache is allocated in 16-token blocks; a page table 
 > vLLM 的核心特性。KV 缓存以 16 token 块分配；页表将逻辑位置映射到物理块。允许跨并行样本（束搜索、并行采样）共享 KV，热交换前缀用于提示缓存，以及内存碎片整理。比朴素连续分配提升 4 倍吞吐量。
 
 ## Build It | 动手实现
+```figure
+flash-attention-memory
+```
+
+## Build It
 
 See `code/main.py`. We implement:
 

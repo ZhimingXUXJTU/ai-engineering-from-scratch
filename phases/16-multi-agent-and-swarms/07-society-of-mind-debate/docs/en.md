@@ -126,6 +126,11 @@ The scaling result is striking: past ~50 agents, individual roles start speciali
   中文翻译：**计算爆炸。** N 个 Agent x R 轮 = N*R 次 LLM 调用，每次的上下文都在增长。5 个 Agent、5 轮的辩论是 25 次调用，上下文不断增长。每个问题的成本可能超过单次 CoT 调用的 10 倍。
 
 ## Build It | 动手实现
+```figure
+multi-agent-debate
+```
+
+## Build It
 
 `code/main.py` runs a 3-agent x 3-round debate on a math question where each agent starts with a different (possibly wrong) answer. Agents are scripted — each "updates" by averaging the neighbors' answers weighted by a scripted confidence. Convergence is visible in the round-by-round log.
 

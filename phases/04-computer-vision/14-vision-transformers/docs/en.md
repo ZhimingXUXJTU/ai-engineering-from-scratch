@@ -192,6 +192,11 @@ MAE makes ViT trainable on ImageNet-1k alone, hits SOTA, and is the current defa
 
 
 ## Build It | 动手实现
+```figure
+batchnorm-inference
+```
+
+## Build It
 
 ### Step 1: Patch embedding
 

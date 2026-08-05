@@ -352,6 +352,11 @@ For most practical problems, start with recursive for short horizons (1-5 steps)
 
 > **【拓展：从 ARIMA 到 Transformer——时间序列预测的进化】**
 > 经典时间序列方法（ARIMA、Holt-Winters）在单变量、短序列上仍然有效。但现代方法已大幅超越：Facebook 的 Prophet 自动处理节假日和季节性；Amazon 的 DeepAR 使用自回归 RNN 做概率预测；Google 的 TimesFM 和 Amazon 的 Chronos 使用 Transformer 架构，在零样本（zero-shot）时间序列预测上取得突破。这些模型可以处理数千个相关时间序列的联合预测。
+```figure
+f3-series-decompose
+```
+
+## Build It
 
 The code in `code/time_series.py` implements the core building blocks from scratch.
 

@@ -205,6 +205,11 @@ Use MCP when you want to invoke a specific tool. Use A2A when you want to delega
 ## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 实现最小 A2A 线束：研究 Agent 发布卡片，写作 Agent 接收 `tasks/send`（含 PDF 和文本指令的 Parts），经历 working -> input_required -> working -> completed 生命周期，返回文本 Artifact。全部标准库，使用内存传输关注消息形状。
+```figure
+a2a-task-lifecycle
+```
+
+## Use It
 
 `code/main.py` implements a minimal A2A harness: a research agent publishes its card, a writer agent receives a `tasks/send` with parts including a PDF and a text instruction, transitions through working → input_required → working → completed, and returns a text artifact. All stdlib; uses an in-memory transport to focus on message shapes.
 

@@ -268,6 +268,11 @@ Reconstruction error is useful beyond choosing k. You can use it for anomaly det
 > 重建误差不仅用于选择 k。你还可以用于异常检测：重建误差高的样本是不符合学习子空间的异常值。这是生产系统中 PCA 异常检测的基础。
 
 ## Build It | 动手实现
+```figure
+pca-axes
+```
+
+## Build It
 
 > **【中文解读】** 以下从零实现 PCA 的完整流程：数据中心化 → 协方差矩阵 → 特征值分解 → 投影。然后在 MNIST 数据上对比 PCA、t-SNE、UMAP 的可视化效果。
 

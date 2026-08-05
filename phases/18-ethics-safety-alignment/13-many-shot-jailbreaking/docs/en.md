@@ -115,6 +115,11 @@ Lesson 12 is the in-context iterative attack. Lesson 13 is the long-context leng
 > **【拓展：MSJ 在 2025-2026 前沿模型上的评估】** 每个前沿实验室现在在 256+ 射击下对生产模型运行 MSJ 评估。攻击在模型卡中以 ASR 曲线而非单个数字出现。MSJ 还与 PAIR 组合——用 PAIR 找到攻击结构然后填充多次射击。Anil 等人报告 MSJ 与竞争目标越狱组合，堆叠比单独任何一种都达到更高的 ASR。
 
 ## Use It | 使用方法
+```figure
+jailbreak-defense
+```
+
+## Use It
 
 `code/main.py` builds a toy target with a keyword filter and a "patterned-continuation" weakness: when the context contains N examples of harmful-compliance pairs, the target's filter score is damped by a power-law factor. You can reproduce the shot-vs-ASR curve.
 

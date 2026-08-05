@@ -107,6 +107,11 @@ Three knobs, three different behaviors. Temperature near zero collapses to greed
 
 
 ## Build It | 动手构建
+```figure
+cc-gpt-assembly
+```
+
+## Build It
 
 `code/main.py` implements:
 

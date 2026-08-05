@@ -117,6 +117,11 @@ The lesson is in reading the document with the specificity and skepticism it des
 > 课程是用它应得的特异性和怀疑论阅读文档。扩展政策是前沿实验室发出关于灾难性风险姿态的主要公开信号。读好它们对任何工作依赖前沿能力的人是实用技能。
 
 ## Use It | 用框架实现
+```figure
+a5-rsp-ladder
+```
+
+## Use It
 
 `code/main.py` implements a small decision engine that mirrors the RSP threshold-evaluation shape: given a candidate model and a set of capability measurements, return whether the AI R&D-4 threshold is crossed, the required affirmative-case sections, and whether deployment can proceed. It's intentionally simple; the point is to make the document's logic explicit.
 

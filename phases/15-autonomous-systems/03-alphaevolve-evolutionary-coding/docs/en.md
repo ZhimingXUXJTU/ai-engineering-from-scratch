@@ -133,6 +133,11 @@ The evaluator, in turn, catches the LLM's confabulations. LLMs will confidently 
 All four are variations on the same recipe: generator plus evaluator, loop. The differences are what the evaluator grades and how rigorous it is.
 
 > 四者都是同一配方的变体：生成器加评估器，循环。区别在于评估器评分什么以及有多严谨。
+```figure
+alphaevolve-loop
+```
+
+## Use It
 
 ## Use It | 用框架实现
 

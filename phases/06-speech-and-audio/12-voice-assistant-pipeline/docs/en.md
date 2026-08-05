@@ -102,6 +102,11 @@ Latency target: first TTS audio byte within 800 ms of the user finishing their u
 
 
 ## Build It | 动手实现
+```figure
+v4-voice-latency
+```
+
+## Build It
 
 ### Step 1: mic capture with chunking (pseudocode)
 

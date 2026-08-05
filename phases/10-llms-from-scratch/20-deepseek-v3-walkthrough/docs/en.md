@@ -164,6 +164,11 @@ DeepSeek-V4 (if it ships) is expected to keep MLA + MoE + MTP and add DSA (DeepS
 
 
 ## Use It | 用框架实现
+```figure
+moe-routing
+```
+
+## Use It
 
 `code/main.py` is the parameter calculator specialized to DeepSeek-V3's shape. Run it, compare its output to the paper's numbers, and use it on hypothetical variants (256 experts vs 512, top-8 vs top-16, MLA rank 512 vs 1024).
 

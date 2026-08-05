@@ -141,6 +141,11 @@ Once you have a shared embedding space, every vision+language task becomes a dis
 
 
 ## Build It | 动手实现
+```figure
+clip-contrastive
+```
+
+## Build It
 
 ### Step 1: A tiny two-tower model
 

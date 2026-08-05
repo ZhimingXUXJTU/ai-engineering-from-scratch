@@ -234,6 +234,11 @@ The entire reason "3x3 all the way down" works (VGG, ResNet, ConvNeXt) is that t
 > "全用 3x3"（VGG、ResNet、ConvNeXt）行得通的全部原因是两个 3x3 卷积看到的输入区域与一个 5x5 卷积相同，但参数更少，中间还多了一层非线性。
 
 > **【中文解读】** 堆叠 L 层 K×K 卷积（步幅为1）的感受野 = 1 + L × (K-1)。这就是 VGG、ResNet 等网络 "全用 3x3" 的原因：两个 3x3 卷积的感受野等于一个 5x5，但参数更少，中间还多了一层非线性激活。
+```figure
+convolution-kernel
+```
+
+## Build It
 
 ## Build It | 动手实践
 

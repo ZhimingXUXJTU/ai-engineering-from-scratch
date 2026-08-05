@@ -134,6 +134,11 @@ Best-case stacked: ~5-10% of naive baseline. Most teams have 2-3 levers engaged;
 - Stacked optimizations: ~5-10% of baseline possible.
 
 ## Use It | 用框架实现
+```figure
+i4-spend-ladder
+```
+
+## Use It
 
 `code/main.py` simulates a multi-tenant LLM service with the three-tier enforcement ladder. Injects an abusive tenant and demonstrates the kill switch firing.
 

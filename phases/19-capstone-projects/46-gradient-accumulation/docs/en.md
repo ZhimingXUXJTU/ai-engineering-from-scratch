@@ -115,6 +115,11 @@ There is no free lunch. Doubling `accum_steps` doubles the wall time per optimiz
 
 
 ## Build It | 动手构建
+```figure
+cc-grad-accumulation
+```
+
+## Build It
 
 `code/main.py` is the runnable artifact. It does three things.
 

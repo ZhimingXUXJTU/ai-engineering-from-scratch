@@ -3,6 +3,10 @@
 > Three layers, not one. Karpenter provisions nodes dynamically (under one minute, 40% faster than Cluster Autoscaler). KAI Scheduler handles gang scheduling, topology awareness, and hierarchical queues — it prevents the 7-of-8 partial allocation trap where seven nodes wait and burn on one missing GPU. Application-level autoscalers (NVIDIA Dynamo Planner, llm-d Workload Variant Autoscaler) scale on inference-specific signals — queue depth, KV cache utilization — not CPU/DCGM duty cycle. The classic HPA trap is that `DCGM_FI_DEV_GPU_UTIL` is a duty-cycle measurement: 100% could be 10 requests or 100. vLLM pre-allocates KV cache memory, so memory never triggers scale-down. This lesson teaches you to compose the three layers and avoid the default Karpenter `WhenEmptyOrUnderutilized` policy that terminates running GPU jobs mid-inference.
 
 > **【中文解读】** 本节介绍了 GPU 自动扩缩——Kubernetes 上 LLM 推理服务的 GPU 资源自动扩展策略。
+**Type:** Learn
+**Languages:** Python (stdlib, toy queue-depth autoscaler simulator)
+**Prerequisites:** Phase 17 · 02 (Inference Platform Economics), Phase 17 · 04 (Serving Engine Internals)
+**Time:** ~75 minutes
 
 
 **Type:** Learn | **类型:** 学习
@@ -156,6 +160,11 @@ Cold-start mitigation (Phase 17 · 10) is where node provisioning time becomes u
 ## Use It | 用框架实现
 
 > **【拓展：GPU 自动扩缩成本模型】** GPU 自动扩缩的成本优化核心是减少空转时间。以 H100（$3/hr）为例，8-GPU 集群 24/7 运行每月成本约 $17,280。通过 Karpenter 按需供给 + `WhenEmpty` 合并策略 + 推理感知 HPA，可在非高峰时段自动缩容到 2-GPU，将月成本降至约 $8,640（节省 50%）。Spot Instance 可进一步节省 60-70%，但需要处理中断。
+```figure
+autoscaling
+```
+
+## Use It
 
 `code/main.py` simulates a three-layer autoscaler on a bursty GPU workload. Compares naive HPA (duty cycle), queue-depth HPA, and KAI-gang-scheduled scaling. Reports unmet requests, idle-GPU minutes, and a composite score.
 

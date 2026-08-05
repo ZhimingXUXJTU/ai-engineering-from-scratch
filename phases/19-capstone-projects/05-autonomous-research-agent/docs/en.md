@@ -108,6 +108,11 @@ seed idea + domain
   中文翻译：Observability: Langfuse for agent traces, $30 hard budget per paper
 
 ## Build It | 动手构建
+```figure
+ce-experiment-tree
+```
+
+## Build It
 
 1. **Seed and domain scoping.** Take a seed idea (e.g., "investigate sparsity patterns in attention maps of sub-1B transformers"). Define the search space: models, datasets, compute budget.
    中文翻译：1. **Seed and domain scoping.** Take a seed idea (e.g., "investigate sparsity patterns in attention maps of sub-1B transformers"). Define the search space: models, datasets, compute budget.

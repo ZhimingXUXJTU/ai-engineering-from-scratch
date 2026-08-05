@@ -32,6 +32,28 @@ Chatbot architectures have cycled through four paradigms, each introduced becaus
 
 ![Chatbot evolution: rule-based → retrieval → neural → agent](../assets/chatbot.svg)
 
+### The scripted half-century, 1950-2001
+
+The first paradigm did not last five years. It lasted fifty. Knowing its arc matters because every system in it is the same machine — match input, emit a canned response, update a little state — and fifty years of adding rules to that machine never produced the general case. That ceiling is why paradigms two through four exist.
+
+**1950.** Turing sidesteps "can machines think?" by proposing an operational replacement: if an interrogator cannot tell the machine from a person over teletype, the philosophical question is moot. Conversation becomes the field's benchmark before the field has a name.
+
+**1956.** The name arrives — a summer workshop at Dartmouth coins "artificial intelligence" on the conjecture that every feature of intelligence "can in principle be so precisely described that a machine can be made to simulate it." The proposal budgets two months for substantial progress.
+
+**1966.** ELIZA ships the reflection trick you build in Step 1: decomposition rules pull fragments from the input, reassembly rules echo them back as questions. Around 200 patterns total, zero state, zero understanding — and users confided in it anyway. Weizenbaum spent the rest of his career alarmed by how little machinery it took.
+
+**1972.** PARRY, built at Stanford to model paranoia, adds the piece ELIZA lacked: internal state. Numeric variables for fear, anger, and mistrust update on every turn and gate which script fires next, so identical inputs produce different responses depending on the conversation so far. In a blinded transcript test, psychiatrists distinguished PARRY from human patients at chance. It is the direct ancestor of persona conditioning — a system prompt implemented as three floats. The same year, the two bots were pointed at each other over ARPANET: a therapist script interviewing a paranoia state machine, the first bot-to-bot conversation on a network.
+
+**1995.** ALICE scales the ELIZA recipe with AIML, an XML dialect for pattern-template pairs. Roughly 40,000 hand-written categories, three Loebner Prize wins. It proved the scaling law of rule-based systems: more rules buy coverage, never generality. Every rule is a liability someone must maintain.
+
+**2001.** SmarterChild puts the recipe in front of 30 million instant-messenger users and adds backend lookups — weather, stocks, movie times — spliced into templates. Squint and it is tool calling wearing a 2001 costume: parse intent, call a service, render the result into the reply.
+
+Fifty years, one mechanism, rising rule counts. The paradigm ended not because anyone disproved it but because the maintenance cost of hand-written state machines grows linearly with coverage while user expectations grow with whatever they saw last week.
+
+```figure
+chatbot-lineage
+```
+
 **Rule-based (ELIZA, AIML, DialogFlow).** Hand-authored patterns match user input and produce responses. Intent classifiers route to predefined flows. Slot-filling state machines collect required info. Works brilliantly inside the narrow scope it was designed for. Fails immediately outside it. Still ships in safety-critical domains (banking authentication, airline booking) where hallucination is not tolerated.
 
 > **基于规则（ELIZA、AIML、DialogFlow）。** 手写模式匹配用户输入并产生响应。意图分类器路由到预定义流程。槽位填充状态机收集所需信息。在设计的狭窄范围内表现出色。超出范围立即失败。仍在不容许幻觉的安全关键领域（银行认证、航空公司预订）中使用。
@@ -316,3 +338,22 @@ Refuse to recommend a pure-LLM agent for any destructive action (payments, accou
 - [OWASP Top 10 for LLM Applications 2025 — LLM01 Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/) — the ranking that made prompt injection the top security concern. / 使提示注入成为首要安全关注的排名。
 - [AWS — Securing Amazon Bedrock Agents against Indirect Prompt Injections](https://aws.amazon.com/blogs/machine-learning/securing-amazon-bedrock-agents-a-guide-to-safeguarding-against-indirect-prompt-injections/) — practical orchestration-layer defenses including Plan-Verify-Execute and user-confirmation flows. / 实用编排层防御，包括规划-验证-执行和用户确认流程。
 - [EchoLeak (CVE-2025-32711)](https://www.vectra.ai/topics/prompt-injection) — the canonical zero-click data-exfiltration CVE from indirect prompt injection. Reference case for why write-access agents need runtime defenses. / 间接提示注入的典型零点击数据泄露 CVE。写入权限 Agent 需要运行时防御的参考案例。
+| Intent | What the user wants | Categorical label (book_flight, reset_password). Routed to a handler. |
+| Slot | A piece of info | Parameter the bot needs (date, destination). Slot filling is the sequence of asks. |
+| RAG | Retrieval plus generation | Retrieve relevant docs, then ground the LLM's response. |
+| Tool call | Function invocation | LLM emits a structured call with name + args. Runtime executes, returns result. |
+| Agent loop | Plan, act, verify | Controller that runs LLM calls interleaved with tool calls until task complete. |
+| Prompt injection | User attacks prompt | Malicious input that tries to override the system prompt. |
+
+## Further Reading
+
+- [Turing (1950). Computing Machinery and Intelligence](https://academic.oup.com/mind/article/LIX/236/433/986238) — the paper that made conversation the field's benchmark.
+- [Weizenbaum (1966). ELIZA — A Computer Program For the Study of Natural Language Communication](https://web.stanford.edu/class/cs124/p36-weizenabaum.pdf) — the original rule-based chatbot paper.
+- [Colby, Weber, Hilf (1971). Artificial Paranoia](https://doi.org/10.1016/0004-3702(71)90002-6) — PARRY's affect-variable architecture, the first stateful chatbot.
+- [Thoppilan et al. (2022). LaMDA: Language Models for Dialog Applications](https://arxiv.org/abs/2201.08239) — Google's late neural-chatbot paper, just before LLM agents took over.
+- [Yao et al. (2022). ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629) — the paper that named the agent loop pattern.
+- [Anthropic's guide on building effective agents](https://www.anthropic.com/research/building-effective-agents) — 2024 production guidance that still holds in 2026.
+- [Greshake et al. (2023). Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection](https://arxiv.org/abs/2302.12173) — the prompt-injection paper.
+- [OWASP Top 10 for LLM Applications 2025 — LLM01 Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/) — the ranking that made prompt injection the top security concern.
+- [AWS — Securing Amazon Bedrock Agents against Indirect Prompt Injections](https://aws.amazon.com/blogs/machine-learning/securing-amazon-bedrock-agents-a-guide-to-safeguarding-against-indirect-prompt-injections/) — practical orchestration-layer defenses including Plan-Verify-Execute and user-confirmation flows.
+- [EchoLeak (CVE-2025-32711)](https://www.vectra.ai/topics/prompt-injection) — the canonical zero-click data-exfiltration CVE from indirect prompt injection. Reference case for why write-access agents need runtime defenses.

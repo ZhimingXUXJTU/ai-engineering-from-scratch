@@ -72,6 +72,11 @@ The 2024-2026 trend: flow matching is winning for music (faster inference, clean
 | Riffusion v2 | Music | Spectrogram diffusion | ~10s |
 
 ## Build It | 动手实现
+```figure
+score-matching
+```
+
+## Build It
 
 `code/main.py` simulates the core idea: train a tiny next-token transformer on synthetic "audio token" sequences generated from two distinct "styles" (alternating low and high tokens for style A, monotonic ramp for style B). Condition on style and sample.
 

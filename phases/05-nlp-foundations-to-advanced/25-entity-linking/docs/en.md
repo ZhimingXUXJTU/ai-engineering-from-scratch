@@ -39,6 +39,25 @@ Entity linking (EL) resolves each mention to a unique entry in a knowledge base 
 ## Build It | 动手实现
 
 > **【中文解读】** 本节通过代码从零实现核心算法。
+```figure
+gx-entity-linking
+```
+
+## Build It
+
+### Step 1: build an alias index from Wikipedia redirects
+
+```python
+alias_to_entities = {
+    "jordan": ["Q41421 (Michael Jordan)", "Q810 (Jordan, country)", "Q254110 (Michael B. Jordan)"],
+    "paris":  ["Q90 (Paris, France)", "Q663094 (Paris, Texas)", "Q55411 (Paris Hilton)"],
+    "apple":  ["Q312 (Apple Inc.)", "Q89 (apple, fruit)"],
+}
+```
+
+Wikipedia alias data: ~18M (alias, entity) pairs. Download from Wikidata dumps. Store as inverted index.
+
+### Step 2: context-based disambiguation
 
 ```python
 def entity_link(mention, context, kb_lookup, embed_model):

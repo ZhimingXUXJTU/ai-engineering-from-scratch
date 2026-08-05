@@ -163,6 +163,11 @@ View-dependent colour is a function `c(direction)` on the unit sphere. Spherical
 
 
 ## Build It | 动手实现
+```figure
+cv3-gaussian-splat
+```
+
+## Build It
 
 ### Step 1: A 2D Gaussian
 

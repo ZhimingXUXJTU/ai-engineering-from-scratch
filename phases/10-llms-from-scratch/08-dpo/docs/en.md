@@ -240,6 +240,11 @@ The trend is clear: each method eliminates one more piece of complexity. RLHF ne
 > **Neural Magic / nm-chat（2024）：** 将 DPO 应用于多个开源模型，在对齐基准上一致显示比纯 SFT 基线提升 5-15%。
 
 ## Build It | 动手实现
+```figure
+dpo-loss
+```
+
+## Build It
 
 ### Step 1: Preference Dataset
 

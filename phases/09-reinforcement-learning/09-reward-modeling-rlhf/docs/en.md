@@ -81,6 +81,11 @@ In 2026 the PPO step is mostly replaced by DPO (Phase 10 · 08) because it is ch
 > **2026 年状态：** DPO 将阶段 2+3 折叠为单一监督损失。GRPO 用组相对基线替代 Critic，用验证器替代人类训练的 RM。PRM 评分部分解决方案。Constitutional AI / RLAIF 用对齐的 LLM 生成偏好。
 
 ## Build It | 动手实现
+```figure
+reward-model
+```
+
+## Build It
 
 This lesson uses tiny synthetic "prompts" and "responses" represented as strings. The RM is a linear scorer over a bag-of-tokens representation. No real LLM — the *shape* of the pipeline matters, not the scale. See `code/main.py`.
 

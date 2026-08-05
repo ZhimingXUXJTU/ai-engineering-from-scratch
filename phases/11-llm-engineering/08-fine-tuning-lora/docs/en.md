@@ -330,6 +330,11 @@ graph TD
 ```
 
 ## Build It | 动手实现
+```figure
+lora-params
+```
+
+## Build It
 
 We implement LoRA from scratch in pure PyTorch. No libraries. No magic. You'll build the LoRA layer, inject it into a model, train it, and merge the weights back.
 

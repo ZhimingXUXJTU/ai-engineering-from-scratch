@@ -120,6 +120,11 @@ What flow matching added: the *clarity* of the target (a plain velocity), a clea
 > Flow Matching 的真正贡献是：目标的*清晰度*（一个普通的速度向量）、更干净的损失，以及尝试非高斯插值的自由。
 
 ## Build It | 动手实现
+```figure
+normalizing-flow
+```
+
+## Build It
 
 `code/main.py` implements 1-D flow matching on a two-mode Gaussian mixture. The vector field `v_θ(x, t)` is a tiny MLP trained with the straight-line target. At inference, integrate 1, 2, 4, and 20 Euler steps and compare sample quality.
 

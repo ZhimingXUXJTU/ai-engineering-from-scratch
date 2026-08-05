@@ -128,6 +128,11 @@ Every one of those defaults traces back to a measured ablation in the papers cit
 > **【中文解读】** 以上每一条默认选择都可追溯到本课引用的论文中的消融实验结果。这是 2026 年构建新 VLM 项目的最佳起点配方。
 
 ## Use It  | 动手实践
+```figure
+l5-vlm-recipe-knobs
+```
+
+## Use It
 
 `code/main.py` is an ablation table parser and recipe picker. It encodes the MM1 and Idefics2 ablation tables (condensed) and lets you query:
 

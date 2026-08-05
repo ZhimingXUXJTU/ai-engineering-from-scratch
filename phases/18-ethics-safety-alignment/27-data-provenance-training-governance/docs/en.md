@@ -94,6 +94,11 @@ Lesson 26 is model-level documentation. Lesson 27 is dataset-level governance. T
 > **【拓展：巴西 ANPD → 不同监管结果】** 巴西 ANPD（2024 年 6 月）因信息透明度不足暂停了 Meta 对巴西用户数据的 AI 训练处理——与 EU DPA 的结果不同。ANPD 优先考虑透明度而非合法利益的许可度。预防措施在 2024 年 8 月 Meta 提交合规计划后解除。这展示了不同司法管辖区在相同技术实践上可能得出截然不同的结论。
 
 ## Use It | 使用方法
+```figure
+an-provenance-oneway
+```
+
+## Use It
 
 `code/main.py` generates a California AB 2013-compliant 12-field dataset summary scaffold for a toy dataset. You can fill the fields and observe which ones trigger privacy or copyright follow-on obligations.
 

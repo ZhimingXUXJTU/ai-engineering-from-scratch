@@ -133,6 +133,11 @@ The axis is "where does the preference signal come from." CAI's 2022 paper was t
 > **【中文解读】** 使用方法：code/main.py 在玩具词汇表上模拟 CAI 批评-修订循环。"原则"标记来自有害集合的词。给定初始响应，批评识别有害词，修订替换它们。200 次迭代后"训练"模型内化了修订规则。比较基础模型、RLHF 形玩具和 CAI 形玩具在保留提示集上的表现。
 
 ## Use It | 用框架实现
+```figure
+constitutional-ai
+```
+
+## Use It
 
 `code/main.py` simulates the CAI critique-and-revise loop on a toy lexicon. A "principle" flags tokens from a harmful set. Given an initial response, the critique identifies the harmful tokens, and the revision replaces them. After 200 iterations the "trained" model has internalized the revision rule. Compare the base model, RLHF-shaped toy, and CAI-shaped toy on a held-out prompt set.
 

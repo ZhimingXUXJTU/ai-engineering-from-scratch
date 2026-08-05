@@ -103,6 +103,11 @@ Silero is the right default. Cobra is the compliance / accuracy upgrade. Energy-
 
 
 ## Build It | 动手实现
+```figure
+sp-vad-cascade
+```
+
+## Build It
 
 ### Step 1: the energy gate
 

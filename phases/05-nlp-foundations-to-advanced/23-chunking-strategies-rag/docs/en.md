@@ -47,6 +47,11 @@ Feb 2026 benchmarks show surprising results: naive fixed-size chunking with 100-
 > **【拓展：RAG 与企业知识库】** 检索增强生成（RAG）是当前企业 AI 应用最流行的架构。
 
 > **【拓展：NLP 的多语言挑战】** 全球有 7000+ 种语言，但 NLP 研究主要集中在英语等少数语言。
+```figure
+n5-chunk-cuts
+```
+
+## Build It
 
 ## Build It | 动手实现
 

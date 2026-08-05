@@ -164,6 +164,11 @@ Swapping schedulers is a one-line change in `diffusers` and sometimes fixes samp
 
 
 ## Build It | 动手实现
+```figure
+cv3-latent-compression
+```
+
+## Build It
 
 This lesson uses `diffusers` end-to-end rather than rebuilding Stable Diffusion from scratch. The pieces you would need to rebuild (VAE, text encoder, U-Net, scheduler) are topics of their own lessons; here the goal is fluency with the production API.
 

@@ -123,6 +123,11 @@ Implication for choosing an agent: run a Pro-like subset of your own bug backlog
 > 选择 Agent 的含义：在你自己的 bug 积压上运行 Pro 类子集。重要的分数是代表你发布任务的分数。
 
 ## Use It | 用框架实现
+```figure
+a5-scaffold-delta
+```
+
+## Use It
 
 `code/main.py` compares two toy agent scaffolds on a fixed mini-task distribution:
 

@@ -76,6 +76,11 @@ Rules (Phase 14 · 33) describe what must be true to act. Init is the script tha
 > 初始化脚本为 Agent 会话设置起始条件。包括环境配置、工具加载、上下文初始化和安全策略设置。
 
 ## Build It | 动手实现
+```figure
+wb-init-probes
+```
+
+## Build It
 
 `code/main.py` implements `init_agent.py`:
 

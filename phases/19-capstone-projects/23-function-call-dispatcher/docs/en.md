@@ -25,6 +25,10 @@
 - Bound parallel dispatch with a concurrency limit so a fan-out of forty tool calls does not exhaust the event loop.
   中文翻译：Bound parallel dispatch with a concurrency limit so a fan-out of forty tool calls does not exhaust the event loop.
 
+```figure
+cf-dispatch-retry
+```
+
 ## Where the dispatcher sits
 
 > **【中文解读】** 分派器是 Agent Harness 的核心中间层，位于循环（Lesson 20）、工具注册中心（Lesson 21）和传输层（Lesson 22）之间。它负责超时控制、指数退避重试、幂等性去重和错误映射——这些都是模型调用工具时不可回避的工程问题。分派器是唯一了解计时器、重试和幂等性的层。

@@ -58,6 +58,11 @@ Your options:
 
 > **【拓展：GPU 为什么适合 AI？】**
 > GPU 拥有数千个核心，擅长并行执行大量简单计算（如矩阵乘法）。神经网络的训练本质上就是海量的矩阵运算，因此 GPU 能提供数十到上百倍的加速。NVIDIA 的 CUDA 是目前 AI 领域的主流 GPU 计算平台。
+```figure
+s0-gpu-dispatch
+```
+
+## Build It
 
 ## Build It | 动手搭建
 

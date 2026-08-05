@@ -162,6 +162,11 @@ Streamable HTTP uses a `Mcp-Session-Id` header. Stdio has no session id — the 
 > Streamable HTTP 使用 `Mcp-Session-Id` 头。stdio 没有 session id——进程身份就是 session。保活 ping 是可选的；stdio 管道不会因不活动而断裂。
 
 ## Use It | 用框架实现
+```figure
+tp-client-merge
+```
+
+## Use It
 
 `code/main.py` spawns three simulated MCP servers as subprocesses, handshakes each, merges their tool lists, and routes tool calls to the right one. The "servers" are actually other Python processes running toy responders (no real LLM). Run it to see:
 

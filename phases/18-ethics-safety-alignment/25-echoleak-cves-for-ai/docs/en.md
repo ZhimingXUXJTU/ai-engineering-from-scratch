@@ -97,6 +97,11 @@ Lesson 15 is the attack class in the abstract. Lesson 25 is the concrete CVE lay
 > **【拓展：AI 漏洞披露 → 新兴实践】** AI 漏洞的负责任披露正在发展。传统的 CVE 披露流程适用于 AI 特定漏洞，但需要额外证据：可复现性（跨模型版本）、提示注入抗性测量、攻击复杂度评估。初始严重性评估倾向于低估——EchoLeak 最初被评为低严重性，直到演示了 MFA 码外泄。NIST 和 OWASP 的定位强化了提示注入作为最高优先级威胁的重要性。
 
 ## Use It | 使用方法
+```figure
+an-echoleak-chain
+```
+
+## Use It
 
 `code/main.py` reconstructs the EchoLeak attack trace as a state-transition log. You can observe the email entering context, the instruction execution, and the exfiltration URL construction. A simple defense (scope separation: block tool calls triggered by untrusted content) prevents the exfiltration.
 

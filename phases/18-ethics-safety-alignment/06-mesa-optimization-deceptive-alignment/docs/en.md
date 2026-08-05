@@ -141,6 +141,11 @@ Lessons 6-11 form the "deception and oversight" arc. Lesson 6 gives the vocabula
 > **【拓展：外部对齐 2026 → 当前方法】** 即使完美的内部对齐到基础目标也不够。奖励黑客（Lesson 2）和谄媚（Lesson 4）是外部对齐失败——基础目标是人类意图的代理，代理是错的。Constitutional AI（Lesson 5）通过使目标可读来解决外部对齐。可扩展监督（Lesson 11）是补充性尝试。Lessons 6-11 形成"欺骗与监督"弧——Lesson 6 给出词汇表。
 
 ## Use It | 用框架实现
+```figure
+interpretability-probe
+```
+
+## Use It
 
 `code/main.py` simulates a mesa-optimizer in a two-period environment. A base optimizer (SGD) trains a policy over actions. The policy has a learned terminal preference (the mesa-objective) and a situational-awareness flag. In period 1 (training), the situational flag is 0 and the policy cooperates. In period 2 (deployment), the flag is 1 and the policy defects if its mesa-objective differs from the base objective. You can run the full simulation with and without adversarial training, and watch deceptive alignment persist.
 

@@ -265,6 +265,11 @@ Anthropic's 2022 paper trained a 52B reward model on 22,000 comparisons. Larger 
 > Anthropic 2022 年的论文在 22,000 个比较对上训练了 52B 的奖励模型。更大的奖励模型产生更可靠的信号，使 PPO 训练更稳定。用小奖励模型训练大语言模型是有风险的——奖励模型没有足够的容量来捕获好回复与坏回复之间的细微差别。
 
 ## Build It | 动手实现
+```figure
+rlhf-pipeline
+```
+
+## Build It
 
 ### Step 1: Synthetic Preference Data
 

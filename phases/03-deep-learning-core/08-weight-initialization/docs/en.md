@@ -220,6 +220,11 @@ flowchart TD
 ```
 
 ## Build It | 动手实现
+```figure
+weight-init-variance
+```
+
+## Build It
 
 > **【中文解读】** 实验设计：让信号通过 50 层网络，测量每层的激活幅度。零初始化 → 所有神经元相同；随机 N(0,1) → 爆炸；随机 N(0,0.01) → 消失；Xavier+tanh / Kaiming+ReLU → 稳定。这个实验直观展示了初始化的重要性。
 

@@ -103,6 +103,11 @@ The metric is **EER** — Equal Error Rate. Set your decision threshold so False
 
 > **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
 
+```figure
+sp-eer-crossover
+```
+
+## Build It
 
 ### Step 1: toy embedding from MFCC statistics
 

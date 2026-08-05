@@ -123,6 +123,11 @@ The operational controls (sandbox, review, disclosure) are doing most of the saf
 > 操作控制（沙箱、审查、披露）承担了大部分安全工作。
 
 ## Use It | 用框架实现
+```figure
+mx-research-loop
+```
+
+## Use It
 
 `code/main.py` simulates the v2 loop as a state machine: idea → novelty check → experiment → figure → writeup → review → accept-or-iterate. Each state has a configurable failure probability pulled from the Beel et al. findings. Run the simulator for N loops and count:
 

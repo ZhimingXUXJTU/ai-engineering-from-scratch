@@ -420,6 +420,11 @@ The right technique depends on three factors: accuracy requirement, latency budg
 > 正确的技术取决于三个因素：准确率需求、延迟预算和成本容忍度。对于大多数生产系统，少样本 CoT 配合 3 样本自一致性后备可以覆盖 90% 的用例。
 
 ## Build It | 动手实现
+```figure
+few-shot-curve
+```
+
+## Build It
 
 We will build a math problem solver that combines few-shot prompting, chain-of-thought reasoning, and self-consistency voting into a single pipeline. Then we will add tree-of-thought for hard problems.
 
@@ -574,7 +579,7 @@ The escalation logic: try cheap (single CoT) first. If self-consistency confiden
 
 ## Use It | 用框架实现
 
-### With LangChain
+### Template-Driven Few-Shot Prompts
 
 LangChain provides built-in support for prompt templates and output parsing that simplify few-shot and CoT patterns:
 
@@ -616,7 +621,7 @@ selector = SemanticSimilarityExampleSelector.from_examples(
 )
 ```
 
-### With DSPy
+### Compiled Prompts
 
 DSPy treats prompting strategies as optimizable modules. Instead of handcrafting CoT prompts, you define a signature and let DSPy optimize the prompt:
 

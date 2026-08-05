@@ -68,6 +68,11 @@ Three things to remember:
 > **【拓展：分支策略与 AI 实验】** AI 项目推荐"每实验一个分支"策略：`experiment/lr-0.001`、`experiment/add-dropout` 等。这样每次实验的代码变更都被隔离，实验失败直接删分支，成功则合并。大型 AI 项目还会用 Git tag 标记模型版本（如 `v1.0-baseline`），方便部署时精确指定代码版本。
 
 ## Build It | 动手实现
+```figure
+s0-commit-dag
+```
+
+## Build It
 
 ### Step 1: Configure git
 
@@ -102,8 +107,10 @@ git merge experiment/new-optimizer        # 把实验分支的改动合并到主
 
 > **【拓展：Fork vs Clone】** 如果你想保存自己的学习进度而不影响原仓库，用 `fork`（在 GitHub 上操作）而不是直接 clone。Fork 后你有自己的一份完整副本，可以自由提交。之后还可以通过 Pull Request 把改进提交回原仓库。
 
+You can't push to the course repo itself — only maintainers have write access. Fork it on GitHub first (the Fork button, top right) so `origin` points at your own copy:
+
 ```bash
-git clone https://github.com/rohitg00/ai-engineering-from-scratch.git
+git clone https://github.com/YOUR-USERNAME/ai-engineering-from-scratch.git
 cd ai-engineering-from-scratch
 
 git checkout -b my-progress
@@ -143,6 +150,7 @@ That's it. You don't need rebase, cherry-pick, or submodules for this course.
 
 1. Clone this repo, create a branch called `my-progress`, make a file, commit it, push it
    克隆仓库，创建 `my-progress` 分支，新建文件，提交并推送
+1. Fork this repo, clone your fork, create a branch called `my-progress`, make a file, commit it, push it
 2. Create a `.gitignore` that excludes model checkpoint files (`.pt`, `.pth`, `.safetensors`)
    创建 `.gitignore` 文件，排除模型检查点文件
 3. Look at the commit history of this repo with `git log --oneline` and read how lessons were added

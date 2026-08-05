@@ -127,6 +127,11 @@ Reflexion does not help when:
 > 2026 年的陷阱：记忆腐化。反思不断积累，部分已过时或错误；随着情景缓冲区增长，重新运行变得更慢。缓解措施：定期压缩（第 6 课）、反思的 TTL，或独立的 sleep-time 清理 Agent（Letta）。
 
 ## Build It | 动手实现
+```figure
+react-trace
+```
+
+## Build It
 
 `code/main.py` implements Reflexion on a toy puzzle: produce a 3-element list that sums to a target. The Actor emits candidate lists; the Evaluator checks the sum; the Self-Reflector writes a line about what went wrong. The reflection goes into episodic memory for the next trial.
 

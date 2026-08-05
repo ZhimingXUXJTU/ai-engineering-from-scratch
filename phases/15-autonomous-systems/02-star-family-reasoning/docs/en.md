@@ -108,6 +108,11 @@ Understanding STaR makes all of these click. It is the minimum-viable self-impro
 > 理解 STaR 让所有这些都说得通。它是最小可行的自我改进循环。
 
 ## Use It | 用框架实现
+```figure
+reflection-loop
+```
+
+## Use It
 
 `code/main.py` runs a simulated STaR loop on a toy arithmetic task. You can watch:
 

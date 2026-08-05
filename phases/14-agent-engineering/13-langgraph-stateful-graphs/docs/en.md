@@ -1,6 +1,7 @@
 # LangGraph: Stateful Graphs and Durable Execution | LangGraph：有状态图与持久执行
+# Stateful Graph Orchestration — Durable Execution and Checkpoints
 
-> LangGraph is the 2026 reference for low-level stateful orchestration. Agent is a state machine; nodes are functions; edges are transitions; state is immutable and checkpointed after every step. Resume from any failure exactly where it left off.
+> Agent is a state machine; nodes are functions; edges are transitions; state is checkpointed after each node. Resume from any failure at the last successful checkpoint. LangGraph is the 2026 reference for this model of low-level stateful orchestration.
 
 > **【中文解读】** LangGraph 是 2026 年底层有状态编排的参考实现。Agent 是状态机；节点是函数；边是转换；状态是不可变的且每步后检查点保存。可从任何失败处精确恢复。
 
@@ -13,12 +14,14 @@
 
 - Describe LangGraph's core model: state machine with immutable state, function nodes, conditional edges, and post-step checkpoints.
   中文翻译：描述 LangGraph 的核心模型：带不可变状态、函数节点、条件边和步后检查点的状态机。
+- Describe LangGraph's core model: state machine with typed state, function nodes, conditional edges, and post-node checkpoints.
 - Name the four capabilities the docs highlight: durable execution, streaming, human-in-the-loop, comprehensive memory.
   中文翻译：说出文档强调的四种能力：持久执行、流式传输、人在回路中、全面记忆。
 - Explain the three orchestration topologies LangGraph supports: supervisor, peer-to-peer (swarm), hierarchical (nested subgraphs).
   中文翻译：解释 LangGraph 支持的三种编排拓扑：监督者、点对点（群体）、层次化（嵌套子图）。
 - Implement a stdlib state graph with immutable state, conditional edges, and a checkpoint/resume cycle.
   中文翻译：用标准库实现带不可变状态、条件边和检查点/恢复周期的状态图。
+- Implement a stdlib state graph with typed state, conditional edges, and a checkpoint/resume cycle.
 
 ## The Problem | 问题引入
 
@@ -110,6 +113,11 @@ Short-term (within a run — conversation history in state) and long-term (acros
 > 🤔 **【困惑】** Q: 三种拓扑（supervisor、swarm、hierarchical）到底该选哪个？ A: 三个原则：(1) **任务可分解为独立角色**（如客服/退款/技术）选 supervisor；(2) **Agent 之间是协作关系而非派发关系**（如辩论、互相 review）选 swarm；(3) **任务有天然层次结构**（如"产品线 A 下分 5 个团队"）选 hierarchical。LangChain 团队 2026 年建议：能直接用工具调用解决就别上 supervisor——直接工具调用上下文控制更精细。
 
 ## Build It | 动手构建
+```figure
+langgraph-state
+```
+
+## Build It
 
 `code/main.py` implements a stdlib stateful graph:
 

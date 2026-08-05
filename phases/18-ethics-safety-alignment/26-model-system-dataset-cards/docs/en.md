@@ -103,6 +103,11 @@ Lessons 24-25 are regulatory and CVE layers. Lesson 26 is the documentation laye
 > **【拓展：可验证证明 → Laminator】** Laminator（Duddu 等人 2024）使用硬件 TEE / 加密签名实现可验证证明——允许模型卡携带声明证明而非仅仅是声明。例如，一个模型卡字段可以携带"在数据集 X 上的准确率为 Y%"的加密证明，验证者可以检查证明而不需要重新运行评估。这对于监管合规（EU AI Act, Lesson 24）特别重要。
 
 ## Use It | 使用方法
+```figure
+an-card-scopes
+```
+
+## Use It
 
 `code/main.py` generates a minimal model card, datasheet, and system card for a toy deployment. Each follows the canonical section structure. You can inspect the format and compare the three scopes.
 

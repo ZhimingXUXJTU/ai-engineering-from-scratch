@@ -3,6 +3,10 @@
 > Four metrics decide whether an inference deployment is working. TTFT is prefill plus queue plus network. TPOT (equivalently ITL) is the memory-bound decode cost per token. End-to-end latency is TTFT plus TPOT times output length. Throughput is tokens per second aggregated across the fleet. But the one that matters for product is goodput — the fraction of requests that met every SLO simultaneously. High throughput at low goodput means you are processing tokens that never reach users on time. Reference numbers for Llama-3.1-8B-Instruct on TRT-LLM in 2026: mean TTFT 162 ms, mean TPOT 7.33 ms, mean E2E 1,093 ms. Always report P50, P90, P99 — never just mean. And watch the measurement trap: GenAI-Perf excludes TTFT from ITL calculation, LLMPerf includes it; two tools disagree on TPOT for the same run.
 
 > **【中文解读】** 本节介绍了推理指标和 Goodput——衡量 LLM 推理服务质量的关键指标体系。
+**Type:** Learn
+**Languages:** Python (stdlib, toy percentile calculator and goodput reporter)
+**Prerequisites:** Phase 17 · 04 (Serving Engine Internals)
+**Time:** ~60 minutes
 
 
 **Type:** Learn | **类型:** 学习
@@ -173,6 +177,11 @@ Enterprise SLOs tighten TTFT (200-400 ms) and loosen E2E. The point is to write 
   中文翻译：发布时标注工具名、版本、模型、硬件、并发数、提示分布。
 
 ## Use It | 用框架实现
+```figure
+throughput-latency
+```
+
+## Use It
 
 `code/main.py` is a toy goodput calculator. Generate a synthetic latency distribution, apply an SLO, and compute goodput. Also shows the GenAI-Perf vs LLMPerf TPOT difference on the same trace.
 
@@ -219,5 +228,5 @@ This lesson produces `outputs/skill-slo-goodput-gate.md`. Given a workload and S
 - [Anyscale — LLM Serving Benchmarking Metrics](https://docs.anyscale.com/llm/serving/benchmarking/metrics) — alternative definitions and measurement recipe.
 - [BentoML — LLM Inference Metrics](https://bentoml.com/llm/inference-optimization/llm-inference-metrics) — applied measurement on real deployments.
 - [LLMPerf](https://github.com/ray-project/llmperf) — Ray-based open-source benchmark.
-- [GenAI-Perf](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/client/src/c++/perf_analyzer/genai-perf/README.html) — NVIDIA's benchmark tool.
+- [GenAI-Perf](https://github.com/triton-inference-server/perf_analyzer/blob/main/genai-perf/README.md) — NVIDIA's benchmark tool.
 - [MLPerf Inference](https://mlcommons.org/benchmarks/inference-datacenter/) — the industry-accepted goodput-based benchmark.

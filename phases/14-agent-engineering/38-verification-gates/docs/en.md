@@ -90,6 +90,11 @@ Block-severity findings cannot be overridden by the agent. They can only be over
 > 验证门（Verification Gates）在 Agent 工作流的关键节点设置检查点。每个门验证前一步的输出是否满足要求，不满足则触发修复流程。
 
 ## Build It | 动手实现
+```figure
+wb-gate-sequence
+```
+
+## Build It
 
 `code/main.py` implements:
 
@@ -171,6 +176,7 @@ The gate is the deciding edge in the workbench flow. Every other surface is upst
   中文翻译：见原文。
 - [OpenAI Agents SDK guardrails](https://platform.openai.com/docs/guides/agents-sdk/guardrails)
   中文翻译：见原文。
+- [OpenAI Agents SDK guardrails](https://openai.github.io/openai-agents-python/guardrails/)
 - [microservices.io, GenAI dev platform: guardrails](https://microservices.io/post/architecture/2026/03/09/genai-development-platform-part-1-development-guardrails.html) — defense in depth between pre-commit and CI
   中文翻译：见原文。
 - [ICMD, The 2026 Playbook for Agentic AI Ops](https://icmd.app/article/the-2026-playbook-for-agentic-ai-ops-guardrails-costs-and-reliability-at-scale-1776661990431) — approval-gate ladder (draft → approval → auto under thresholds)

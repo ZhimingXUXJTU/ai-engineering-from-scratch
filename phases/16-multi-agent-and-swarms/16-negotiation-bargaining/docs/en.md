@@ -166,6 +166,11 @@ If the offer needs to be a number (price, ETA, quantity), generate it determinis
 > 如果报价需要是数字（价格、ETA、数量），从协商状态确定性地生成它，让 LLM 产生框架。如果报价需要是提案结构（任务分解、角色分配），让 LLM 起草它，但在发送前根据模式和约束检查验证。
 
 ## Build It | 动手构建
+```figure
+a5-og-narrator
+```
+
+## Build It
 
 `code/main.py` implements:
 

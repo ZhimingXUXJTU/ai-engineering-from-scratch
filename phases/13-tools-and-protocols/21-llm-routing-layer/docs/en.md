@@ -64,7 +64,7 @@ Everyone speaks OpenAI-shape. The routing gateway exposes `/v1/chat/completions`
 
 ### Model aliases
 
-Instead of `claude-3-5-sonnet-20251022`, your code says `our_smart_model`. The gateway maps aliases to real models. When Anthropic ships Claude 4, you change the alias server-side; your code does not touch a thing.
+Instead of a pinned snapshot id, your code says `our_smart_model`. The gateway maps aliases to real models. When a provider ships a new generation, you change the alias server-side; your code does not touch a thing.
 
 > 你的代码不说 `claude-3-5-sonnet-20251022`，而是 `our_smart_model`。网关将别名映射到真实模型。当 Anthropic 发布 Claude 4 时，你在服务器端改别名；代码不动。
 
@@ -157,6 +157,11 @@ A gateway can route both LLM calls AND MCP sampling requests. When a sampling re
 ## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 实现约150行的路由网关：接受 OpenAI 格式请求，翻译到每供应商存根，运行优先级回退链，追踪每请求成本，应用 PII 脱敏。三个场景：正常请求、主供应商宕机触发故障转移、PII 泄露被脱敏拦截。
+```figure
+tp-router-failover
+```
+
+## Use It
 
 `code/main.py` implements a routing gateway in ~150 lines: accepts OpenAI-shaped requests, translates to per-provider stubs, runs a priority fallback chain, tracks per-request cost, and applies a PII redaction pass on inputs. Run it with three scenarios: normal request, primary-provider outage triggering fallback, PII leakage caught by redaction.
 

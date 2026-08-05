@@ -131,6 +131,11 @@ All three give the same functional result. Wrappers are the standard idiom.
 
 
 ## Build It | 动手实现
+```figure
+activation-recompute
+```
+
+## Build It
 
 ### Step 1: A Toy Model With Segments
 

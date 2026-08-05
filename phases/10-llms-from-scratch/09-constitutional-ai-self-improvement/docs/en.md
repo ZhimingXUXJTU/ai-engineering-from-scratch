@@ -242,6 +242,11 @@ Most 2026 frontier pipelines run all four. CAI for safety layers. GRPO for the r
 > 大多数 2026 年前沿管线会运行全部四种方法。CAI 用于安全层。GRPO 用于推理后训练阶段。DPO 用于偏好精炼。小型 RLHF 用于抵抗其他方法的残留行为。
 
 ## Build It | 动手实现
+```figure
+self-critique-loop
+```
+
+## Build It
 
 The code implements three things in pure Python + numpy. A Constitutional AI self-critique loop. A rule-based reward checker for simple arithmetic. A minimal GRPO trainer that runs on a tiny language model from Lesson 04.
 

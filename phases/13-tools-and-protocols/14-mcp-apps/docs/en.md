@@ -268,6 +268,11 @@ Servers in production: dashboards, map visualizations, data tables, chart builde
 ## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 扩展了笔记服务器，添加 `visualize_timeline` 工具返回 `ui://notes/timeline` 资源，以及 `resources/read` 处理器返回完整 HTML+SVG 时间线。HTML 使用标准库模板生成，postMessage 以 JS 注释形式记录。关注点：`_meta.ui` 携带 resourceUri/CSP/permissions；HTML 无需网络访问，数据全部内联；JS 通过 `window.parent.postMessage` 调用 `host.callTool`。
+```figure
+t3-ui-sandbox
+```
+
+## Use It
 
 `code/main.py` extends the notes server with a `visualize_timeline` tool that returns a `ui://notes/timeline` resource, plus a handler for `resources/read` on that URI which returns a small but complete HTML bundle with an SVG timeline. The HTML is stdlib-templated — no build system. postMessage is sketched in JS comments since stdlib cannot drive a browser.
 

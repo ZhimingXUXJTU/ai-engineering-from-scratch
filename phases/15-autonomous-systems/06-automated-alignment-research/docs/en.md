@@ -114,6 +114,11 @@ This matches the propose-then-commit pattern from Lesson 15 applied to research 
 > 这与第 15 课的 propose-then-commit 模式应用于研究本身匹配：AAR 提议；人类承诺。
 
 ## Use It | 用框架实现
+```figure
+aar-forum
+```
+
+## Use It
 
 `code/main.py` simulates a multi-AAR research forum. Three independent "research agents" run in parallel, posting findings to an append-only forum with optional tamper attempts.
 

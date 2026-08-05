@@ -138,6 +138,11 @@ Production implementations (vLLM's `--speculative-model`, TensorRT-LLM's Lookahe
 > 生产实现（vLLM 的 `--speculative-model`、TensorRT-LLM 的 LookaheadDecoder）使用临时 KV 缓冲区处理这个问题。先写入，接受时提交。概念上不难，但实现上比较繁琐。
 
 ## Build It | 动手实现
+```figure
+draft-verify-tokens
+```
+
+## Build It
 
 See `code/main.py`. We implement the core speculative-sampling algorithm (rejection step + residual distribution) with:
 

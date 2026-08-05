@@ -235,6 +235,11 @@ flowchart TD
 ## Build It | 动手实现
 
 > **【中文解读】** 下面从零实现四种优化器：SGD → SGD+Momentum → Adam → AdamW。每个都在前一个基础上增加一个关键机制。注意 Adam 的偏差修正和 AdamW 的解耦权重衰减——这是面试常考的知识点。
+```figure
+optimizer-trajectory
+```
+
+## Build It
 
 ### Step 1: Vanilla SGD | 第一步：原始 SGD
 

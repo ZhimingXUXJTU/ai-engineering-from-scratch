@@ -72,6 +72,11 @@ You need a policy that is *robust to sim-to-real distribution shift*. Three hist
 > **真实世界 2026 年方案（四足行走示例）：** 大规模并行仿真 + 域随机化 → 教师策略（特权信息）→ 学生策略蒸馏（仅本体感受）→ 可选观测自适应 → 部署。零样本迁移到 10+ 环境。如果失败，做几分钟安全约束 PPO 真实世界微调。
 
 ## Build It | 动手实现
+```figure
+f3-reality-gap
+```
+
+## Build It
 
 This lesson's code is a tiny demonstration of domain randomization on a GridWorld with *noisy* transitions. We train a policy that experiences randomized slip probabilities in "sim" and evaluate on "real" with a slip level it never saw during training. The shape maps directly to MuJoCo-to-hardware transfer.
 

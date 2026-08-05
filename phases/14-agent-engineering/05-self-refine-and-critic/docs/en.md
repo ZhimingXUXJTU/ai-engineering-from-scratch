@@ -141,6 +141,11 @@ OpenAI Agents SDK ships this pattern as "output guardrails." A guardrail is a va
   中文翻译：**在简单任务上使用 CRITIC。** 如果没有外部验证器，CRITIC 退化为 Self-Refine；不要为桩验证器付出延迟代价。
 
 ## Build It | 动手实现
+```figure
+self-refine
+```
+
+## Build It
 
 `code/main.py` implements Self-Refine and CRITIC on a toy task: produce a short bullet list given a topic. The verifier checks format (3 bullets, each under 60 chars). CRITIC adds an external "fact verifier" that penalizes known hallucinations.
 

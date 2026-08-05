@@ -270,6 +270,11 @@ flowchart TD
 ```
 
 ## Build It | 动手实现
+```figure
+l2-regularization
+```
+
+## Build It
 
 > **【中文解读】** 下面从零实现五种正则化技术。关键是 Dropout 的 inverted scaling（训练时除以 (1-p)，推理时不变）和 BatchNorm 的双模式（训练用批量统计、推理用运行平均）。
 

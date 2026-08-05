@@ -97,6 +97,11 @@ Gate routes by online quality metrics:
 - Cascade latency impact: ~1.2x median, ~2x escalated (~10% of traffic).
 
 ## Use It | 用框架实现
+```figure
+model-cascade-router
+```
+
+## Use It
 
 `code/main.py` simulates pre-route, cascade, and ensemble on a mixed workload. Reports blended cost, quality loss, and escalation rate.
 

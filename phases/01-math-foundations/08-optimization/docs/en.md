@@ -275,6 +275,11 @@ graph TD
 Sharp minima generalize poorly. Flat minima generalize well. This is one reason SGD with momentum often outperforms Adam on final test accuracy: its noise prevents settling into sharp minima.
 
 > 尖锐的最小值泛化能力差，平坦的最小值泛化能力好。这是 SGD with momentum 在最终测试精度上经常优于 Adam 的原因之一：它的噪声防止陷入尖锐的最小值。
+```figure
+gradient-descent
+```
+
+## Build It
 
 ## Build It | 动手实现
 

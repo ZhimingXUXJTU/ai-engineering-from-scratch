@@ -191,6 +191,11 @@ Every gradient is a product of local derivatives traced back from the loss. That
 > **【中文解读】** 两层网络的梯度推导：从损失函数开始，用链式法则一步步往回算。每个梯度都是局部导数的连乘积。这就是反向传播的全部——链式法则的系统化应用。
 
 ## Build It | 动手构建
+```figure
+backprop-vanishing
+```
+
+## Build It
 
 ### Step 1: The Value Node | Value 节点
 

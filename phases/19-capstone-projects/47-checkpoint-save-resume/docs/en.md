@@ -124,6 +124,11 @@ A resume that snaps to the start of the next epoch wastes anywhere from minutes 
 
 
 ## Build It | 动手构建
+```figure
+cc-atomic-checkpoint
+```
+
+## Build It
 
 `code/main.py` provides four primitives and a demo driver.
 

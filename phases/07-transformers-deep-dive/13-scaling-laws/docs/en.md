@@ -145,6 +145,11 @@ The Muon optimizer (Kimi Moonlight, 2024) showed a ~2× effective-compute gain o
 > Muon 优化器（Kimi Moonlight，2024）在相同数据上显示了比 AdamW 约 2 倍的有效计算增益。一些 2026 年的训练运行默认使用 Muon。它改变了缩放定律的绝对常数，而非其形状。
 
 ## Build It | 动手实现
+```figure
+scaling-laws
+```
+
+## Build It
 
 See `code/main.py`. We implement the Chinchilla loss equation and solve for compute-optimal `(N, D)` at each of several compute budgets.
 

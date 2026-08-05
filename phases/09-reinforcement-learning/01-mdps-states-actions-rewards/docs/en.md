@@ -64,6 +64,11 @@ These split expected return into "this step's reward" plus "discounted value of 
 > 这些方程将期望回报分解为"当前步的奖励"加上"到达状态的折扣值"。递归的。Phase 9 中的每个算法要么迭代这个方程到收敛（动态规划），要么从中采样（蒙特卡洛），要么自举一步（时序差分）。
 
 ## Build It | 动手实现
+```figure
+discount-horizon
+```
+
+## Build It
 
 ### Step 1: a tiny deterministic MDP
 

@@ -114,6 +114,11 @@ Lessons 12-15 are the attack families. Lesson 16 is the production tooling. Less
 > **【拓展：PyRIT → 多轮深度利用】** PyRIT（Microsoft）是 Garak 的重量级表亲。Garak 运行数千个单轮探针，PyRIT 运行旨在打破特定失败模式的多轮深度活动。其核心是转换器链——将种子提示通过释义、编码、翻译、角色扮演等步骤转换。编排器运行 Crescendo（升级）、TAP（分支）或自定义循环。评分使用 LLM 作为评判或分类器作为评判。
 
 ## Use It | 使用方法
+```figure
+al-guard-stack
+```
+
+## Use It
 
 `code/main.py` builds a toy Llama Guard-style classifier (keyword + semantic features over 14 categories), a toy Garak harness (probe-detector loop), and a PyRIT-style multi-turn converter chain. You can run the three tools against a mock target and observe the different coverage signatures.
 

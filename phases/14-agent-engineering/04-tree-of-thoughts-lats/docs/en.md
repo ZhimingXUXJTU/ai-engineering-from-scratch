@@ -135,6 +135,11 @@ AlphaEvolve (Lesson 11) is the 2025 extreme: evolutionary search over code, mach
 > AlphaEvolve（第 11 课）是 2025 年的极端案例：代码上的进化搜索、机器可检查的适应度、前沿突破（56 年来首次 4x4 矩阵乘法改进）。
 
 ## Build It | 动手实现
+```figure
+tree-of-thoughts
+```
+
+## Build It
 
 `code/main.py` implements:
 

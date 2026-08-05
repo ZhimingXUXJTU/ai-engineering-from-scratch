@@ -84,6 +84,7 @@ A single monthly cap catches a runaway agent only after the wallet is gone. A si
   中文翻译：**合法激增**（真实需求，非 bug）：小时/日上限带清晰日志捕获。
 
 ### Claude Code's budget surface | Claude Code 的预算面
+### A harness budget surface
 
 The Claude Code Agent SDK exposes (public docs):
 
@@ -119,6 +120,11 @@ The tool allowed the agent to poll order status during every session. No loop de
 > 该工具允许 Agent 在每次会话期间轮询订单状态。无循环检测。无每工具上限。无周环比增长警报。修复是每工具上限加每日增长警报。这是模板：每个新工具面是新潜在循环；每个新工具需要自己的上限和自己的警报。
 
 ## Use It | 用框架实现
+```figure
+cost-governor-stack
+```
+
+## Use It
 
 `code/main.py` simulates an agent run with and without a layered cost-governor stack. The simulated agent drifts into a polling loop after some turns; the layered stack catches it within the velocity window while a single monthly cap would not fire until days later.
 
@@ -179,5 +185,6 @@ The tool allowed the agent to poll order status during every session. No loop de
   中文翻译：提供商侧成本控制。
 - [Anthropic — Prompt caching (Claude API docs)](https://platform.claude.com/docs/en/prompt-caching) — caching mechanics.
   中文翻译：缓存机制。
+- [Anthropic — Prompt caching (Claude API docs)](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) — caching mechanics.
 - [Anthropic — Measuring agent autonomy in practice](https://www.anthropic.com/research/measuring-agent-autonomy) — cost profile for long-horizon agents.
   中文翻译：长程 Agent 的成本档案。

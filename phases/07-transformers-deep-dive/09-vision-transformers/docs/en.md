@@ -107,6 +107,11 @@ ViT needs *a lot* of data to match CNNs because it has none of the CNN inductive
 > **【拓展：ViT 在多模态系统中的角色】** CLIP 使用 ViT 编码图像、Transformer 编码文本，通过对比学习对齐两个模态。DALL-E 和 Sora 使用 ViT 理解图像/视频，再生成新内容。SAM（Segment Anything）使用 ViT 作为主干网络实现通用图像分割。ViT 已成为多模态 AI 的视觉基础模块。
 
 ## Build It | 动手实现
+```figure
+n5-patch-stream
+```
+
+## Build It
 
 See `code/main.py`. Pure-stdlib patchify + linear embedding + sanity checks. No training — ViT at any realistic scale needs PyTorch and hours of GPU time.
 

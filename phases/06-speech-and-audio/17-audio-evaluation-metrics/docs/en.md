@@ -205,6 +205,11 @@ Imbalanced: **macro F1** + **per-class recall**. Report per-class — aggregate 
 
 
 ## Build It | 动手实现
+```figure
+sp-wer-align
+```
+
+## Build It
 
 ### Step 1: WER with normalization
 

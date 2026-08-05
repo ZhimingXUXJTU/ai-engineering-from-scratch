@@ -7,6 +7,8 @@ import os
 import json
 import urllib.request
 
+MODEL = os.environ.get("LLM_MODEL", "claude-sonnet-5")
+
 
 def call_with_sdk():
     """使用 Anthropic SDK 调用 Claude API（推荐方式）。"""
@@ -18,7 +20,7 @@ def call_with_sdk():
 
     client = anthropic.Anthropic()  # 自动从环境变量读取密钥
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",  # 指定模型
+        model=MODEL,  # 指定模型（从环境变量读取）
         max_tokens=256,  # 最大输出 token 数
         messages=[{"role": "user", "content": "What is a neural network in one sentence?"}]  # 用户消息
     )
@@ -40,7 +42,7 @@ def call_raw_http():
         "anthropic-version": "2023-06-01",  # API 版本
     }
     body = json.dumps({
-        "model": "claude-sonnet-4-20250514",
+        "model": MODEL,
         "max_tokens": 256,
         "messages": [{"role": "user", "content": "What is a neural network in one sentence?"}],
     }).encode()  # 编码为字节

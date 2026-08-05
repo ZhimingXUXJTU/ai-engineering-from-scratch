@@ -339,6 +339,11 @@ The accuracy hit is around 5-10% on retrieval recall. The common pattern: binary
 > 检索召回率精度损失约 5-10%。常见模式：用二值量化做百万向量的一遍搜索，然后用全精度向量对 top-1000 重排。这让你在 32 倍更少内存下获得 95%+ 的全精度精度。
 
 ## Build It | 动手实现
+```figure
+cosine-similarity
+```
+
+## Build It
 
 We build a semantic search engine from scratch. No vector database. No external embedding API. Pure Python with numpy for the math.
 

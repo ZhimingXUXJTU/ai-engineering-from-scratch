@@ -177,6 +177,11 @@ Prompts in MCP are not system prompts. The host's system prompt (its own operati
 > MCP 中的 Prompts 不是系统提示。宿主的系统提示（其自身操作指令）和 MCP prompts（服务器提供的、由用户调用的模板）并存。行为良好的客户端不会让服务器提示覆盖自己的系统提示；它会分层叠加。
 
 ## Use It | 用框架实现
+```figure
+t3-primitive-sort
+```
+
+## Use It
 
 `code/main.py` extends the notes server from Lesson 07 with:
 

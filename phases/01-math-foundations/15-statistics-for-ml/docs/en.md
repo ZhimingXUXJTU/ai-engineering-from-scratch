@@ -638,6 +638,11 @@ All from scratch, using only `math` and `random`. No numpy, no scipy.
 > 全部从零实现，仅使用 `math` 和 `random`。不使用 numpy、scipy。
 
 ## Key Terms | 术语速查表
+```figure
+f3-bootstrap-resample
+```
+
+## Key Terms
 
 | Term / 术语 | Definition / 定义 |
 |---|---|

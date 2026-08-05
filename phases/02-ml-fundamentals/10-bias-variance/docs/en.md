@@ -392,6 +392,11 @@ flowchart TD
 
 > **【中文解读】**
 > 通过实验可视化偏差-方差权衡：用不同复杂度的多项式回归（degree 1→20）拟合同一组数据，观察训练误差和测试误差随复杂度的变化。低复杂度时两者都高（高偏差），中等复杂度时两者都低（最优），高复杂度时训练误差极低但测试误差回升（高方差）。
+```figure
+bias-variance
+```
+
+## Build It
 
 The code in `code/bias_variance.py` runs the full bias-variance decomposition experiment. Here is the approach, step by step.
 

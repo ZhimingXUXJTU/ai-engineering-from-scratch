@@ -83,6 +83,11 @@ Three intuitions:
    **ELBO 简化为简单 MSE。** 完整的变分下界每个时间步都有 KL 项。Ho 丢弃了系数后质量反而*提升*了。
 
 ## Build It | 动手实现
+```figure
+diffusion-denoise
+```
+
+## Build It
 
 `code/main.py` implements a 1-D DDPM. Data is a two-mode mixture. The "net" is a tiny MLP that takes `(x_t, t)` and outputs predicted noise. Training is the one-line loss. Sampling iterates the reverse chain.
 

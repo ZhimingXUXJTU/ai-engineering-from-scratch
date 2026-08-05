@@ -81,6 +81,11 @@ This breaks tabular convergence proofs (Q-learning's guarantee assumes a station
 > **通信。** 允许智能体相互发送学习的消息。在合作环境中有效。今天的 LLM 多智能体系统本质上用自然语言通信。
 
 ## Build It | 动手实现
+```figure
+f3-marl-orbit
+```
+
+## Build It
 
 This lesson uses a 6×6 GridWorld with two cooperative agents. They start in opposite corners and must reach a shared goal. Shared reward: `-1` per step while either agent is still moving, `+10` when both arrive. See `code/main.py`.
 

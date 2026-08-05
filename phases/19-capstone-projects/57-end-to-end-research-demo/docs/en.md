@@ -26,6 +26,10 @@
 - Surface a clear failure mode when any stage's contract breaks, so the next stage does not run with a broken input.
   中文翻译：Surface a clear failure mode when any stage's contract breaks, so the next stage does not run with a broken input.
 
+```figure
+ch-research-pipeline
+```
+
 ## What composes here
 
 > **【中文解读】** 端到端研究演示组合了 Track D 的四个先前课程：种子假设送入迭代调度器，调度器用 UCB 选择假设并运行实验，结果触发论文写作，批评循环迭代草稿到收敛，论文写作者输出最终 LaTeX/BibTeX/Manifest。五个阶段通过纯 Python 导入连接，而非框架。每个阶段要么成功要么抛出类型化错误——失败短路整个演示。

@@ -118,6 +118,11 @@ CUDA is the production target, but the same code paths exist on CPU. `gloo` is t
 
 
 ## Build It | 动手构建
+```figure
+cg-allreduce-ring
+```
+
+## Build It
 
 `code/main.py` is the runnable artifact.
 

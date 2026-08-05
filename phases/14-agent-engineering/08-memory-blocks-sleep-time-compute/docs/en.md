@@ -1,6 +1,7 @@
 # Memory Blocks and Sleep-Time Compute (Letta) | 记忆块与休眠计算（Letta）
+# Memory Blocks and Sleep-Time Compute
 
-> MemGPT became Letta in 2024. The 2026 evolution adds two ideas: discrete functional memory blocks the model can edit directly, and a sleep-time agent that consolidates memory asynchronously while the primary agent is idle. This is how you scale memory beyond one conversation.
+> Discrete functional memory blocks the model can edit directly, and a sleep-time agent that consolidates memory asynchronously while the primary agent is idle. These two ideas are how you scale memory beyond one conversation.
 
 > **【中文解读】** MemGPT 在 2024 年成为 Letta。2026 年的演进增加了两个想法：模型可以直接编辑的离散功能记忆块，以及在主 Agent 空闲时异步合并记忆的休眠 Agent。这是将记忆扩展到单次对话之外的方式。
 
@@ -33,7 +34,7 @@ MemGPT (Lesson 07) solved the virtual-memory control flow. Three production prob
 3. **Structure loss.** A flat archival store cannot express "the Human block is always in the prompt; the Persona block is always in the prompt; the Task block swaps per session."
    中文翻译：**结构丢失。** 扁平的归档存储无法表达"Human 块始终在提示中；Persona 块始终在提示中；Task 块按会话交换。"
 
-Letta (letta.com) is the 2026 rewrite. Memory blocks make structure explicit; sleep-time compute moves consolidation off the critical path.
+Letta (letta.com) is the platform name the original MemGPT project adopted in 2024 — the paper's pattern keeps the MemGPT name — and the 2026 Letta V1 rewrite is a later, separate step. Memory blocks make structure explicit; sleep-time compute moves consolidation off the critical path.
 
 > Letta（letta.com）是 2026 年的重写。记忆块使结构显式化；休眠计算将合并移出关键路径。
 
@@ -110,6 +111,7 @@ The shape matches how humans work: you do the task, you sleep on it, the long-te
 > 这种形态与人类工作方式一致：你做任务，你睡一觉，长期记忆在夜间沉淀。
 
 ### Letta V1 and native reasoning
+### Native reasoning
 
 Letta V1 (`letta_v1_agent`, 2026) deprecates `send_message`/heartbeat and inline `Thought:` tokens in favor of native reasoning. The Responses API (OpenAI) and the Messages API with extended thinking (Anthropic) emit reasoning on a separate channel, passed through turns (encrypted across providers in production). The control loop is still ReAct. The thought trace is structural, not prompt-shaped.
 
@@ -129,6 +131,11 @@ Letta V1 (`letta_v1_agent`, 2026) deprecates `send_message`/heartbeat and inline
 > 🤔 **【困惑】** Q: Sleep-time agent 用更强的模型不会更贵吗？为什么是省钱而不是烧钱？ A: 看时间维度。Sleep-time 不在关键路径上，可以挑低峰时段（如凌晨 3 点）用更便宜的 batch API（OpenAI batch 半价、Anthropic batch 50% 折扣）；更重要的是它**避开了关键路径的高价**——主 Agent 必须用 streaming + 高优先级，单价是 batch 的 2-3 倍。把"可以慢"的工作批量迁移到 sleep-time，整体反而便宜。
 
 ## Build It | 动手构建
+```figure
+memory-blocks
+```
+
+## Build It
 
 `code/main.py` implements:
 

@@ -97,6 +97,11 @@ The trade-off: an extra inference per tool call. For the vast majority of agent 
 > **过度信任检索到的记忆。** 昨天的 Agent 写了一条有毒的记忆笔记；今天的 Agent 读取了它。
 
 ## Build It | 动手实现
+```figure
+injection-hijack
+```
+
+## Build It
 
 `code/main.py` implements PVE:
 

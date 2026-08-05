@@ -86,6 +86,11 @@ Three terms: policy-gradient loss, value regression, entropy bonus. `c_v ~ 0.5`,
 > **【拓展：GAE→PPO→RLHF】** GAE (广义优势估计) 是 PPO 的核心组件，而 PPO 是 ChatGPT RLHF 训练的标准算法。λ=0.95 是 2026 年的默认值，在偏差和方差之间取得平衡。理解 GAE 就理解了大模型对齐训练中最关键的优势估计方法。
 
 ## Build It | 动手实现
+```figure
+actor-critic
+```
+
+## Build It
 
 ### Step 1: a critic
 

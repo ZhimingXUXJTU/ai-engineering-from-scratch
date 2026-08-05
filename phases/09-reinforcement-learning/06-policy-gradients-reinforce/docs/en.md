@@ -79,6 +79,11 @@ i.e., score of the taken action minus its expected value under the policy.
 > **连续动作的高斯策略。** `∇ log N(a; μ, σ)` 有闭式解。这就是 Phase 9 · 07 的 SAC 所需的全部。
 
 ## Build It | 动手实现
+```figure
+policy-gradient-landscape
+```
+
+## Build It
 
 ### Step 1: softmax policy network
 

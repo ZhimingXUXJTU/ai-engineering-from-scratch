@@ -222,6 +222,11 @@ For a new document-AI project:
   中文翻译：监管场景：OCR 管道 + VLM 验证器交叉检查。
 
 ## Use It | 用框架实现
+```figure
+mm-doc-layout
+```
+
+## Use It
 
 `code/main.py`:
 

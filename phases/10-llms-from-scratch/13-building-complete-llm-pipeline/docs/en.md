@@ -218,6 +218,11 @@ Most frontier teams converged on the same skeleton.
 
 The numbers change every six months. The skeleton does not.
 
+```figure
+beam-search
+```
+
+## Build It
 
 > **【拓展：训练管线的工程挑战】** 完整 LLM 训练管线的工程挑战包括：检查点管理（每 N 步保存模型状态，训练中断后可恢复）、日志和监控（WandB 追踪损失曲线、学习率、吞吐量）、超参数搜索、故障恢复。
 

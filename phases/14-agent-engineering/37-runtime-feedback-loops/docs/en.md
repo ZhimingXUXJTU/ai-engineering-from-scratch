@@ -76,6 +76,11 @@ If the runner errors before capturing exit, the record carries `exit_code: null`
 > 运行时反馈循环在 Agent 执行过程中提供实时纠错。通过监控 Agent 行为并在检测到问题时立即干预，提高成功率。
 
 ## Build It | 动手实现
+```figure
+wb-feedback-loop
+```
+
+## Build It
 
 `code/main.py` implements:
 

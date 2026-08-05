@@ -191,6 +191,11 @@ These sit outside the VLA as control-layer checks. The VLA's output is a suggest
 > 这些位于 VLA 之外的控制层检查。VLA 的输出是建议，不是命令。
 
 ## Use It | 用框架实现
+```figure
+mm-action-tokens
+```
+
+## Use It
 
 `code/main.py`:
 

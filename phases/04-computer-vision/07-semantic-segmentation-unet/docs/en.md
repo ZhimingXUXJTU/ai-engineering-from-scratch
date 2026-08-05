@@ -168,6 +168,11 @@ For a first model, a 256x256 input with a 64-channel-base U-Net trains comfortab
 
 
 ## Build It | 动手实现
+```figure
+segmentation-flood
+```
+
+## Build It
 
 ### Step 1: Encoder block
 

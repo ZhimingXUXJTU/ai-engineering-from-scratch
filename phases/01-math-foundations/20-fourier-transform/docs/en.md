@@ -383,6 +383,11 @@ True frequency resolution depends only on the observation time T = N / fs. To re
 > OpenAI Whisper 模型将音频转为 log-Mel 频谱图后输入编码器。Mel 刻度模拟人耳对频率的感知（低频区分得更细）。Whisper 使用 80 个 Mel 滤波器组、25ms 窗口、10ms 步长。一段 30 秒的音频产生约 3000 x 80 的频谱图矩阵。Google 的 WaveNet、Meta 的 EnCodec 也都以频谱图或频域表示为中间特征。
 
 ## Build It | 动手实现
+```figure
+fourier-synthesis
+```
+
+## Build It
 
 ### Step 1: DFT from scratch
 

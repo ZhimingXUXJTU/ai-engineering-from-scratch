@@ -566,6 +566,11 @@ The `tokens[-seq_len:]` window is necessary because the model has a maximum cont
 > `tokens[-seq_len:]` 窗口是必要的，因为模型有最大上下文长度（GPT-2 为 1024）。一旦超出，你必须丢弃最旧的 token。这就是大家说的"上下文窗口"。
 
 ## Use It | 用框架实现
+```figure
+sampling-decoder
+```
+
+## Use It
 
 ### Full Training and Generation Demo
 

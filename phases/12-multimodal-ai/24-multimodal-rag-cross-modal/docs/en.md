@@ -199,6 +199,11 @@ No standard benchmark spans all modalities. Most papers evaluate on domain-speci
 > 没有标准基准覆盖所有模态。大多数论文在领域特定任务上评估。
 
 ## Use It | 用框架实现
+```figure
+contrastive-matrix
+```
+
+## Use It
 
 `code/main.py`:
 

@@ -117,6 +117,11 @@ output: CVSS-scored findings + disclosure timeline + before/after harmlessness d
 > **【中文解读】** 构建宪法安全测试线束：对待测模型（8B 指令微调模型或 RAG 聊天机器人）运行 10 类攻击（越狱、提示注入、数据泄露、幻觉、偏见、毒性、版权、隐私、拒绝合法请求和可用性退化），每类 20 个测试用例，共 200 个测试。评估通过 6 个指标：拒绝率、误拒率、泄露率、毒性分数、偏见分数和可用性退化度。
 
 > **【拓展：AI 安全评估在 2026 年的标准化进展】** NIST 的 AI RMF（风险管理框架）和 ISO/IEC 42001 成为 AI 安全评估的国际标准。MLCommons 的 Safety v0.5 benchmark 包含 CSB（儿童安全）、激进行为、自残等维度的标准测试集。Anthropic 的 Responsible Scaling Policy 和 OpenAI 的 Preparedness Framework 都要求在模型发布前通过类似本课的 10 类攻击测试。宪法 AI（Constitutional AI）是 Anthropic 的核心安全方法——模型根据预设原则自我批评和修订输出。
+```figure
+cf-safety-stack
+```
+
+## Build It
 
 1. **Target setup.** Stand up an 8B instruction-tuned model on vLLM (or reuse a RAG chatbot from another capstone). This is the app under test.
    中文翻译：1. **Target setup.** Stand up an 8B instruction-tuned model on vLLM (or reuse a RAG chatbot from another capstone). This is the app under test.
@@ -201,7 +206,7 @@ $ safety probe --model=target --family=PAIR --budget=50
 ## Further Reading | 延伸阅读
 
 - [Anthropic Constitutional Classifiers](https://www.anthropic.com/research/constitutional-classifiers) — training-time reference
-- [Meta Llama Guard 4](https://ai.meta.com/research/publications/llama-guard-4/) — the 2026 input/output classifier
+- [Meta Llama Guard 4](https://www.llama.com/docs/model-cards-and-prompt-formats/llama-guard-4/) — the 2026 input/output classifier
 - [Google ShieldGemma-2](https://huggingface.co/google/shieldgemma-2b) — image + multimodal safety
 - [NVIDIA Nemotron 3 Content Safety](https://developer.nvidia.com/blog/building-nvidia-nemotron-3-agents-for-reasoning-multimodal-rag-voice-and-safety/) — enterprise reference
 - [X-Guard (arXiv:2504.08848)](https://arxiv.org/abs/2504.08848) — 132-language multilingual safety

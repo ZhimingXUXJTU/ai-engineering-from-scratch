@@ -1,8 +1,13 @@
 # vLLM Production Stack with LMCache KV Offloading | 生产 加载 vLLM KV
+# Production Serving Stack — KV Offloading and Cache-Aware Routing
 
-> vLLM's production-stack is the reference Kubernetes deployment — router, engines, and observability wired together. LMCache is the KV-offloading layer that extracts KV cache out of GPU memory and reuses it across queries and engines (CPU DRAM, then disk/Ceph). The vLLM 0.11.0 KV Offloading Connector (January 2026) makes this asynchronous and pluggable via the Connector API (v0.9.0+). Offload latency is not user-facing. LMCache is valuable even without shared prefixes — when a GPU runs out of KV slots, preempted requests can be restored from CPU instead of recomputing prefill. Published benchmarks on 16x H100 (80GB HBM) across 4 a3-highgpu-4g: when KV cache exceeds HBM, both native CPU offload and LMCache substantially improve throughput; at low KV footprint, all configs match baseline with small overhead.
+> A production serving stack wires router, engines, and observability into one Kubernetes deployment — and treats KV cache as a resource that can leave the GPU. KV offloading extracts KV cache out of GPU memory and reuses it across queries and engines (CPU DRAM, then disk/Ceph). vLLM's production-stack is the reference deployment; LMCache is the offloading layer. The vLLM 0.11.0 KV Offloading Connector (January 2026) makes this asynchronous and pluggable via the Connector API (v0.9.0+). The offload path is usually hidden from the request path, though cache misses and promotions can add end-to-end latency. LMCache is valuable even without shared prefixes — when a GPU runs out of KV slots, preempted requests can be restored from CPU instead of recomputing prefill. Published benchmarks on 16x H100 (80GB HBM) across 4 a3-highgpu-4g: when KV cache exceeds HBM, both native CPU offload and LMCache substantially improve throughput; at low KV footprint, all configs match baseline with small overhead.
 
 > **【中文解读】** 本节介绍了 vLLM 推理服务——PagedAttention、连续批处理和分块预填充三大核心优化。
+**Type:** Learn
+**Languages:** Python (stdlib, toy KV-spill simulator)
+**Prerequisites:** Phase 17 · 04 (Serving Engine Internals), Phase 17 · 06 (SGLang/RadixAttention)
+**Time:** ~60 minutes
 
 
 **Type:** Learn | **类型:** 学习
@@ -105,6 +110,11 @@ Phase 17 · 17 disaggregated serving + LMCache compounds: KV transfers from pref
 - Small HBM pressure: 3-5% overhead without benefit.
 
 ## Use It | 用框架实现
+```figure
+zero-sharding
+```
+
+## Use It
 
 `code/main.py` simulates a preemption-heavy workload with and without LMCache. Reports re-prefills avoided, throughput gain, and the break-even HBM utilization.
 

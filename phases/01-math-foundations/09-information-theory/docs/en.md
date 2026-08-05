@@ -349,6 +349,11 @@ GPT-2 achieved perplexity ~30 on common benchmarks. Modern models are in the sin
 > GPT-2 在常见基准上达到 ~30 的困惑度。现代模型在代表性好的领域已达到个位数。
 
 ## Build It | 动手实现
+```figure
+entropy-kl
+```
+
+## Build It
 
 ### Step 1: Information content and entropy | 第1步：信息量与熵
 

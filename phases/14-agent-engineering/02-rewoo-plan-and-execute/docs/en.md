@@ -75,6 +75,7 @@ The paper's second result: because the planner does not see observations, you ca
 > **【拓展：规划器蒸馏 → 成本优化】** 因为规划器不需要观察结果，可以将 175B 教师模型的规划输出蒸馏到 7B 模型。2026 年的生产 Agent 普遍使用"小模型规划 + 大模型执行"的混合架构来优化成本。这也是 vLLM 等推理服务支持模型路由的理论基础。
 
 ### Plan-and-Execute (LangChain, 2023)
+### Plan-and-Execute (2023)
 
 The LangChain team's August 2023 post generalized ReWOO into a pattern name: Plan-and-Execute. Up-front planner emits a step list, executor runs each step, an optional replanner can revise after observing results. This is closer to ReAct than ReWOO (the replanner brings observations back into planning) but preserves the token savings.
 
@@ -105,6 +106,11 @@ Anthropic's Dec 2024 guidance: start with the simplest. If the task is one tool 
 ## Build It | 动手实现
 
 > ⚠️ **【易错点】** 实现 ReWOO 时新手最常踩的坑：忘记对计划 DAG 做环检测。如果 LLM 生成的计划里 `#E1` 依赖 `#E2` 而 `#E2` 又依赖 `#E1`，拓扑排序会无限循环卡死。**后果**：Executor 挂起或栈溢出。**一行修复**：拓扑排序后检查已排序节点数是否等于总节点数，不等就抛 `CycleDetectedError`。
+```figure
+rewoo-plan
+```
+
+## Build It
 
 `code/main.py` implements a toy ReWOO:
 

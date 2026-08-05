@@ -94,6 +94,11 @@ Metrics live next to traces. A counter increments on each tool call: `tools_call
 ## Architecture | 架构
 
 > **【拓展：LLM 可观测性平台生态】** 2026 年的 LLM 可观测性平台包括：Langfuse（开源，追踪 + 评估）、Helicone（代理层追踪）、Arize AI（Phoenix，模型评估）、Braintrust（评估 + 日志）。它们都采用相同的架构：span-based 追踪 + 度量聚合 + 仪表板。本课的 JSONL 导出器 + Prometheus 文本格式是这些平台核心功能的从零构建版本，直接教会你它们的数据模型。
+```figure
+trace-spans
+```
+
+## Architecture
 
 ```mermaid
 flowchart LR

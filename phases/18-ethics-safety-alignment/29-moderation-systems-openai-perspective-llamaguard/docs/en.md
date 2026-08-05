@@ -97,6 +97,11 @@ Lesson 16 covers the moderation tooling in the red-team context. Lesson 29 cover
 > **【拓展：Azure 迁移 → 2024-2027 行业项目】** Azure Content Moderator 2024 年 2 月弃用，2027 年 2 月退役，替换为基于 LLM 的 Azure AI Content Safety 并与 Azure OpenAI 集成。迁移是一个 2024-2027 年的行业级别项目——每个使用 Azure Content Moderator 的部署都需要规划迁移路径。这是传统内容审核向 LLM 驱动审核的系统性转变。
 
 ## Use It | 使用方法
+```figure
+an-moderation-layers
+```
+
+## Use It
 
 `code/main.py` builds a three-layer moderation harness: input moderator (keyword + category score), output moderator (same classifier on output), custom moderator (domain rules). You can run inputs through and observe which layer catches what.
 

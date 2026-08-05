@@ -60,6 +60,11 @@ The trend in 2026 is hybrid: retrieve the best few passages, then prompt a gener
 
 > **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
 
+```figure
+qa-span
+```
+
+## Build It
 
 ### Step 1: extractive QA with a pretrained model
 > `deepset/roberta-base-squad2` 在 SQuAD 2.0 上训练，包含不可回答的问题。默认情况下，`question-answering` 流水线返回得分最高的片段，即使模型的空分数胜出——它不自动返回空答案。要获得显式的 "无答案" 行为，在流水线调用中传入 `handle_impossible_answer=True`：流水线只在空分数超过所有片段分数时返回空答案。无论哪种方式都要检查 `score` 字段。

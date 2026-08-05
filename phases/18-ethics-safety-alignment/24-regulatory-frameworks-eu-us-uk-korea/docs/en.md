@@ -109,6 +109,11 @@ Lesson 18 is lab-voluntary governance; Lesson 24 is regulatory; Lesson 25 is an 
 > **【拓展：GPAI 代码实践 → 透明度/版权/安全】** 2025 年 7 月 10 日发布的 GPAI 代码实践包含三章：透明度——所有 GPAI 提供商；版权——所有 GPAI 提供商；安全和安全——仅系统性风险 GPAI 提供商（估计 5-15 家公司）。12 项总承诺。签名任务组由 AI 办公室主持管理实施。执法从 2026 年 8 月 2 日开始——在此之前善意合规被接受。
 
 ## Use It | 使用方法
+```figure
+an-eu-act-timeline
+```
+
+## Use It
 
 No code. Read the EU AI Act primary sources: the regulation text, the GPAI Code of Practice, the UK AISI Inspect framework. Map your deployment to the applicable obligations for each jurisdiction.
 

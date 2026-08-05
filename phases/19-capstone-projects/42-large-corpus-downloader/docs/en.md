@@ -95,6 +95,11 @@ The downloader's only durable output is the manifest. The manifest holds, per sh
 
 
 ## Build It | 动手构建
+```figure
+cap-corpus-downloader
+```
+
+## Build It
 
 `code/main.py` implements:
 

@@ -112,6 +112,11 @@ If your eval suite has cases for each, you have covered Phase 14.
 > **不稳定的评估。** 非确定性用例导致误报。固定种子，快照状态。
 
 ## Build It | 动手实现
+```figure
+ae-eval-three-layers
+```
+
+## Build It
 
 `code/main.py` is a stdlib eval harness:
 

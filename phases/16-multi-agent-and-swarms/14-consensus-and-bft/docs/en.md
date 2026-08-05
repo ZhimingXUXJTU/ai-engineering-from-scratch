@@ -133,6 +133,11 @@ The `threshold` parameter decides when to accept and when to retry. Too low: you
   中文翻译：**对抗性多轮。** 如果 Agent 可以观察前几轮并模仿（Du 2023 辩论），它们会不管真相地互相同意。限制轮次（通常 2-3 轮）。
 
 ## Build It | 动手构建
+```figure
+swarm-consensus-wave
+```
+
+## Build It
 
 `code/main.py` implements:
 

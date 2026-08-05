@@ -11,6 +11,10 @@
 **Languages:** Python (stdlib, toy two-layer cache simulator) | **语言:** Python
 **Prerequisites:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 06 (SGLang RadixAttention) | **前置知识:** Phase 17 · 04 (vLLM Serving Internals), Phase 17 · 06 (SGLang RadixAttention)
 **Time:** ~60 minutes | **时间:** ~60 minutes
+**Type:** Learn
+**Languages:** Python (stdlib, toy two-layer cache simulator)
+**Prerequisites:** Phase 17 · 04 (Serving Engine Internals), Phase 17 · 06 (SGLang RadixAttention)
+**Time:** ~60 minutes
 
 > 🔗 **【前置】** 学本节前请先掌握：Phase 17·04（vLLM）、Phase 17·06（RadixAttention）、Phase 11·04（Embeddings 用于语义缓存）。两层缓存：L2 提供商级 + L1 应用级。
 > 💡 **【类比】** 缓存 = "翻历史聊天记录"。L2 提示缓存（Anthropic/OpenAI）= 服务商帮你存（90% 成本降，85% 延迟降）；L1 语义缓存 = 自己用 embedding 找相似问题直接返回。陷阱：并行请求会破坏缓存、前缀里塞动态内容（时间戳）= 永远命中不了。ProjectDiscovery 把动态文本挪出可缓存前缀后，命中率 7%→74%。
@@ -125,6 +129,11 @@ Pricing points are captured 2026-04 from the linked vendor docs and drift every 
 > 生产环境的提示缓存最佳实践：把 prompt 模板分为静态前缀（系统提示、工具 schema）和动态后缀（用户输入、检索结果），用 Anthropic 的 `cache_control` 标记静态前缀。实测案例：把动态内容移出缓存前缀，命中率从 7% 跳到 74%。对于 RAG 系统，静态系统提示 + 检索到的文档属于缓存范围，用户问题不属于。
 
 > **【拓展：提示缓存→成本优化】** 提示缓存是 LLM 成本优化最直接的手段。Anthropic Claude 的缓存读取价格为 $0.30/M token，不到新鲜输入 $3.00/M 的十分之一。OpenAI 对 1024+ token 的 prompt 自动缓存，缓存输入价格约降 90%。对于每天处理百万请求的 RAG 系统，提示缓存可以将月度 API 账单从数十万美元降到数万美元。
+```figure
+semantic-cache-hit
+```
+
+## Use It
 
 `code/main.py` simulates L1 + L2 caching on mixed workloads. Reports hit rates, bill, and shows the parallelization penalty.
 

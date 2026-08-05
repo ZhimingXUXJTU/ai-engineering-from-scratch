@@ -171,6 +171,11 @@ SEP-1686 shipped in 2025-11-25 but the broader roadmap calls out three open issu
 > SEP-1686 在 2025-11-25 发布，但更广泛的路线图列出三个开放问题：持久订阅原语、子任务（父子任务关系）和 result-TTL 标准化。预计规范会在 2026 年演进。生产代码应仅在常见情况下将 Tasks 视为稳定，并对子任务的未来 SDK 变更加守卫。
 
 ## Use It | 用框架实现
+```figure
+tp-task-lifecycle
+```
+
+## Use It
 
 `code/main.py` implements a durable task store (filesystem-backed) and a `generate_report` tool that runs in a background thread. Clients call the tool, get a task id immediately, poll `tasks/status` while the worker updates progress, and fetch `tasks/result` when done. Cancellation works; crash recovery is simulated by killing the worker thread and reloading state.
 

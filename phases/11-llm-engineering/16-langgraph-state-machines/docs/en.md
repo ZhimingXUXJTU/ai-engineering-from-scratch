@@ -1,6 +1,7 @@
 # LangGraph — State Machines for Agents | LangGraph：Agent 的状态机
+# Agent State Machines — Graphs, Nodes, Checkpoints
 
-> A ReAct loop written by hand is a `while True`. A ReAct loop written in LangGraph is a graph you can checkpoint, interrupt, branch, and time-travel through. The agent hasn't changed. The harness around it has.
+> A ReAct loop written by hand is a `while True`. The same loop written as an explicit graph is something you can checkpoint, interrupt, branch, and time-travel through. The agent hasn't changed. The harness around it has.
 
 > **【中文解读】** 手写的 ReAct 循环就是一个 `while True`。用 LangGraph 写的 ReAct 循环是一个图——可以检查点保存、中断、分支、时间旅行。Agent 没变，但围绕它的框架变了。
 
@@ -24,6 +25,7 @@ The next step is obvious once you see it. The agent is already a state machine �
 > 一旦你看到了，下一步就显而易见了。Agent 本身就是一个状态机——系统提示加消息历史加待处理的工具调用加上下一步动作。让状态机显式化：节点代表"模型思考"、"工具运行"、"人工审批"，边代表它们之间的条件转换。
 
 LangGraph is the library that ships this abstraction. It is not an agent framework in the LangChain sense ("here is an AgentExecutor, good luck"). It is a graph runtime with first-class state, first-class persistence, and first-class interrupts. The agent loop is something you draw, not something you hand-write.
+The reference implementation of this abstraction is LangGraph. It is not an agent framework in the LangChain sense ("here is an AgentExecutor, good luck"). It is a graph runtime with first-class state, first-class persistence, and first-class interrupts. The agent loop is something you draw, not something you hand-write.
 
 > LangGraph 是提供这种抽象的库。它不是 LangChain 意义上的 Agent 框架。它是一个具有一等公民状态、一等公民持久化和一等公民中断的图运行时。Agent 循环是你画出来的，而不是手写的。
 
@@ -111,6 +113,11 @@ A compiled graph can be a node in another graph. The outer graph sees a single n
 > 编译后的图可以是另一个图中的节点。外层图看到一个单一节点；内层图有自己的状态和检查点。这是团队构建 supervisor-worker Agent 的方式。
 
 ## Build It | 动手实现
+```figure
+l5-state-graph-ledger
+```
+
+## Build It
 
 ### Step 1: state and nodes
 

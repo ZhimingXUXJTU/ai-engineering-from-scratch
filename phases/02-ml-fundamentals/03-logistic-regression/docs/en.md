@@ -273,6 +273,11 @@ When to prioritize:
 
 > **【拓展：评估指标在真实系统中的选择】**
 > Google 搜索的垃圾页面检测优先精确率（宁可放过一些垃圾页面，也不能把正常页面误判为垃圾）；医学影像 AI（如 Google Health 的乳腺癌检测）优先召回率（宁可多一些假阳性让医生复核，也不能漏掉真正的肿瘤）；自动驾驶的行人检测则要求精确率和召回率都很高，F1 是更合适的综合指标。
+```figure
+logistic-sigmoid
+```
+
+## Build It
 
 ### Step 1: Sigmoid function and data generation
 

@@ -101,6 +101,11 @@ All these are encoder-decoder or RNN-T based. Pure CTC systems (wav2vec 2.0) sit
 
 
 ## Build It | 动手实现
+```figure
+ctc-collapse
+```
+
+## Build It
 
 ### Step 1: greedy CTC decode
 

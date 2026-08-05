@@ -25,6 +25,10 @@
 - Keep the validator pure (no I/O, no time, no globals) so it can be re-run on a replay log.
   中文翻译：Keep the validator pure (no I/O, no time, no globals) so it can be re-run on a replay log.
 
+```figure
+cf-registry-validate
+```
+
 ## Why the registry comes before the tool
 
 > **【中文解读】** 本节强调注册中心必须先于工具构建。2026 年编码 Agent 注册的工具数超过模型单次上下文窗口能容纳的范围——200 个工具中每轮只暴露 10-40 个。注册中心是"什么工具存在"、"参数是什么形状"、"调用什么处理器"的唯一事实来源。避免的错误是：发布处理器没有 Schema，或发布 Schema 没有验证——两者都会让调度器变成猜测游戏。

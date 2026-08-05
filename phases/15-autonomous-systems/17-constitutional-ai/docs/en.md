@@ -162,6 +162,11 @@ It lives at the model layer: what the model's weights are trained to prefer. Kil
 > 它存在于模型层：模型权重被训练偏好什么。终止开关和金丝雀 token 在运行时层：运行时允许什么。两者都需要。因模型权重宽松而触发所有错误动作的运行时是运行时问题。因运行时过度限制而拒绝所有正确动作的模型是运行时问题。层覆盖不同类别。
 
 ## Use It | 用框架实现
+```figure
+mx-priority-tiers
+```
+
+## Use It
 
 `code/main.py` implements a minimal four-tier priority resolver. The resolver takes a proposed action and a set of principle-evaluations (safety, ethics, guidelines, helpfulness) and returns the action, a refusal, or a modified action. The driver runs a small case set: clear allow, clear disallow, hardcoded prohibition, ambiguous case across tiers.
 

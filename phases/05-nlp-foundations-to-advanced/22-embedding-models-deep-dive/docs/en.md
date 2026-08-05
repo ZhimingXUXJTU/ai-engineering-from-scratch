@@ -43,6 +43,11 @@ Choosing an embedding in 2026 means picking across five axes: dense vs sparse vs
 ## Build It | 动手实现
 
 > **【中文解读】** 本节通过代码从零实现核心算法。
+```figure
+gx-matryoshka
+```
+
+## Build It
 
 ### Step 1: comparing embedding models
 

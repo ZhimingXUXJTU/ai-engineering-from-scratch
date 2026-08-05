@@ -1,4 +1,5 @@
 # Agent Framework Tradeoffs — LangGraph vs CrewAI vs AutoGen vs Agno | Agent 框架对比：LangGraph vs CrewAI vs AutoGen vs Agno
+# Agent Framework Tradeoffs — Graph, Role, and Actor Orchestration
 
 > Every framework sells the same demo (research agent builds a report) and hides the same bug (state schema fights with the orchestration layer). Pick the framework whose abstractions match the shape of your problem; everything else is glue you write twice.
 
@@ -191,6 +192,11 @@ Refuse to reach for a framework before you can draw the graph, the org chart, th
 | 快速原型、不绑定框架 | 纯 Python + 提供商 SDK | 无框架是最快的框架 |
 
 ## Exercises | 练习题
+```figure
+l5-framework-fit
+```
+
+## Exercises
 
 1. **Easy.** Take the same task — "research Anthropic's headquarters, write a 200-word brief, cite sources" — and implement it in LangGraph (four nodes: plan, search, write, cite) and in CrewAI (three roles: researcher, writer, editor). Report token cost per run and lines of code.
    用同一个任务在 LangGraph 和 CrewAI 中实现，报告每次运行的 token 成本和代码行数。

@@ -104,6 +104,11 @@ If a model sandbags on evaluations, every framework's capability thresholds are 
   中文翻译：**独立性**：外部审查是强制还是可选？Anthropic 与 Apollo 和美国 AI 安全研究所合作；OpenAI 与 METR 合作；DeepMind 主要与内部 SAG。
 
 ## Use It | 用框架实现
+```figure
+a5-tracked-vs-research
+```
+
+## Use It
 
 `code/main.py` implements a small decision-table diff tool. Given a capability (autonomy, deceptive alignment, R&D automation, cyber uplift, etc.), it outputs how each of the three policies classifies the capability, and what mitigations trigger. It's a reading aid, not a policy tool.
 

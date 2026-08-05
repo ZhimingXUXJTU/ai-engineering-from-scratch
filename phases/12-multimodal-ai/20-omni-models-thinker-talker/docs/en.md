@@ -168,6 +168,11 @@ This is why small dedicated Talker models exist rather than "just use the main m
 > 这就是为什么存在专用小型 Talker 模型而非"直接用主模型"。
 
 ## Use It | 用框架实现
+```figure
+l5-thinker-talker
+```
+
+## Use It
 
 `code/main.py`:
 

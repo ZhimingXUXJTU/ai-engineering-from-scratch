@@ -105,6 +105,11 @@ End-to-end 450–600ms is premium. 800–1200ms is common. Anything > 1500ms fee
 ## Build It | 动手实现
 
 > ⚠️ **【易错点】** 新手搭语音管道常踩 3 个坑：(1) **不做 barge-in 处理**——用户打断时 Agent 还在自顾自地说，体验极差，必须在 TTS processor 监听 UPSTREAM cancel frame 并立即停止音频输出。(2) **忽略 STT 置信度**——置信度 0.3 的"嗯哼"被当成用户回答，Agent 走错分支；修复：confidence < 0.7 时让 Agent 反问"我没听清，能再说一遍吗"。(3) **延迟预算算总账**——单独看每个组件都达标（VAD 40ms + STT 200ms + LLM 300ms + TTS 150ms = 690ms），但上线后端到端 1200ms，因为漏算了网络 RTT 和队列等待。修复：用 Phase 14·23 的 OTel span 测真实链路，不要拍脑袋。
+```figure
+voice-pipeline
+```
+
+## Build It
 
 `code/main.py` is a frame-based toy pipeline with:
 

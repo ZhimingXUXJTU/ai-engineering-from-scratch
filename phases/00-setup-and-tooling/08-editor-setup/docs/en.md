@@ -52,6 +52,11 @@ graph TD
 
 > **【中文解读】**
 > AI 开发编辑器需要五层配置：基础编辑器 → 扩展插件 → AI 专用设置 → 终端集成 → 远程开发。其中远程 SSH 开发是最重要的——你需要在本地编辑器中直接操作远程 GPU 服务器。
+```figure
+s0-lsp-roundtrip
+```
+
+## Build It
 
 ## Build It | 动手实现
 
@@ -83,7 +88,7 @@ If `code` is not found on macOS, open VS Code, press `Cmd+Shift+P`, type "Shell 
 
 > **【中文解读】** AI 开发必备的 VS Code 扩展：Python（调试+Lint）、Jupyter（在编辑器中运行 Notebook）、Pylance（智能补全和类型检查）、GitLens（查看代码历史）。安装后在设置中开启"保存时格式化"，从此不用手动整理代码。
 
-Open the integrated terminal in VS Code (`Ctrl+`` ` or `` Cmd+` ``) and install the extensions that matter for AI work:
+Open the integrated terminal in VS Code (`` Ctrl+` `` on every platform) and install the extensions that matter for AI work:
 
 > 打开 VS Code 的集成终端（`Ctrl+`` ` 或 `` Cmd+` ``），安装 AI 工作所需的关键扩展：
 
@@ -178,8 +183,8 @@ Useful shortcuts:
 | Action | macOS | Linux/Windows |
 |--------|-------|---------------|
 | Toggle terminal | `` Ctrl+` `` | `` Ctrl+` `` |
-| New terminal | `Ctrl+Shift+`` ` | `Ctrl+Shift+`` ` |
-| Split terminal | `Cmd+\` | `Ctrl+\` |
+| New terminal | `` Ctrl+Shift+` `` | `` Ctrl+Shift+` `` |
+| Split terminal | `Cmd+\` | `Ctrl+Shift+5` |
 
 Split terminals are useful: one for running your script, one for monitoring GPU with `nvidia-smi -l 1` or `watch -n 1 nvidia-smi`.
 

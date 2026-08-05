@@ -135,6 +135,11 @@ Lessons 6-10 describe the threat and the defensive paradigm under the assumption
 > **【拓展：辩论帮助弱到强泛化 → 2025 组合】** Lang 等人（arXiv:2501.13124, 2025 年 1 月）将可扩展监督和弱到强泛化结合：辩论协议提供更好的弱标签，强模型在这些标签上训练。报告在 NLP 任务上的 PGR 提升。这验证了两种方法是互补的——可扩展监督增加监督者的有效信号质量，弱到强泛化闭合从任何信号中恢复的差距。
 
 ## Use It | 用框架实现
+```figure
+scalable-oversight
+```
+
+## Use It
 
 `code/main.py` simulates a W2SG fine-tune on a synthetic task. Weak labeler has 70% accuracy with structured errors; strong model has 95% ceiling on gold labels. You fine-tune the strong model on weak labels, measure PGR, and compare to strong-on-gold and weak-alone.
 

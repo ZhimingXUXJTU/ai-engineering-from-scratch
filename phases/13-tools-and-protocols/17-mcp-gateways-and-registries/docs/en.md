@@ -160,6 +160,11 @@ Phase 17 (production infrastructure) dives deeper on gateway operations.
 ## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 实现约150行的最小网关：通过 Bearer token 认证用户、每用户 RBAC 策略、路由到两个后端 MCP 服务器、写入审计日志、令牌桶限流、拒绝描述哈希不匹配的后端工具。关注点：RBAC 字典按 user_id 索引、AUDIT_LOG 是追加事件列表、令牌桶限流每用户、锁定清单为 server::tool -> hash 映射。
+```figure
+t3-gateway-funnel
+```
+
+## Use It
 
 `code/main.py` ships a minimal gateway in ~150 lines: authenticates users by a fake Bearer token, holds a per-user RBAC policy, routes requests to two backend MCP servers, writes every call to an audit log, enforces a rate limit, and rejects any backend tool whose description hash does not match a pinned manifest.
 

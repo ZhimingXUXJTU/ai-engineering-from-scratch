@@ -273,6 +273,11 @@ The connection is deeper than analogy:
 > **模型比较是贝叶斯的。** 贝叶斯信息准则（BIC）、边际似然和贝叶斯因子都使用贝叶斯推理来在模型之间选择而不导致过拟合。
 
 ## Build It | 动手实现
+```figure
+bayes-update
+```
+
+## Build It
 
 ### Step 1: Bayes theorem function
 

@@ -103,6 +103,11 @@ ESC-50: 50 classes, 40 clips each — balanced, easy. UrbanSound8K: 10 classes, 
 
 
 ## Build It | 动手实现
+```figure
+mfcc-pipeline
+```
+
+## Build It
 
 ### Step 1: featurize
 

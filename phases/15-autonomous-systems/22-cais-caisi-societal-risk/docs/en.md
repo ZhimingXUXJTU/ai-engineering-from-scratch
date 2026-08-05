@@ -133,6 +133,11 @@ This is the final synthesis for the phase: every previous lesson is one layer in
 > 这是阶段的最终综合：之前的每节课是堆栈中的一层，其完整性比任何单层的强度更重要。
 
 ## Use It | 用框架实现
+```figure
+a5-four-risks
+```
+
+## Use It
 
 `code/main.py` implements a small risk-inventory tool. Given a proposed deployment, it tags the deployment against the four-risk categories and returns a mitigation checklist. It's a reading aid for the framework, not a substitute for human judgment.
 

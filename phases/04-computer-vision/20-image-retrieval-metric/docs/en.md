@@ -157,6 +157,11 @@ Always ask which one you are solving before picking a model.
 
 
 ## Build It | 动手实现
+```figure
+metric-embedding
+```
+
+## Build It
 
 ### Step 1: Triplet loss
 

@@ -141,6 +141,11 @@ Any single metric is a lie. Three corroborating metrics + qualitative review are
 > 任何单一指标都是谎言。三个相互印证的指标 + 定性审查才算一个声明。
 
 ## Build It | 动手实现
+```figure
+gx-fid-distributions
+```
+
+## Build It
 
 `code/main.py` implements FID, CLIP-score-like, and Elo aggregation on synthetic "feature vectors" (we use 4-D vectors as stand-ins for Inception features). You see:
 

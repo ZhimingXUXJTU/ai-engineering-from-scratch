@@ -478,6 +478,11 @@ flowchart TD
 ```
 
 ## Build It | 动手实现
+```figure
+f3-learning-boundary
+```
+
+## Build It
 
 The code in `code/ml_intro.py` implements a nearest centroid classifier from scratch, the simplest possible ML algorithm. It demonstrates the core idea: learn from data, then predict on new data.
 

@@ -162,6 +162,11 @@ For products that need both, Janus-Pro is now the reference open architecture.
 
 
 ## Use It  | 动手实践
+```figure
+l5-janus-decouple
+```
+
+## Use It
 
 `code/main.py` simulates Janus-Pro routing:
 

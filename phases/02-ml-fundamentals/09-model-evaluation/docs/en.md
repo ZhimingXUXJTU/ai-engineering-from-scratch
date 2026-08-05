@@ -237,6 +237,11 @@ The optimal hyperparameter value is where the validation score peaks.
 
 > **【拓展：学习曲线——诊断模型问题的利器】**
 > 学习曲线（Learning Curve）绘制训练误差和验证误差随训练数据量变化的趋势，是诊断高偏差/高方差问题的直观工具。训练误差和验证误差都很高→高偏差（需要更复杂的模型）；训练误差低但验证误差高→高方差（需要更多数据或正则化）。scikit-learn 的 learning_curve 函数可以自动生成这些曲线。
+```figure
+precision-recall-threshold
+```
+
+## Build It
 
 ### Step 1: Train/validation/test split
 

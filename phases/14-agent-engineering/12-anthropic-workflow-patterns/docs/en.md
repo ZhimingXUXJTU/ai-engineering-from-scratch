@@ -97,6 +97,11 @@ Foundation for all five patterns: one LLM with three capabilities wired in — s
 ## Build It | 动手构建
 
 > ⚠️ **【易错点】** 团队最常踩的坑：看到 Anthropic 五种模式就直接全部上 LangGraph/CrewAI 框架。**后果**：本来 30 行 Python 能搞定的 prompt chain 变成 300 行框架配置，可调试性大幅下降。Anthropic 原文核心建议是"**先直接 API 调用，加复杂度只为换取能力**"——一个 prompt chain 用普通 Python 函数串起来就够了，不需要任何框架。**一行修复**：评估每个任务能否用 stdlib 实现，能就别上框架。
+```figure
+workflow-chain
+```
+
+## Build It
 
 `code/main.py` implements all five workflow patterns against a `ScriptedLLM`:
 

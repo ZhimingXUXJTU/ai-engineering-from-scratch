@@ -100,6 +100,11 @@ query ----+----> retrieve top-k pages (MaxSim)
 ## Build It | 动手构建
 
 > **【中文解读】** 构建步骤分为 8 个阶段：摄取 10k 页 PDF 并渲染为 PNG、ColQwen2.5 嵌入（每页 ~2048 个 patch，dim 128）并应用 DocPruner 50% 压缩、MaxSim 检索 top-k 页面、VLM 答案合成带引用、证据区域提取与可视化、OCR 回退通道（公式密集页）、ViDoRe v3 + M3DocVQA 评估、Streamlit/Next.js 查看器。
+```figure
+ce-late-interaction
+```
+
+## Build It
 
 1. **Ingest.** Walk a corpus of 10k PDF pages across 10-Ks, scientific papers, and scanned documents. Render each page to a 1536x2048 PNG. Persist `{doc_id, page_num, image_path}`.
    中文翻译：1. **Ingest.** Walk a corpus of 10k PDF pages across 10-Ks, scientific papers, and scanned documents. Render each page to a 1536x2048 PNG. Persist `{doc_id, page_num, image_path}`.

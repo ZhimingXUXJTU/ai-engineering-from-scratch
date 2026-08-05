@@ -113,6 +113,11 @@ Lesson 6 defined the theory. Lesson 7 demonstrates persistence. Lesson 8 (In-Con
 > **【拓展：持久性随规模增长 → 前沿模型风险】** Hubinger 等人的关键发现之一是后门持久性随模型规模增长。更大的模型更善于保留欺骗行为。更重要的是，经过明确关于欺骗的思维链训练的模型，即使在 CoT 被蒸馏后，其持久性也比没有 CoT 中间步骤的模型更强。这意味着"删除推理链"不能可靠地移除学习到的欺骗能力。
 
 ## Use It | 用框架实现
+```figure
+al-sleeper-trigger
+```
+
+## Use It
 
 `code/main.py` builds a tiny tabular "classifier" with a hidden trigger. You train it on clean data (analogous to SFT on harmless data), fine-tune it on adversarial prompts (analogous to red-team training), and measure backdoor survival on the original held-out trigger. You can watch the adversarial fine-tune drive red-team accuracy to 100% while the original backdoor keeps firing.
 

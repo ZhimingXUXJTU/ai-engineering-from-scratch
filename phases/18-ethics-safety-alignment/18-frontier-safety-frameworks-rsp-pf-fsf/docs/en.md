@@ -161,6 +161,11 @@ Lessons 17-18 are the measurement-and-governance layer on top of the deception a
 > **【拓展：跨实验室对齐 → 结构性而非术语性】** 三个框架在术语上不一致但结构上对齐：Anthropic "Capability Thresholds" = DeepMind "Critical Capability Levels" = OpenAI "High Capability thresholds"。三层前沿能力、发布评估标准、竞争调整条款——结构趋同。UK AISI, US CAISI 和 EU AI Office（Lesson 24）是外部治理对应方。实验室框架是自愿的；监管框架正在出现。
 
 ## Use It | 使用方法
+```figure
+al-asl-ladder
+```
+
+## Use It
 
 No code for this lesson. Read the three primary sources: RSP v3.0, PF v2, FSF v3.0. Map each lab's tier structure to the others and identify one threshold each lab defines that the others do not.
 

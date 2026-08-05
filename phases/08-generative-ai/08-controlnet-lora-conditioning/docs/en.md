@@ -85,6 +85,11 @@ ControlNet ≈ spatial. LoRA ≈ semantic. Use both.
 > **【拓展：ControlNet + LoRA 的组合控制】** 实际生产中，ControlNet（空间控制）和 LoRA（风格/主题控制）通常组合使用。例如：ControlNet 控制人物姿态，LoRA 注入特定艺术风格，文本 prompt 描述场景内容。这种三层控制机制是 2026 年商业 AI 图像服务的标准配置。IP-Adapter 则提供了"用图片控制图片"的第四维度。
 
 ## Build It | 动手实现
+```figure
+v4-controlnet-zero
+```
+
+## Build It
 
 `code/main.py` simulates the two mechanisms on 1-D:
 

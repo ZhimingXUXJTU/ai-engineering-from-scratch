@@ -359,6 +359,11 @@ The pipeline is never "done." Data distributions shift, new anomaly types emerge
 
 > **【拓展：异常检测在 AIOps 和制造业中的应用】**
 > Microsoft Azure Monitor 使用异常检测自动发现云服务的性能异常；Netflix 用异常检测监控流媒体服务的各项指标（延迟、错误率等），每天检测数十亿数据点；富士康在生产线中使用异常检测提前发现设备故障，将停机时间减少 30%。异常检测的关键挑战是控制误报率——太多误报会让运维人员对告警"免疫"。
+```figure
+f3-anomaly-fence
+```
+
+## Build It
 
 The code in `code/anomaly_detection.py` implements Z-score, IQR, and Isolation Forest from scratch.
 

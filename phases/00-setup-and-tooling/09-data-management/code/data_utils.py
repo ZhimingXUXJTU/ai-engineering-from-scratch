@@ -3,7 +3,6 @@
 核心概念: Hugging Face datasets 库的使用、数据格式对比、可复现的数据拆分。
 AI 对应: 数据管理是 ML 管线的第一步，本工具覆盖了数据加载到拆分的完整流程。
 """
-import os
 import sys
 import json
 import hashlib
@@ -174,10 +173,10 @@ if __name__ == "__main__":
     print("=" * 60)
 
     print("\n--- 1. Load and inspect a dataset ---")  # 1. 加载并检查数据集
-    ds = load_and_inspect("rotten_tomatoes", split="train")
+    ds = load_and_inspect("cornell-movie-review-data/rotten_tomatoes", split="train")
 
     print("\n--- 2. Stream a dataset ---")  # 2. 流式加载数据集
-    rows = stream_dataset("rotten_tomatoes", max_rows=3)
+    rows = stream_dataset("cornell-movie-review-data/rotten_tomatoes", max_rows=3)
     for row in rows:
         print(f"  {row['text'][:80]}...")
 

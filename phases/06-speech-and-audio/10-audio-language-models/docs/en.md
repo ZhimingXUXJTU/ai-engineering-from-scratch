@@ -144,6 +144,11 @@ The **multi-audio column is damning for everyone.** Random chance on 4-option mu
 
 
 ## Build It | 动手实现
+```figure
+v4-alm-tokens
+```
+
+## Build It
 
 ### Step 1: query Qwen2.5-Omni
 

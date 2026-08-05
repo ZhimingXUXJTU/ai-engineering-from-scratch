@@ -149,6 +149,11 @@ The 2026 landscape: pure-Transformer MoE dominates the frontier, but hybrids own
 
 
 ## Use It | 用框架实现
+```figure
+swiglu-ffn
+```
+
+## Use It
 
 `code/main.py` is a memory calculator for hybrid architectures. Given an SSM-Transformer ratio and a hidden-size / layer-count config, it computes:
 

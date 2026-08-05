@@ -189,6 +189,11 @@ Always report both. A model that scores 78% clip / 82% video is relying heavily 
 
 
 ## Build It | 动手实现
+```figure
+v4-video-temporal
+```
+
+## Build It
 
 ### Step 1: Frame sampler
 

@@ -67,6 +67,11 @@ Repeat until `max_s |V_{new}(s) - V(s)| < ε`. Extract the policy at the end by 
 > **为什么 `γ < 1` 很重要。** Bellman 算子在 sup 范数下是 `γ`-压缩映射。压缩意味着唯一不动点和几何收敛。去掉 `γ < 1` 就失去了保证——你需要有限视野或吸收终止状态。
 
 ## Build It | 动手实现
+```figure
+value-iteration-gamma
+```
+
+## Build It
 
 ### Step 1: build the GridWorld MDP model
 

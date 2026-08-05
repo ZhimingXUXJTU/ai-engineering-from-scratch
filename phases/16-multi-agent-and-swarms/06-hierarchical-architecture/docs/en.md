@@ -95,8 +95,9 @@ This is the test most teams skip. They reach for hierarchical because it sounds 
 > 这是大多数团队跳过的测试。他们因为听起来高级而选择分层，然后花几周调试分解漂移。顺序流水线完成更快、调试更容易、很少"偏离主题"。
 
 ### CrewAI's implementation
+### Role-framework implementation
 
-`Process.hierarchical` wires a manager LLM over specialist crews. The manager:
+CrewAI's `Process.hierarchical` wires a manager LLM over specialist crews. The manager:
 
 > `Process.hierarchical` 在专家团队上连接一个管理者 LLM。管理者：
 
@@ -118,6 +119,7 @@ Documentation: https://docs.crewai.com/en/introduction (look for "Hierarchical P
 > 文档：https://docs.crewai.com/en/introduction（在核心概念中查找"Hierarchical Process"）。
 
 ### LangGraph's implementation
+### Graph-framework implementation
 
 LangGraph uses nested `create_supervisor` calls. The inner supervisor has its own graph; the outer supervisor treats the inner graph as an opaque node. This is cleaner than CrewAI for debugging (you can step through each graph separately) but harder to express dynamic reshaping of the tree.
 
@@ -132,6 +134,11 @@ Reference: https://reference.langchain.com/python/langgraph-supervisor.
 > 参考：https://reference.langchain.com/python/langgraph-supervisor。
 
 ## Build It | 动手实现
+```figure
+swarm-hierarchy-token
+```
+
+## Build It
 
 `code/main.py` runs a 3-level hierarchy:
 

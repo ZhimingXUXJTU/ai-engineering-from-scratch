@@ -152,6 +152,11 @@ The hard constraint: the fitness function must be machine-checkable. Evolutionar
 > 🤔 **【困惑】** Q: ChatHTN 论文说"LLM 只提建议不直接进计划"——这跟 LangChain Agent 调用工具不是一回事吗？ A: 不一样。普通 Agent 里 LLM 决定调用哪个工具就直接执行了，没人验证"调用这个工具在当前状态是否合法"。ChatHTN 强制 LLM 提议后经过符号层的 precondition 检查——只有 precondition 满足才执行。这个"强制审计"层就是"可证明可靠性"的来源，普通 Agent 没有这层。
 
 ## Build It | 动手构建
+```figure
+htn-tree-expand
+```
+
+## Build It
 
 `code/main.py` implements two toys:
 

@@ -3,6 +3,10 @@
 > The core edge constraint is memory bandwidth, not compute. Mobile DRAM sits at 50-90 GB/s; datacenter HBM3 clears 2-3 TB/s — a 30-50x gap. Decode is memory-bound so the gap is decisive. In 2026 the landscape splits four ways. Apple M4/A18 Neural Engine peaks at 38 TOPS with unified memory (no CPU↔NPU copy). Qualcomm Snapdragon X Elite / 8 Gen 4 Hexagon hits 45 TOPS. WebGPU + WebLLM runs Llama 3.1 8B (Q4) at ~41 tok/s on M3 Max (roughly 70-80% of native); 17.6k GitHub stars, OpenAI-compatible API, ~70-75% mobile coverage. NVIDIA Jetson Orin Nano Super (8GB) fits Llama 3.2 3B / Phi-3; AGX Orin runs gpt-oss-20b via vLLM at ~40 tok/s; Jetson T4000 (JetPack 7.1) is 2x AGX Orin. TensorRT Edge-LLM supports EAGLE-3, NVFP4, chunked prefill — shown at CES 2026 by Bosch, ThunderSoft, MediaTek.
 
 > **【中文解读】** 本节介绍了边缘推理——在边缘设备上部署 LLM 的挑战和方案。
+**Type:** Learn
+**Languages:** Python (stdlib, toy bandwidth-bound decode simulator)
+**Prerequisites:** Phase 17 · 04 (Serving Engine Internals), Phase 17 · 09 (Production Quantization)
+**Time:** ~60 minutes
 
 
 **Type:** Learn | **类型:** 学习
@@ -112,6 +116,11 @@ Voice agents are latency-sensitive (first token < 500 ms). Local inference elimi
 - WebGPU mobile coverage: ~70-75% (Firefox Android lagging).
 
 ## Use It | 用框架实现
+```figure
+edge-bandwidth-pipe
+```
+
+## Use It
 
 `code/main.py` computes theoretical decode throughput ceilings from bandwidth-bound math across edge targets. Compares to observed benchmarks and highlights where bandwidth, not compute, is the bottleneck.
 

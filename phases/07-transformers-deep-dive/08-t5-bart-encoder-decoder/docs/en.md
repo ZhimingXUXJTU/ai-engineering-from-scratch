@@ -152,6 +152,11 @@ The trend since ~2022: decoder-only takes over tasks that encoder-decoder used t
 > **【拓展：T5 的 text-to-text 统一范式】** T5 的核心理念是将所有 NLP 任务统一为"文本输入→文本输出"格式。翻译："translate English to French: Hello → Bonjour"；分类："sentiment: This movie is great → positive"。这种统一简化了架构和训练流程，也是后来 instruction tuning 和 prompt engineering 的思想源头。Flan-T5 更是通过指令微调大幅提升了零样本能力。
 
 ## Build It | 动手实现
+```figure
+encoder-decoder
+```
+
+## Build It
 
 See `code/main.py`. We implement T5-style span corruption for a toy corpus — the most useful single piece of this lesson because it shows up in every encoder-decoder pretraining recipe since.
 

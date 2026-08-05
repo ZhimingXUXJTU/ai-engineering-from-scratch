@@ -116,6 +116,11 @@ RoPE won because it slots into attention without changing the architecture, enco
 > **【中文解读】** 2026 年位置编码的选择很明确：新项目默认 RoPE。它不改变架构、编码相对位置、且通过 base 参数提供了长上下文微调的清晰路径。只有在极端外推场景（训练 4K、推理 1M）才考虑 ALiBi。
 
 > **【拓展：位置编码对长上下文 RAG 的影响】** 在 RAG（检索增强生成）系统中，位置编码直接影响长文档处理能力。RoPE + YaRN 让 Llama 3 能处理 128K token 的上下文，这意味着可以一次性处理约 300 页文档。位置编码方案的选择决定了 RAG 系统是否需要复杂的分块策略。
+```figure
+rope-explorer
+```
+
+## Build It
 
 ## Build It | 动手实现
 

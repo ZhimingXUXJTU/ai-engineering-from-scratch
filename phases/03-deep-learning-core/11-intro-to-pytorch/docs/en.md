@@ -366,6 +366,11 @@ for inputs, targets in loader:
 ## Build It | 动手实现
 
 > **【中文解读】** 下面用纯 PyTorch 训练一个 3 层 MLP 做 MNIST 手写数字分类（784→256→128→10）。参数量只有 235K，但训练模式和大模型完全一致：DataLoader → model.train() → zero_grad → forward → loss → backward → step → model.eval()。10 个 epoch 达到 ~97.8% 测试准确率。
+```figure
+dropout-mask
+```
+
+## Build It
 
 A 3-layer MLP trained on MNIST using only PyTorch primitives. No high-level wrappers. No `torchvision.datasets`. We download and parse the raw data ourselves.
 

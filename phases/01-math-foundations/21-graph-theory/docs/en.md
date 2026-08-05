@@ -333,6 +333,11 @@ graph LR
 > 概念与 ML 应用对照：邻接矩阵（GNN 输入表示）、图拉普拉斯（谱聚类、社区检测）、BFS/DFS（知识图谱遍历、路径查找）、度分布（节点重要性、特征工程）、消息传递（GNN 层 GCN/GAT/GraphSAGE）、L 的特征值（社区检测、图划分）、谱聚类（无监督节点分组）、PageRank（节点重要性、Web 搜索）。
 
 ## Build It | 动手实现
+```figure
+graph-degree-distribution
+```
+
+## Build It
 
 ### Step 1: Graph class from scratch
 

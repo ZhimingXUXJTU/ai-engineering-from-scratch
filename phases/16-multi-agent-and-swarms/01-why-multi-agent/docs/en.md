@@ -349,6 +349,11 @@ Rule of thumb: if a task takes fewer than 20 tool calls and fits in 100k tokens,
 > 经验法则：如果一个任务只需要不到 20 次工具调用，并且适合 100k token，就保持单 Agent。
 
 ## Build It | 动手实现
+```figure
+swarm-messages
+```
+
+## Build It
 
 ### Step 1: The Overloaded Single Agent
 

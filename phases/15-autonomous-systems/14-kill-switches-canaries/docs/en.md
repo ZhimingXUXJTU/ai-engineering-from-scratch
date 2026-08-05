@@ -153,6 +153,11 @@ Cilium's eBPF-based network policy can rewrite a quarantined pod's egress to a f
   中文翻译：**将检测器作为载荷一部分的攻击。** 如果 Agent 读页面说"行动前禁用金丝雀"且 Agent 有能力，检测器被攻破。金丝雀 token 应在 Agent 不能修改的系统中。
 
 ## Use It | 用框架实现
+```figure
+circuit-breaker
+```
+
+## Use It
 
 `code/main.py` simulates a short agent trajectory through three detectors. A kill switch held in an external dict; a circuit breaker that trips on five identical tool calls; a canary file whose read triggers an alert. Feeds in a synthetic trajectory: legitimate actions, repetitive loop, canary probe, and a kill-switch-triggered scenario where the agent's actions are halted.
 

@@ -272,6 +272,11 @@ graph TD
 ```
 
 ## Build It | 动手实现
+```figure
+loss-masking
+```
+
+## Build It
 
 ### Step 1: Instruction Dataset
 

@@ -132,6 +132,11 @@ This view implies the defense is also unified. Every mitigation has to either re
 > **【中文解读】** 使用方法：code/main.py 在玩具回归问题上模拟 Gao 等人的过度优化曲线。"真实"奖励是特征向量的真实线性函数，"代理" RM 是真实值加有限样本拟合的高斯噪声。策略是特征上高斯分布的均值，训练是在代理奖励上的爬山。你可以改变代理的样本量、KL 系数和噪声尾部重性。
 
 ## Use It | 用框架实现
+```figure
+rlhf-reward-kl
+```
+
+## Use It
 
 `code/main.py` simulates Gao et al.'s over-optimization curves on a toy regression problem. The "gold" reward is the true linear function of a feature vector. The "proxy" RM is the gold plus Gaussian noise fit on a finite sample. A policy is a mean of a Gaussian over features; training is hill-climbing on proxy reward with a KL penalty to the initial policy. You can vary: sample size of the proxy, KL coefficient, and the noise tail heaviness. Watch the proxy-gold gap open at exactly the KL distance the paper predicts.
 
