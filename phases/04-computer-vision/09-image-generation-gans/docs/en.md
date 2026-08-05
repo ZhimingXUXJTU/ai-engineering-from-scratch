@@ -162,6 +162,11 @@ For a small synthetic-data run, sample inspection is enough.
 
 
 ## Build It | 动手实现
+```figure
+cv-gan-image
+```
+
+## Build It
 
 ### Step 1: Generator
 

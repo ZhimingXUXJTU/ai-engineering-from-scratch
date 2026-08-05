@@ -87,6 +87,11 @@ Workbench-guided:
 | `reviewer_total` | Qualitative judgment on top of the gate |
 
 ## Build It | 动手实现
+```figure
+wb-ab-runs
+```
+
+## Build It
 
 `code/main.py` orchestrates the two pipelines against the same sample app fixture. Both pipelines are scripted (no LLM in the loop) so the measurement is reproducible. The script writes the comparison into `before-after-report.md` and `comparison.json`.
 

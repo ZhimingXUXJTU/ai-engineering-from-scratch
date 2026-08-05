@@ -111,6 +111,11 @@ They make the gradient path additive across depth, which keeps the gradient norm
 
 
 ## Build It | 动手构建
+```figure
+cc-transformer-block
+```
+
+## Build It
 
 `code/main.py` implements:
 

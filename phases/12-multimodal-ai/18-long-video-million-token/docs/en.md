@@ -165,6 +165,11 @@ This combines brute-context for global understanding and retrieval for local det
 > 这结合了暴力上下文的全局理解和检索的局部细节能力。
 
 ## Use It | 用框架实现
+```figure
+mm-video-token-budget
+```
+
+## Use It
 
 `code/main.py`:
 

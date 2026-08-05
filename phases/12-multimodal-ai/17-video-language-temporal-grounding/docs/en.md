@@ -193,6 +193,11 @@ For video VLMs in 2026:
   中文翻译：基准测试：通用用 VideoMME + TempCompass；长程用 EgoSchema。
 
 ## Use It | 用框架实现
+```figure
+video-temporal-patches
+```
+
+## Use It
 
 `code/main.py` includes:
 

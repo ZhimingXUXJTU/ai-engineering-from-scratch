@@ -197,6 +197,11 @@ So when you hear "harness engineering" elsewhere, translate to primitives. Promp
 > Agent Workbench 分析模型失败的根本原因。主要失败模式包括：指令遵循失败、工具使用错误、上下文丢失和推理链断裂。
 
 ## Build It | 动手实现
+```figure
+wb-seven-surfaces
+```
+
+## Build It
 
 `code/main.py` runs a tiny repo task twice. First as prompt only, then with the seven surfaces wired in. Same model, same task. The script counts which surfaces were missing on the failed run and prints a failure-mode report.
 

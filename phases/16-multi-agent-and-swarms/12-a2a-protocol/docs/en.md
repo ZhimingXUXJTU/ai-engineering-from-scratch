@@ -154,6 +154,11 @@ The 2026 protocol landscape has stabilized: A2A for agent collaboration, MCP for
 > 2026 年协议格局已经稳定：A2A 用于 Agent 协作，MCP 用于工具，ACP 吸收到 A2A 用于轨迹日志，ANP 用于跨组织身份。NLIP 仍然小众。新提案需要展示真实差距才能获得关注。
 
 ## Build It | 动手实现
+```figure
+sw-agent-card-discovery
+```
+
+## Build It
 
 `code/main.py` implements an A2A-minimal server and client using `http.server` and JSON. The server:
 

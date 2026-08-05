@@ -184,6 +184,11 @@ Almost every real NeRF product in 2026 is actually 3D Gaussian splatting. The me
 
 
 ## Build It | 动手实现
+```figure
+nerf-rays
+```
+
+## Build It
 
 ### Step 1: PointNet classifier
 

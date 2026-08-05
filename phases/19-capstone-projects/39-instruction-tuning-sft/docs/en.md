@@ -197,6 +197,9 @@ Real SFT pipelines complement exact-match with token-level F1 (lesson 41) and a 
 
 > Real SFT pipelines complement exact-match with token-level F1 (lesson 41) and a judge model.
 
+```figure
+cc-sft-loss-mask
+```
 
 ## What you will build
 

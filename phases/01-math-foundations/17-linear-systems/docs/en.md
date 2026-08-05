@@ -521,6 +521,11 @@ Every method in this lesson appears in production ML:
 > **特征工程。** X^T X 的条件数告诉你特征是否共线。如果 kappa 很大，删除特征或添加正则化。
 
 ## Build It | 动手实现
+```figure
+linear-system-conditioning
+```
+
+## Build It
 
 ### Step 1: Gaussian elimination with partial pivoting
 

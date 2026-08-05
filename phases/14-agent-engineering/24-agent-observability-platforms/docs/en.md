@@ -83,6 +83,11 @@ Per Maxim (2026 field analysis): 89% of organizations have agent observability i
 ## Build It | 动手实现
 
 > ⚠️ **【易错点】** 场景：团队把 OTel trace 接到 Langfuse 后，写了个 LLM-judge 给每条 trace 打 1-5 分，但 rubric 只有一句"回答得好不好" → 后果：分数毫无意义，judge 把"礼貌但答错"打 5 分、"正确但简短"打 2 分，dashboard 上 95% 满意度但客户投诉暴涨 → 修复：rubric 必须分维度（factual correctness、scope adherence、tone），每维度有可操作的失败定义（如 "scope adherence: agent 是否做了用户没要求的额外操作"），且必须配 50-100 条人工标注做 baseline 校准 judge——这就是为什么 Phoenix 强调 "grounding"，Opik 强调"benchmark on your own corpus"。
+```figure
+wb-trace-ingest
+```
+
+## Build It
 
 `code/main.py` implements a stdlib trace collector + LLM-judge evaluator:
 

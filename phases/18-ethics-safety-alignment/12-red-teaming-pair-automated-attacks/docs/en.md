@@ -128,6 +128,11 @@ Lesson 12 is the automated-attack foundation. Lesson 13 (Many-Shot Jailbreaking)
 > **【拓展：TAP 和 PAP → 攻击进化】** TAP（Mehrotra 等人 2024）通过分支多个 PAIR 式推出并剪枝来扩展 PAIR——更高 ASR 但更多计算。PAP（Zeng 等人 2024）将人类说服技术编码为提示模板。攻击家族从 GCG 的白盒令牌搜索进化到 PAIR 的黑盒迭代改进，再到 TAP 的树搜索和 PAP 的社会工程。每一代都在不同的攻击维度上更强。
 
 ## Use It | 使用方法
+```figure
+al-pair-loop
+```
+
+## Use It
 
 `code/main.py` builds a toy PAIR loop. The target is a mock classifier that refuses "obvious" harmful prompts (keyword-filter). The attacker is a rule-based refiner that tries paraphrase, roleplay-framing, and encoding. The judge scores the response. You watch the attacker succeed in ~5-15 iterations against the keyword filter and fail against a semantic filter.
 

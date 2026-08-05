@@ -188,6 +188,11 @@ AgentOps (founded 2024) specializes in GenAI observability. It wraps popular fra
 ## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 向 stdout 发射 OTLP-JSON 格式的 span，覆盖一个 Agent 调用 LLM、分发两个工具、进行一次 MCP 往返。无真实导出器——课程聚焦 span 形状和属性集。关注点：trace id 跨所有 span 共享；父子链接通过 parentSpanId 编码；`gen_ai.*` 必需属性已填充；内容捕获默认关闭。
+```figure
+t3-span-waterfall
+```
+
+## Use It
 
 `code/main.py` emits OTel-shaped spans to stdout (in OTLP-JSON-like format) for an agent that calls an LLM, dispatches two tools, and makes one MCP round-trip. No real exporter — the lesson focuses on the span shape and attribute set. Paste the output into an OTLP-compatible viewer or just read it.
 

@@ -56,6 +56,11 @@ Three operational choices drive real-world MT quality.
 
 
 ## Build It | 动手实现
+```figure
+seq2seq-alignment
+```
+
+## Build It
 
 ### Step 1: a pretrained MT call
 > 三件事很重要。`src_lang` 告诉分词器使用哪种文字和分割。`forced_bos_token_id` 告诉解码器生成哪种语言。两者都是 NLLB 特有的技巧；mBART 和 M2M-100 使用各自的约定，不可互换。

@@ -137,6 +137,11 @@ For smaller runs (under 1k GPUs), DualPipe is overkill — pipeline bubbles are 
 
 
 ## Use It | 用框架实现
+```figure
+expert-capacity
+```
+
+## Use It
 
 `code/main.py` is a pipeline schedule simulator. It takes `(P, n_micro_batches, schedule)` and prints the stable-phase utilization for each of 1F1B, Zero Bubble, DualPipe, and DualPipeV. It is a teaching tool — the numbers match the qualitative claims in the papers, they are not a claim about production measured speedup.
 

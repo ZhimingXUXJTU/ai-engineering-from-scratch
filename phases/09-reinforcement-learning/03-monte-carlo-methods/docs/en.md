@@ -74,6 +74,11 @@ Converges to `Q*` and `π*` with probability 1 under mild conditions (every pair
 > **蒙特卡洛控制。** 评估 → 改进 → 评估，就像策略迭代，但评估基于采样。在温和条件下（每对被无限次访问，`α` 满足 Robbins-Monro），以概率 1 收敛到 `Q*` 和 `π*`。
 
 ## Build It | 动手实现
+```figure
+epsilon-greedy
+```
+
+## Build It
 
 ### Step 1: rollout → list of (s, a, r)
 

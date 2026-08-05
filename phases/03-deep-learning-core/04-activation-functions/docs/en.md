@@ -278,6 +278,11 @@ flowchart TD
 > **【中文解读】** 经验法则：Transformer/NLP 用 GELU，CNN/视觉用 ReLU，RNN/LSTM 用 tanh。输出层：二分类用 sigmoid，多分类用 softmax，回归不用激活。
 
 ## Build It | 动手构建
+```figure
+softmax-temperature
+```
+
+## Build It
 
 ### Step 1: Implement All Activation Functions with Derivatives
 

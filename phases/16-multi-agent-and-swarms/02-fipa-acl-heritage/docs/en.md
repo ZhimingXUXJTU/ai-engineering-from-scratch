@@ -235,6 +235,11 @@ This is a clear trade: the formal semantics let you prove things about messages,
 > 这是一个明确的权衡：形式语义让你能对消息进行证明，但需要昂贵的共享本体。JSON + LLM 提供廉价的互操作性但失去了证明。对于大多数生产用途，廉价互操作性胜出。
 
 ## Build It | 动手实现
+```figure
+sw-contract-net
+```
+
+## Build It
 
 `code/main.py` implements a pure-stdlib FIPA-ACL translator. It encodes and decodes the canonical ACL envelope and shows how every MCP / A2A message shape reduces to the same seven fields. The demo:
 

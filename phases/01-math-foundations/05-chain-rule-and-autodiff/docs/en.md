@@ -228,6 +228,11 @@ The graph is dynamic (define-by-run). A new graph is built on every forward pass
 > 计算图是动态的（define-by-run）。每次前向传播都构建新图。这就是 PyTorch 支持模型内部控制流（if/else、循环）的原因。
 
 ## Build It | 动手实现
+```figure
+chain-rule
+```
+
+## Build It
 
 ### Step 1: The Value class
 

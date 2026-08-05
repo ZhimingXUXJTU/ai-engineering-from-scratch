@@ -1,6 +1,6 @@
 # Group Chat and Speaker Selection | 群聊 选择 发言者
 
-> AutoGen GroupChat and AG2 GroupChat share one conversation across N agents; a selector function (LLM, round-robin, or custom) picks who speaks next. This is the archetype of emergent multi-agent conversation — agents do not know their role in a static graph, they just react to the shared pool. AutoGen v0.2's GroupChat semantics were preserved in the AG2 fork; AutoGen v0.4 rewrote it as an event-driven actor model. Microsoft put AutoGen into maintenance mode in February 2026 and merged it with Semantic Kernel into Microsoft Agent Framework (RC February 2026). The GroupChat primitive survives in both AG2 and Microsoft Agent Framework — learn it once, use it everywhere.
+> Shared-conversation orchestration puts N agents in one conversation; a selector function (LLM, round-robin, or custom) picks who speaks next. This is the archetype of emergent multi-agent conversation — agents do not know their role in a static graph, they just react to the shared pool. AutoGen GroupChat and AG2 GroupChat are the reference implementations: AutoGen v0.2's GroupChat semantics were preserved in the AG2 fork; AutoGen v0.4 rewrote it as an event-driven actor model. Microsoft put AutoGen into maintenance mode in February 2026 and merged it with Semantic Kernel into Microsoft Agent Framework (RC February 2026). The GroupChat primitive survives in both AG2 and Microsoft Agent Framework — learn it once, use it everywhere.
 
 > **【中文解读】** 本节介绍了群聊发言者选择——多 Agent 讨论中决定谁发言、何时发言的机制。
 
@@ -102,6 +102,7 @@ Three common patterns:
   中文翻译：**目标达成检查。** 轻量级验证者每轮运行并在完成时停止聊天。
 
 ### The AutoGen -> AG2 split and the Microsoft Agent Framework merge
+### Lineage: forks and mergers
 
 In early 2025, Microsoft began a major rewrite of AutoGen (v0.4) around an event-driven actor model. The community forked AutoGen v0.2's GroupChat semantics as AG2, preserving the API that early adopters had integrated.
 
@@ -159,6 +160,11 @@ The choice between supervisor and group chat is mostly about *who holds the plan
 > 监督者和群聊之间的选择主要是关于*谁持有计划*。监督者：一个 Agent 拥有计划并委派。群聊：计划是隐式的，从对话中涌现。前者更可控；后者更灵活。
 
 ## Build It | 动手实现
+```figure
+swarm-speaker
+```
+
+## Build It
 
 `code/main.py` implements a GroupChat from scratch in stdlib. Three agents (coder, reviewer, manager), round-robin and LLM-selected variants, and a termination on a `TERMINATE` token.
 
@@ -225,5 +231,6 @@ Checklist:
   中文翻译：AG2 仓库 — 社区 AutoGen v0.2 延续
 - [Microsoft Agent Framework docs](https://microsoft.github.io/agent-framework/) — the merged successor, RC February 2026
   中文翻译：Microsoft Agent Framework 文档 — 合并后的继任者，2026 年 2 月 RC
+- [Microsoft Agent Framework docs](https://learn.microsoft.com/en-us/agent-framework/) — the merged successor, RC February 2026
 - [AutoGen v0.4 release notes](https://microsoft.github.io/autogen/stable/) — event-driven actor model rewrite details
   中文翻译：AutoGen v0.4 发布说明 — 事件驱动 actor 模型重写详情

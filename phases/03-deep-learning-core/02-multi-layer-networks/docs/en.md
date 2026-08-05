@@ -232,6 +232,11 @@ Neural networks are composable. You can stack them, chain them, run them in para
 > **【中文解读】** 神经网络是可组合的：Whisper 用编码器处理音频 + 解码器生成文本；GPT 是纯解码器；BERT 是纯编码器；T5 是编码器-解码器。架构选择决定了模型的能力。
 
 ## Build It | 动手构建
+```figure
+mlp-forward
+```
+
+## Build It
 
 Pure Python. No numpy. Every matrix operation written from scratch.
 

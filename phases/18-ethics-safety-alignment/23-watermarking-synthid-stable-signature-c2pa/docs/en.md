@@ -108,6 +108,11 @@ Lessons 22-23 are about what the model emits (private data, provenance signal). 
 > Lessons 22-23 关于模型发出什么（私有数据、来源信号）。Lesson 27 涵盖训练数据治理。Lesson 24 是要求这些技术措施的监管框架。
 
 ## Use It | 使用方法
+```figure
+an-watermark-greenlist
+```
+
+## Use It
 
 `code/main.py` builds a toy text watermark. Tokens are integers 0..N-1; watermarked sampling biases toward the hash-defined green set. A detector computes the green-token z-score. You can observe detection at 1000-token generations, watch paraphrase destroy the signal, and measure the false-positive rate on human text.
 

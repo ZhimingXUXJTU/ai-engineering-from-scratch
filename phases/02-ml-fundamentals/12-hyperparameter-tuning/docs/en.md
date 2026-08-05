@@ -371,6 +371,11 @@ This is expensive (5 outer folds x 5 inner folds x 27 grid points = 675 model fi
 
 > **【拓展：Hyperband 和 ASHA——大规模超参数搜索的加速器】**
 > Hyperband 算法的核心思想：先给大量配置少量资源（如 1 个 epoch），淘汰表现差的，给幸存者更多资源。ASHA（Asynchronous Successive Halving Algorithm）是 Hyperband 的异步版本，被 Microsoft 的 NNI 和 Ray Tune 采用。在 LLM 训练中，一次完整训练可能需要 100 万美元，Hyperband 可以将搜索成本降低 10-50 倍。
+```figure
+k-fold-cv
+```
+
+## Build It
 
 ### Step 1: Grid Search from Scratch
 

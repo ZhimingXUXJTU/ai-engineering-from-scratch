@@ -1,6 +1,7 @@
 # Claude Code as an Autonomous Agent: Permission Modes and Auto Mode | Claude Code 作为自主 Agent：权限模式与 Auto Mode
+# Permission Modes for Autonomous Agents
 
-> Claude Code exposes seven permission modes. "plan" asks before every action, "default" asks only for risky ones, "acceptEdits" auto-approves file writes but still confirms shell execution, and "bypassPermissions" approves everything. Auto Mode (March 24, 2026) replaces per-action approval with a two-stage parallel safety classifier: a single-token fast check runs on every action; flagged actions kick off a chain-of-thought deep review. Action budgets are enforced via `max_turns` and `max_budget_usd`. Auto Mode shipped as a research preview — Anthropic has stated explicitly that the classifier is not sufficient alone.
+> A permission ladder — graduated levels of autonomy from review-every-action to approve-everything — is how a harness governs what an autonomous agent may do without asking. Claude Code, this lesson's worked example, exposes six such modes: "plan" asks before every action, "default" (labeled "Manual" in the UI) asks only for risky ones, "acceptEdits" auto-approves file writes but still confirms shell execution, and "bypassPermissions" approves everything. Auto Mode — the `auto` permission mode — replaces per-action approval with a separate classifier model that reviews each action before it runs and blocks anything that escalates beyond what the request asked for. Action budgets are enforced via `max_turns` and `max_budget_usd`. Availability of `auto` depends on plan, org enablement, model, and provider — and Anthropic is explicit that the classifier is not sufficient alone.
 
 > **【中文解读】** Claude Code 暴露七个权限模式。"plan" 每动作前询问，"default" 仅对危险动作询问，"acceptEdits" 自动批准文件写入但仍确认 shell 执行，"bypassPermissions" 批准一切。Auto Mode（2026 年 3 月 24 日）用两阶段并行安全分类器替代每动作审批：每动作运行单 token 快速检查；标记动作触发思维链深度审查。动作预算通过 `max_turns` 和 `max_budget_usd` 实施。Auto Mode 作为研究预览发布——Anthropic 明确声明分类器单独不充分。
 
@@ -27,7 +28,7 @@ The attack surface is everything the agent can reach — file system, network, c
 
 > 攻击面是 Agent 能触及的一切——文件系统、网络、凭据、剪贴板、任何浏览器标签、任何打开的终端。Bruce Schneier 等人公开标记：计算机使用 Agent 不是聊天机器人的"功能更新"，它们是带新型风险档案的新型工具。
 
-Claude Code's permission system is Anthropic's answer. Rather than one "autonomous / not autonomous" switch, there are seven modes spanning a capability ladder: plan → default → acceptEdits → … → bypassPermissions. Each mode is a different trade-off between speed and review-per-action. Auto Mode (March 2026) adds a two-stage classifier that moves approval off the user's critical path for actions the classifier judges safe, while preserving a review layer for actions the classifier flags.
+Claude Code's permission system is Anthropic's answer. Rather than one "autonomous / not autonomous" switch, there are six modes spanning a capability ladder: plan → default → acceptEdits → … → bypassPermissions. Each mode is a different trade-off between speed and review-per-action. Auto Mode (March 2026) adds a separate classifier model that moves approval off the user's critical path: it reviews each action before it runs and blocks anything that escalates beyond the request.
 
 > Claude Code 的权限系统是 Anthropic 的答案。不是一个"自主/不自主"开关，而是跨越能力阶梯的七种模式：plan → default → acceptEdits → … → bypassPermissions。每个模式是速度与每动作审查的不同权衡。Auto Mode（2026 年 3 月）添加两阶段分类器，将分类器判断为安全的动作审批移出用户关键路径，同时为分类器标记的动作保留审查层。
 
@@ -45,6 +46,7 @@ The engineering question: what does this system catch, what does it miss, and wh
 ## The Concept | 核心概念
 
 ### The seven permission modes | 七种权限模式
+### The six permission modes
 
 | Mode | Behavior | When to use |
 |---|---|---|
@@ -61,10 +63,14 @@ The engineering question: what does this system catch, what does it miss, and wh
 | `autoMode` | 两阶段安全分类器；标记动作升级审查 | 受限工作区中的长程无人值守运行 |
 | `yolo` | Skips most prompts; still runs tool allowlist / denylist | Ephemeral sandboxes, CI jobs, research scripts |
 | `yolo` | 跳过多数提示；仍运行工具允许/拒绝列表 | 临时沙箱、CI 任务、研究脚本 |
+| `default` | Labeled "Manual" in the UI. Agent runs actions; prompts user for any "risky" action (shell exec, destructive operations, network calls) | Most interactive coding sessions |
+| `acceptEdits` | File writes auto-approve; shell exec and network calls still prompt | Refactoring pass across many files |
+| `auto` | A separate classifier model reviews each action before it runs; blocks anything escalating beyond the request | Long-horizon unattended runs in a constrained workspace |
+| `dontAsk` | Never prompts; actions not pre-approved by permission rules are denied | Ephemeral sandboxes, CI jobs, research scripts |
 | `bypassPermissions` | Approves everything | Documented as "only inside ephemeral containers you are willing to throw away" |
 | `bypassPermissions` | 批准一切 | 文档定为"仅在你愿意丢弃的临时容器内" |
 
-(Names above match public Claude Code docs; "yolo" is the informal shorthand for the permissive middle ground.)
+(Names above match public Claude Code docs; the UI labels `default` as "Manual".)
 
 > （上述名称匹配公开 Claude Code 文档；"yolo" 是宽松中间地带的非正式简写。）
 
@@ -82,6 +88,8 @@ Structure:
    中文翻译：**阶段 1——单 token 分类器。** 在每个提议动作上运行。廉价。返回"安全"或"标记"。设计为与主 Agent 循环并行运行，使批准动作不排队。
 2. **Stage 2 — secondary policy/safety review.** Runs only on flagged actions. Performs a focused policy and safety assessment over the action, the current state of the session, and the declared task. Escalates to user HITL if confidence is low.
    中文翻译：**阶段 2——二级政策/安全审查。** 仅在标记动作上运行。对动作、会话当前状态、声明任务执行聚焦政策和安全评估。置信度低时升级到用户 HITL。
+1. **A separate classifier model.** Reviews every proposed action before it runs, judged against the declared task and the current state of the session, and blocks anything that escalates beyond what the request called for. Blocked actions fall back to the user.
+2. **Gated availability.** Whether `auto` is offered at all depends on plan, organization enablement, model, and provider.
 
 Budget controls sit alongside the classifier:
 
@@ -128,10 +136,16 @@ Anthropic shipped Auto Mode as a research preview. The documentation is explicit
   中文翻译：无人值守后台运行：仅在爆炸半径已测量的工作区内 `autoMode`（无凭据、无生产挂载、无未选入的出口）。
 - Ephemeral containers: `yolo` / `bypassPermissions` is acceptable if and only if the container and its credentials are disposable.
   中文翻译：临时容器：`yolo` / `bypassPermissions` 可接受当且仅当容器及其凭据可丢弃。
+- Unattended background run: `auto` only inside a workspace whose blast radius you have measured (no credentials, no production mounts, no egress you did not opt into).
+- Ephemeral containers: `dontAsk` / `bypassPermissions` is acceptable if and only if the container and its credentials are disposable.
+
+```figure
+autonomy-oversight
+```
 
 ## Use It | 用框架实现
 
-`code/main.py` simulates the two-stage classifier. Stage 1 is a cheap keyword rule over proposed actions; Stage 2 is a slower multi-rule reviewer. The driver feeds in a short synthetic trajectory (safe actions, a prompt-injection attempt, a repetitive loop) and shows where the classifier catches and where it misses.
+`code/main.py` simulates an action-review classifier as a two-stage pipeline — a teaching simplification; the real `auto` mode is backed by a separate classifier model, not a documented two-stage contract. Stage 1 is a cheap keyword rule over proposed actions; Stage 2 is a slower multi-rule reviewer. The driver feeds in a short synthetic trajectory (safe actions, a prompt-injection attempt, a repetitive loop) and shows where the classifier catches and where it misses.
 
 > `code/main.py` 模拟两阶段分类器。阶段 1 是提议动作上的廉价关键词规则；阶段 2 是较慢的多规则审查器。驱动器喂入短合成轨迹（安全动作、提示注入尝试、重复循环）并展示分类器捕获和遗漏之处。
 
@@ -151,12 +165,14 @@ Anthropic shipped Auto Mode as a research preview. The documentation is explicit
 
 3. Read Anthropic's "How the agent loop works" doc. List every external state the agent touches by default in `default` mode. Which would you need to gate separately before running `autoMode` unattended?
    中文翻译：阅读 Anthropic 的"How the agent loop works"文档。列出 `default` 模式下 Agent 默认触及的每个外部状态。无人值守运行 `autoMode` 前需单独门控哪些？
+3. Read Anthropic's "How the agent loop works" doc. List every external state the agent touches by default in `default` mode. Which would you need to gate separately before running `auto` unattended?
 
 4. Design a 24-hour unattended run budget: `max_turns`, `max_budget_usd`, per-tool caps, allowlists. Justify each number.
    中文翻译：设计 24 小时无人值守运行预算：`max_turns`、`max_budget_usd`、每工具上限、允许列表。论证每个数字。
 
 5. Describe one trajectory where every individual action is approved by Stage 1 and Stage 2, yet the composed behavior is misaligned. (Lesson 14 covers how kill switches and canary tokens address this.)
    中文翻译：描述一条轨迹，每个单独动作都被阶段 1 和阶段 2 批准，但组合行为不对齐。（第 14 课覆盖终止开关和金丝雀 token 如何处理此情况。）
+5. Describe one trajectory where every individual action is approved by the classifier, yet the composed behavior is misaligned. (Lesson 14 covers how kill switches and canary tokens address this.)
 
 ## Key Terms | 术语速查表
 
@@ -165,6 +181,7 @@ Anthropic shipped Auto Mode as a research preview. The documentation is explicit
 | 术语 | 通俗说法 | 实际含义 |
 | Permission mode | "How much the agent can do" | One of seven named policies controlling per-action approval |
 | 权限模式 | "Agent 能做多少" | 控制每动作审批的七种命名策略之一 |
+| Permission mode | "How much the agent can do" | One of six named policies controlling per-action approval |
 | plan mode | "Ask before anything" | Agent writes a plan; user approves before execution |
 | plan 模式 | "任何事前询问" | Agent 写计划；用户执行前批准 |
 | acceptEdits | "Let it write files" | File writes auto-approve; shell exec still prompts |
@@ -177,6 +194,10 @@ Anthropic shipped Auto Mode as a research preview. The documentation is explicit
 | 阶段 1 分类器 | "快速 token 检查" | 提议动作上的单 token 规则；并行运行 |
 | Stage 2 classifier | "Deep review" | Chain-of-thought reasoning over flagged actions |
 | 阶段 2 分类器 | "深度审查" | 对标记动作的思维链推理 |
+| auto | "Auto approvals" | Separate classifier model reviews each action; blocks escalation beyond the request |
+| bypassPermissions | "Full YOLO" | Approves everything; intended for ephemeral containers |
+| Stage 1 (simulator) | "Fast keyword check" | Cheap rule over proposed actions in `code/main.py` |
+| Stage 2 (simulator) | "Deep review" | Slower multi-rule reviewer for flagged actions in `code/main.py` |
 | Research preview | "Not GA" | Anthropic framing for features whose failure mode is still being mapped |
 | 研究预览 | "非 GA" | Anthropic 对失败模式仍在映射的功能的框架 |
 

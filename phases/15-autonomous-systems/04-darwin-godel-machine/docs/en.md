@@ -125,6 +125,11 @@ DGM sits one rung above AlphaEvolve: the target of self-modification is not a pr
 > DGM 比 AlphaEvolve 高一档：自修改的目标不是程序而是 Agent（工具、提示、路由、脚手架）。第 6 课（自动化对齐研究）再高一档——修改研究管道而非仅脚手架的 Agent。每上升一档范围，能力和攻击面都扩大。第 13-16 课涵盖对应的控制。
 
 ## Use It | 用框架实现
+```figure
+dgm-archive
+```
+
+## Use It
 
 `code/main.py` simulates a DGM-style loop on a toy benchmark where a tiny "agent" composes operators from a fixed tool library. The loop proposes tool-combination changes; the benchmark scores the agent's performance on held-out problems.
 

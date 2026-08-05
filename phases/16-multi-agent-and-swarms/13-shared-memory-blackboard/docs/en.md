@@ -175,6 +175,11 @@ This is the unwritable-verifier principle: the auditor must be read-only with re
 > 这是不可写验证者原则：审计者必须对被审计系统只读。攻陷审计者就攻陷了审计。该原则适用于任何验证角色——保持其输出与它检查的系统分离。
 
 ## Build It | 动手实现
+```figure
+swarm-blackboard
+```
+
+## Build It
 
 `code/main.py` implements both topologies in stdlib Python plus a toy poisoning attack and the three mitigations.
 

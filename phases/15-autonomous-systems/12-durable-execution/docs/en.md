@@ -125,6 +125,11 @@ Doubling the task duration roughly quadruples the failure rate. Durable executio
   中文翻译：正确性需在一个上下文窗口内端到端的任务（某些推理任务；某些一次性生成）。
 
 ## Use It | 用框架实现
+```figure
+memory-consolidation
+```
+
+## Use It
 
 `code/main.py` implements a minimal durable-execution engine in stdlib Python. It supports:
 

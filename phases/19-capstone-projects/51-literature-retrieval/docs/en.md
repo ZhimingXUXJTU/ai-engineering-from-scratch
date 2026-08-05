@@ -63,6 +63,11 @@ The references and citations fields form the directed citation graph. The two mo
 
 
 ## Architecture | 架构
+```figure
+cg-citation-hops
+```
+
+## Architecture
 
 ```mermaid
 flowchart TD

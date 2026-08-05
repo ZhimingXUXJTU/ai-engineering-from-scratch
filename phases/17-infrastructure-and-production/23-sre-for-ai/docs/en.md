@@ -111,6 +111,11 @@ Runbooks evolve from Confluence pages to versioned markdown with structured sect
 - Adversarial eval: two models independent; agreement = confidence.
 
 ## Use It | 用框架实现
+```figure
+i4-incident-agents
+```
+
+## Use It
 
 `code/main.py` simulates a multi-agent triage: log agent finds error, metric agent finds CPU spike, runbook agent matches to known issue. Supervisor ranks hypotheses.
 

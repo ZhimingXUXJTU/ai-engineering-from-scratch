@@ -53,6 +53,13 @@ This lesson is the skeleton. Next lessons specialize it — 06 for encoders, 07 
    **交叉注意力（仅解码器）。** 查询来自解码器，键和值来自编码器输出。
 
 ### Encoder block (used by BERT, T5 encoder) | 编码器块
+Watch a vector flow through one block: attention mixes across positions, the residual carries it forward, the FFN transforms it, and norm keeps the stream stable.
+
+```figure
+transformer-block
+```
+
+### Encoder block (used by BERT, T5 encoder)
 
 ```
 x → LN → MHA(self) → + → LN → FFN → + → out

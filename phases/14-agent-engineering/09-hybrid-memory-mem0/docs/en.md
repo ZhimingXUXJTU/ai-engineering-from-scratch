@@ -1,6 +1,7 @@
 # Hybrid Memory: Vector + Graph + KV (Mem0) | 混合记忆：向量+图+KV（Mem0）
+# Hybrid Memory: Vector + Graph + KV
 
-> Mem0 (Chhikara et al., 2025) treats memory as three stores in parallel — vector for semantic similarity, KV for fast fact lookup, graph for entity-relationship reasoning. A scoring layer fuses the three on retrieval. This is the 2026 production standard for external memory.
+> Hybrid memory runs three stores in parallel — vector for semantic similarity, KV for fast fact lookup, graph for entity-relationship reasoning — with a scoring layer that fuses them on retrieval. This is a widely used production pattern for external memory; Mem0 (Chhikara et al., 2025) is one reference implementation.
 
 > **【中文解读】** Mem0 将记忆视为三个并行存储——向量用于语义相似性、KV 用于快速事实查找、图用于实体关系推理。一个评分层在检索时融合三者。这是 2026 年外部记忆的生产标准。
 
@@ -149,6 +150,11 @@ Every write picks one scope. Retrieval can query across scopes with per-scope we
   中文翻译：**图爆炸。** 一个嘈杂的提取器每条消息添加 50 条边。限制每次 `add` 调用的图写入数；丢弃低置信度边。
 
 ## Build It | 动手构建
+```figure
+ae-memory-fusion
+```
+
+## Build It
 
 `code/main.py` implements the three-store pattern in stdlib:
 

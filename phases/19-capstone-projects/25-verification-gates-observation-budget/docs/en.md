@@ -93,6 +93,11 @@ The observation ledger is the bookkeeping. Every successful tool call writes one
 
 
 ## Architecture | 架构
+```figure
+cg-gate-chain
+```
+
+## Architecture
 
 ```mermaid
 flowchart TD

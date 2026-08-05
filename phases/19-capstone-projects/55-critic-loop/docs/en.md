@@ -26,6 +26,10 @@
 - Emit a per-round trace so the dashboard or the next stage can render the score trajectory.
   中文翻译：Emit a per-round trace so the dashboard or the next stage can render the score trajectory.
 
+```figure
+ch-critic-converge
+```
+
 ## Why five fixed dimensions
 
 > **【中文解读】** 自由形式的批评者返回一段建议，下一轮修订将其视为环境上下文——修订是否解决了批评无法验证，因为批评从未有结构。五个维度（清晰度、新颖性、证据、方法论、相关工作）给 Harness 一个契约：分数是向量，Harness 可以跨轮监控每个维度。提高清晰度但降低证据的修订在证据维度上是回归——收敛检查能看到。

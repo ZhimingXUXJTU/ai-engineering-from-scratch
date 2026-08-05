@@ -138,6 +138,11 @@ Safe-to-ship patterns:
 
 
 ## Build It | 动手实现
+```figure
+sp-codec-tokens
+```
+
+## Build It
 
 ### Step 1: generate with MusicGen
 

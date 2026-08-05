@@ -114,6 +114,11 @@ Lesson 20 is bias measurement. Lesson 21 is fairness definition. Lesson 22 is pr
 > **【拓展：CF vs 准确性权衡 → 实际影响】** NeurIPS 2024 理论结果：反事实公平和预测准确性之间存在固有权衡。模型不可知论方法可以将最优但不公平的预测器转换为 CF 公平的，但准确度损失有界取决于不公平预测器中敏感属性系数的大小。这意味着选择公平标准有实际代价——更多公平意味着更少预测准确。
 
 ## Use It | 使用方法
+```figure
+an-fairness-trilemma
+```
+
+## Use It
 
 `code/main.py` builds a toy binary-classification dataset with a sensitive attribute and unequal base rates. Compute demographic parity, equalized odds, and conditional use accuracy equality on a simple classifier. Observe the three metrics disagreeing. Apply a re-weighting for demographic parity and observe its cost on the other two.
 

@@ -156,6 +156,11 @@ flowchart LR
 ```
 
 ## Build It | 动手构建
+```figure
+eval-harness-matrix
+```
+
+## Build It
 
 `code/main.py` is the runnable artifact.
 

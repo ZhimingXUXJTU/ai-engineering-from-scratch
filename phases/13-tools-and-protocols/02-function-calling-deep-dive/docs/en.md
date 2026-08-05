@@ -204,6 +204,11 @@ Production teams wrap this translator in `AbstractToolset` (Pydantic AI), `Unive
 > 生产团队将此翻译器包装为 `AbstractToolset`（Pydantic AI）、`UniversalToolNode`（LangGraph）或 `BaseTool`（LlamaIndex）。Phase 13 · 17 发布一个网关，在三个供应商中任何一个之前暴露 OpenAI 格式的 API。
 
 ## Use It | 用框架实现
+```figure
+function-call-args
+```
+
+## Use It
 
 `code/main.py` defines one canonical `Tool` dataclass and three translators that emit the OpenAI, Anthropic, and Gemini declaration JSON. It then parses a hand-crafted provider response of each shape into the same canonical call object, demonstrating that the semantics are identical under the skin. Run it and diff the three declarations side by side.
 

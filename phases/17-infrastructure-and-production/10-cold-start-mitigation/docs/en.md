@@ -148,6 +148,11 @@ Cold-start anatomy for a 70B model on a fresh node (illustrative):
   中文翻译：ServerlessLLM 分层加载：10-200 倍延迟降低（论文数据）。
 
 ## Use It | 用框架实现
+```figure
+cold-start-pipeline
+```
+
+## Use It
 
 `code/main.py` models a cold-start path with and without each mitigation. Reports total cold-start time, warm-pool cost, and the break-even request rate above which warm pool pays for itself.
 

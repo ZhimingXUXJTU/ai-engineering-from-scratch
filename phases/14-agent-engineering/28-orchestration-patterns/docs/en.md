@@ -74,7 +74,7 @@ When you need it: when a single supervisor's context budget cannot hold descript
 - Parallel proposers + iterative cross-critique (Lesson 25).
 - Not really orchestration — more verification — but shows up as a topology choice in frameworks.
 
-### CrewAI Crew vs Flow
+### Autonomous crews vs deterministic flows
 
 CrewAI formalizes two deployment modes:
 
@@ -110,6 +110,11 @@ Decision order:
 > **虚假层级。** 因为"企业级"就设三层；实际只有两个团队。合并。
 
 ## Build It | 动手实现
+```figure
+orchestration-pattern
+```
+
+## Build It
 
 `code/main.py` implements all four patterns in stdlib against a scripted LLM:
 

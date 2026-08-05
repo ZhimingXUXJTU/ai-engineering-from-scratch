@@ -185,6 +185,11 @@ classDiagram
 ## Build It | 动手实现
 
 > **【中文解读】** 下面按顺序构建框架的每个组件：Module 基类 → Linear 层 → 激活函数 → Dropout → BatchNorm → Sequential 容器 → 损失函数 → 优化器 → DataLoader → 完整训练循环。每一步对应 PyTorch 的一个核心类。
+```figure
+gradient-clipping
+```
+
+## Build It
 
 ### Step 1: Module Base Class | 第一步：Module 基类
 

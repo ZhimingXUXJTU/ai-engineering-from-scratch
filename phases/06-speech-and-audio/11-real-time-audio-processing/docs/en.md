@@ -102,6 +102,11 @@ Moshi (Kyutai, 2024) clocked 200 ms full-duplex. GPT-4o-realtime (2024) clocks ~
 
 
 ## Build It | 动手实现
+```figure
+nyquist-aliasing
+```
+
+## Build It
 
 ### Step 1: ring buffer
 

@@ -25,6 +25,10 @@
 - Enforce two budgets: a hard step ceiling and a hard replan ceiling.
   中文翻译：Enforce two budgets: a hard step ceiling and a hard replan ceiling.
 
+```figure
+cg-plan-replan
+```
+
 ## Plan and execute, not chain-of-thought
 
 > **【中文解读】** 链式思维（Chain-of-Thought）Agent 逐 token 输出，让循环猜测工具调用何时结束；计划-执行（Plan-and-Execute）Agent 先输出结构化计划，然后确定性地执行每一步。计划是数据——Harness 可以内省、审计和修订。当执行遇到失败时，有三种选择：中止、跳过、或重新规划。重新规划是将脚本变成 Agent 的关键。

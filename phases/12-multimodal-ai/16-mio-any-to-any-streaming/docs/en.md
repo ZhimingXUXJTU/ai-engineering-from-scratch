@@ -199,6 +199,11 @@ These are open research problems. Qwen3-Omni (Lesson 12.20) is the most advanced
 > 这些都是开放的研究问题。Qwen3-Omni（第 12.20 课）是 2025 年最先进的开源尝试。
 
 ## Use It | 用框架实现
+```figure
+any-to-any-stream
+```
+
+## Use It
 
 `code/main.py`:
 

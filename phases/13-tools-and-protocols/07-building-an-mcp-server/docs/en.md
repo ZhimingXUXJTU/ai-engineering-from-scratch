@@ -191,6 +191,11 @@ The TypeScript SDK has an equivalent shape. The graduation path is drop-in when 
 > TypeScript SDK 有等价形态。升级路径在你准备好后即可无缝切换；概念（能力、分发、内容块）相同。
 
 ## Use It | 用框架实现
+```figure
+t3-dispatch-loop
+```
+
+## Use It
 
 `code/main.py` is a complete notes MCP server over stdio, stdlib only. It handles `initialize`, `tools/list`, `tools/call` for three tools (`notes_list`, `notes_search`, `notes_create`), `resources/list` and `resources/read` for each note, and a `review_note` prompt. You can drive it by piping JSON-RPC messages:
 

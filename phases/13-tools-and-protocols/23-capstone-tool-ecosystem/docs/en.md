@@ -145,6 +145,11 @@ Users deploy with `docker compose up`. Claude Code, Cursor, Codex, and opencode 
 ## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 将前课模式缝合为一个可运行的端到端演示。全部标准库，全部进程内运行便于从头到尾阅读。完整流程：网关握手、模拟 OAuth 2.1、合并 tools/list、generate_report 作为任务、A2A 调用写作 Agent、返回 ui:// 资源、发射 OTel span。关注点：一个 trace id 贯穿每跳；网关策略阻止第二个用户写入；任务生命周期 working -> completed 返回文本和 ui:// 内容；A2A 调用内部状态对编排者不透明；AGENTS.md 和 SKILL.md 是其他 Agent 复现工作流所需的唯一文件。
+```figure
+t3-capstone-chain
+```
+
+## Use It
 
 `code/main.py` stitches the previous lessons' patterns into one runnable demo. All stdlib, all in-process so you can read it end to end. It runs the full flow for the research-and-report scenario: handshake with gateway, OAuth 2.1 simulated, tools/list merged, generate_report as a task, A2A call to writer, ui:// resource returned, OTel spans emitted.
 

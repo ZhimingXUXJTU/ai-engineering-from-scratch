@@ -121,6 +121,11 @@ External evaluation matters because internal labs have incentives to optimize me
   中文翻译：**作为先验**：14 小时时间线是起点。根据你的任务分布、工具质量和部署上下文调低。
 
 ## Use It | 用框架实现
+```figure
+a5-horizon-fit
+```
+
+## Use It
 
 `code/main.py` implements a logistic fit of task-success vs log(expert time), given a synthetic result set. It reports the 50% horizon (METR's headline), 10% horizon (conservative), and 90% horizon (optimistic). Also demonstrates what changes when the success rate is artificially inflated by eval-context gaming.
 

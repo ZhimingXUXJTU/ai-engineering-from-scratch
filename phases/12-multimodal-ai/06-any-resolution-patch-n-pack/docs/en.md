@@ -145,6 +145,11 @@ The 2026 production rule: pick a per-task max-pixels cap, encode at native aspec
 > 🤔 **【困惑】** 学完本节还会问：1) 真要部署 OCR 系统，min_pixels 和 max_pixels 该设多少？— 文档类 min=28*28*4、max=28*28*2560（Qwen2-VL 默认）；过高会爆显存，过低会丢失小字。2) 为什么不直接用 2k×2k？— token 二次爆炸，长文档一张图就吃掉整个 LLM 上下文。3) NaFlex vs AnyRes 哪个更通用？— NaFlex（SigLIP 2）更现代，单一 checkpoint 适配所有分辨率；AnyRes 是过渡方案。
 
 ## Use It  | 动手实践
+```figure
+mm-patch-n-pack
+```
+
+## Use It
 
 `code/main.py` implements patch-n'-pack for a heterogeneous batch of images with integer pixel coordinates. It:
 

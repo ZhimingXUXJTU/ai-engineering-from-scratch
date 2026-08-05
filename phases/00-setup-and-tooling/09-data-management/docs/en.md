@@ -57,6 +57,11 @@ The Hugging Face `datasets` library is the standard way to load data for AI work
 > 在实际 AI 工作中，数据格式直接影响训练效率。Parquet 格式比 CSV 小 60-80%，读取速度快 5-10 倍。Google 和 Meta 的内部训练管线全部使用 Parquet/Arrow 格式。一个 100GB 的 CSV 数据集转换为 Parquet 后可能只有 20GB，且加载时间从小时级降到分钟级。
 
 ## Build It | 动手实现
+```figure
+s0-data-pipeline
+```
+
+## Build It
 
 ### Step 1: Install the datasets library
 
@@ -70,6 +75,7 @@ pip install datasets huggingface_hub  # 安装 Hugging Face 数据集库和模�
 from datasets import load_dataset
 
 dataset = load_dataset("imdb")  # 加载 IMDB 电影评论数据集（首次下载，之后从缓存读取）
+dataset = load_dataset("stanfordnlp/imdb")
 print(dataset)
 print(dataset["train"][0])  # 查看训练集第一条样本
 ```
@@ -107,7 +113,7 @@ The `datasets` library uses Apache Arrow under the hood. You can convert to othe
 > `datasets` 库底层使用 Apache Arrow。你可以根据管线需要转换为其他格式。
 
 ```python
-dataset = load_dataset("imdb", split="train")
+dataset = load_dataset("stanfordnlp/imdb", split="train")
 
 dataset.to_csv("imdb_train.csv")  # 导出为 CSV 格式（通用但体积大）
 dataset.to_json("imdb_train.json")  # 导出为 JSON 格式（适合 API 交换）
@@ -157,7 +163,7 @@ Some datasets come pre-split. When they don't, split them yourself:
 > 有些数据集已经预拆分好了。如果没有，你需要自己拆分：
 
 ```python
-dataset = load_dataset("imdb", split="train")
+dataset = load_dataset("stanfordnlp/imdb", split="train")
 
 split = dataset.train_test_split(test_size=0.2, seed=42)  # 80% 训练+验证，20% 测试
 train_val = split["train"].train_test_split(test_size=0.125, seed=42)  # 从 80% 中取 12.5% 作为验证集

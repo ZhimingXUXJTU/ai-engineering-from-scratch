@@ -25,6 +25,10 @@
 - Train a small attention block on a toy task and watch the loss fall as the heads specialize.
   中文翻译：Train a small attention block on a toy task and watch the loss fall as the heads specialize.
 
+```figure
+cap-multihead-attention
+```
+
 ## The frame
 
 > **【中文解读】** 注意力是让 token 表征从同序列其他 token 拉取信息的函数。自注意力意味着 Q、K、V 都来自同一输入。多头意味着投影被切分为 H 个并行的注意力问题，输出拼接后再投影。高效实现模式：一个线性层从 D 投影到 3D，切成三个视图，重塑为 H 个头。

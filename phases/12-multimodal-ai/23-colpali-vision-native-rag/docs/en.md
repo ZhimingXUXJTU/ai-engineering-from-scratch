@@ -194,6 +194,11 @@ For everything else in 2026 — financial reports, scientific papers, legal cont
 > 2026 年其他所有场景——金融报告、科学论文、法律合同、医疗记录、UX 文档——视觉原生 RAG 胜出。
 
 ## Use It | 用框架实现
+```figure
+mm-maxsim
+```
+
+## Use It
 
 `code/main.py`:
 

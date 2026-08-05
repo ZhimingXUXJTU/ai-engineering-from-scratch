@@ -307,6 +307,11 @@ det = -1:  area preserved but orientation flipped (reflection)
 > 行列式含义：det=1 保面积（旋转）；det=2 面积翻倍；det=0 空间塌缩到低维（奇异，矩阵不可逆）；det=-1 保面积但翻转方向（反射）。
 
 ## Build It | 动手实现
+```figure
+matrix-transform
+```
+
+## Build It
 
 ### Step 1: Transformation matrices from scratch (Python)
 

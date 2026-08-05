@@ -111,6 +111,11 @@ Every senior engineer can name a feature that was shipped because "it feels bett
 - LLM non-determinism → +30-50% sample-size buffer.
 
 ## Use It | 用框架实现
+```figure
+mx-sequential-test
+```
+
+## Use It
 
 `code/main.py` simulates a sequential A/B test with fixed and sequential boundaries. Shows how sequential lets you stop early.
 

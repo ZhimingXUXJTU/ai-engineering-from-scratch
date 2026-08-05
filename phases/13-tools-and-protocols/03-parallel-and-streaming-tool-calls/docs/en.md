@@ -182,6 +182,11 @@ If the model itself streams, you can start executing as soon as one call's argum
 > 如果模型本身是流式的，你可以在一个调用的参数完成后立即开始执行，而不必等待所有调用完成。这是 OpenAI 记录的一种优化，但并非所有 SDK 都暴露了这个能力。本课的线束做到了这一点：一旦模拟流产生完整的参数对象，宿主就启动该调用。
 
 ## Use It | 用框架实现
+```figure
+tp-parallel-fanout
+```
+
+## Use It
 
 `code/main.py` has two halves. The first runs three simulated weather calls sequentially and in parallel using `concurrent.futures.ThreadPoolExecutor` and prints wall-clock time. The second half replays a fake streaming response — chunks of `arguments` for three parallel calls interleaved on one stream — and reassembles them per-id with `StreamAccumulator`. No LLM, no network, just the reassembly logic.
 

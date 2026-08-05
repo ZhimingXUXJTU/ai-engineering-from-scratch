@@ -351,6 +351,11 @@ KNN regression produces piecewise-constant (or piecewise-smooth with weighting) 
 > 当数据规模从数千增长到数十亿时，精确 KNN 搜索太慢。Meta 开源的 FAISS 库使用乘积量化（PQ）和倒排文件索引（IVF），在 10 亿级向量中实现毫秒级搜索。HNSW（分层可导航小世界图）是另一种流行算法，被 Elasticsearch 和 Milvus 采用。这些近似最近邻（ANN）方法牺牲少量精度换取 100-1000 倍的搜索加速。
 
 ## Build It | 动手实现
+```figure
+knn-smoothness
+```
+
+## Build It
 
 ### Step 1: Distance functions
 

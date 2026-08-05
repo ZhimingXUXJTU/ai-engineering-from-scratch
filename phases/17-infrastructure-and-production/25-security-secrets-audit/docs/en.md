@@ -125,6 +125,11 @@ Supply-chain attack: compromised CI/CD credentials exfiltrated env vars across t
 - Audit log retention: SOC 2 = 1 year, HIPAA = 6 years.
 
 ## Use It | 用框架实现
+```figure
+i4-vault-rotation
+```
+
+## Use It
 
 `code/main.py` implements a toy PII scrubber with consistent tokenization and an append-only audit log.
 

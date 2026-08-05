@@ -99,6 +99,11 @@ Later lessons add scope contracts, feedback runners, verification gates, reviewe
 > 最小 Agent Workbench 是一个用于实验和调试 Agent 行为的轻量级环境。它提供了隔离的执行空间和详细的轨迹分析工具。
 
 ## Build It | 动手实现
+```figure
+wb-three-files
+```
+
+## Build It
 
 `code/main.py` writes the minimal workbench into an empty repo and demonstrates a single agent turn that:
 
@@ -187,5 +192,6 @@ The minimum workbench survives contact with real monorepos when three patterns a
   中文翻译：见原文。
 - [Anthropic, Claude Code subagents and session store](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sub-agents)
   中文翻译：见原文。
+- [Anthropic, Claude Code subagents](https://code.claude.com/docs/en/sub-agents)
 - Phase 14 · 31 — the failure modes this minimum absorbs
 - Phase 14 · 34 — the durable state schema this lesson previews

@@ -114,6 +114,11 @@ On a Mac M2 laptop, a 4-layer, 4-head, d_model=128 GPT trained for 2,000 steps o
 > **【拓展：从字符级到子词级 Tokenizer】** 本项目使用字符级 tokenizer（简单但低效）。生产级 LLM 使用 BPE（Byte Pair Encoding）或 SentencePiece 等子词级 tokenizer。Llama 使用 BPE，GPT-4 使用 cl100k_base BPE tokenizer。子词 tokenization 在词汇量、序列长度和语义粒度之间取得平衡，是现代 LLM 的标配。
 
 ## Build It | 动手实现
+```figure
+n5-block-stack
+```
+
+## Build It
 
 This lesson uses PyTorch. Install `torch` (CPU build is fine). See `code/main.py`. The script handles:
 

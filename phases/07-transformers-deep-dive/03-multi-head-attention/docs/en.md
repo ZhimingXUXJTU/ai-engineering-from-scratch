@@ -68,6 +68,11 @@ GQA is the modern default because it cuts KV-cache memory by a factor of `N/G` w
 > GQA 是现代默认选择，因为它将 KV 缓存内存减少了 `N/G` 倍，同时几乎保持完整质量。MLA 通过将 K/V 压缩到隐空间更进一步，然后在计算时投影回来——花费 FLOP，节省更多内存。
 
 ## Build It | 动手实现
+```figure
+multihead-split
+```
+
+## Build It
 
 ### Step 1: Split heads from the single-head attention we already have | 步骤 1：从已有的单头注意力拆分头
 

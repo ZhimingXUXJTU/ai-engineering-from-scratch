@@ -264,6 +264,11 @@ Most production RAG systems use these parameters:
   查询延迟：检索 50-200ms，生成 500-3000ms
 
 ## Build It | 动手实现
+```figure
+rag-chunking
+```
+
+## Build It
 
 ### Step 1: Document Chunking
 
@@ -456,7 +461,7 @@ client = anthropic.Anthropic()
 
 def generate(prompt):
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-5",
         max_tokens=1024,
         messages=[{"role": "user", "content": prompt}]
     )

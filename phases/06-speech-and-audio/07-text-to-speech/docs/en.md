@@ -136,6 +136,11 @@ By 2026 most "TTS" models are end-to-end from text to waveform; the mel spectrog
 
 
 ## Build It | 动手实现
+```figure
+sp-tts-stack
+```
+
+## Build It
 
 ### Step 1: phonemize input
 

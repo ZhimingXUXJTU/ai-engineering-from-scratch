@@ -75,6 +75,11 @@ Output is one topic per document (plus a -1 outlier label). Optionally, a soft m
 
 
 ## Build It | 动手实现
+```figure
+topic-drift
+```
+
+## Build It
 
 ### Step 1: LDA via scikit-learn
 > 注意：移除了停用词，min_df 和 max_df 过滤罕见和无处不在的词，使用 CountVectorizer（不是 TfidfVectorizer），因为 LDA 期望原始计数。

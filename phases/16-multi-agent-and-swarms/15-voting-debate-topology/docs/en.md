@@ -155,6 +155,11 @@ The Sibyl framework (cited in Minsky-LLM literature) formalizes a "jury" — a s
   中文翻译：任务简单。单 Agent 在 N=5 时的自一致性更便宜且同样准确。
 
 ## Build It | 动手构建
+```figure
+sw-debate-topology
+```
+
+## Build It
 
 `code/main.py` implements:
 

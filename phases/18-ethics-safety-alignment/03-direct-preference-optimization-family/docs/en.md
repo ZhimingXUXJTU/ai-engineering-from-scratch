@@ -190,6 +190,11 @@ Every lab runs all five on a battery and picks the winner per task. There is no 
 > **【拓展：DPO 家族实践 → 方法选择】** 2026 年每个前沿实验室在所有方法上跑完再按任务选优。没有理由认为数学推理和安全的最优方法是同一个。该 lesson 的 code/main.py 在偏好强度变化的玩具数据集上比较六种损失，绘制每种方法的最终胜率、选择概率漂移和隐式奖励分布。
 
 ## Use It | 用框架实现
+```figure
+dpo-margin
+```
+
+## Use It
 
 `code/main.py` compares six losses (DPO, IPO, KTO, SimPO, ORPO, BPO) on a toy preference dataset where the true preference strength varies by pair. Each loss is optimized against the same 500-pair sample with a small softmax policy. Plots final win rate, chosen-log-prob drift, and implicit-reward spread per method.
 

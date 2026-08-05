@@ -131,6 +131,11 @@ Sesame CSM (2025) uses a similar idea — a Llama-3 backbone with a Mimi codec h
 
 
 ## Build It | 动手实现
+```figure
+sp-fullduplex
+```
+
+## Build It
 
 ### Step 1: the interface
 

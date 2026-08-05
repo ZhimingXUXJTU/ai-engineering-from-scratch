@@ -122,6 +122,11 @@ Every critique in later lessons — reward hacking (Lesson 2), DPO (Lesson 3), s
 > 后续课程中的每个批评——奖励黑客（Lesson 2）、DPO（Lesson 3）、谄媚（Lesson 4）、CAI（Lesson 5）、潜伏 Agent（Lesson 7）、对齐伪装（Lesson 9）——都在攻击此管线的某个部分。奖励黑客攻击第二阶段。DPO 合并第二和第三阶段。CAI 替换人类标注者。谄媚展示标注者是有偏信号。对齐伪装展示策略可以完全绕过第三阶段。如果不先在脑中有这个管线，就无法理解这些批评。
 
 ## Use It | 用框架实现
+```figure
+al-instruct-pipeline
+```
+
+## Use It
 
 `code/main.py` simulates the three stages on toy preference data. The base "policy" is a biased coin over actions {A, B, C}. Stage 1 SFT mimics labeler actions on 200 prompts. Stage 2 fits a Bradley-Terry reward model from 500 pairwise rankings. Stage 3 runs a simplified PPO update with a KL penalty to the SFT policy. You can watch the reward climb, the KL divergence grow, and the policy drift — and you can turn off the KL term to see reward hacking appear inside 50 update steps.
 

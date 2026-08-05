@@ -122,6 +122,11 @@ And unlike the 2018 stack, it is Flash-Attention-native. Inference is 2–3× fa
 | RAG 重排序器 | 交叉编码器评分，比 LLM 重排序器快 10 倍 |
 
 ## Build It | 动手实现
+```figure
+transformer-residual
+```
+
+## Build It
 
 ### Step 1: masking logic
 

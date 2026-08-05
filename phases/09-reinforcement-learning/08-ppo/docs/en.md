@@ -90,6 +90,11 @@ Same actor-critic structure as A2C. Three coefficients, usually `c_v = 0.5`, `c_
 > **KL 惩罚变体。** 原始论文提出了使用自适应 KL 惩罚的替代方案。裁剪版本成为主流；KL 变体在 RLHF 中存续（那里 KL 到参考策略是你始终想要的独立约束）。
 
 ## Build It | 动手实现
+```figure
+ppo-clip
+```
+
+## Build It
 
 ### Step 1: capture `log π_old(a | s)` at rollout time
 

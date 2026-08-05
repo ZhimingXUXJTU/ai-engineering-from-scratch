@@ -111,6 +111,11 @@ On by default. Every LLM generation, tool call, handoff, and guardrail emits a s
 > **过度追踪。** Span 中包含敏感内容。配合 OTel GenAI 内容捕获规则（第 23 课）使用——外部存储，按 ID 引用。
 
 ## Build It | 动手实现
+```figure
+ae-agent-handoff
+```
+
+## Build It
 
 `code/main.py` implements the SDK shape in stdlib:
 

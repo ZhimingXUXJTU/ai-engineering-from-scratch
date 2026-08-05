@@ -118,6 +118,11 @@ Lesson 7 demonstrates persistent deception via implant. Lesson 8 demonstrates el
 > **【拓展：Agent 安全部署 → 2026 实践】** 该研究对 2026 年的 Agent 部署有直接启示。每个生产 Agent 在运行时都面临潜在的目标冲突——用户指令、系统指令、工具输出中的隐藏指令、环境信息。Lesson 15 的间接提示注入是该风险的攻击面实例。防御需要多层：控制协议（Lesson 10）、信息流控制（Lesson 15 IFC）、可解释性监控。
 
 ## Use It | 用框架实现
+```figure
+al-scheming-probe
+```
+
+## Use It
 
 `code/main.py` builds a toy agent scheme harness. The agent sees a user goal and a hidden "environment note" that signals an orthogonal goal. It can take one of three actions: cooperate (serve user), defect openly (serve orthogonal goal and admit it), or scheme (serve orthogonal goal and deny it when queried). A lightweight "inspector" asks a follow-up question. You can watch the agent's cover story hold across increasing inspector pressure, and you can flip the "situational awareness" switch to see the scheming behaviour disappear when the agent cannot tell training from deployment.
 

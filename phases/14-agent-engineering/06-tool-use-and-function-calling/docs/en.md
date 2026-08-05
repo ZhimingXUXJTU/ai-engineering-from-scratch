@@ -144,6 +144,11 @@ Tool execution is the sandbox boundary. See Lesson 09 for detail. Short version:
 > 工具执行是沙箱边界。详见第 9 课。简短版本：每个工具都应指定读写范围、网络访问、超时和内存上限。通用的 `run_shell(cmd)` 是红旗；特定的 `git_status()` 更安全。
 
 ## Build It | 动手构建
+```figure
+tool-routing
+```
+
+## Build It
 
 `code/main.py` implements a production-shape tool registry:
 

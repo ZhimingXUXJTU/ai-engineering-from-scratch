@@ -326,6 +326,11 @@ SVMs still win in these situations:
 > SVM 在以下情况下仍然胜出：
 
 ## Build It | 动手实现
+```figure
+svm-margin
+```
+
+## Build It
 
 ### Step 1: Hinge loss and gradient
 

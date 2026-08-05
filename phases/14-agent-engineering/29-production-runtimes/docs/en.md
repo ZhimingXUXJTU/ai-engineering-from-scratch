@@ -102,6 +102,11 @@ Without OpenTelemetry GenAI spans (Lesson 23) plus a Langfuse/Phoenix/Opik backe
 > **跳过持久化状态。** 任何超过 30 秒且无法承受重启的运行都需要持久化执行。
 
 ## Build It | 动手实现
+```figure
+wb-runtime-shapes
+```
+
+## Build It
 
 `code/main.py` is a stdlib multi-shape demo:
 

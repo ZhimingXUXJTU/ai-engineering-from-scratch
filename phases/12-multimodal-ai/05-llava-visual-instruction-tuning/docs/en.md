@@ -170,6 +170,11 @@ LLaVA-1.5-7B breakdown:  | LLaVA-1.5-7B 参数分解：
 Training cost for stage 2: ~20 hours on 8xA100. This is the key number — one day, one node, reproducible. That is why LLaVA spread.
 
 > **【中文解读】** 第二阶段训练成本：8 张 A100 跑约 20 小时。这是关键数字——一天、一台机器、可复现。这就是 LLaVA 能够迅速传播的原因。
+```figure
+mm-llava-projector
+```
+
+## Use It
 
 ## Use It  | 动手实践
 

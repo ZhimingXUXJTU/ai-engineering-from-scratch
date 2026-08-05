@@ -178,6 +178,11 @@ The implementation enforces these by:
   中文翻译：Constructing the policy via `policy.load_state_dict(reference.state_dict())` after the reference is built.
 
 ## Architecture | 架构
+```figure
+cap-dpo-preference
+```
+
+## Architecture
 
 ```mermaid
 flowchart TD

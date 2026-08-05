@@ -311,6 +311,11 @@ The embedding cost for semantic caching ($180/month) pays for itself within the 
 > 语义缓存的嵌入成本（$180/月）在缓存命中的第一个小时内就回本。
 
 ## Build It | 动手实现
+```figure
+semantic-cache
+```
+
+## Build It
 
 ### Step 1: Cost Calculator
 
@@ -883,7 +888,7 @@ if __name__ == "__main__":
 # client = anthropic.Anthropic()
 #
 # response = client.messages.create(
-#     model="claude-sonnet-4-20250514",
+#     model="claude-sonnet-5",
 #     max_tokens=1024,
 #     system=[
 #         {

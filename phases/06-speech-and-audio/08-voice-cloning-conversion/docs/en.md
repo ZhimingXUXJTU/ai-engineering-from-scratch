@@ -118,6 +118,11 @@ SECS > 0.70 is generally indistinguishable from the target for most listeners.
 
 
 ## Build It | 动手实现
+```figure
+sp-voice-factorize
+```
+
+## Build It
 
 ### Step 1: decompose with recognition-synthesis (code-only demo in main.py)
 

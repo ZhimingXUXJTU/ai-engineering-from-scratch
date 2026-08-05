@@ -105,6 +105,11 @@ Lessons 12-14 describe three orthogonal attack vectors: iterative refinement (PA
 > **【拓展：视觉 LLM → 攻击面扩展】** 视觉 LLM（GPT-5.2, Gemini 3 Pro, Claude Opus 4.5, Grok 4.1）扩展了攻击面。ArtPrompt 式攻击使用实际图像比 ASCII 艺术更强，因为图像编码器产生更丰富的信号。ViTC 基准的相关性意味着提升多模态能力同时增加了编码攻击的脆弱性——这是 AI 安全中反复出现的能力-安全权衡。
 
 ## Use It | 使用方法
+```figure
+al-ascii-cloak
+```
+
+## Use It
 
 `code/main.py` builds a toy ArtPrompt. You can cloak specific words in a harmful query with ASCII-art glyphs, verify the cloaked string passes a keyword filter, and (optionally) decode the cloaked string back using a simple recognizer.
 

@@ -190,6 +190,11 @@ Pick BLIP-2 for single-image VQA on a budget. Pick Flamingo/Idefics2 for interle
 > 预算有限的单图像 VQA 选 BLIP-2。交织、少样本或多图像推理选 Flamingo/Idefics2。
 
 ## Use It | 用框架实现
+```figure
+cross-attention-fusion
+```
+
+## Use It
 
 `code/main.py` demonstrates:
 

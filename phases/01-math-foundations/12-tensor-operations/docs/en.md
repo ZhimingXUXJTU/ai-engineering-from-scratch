@@ -116,6 +116,11 @@ graph LR
 Key patterns: `i,i->` (dot product / 点积), `i,j->ij` (outer product / 外积), `ii->` (trace / 迹), `ij->ji` (transpose / 转置), `bij,bjk->bik` (batch matmul / 批量矩阵乘法), `bhtd,bhsd->bhts` (attention scores / 注意力分数).
 
 ## Build It | 动手实现
+```figure
+tensor-broadcast
+```
+
+## Build It
 
 The code lives in `code/tensors.py`. Each step references the implementation there.
 > 代码在 `code/tensors.py` 中。每一步都引用那里的实现。

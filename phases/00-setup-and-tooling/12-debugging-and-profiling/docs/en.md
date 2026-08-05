@@ -59,6 +59,11 @@ Most people jump straight to level 3 (staring at TensorBoard). But 80% of AI bug
 > AI 调试分三个层次：第一层是标准 Python 调试（断点、日志、内存分析）；第二层是张量操作检查（形状、数据类型、设备、NaN 值）；第三层是训练动态观察（loss 曲线、梯度分布、激活值）。大多数人直接看 TensorBoard，但 80% 的 bug 其实在前两层就能发现。
 
 ## Build It | 动手实现
+```figure
+s0-flame-hot
+```
+
+## Build It
 
 ### Part 1: Print Debugging (Yes, It Works)
 

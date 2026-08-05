@@ -183,6 +183,11 @@ The server never touches an LLM API. The client's user pays for the completions 
   中文翻译：**循环炸弹。** 服务器在紧凑循环中调用 sampling。客户端必须强制执行每会话速率限制。
 
 ## Use It | 用框架实现
+```figure
+t3-sampling-flip
+```
+
+## Use It
 
 `code/main.py` ships a fake server-to-client sampling harness. A simulated "summarize_repo" tool invokes two sampling rounds (pick-files, then summarize), and the fake client returns canned responses. The harness shows:
 

@@ -105,6 +105,11 @@ The sandbox is E2B or Daytona. Each task runs in a fresh devcontainer with a git
 > **【中文解读】** 构建步骤分为 8 个阶段：从 TUI 界面搭建开始，逐步实现计划状态管理、六大工具（文件读写/搜索/符号解析/Shell/Git）、E2B 沙箱包装、8 种 Hook 钩子、SWE-bench 评估、成本控制到最终 PR 提交。每步都有明确的量化指标，如工具输出截断至 4k token、50 轮硬限制、$5 单任务上限。
 
 > **【拓展：SWE-bench 评估体系】** SWE-bench 是目前编码 Agent 最权威的评测基准，包含真实 GitHub issue 和对应 patch。SWE-bench Verified 子集经过人工验证，确保 issue 描述足够明确。2026 年排行榜上，排名靠前的系统 pass@1 在 60-80% 区间。衡量维度不仅看通过率，还包括每任务轮次、token 消耗和美元成本。mini-swe-agent 作为最简基线实现，通常作为对比起点。
+```figure
+ce-agent-loop
+```
+
+## Build It
 
 1. **TUI and command loop.** Scaffold a Bun project with Ink. Accept `agent run <repo> "<task>"`. Print a split view: plan pane (top), tool-call stream (middle), token budget (bottom). Add cancel on Ctrl-C that fires `SessionEnd` hook before exit.
    中文翻译：1. **TUI and command loop.** Scaffold a Bun project with Ink. Accept `agent run <repo> "<task>"`. Print a split view: plan pane (top), tool-call stream (middle), token budget (bottom). Add cancel on Ctrl-C that fires `SessionEnd` hook before exit.

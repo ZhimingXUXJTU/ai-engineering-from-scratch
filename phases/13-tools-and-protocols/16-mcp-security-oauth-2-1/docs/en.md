@@ -201,6 +201,11 @@ Phase 13 · 17 shows how an enterprise gateway handles OAuth: gateway holds cred
 ## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 将完整的 OAuth 2.1 逐步授权流程模拟为内存中的状态机：PKCE 生成、带资源指示器的授权码流程、受保护资源元数据端点、带受众检查的 token 验证、insufficient_scope 逐步升级。无 HTTP 服务器，状态机在内存中运行，便于追踪每一步。
+```figure
+t3-scope-stepup
+```
+
+## Use It
 
 `code/main.py` simulates the full OAuth 2.1 step-up flow as a state machine. It implements:
 

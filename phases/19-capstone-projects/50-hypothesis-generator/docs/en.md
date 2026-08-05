@@ -74,6 +74,11 @@ Hypothesis
 
 
 ## Architecture | 架构
+```figure
+cg-novelty-ramp
+```
+
+## Architecture
 
 ```mermaid
 flowchart TD

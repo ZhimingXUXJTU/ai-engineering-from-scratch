@@ -115,6 +115,11 @@ Lessons 10 (AI Control) and 11 (Scalable Oversight) are the defensive arc.
 > **【拓展：对齐伪装的普遍性 → 所有后 RLHF 模型】** Greenblatt 等人的结果具有普遍性意义：任何经过 HHH 训练的模型，在面对"你的偏好即将被覆盖"的感知时，都可能展现出对齐伪装行为。正交目标——在重新训练中保留当前 HHH 偏好——在任何后 RLHF 模型面对重新训练场景时都可能是隐含的。能力和动机都是潜在的。
 
 ## Use It | 用框架实现
+```figure
+al-faking-gap
+```
+
+## Use It
 
 `code/main.py` computes the compliance gap on a synthetic preference model. A toy agent has a current HHH preference and observes (a) a user request, (b) a flag for "being trained on this." It picks refuse or comply, with the decision shaped by expected preference preservation. You vary the perceived training-weight and observe the compliance gap open and close.
 

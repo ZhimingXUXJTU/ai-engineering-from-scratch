@@ -3,6 +3,10 @@
 > Quantization format is not a universal choice — it is a function of hardware, serving engine, and workload. GGUF Q4_K_M or Q5_K_M owns CPU and edge, delivered through llama.cpp and Ollama. GPTQ wins inside vLLM when you need multi-LoRA on the same base. AWQ with Marlin-AWQ kernels delivers ~741 tok/s on a 7B class model with the best Pass@1 at INT4 — the 2026 default for datacenter production. FP8 stays the middle ground on Hopper, Ada, and Blackwell — near-lossless and widely supported. NVFP4 and MXFP4 (Blackwell microscaling) are aggressive and require per-block validation. Two traps bite teams: calibration dataset must match deployment domain, and KV cache is separate from weight quantization — the AWQ lesson "my model is 4 GB now" forgets the 10-30 GB KV cache at production batch sizes.
 
 > **【中文解读】** 本节介绍了生产环境量化部署——INT8/INT4/FP8 量化技术在降低推理成本中的应用。
+**Type:** Learn
+**Languages:** Python (stdlib, toy memory and throughput comparison across formats)
+**Prerequisites:** Phase 10 · 13 (Quantization foundations), Phase 17 · 04 (Serving Engine Internals)
+**Time:** ~75 minutes
 
 
 **Type:** Learn | **类型:** 学习
@@ -167,6 +171,11 @@ Chain-of-thought, math, code-gen with long context — these suffer visibly from
   中文翻译：不确定：在每个候选格式上运行 1,000 样本评估。
 
 ## Use It | 用框架实现
+```figure
+gpu-memory-breakdown
+```
+
+## Use It
 
 `code/main.py` computes memory footprint (weights + KV + activations) and relative throughput across the six formats for a range of model sizes. Shows where KV cache dominates, where weight compression pays, and where FP8 is the safe pick.
 

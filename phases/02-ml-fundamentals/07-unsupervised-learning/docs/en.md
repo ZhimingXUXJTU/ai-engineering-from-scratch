@@ -212,6 +212,11 @@ Clustering naturally supports anomaly detection:
 
 > **【中文解读】**
 > 从零实现 K-Means、DBSCAN 和高斯混合模型。K-Means 的三步迭代：随机初始化中心 → 分配每个点到最近中心 → 重新计算中心。重复直到收敛。DBSCAN 从高密度区域开始扩展簇，自动处理噪声点。
+```figure
+kmeans-step
+```
+
+## Build It
 
 ### Step 1: K-Means from scratch
 

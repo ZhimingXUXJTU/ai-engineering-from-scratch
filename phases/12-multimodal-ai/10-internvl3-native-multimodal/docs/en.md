@@ -116,6 +116,11 @@ The bet InternVL3 makes: the alignment debt is worse than the reuse loss. The be
 > **【中文解读】** InternVL3 的赌注：对齐债务比失去复用灵活性更糟。基准测试支持这一判断。但原生预训练的高成本使得大多数项目仍然会选择后装方案。
 
 ## Use It  | 动手实践
+```figure
+l5-native-pretrain
+```
+
+## Use It
 
 `code/main.py` is a training-corpus mixer and ViR router simulator. It:
 

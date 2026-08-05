@@ -130,6 +130,11 @@ Production shops typically report 2-3× wall-clock speedup on chat, 3-5× on cod
 
 
 ## Build It | 动手实现
+```figure
+speculative-decoding
+```
+
+## Build It
 
 `code/main.py`:
 

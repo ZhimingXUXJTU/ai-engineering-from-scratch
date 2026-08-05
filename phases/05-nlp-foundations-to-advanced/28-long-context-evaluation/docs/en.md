@@ -43,6 +43,11 @@ Long-context evaluation measures these axes: retrieval accuracy at various depth
 > **MRCR（上下文多跳推理）。** 需要跨多个文档连接信息的推理。最难的长上下文测试。
 
 > **【拓展：大语言模型的工程实践】** 从 GPT 到 ChatGPT，NLP 领域经历了范式转变。
+```figure
+gx-niah-decay
+```
+
+## Build It
 
 > **【拓展：RAG 与企业知识库】** 检索增强生成（RAG）是当前企业 AI 应用最流行的架构。
 

@@ -87,6 +87,11 @@ The `SandboxResult` exit codes are the conventional ones: 0 success, non-zero fa
 ## Architecture | 架构
 
 > **【拓展：从 denylist 到 seccomp 的安全升级路径】** 本课的 denylist 方案覆盖了约 90% 的常见 Agent 故障。生产级升级路径：1）Docker 容器（文件系统隔离 + 网络隔离）；2）gVisor（用户态内核，系统调用过滤）；3）Firecracker microVM（完整虚拟化，KVM 后端）；4）seccomp-bpf（精确的系统调用白名单）。OpenHands 使用 Docker + seccomp，Devin 使用 Firecracker。每一步升级增加安全边界但减少灵活性——denylist 是最灵活但最弱的选择。
+```figure
+cg-path-jail
+```
+
+## Architecture
 
 ```mermaid
 flowchart LR

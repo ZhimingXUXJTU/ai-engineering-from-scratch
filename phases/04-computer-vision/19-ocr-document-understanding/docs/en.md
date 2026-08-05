@@ -129,6 +129,11 @@ For forms, use **Key-Value extraction** models (Donut for visually-rich document
 
 
 ## Build It | 动手实现
+```figure
+cv3-ctc-collapse
+```
+
+## Build It
 
 ### Step 1: CTC loss + greedy decoder
 

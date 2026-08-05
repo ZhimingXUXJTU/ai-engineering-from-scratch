@@ -229,6 +229,11 @@ You are building in Python to understand the algorithm. In production, you would
 > 你用 Python 构建是为了理解算法。在生产中，你会使用编译实现，只接触 Python 包装器。
 
 ## Build It | 动手实现
+```figure
+weight-tying
+```
+
+## Build It
 
 ### Step 1: Byte-Level Encoding
 

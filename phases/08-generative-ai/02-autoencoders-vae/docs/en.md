@@ -69,6 +69,11 @@ Reconstruction pushes `x̂` toward `x`. KL pushes `q(z|x)` toward the prior. The
 > **【拓展：Stable Diffusion 中的 VAE】** Stable Diffusion 使用预训练的 VAE 将 512x512 图像压缩到 64x64 的潜在空间（8 倍下采样）。扩散过程在潜在空间中进行，大幅降低了计算量。SD 3 使用的 VAE 更先进——支持 16 通道潜在空间，图像质量更高。VAE 的压缩质量直接影响最终生成图像的细节保真度。
 
 ## Build It | 动手实现
+```figure
+vae-latent-grid
+```
+
+## Build It
 
 `code/main.py` implements a tiny VAE without numpy or torch. Input is 8-dimensional synthetic data drawn from a 2-component Gaussian mixture in 8-D. Encoder and decoder are single hidden-layer MLPs. We implement tanh activation, forward pass, loss, and a hand-written backward pass. Not production — pedagogy.
 

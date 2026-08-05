@@ -37,6 +37,11 @@ Now multiply by 10,000 test cases. Multiply again by every model update you want
 **DeepEval.** Unit-test framework for LLM outputs. Metrics: answer relevance, faithfulness, bias, toxicity. Integrates with pytest.
 
 > **DeepEval。** LLM 输出的单元测试框架。指标：答案相关性、忠实度、偏见、毒性。与 pytest 集成。
+```figure
+n5-judge-gauge
+```
+
+## Build It
 
 **G-Eval.** Chain-of-thought prompting to generate evaluation criteria, then score outputs. Research-grade. Highest correlation with human judgment.
 

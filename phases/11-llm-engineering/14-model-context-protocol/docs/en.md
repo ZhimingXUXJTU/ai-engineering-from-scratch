@@ -87,6 +87,11 @@ Every session opens with `initialize`. The client sends protocol version and its
 > ⚠️ **【易错点】** MCP 落地的 3 个坑：(1) **stdio 传输并发限制**——stdio 是单进程通信，多个 host 不能共享一个 MCP server 进程；如果 Claude Desktop 和 Cursor 同时要用，每个起一个独立 server 进程。多 host 场景用 streamable HTTP。(2) **资源没限制读取权限**——MCP Resource 暴露文件系统时，路径校验不严会导致 Claude 读取 `/etc/passwd` 或 `.env`；务必在 server 端做 allowlist。(3) **没设超时**——慢工具（如复杂 SQL 查询）会让整个会话卡住；MCP 调用必须设 timeout，超时返回错误而非挂起。
 
 ## Build It | 动手实现
+```figure
+mcp-nxm-collapse
+```
+
+## Build It
 
 ### Step 1: a minimal MCP server
 
@@ -302,5 +307,6 @@ Refuse to ship a server that writes to disk or calls external APIs without an ap
   MCP 安全考虑：roots、破坏性提示、工具投毒。
 - [Google A2A specification](https://google.github.io/A2A/) — Agent2Agent protocol; the sibling standard for agent-to-agent communication that complements MCP's agent-to-tool scope.
   Google A2A 协议；Agent 间通信的兄弟标准。
+- [Google A2A specification](https://a2a-protocol.org/latest/) — Agent2Agent protocol; the sibling standard for agent-to-agent communication that complements MCP's agent-to-tool scope.
 - [Anthropic — Building effective agents (Dec 2024)](https://www.anthropic.com/research/building-effective-agents) — where MCP sits in the broader pattern library for agent design (augmented LLM, workflows, autonomous agents).
   MCP 在 Agent 设计更广泛模式库中的定位。

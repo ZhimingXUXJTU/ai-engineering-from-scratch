@@ -103,6 +103,11 @@ Build from real traffic samples (if you have them) or from published distributio
 - Four patterns: steady, ramp, spike, soak.
 
 ## Use It | 用框架实现
+```figure
+load-pattern-waves
+```
+
+## Use It
 
 `code/main.py` simulates a load test with realistic prompt distribution, measures effective TPOT, and demonstrates the uniform-prompt trap.
 

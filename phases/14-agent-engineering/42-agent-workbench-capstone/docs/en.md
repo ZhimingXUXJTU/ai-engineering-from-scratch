@@ -99,6 +99,11 @@ The pack carries a `VERSION` file. Schema bumps and script changes that require 
 > Agent Workbench 毕业项目综合运用 Phase 14 所有知识，在真实代码仓库中构建一个生产级 Agent。
 
 ## Build It | 动手实现
+```figure
+wb-pack-install
+```
+
+## Build It
 
 `code/main.py` assembles the pack into `outputs/agent-workbench-pack/` next to the lesson, seeded with the schemas and scripts from the previous lessons in this mini-track and the docs you already wrote.
 

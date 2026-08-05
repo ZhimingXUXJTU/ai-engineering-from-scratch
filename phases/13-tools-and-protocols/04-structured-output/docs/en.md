@@ -185,6 +185,11 @@ Constrained decoding works on small models. A 3B-parameter open model with gramm
 > **【中文解读】** 约束解码也适用于小模型。一个 3B 参数的开源模型配合语法强制，在结构化任务上可超越 70B 参数模型的纯提示方法。这是结构化输出在生产中重要的主因：它解耦了可靠性与模型大小。
 
 ## Use It | 用框架实现
+```figure
+constrained-decoding
+```
+
+## Use It
 
 `code/main.py` ships a minimal JSON Schema 2020-12 validator in stdlib (types, required, enum, min/max, pattern, items, additionalProperties). It wraps an `Invoice` schema and runs a fake LLM output through the validator, demonstrating parse error, schema violation, and refusal paths. Swap the fake output for any provider's real response in production.
 

@@ -176,6 +176,11 @@ Without time conditioning the network has to guess the noise level from the imag
 
 > **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
 
+```figure
+cv-diffusion-image
+```
+
+## Build It
 
 ### Step 1: Noise schedule
 

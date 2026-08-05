@@ -86,6 +86,11 @@ When the schema changes, ship a migration script next to the schema bump. The st
 > 仓库记忆和状态管理解决 Agent 在代码仓库中的上下文持久化问题。包括文件索引、变更追踪、依赖图维护等。
 
 ## Build It | 动手实现
+```figure
+wb-state-persist
+```
+
+## Build It
 
 `code/main.py` implements:
 

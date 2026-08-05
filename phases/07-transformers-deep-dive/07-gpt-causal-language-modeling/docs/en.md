@@ -24,6 +24,7 @@ The causal mask does this. It is a single upper-triangular matrix of `-inf` valu
 > 因果掩码实现了这一点。它是一个上三角矩阵（`-inf` 值），加到 softmax 之前的注意力分数上。softmax 后，这些位置变为 0。每个位置只能关注自身及之前的位置。因为对整个序列只应用一次，所以一次前向传播就能得到 N 个并行的下一个 token 预测。
 
 GPT-1 (2018), GPT-2 (2019), GPT-3 (2020), GPT-4 (2023), GPT-5 (2024), Claude, Llama, Qwen, Mistral, DeepSeek, Kimi — they are all decoder-only causal transformers with the same core loop. Just bigger, better data, and better RLHF.
+GPT-1 (2018), GPT-2 (2019), GPT-3 (2020), GPT-4 (2023), GPT-5 (2025), Claude, Llama, Qwen, Mistral, DeepSeek, Kimi — they are all decoder-only causal transformers with the same core loop. What separates them is data quality, scale and architectural refinements, and post-training (SFT, RLHF, DPO, and their successors).
 
 > GPT-1（2018）、GPT-2（2019）、GPT-3（2020）、GPT-4（2023）、GPT-5（2024）、Claude、Llama、Qwen、Mistral、DeepSeek、Kimi——它们都是解码器专用因果 Transformer，核心循环相同。只是更大、数据更好、RLHF 更好。
 
@@ -51,6 +52,43 @@ Add `M` to the raw attention scores before softmax. `exp(-inf) = 0`, so masked p
 Implementation cost: one `torch.tril()` call. Time to compute: nanoseconds. Impact on the field: everything.
 
 > 实现成本：一行 `torch.tril()` 调用。计算时间：纳秒级。对整个领域的影响：改变了一切。
+### Where the triangle comes from
+
+The mask is usually presented as a patch bolted onto attention. Run the derivation in the other direction and it stops being mysterious: attention is the third refinement of a prefix average, and the triangle is the loop bounds of that average, written as a matrix.
+
+**Stage 1 — prefix average.** The dumbest causal summary of a sequence: position `i` becomes the mean of positions `0…i`. As a loop, that is `out[i] = X[:i+1].mean(0)`. The same computation is one matrix multiply. Take a lower-triangular matrix of ones, divide each row by its count, multiply:
+
+```python
+import numpy as np
+
+A = np.tril(np.ones((n, n)))
+A = A / A.sum(axis=1, keepdims=True)
+out = A @ X
+```
+
+Row `i` of `A` is `[1/(i+1), …, 1/(i+1), 0, …, 0]`. The zeros above the diagonal are the causality. Nothing about the future was masked out; the future was never in the sum.
+
+**Stage 2 — learned weights.** A uniform average treats every past token as equally relevant. Replace the ones with a learned score matrix `S`. Now rows no longer sum to one by construction, so normalize each row with softmax instead of dividing by the count. Softmax never outputs an exact zero, which breaks causality — unless the future scores go in as `-inf`, because `exp(-inf) = 0`:
+
+```python
+def softmax(x, axis):
+    e = np.exp(x - np.max(x, axis=axis, keepdims=True))
+    return e / e.sum(axis=axis, keepdims=True)
+
+S = S + np.triu(np.full((n, n), -np.inf), k=1)
+A = softmax(S, axis=1)
+out = A @ X
+```
+
+Same triangle, same row-stochastic matrix, same one matmul. The `-inf` mask is not new machinery. It is stage 1's zero entries, translated into softmax's input domain.
+
+**Stage 3 — content-dependent weights.** In stage 2, `S` is fixed after training: position 7 always weighs position 3 the same, whatever the tokens say. Let the scores depend on the tokens themselves: `S = Q @ K.T / sqrt(d_k)`. Nothing else changes. Mask, softmax, matmul — identical.
+
+Three stages, one invariant: a lower-triangular row-stochastic matrix times the sequence. Uniform average, learned static weights, content-dependent weights. The mask was never added to attention. It survived from the average.
+
+```figure
+mask-derivation
+```
 
 ### Parallel training, serial inference
 
@@ -135,6 +173,11 @@ The core architecture hasn't changed much since GPT-2. Everything interesting ha
 > **【拓展：自回归生成的推理瓶颈】** GPT 的核心矛盾：训练时并行计算整个序列（高效），推理时必须逐 token 生成（串行）。KV 缓存（Lesson 12）和推测解码（Lesson 16）是缓解推理延迟的两个关键技术。在生产系统中，推理延迟通常是最大的工程挑战，直接决定了用户体验和成本。
 
 ## Build It | 动手实现
+```figure
+causal-mask
+```
+
+## Build It
 
 ### Step 1: the causal mask
 

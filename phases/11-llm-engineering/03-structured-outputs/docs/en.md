@@ -198,6 +198,11 @@ Even with schema enforcement, structured outputs can fail in subtle ways.
 > **可选字段遗漏**：模型省略了技术上可选但语义上对你的用例很重要的字段。即使数据有时缺失，也在 schema 中将它们设为必需——强制模型显式产生 `null`。
 
 ## Build It | 动手实现
+```figure
+mx-schema-funnel
+```
+
+## Build It
 
 ### Step 1: JSON Schema Validator
 

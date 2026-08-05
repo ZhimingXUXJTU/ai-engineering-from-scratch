@@ -3,6 +3,10 @@
 > The 2026 inference market is no longer GPU time rental. It bifurcates into custom silicon (Groq, Cerebras, SambaNova), GPU platforms (Baseten, Together, Fireworks, Modal), and API-first marketplaces (Replicate, DeepInfra). Fireworks raised price $1/hr per GPU on May 1, 2026, and $4B valuation on 10T+ tokens/day tells you the volume-driven model works. Baseten closed $300M Series E at $5B in January 2026. The competitive positioning rule is simple: Fireworks optimizes latency, Together optimizes catalog breadth, Baseten optimizes enterprise polish, Modal optimizes Python-native DX, Replicate optimizes multimodal reach, Anyscale optimizes distributed Python. This lesson gives you a matrix you can hand a founder.
 
 > **【中文解读】** 本节介绍了推理平台经济学——LLM 推理服务的成本结构、定价模型和经济学分析。
+**Type:** Learn
+**Languages:** Python (stdlib, toy per-call economics comparator)
+**Prerequisites:** Phase 17 · 01 (Managed LLM Platforms), Phase 17 · 04 (Serving Engine Internals)
+**Time:** ~60 minutes
 
 
 **Type:** Learn | **类型:** 学习
@@ -157,6 +161,11 @@ Every platform above vLLM and SGLang claims a custom engine. FireAttention, RayT
   中文翻译：持续利用率超过约 30% 时按分钟优于按 token。
 
 ## Use It | 用框架实现
+```figure
+cost-per-token
+```
+
+## Use It
 
 `code/main.py` compares the six vendors on a synthetic workload across pricing models. Reports $/day and effective $/M tokens. Run it to find the break-even between per-token and per-minute.
 

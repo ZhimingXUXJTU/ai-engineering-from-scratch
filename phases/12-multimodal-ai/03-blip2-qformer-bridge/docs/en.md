@@ -161,6 +161,11 @@ All four are valid. The deciding question is whether you are constrained on toke
 > 四种方案都有效。决定性问题是你的约束是 token 预算还是每个 token 的质量。
 
 ## Use It | 用框架实现
+```figure
+modality-projection
+```
+
+## Use It
 
 `code/main.py` builds a stdlib Q-Former-style cross-attention:
 

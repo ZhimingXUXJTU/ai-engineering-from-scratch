@@ -217,6 +217,33 @@ Typical values: `max_norm=1.0` for transformers, `max_norm=0.5` for RL, `max_nor
 ## Build It | 动手实现
 
 ### Step 1: Demonstrate floating point precision limits | 第1步：演示浮点精度限制
+**Bug: Validation accuracy is lower than expected by 1-3%.**
+Cause: mixed precision without proper loss scaling. Gradient underflow silently zeroes out small updates.
+Fix: enable dynamic loss scaling, or switch to bfloat16.
+
+**Bug: Gradient norms are 0.0 for some layers.**
+Cause: dead ReLU neurons (all inputs negative), or float16 underflow.
+Fix: use LeakyReLU or GELU, use gradient scaling, check weight initialization.
+
+**Bug: Model works on one GPU but gives different results on another.**
+Cause: non-deterministic floating point accumulation order. GPU parallel reductions sum in different orders on different hardware, and floating point addition is not associative.
+Fix: accept small differences (1e-6), or set `torch.use_deterministic_algorithms(True)` and accept the speed penalty.
+
+**Bug: `exp()` returns `inf` in loss computation.**
+Cause: raw logits passed to `exp()` without the max-subtraction trick.
+Fix: use `torch.nn.functional.log_softmax()` which implements log-sum-exp internally.
+
+**Bug: Training diverges after switching from float32 to float16.**
+Cause: float16 cannot represent gradient magnitudes below 6e-8 or activations above 65,504.
+Fix: use mixed precision with loss scaling (AMP), or use bfloat16 instead.
+
+```figure
+logsumexp-stability
+```
+
+## Build It
+
+### Step 1: Demonstrate floating point precision limits
 
 ```python
 print("=== Floating Point Precision ===")

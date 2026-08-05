@@ -77,6 +77,11 @@ Drop-in replacement, consistently better. Use it by default.
 > **【拓展：Rainbow DQN 与集成改进】** Rainbow DQN（2017）将 6 种 DQN 改进集成在一起：优先经验回放、Dueling 架构、噪声网络探索、n 步回报、分布式 Q 学习、多步自举。每种改进贡献几个百分点的性能提升，组合起来效果显著。这种"增量集成"思路在 LLM 训练中也有体现——数据质量、训练策略、架构改进的效果通常是叠加的。
 
 ## Build It | 动手实现
+```figure
+f3-dqn-stability
+```
+
+## Build It
 
 The code here is stdlib-only numpy-free — we use a hand-rolled single-hidden-layer MLP on a tiny continuous GridWorld, so every training step runs in microseconds. The algorithm is identical to Atari DQN at scale.
 

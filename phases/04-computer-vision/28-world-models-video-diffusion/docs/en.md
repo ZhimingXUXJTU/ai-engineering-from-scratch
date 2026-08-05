@@ -166,6 +166,11 @@ This replaces reward shaping and sample-heavy RL. The world model does the imagi
 
 
 ## Build It | 动手实现
+```figure
+v4-world-rollout
+```
+
+## Build It
 
 ### Step 1: 3D patchify for video
 

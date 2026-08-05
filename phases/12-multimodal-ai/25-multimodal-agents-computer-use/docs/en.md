@@ -229,6 +229,11 @@ The lesson provides scaffold code that is easy to extend into a real browser.
 > 课程提供脚手架代码，易于扩展到真实浏览器。
 
 ## Use It | 用框架实现
+```figure
+mm-agent-loop
+```
+
+## Use It
 
 `code/main.py` is the capstone scaffold:
 

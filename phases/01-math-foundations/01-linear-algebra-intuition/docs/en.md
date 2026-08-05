@@ -260,6 +260,11 @@ This is how QR decomposition works internally. Q is the orthonormal basis, R cap
 > - 最小二乘回归的标准数值解法
 
 ## Build It | 动手实现
+```figure
+eigen-directions
+```
+
+## Build It
 
 ### Step 1: Vectors from scratch (Python) | 第1步：从零实现向量
 

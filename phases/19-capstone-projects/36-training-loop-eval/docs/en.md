@@ -106,6 +106,11 @@ A model whose training loss drops nicely but whose generated samples are all the
 
 
 ## Build It | 动手构建
+```figure
+cap-training-loop
+```
+
+## Build It
 
 `code/main.py` implements:
 

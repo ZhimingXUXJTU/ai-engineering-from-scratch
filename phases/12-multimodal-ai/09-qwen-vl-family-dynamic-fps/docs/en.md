@@ -134,6 +134,11 @@ Qwen2.5-VL's agent training explicitly targets structured tool calls:
 Parsing is deterministic: JSON.parse over the model's output. Compare to free-form "click at (1024, 512)" which required regex and ambiguity handling. The shift is why Qwen2.5-VL's ScreenSpot scores jumped from Qwen2-VL's 55% to 84%.
 
 > **【中文解读】** 结构化输出让 VLM 可以直接发出可解析的工具调用（如点击坐标），无需正则表达式。这是 ScreenSpot 精度从 55% 跳到 84% 的关键原因。
+```figure
+mm-mrope-axes
+```
+
+## Use It
 
 ## Use It  | 动手实践
 

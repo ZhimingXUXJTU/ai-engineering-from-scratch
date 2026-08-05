@@ -408,6 +408,11 @@ The best prompts are model-agnostic. They work on GPT-5, Claude Opus 4.7, Gemini
    包含 2-3 个少样本示例——它们比纯指令更好地跨模型迁移
 
 ## Build It | 动手实现
+```figure
+cot-decomposition
+```
+
+## Build It
 
 ### Step 1: Prompt Template Library
 
@@ -630,15 +635,15 @@ MODEL_CONFIGS = {
     },
     "claude-3.5-sonnet": {
         "provider": "anthropic",
-        "model": "claude-3-5-sonnet-20241022",
+        "model": "claude-sonnet-5",
         "max_tokens": 2048,
-        "context_window": 200_000,
+        "context_window": 1_000_000,
     },
     "gemini-1.5-pro": {
         "provider": "google",
-        "model": "gemini-1.5-pro",
+        "model": "gemini-2.5-pro",
         "max_tokens": 2048,
-        "context_window": 2_000_000,
+        "context_window": 1_000_000,
     },
 }
 
@@ -1088,6 +1093,7 @@ Gemini processes system instructions as part of the model configuration, not as 
 > Gemini 将系统指令作为模型配置的一部分处理，而不是作为消息。2M token 的上下文窗口意味着你可以包含在 GPT-4o 或 Claude 中放不下的大量少样本示例集。
 
 ### LangChain: Provider-Agnostic Prompts
+### Provider-Agnostic Prompt Templates
 
 > LangChain：与提供商无关的提示。
 

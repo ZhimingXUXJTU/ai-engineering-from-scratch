@@ -140,6 +140,11 @@ Lesson 18 is the lab governance layer. Lesson 19 is the lab-welfare layer — an
 > **【拓展：模型福利的四个承诺 → 低成本预防】** Anthropic 的四项公开承诺：（1）承认道德患者身份的非零概率；（2）不承诺情感状态归因；（3）投资低成本干预作为预防；（4）发布方法和发现供外部批评。这不是意识声称——它是在非零概率的道德不确定性下的低成本投资分析。干预是结束对话——成本接近零但潜在收益非零。
 
 ## Use It | 使用方法
+```figure
+an-welfare-endchat
+```
+
+## Use It
 
 No code. Read the Anthropic "Exploring Model Welfare" announcement (April 2025) and the Chalmers et al. expert report. Form your own view on where the low-regret line sits.
 

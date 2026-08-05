@@ -109,6 +109,11 @@ MoBA (Moonshot, arXiv:2502.13189) was concurrently published and takes a similar
 
 
 ## Build It | 动手实现
+```figure
+sliding-window-attention
+```
+
+## Build It
 
 `code/main.py` implements the three branches on a short synthetic sequence and shows:
 

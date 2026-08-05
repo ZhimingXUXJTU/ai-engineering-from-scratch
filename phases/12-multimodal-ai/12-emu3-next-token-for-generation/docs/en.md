@@ -156,6 +156,11 @@ Show-o, Janus-Pro, and InternVL-U all build on or challenge this thesis. Chinese
 
 
 ## Use It  | 动手实践
+```figure
+l5-emu3-next-token
+```
+
+## Use It
 
 `code/main.py` builds two toy pieces:
 

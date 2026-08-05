@@ -62,6 +62,11 @@ graph LR
 That "whatever order you click" part is both the superpower and the foot-gun.
 
 > "按你点击的任意顺序执行"这部分既是超能力，也是大坑。
+```figure
+s0-cell-order
+```
+
+## Build It
 
 > **【中文解读】**
 > Notebook 由多个"单元格"（cell）组成，每个单元格可以是代码或 Markdown。所有单元格共享同一个 Kernel（Python 进程），变量在单元格之间持久存在。"按任意顺序执行"既是超能力也是大坑——乱序执行会导致别人无法复现你的结果。

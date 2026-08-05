@@ -151,6 +151,11 @@ Every role in your system is an LLM and every role's output is "looks good to me
   中文翻译：**OpenAI Agents SDK** — 角色专业化 Agent 之间的交接工具。
 
 ## Build It | 动手实现
+```figure
+swarm-roles
+```
+
+## Build It
 
 `code/main.py` implements a 4-role pipeline building a simple Python function:
 

@@ -26,6 +26,10 @@
 - Surface a per-iteration trace with branch scores, slot occupancy, and pruning decisions.
   中文翻译：Surface a per-iteration trace with branch scores, slot occupancy, and pruning decisions.
 
+```figure
+ch-ucb-scheduler
+```
+
 ## Why a scheduler, not a worklist
 
 > **【中文解读】** 平面工作列表按提交顺序运行作业，但研究不是独立的——实验三的结果改变了实验四五的优先级。调度器读取结果扇入并重排队列，每单位计算获得更多有用工作。核心设计选择是评分规则：贪婪评分者永远选择当前领导者不探索；均匀评分者永远不利用。UCB（Upper Confidence Bound）是中间路径：利用领导者同时为尝试较少的分支保留容量。

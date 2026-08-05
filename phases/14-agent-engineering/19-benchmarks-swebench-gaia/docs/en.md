@@ -115,6 +115,11 @@ GAIA is what you run to measure "generalist capability." Do not confuse with cod
 > **基准作为开发目标。** 为基准优化会偏离生产实用性。
 
 ## Build It | 动手实现
+```figure
+ae-swebench-gate
+```
+
+## Build It
 
 `code/main.py` implements a toy SWE-bench-like harness:
 

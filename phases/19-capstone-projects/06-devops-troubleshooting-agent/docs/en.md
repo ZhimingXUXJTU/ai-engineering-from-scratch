@@ -101,6 +101,11 @@ PagerDuty / Alertmanager webhook
 > **【中文解读】** 构建 9 个阶段：图数据库摄入、告警接收器、只读工具面、根因 Agent、证据评分、Slack 简报、修复门控、审计日志和合成故障场景集。关键设计决策：破坏性工具（scale down、rollback、delete）放在独立的 MCP 服务器后，需要审批 token 才能调用——Agent 永远不持有该 token。
 
 > **【拓展：合成故障场景在 SRE 训练中的价值】** 本课的 20 个合成故障场景（OOMKill 级联、DNS 抖动、HPA 震荡、PVC 填满、吵闹邻居等）是 SRE Agent 的"单元测试"。Google 的 SRE 书籍强调"Game Day"演练的重要性——在受控环境中模拟故障以验证响应流程。本课的合成场景集是自动化的 Game Day，使 Agent 的诊断能力可以量化评估。
+```figure
+ce-rootcause-walk
+```
+
+## Build It
 
 1. **Graph ingestion.** Sync kube-state-metrics into Neo4j/kuzu every 30s. Nodes: Pod, Deployment, Node, Service, PVC, HPA. Edges: OWNED_BY, SCHEDULED_ON, EXPOSES, MOUNTS, SCALES. Telemetry overlay edges: OBSERVED_BY (a Pod is observed by a Prometheus series).
    中文翻译：1. **Graph ingestion.** Sync kube-state-metrics into Neo4j/kuzu every 30s. Nodes: Pod, Deployment, Node, Service, PVC, HPA. Edges: OWNED_BY, SCHEDULED_ON, EXPOSES, MOUNTS, SCALES. Telemetry overlay edges: OBSERVED_BY (a Pod is observed by a Prometheus series).

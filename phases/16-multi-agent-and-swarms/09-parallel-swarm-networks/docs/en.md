@@ -92,6 +92,7 @@ Contribution: a programming model where multi-agent coordination is "what messag
 > 贡献：一个编程模型，多 Agent 协调是"这个 Agent 订阅什么消息主题？"而不是"监督者下一个选择哪个 Agent？"这使系统看起来像一个发布/订阅事件网格。
 
 ### LangGraph's Swarm Architecture
+### Swarm in graph frameworks
 
 LangGraph 2025 docs explicitly describe "Swarm Architecture" as one of the multi-agent patterns: agents are nodes, but edges form a directed graph with cycles and any node can be activated from the pool. A worker picks from available work by condition, not by supervisor assignment.
 
@@ -130,6 +131,11 @@ Content-based routing plus swarm gives you the pub/sub event mesh: a substrate w
 > 基于内容的路由加群体给你发布/订阅事件网格：一个任何 Agent 可以发布任何消息类型且只有感兴趣的 Agent 接收它的底层。这是 Matrix、CA-MCP 和大多数 2026 年生产多 Agent 系统的基础。
 
 ## Build It | 动手实现
+```figure
+sw-work-stealing
+```
+
+## Build It
 
 `code/main.py` implements a swarm of 4 worker threads pulling from a shared `queue.Queue`. Tasks have variable durations (some fast, some slow). The demo contrasts:
 

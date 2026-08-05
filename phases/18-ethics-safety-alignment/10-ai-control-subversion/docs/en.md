@@ -129,6 +129,11 @@ Lessons 6-9 describe the threat (deception is possible). Lesson 10 describes the
 > **【拓展：控制安全案例 → UK AISI 合作】** 2025 年 UK AISI 和 Redwood 合作开展控制安全案例——在关于 U 的最坏情况假设下，论证协议限制了不可接受结果的概率。安全案例（Lesson 18）继承了控制框架。控制四轴：U 扮演什么角色、T 扮演什么角色、H 如何分配、协议在抗共谋上花费多少计算。
 
 ## Use It | 用框架实现
+```figure
+al-control-protocol
+```
+
+## Use It
 
 `code/main.py` simulates the four protocols on a toy backdoor task. U produces outputs; a fraction are backdoored (red-team policy). T approves or edits. H is called on a budget. You can sweep the budget and the collusion parameter to reproduce the Pareto frontier in Greenblatt et al. 2024 Figure 2 (shape, not numbers).
 

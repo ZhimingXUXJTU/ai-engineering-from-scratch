@@ -226,6 +226,11 @@ flowchart TD
 > **【中文解读】** 选择经验：回归用 MSE/Huber，二分类用 BCE，多分类用 CCE，不平衡用 Focal Loss，学嵌入用对比损失。
 
 ## Build It | 动手构建
+```figure
+cross-entropy-loss
+```
+
+## Build It
 
 ### Step 1: MSE and Its Gradient | MSE 及其梯度
 

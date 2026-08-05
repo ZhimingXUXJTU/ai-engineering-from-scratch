@@ -174,6 +174,11 @@ More features is not always better. Irrelevant features add noise, increase trai
 
 > **【中文解读】**
 > 从零实现常见特征变换：标准化（零均值单位方差）、Min-Max 归一化（缩放到 0-1）、对数变换（处理长尾分布）、分箱（连续值离散化）。每种变换适用于不同场景——对数变换适合收入等右偏分布，标准化适合 KNN/SVM 等距离敏感算法。
+```figure
+feature-scaling
+```
+
+## Build It
 
 ### Step 1: Numerical transforms from scratch
 

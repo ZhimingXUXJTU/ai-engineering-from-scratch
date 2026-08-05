@@ -125,6 +125,11 @@ PSO and ACO need only an *evaluator* function. If you can score a candidate outp
 - **Catastrophic drift.** Both algorithms can converge and then diverge if fitness landscape shifts (new data distribution). Monitor best-fitness stability.
 
 ## Build It | 动手构建
+```figure
+swarm-stigmergy
+```
+
+## Build It
 
 `code/main.py` implements:
 

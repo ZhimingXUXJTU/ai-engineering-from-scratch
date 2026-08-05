@@ -156,6 +156,11 @@ All four must pass for the edit to land. Any single failure pauses the loop.
 > 全部四个必须通过编辑才能落地。任一失败暂停循环。
 
 ## Use It | 用框架实现
+```figure
+bounded-gates
+```
+
+## Use It
 
 `code/main.py` runs a bounded self-improvement loop on the DGM-style toy from Lesson 4, but with the four primitives layered on top. Each primitive can be enabled or disabled individually. The demonstration is that each primitive catches a specific failure class, and that removing any one of them lets that failure class through.
 

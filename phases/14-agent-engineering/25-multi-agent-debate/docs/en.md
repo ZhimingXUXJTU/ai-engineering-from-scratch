@@ -94,6 +94,11 @@ Implications:
 ## Build It | 动手实现
 
 > ⚠️ **【易错点】** 场景：开发者用同一个 prompt 起了 5 个 debater 实例期待"多样化观点" → 后果：5 个实例给出几乎一样的答案（甚至一样的错误），辩论沦为 N 倍成本的 Self-Refine，这叫 "prompt homogenization" → 修复：要么用不同模型（GPT-4o + Claude + Gemini，异构带来真分歧），要么给每个 debater 不同角色 prompt（"你是怀疑论者""你是乐观派""你是细节核查员"），要么至少随机化 temperature。论文里 ChatGPT + Bard 组合胜过单模型就是这个道理。
+```figure
+debate-converge
+```
+
+## Build It
 
 `code/main.py` implements stdlib debate:
 

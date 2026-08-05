@@ -93,6 +93,11 @@ Keep a standard unconditional diffusion model. At each reverse step, resample �
 > 保持标准无条件扩散模型。在每个反向步偶尔重采样——跳回更噪的状态重新生成。避免边界伪影。
 
 ## Build It | 动手实现
+```figure
+inpaint-mask-reinject
+```
+
+## Build It
 
 `code/main.py` implements a toy 1-D inpainting scheme on 5-dimensional data. We train a DDPM on 5-D mixture data where each sample is 5 floats from one of two clusters. At inference, we "mask" 2 of the 5 dimensions, inject the noisy-forward version of the unmasked three at each step, and regenerate only the masked dimensions.
 

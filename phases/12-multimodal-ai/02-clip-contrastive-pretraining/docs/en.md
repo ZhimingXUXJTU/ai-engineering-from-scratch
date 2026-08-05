@@ -190,6 +190,11 @@ CLIP-class models cap around 76% ImageNet zero-shot (CLIP-G, OpenCLIP-G). Beyond
 > 🤔 **【困惑】** 学完本节还会问：1) 为什么 CLIP 的 zero-shot 不能像 GPT-4 那样理解"图中两个人在做什么"？— CLIP 只学到了"图文匹配"，没有学到细粒度的关系推理，那是 VLM（如 LLaVA）的工作。2) 真要部署该用 CLIP 还是 SigLIP 2？— 2026 年默认 SigLIP 2（多语言、NaFlex、更准），除非要做 LAION 数据的检索任务。
 
 ## Use It | 用框架实现
+```figure
+multimodal-fusion
+```
+
+## Use It
 
 `code/main.py` implements:
 

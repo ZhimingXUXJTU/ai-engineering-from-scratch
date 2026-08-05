@@ -103,6 +103,11 @@ The schedule is half of training health. The gradient norm is the other half. Th
 
 
 ## Build It | 动手构建
+```figure
+cap-cosine-warmup
+```
+
+## Build It
 
 `code/main.py` implements:
 

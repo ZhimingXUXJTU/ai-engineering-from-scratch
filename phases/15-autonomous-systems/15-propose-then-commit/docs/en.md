@@ -131,6 +131,11 @@ Article 14 mandates effective human oversight for high-risk AI systems in the EU
 > 第 14 条强制 EU 高风险 AI 系统的有效人类监督。"有效"不是装饰性。监管语言明确排除橡皮章模式。带挑战-响应的 propose-then-commit 是在 Microsoft Agent Governance Toolkit 合规文档中通过第 14 条审查的形态。
 
 ## Use It | 用框架实现
+```figure
+mx-propose-then-commit
+```
+
+## Use It
 
 `code/main.py` implements a propose-then-commit state machine in stdlib Python. Durable store is a JSON file. Idempotency key is a hash of (thread_id, action_signature). The driver simulates three cases: a clean approval flow, a retry after transient failure (which must not double-execute), and a rubber-stamp default versus a challenge-and-response flow.
 

@@ -1,6 +1,7 @@
 # AutoGen v0.4: Actor Model and Agent Framework | AutoGen v0.4：Actor 模型与 Agent 框架
+# The Actor Model for Agents — Async Messages and Typed Runtimes
 
-> AutoGen v0.4 (Microsoft Research, Jan 2025) redesigned agent orchestration around the actor model. Async message exchange, event-driven agents, fault isolation, natural concurrency. The framework is now in maintenance mode while Microsoft Agent Framework (public preview Oct 2025) becomes the successor.
+> Agents as actors: async message exchange, event-driven handlers, fault isolation, natural concurrency. AutoGen v0.4 (Microsoft Research, Jan 2025) redesigned agent orchestration around this model; the framework is now in maintenance mode, with Microsoft Agent Framework (public preview Oct 2025) as its production successor.
 
 > **【中文解读】** AutoGen v0.4（微软研究院，2025 年 1 月）围绕 Actor 模型重新设计了 Agent 编排。异步消息交换、事件驱动 Agent、故障隔离、天然并发。该框架目前处于维护模式，Microsoft Agent Framework（2025 年 10 月公开预览）成为继任者。
 
@@ -58,6 +59,9 @@ Two actors cannot share memory. They can only send messages.
 > 两个 Actor 不能共享内存。它们只能发送消息。
 
 ### Three API layers in AutoGen v0.4
+### Three API layers
+
+AutoGen v0.4 splits its surface into three:
 
 1. **Core.** Low-level actor framework. `AgentRuntime`, `Agent`, `Message`, `Topic`. Async message exchange, event-driven.
    中文翻译：**Core。** 底层 Actor 框架。`AgentRuntime`、`Agent`、`Message`、`Topic`。异步消息交换，事件驱动。
@@ -98,7 +102,11 @@ OpenTelemetry support is built in. Every message emits a span; tool calls carry 
 
 ### Status: maintenance mode
 
-Early 2026: AutoGen v0.7.x is stable for research and prototyping. Microsoft has shifted active development to the Microsoft Agent Framework (public preview Oct 1 2025; 1.0 GA targeted end of Q1 2026). AutoGen patterns port forward cleanly — the actor model is the durable idea.
+Early 2026: AutoGen v0.7.x is stable for research and prototyping. Microsoft has shifted active development to the Microsoft Agent Framework, the production successor (public preview Oct 1 2025; 1.0 GA was targeted for end of Q1 2026). AutoGen patterns port forward cleanly — the actor model is the durable idea.
+
+```figure
+actor-mailbox
+```
 
 > 🤔 **【困惑】** Q: AutoGen 已经进入维护模式了，我还该学吗？ A: 学"Actor 模型"这一节思想，但**别在生产上选 AutoGen**。原因：(1) 微软已转向 Microsoft Agent Framework（MAF），AutoGen 不再获得新特性；(2) Actor 模型本身是个**经久不衰的分布式设计思想**（来自 1973 年 Hewitt 论文，比 LLM 老 50 年），理解它对你评估 MAF、Erlang、Akka、Ray 都有帮助。把 AutoGen 当"教材"，把 MAF 或 LangGraph 当"生产工具"。
 
@@ -137,6 +145,7 @@ The trace shows message delivery, a simulated failure in one actor that does not
   中文翻译：**AutoGen v0.4/v0.7**（维护中）——研究、原型、多 Agent 模式稳定。
 - **Microsoft Agent Framework** (public preview) — the forward path; same actor-model ideas in a refreshed API.
   中文翻译：**Microsoft Agent Framework**（公开预览）——前进方向；在更新的 API 中体现相同的 Actor 模型理念。
+- **Microsoft Agent Framework** — the production successor (public preview Oct 2025); same actor-model ideas in a refreshed API.
 - **LangGraph swarm topology** (Lesson 13) — similar pattern via shared-tool handoffs.
   中文翻译：**LangGraph 群体拓扑**（第 13 课）——通过共享工具移交的类似模式。
 - **Custom actor runtime** — when you need specific transport (NATS, RabbitMQ, gRPC).

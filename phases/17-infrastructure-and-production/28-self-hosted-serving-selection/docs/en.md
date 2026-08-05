@@ -1,6 +1,7 @@
 # Self-Hosted Serving Selection — llama.cpp, Ollama, TGI, vLLM, SGLang | 自托管 选择 服务 SGLang vLLM
+# Self-Hosted Serving Selection — Matching Engine to Hardware and Scale
 
-> Four engines dominate self-hosted inference in 2026. Pick based on hardware, scale, and ecosystem. **llama.cpp** is fastest on CPU — widest model support, full control over quantization and threading. **Ollama** is the dev-laptop one-command install, ~15-30% slower than llama.cpp (Go + CGo + HTTP serialization), 3x throughput gap under prod-like load. **TGI entered maintenance mode December 11, 2025** — only bug fixes, ~10% slower raw throughput than vLLM but historically top observability and HF-ecosystem integration. That maintenance status makes it a risky long-term bet — SGLang or vLLM are safer defaults for new projects. **vLLM** is the general-purpose production default — v0.15.1 (February 2026) adds PyTorch 2.10, RTX Blackwell SM120, H200 optimization. **SGLang** is the agentic multi-turn / prefix-heavy specialist — 400,000+ GPUs in production (xAI, LinkedIn, Cursor, Oracle, GCP, Azure, AWS). Hardware constraints: CPU-only → llama.cpp only. AMD / non-NVIDIA → vLLM only (TRT-LLM is NVIDIA-locked). 2026 pipeline pattern: dev = Ollama, staging = llama.cpp, prod = vLLM or SGLang. Same GGUF/HF weights throughout.
+> Engine selection is a function of hardware, scale, and ecosystem — not a leaderboard read. Four engines dominate self-hosted inference in 2026: llama.cpp, Ollama, vLLM, SGLang, with TGI trailing in maintenance mode. **llama.cpp** is fastest on CPU — widest model support, full control over quantization and threading. **Ollama** is the dev-laptop one-command install, ~15-30% slower than llama.cpp (Go + CGo + HTTP serialization), 3x throughput gap under prod-like load. **TGI entered maintenance mode December 11, 2025** — only bug fixes, ~10% slower raw throughput than vLLM but historically top observability and HF-ecosystem integration. That maintenance status makes it a risky long-term bet — SGLang or vLLM are safer defaults for new projects. **vLLM** is the general-purpose production default — v0.15.1 (February 2026) adds PyTorch 2.10, RTX Blackwell SM120, H200 optimization. **SGLang** is the agentic multi-turn / prefix-heavy specialist — 400,000+ GPUs in production (xAI, LinkedIn, Cursor, Oracle, GCP, Azure, AWS). Hardware constraints: CPU-first → llama.cpp. AMD / non-NVIDIA → vLLM is the strongest-supported path (TRT-LLM is NVIDIA-locked). 2026 pipeline pattern: dev = Ollama, staging = llama.cpp, prod = vLLM or SGLang. The engines take different weight formats — GGUF for the llama.cpp family, HF safetensors for the GPU engines — so a format conversion may sit between stages.
 
 > **【中文解读】** 本节介绍了自托管推理服务选型——vLLM、TGI、llama.cpp 等框架的对比和选择。
 
@@ -28,6 +29,8 @@
 ## The Problem | 问题引入
 
 > **【中文解读】** 自托管推理引擎的选择取决于三个维度：硬件（CPU / AMD / NVIDIA Hopper / Blackwell）、规模（1 用户 / 100 / 10,000）、工作负载（通用聊天 / Agent / 长上下文）。2025 年 12 月 11 日 HuggingFace TGI 进入维护模式（仅 bug fix），这使得新项目应默认远离 TGI，转向 vLLM 或 SGLang。2026 年的流水线模式是：开发用 Ollama，预发布用 llama.cpp，生产用 vLLM 或 SGLang——全程使用相同的 GGUF/HF 权重。
+- Describe the dev/staging/prod pipeline, including where a GGUF-to-safetensors format conversion sits between stages.
+- Explain why "CPU-first" points to llama.cpp and "AMD" excludes TRT-LLM.
 
 > **【拓展：2026 年推理引擎选择决策】** 2026 年推理引擎的硬件优先决策树：(1) CPU-only → llama.cpp（唯一有竞争力的选项）；(2) AMD GPU → vLLM（ROCm 支持），TRT-LLM 不支持 AMD；(3) NVIDIA Hopper → vLLM 或 SGLang 或 TRT-LLM（三选一）；(4) NVIDIA Blackwell → TRT-LLM 吞吐最高；(5) Apple Silicon → llama.cpp（Metal 后端）。规模决策：1 用户→Ollama，10-100→vLLM 单 GPU，100-10K→vLLM production-stack 或 SGLang，10K+→production-stack + 分离式 + LMCache。
 
@@ -49,9 +52,9 @@ In 2026 the choice tree matters: hardware first, scale second, workload third. A
 
 ### Hardware-first decision
 
-**CPU only** → llama.cpp. Ollama works too but is slower. No other engine is competitive on CPU.
+**CPU-first** → llama.cpp. Ollama works too but is slower. No other engine is competitive on CPU.
 
-**AMD GPU** → vLLM (AMD ROCm support). SGLang also works. TRT-LLM is NVIDIA-locked, so it's out.
+**AMD GPU** → vLLM is the strongest-supported path (AMD ROCm support). SGLang also works. TRT-LLM is NVIDIA-locked, so it's out.
 
 **NVIDIA Hopper (H100 / H200)** → vLLM or SGLang or TRT-LLM. All three top-tier.
 
@@ -93,7 +96,7 @@ For new projects in 2026: default away from TGI. Existing TGI deployments can co
 
 ### The pipeline pattern
 
-Dev (Ollama) → staging (llama.cpp) → prod (vLLM). Same GGUF or HF weights throughout. Engineers iterate quickly on laptops; staging mirrors production quantization; prod is the serving target.
+Dev (Ollama) → staging (llama.cpp) → prod (vLLM). The engines take different weight formats — GGUF for the llama.cpp family, HF safetensors for the GPU engines — so a format conversion may sit between stages. Engineers iterate quickly on laptops; staging mirrors production quantization; prod is the serving target.
 
 ### Ollama caveat
 
@@ -111,6 +114,11 @@ Phase 17 · 01 (managed hyperscalers), · 02 (inference platforms) cover managed
 - Ollama throughput gap vs llama.cpp: 15-30% slower; 3x under prod load.
 
 ## Use It | 用框架实现
+```figure
+data-parallel
+```
+
+## Use It
 
 `code/main.py` is a decision-tree walker: given hardware + scale + workload, picks an engine and explains why.
 
@@ -148,7 +156,7 @@ This lesson produces `outputs/skill-engine-picker.md`. Given constraints, picks 
 | TRT-LLM | "NVIDIA-locked" | Blackwell throughput leader, NVIDIA only |
 | GGUF | "llama.cpp format" | Bundled K-quant variants |
 | Production-stack | "vLLM K8s" | Phase 17 · 18 reference deployment |
-| Pipeline pattern | "dev→stage→prod" | Ollama → llama.cpp → vLLM on same weights |
+| Pipeline pattern | "dev→stage→prod" | Ollama → llama.cpp → vLLM; weight formats differ per engine |
 
 ## Further Reading | 延伸阅读
 

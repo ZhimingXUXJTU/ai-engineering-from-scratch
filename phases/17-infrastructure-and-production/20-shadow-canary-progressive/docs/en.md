@@ -112,6 +112,11 @@ If the new model is distinctly different (different behavior, different cost cur
 - Rollback: seconds, not hours.
 
 ## Use It | 用框架实现
+```figure
+i4-canary-ramp
+```
+
+## Use It
 
 `code/main.py` simulates a canary rollout with injected regressions. Reports which stage the rollout halts at and which gate triggered.
 

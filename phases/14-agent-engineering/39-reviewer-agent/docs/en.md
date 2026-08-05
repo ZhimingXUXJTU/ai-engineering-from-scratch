@@ -79,6 +79,11 @@ The gate (Phase 14 · 38) checks deterministic facts: did acceptance run, did ru
 > 审查者 Agent（Reviewer Agent）专门审查其他 Agent 的输出。它从质量、安全、合规等维度评估工作成果，确保输出符合标准。
 
 ## Build It | 动手实现
+```figure
+wb-builder-marker
+```
+
+## Build It
 
 `code/main.py` implements:
 
@@ -160,6 +165,8 @@ The reviewer is the second pair of eyes the workbench grows when humans cannot d
   中文翻译：见原文。
 - [Anthropic Claude Code subagents](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sub-agents)
   中文翻译：见原文。
+- [OpenAI Agents SDK handoffs](https://openai.github.io/openai-agents-python/handoffs/)
+- [Anthropic Claude Code subagents](https://code.claude.com/docs/en/sub-agents)
 - [Cloudflare, Orchestrating AI Code Review at Scale](https://blog.cloudflare.com/ai-code-review/) — 7-specialist + coordinator architecture, 131k runs / 30 days
   中文翻译：见原文。
 - [Agent-as-a-Judge: Evaluating Agents with Agents (OpenReview / ICLR)](https://openreview.net/forum?id=DeVm3YUnpj) — DevAI benchmark, 366 hierarchical solution requirements

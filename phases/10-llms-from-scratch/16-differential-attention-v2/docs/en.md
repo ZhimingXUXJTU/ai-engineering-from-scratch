@@ -120,6 +120,11 @@ The value grows with context length. At 4k tokens the noise floor is small enoug
 
 
 ## Build It | 动手实现
+```figure
+differential-attention
+```
+
+## Build It
 
 `code/main.py` implements differential attention in pure Python. A toy query with known signal-plus-noise structure lets you measure the noise-cancellation ratio directly.
 

@@ -78,6 +78,11 @@ Lower variance than SARSA (no sample of `a'`), same on-policy target. Often the 
 > **【拓展：TD 误差在 LLM RLHF 中的对应】** TD 误差 δ = r + γV(s') - V(s) 在 LLM 的 RLHF 训练中有直接对应：PPO 的优势函数 A = r + γV(s') - V(s) 就是 TD 误差的变体。每生成一个 token，计算当前 token 的奖励（来自 RM）加上 critic 对未来价值的估计减去当前估计。理解 TD 误差是理解 PPO 优势函数的关键。
 
 ## Build It | 动手实现
+```figure
+qlearning-gridworld
+```
+
+## Build It
 
 ### Step 1: SARSA on ε-greedy policy
 

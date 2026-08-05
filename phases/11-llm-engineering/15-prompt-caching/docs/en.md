@@ -82,6 +82,11 @@ Anthropic's 25% write premium means a cached block has to be read at least twice
 > Anthropic 的 25% 写入溢价意味着缓存块必须被读取至少两次才能净省钱。经验法则：缓存任何你期望在 TTL 内重用至少 3 次的内容。
 
 ## Build It | 动手实现
+```figure
+prompt-cache-hit
+```
+
+## Build It
 
 ### Step 1: Anthropic prompt caching with explicit markers
 

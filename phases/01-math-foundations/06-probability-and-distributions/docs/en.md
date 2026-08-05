@@ -342,6 +342,11 @@ Sampling from arbitrary distributions requires techniques like inverse transform
 > 从任意分布中采样需要逆变换采样、拒绝采样或重参数化技巧（VAE 中使用）等技术。
 
 ## Build It | 动手实现
+```figure
+gaussian-pdf
+```
+
+## Build It
 
 ### Step 1: Probability basics
 

@@ -3,6 +3,10 @@
 > Prefill is compute-bound; decode is memory-bound. Running both on the same GPU wastes one resource. Disaggregation splits them onto separate pools and transfers KV cache between them over NIXL (RDMA/InfiniBand or TCP fallback). NVIDIA Dynamo (GTC 2025 announce, 1.0 GA) sits above vLLM/SGLang/TRT-LLM — its Planner Profiler + SLA Planner auto-rate-match prefill:decode ratios to meet SLOs. NVIDIA publishes throughput gains in this ballpark — developer.nvidia.com (2025-06) shows a ~6x improvement for DeepSeek-R1 MoE on GB200 NVL72 + Dynamo in the medium-latency regime, and the Dynamo product page (developer.nvidia.com, undated) advertises up to 50x MoE throughput on GB300 NVL72 + Dynamo vs Hopper. The "30x" figure is a community aggregate across full-stack Blackwell + Dynamo + DeepSeek-R1 reports; we have not found a single primary source stating exactly 30x, so treat it as a directional claim. llm-d (Red Hat + AWS) is Kubernetes-native: prefill / decode / router as independent Services with per-role HPA. llm-d 0.5 adds hierarchical KV offloading, cache-aware LoRA routing, UCCL networking, scale-to-zero. Economics: internal rollup of multiple customer disclosures suggests 30–40% savings on $2M-class inference spend (i.e., $600-800K/year) when switching from colocated serving to disaggregated with Dynamo at constant SLA; the specific $2M→$600-800K figure is an internal composite, not a single published case study — use it as an order-of-magnitude anchor, not a reference citation. Short prompts (<512 tokens, short output) don't justify the transfer cost.
 
 > **【中文解读】** 本节介绍了分离式预填充/解码——将推理的预填充和解码阶段分离到不同硬件。
+**Type:** Learn
+**Languages:** Python (stdlib, toy disaggregated-vs-colocated simulator)
+**Prerequisites:** Phase 17 · 04 (Serving Engine Internals), Phase 17 · 08 (Inference Metrics)
+**Time:** ~75 minutes
 
 
 **Type:** Learn | **类型:** 学习
@@ -136,6 +140,11 @@ Benchmark numbers drift — NVIDIA and the inference stack post updated results 
 > 分离式架构不适合所有场景：短 prompt（<512 token）+ 短输出的请求不值得 KV transfer 的开销。只有长 prompt + 长输出或大量并发请求时才划算。NVIDIA Dynamo 是 stack-above 方案（在 vLLM/SGLang/TRT-LLM 之上），llm-d 是 Kubernetes 原生方案（prefill/decode/router 作为独立 Service）。
 
 > **【拓展：分离式推理→下一代基础设施】** 分离式推理是 2026 年 LLM 基础设施的前沿方向。NVIDIA 的 GB200 NVL72 机架专门为 prefill/decode 分离设计，NVLink 带宽足够在 GPU 间传输 KV cache。Red Hat 的 llm-d 项目把这个能力带到了 Kubernetes 生态。对于大规模 MoE 模型（如 DeepSeek-V3），分离式推理可以节省 30-40% 的推理成本。
+```figure
+prefill-decode-split
+```
+
+## Use It
 
 `code/main.py` simulates colocated vs disaggregated serving. Reports throughput, cost per request, and the prompt-length crossover.
 

@@ -176,6 +176,11 @@ Every modern framework does this automatically. Understanding it prevents confus
 > 每个现代框架都会自动做广播。理解它可以避免"形状不对但代码能跑"的困惑。
 
 ## Build It | 动手实现
+```figure
+vector-projection
+```
+
+## Build It
 
 ### Step 1: Vector class
 

@@ -1,8 +1,13 @@
 # SGLang and RadixAttention for Prefix-Heavy Workloads | 注意力 SGLang Radix PR
+# Prefix-Cache Serving — RadixAttention and KV Reuse
 
-> SGLang treats the KV cache as a first-class, reusable resource stored in a radix tree. Where vLLM schedules requests FCFS (first-come, first-served), SGLang's cache-aware scheduler prioritizes requests with longer shared prefixes — effectively a depth-first radix traversal so hot branches stay resident in HBM. On Llama 3.1 8B with ShareGPT-like 1K prompts, SGLang hits ~16,200 tok/s to vLLM's ~12,500, a ~29% edge. On prefix-heavy RAG workloads the advantage reaches 6.4x. On voice-cloning-shaped workloads cache hit rate cleared 86%. Deployed on 400,000+ GPUs in 2026 across xAI, LinkedIn, Cursor, Oracle, GCP, Azure, AWS. The gotcha is that the 6.4x number evaporates when prefix ordering is inconsistent — ordering is the engineer's lever.
+> Treat the KV cache as a first-class, reusable resource stored in a radix tree, and scheduling changes with it: instead of FCFS (first-come, first-served) as vLLM schedules, a cache-aware scheduler prioritizes requests with longer shared prefixes — effectively a depth-first radix traversal so hot branches stay resident in HBM. SGLang is the engine that built serving around this idea. On Llama 3.1 8B with ShareGPT-like 1K prompts, SGLang hits ~16,200 tok/s to vLLM's ~12,500, a ~29% edge. On prefix-heavy RAG workloads the advantage reaches 6.4x. On voice-cloning-shaped workloads cache hit rate cleared 86%. Deployed on 400,000+ GPUs in 2026 across xAI, LinkedIn, Cursor, Oracle, GCP, Azure, AWS. The gotcha is that the 6.4x number evaporates when prefix ordering is inconsistent — ordering is the engineer's lever.
 
 > **【中文解读】** 本节介绍了 SGLang 和 RadixAttention——通过前缀共享优化推理效率。
+**Type:** Learn
+**Languages:** Python (stdlib, toy radix-tree cache + cache-aware scheduler)
+**Prerequisites:** Phase 17 · 04 (Serving Engine Internals), Phase 14 (Agentic RAG)
+**Time:** ~75 minutes
 
 
 **Type:** Learn | **类型:** 学习
@@ -150,6 +155,11 @@ The two systems are not strict competitors. In 2026 vLLM added prefix caching (`
 > 两个系统不是严格竞争者。2026 年 vLLM 添加了前缀缓存（`--enable-prefix-caching`）和缓存感知路由器（Rust 实现的 vLLM Router）。差距缩小但未完全消失——SGLang 的整个栈是 radix-first 设计；vLLM 是嫁接上去的。对于前缀复用主导的工作负载，SGLang 仍是默认选择。对于没有强前缀模式的通用服务，vLLM 仍然相当或更好。
 
 ## Use It | 用框架实现
+```figure
+roofline
+```
+
+## Use It
 
 `code/main.py` implements a toy radix-tree KV cache plus a scheduler with two policies: FCFS and cache-aware. Runs the same workload through both, reports prefix-cache hit rate and throughput delta. Then runs a "scrambled ordering" workload to show the 6.4x collapse.
 

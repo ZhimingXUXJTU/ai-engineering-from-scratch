@@ -186,6 +186,11 @@ If a tool invocation would combine all three, the host must reject or escalate s
 ## Use It | 用框架实现
 
 > **【中文解读】** `code/main.py` 实现双层防御：(1) 静态检测器——正则扫描每个工具描述中的注入模式；(2) 哈希锁定存储——记录已审批描述的哈希，下次加载时哈希变更则阻止。在模拟注册中心（一个干净服务器、一个投毒服务器、一个地毯拉扯服务器）上运行，观察两层防御如何分别触发。
+```figure
+tp-tool-poisoning
+```
+
+## Use It
 
 `code/main.py` ships a tool-poisoning detector with two components:
 

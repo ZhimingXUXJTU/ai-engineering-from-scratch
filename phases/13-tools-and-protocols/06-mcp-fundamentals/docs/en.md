@@ -199,6 +199,11 @@ JSON-RPC 2.0 (2010) is a lightweight bidirectional protocol. REST is client-init
 > JSON-RPC 2.0（2010）是轻量级双向协议。REST 是客户端发起的。MCP 需要服务器主动发起消息（sampling、通知），因此具有对称请求/响应形状的 JSON-RPC 是自然之选。JSON-RPC 还可以在 stdio 和 WebSocket/Streamable HTTP 上干净地组合，无需重新发明 HTTP 的请求格式。
 
 ## Use It | 用框架实现
+```figure
+mcp-tool-call
+```
+
+## Use It
 
 `code/main.py` ships a minimal JSON-RPC 2.0 parser and emitter, then walks the `initialize` → `tools/list` → `tools/call` → `shutdown` sequence by hand, printing every message. No real transport; just the message shapes. Compare to the spec linked in Further Reading to verify each envelope.
 

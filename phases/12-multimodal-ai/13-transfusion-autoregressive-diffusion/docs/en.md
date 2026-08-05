@@ -174,6 +174,11 @@ Janus-Pro (Lesson 12.15) refines Transfusion's idea by decoupling the vision enc
 
 
 ## Use It  | 动手实践
+```figure
+cfg-guidance-scale
+```
+
+## Use It
 
 `code/main.py` builds a toy Transfusion on a tiny MNIST-like problem:
 

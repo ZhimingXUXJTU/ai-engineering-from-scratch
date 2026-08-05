@@ -277,6 +277,11 @@ Llama 3 deliberately violates the Chinchilla law. Meta found that overtraining o
 > Llama 3 故意违反了 Chinchilla 定律。Meta 发现用更多数据过度训练——远超计算最优比例——能产生推理效果更好的模型。额外的训练成本只付一次，但更小的模型永久更便宜地服务。这有时被称为"推理最优"缩放方法，自 2024 年以来已成为行业标准。
 
 ## Build It | 动手实现
+```figure
+l5-data-pipeline
+```
+
+## Build It
 
 ### Step 1: Text Cleaning
 

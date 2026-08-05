@@ -89,6 +89,11 @@ Claude computer use, OpenAI CUA, Gemini 2.5 Computer Use (Lesson 21) all train o
 > **过时的自托管应用。** WebArena 的应用固定了特定版本；不重新策划就更新会破坏可比性。
 
 ## Build It | 动手实现
+```figure
+ae-agent-human-gap
+```
+
+## Build It
 
 `code/main.py` implements a toy web-agent harness:
 

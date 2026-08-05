@@ -208,6 +208,11 @@ All three are open; a full evaluation loop runs in under an hour on a modest GPU
 > 三个都是开源的；在适度的 GPU 设置上完整的评估循环不到一小时即可运行。在你的 CI 中包含一个（评估驱动开发在未来的 phase 中涵盖）。
 
 ## Use It | 用框架实现
+```figure
+tp-schema-routing
+```
+
+## Use It
 
 `code/main.py` ships a tool-schema linter that audits a registry against the rules above. It flags:
 

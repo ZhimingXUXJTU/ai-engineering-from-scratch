@@ -100,6 +100,11 @@ Lessons 20-21 cover bias and fairness formally. Lesson 22 covers privacy. Lesson
 > **【拓展：交叉性 → WinoIdentity 基准】** WinoIdentity（COLM 2025, arXiv:2508.07111）引入基于不确定性的交叉性公平评估。它测量模型在不同交叉身份元组上的结果不确定性是否不同——不仅是点预测。这捕获了模型在各组之间"同样错误但对某些组更不确定"的情况，这会产生不同的下游分配行为。
 
 ## Use It | 使用方法
+```figure
+an-bias-two-harms
+```
+
+## Use It
 
 `code/main.py` builds a toy embedding-based bias probe: measure WEAT-style distance between identity terms and attribute terms in a simple co-occurrence embedding. You can inject a bias and observe the metric fire; apply a simple debiasing operation and observe partial recovery.
 

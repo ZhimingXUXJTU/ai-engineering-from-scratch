@@ -517,6 +517,11 @@ The forward pass computes the prediction and loss. The backward pass computes th
 > 前向传播计算预测和损失，反向传播计算每个权重的梯度，然后每个权重沿梯度负方向走一小步。重复数百万次。这就是深度学习。
 
 ## Build It | 动手实现
+```figure
+derivative-tangent
+```
+
+## Build It
 
 ### Step 1: Numerical derivative from scratch
 

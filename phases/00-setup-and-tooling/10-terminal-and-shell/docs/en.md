@@ -59,6 +59,11 @@ Three things running at once. One terminal. You can detach, go home, SSH back in
 > 在 AWS p4d 实例（8x A100 GPU，约 $32.77/小时）上训练 LLM，如果因为关闭笔记本导致训练中断，不仅浪费已完成的所有计算，还要从头重新训练。使用 tmux 可以让训练在后台持续运行数天甚至数周。OpenAI 训练 GPT-4 用了数千个 GPU 运行数月，tmux/screen 是这类长时间任务的必备工具。
 
 ## Build It | 动手实现
+```figure
+s0-shell-pipeline
+```
+
+## Build It
 
 ### Step 1: Know your shell
 

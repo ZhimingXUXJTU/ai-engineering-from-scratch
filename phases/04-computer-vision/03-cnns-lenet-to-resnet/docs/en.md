@@ -206,6 +206,11 @@ The idea was not really about image classification. It was about turning deep ne
 
 > **【拓展：工业部署中的视觉系统】** 在实际工业部署中，视觉模型需要考虑推理延迟、模型大小、边缘设备适配等问题。TensorRT、ONNX Runtime、OpenVINO 是常用的推理加速工具。自动驾驶系统（如 Tesla FSD）通常在车载芯片上实时运行多个视觉模型。
 
+```figure
+pooling
+```
+
+## Build It
 
 ## Build It | 动手实践
 

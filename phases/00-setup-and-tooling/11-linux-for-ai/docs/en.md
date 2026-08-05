@@ -409,6 +409,11 @@ Sessions:       tmux new/attach/detach
 ```
 
 ## Exercises | 练习题
+```figure
+s0-process-fork
+```
+
+## Exercises
 
 1. SSH into any Linux machine (or open WSL2) and navigate to your home directory. Create a project folder, create three empty files inside it with `touch`, then list them with `ls -la`.
    SSH 到 Linux 机器，创建项目文件夹和空文件，用 `ls -la` 列出

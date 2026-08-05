@@ -126,6 +126,11 @@ This is the same reasoning pattern as Lob's theorem (Lesson 8): the agent cannot
   中文翻译：**记忆上金丝雀 token。** 如果记忆条目触发，用户看到它（第 14 课）。
 
 ## Use It | 用框架实现
+```figure
+injection-boundary
+```
+
+## Use It
 
 `code/main.py` models a tiny browser-agent run against three synthetic pages. One page is benign, one has a direct prompt-injection blob in visible text, one has a URL-fragment injection (not visible but inside the agent's context). The script shows (a) what a naïve agent would do, (b) what a read/write boundary catches, (c) what a sanitizer catches, (d) what neither catches.
 

@@ -176,6 +176,11 @@ Weights are configurable. The default mix is 0.2 perplexity, 0.3 exact-match, 0.
 
 
 ## Architecture | 架构
+```figure
+cg-eval-quadrant
+```
+
+## Architecture
 
 ```mermaid
 flowchart TD

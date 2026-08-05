@@ -121,6 +121,11 @@ All experts live on GPU regardless of which ones fire. A 671B model needs ~1.3 T
 > **【拓展：细粒度专家 vs 粗粒度专家】** 传统 MoE（Switch Transformer）使用少量大型专家（E=8-64）。现代细粒度 MoE（DeepSeek-V3）使用大量小型专家（E=256+），每个专家只有 1/8 的 FFN 宽度。组合数 C(256,8) 约为 400 万亿种，远超粗粒度的组合空间。质量提升显著，延迟基本不变。
 
 ## Build It | 动手实现
+```figure
+expert-routing
+```
+
+## Build It
 
 See `code/main.py`. A compact MoE layer in pure stdlib with:
 

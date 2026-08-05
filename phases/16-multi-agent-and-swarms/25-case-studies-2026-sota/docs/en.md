@@ -154,6 +154,11 @@ Where the field is in April 2026:
 - **Regulation is a near-term input, not a background concern.** Jurisdictions are moving faster than individual deploy cycles.
 
 ## Use It | 使用方法
+```figure
+a5-orchestrator-scale
+```
+
+## Use It
 
 `outputs/skill-case-study-mapper.md` is a skill that reads a proposed multi-agent system design and maps it to the closest case study, surfacing the design decisions that case study already tested.
 

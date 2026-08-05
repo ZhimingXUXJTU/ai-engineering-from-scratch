@@ -97,6 +97,9 @@ BPE is a greedy compression algorithm repurposed for tokenization. The idea is s
 Start with individual characters. Count every adjacent pair in the training corpus. Merge the most frequent pair into a new token. Repeat until you reach your target vocabulary size.
 
 > 从单个字符开始。统计训练语料中所有相邻字符对的出现频率。将最高频的对合并为新 token。重复直到达到目标词表大小。
+```figure
+tokenizer-bpe
+```
 
 Here is BPE running on a tiny corpus with the words "lower", "lowest", and "newest":
 
@@ -294,6 +297,11 @@ This is why Llama 3 quadrupled its vocabulary from 32K to 128K. More tokens dedi
 > **【拓展：多语言分词的实际影响】** 在 GPT-3.5 的 cl100k_base 分词器中，一段 1000 字的中文大约需要 ~1500 tokens，而等量英文信息可能只需 ~500 tokens。这意味着中文用户的 API 成本是英文用户的 3 倍。Llama 3 的 128K 词表将中文的 token 效率提升了约 2 倍，但与英文相比仍有差距。这也是为什么国产模型（如 Qwen、DeepSeek）专门针对中文优化了分词器。
 
 ## Build It | 动手实现
+```figure
+tokenizer-tradeoff
+```
+
+## Build It
 
 ### Step 1: Character-Level Tokenizer
 

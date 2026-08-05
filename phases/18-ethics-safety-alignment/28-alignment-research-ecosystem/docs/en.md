@@ -113,6 +113,11 @@ Lessons 7-11 reference Redwood and Apollo work; Lesson 18 references METR's fram
 > **【拓展：外部评估者 → 多机构交叉验证】** 2024 年的关键论文展示了多机构协作的价值：潜伏 Agent 是 Anthropic + Redwood；对齐伪装是 Anthropic + Redwood；上下文策略是 Apollo；反策略是 Apollo + OpenAI。每个外部评估者带来不同的方法论风格和偏见。单一实验室的自我评估不够——多组织结构确保失败模式不会被系统性忽视。
 
 ## Use It | 使用方法
+```figure
+sae-features
+```
+
+## Use It
 
 No code. Read METR's "Common Elements of Frontier AI Safety Policies" as an example of how external synthesis adds value to lab-internal policy work.
 

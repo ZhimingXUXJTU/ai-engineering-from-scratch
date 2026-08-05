@@ -146,6 +146,11 @@ For relative depth (Depth Anything V3, MiDaS), evaluation uses scale-and-shift i
 
 
 ## Build It | 动手实现
+```figure
+depth-sweep
+```
+
+## Build It
 
 ### Step 1: Depth metrics
 

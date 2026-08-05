@@ -71,6 +71,11 @@ graph TD
 ## Build It | 动手实现
 
 > **【拓展：uv vs pip vs conda — 该选哪个？】** (1) **uv**（推荐）：Rust 写的，比 pip 快 10-100 倍，自动管理虚拟环境，一行命令搞定 `uv venv && uv pip install`。(2) **venv**：Python 内置，无需安装，但速度慢且功能少。(3) **conda**：适合需要非 Python 依赖（如 CUDA 库）的场景，但环境体积巨大。2026 年的 AI 项目推荐 uv 作为默认选择。
+```figure
+s0-env-isolation
+```
+
+## Build It
 
 ### Option 1: uv venv (Recommended)
 

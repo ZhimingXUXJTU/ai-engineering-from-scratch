@@ -112,6 +112,11 @@ First LLM-specific experiment: inject one provider 429 for 5 minutes. Observe fa
 - Five LLM experiments: memory, network, provider, malformed prompt, KV storm.
 
 ## Use It | 用框架实现
+```figure
+i4-chaos-guard
+```
+
+## Use It
 
 `code/main.py` simulates three chaos experiments with safety plane gates. Reports which experiments would trip the burn-rate abort.
 

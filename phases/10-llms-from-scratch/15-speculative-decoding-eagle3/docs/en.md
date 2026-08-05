@@ -101,6 +101,11 @@ In 2026 production: vLLM and SGLang default to EAGLE-3 when available, EAGLE-2 o
 
 
 ## Build It | 动手实现
+```figure
+l5-spec-decode-eagle
+```
+
+## Build It
 
 See `code/main.py`. This is the full Leviathan speculative loop with all the pieces: draft-of-N, verifier parallel pass, per-position rejection, residual sampling, bonus token, KV rollback, and empirical verification that the output distribution matches direct sampling from `q`.
 

@@ -263,6 +263,11 @@ MCP is to function calling what HTTP is to networking. It standardizes the trans
 > 🔗 **【前置】** 何时从内联函数调用升级到 MCP？三个信号：(1) 工具超过 10 个，prompt 装不下；(2) 同一工具要在多个 Agent 框架（Claude Code、Cursor、Cline）间共享；(3) 工具有独立维护团队，需要版本管理。学了 Phase 11·14（MCP）和 Phase 13·06-18 后，你就能把工具做成独立 server，Agent 通过协议消费。
 
 ## Build It | 动手实现
+```figure
+mx-tool-call-loop
+```
+
+## Build It
 
 ### Step 1: Define the Tool Registry
 
@@ -721,7 +726,7 @@ OpenAI returns tool calls as `response.choices[0].message.tool_calls`. Each call
 # client = anthropic.Anthropic()
 #
 # response = client.messages.create(
-#     model="claude-sonnet-4-20250514",
+#     model="claude-sonnet-5",
 #     max_tokens=1024,
 #     tools=[{
 #         "name": "get_weather",
@@ -742,7 +747,7 @@ OpenAI returns tool calls as `response.choices[0].message.tool_calls`. Each call
 # result = get_weather(**tool_block.input)
 #
 # final = client.messages.create(
-#     model="claude-sonnet-4-20250514",
+#     model="claude-sonnet-5",
 #     max_tokens=1024,
 #     tools=[...],
 #     messages=[

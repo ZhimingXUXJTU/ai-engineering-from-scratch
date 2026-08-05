@@ -322,6 +322,11 @@ w = jax.random.normal(key1, shape=(784, 256))
 This is annoying at first. But it guarantees reproducibility across devices and compilations -- a property that PyTorch's `torch.manual_seed` cannot guarantee in multi-GPU settings.
 
 > 一开始很烦人。但它保证了跨设备和编译的可复现性——这是 PyTorch 的 `torch.manual_seed` 在多 GPU 环境中无法保证的。
+```figure
+batchnorm-effect
+```
+
+## Build It
 
 ## Build It | 动手实现
 

@@ -99,6 +99,11 @@ Defense patterns (2026 convergence):
 > **长时运行无可观测性。** 一个 200 次点击的运行在第 180 次点击失败，没有逐步追踪就无法调试。
 
 ## Build It | 动手实现
+```figure
+computer-use-cursor
+```
+
+## Build It
 
 `code/main.py` simulates the vision-agent loop:
 

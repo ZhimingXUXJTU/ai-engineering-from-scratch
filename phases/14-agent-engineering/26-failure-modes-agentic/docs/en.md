@@ -109,6 +109,11 @@ Automated verification gates at every step of a reasoning chain, checking factua
 > **过度告警。** 每次失败都产生一个页面。集群化和限速。
 
 ## Build It | 动手实现
+```figure
+failure-cascade
+```
+
+## Build It
 
 `code/main.py` implements a stdlib failure-mode tagger:
 

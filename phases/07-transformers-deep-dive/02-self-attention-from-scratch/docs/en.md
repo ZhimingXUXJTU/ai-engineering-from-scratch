@@ -136,6 +136,13 @@ Each row: one token's attention over the entire sequence
 ```
 
 ### Why Scale? | 为什么要缩放？
+Watch one query at a time sweep the keys: each row scores every token, softmax turns the scores into weights, and the context vector is the weighted blend of values.
+
+```figure
+attention-matrix
+```
+
+### Why Scale?
 
 The dot products grow with dimension dk. If dk = 64, dot products can be in the range of tens, pushing softmax into regions where gradients vanish. The fix: divide by sqrt(dk).
 
@@ -186,24 +193,17 @@ For token 1:
 
 ### Full Pipeline | 完整流水线
 
-```
-                    +-------+
-  X (input)  ----->|  @ Wq  |-----> Q
-                    +-------+
-                    +-------+
-  X (input)  ----->|  @ Wk  |-----> K
-                    +-------+                     +----------+
-                    +-------+                     |          |
-  X (input)  ----->|  @ Wv  |-----> V ---------->| weighted |----> output
-                    +-------+          ^          |   sum    |
-                                       |          +----------+
-                              +--------+--------+
-                              |    softmax      |
-                              +---------+-------+
-                                        ^
-                              +---------+-------+
-                              | Q @ K^T / sqrt  |
-                              +-----------------+
+```mermaid
+flowchart LR
+  X["X (input)"] --> Q["Q = X · Wq"]
+  X --> K["K = X · Wk"]
+  X --> V["V = X · Wv"]
+  Q --> S["Q · Kᵀ / √dk"]
+  K --> S
+  S --> SM["softmax"]
+  SM --> WS["weighted sum"]
+  V --> WS
+  WS --> O["output"]
 ```
 
 Formula in one line:
@@ -215,6 +215,11 @@ Attention(Q, K, V) = softmax( Q @ K^T / sqrt(dk) ) @ V
 ```
 
 ## Build It | 动手实现
+```figure
+softmax-attention-scaling
+```
+
+## Build It
 
 ### Step 1: Softmax from scratch | 步骤 1：从零实现 Softmax
 

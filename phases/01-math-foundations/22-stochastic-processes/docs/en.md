@@ -141,6 +141,7 @@ Start in any state. After many transitions, the distribution of states converges
 > 从任意状态开始，经过足够多转移后，状态分布收敛到平稳分布 π，满足 π·P = π。这是 P 的特征值为 1 的左特征向量。
 
 For the weather chain, the stationary distribution might be [0.53, 0.18, 0.29] -- over the long run, it is sunny 53% of the time regardless of the starting state.
+For the weather chain, the stationary distribution is [0.55, 0.18, 0.27] -- over the long run, it is sunny 55% of the time regardless of the starting state.
 
 > 对天气链来说，平稳分布可能是 [0.53, 0.18, 0.29]——长期来看 53% 的时间晴天，与起始状态无关。
 
@@ -328,6 +329,11 @@ The chain is guaranteed to converge to p(x) under mild conditions. But convergen
 > 随机过程在 AI 中的应用：随机游走（RL 探索、Node2Vec 嵌入）、马尔可夫链（文本生成、MCMC）、布朗运动（扩散模型前向）、Langevin 动力学（Score-based 模型、SGLD）、马尔可夫决策过程（强化学习）、Metropolis-Hastings（贝叶斯推理、后验采样）。
 
 ## Build It | 动手实现
+```figure
+random-walk-diffusion
+```
+
+## Build It
 
 ### Step 1: Random walk simulator
 

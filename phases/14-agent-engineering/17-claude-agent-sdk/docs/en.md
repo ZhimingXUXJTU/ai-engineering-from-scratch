@@ -1,6 +1,7 @@
 # Claude Agent SDK: Subagents and Session Store | 会话 Agent Claude SDK
+# The Harness as a Library — Subagents and Session Store
 
-> The Claude Agent SDK is the library form of the Claude Code harness. Built-in tools, subagents for context isolation, hooks, W3C trace propagation, session store parity. Claude Managed Agents is the hosted alternative for long-running async work.
+> A harness you can import: built-in tools, subagents for context isolation, hooks, W3C trace propagation, session persistence. The Claude Agent SDK is the reference example — the library form of the Claude Code harness — and Claude Managed Agents is the hosted alternative for long-running async work.
 
 **Type:** Learn + Build | **类型:** 构建
 **Languages:** Python (stdlib) | **语言:** Python (标准库)
@@ -130,6 +131,11 @@ The hosted alternative (beta header `managed-agents-2026-04-01`). Long-running a
 > **会话膨胀。** 会话不断积累；大小增长。使用 `list_sessions` + 过期策略。
 
 ## Build It | 动手实现
+```figure
+ae-subagent-isolation
+```
+
+## Build It
 
 `code/main.py` implements the SDK shape in stdlib:
 

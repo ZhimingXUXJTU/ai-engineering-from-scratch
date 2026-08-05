@@ -129,6 +129,11 @@ Worth knowing. Worth experimenting with. Not yet worth betting a product on.
 
 
 ## Build It | 动手实现
+```figure
+continuous-batching
+```
+
+## Build It
 
 `code/main.py` implements a toy Hogwild! simulator:
 

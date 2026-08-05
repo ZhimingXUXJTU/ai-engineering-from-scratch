@@ -152,6 +152,11 @@ Mitigation: persist an "in-flight" intent before execution, execute with an idem
 > 缓解：执行前持久化"in-flight"意图，用幂等键执行，仅在动作后验证成功后标记"已提交"。如动作触发而状态写失败，你知道要验证（如必要）重触发。如状态写成功而动作失败，你验证并通过恢复路径精确触发一次。
 
 ## Use It | 用框架实现
+```figure
+checkpoint-replay
+```
+
+## Use It
 
 `code/main.py` implements a checkpointed workflow with idempotency, preconditions, verify, and rollback. The driver simulates four scenarios: clean run, retry after crash (idempotency catches), precondition fail (workflow aborts without firing), verify fail (rollback fires).
 

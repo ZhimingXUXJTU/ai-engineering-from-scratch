@@ -605,6 +605,11 @@ The entire image generation process is iterative sampling: start from noise, and
 > 整个图像生成过程就是迭代采样：从噪声开始，在每一步中，基于学习到的去噪模型采样一个稍微不那么嘈杂的版本。
 
 ## Build It | 动手实现
+```figure
+monte-carlo-pi
+```
+
+## Build It
 
 ### Step 1: Uniform and inverse CDF sampling
 

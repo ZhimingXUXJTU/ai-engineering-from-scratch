@@ -312,6 +312,11 @@ FP16 to INT2: 8x memory reduction, 5-15% quality loss. Only viable for specific 
 > FP16 到 INT2：8 倍内存减少，5-15% 质量损失。仅适用于可容忍退化的特定窄任务。研究前沿，非通用生产就绪。
 
 ## Build It | 动手实现
+```figure
+quantization
+```
+
+## Build It
 
 ### Step 1: Number Format Representations
 
@@ -916,7 +921,7 @@ if __name__ == "__main__":
 # llama-server -m llama-8b-q4km.gguf -c 4096 -ngl 99
 ```
 
-### Serving with vLLM
+### Serving quantized models
 
 ```python
 # pip install vllm

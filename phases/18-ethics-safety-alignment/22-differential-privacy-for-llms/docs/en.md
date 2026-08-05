@@ -115,6 +115,11 @@ Lessons 20-21 are bias/fairness. Lesson 22 is privacy. Lesson 23 is provenance v
 > **【拓展：DP-SGD 的实际开销 → LoRA 解决方案】** 全量 DP-SGD 训练前沿模型在计算、内存和效用上代价巨大。LoRA（Hu 等人 2022）限制梯度更新到小型适配器，减少逐例梯度存储。LoRA + DP-SGD 是 2025 年常见配置——DP 保证适用于适配器，基础模型保持固定。这是实用性与隐私之间的工程权衡。
 
 ## Use It | 使用方法
+```figure
+an-dp-clip-noise
+```
+
+## Use It
 
 `code/main.py` simulates DP-SGD on a toy binary-classification dataset. You can sweep the noise multiplier σ and the clipping norm C and track the (ε, δ) budget and the accuracy cost. A "canary attack" inserts a unique training example and measures whether a log-loss test can detect it before and after DP.
 

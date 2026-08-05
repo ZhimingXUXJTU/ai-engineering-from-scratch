@@ -1,6 +1,7 @@
 # vLLM Serving Internals: PagedAttention, Continuous Batching, Chunked Prefill | vLLM 推理服务内部机制：分页注意力、连续批处理、分块预填充
+# Serving Engine Internals — PagedAttention, Continuous Batching, Chunked Prefill
 
-> vLLM's dominance in 2026 rests on three compounding defaults, not a single trick. PagedAttention is always on. Continuous batching injects new requests into the active batch between decode iterations. Chunked prefill slices long prompts so decode tokens never starve. Turn all three on and a Llama 3.3 70B FP8 on one H100 SXM5 pushes 2,200-2,400 tok/s at 128 concurrent — roughly 25% above vLLM's own default and 3-4x a naive PyTorch loop. This lesson reads the scheduler and attention kernel at a level you can diagram, and ends with a toy continuous batcher in `code/main.py` that schedules prefill and decode the way vLLM does.
+> Modern serving-engine throughput rests on three compounding defaults, not a single trick. PagedAttention is always on. Continuous batching injects new requests into the active batch between decode iterations. Chunked prefill slices long prompts so decode tokens never starve. Turn all three on and a Llama 3.3 70B FP8 on one H100 SXM5 pushes 2,200-2,400 tok/s at 128 concurrent — roughly 25% above vLLM's own default and 3-4x a naive PyTorch loop. This lesson reads the scheduler and attention kernel of vLLM — the reference engine for all three techniques — at a level you can diagram, and ends with a toy continuous batcher in `code/main.py` that schedules prefill and decode the way vLLM does.
 
 > **【中文解读】** vLLM 在 2026 年的主导地位基于三个复合优化：PagedAttention（分页注意力）始终开启；连续批处理在解码迭代间注入新请求；分块预填充切片长提示以防止解码 Token 饥饿。三者全开时，Llama 3.3 70B FP8 在单卡 H100 上以 128 并发达到 2,200-2,400 tok/s——比朴素 PyTorch 循环快 3-4 倍。
 
@@ -157,6 +158,11 @@ while True:
 > `code/main.py` 正是这个循环的纯标准库 Python 实现，使用虚假 token 计数和虚假前向延迟。运行它可以看到分块预填充如何在长预填充期间保持解码序列活跃。
 
 ## Use It | 用框架实现
+```figure
+tensor-parallel
+```
+
+## Use It
 
 `code/main.py` simulates a vLLM-style scheduler with toggleable features. Run it to see:
 

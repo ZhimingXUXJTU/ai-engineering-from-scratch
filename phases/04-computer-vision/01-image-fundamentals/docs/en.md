@@ -271,6 +271,11 @@ Rule of thumb: bilinear for training, bicubic or lanczos for assets you will loo
 > **【中文解读】** 缩放时的插值方法选择：最近邻（nearest）速度最快但会产生锯齿，只用于掩码/标签图；双线性（bilinear）又快又平滑，是训练时的默认选择；双三次（bicubic）更慢但放大时更清晰；Lanczos 最慢但质量最好。经验法则：训练用 bilinear，展示用 bicubic/lanczos，标签用 nearest。
 
 > **【拓展：工业部署中的视觉系统】** 在实际工业部署中，视觉模型需要考虑推理延迟、模型大小、边缘设备适配等问题。TensorRT、ONNX Runtime、OpenVINO 是常用的推理加速工具。自动驾驶系统（如 Tesla FSD）通常在车载芯片上实时运行多个视觉模型。
+```figure
+conv-output-size
+```
+
+## Build It
 
 
 ## Build It | 动手实践

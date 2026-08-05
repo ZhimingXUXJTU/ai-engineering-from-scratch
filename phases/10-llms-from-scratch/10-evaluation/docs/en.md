@@ -207,6 +207,11 @@ The only eval that matters for production. The process:
 | Human eval / 人工评估 | $0.10-$2.00 | N/A (is the ground truth) / N/A（即真实标准） | Ambiguous, high-stakes tasks / 有歧义、高风险任务 |
 
 ## Build It | 动手实现
+```figure
+perplexity-loss
+```
+
+## Build It
 
 ### Step 1: A Minimal Eval Framework
 

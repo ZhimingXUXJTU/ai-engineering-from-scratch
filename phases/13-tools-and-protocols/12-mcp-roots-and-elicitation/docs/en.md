@@ -186,6 +186,11 @@ Elicitation plus sampling together enable MCP's "human-in-the-loop" model. A ser
 > Elicitation 加 sampling 共同实现 MCP 的"人在回路"模型。服务器的 Agent 循环可以为用户输入（elicitation）或模型推理（sampling）暂停。Phase 13 · 11 涵盖 sampling；本课涵盖 elicitation。组合它们获得完整的循环中控制。
 
 ## Use It | 用框架实现
+```figure
+t3-roots-boundary
+```
+
+## Use It
 
 `code/main.py` extends the notes server with:
 

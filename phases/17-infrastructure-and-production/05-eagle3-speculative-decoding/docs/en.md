@@ -3,6 +3,10 @@
 > Speculative decoding pairs a fast draft model with the target model. The draft proposes K tokens; the target verifies in a single forward; accepted tokens are free. In 2026, EAGLE-3 is the production-grade variant — it trains a draft head on the target model's hidden states rather than on raw tokens, pushing acceptance rate alpha into the 0.6-0.8 band on general chat. The right question is not "how fast is the draft" but "what is alpha on my traffic?" If alpha drops below ~0.55, speculative decoding is net negative at high concurrency because every rejected draft costs a second target forward pass. This lesson teaches you to measure alpha first and flip the flag second.
 
 > **【中文解读】** 本节介绍了推测解码——用小模型预测大模型输出来加速推理的技术。
+**Type:** Learn
+**Languages:** Python (stdlib, toy acceptance-rate simulator)
+**Prerequisites:** Phase 17 · 04 (Serving Engine Internals), Phase 10 · 18 (Multi-Token Prediction)
+**Time:** ~60 minutes
 
 
 **Type:** Learn | **类型:** 学习
@@ -130,6 +134,11 @@ Expected speedup: `S(alpha, K) = (1 + K*alpha) / (1 + verify_overhead)`. Setting
   中文翻译：vLLM v0.18.0 + draft-model 推测解码 + `--enable-chunked-prefill`。此组合无法编译。文档例外是 V1 中的 N-gram GPU 推测解码。
 
 ## Use It | 用框架实现
+```figure
+mx-speculative-tree
+```
+
+## Use It
 
 `code/main.py` simulates a decode loop with and without speculative decoding across a range of alpha values and draft lengths K. It prints the break-even alpha, measured speedup, and tail behavior. Run it on several (alpha, K) combinations to see exactly where speculative decoding stops paying.
 

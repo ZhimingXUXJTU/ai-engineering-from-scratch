@@ -137,6 +137,11 @@ Large-v3-turbo (2024) cut the decoder from 32 layers to 4. 8× faster decoding w
 | 音频 + 语言 | AudioLM, SeamlessM4T | 文本 token + 音频 token 在一个 Transformer 中 |
 
 ## Build It | 动手实现
+```figure
+n5-mel-decode
+```
+
+## Build It
 
 See `code/main.py`. We don't train Whisper — we build the log-mel spectrogram pipeline + task-token prompt formatter. Those are the parts you actually touch in production.
 

@@ -241,6 +241,11 @@ The penalty term discourages large weights. The hyperparameter lambda controls t
 > Ridge 回归（L2 正则化）通过在损失函数中添加权重平方和的惩罚项来防止过拟合。直觉：限制权重的大小，迫使模型"保守"地使用特征，而不是靠某个特征的极端权重来拟合噪声。正则化强度由 lambda 控制——lambda 越大，权重越小，模型越简单。这是深度学习中最常用的技术之一（权重衰减 weight decay）。
 
 ## Build It | 动手实现
+```figure
+linear-regression-fit
+```
+
+## Build It
 
 ### Step 1: Generate sample data
 

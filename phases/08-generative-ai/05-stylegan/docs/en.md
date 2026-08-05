@@ -74,6 +74,11 @@ In 2026 StyleGAN3 remains the default for (a) narrow-domain photorealism at high
 > 2026 年 StyleGAN3 仍是以下场景的默认选择：(a) 高 FPS 窄域照片级真实感，(b) 少样本域适应，(c) 基于反演的编辑。开放域文生图则不是它的工具——扩散模型才是。
 
 ## Build It | 动手实现
+```figure
+gx-stylegan-mapping
+```
+
+## Build It
 
 `code/main.py` implements a toy "style-GAN lite" in 1-D: a mapping MLP, a synthesis function that takes a learned constant vector and modulates it with `w`-derived scale/bias, and per-layer noise. It shows that injecting `w` via affine-modulation matches or beats concatenating `z` into the generator's input.
 

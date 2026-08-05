@@ -125,6 +125,11 @@ The standard body-pose dataset: 17 keypoints per person, PCK (Percentage of Corr
 
 
 ## Build It | 动手实现
+```figure
+cv3-pose-heatmap
+```
+
+## Build It
 
 ### Step 1: Gaussian heatmap target
 

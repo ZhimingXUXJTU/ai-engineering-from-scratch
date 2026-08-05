@@ -58,6 +58,11 @@ Every API call has:
 
 > **【拓展：API 在 AI Agent 中的角色】**
 > AI Agent 的核心循环就是：构造提示词 → 调用 LLM API → 解析响应 → 执行动作 → 再次调用 API。掌握 API 调用是构建 Agent 的第一步。
+```figure
+s0-secret-inject
+```
+
+## Build It
 
 ## Build It | 动手实现
 
@@ -86,14 +91,21 @@ OPENAI_API_KEY=sk-...
 ### Step 2: First API call (Python) | 第一次 API 调用（Python）
 
 ```python
+import os
+
 import anthropic
 
 client = anthropic.Anthropic()  # 自动从环境变量读取密钥
+
+MODEL = os.environ.get("LLM_MODEL", "claude-sonnet-5")
 
 response = client.messages.create(
     model="claude-sonnet-4-20250514",  # 指定模型
     max_tokens=256,  # 最大输出长度
     messages=[{"role": "user", "content": "What is a neural network in one sentence?"}]  # 用户消息
+    model=MODEL,
+    max_tokens=256,
+    messages=[{"role": "user", "content": "What is a neural network in one sentence?"}]
 )
 
 print(response.content[0].text)  # 打印模型回复
@@ -102,14 +114,19 @@ print(response.content[0].text)  # 打印模型回复
 ### Step 3: First API call (TypeScript) | 第3步：TypeScript 调用
 
 > **【拓展：Token 计费机制】** LLM API 按token计费：Claude Sonnet 约 $3/百万输入 token、$15/百万输出 token。一个英文单词约 1.3 个 token，一个中文字约 2-3 个 token。`max_tokens=256` 意味着模型最多输出 256 个 token（约 200 个英文单词）。控制 `max_tokens` 是节省成本的关键手段。
+`LLM_MODEL` selects the Anthropic model id, and the default is the un-dated Sonnet alias. Other providers (OpenAI, Google, and others) follow the same pattern of a key plus a model id, but each has its own SDK, endpoint, and request/response schema.
+
+### Step 3: First API call (TypeScript)
 
 ```typescript
 import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic();
 
+const MODEL = process.env.LLM_MODEL ?? "claude-sonnet-5";
+
 const response = await client.messages.create({
-  model: "claude-sonnet-4-20250514",
+  model: MODEL,
   max_tokens: 256,
   messages: [{ role: "user", content: "What is a neural network in one sentence?" }],
 });
@@ -133,6 +150,8 @@ headers = {
 body = json.dumps({
     "model": "claude-sonnet-4-20250514",  # 模型名称
     "max_tokens": 256,  # 最大输出 token 数
+    "model": os.environ.get("LLM_MODEL", "claude-sonnet-5"),
+    "max_tokens": 256,
     "messages": [{"role": "user", "content": "What is a neural network in one sentence?"}],
 }).encode()
 

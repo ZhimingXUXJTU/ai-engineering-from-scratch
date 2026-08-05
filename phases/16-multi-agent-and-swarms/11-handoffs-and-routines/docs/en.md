@@ -152,6 +152,11 @@ Practical implication: Swarm is easier to debug (follow the active agent's tool 
 > 实际影响：Swarm 更容易调试（跟踪活动 Agent 的工具调用）但更难约束（任何 Agent 可以交接任何地方）。GroupChat 相反：容易约束（选择器函数是添加规则的一个地方），更难调试（选择器的逻辑可能不透明）。
 
 ## Build It | 动手实现
+```figure
+sw-handoff-routing
+```
+
+## Build It
 
 `code/main.py` implements Swarm from scratch: an Agent dataclass, a handoff mechanism (tool returns Agent), and a run loop that detects agent switches.
 

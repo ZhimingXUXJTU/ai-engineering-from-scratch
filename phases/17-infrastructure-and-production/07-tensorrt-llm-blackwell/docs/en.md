@@ -1,8 +1,13 @@
 # TensorRT-LLM on Blackwell with FP8 and NVFP4 | Blackwell TensorRT LLM
+# Hardware-Specialized Inference Compilation — FP8 and NVFP4 on Blackwell
 
-> TensorRT-LLM is NVIDIA-only but it wins on Blackwell. On GB200 NVL72 with Dynamo orchestration, SemiAnalysis InferenceX measured $0.012 per million tokens on a 120B model in Q1-Q2 2026, against $0.09/M on H100 + vLLM — a 7x economic gap. The stack is three floating-point regimes compounded: FP8 stays critical for KV cache and attention kernels because it has the dynamic range they need; NVFP4 (4-bit microscaling) handles weights and activations; multi-token prediction (MTP) and disaggregated prefill/decode add another 2-3x on top. Day-0 model support loads FP4 weights directly without post-training conversion. The catch for 2026 engineering teams: TRT-LLM is a closed NVIDIA stack, so adopting it trades portability for throughput. Run the math on your mix of models and hardware before committing.
+> Hardware-specialized inference compilation trades portability for throughput, and TensorRT-LLM — NVIDIA-only, tuned for Blackwell — is the clearest example of the trade paying off. On GB200 NVL72 with Dynamo orchestration, SemiAnalysis InferenceX measured $0.012 per million tokens on a 120B model in Q1-Q2 2026, against $0.09/M on H100 + vLLM — a 7x economic gap. The stack is three floating-point regimes compounded: FP8 stays critical for KV cache and attention kernels because it has the dynamic range they need; NVFP4 (4-bit microscaling) handles weights and activations; multi-token prediction (MTP) and disaggregated prefill/decode add another 2-3x on top. Day-0 model support loads FP4 weights directly without post-training conversion. The catch for 2026 engineering teams: TRT-LLM is open-source but NVIDIA-specific — CUDA- and Blackwell-specialized — so adopting it trades portability for throughput. Run the math on your mix of models and hardware before committing.
 
 > **【中文解读】** 本节介绍了 TensorRT-LLM 和 Blackwell——NVIDIA 的 LLM 推理优化框架和最新 GPU 架构。
+**Type:** Learn
+**Languages:** Python (stdlib, toy FP8/NVFP4 memory and cost calculator)
+**Prerequisites:** Phase 17 · 04 (Serving Engine Internals), Phase 10 · 13 (Quantization)
+**Time:** ~75 minutes
 
 
 **Type:** Learn | **类型:** 学习
@@ -134,6 +139,11 @@ TRT-LLM's disaggregated serving (separate prefill and decode pools) is covered i
 ## Use It | 用框架实现
 
 > **【拓展：Blackwell 迁移决策】** 从 Hopper 迁移到 Blackwell + TRT-LLM 的决策框架：(1) 年推理支出是否超过 $5M？是→值得评估迁移；(2) 是否可以接受 NVIDIA 锁定？否→继续使用 vLLM + Hopper；(3) 工作负载是否包含 MoE 模型？是→Blackwell 的 NVLink 5 all-to-all 提供额外 3x 加速；(4) 推理密集型任务占比是否超过 30%？是→需要验证 NVFP4 质量。迁移 ROI 通常在 6-12 个月内回本。
+```figure
+pipeline-parallel
+```
+
+## Use It
 
 `code/main.py` computes HBM footprint, decode throughput (memory-bound regime), and $/M-tokens for a model across three stacks: H100 + BF16 + vLLM, H100 + FP8 + vLLM, B200 + NVFP4/FP8 + TRT-LLM. Run it to see the compounding effect and the share of the gap each change contributes.
 

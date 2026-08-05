@@ -88,6 +88,11 @@ The result dominates every modality by 2026. Language (GPT-5, Claude 4, Llama 4)
 > **【拓展：Chinchilla 缩放定律】** DeepMind 的 Chinchilla 论文（2022）证明，模型参数量和训练数据量应等比例增长。这解释了为什么 Llama、GPT-4 等模型需要万亿级 token 的训练数据——弱归纳偏好需要大量数据来"补偿"。
 
 ## Build It | 动手实现
+```figure
+rnn-vs-parallel
+```
+
+## Build It
 
 No neural network here — we simulate the core bottleneck numerically so you feel the gap on your laptop.
 

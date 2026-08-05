@@ -156,6 +156,11 @@ Pick by task: Show-o when you want T2I + inpainting + VQA in one open model with
 
 
 ## Use It  | 动手实践
+```figure
+masked-diffusion-unmask
+```
+
+## Use It
 
 `code/main.py` simulates Show-o sampling:
 

@@ -302,6 +302,11 @@ flowchart TD
 
 > **【拓展：工业级不平衡数据处理的高级技术】**
 > 在实际金融风控中，处理不平衡数据的策略比 SMOTE 更复杂：使用 Focal Loss（焦点损失，让模型更关注难分类样本）、两阶段训练（先用过采样训练，再用原始数据微调）、代价敏感学习（将欺诈的误分类代价设为正常交易的 100 倍）。Square（前 Square Inc.）的欺诈检测系统使用多模型融合 + 动态阈值来处理每天百万级交易中的极少数欺诈案例。
+```figure
+class-imbalance
+```
+
+## Build It
 
 ### Step 1: Generate an imbalanced dataset
 

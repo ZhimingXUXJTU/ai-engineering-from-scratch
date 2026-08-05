@@ -105,6 +105,11 @@ The scaling factor is the GradScaler's internal state. Every step the lesson rea
 
 
 ## Build It | 动手构建
+```figure
+grad-clip-monitor
+```
+
+## Build It
 
 `code/main.py` implements:
 

@@ -25,6 +25,10 @@
 - Reason about why a byte-level alphabet is the right floor for a general-purpose tokenizer.
   中文翻译：Reason about why a byte-level alphabet is the right floor for a general-purpose tokenizer.
 
+```figure
+cap-bpe-merge
+```
+
 ## The frame
 
 > **【中文解读】** 语言模型从不直接处理文本，它只处理整数。从字符串到整数列表（及反向）的映射就是分词器。如果这一层出错，整个训练的损失曲线都在测量错误的东西。BPE 的核心思想是：从已知字母表出发，反复合并最高频的相邻符号对，直到词汇表达到目标大小。

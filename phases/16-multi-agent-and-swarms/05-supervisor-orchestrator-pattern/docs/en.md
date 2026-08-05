@@ -96,7 +96,7 @@ The Anthropic post lists several production lessons that are still 2026-relevant
 - **Token usage dominates.** Multi-agent is ~15x the tokens of single-agent. Only run it when the task value justifies the cost.
   中文翻译：**Token 使用量占主导。** 多 Agent 是单 Agent 的约 15 倍 token。只在任务价值证明成本合理时运行它。
 
-### The LangGraph turn
+### The graph-native turn
 
 LangGraph originally shipped a `langgraph-supervisor` library with a high-level `create_supervisor` helper. In 2025 LangChain moved the recommendation to implementing the supervisor pattern via tool-calling directly, because tool calls give more control over *what the supervisor sees* (context engineering). The library still works; the docs now recommend the tool-calling form.
 
@@ -125,6 +125,11 @@ The shift reflects a 2025-2026 insight: context engineering matters more than or
   中文翻译：**严格确定性。** 监督者使用 LLM 选择的委派。当审计/回放比适应性更重要时，静态图更好。
 
 ## Build It | 动手实现
+```figure
+supervisor-hierarchy
+```
+
+## Build It
 
 `code/main.py` implements a supervisor of three parallel workers using `threading`. The lead decomposes a query into sub-questions, workers run concurrently on each sub-question, and the lead synthesizes. No real LLMs — the workers are scripted to simulate fetch-and-summarize.
 

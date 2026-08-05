@@ -111,6 +111,11 @@ The LaMAS proposal (AAMAS 2025) combines: DID identity, Shapley-value credit att
 In closed corporate systems, economics gives way to simpler allocation (managers assign work, metrics are internal). The economics literature applies mostly to open networks.
 
 ## Build It | 动手构建
+```figure
+swarm-auction
+```
+
+## Build It
 
 `code/main.py` implements:
 

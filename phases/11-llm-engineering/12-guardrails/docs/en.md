@@ -264,6 +264,11 @@ Most applications should target layered defense. Maximum security is for financi
 > 多数应用应瞄准分层防御。最高安全用于金融服务、医疗和政府。成本效益计算：$50/月的审核 API 比一张机器人产生有害内容的病毒截图便宜。
 
 ## Build It | 动手实现
+```figure
+guardrail-gates
+```
+
+## Build It
 
 ### Step 1: Input Guardrails
 

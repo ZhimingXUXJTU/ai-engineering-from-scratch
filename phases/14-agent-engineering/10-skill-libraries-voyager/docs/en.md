@@ -151,6 +151,11 @@ For production agents this translates to a "what's missing" operator: given the 
   中文翻译：**检索质量。** 技能描述上的向量检索在库增长超过几百时退化。用标签过滤器和硬约束补充（"只有 `category=tooling` 的技能"）。
 
 ## Build It | 动手构建
+```figure
+voyager-skills
+```
+
+## Build It
 
 `code/main.py` implements a stdlib skill library:
 

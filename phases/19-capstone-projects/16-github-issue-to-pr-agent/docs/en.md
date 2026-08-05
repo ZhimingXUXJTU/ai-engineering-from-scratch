@@ -1,6 +1,6 @@
 # Capstone 16 — GitHub Issue-to-PR Autonomous Agent | GitHub Issue 结业 美国 PR
 
-> AWS Remote SWE Agents, Cursor Background Agents, OpenAI Codex cloud, and Google Jules all ship the same 2026 product shape: label an issue, get a PR. Run an agent in a cloud sandbox, verify tests pass, and post a review-ready PR with rationale. The hard parts are reproducing the repo's build environment automatically, preventing credential leakage, enforcing per-repo budgets, and making sure the agent cannot force-push. This capstone builds the self-hosted version and compares it on cost and pass rate to the hosted alternatives.
+> Label an issue, get a PR — the 2026 product shape for autonomous coding agents: run an agent in a cloud sandbox, verify tests pass, and post a review-ready PR with rationale. AWS Remote SWE Agents, Cursor Background Agents, OpenAI Codex cloud, and Google Jules all ship it. The hard parts are reproducing the repo's build environment automatically, preventing credential leakage, enforcing per-repo budgets, and making sure the agent cannot force-push. This capstone builds the self-hosted version and compares it on cost and pass rate to the hosted alternatives.
 
 > **【中文解读】** 本节是综合项目——构建 GitHub Issue 到 PR 的自动化 Agent。
 
@@ -107,6 +107,11 @@ GitHub issue labeled `@agent fix` or PR comment
 > **【中文解读】** 构建 GitHub Issue 到 PR 的自动化 Agent：GitHub App 权限管理（细粒度安装 token）、Issue 分类器（bug/feature/refactor 分类）、实现 Agent（SWE-bench 级别的问题解决）、PR 创建和审查。安全设计强调：不允许直接推送到 main、不允许 force-push、不允许修改 .github/workflows。
 
 > **【拓展：GitHub Copilot Autofix 和 SWE-Agent 的自动化 PR 实践】** GitHub 的 Copilot Autofix（2024 年 GA）自动为安全漏洞生成修复 PR。SWE-Agent（Princeton）在 SWE-bench 上达到 50%+ 通过率。OpenHands（原 OpenDevin）的 CodeAct Agent 将 Issue 到 PR 的流程完全自动化。关键挑战是分支策略和 CI 集成——Agent 创建的 PR 必须通过项目的 CI 检查，但 CI 本身可能依赖 Agent 修改的代码。本课的分支保护和工作流限制设计解决了这个自举问题。
+```figure
+cf-issue-to-pr
+```
+
+## Build It
 
 1. **GitHub App.** Fine-grained installation token: issues read+write, pull_requests write, contents read+write, workflows read. Branch protection (the only surface that can do this) enforces "no direct push to `main`" and "no force-push"; the app is not in the bypass list. The worker enforces "no writes under `.github/workflows`" as an allow-list check on the proposed diff, since GitHub App permissions are not path-scoped.
    中文翻译：1. **GitHub App.** Fine-grained installation token: issues read+write, pull_requests write, contents read+write, workflows read. Branch protection (the only surface that can do this) enforces "no direct push to `main`" and "no force-push"; the app is not in the bypass list. The worker enforces "no writes under `.github/workflows`" as an allow-list check on the proposed diff, since GitHub App permissions are not path-scoped.

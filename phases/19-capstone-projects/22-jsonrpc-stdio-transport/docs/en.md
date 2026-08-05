@@ -25,6 +25,10 @@
 - Build a self-terminating demo using io.BytesIO so the lesson runs without spawning a child process.
   中文翻译：Build a self-terminating demo using io.BytesIO so the lesson runs without spawning a child process.
 
+```figure
+cf-jsonrpc-frames
+```
+
 ## Why JSON-RPC stays the lingua franca
 
 > **【中文解读】** JSON-RPC 2.0 自 2013 年以来一直是 Agent 与工具服务器通信的标准协议。它只有两页规范，却对称地支持 stdio、socket、websocket 和 HTTP 传输。与 gRPC、自定义二进制协议不同，JSON-RPC 不在流式/批处理/传输耦合之间做取舍——这正是它能存活至今的原因。

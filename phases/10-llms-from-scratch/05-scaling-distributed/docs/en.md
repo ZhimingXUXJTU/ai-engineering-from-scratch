@@ -336,6 +336,11 @@ graph TD
 ```
 
 ## Build It | 动手实现
+```figure
+paged-kv-cache
+```
+
+## Build It
 
 ### Step 1: Simulate Data Parallelism
 

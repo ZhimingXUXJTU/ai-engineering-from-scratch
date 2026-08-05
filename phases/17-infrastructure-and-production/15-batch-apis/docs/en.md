@@ -100,6 +100,11 @@ Writing "one batch client" across providers means adapter code per provider. Gat
 - Workload triage rule: if 24h latency acceptable, always batch.
 
 ## Use It | 用框架实现
+```figure
+batch-lane-triage
+```
+
+## Use It
 
 `code/main.py` computes costs across sync, sync+cache, batch, and batch+cache for a 50k-document workload. Reports savings in $ and percent.
 
@@ -142,6 +147,6 @@ This lesson produces `outputs/skill-batch-triager.md`. Given workload characteri
 
 - [OpenAI Batch API](https://platform.openai.com/docs/guides/batch) — JSONL format and `/v1/batches` semantics.
 - [Anthropic Message Batches](https://docs.anthropic.com/en/docs/build-with-claude/batch-processing) — batch format and `cache_control` interaction.
-- [Vertex AI Batch Prediction](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/batch-prediction) — Gemini batch semantics.
+- [Vertex AI Batch Prediction](https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/batch-prediction-gemini) — Gemini batch semantics.
 - [Finout — OpenAI vs Anthropic API Pricing 2026](https://www.finout.io/blog/openai-vs-anthropic-api-pricing-comparison)
 - [Zen Van Riel — LLM API Cost Comparison 2026](https://zenvanriel.com/ai-engineer-blog/llm-api-cost-comparison-2026/)

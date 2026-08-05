@@ -207,6 +207,11 @@ Every remaining lesson is an elaboration of this four-step loop. Hold it in mind
 > 剩余的每一课都是对这个四步循环的扩展。请将它作为不变量牢记在心。
 
 ## Use It | 用框架实现
+```figure
+tp-tool-loop
+```
+
+## Use It
 
 `code/main.py` runs the four-step loop without an LLM. A fake "decider" function simulates the model by pattern-matching on the user message; the executor, schema validator, and observe-step harness are real. Run it to see the full request/response choreography with printable intermediate state, then replace the fake decider with any real provider in a later lesson.
 

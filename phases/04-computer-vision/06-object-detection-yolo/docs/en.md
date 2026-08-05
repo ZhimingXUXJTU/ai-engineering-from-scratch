@@ -206,6 +206,11 @@ Report all four. A detector that is strong on mAP@0.5 but weak on mAP@0.5:0.95 i
 
 > **【中文解读】** 本节通过代码从零实现核心算法。这种 "from scratch" 的方式能帮助理解框架背后的原理，遇到问题时不会被黑盒困住。
 
+```figure
+object-detection-nms
+```
+
+## Build It
 
 ### Step 1: IoU
 

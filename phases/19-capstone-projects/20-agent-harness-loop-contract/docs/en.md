@@ -25,6 +25,10 @@
 - Emit a typed stream of eleven event types so downstream UIs and tracers can subscribe without inspecting the loop directly.
   中文翻译：Emit a typed stream of eleven event types so downstream UIs and tracers can subscribe without inspecting the loop directly.
 
+```figure
+cf-loop-contract
+```
+
 ## The frame
 
 > **【中文解读】** 核心观点：运行 40 轮的编码 Agent 不是聊天循环，而是状态机——操作者可拦截节点、审计边。一旦写定契约，替换模型/工具/策略不再是重构，而是注册调用。本课定义 6 个状态、10 个 Hook 主题、2 个拉取点、11 个事件类型和一个预算信封。这是 Agent Harness 的骨架，其余所有组件（工具注册、传输、调度器）都插入这个形状。

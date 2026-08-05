@@ -99,6 +99,11 @@ The harness runs each task `k` times. Pass@k is `1 - (1 - p)^k` where p is the e
 ## Architecture | 架构
 
 > **【拓展：SWE-bench 和 HumanEval 的评估线束设计】** SWE-bench（Princeton）使用真实的 GitHub issue 作为 fixture task，验证器是单元测试套件的通过率。HumanEval (OpenAI) 使用 164 个 Python 函数补全任务，验证器是输入输出对测试。本课的五 fixture task 设计是这些基准测试的教育性简化——相同的架构（JSONL 任务定义、可交换的验证器、pass@k 指标），但规模更小、可在 90 分钟内完成。
+```figure
+pass-at-k
+```
+
+## Architecture
 
 ```mermaid
 flowchart TD

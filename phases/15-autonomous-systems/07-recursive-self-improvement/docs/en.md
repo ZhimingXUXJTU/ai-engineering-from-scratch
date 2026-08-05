@@ -129,6 +129,11 @@ The workshop summary (openreview.net/pdf?id=OsPQ6zTQXV) identifies four current 
    中文翻译：周期间审计（谁在下一个周期开始前检查此周期？）。
 
 ## Use It | 用框架实现
+```figure
+world-model-rollout
+```
+
+## Use It
 
 `code/main.py` simulates a two-process race: capability improvement and alignment improvement. Each cycle applies configurable rates with noise. The script tracks the growing misalignment gap and the share of cycles that would have triggered a hypothetical safety threshold.
 

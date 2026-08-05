@@ -123,6 +123,11 @@ At >1M requests/day, full-trace retention costs more than the LLM calls. Sample 
 - OpenTelemetry GenAI conventions: 2025 shipping, 2026 widely adopted.
 
 ## Use It | 用框架实现
+```figure
+i4-otel-glue
+```
+
+## Use It
 
 `code/main.py` simulates a 1M-trace day across retention strategies (100% ingest, sampling, sampling + errors). Reports storage cost and what's lost under each.
 

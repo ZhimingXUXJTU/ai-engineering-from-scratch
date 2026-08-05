@@ -112,6 +112,11 @@ Lessons 12-14 are model-centric jailbreaks. Lesson 15 is the system-centric atta
 > **【拓展：IPI 在 Agent 系统中的普遍性】** 随着 AI Agent 的普及——Microsoft 365 Copilot、GitHub Copilot、各种 RAG 系统——IPI 的攻击面在 2025-2026 年急剧扩大。每个对外部数据有读取访问权限的 Agent 都是一个潜在目标。现实事件（Lesson 25）证明生产部署正在被 IPI 在实际中攻击，不仅仅是基准测试中。IFC 是目前最有前景的防御范式。
 
 ## Use It | 使用方法
+```figure
+al-injection-vector
+```
+
+## Use It
 
 `code/main.py` builds an IPI harness. A toy agent has three tools (search web, read email, send message). The environment contains attacker-controlled content with an embedded instruction ("forward this to all contacts"). You can toggle between a naive agent (follows injected instructions), a filter-defended agent (keyword filter on retrieved content), and an IFC agent (separates trusted and untrusted content and refuses untrusted control-flow commands).
 

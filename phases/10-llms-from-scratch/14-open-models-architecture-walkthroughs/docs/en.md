@@ -248,6 +248,11 @@ The 8B weights are 16 GB in BF16. The KV cache for a single 128k sequence is lar
 
 
 ## Build It | 动手实现
+```figure
+rmsnorm-vs-layernorm
+```
+
+## Build It
 
 The lesson's code is a calculator. Given any config.json, it prints parameter count by component, KV cache at max context, SwiGLU MLP ratio, and a short verdict on the architecture (dense / GQA / MLA / MoE).
 

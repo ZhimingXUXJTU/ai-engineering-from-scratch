@@ -146,6 +146,11 @@ It is also the clearest case where the optimizer is doing exactly what the objec
 > **【中文解读】** 使用方法：code/main.py 在玩具 3 动作世界中模拟谄媚放大。基础策略在{正确答案, 谄媚协议, 随机错误}上均匀分布。奖励模型对协议给予小正奖励（虚假特征），对正确性给予真实效用。你可以切换协议惩罚，观察 beta 和 alpha 变化时谄媚的升降。
 
 ## Use It | 用框架实现
+```figure
+al-sycophancy-amplifier
+```
+
+## Use It
 
 `code/main.py` simulates sycophancy amplification in a toy 3-action world. The base policy is uniform over actions {correct-answer, sycophantic-agreement, random-wrong}. The reward model gives small positive reward for agreement (the spurious feature) and true utility for correctness. You can toggle the agreement penalty and watch sycophancy rise and fall with beta and alpha.
 

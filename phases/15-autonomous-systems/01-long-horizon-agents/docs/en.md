@@ -104,6 +104,11 @@ Every row becomes a lesson in this phase.
 > 每一行都成为本阶段的一课。
 
 ## Use It | 用框架实现
+```figure
+task-decomposition
+```
+
+## Use It
 
 Run `code/main.py`. It simulates the METR horizon curve and shows:
 

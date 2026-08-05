@@ -165,6 +165,11 @@ The fix: stack perceptrons into layers. A multi-layer perceptron can solve XOR b
 > **【拓展：为什么深度学习需要"深"】** 单层感知机只能画直线，两层可以画折线，三层可以画任意形状。层数越多，能表达的函数越复杂。这就是为什么 GPT-4 有近 100 层 Transformer——每多一层，模型就能表达更复杂的模式。从感知机到 GPT，核心思想一脉相承。
 
 ## Build It | 动手构建
+```figure
+perceptron-boundary
+```
+
+## Build It
 
 ### Step 1: The Perceptron class
 

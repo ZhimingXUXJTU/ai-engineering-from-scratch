@@ -139,6 +139,11 @@ They are different axes through the problem. Both yield tractable conditional di
 > 它们是穿过问题的不同轴。两者都产生可处理的条件分布。实验上 VAR 推理更快（更少传播，尺度内全并行），在类别条件 ImageNet 上匹配或超越 DiT。文本条件 VAR 是活跃研究方向。
 
 ## Build It | 动手实现
+```figure
+gx-var-next-scale
+```
+
+## Build It
 
 In `code/main.py` you will:
 1. Build a tiny **multi-scale VQ tokenizer** on synthetic "image" data (2D Gaussian rings).

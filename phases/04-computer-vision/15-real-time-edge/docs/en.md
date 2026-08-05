@@ -162,6 +162,11 @@ Quantise all of these to INT8 unless you have a specific reason not to.
 
 
 ## Build It | 动手实现
+```figure
+cnn-param-count
+```
+
+## Build It
 
 ### Step 1: Measure latency correctly
 

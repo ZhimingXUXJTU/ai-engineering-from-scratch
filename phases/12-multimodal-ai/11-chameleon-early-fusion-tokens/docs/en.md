@@ -173,6 +173,11 @@ AnyGPT (Zhan et al., 2024) extends Chameleon to four modalities: text, image, sp
 
 
 ## Use It  | 动手实践
+```figure
+vq-codebook
+```
+
+## Use It
 
 `code/main.py` builds a toy end-to-end early-fusion model:
 
