@@ -18,6 +18,9 @@
   <a href="../../i18n/ru/README.md">Русский</a> ·
   <a href="../../i18n/tr/README.md">Türkçe</a>
   <br><sub>Translated landing pages, committed to the repo. English is canonical; lesson pages are machine-translated on the <code>translations</code> branch. See <a href="../../docs/i18n.md">docs/i18n.md</a>.</sub>
+  <br><a href="../../开始学习.md"><strong>🇨🇳 中文版入口 — 开始学习</strong></a> &nbsp;·&nbsp;
+  <a href="../../学习路线图.md">🗺 学习路线图</a> &nbsp;·&nbsp;
+  <a href="../../FAQ.md">❓ 常见问题</a>
 </p>
 
 <p align="center">
