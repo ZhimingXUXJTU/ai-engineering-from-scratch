@@ -2033,12 +2033,17 @@
         // via build-meta.js), so PR preview deploys render their own lesson
         // edits instead of always pulling main. Falls back to main.
         var ref = (typeof window !== 'undefined' && window.__AIFS_REF) ? window.__AIFS_REF : 'main';
-        var base = 'https://raw.githubusercontent.com/rohitg00/ai-engineering-from-scratch/' + ref + '/';
+        // Local mode: served from a local checkout on localhost, read the
+        // local files instead — the local docs/en.md carries the embedded
+        // Chinese study translations and learner notes.
+        var isLocal = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+        var base = isLocal ? '../' : 'https://raw.githubusercontent.com/rohitg00/ai-engineering-from-scratch/' + ref + '/';
         var enUrl = base + path + '/docs/en.md';
         var lang = currentLang();
         var docUrl = lang === 'en' ? enUrl
-          : 'https://raw.githubusercontent.com/rohitg00/ai-engineering-from-scratch/translations/i18n/'
-            + lang + '/' + path + '/docs/' + lang + '.md';
+          : (isLocal ? base + 'i18n/' + lang + '/' + path + '/docs/' + lang + '.md'
+            : 'https://raw.githubusercontent.com/rohitg00/ai-engineering-from-scratch/translations/i18n/'
+              + lang + '/' + path + '/docs/' + lang + '.md');
         var quizUrl = base + path + '/quiz.json';
 
         if (!retried || !lessonQuizPromise) {

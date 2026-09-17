@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>学习看板 · AI 求职计划 v2</title>
+<style>
+:root{
+  --bg:#f4f5fa; --card:#ffffff; --ink:#1e2235; --muted:#7a7f99;
+  --accent:#5b5bd6; --accent-soft:#eeefff;
+  --ok:#15a46c; --ok-soft:#e5f7ef;
+  --doing:#e8930c; --doing-soft:#fdf3e2;
+  --skip:#98a0b3; --skip-soft:#f0f2f6;
+  --line:#e7e9f2; --danger:#d64545;
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI","Microsoft YaHei",-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+
+/* ── 顶部导航 ── */
+nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:18px;height:52px;padding-top:0;padding-bottom:0}
+nav b{font-size:15px}
+nav a{color:var(--muted);text-decoration:none;font-size:13.5px}
+nav a:hover{color:var(--accent)}
+
+/* ── 总览 ── */
+.hero{display:flex;gap:28px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px 26px;margin-top:22px}
+.ring-wrap{position:relative;width:118px;height:118px;flex:none}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700}
+.ring-num b{font-size:24px}
+.ring-num span{font-size:11px;color:var(--muted);font-weight:400}
+.hero-stats{flex:1;min-width:260px;display:flex;flex-direction:column;gap:6px}
+.hero-stats h1{font-size:19px}
+.hero-stats .sub{color:var(--muted);font-size:13px}
+.pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.pill{background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:3px 12px;font-size:12.5px;font-weight:600}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.doing{background:var(--doing-soft);color:var(--doing)}
+.hero-date{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.hero-date input{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:14px;color:var(--ink)}
+
+/* ── 今天 ── */
+.today{background:linear-gradient(135deg,#5b5bd6,#7c5bd6);color:#fff;border-radius:var(--radius);padding:18px 24px;margin-top:16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.today .tag{background:rgba(255,255,255,.18);border-radius:8px;padding:2px 10px;font-size:12.5px;font-weight:700;flex:none}
+.today .what{flex:1;min-width:220px;font-size:15px;font-weight:600}
+.today .what small{display:block;font-weight:400;opacity:.85;font-size:12.5px;margin-top:2px}
+.rhythm{display:flex;gap:8px;flex-wrap:wrap}
+.rhythm span{background:rgba(255,255,255,.14);border-radius:999px;padding:3px 11px;font-size:12px}
+.today button{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:6px 13px;font-size:13px;cursor:pointer}
+.today button:hover{background:rgba(255,255,255,.32)}
+
+/* ── 阶段卡片 ── */
+.stage{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-top:18px;overflow:hidden}
+.stage.now{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.stage-head{display:flex;align-items:center;gap:14px;padding:16px 22px 12px;flex-wrap:wrap}
+.stage-head .wk{background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:700;border-radius:8px;padding:3px 10px;flex:none}
+.stage-head h2{font-size:16.5px;flex:1;min-width:200px}
+.stage-head .date{color:var(--muted);font-size:12.5px}
+.stage-goal{color:var(--muted);font-size:13px;padding:0 22px 10px}
+.bar{height:7px;background:var(--skip-soft);border-radius:99px;margin:0 22px 6px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#15a46c);border-radius:99px;transition:width .3s}
+.stage-meta{padding:2px 22px 12px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+
+.item{display:grid;grid-template-columns:76px 62px 1fr auto auto;gap:10px;align-items:center;padding:9px 22px;border-top:1px solid var(--line)}
+.item:hover{background:#fafbff}
+.chip{border:none;border-radius:999px;padding:4px 0;font-size:12px;font-weight:700;cursor:pointer;text-align:center;font-family:inherit}
+.chip.s-not_started{background:var(--skip-soft);color:var(--skip)}
+.chip.s-in_progress{background:var(--doing-soft);color:var(--doing)}
+.chip.s-completed{background:var(--ok-soft);color:var(--ok)}
+.chip.s-skipped{background:#ececec;color:#9aa;text-decoration:line-through}
+.lid{font-size:12.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:7px;text-align:center;padding:2px 0}
+.it-title{font-size:14.5px}
+.it-title em{font-style:normal;color:var(--muted);font-size:12.5px;margin-left:8px}
+.it-title.done{text-decoration:line-through;color:var(--muted)}
+.opt{font-size:11px;color:var(--doing);background:var(--doing-soft);border-radius:6px;padding:1px 7px;margin-left:7px;vertical-align:1px}
+.copy{border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 10px;font-size:12px;color:var(--muted);cursor:pointer}
+.copy:hover{border-color:var(--accent);color:var(--accent)}
+.open{border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 10px;font-size:12.5px;color:var(--accent);cursor:pointer;text-decoration:none;white-space:nowrap}
+.open:hover{border-color:var(--accent)}
+.it-title .tlink{color:var(--accent);font-size:12.5px;margin-left:8px;text-decoration:none}
+.it-title .tlink:hover{text-decoration:underline}
+a.pill.site{cursor:pointer;text-decoration:none}
+.today a.btn{background:rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:6px 13px;font-size:13px;text-decoration:none}
+.today a.btn:hover{background:rgba(255,255,255,.32)}
+
+.item.mile{grid-template-columns:76px 1fr auto;background:#fbfaf4}
+.item.mile .mstar{font-size:19px;font-family:"Segoe UI Emoji","Segoe UI Symbol","Microsoft YaHei",sans-serif}
+.item.mile .it-title{font-weight:600}
+.item.mile .chip{min-width:60px}
+.mile-desc{padding:0 22px 10px 108px;font-size:12.5px;color:var(--muted);border-top:1px dashed var(--line);margin-top:-1px;padding-top:8px}
+
+/* ── 卡点收集箱 ── */
+.box{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-top:18px;padding:18px 22px}
+.box h2{font-size:16.5px;margin-bottom:6px}
+.box .hint{color:var(--muted);font-size:13px;margin-bottom:12px}
+.blk-form{display:flex;gap:10px;margin-bottom:12px}
+.blk-form input{flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:14px;font-family:inherit}
+.blk-form input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+.blk-form button{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:8px 18px;font-size:14px;cursor:pointer;font-family:inherit}
+.blk-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px dashed var(--line);font-size:14px}
+.blk-item input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent);cursor:pointer}
+.blk-item .txt{flex:1}
+.blk-item.resolved .txt{text-decoration:line-through;color:var(--muted)}
+.blk-item time{color:var(--muted);font-size:12px}
+.blk-item .del{border:none;background:none;color:var(--muted);cursor:pointer;font-size:14px}
+.blk-empty{color:var(--muted);font-size:13.5px;padding:6px 0}
+
+/* ── 回补地图 ── */
+.jit-search{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:14px;margin-bottom:12px;font-family:inherit}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:2px solid var(--line);font-size:12.5px}
+td{padding:8px;border-bottom:1px solid var(--line)}
+td.k{white-space:nowrap;font-weight:700;color:var(--accent);cursor:pointer}
+td.k:hover{text-decoration:underline}
+tr.hide{display:none}
+
+/* ── 规则 ── */
+details{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-top:18px;padding:14px 22px}
+details summary{cursor:pointer;font-weight:700;font-size:15px}
+details ol{margin:10px 0 4px 22px;font-size:14px}
+details li{margin:5px 0}
+
+/* ── 底部同步 ── */
+footer{margin-top:26px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted)}
+footer button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 16px;font-size:13.5px;cursor:pointer;font-family:inherit;color:var(--ink)}
+footer button:hover{border-color:var(--accent);color:var(--accent)}
+
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:#22243a;color:#fff;padding:9px 20px;border-radius:10px;font-size:13.5px;opacity:0;pointer-events:none;transition:.25s;z-index:99}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (max-width:720px){
+  .item{grid-template-columns:70px 1fr auto;gap:8px}
+  .item .lid{display:none}
+  .item .copy{display:none}
+  .item.mile{grid-template-columns:70px 1fr auto}
+  .mile-desc{padding-left:22px}
+}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <b>🎯 学习看板</b>
+  <a href="#stages">计划</a><a href="#blockers">卡点箱</a><a href="#jit">回补地图</a><a href="#rules">防累规则</a>
+</div></nav>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="ring-wrap">
+      <svg width="118" height="118" viewBox="0 0 118 118">
+        <circle cx="59" cy="59" r="52" fill="none" stroke="var(--skip-soft)" stroke-width="11"/>
+        <circle id="ringBar" cx="59" cy="59" r="52" fill="none" stroke="var(--accent)" stroke-width="11"
+                stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"/>
+      </svg>
+      <div class="ring-num"><b id="ringPct">0%</b><span>必修完成</span></div>
+    </div>
+    <div class="hero-stats">
+      <h1>AI 求职计划 · 项目驱动版</h1>
+      <div class="sub">一个主项目的三次迭代：v1 能用 → v2 有指标 → v3 会调工具 · 12 周主线</div>
+      <div class="pills">
+        <span class="pill ok" id="pDone">完成 0</span>
+        <span class="pill doing" id="pDoing">进行中 0</span>
+        <span class="pill" id="pSkip">跳过 0</span>
+        <span class="pill" id="pMile">里程碑 0/5</span>
+        <a class="pill site" href="site/index.html?lang=zh" target="_blank" title="课程网站：全部 503 节课的完整内容">📚 课程网站</a>
+      </div>
+    </div>
+    <div class="hero-date">
+      <label for="startDate">📅 计划开始日期（选填）</label>
+      <input type="date" id="startDate">
+      <span>填了以后每个阶段会显示日期区间，并高亮当前阶段</span>
+    </div>
+  </div>
+
+  <div class="today" id="todayBanner"></div>
+
+  <section id="stages"></section>
+
+  <section class="box" id="blockers">
+    <h2>📌 卡点收集箱</h2>
+    <div class="hint">学习/做项目中卡住的地方先记在这里，不阻塞就攒着，每周整理日批量回补（查下方地图）。解决了就打勾。</div>
+    <div class="blk-form">
+      <input id="blkInput" placeholder="例：embedding 和普通搜索的区别到底是什么？／ Agent 跑到第 3 步就死循环">
+      <button id="blkAdd">记下</button>
+    </div>
+    <div id="blkList"></div>
+  </section>
+
+  <section class="box" id="jit">
+    <h2>🧭 按需回补地图</h2>
+    <div class="hint">卡住时查这张表，学完立刻回项目。点击课号可复制对应的 track_progress 命令。</div>
+    <input class="jit-search" id="jitSearch" placeholder="搜索症状或关键词，例：检索 / 幻觉 / 面试 / 微调…">
+    <table><thead><tr><th style="width:30%">你遇到的症状</th><th>回补课</th><th style="width:22%">课号</th></tr></thead><tbody id="jitBody"></tbody></table>
+  </section>
+
+  <details id="rules">
+    <summary>📋 防累机制（每次想放弃时回来看）</summary>
+    <ol>
+      <li><b>每 2 周必须有一个能演示的东西</b>（截图/录屏/URL）。反馈是燃料。</li>
+      <li><b>同一门理论课连续学不超过 3 天</b>，第 4 天必须回项目写代码。</li>
+      <li><b>基础课只出现在回补地图和面试清单里</b>，永远不"从头刷 Phase"。</li>
+      <li><b>每周 1 个整理日</b>：不学新课，只整理笔记、跑通测试、push GitHub、背 10 个术语。</li>
+      <li><b>累了就去做项目的下一个功能</b>——做出东西比看懂十课更提神。</li>
+    </ol>
+  </details>
+
+  <footer>
+    <b>数据同步：</b>
+    <button id="btnSiteSync">🔄 同步课程网站进度</button>
+    <button id="btnExport">⬇ 导出 MY_PROGRESS.json</button>
+    <button id="btnImport">⬆ 导入 MY_PROGRESS.json</button>
+    <input type="file" id="fileInput" accept=".json" hidden>
+    <span id="syncNote">在课程网站里学完的课（测验全对自动记完成）点「同步」即可带回看板；导入/导出与命令行 <code>python scripts/track_progress.py</code> 共用 MY_PROGRESS.json。用「启动学习环境.bat」打开则全部自动。</span>
+  </footer>
+
+</div>
+<div id="toast"></div>
+
+<script>
+/* ══════════ 计划数据（改计划改这里） ══════════ */
+const STAGES=[
+ {id:"s0",wk:[1,1],title:"环境 + 第一行 AI 代码",goal:"本周就调通 LLM API，先尝到甜头。Phase 0 只学 4 课，其余用到再回。",
+  items:[
+   {slug:"00-setup-and-tooling/01-dev-environment",lid:"0/01",t:"开发环境"},
+   {slug:"00-setup-and-tooling/02-git-and-collaboration",lid:"0/02",t:"Git 与协作",d:"求职必备，认真过"},
+   {slug:"00-setup-and-tooling/04-apis-and-keys",lid:"0/04",t:"API 与密钥",d:"拿到第一把钥匙"},
+   {slug:"00-setup-and-tooling/06-python-environments",lid:"0/06",t:"Python 环境",d:"venv/pip 走通"},
+   {mile:"m0",t:"里程碑：20 行命令行聊天程序 + 第一次 git push",d:"过关标准：程序能对话，GitHub 上能看到提交记录"}
+  ]},
+ {id:"v1",wk:[2,3],title:"v1 · 用现成框架搭 RAG",goal:"选一个你关心的文档集合，做问答机器人。框架先跑起来，从零实现留到以后。",
+  items:[
+   {slug:"11-llm-engineering/01-prompt-engineering",lid:"11/01",t:"Prompt Engineering",d:"精读"},
+   {slug:"11-llm-engineering/04-embeddings",lid:"11/04",t:"Embeddings",d:"读懂概念，代码跑通即可"},
+   {slug:"11-llm-engineering/06-rag",lid:"11/06",t:"RAG 主课",d:"先用现成框架方案（Use It 部分）搭起来"},
+   {mile:"m1",t:"里程碑：10 个问题答对 6+，能演示给朋友看",d:"过关标准：真人对着你的 demo 提问，不崩、不胡编"}
+  ]},
+ {id:"v2",wk:[4,5],title:"v2 · 加需求 × 撞墙 × 回补",goal:"每周提 2-3 个真实需求，每个需求走一遍：加需求 → 卡住 → 回补一课 → 解决 → 提交。",
+  items:[
+   {slug:"11-llm-engineering/05-context-engineering",lid:"11/05",t:"Context Engineering",d:"回补：检索不准"},
+   {slug:"11-llm-engineering/07-advanced-rag",lid:"11/07",t:"Advanced RAG",d:"回补：混合检索/重排"},
+   {slug:"11-llm-engineering/02-few-shot-cot",lid:"11/02",t:"Few-shot & CoT",d:"回补：输出不稳"},
+   {slug:"11-llm-engineering/03-structured-outputs",lid:"11/03",t:"Structured Outputs",d:"回补：格式乱"},
+   {slug:"11-llm-engineering/10-evaluation",lid:"11/10",t:"Evaluation",d:"回补：怎么证明它好"},
+   {slug:"11-llm-engineering/11-caching-cost",lid:"11/11",t:"Caching & Cost",d:"回补：账单贵"},
+   {slug:"11-llm-engineering/15-prompt-caching",lid:"11/15",t:"Prompt Caching",d:"省钱续篇",opt:true},
+   {slug:"11-llm-engineering/12-guardrails",lid:"11/12",t:"Guardrails",d:"安全护栏",opt:true},
+   {slug:"11-llm-engineering/13-production-app",lid:"11/13",t:"Production App",d:"部署给别人用"},
+   {mile:"m2",t:"里程碑：能讲「改进后评测分 X→Y，成本 Z→W」",d:"过关标准：这句话直接写进简历，每个数字都有截图证据"}
+  ]},
+ {id:"v3",wk:[6,9],title:"v3 · 从问答机器人升级成 Agent",goal:"让它调工具、走标准协议、自己循环。前 5 课按顺序必学，后面选学。",
+  items:[
+   {slug:"11-llm-engineering/09-function-calling",lid:"11/09",t:"Function Calling",d:"接 1-2 个真实工具"},
+   {slug:"13-tools-and-protocols/06-mcp-fundamentals",lid:"13/06",t:"MCP 基础",d:"2026 岗位高频词"},
+   {slug:"13-tools-and-protocols/07-building-an-mcp-server",lid:"13/07",t:"构建 MCP Server"},
+   {slug:"13-tools-and-protocols/08-building-an-mcp-client",lid:"13/08",t:"构建 MCP Client"},
+   {slug:"14-agent-engineering/01-the-agent-loop",lid:"14/01",t:"Agent Loop",d:"主课：从零写一个循环"},
+   {slug:"14-agent-engineering/03-reflexion-verbal-rl",lid:"14/03",t:"Reflexion",d:"跑偏回补，二选一",opt:true},
+   {slug:"14-agent-engineering/05-self-refine-and-critic",lid:"14/05",t:"Self-Refine & Critic",d:"跑偏回补，二选一",opt:true},
+   {slug:"14-agent-engineering/07-memory-virtual-context-memgpt",lid:"14/07",t:"虚拟上下文记忆",d:"记不住回补，二选一",opt:true},
+   {slug:"14-agent-engineering/09-hybrid-memory-mem0",lid:"14/09",t:"混合记忆 Mem0",d:"记不住回补，二选一",opt:true},
+   {slug:"11-llm-engineering/16-langgraph-state-machines",lid:"11/16",t:"LangGraph 状态机",d:"用框架收尾，选学",opt:true},
+   {slug:"13-tools-and-protocols/15-mcp-security-tool-poisoning",lid:"13/15",t:"MCP 安全",d:"面试差异化加分",opt:true},
+   {mile:"m3",t:"里程碑：多步任务能连续调用工具自己完成",d:"过关标准：给它「查这三个文件→对比→写总结存盘」，全程不用你插手"}
+  ]},
+ {id:"sprint",wk:[10,12],title:"面试硬知识 + 项目② + 投递",goal:"三道绕不开的原理题集中补（这次必须学），同时做项目②，第 12 周起边投边补。",
+  items:[
+   {slug:"03-deep-learning-core/03-backpropagation",lid:"3/03",t:"反向传播",d:"3 天，白板能推链式法则"},
+   {slug:"07-transformers-deep-dive/02-self-attention-from-scratch",lid:"7/02",t:"Self-Attention 从零",d:"3 天，能手写 Q·K·V"},
+   {slug:"07-transformers-deep-dive/03-multi-head-attention",lid:"7/03",t:"Multi-Head Attention"},
+   {custom:"p2",lid:"项目",t:"项目②（二选一）",d:"19/13 MCP Server with Registry（衔接顺）或 19/01 终端编程助手（最出彩）"},
+   {mile:"m4",t:"里程碑：三道面试题过关 + 投递开始",d:"过关标准：白板推反向传播、手写 attention、STAR 讲 RAG 迭代故事"}
+  ]}
+];
+
+const JIT=[
+ ["token / temperature / 参数搞不懂","11/01 Prompt Engineering","11/1"],
+ ["检索经常不准","11/05 上下文工程、11/07 高级 RAG；更深：19/64-67（未翻译，找 AI 补）","11/5 11/7"],
+ ["embedding 原理是什么","5/03 Word2Vec + 11/04","11/4"],
+ ["幻觉多、输出不稳","11/02 Few-shot/CoT、11/03 结构化输出","11/2"],
+ ["该微调还是改提示词","11/08 Fine-tuning LoRA","11/8"],
+ ["Agent 跑偏 / 死循环","14/03 Reflexion、14/04 ToT、14/05 Self-Refine","14/3"],
+ ["Agent 记不住上下文","14/07、14/08、14/09 记忆三课","14/7"],
+ ["响应慢、成本高","11/11 缓存成本、11/15 提示词缓存；极致优化去 Phase 17 选课","11/11"],
+ ["面试被问 attention","7/02、7/03 从零实现","7/2"],
+ ["面试被问反向传播","3/03 反向传播","3/3"],
+ ["想懂 LLM 怎么训练（可选）","10/05 预训练、10/07 RLHF、10/08 DPO","10/5"]
+];
+
+/* ══════════ 状态管理 ══════════ */
+const LS_KEY="zh-plan-v2";
+const CYCLE=["not_started","in_progress","completed","skipped"];
+const CHIP={not_started:"未开始",in_progress:"进行中",completed:"完成",skipped:"跳过"};
+let S={lessons:{},custom:{},blockers:[],startDate:null};
+
+function load(){
+  try{const raw=localStorage.getItem(LS_KEY);if(raw)S=Object.assign(S,JSON.parse(raw));}catch(e){}
+}
+function save(){localStorage.setItem(LS_KEY,JSON.stringify(S));}
+function st(key,isCustom){
+  if(isCustom)return S.custom[key]||"not_started";
+  return (S.lessons[key]&&S.lessons[key].status)||"not_started";
+}
+function setSt(key,isCustom,val){
+  const now=new Date(),ts=now.toLocaleString("zh-CN",{hour12:false});
+  if(isCustom){S.custom[key]=val;}
+  else{
+    const L=S.lessons[key]=S.lessons[key]||{};
+    L.status=val;
+    if(val==="in_progress"&&!L.started_at)L.started_at=ts;
+    if(val==="completed")L.completed_at=ts;
+  }
+  save();renderAll();
+}
+
+/* ══════════ 工具 ══════════ */
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),1800);}
+function copyText(txt){
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast("已复制："+txt),()=>fallbackCopy(txt));}
+  else fallbackCopy(txt);
+}
+function fallbackCopy(txt){const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("已复制："+txt);}catch(e){toast("复制失败，请手动复制");}ta.remove();}
+function cmdFor(lid,status){
+  const p=lid.split("/");
+  const act=status==="completed"?"done":status==="skipped"?"undo":status==="in_progress"?"done":"start";
+  return `python scripts/track_progress.py ${act} ${p[0]}/${+p[1]}`;
+}
+function fmtRange(w1,w2){
+  if(!S.startDate)return null;
+  const d=new Date(S.startDate+"T00:00:00");
+  if(isNaN(d))return null;
+  const a=new Date(d.getTime()+(w1-1)*7*864e5),b=new Date(d.getTime()+w2*7*864e5-864e5);
+  const f=x=>`${x.getMonth()+1}/${String(x.getDate()).padStart(2,"0")}`;
+  return w1===w2?`第 ${w1} 周 · ${f(a)}`:`第 ${w1}-${w2} 周 · ${f(a)} – ${f(b)}`;
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+/* ══════════ 渲染 ══════════ */
+function requiredItems(){return STAGES.flatMap(g=>g.items.filter(i=>!i.opt&&i.t));}
+
+function renderStages(){
+  const host=document.getElementById("stages");
+  const today=new Date();today.setHours(0,0,0,0);
+  const start=S.startDate?new Date(S.startDate+"T00:00:00"):null;
+  let html="";
+  for(const g of STAGES){
+    const req=g.items.filter(i=>!i.opt);
+    const done=req.filter(i=>st(i.slug||i.mile||i.custom,!!(i.mile||i.custom))==="completed").length;
+    const pct=req.length?Math.round(done/req.length*100):0;
+    let isNow=false;
+    if(start&&!isNaN(start)){
+      const s=new Date(start.getTime()+(g.wk[0]-1)*7*864e5),e=new Date(start.getTime()+g.wk[1]*7*864e5-1);
+      if(today>=s&&today<=e)isNow=true;
+    }
+    const range=fmtRange(g.wk[0],g.wk[1]);
+    html+=`<div class="stage${isNow?" now":""}" id="st-${g.id}">
+      <div class="stage-head">
+        <span class="wk">${range?esc(range.split(" · ")[0]):(g.wk[0]===g.wk[1]?"第 "+g.wk[0]+" 周":"第 "+g.wk[0]+"-"+g.wk[1]+" 周")}</span>
+        <h2>${esc(g.title)}</h2>
+        <span class="date">${range?"· "+esc(range.split(" · ")[1]):""}${isNow?" · ▸ 当前":""}</span>
+      </div>
+      <div class="stage-goal">${esc(g.goal)}</div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="stage-meta"><span>${done}/${req.length} 完成${pct===100?" 🎉":""}</span><span>选学课不计入进度</span></div>`;
+    for(const it of g.items){
+      const key=it.slug||it.mile||it.custom,isC=!(it.slug);
+      const s=st(key,isC);
+      if(it.mile||it.custom){
+        html+=`<div class="item mile">
+          <button class="chip s-${s}" data-k="${esc(key)}" data-c="1">${it.mile?CHIP[s]==="完成"?"过关 ✔":CHIP[s]:CHIP[s]}</button>
+          <div class="mstar">${it.mile?"🏆":"⭐"}</div>
+          <div class="it-title ${s==="completed"?"done":""}">${esc(it.t)}${it.opt?'<span class="opt">选学</span>':""}${it.custom==="p2"?' <a class="tlink" href="site/lesson.html?path=phases/19-capstone-projects/13-mcp-server-with-registry&lang=zh" target="_blank">打开 19/13 参考</a>':""}</div>
+        </div>`;
+        if(it.d)html+=`<div class="mile-desc">${esc(it.d)}</div>`;
+      }else{
+        const cmd=cmdFor(it.lid,s);
+        html+=`<div class="item">
+          <button class="chip s-${s}" data-k="${esc(key)}">${CHIP[s]}</button>
+          <span class="lid">${esc(it.lid)}</span>
+          <div class="it-title ${s==="completed"?"done":""}">${esc(it.t)}${it.opt?'<span class="opt">选学</span>':""}${it.d?`<em>${esc(it.d)}</em>`:""}</div>
+          <button class="copy" data-cmd="${esc(cmd)}">⧉ 记录</button>
+          <a class="open" href="site/lesson.html?path=phases/${encodeURIComponent(it.slug)}&lang=zh" target="_blank" title="在课程网站打开本课：中英对照 + 内嵌测验，测验全对自动记完成">📖 打开</a>
+        </div>`;
+      }
+    }
+    html+=`</div>`;
+  }
+  host.innerHTML=html;
+  host.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.k,c=b.dataset.c==="1";
+    const cur=st(k,c);setSt(k,c,CYCLE[(CYCLE.indexOf(cur)+1)%4]);
+  });
+  host.querySelectorAll(".copy").forEach(b=>b.onclick=()=>copyText(b.dataset.cmd));
+}
+
+function renderHero(){
+  const req=requiredItems();
+  const done=req.filter(i=>st(i.slug||i.mile||i.custom,!!(i.mile||i.custom))==="completed").length;
+  const doing=req.filter(i=>st(i.slug||i.mile||i.custom,!!(i.mile||i.custom))==="in_progress").length;
+  const skip=req.filter(i=>st(i.slug||i.mile||i.custom,!!(i.mile||i.custom))==="skipped").length;
+  const miles=STAGES.flatMap(g=>g.items.filter(i=>i.mile));
+  const md=miles.filter(i=>st(i.mile,true)==="completed").length;
+  const pct=req.length?Math.round(done/req.length*100):0;
+  document.getElementById("ringPct").textContent=pct+"%";
+  document.getElementById("ringBar").style.strokeDashoffset=326.7*(1-pct/100);
+  document.getElementById("pDone").textContent=`完成 ${done}`;
+  document.getElementById("pDoing").textContent=`进行中 ${doing}`;
+  document.getElementById("pSkip").textContent=`跳过 ${skip}`;
+  document.getElementById("pMile").textContent=`里程碑 ${md}/${miles.length}`;
+}
+
+function renderToday(){
+  const host=document.getElementById("todayBanner");
+  const start=S.startDate?new Date(S.startDate+"T00:00:00"):null;
+  const today=new Date();today.setHours(0,0,0,0);
+  let cur=STAGES[0];
+  if(start&&!isNaN(start)){
+    for(const g of STAGES){
+      const s=new Date(start.getTime()+(g.wk[0]-1)*7*864e5),e=new Date(start.getTime()+g.wk[1]*7*864e5-1);
+      if(today>=s&&today<=e){cur=g;break;}
+      if(today< s){break;}
+      cur=g;
+    }
+  }else{
+    cur=STAGES.find(g=>g.items.some(i=>!i.opt&&st(i.slug||i.mile||i.custom,!!(i.mile||i.custom))!=="completed"))||STAGES[STAGES.length-1];
+  }
+  let target=null;
+  for(const g of [cur,...STAGES.filter(x=>x!==cur)]){
+    target=g.items.find(i=>!i.opt&&st(i.slug||i.mile||i.custom,!!(i.mile||i.custom))==="in_progress");
+    if(target&&g===cur)break;
+    if(!target){target=g.items.find(i=>!i.opt&&st(i.slug||i.mile||i.custom,!!(i.mile||i.custom))==="not_started");}
+    if(target){cur=g;break;}
+  }
+  const name=target?(target.lid==="项目"?target.t:`${target.lid} ${target.t}`):"—";
+  const cmd=target&&target.lid&&target.lid.includes("/")?cmdFor(target.lid,"not_started"):null;
+  host.innerHTML=`<span class="tag">TODAY</span>
+    <div class="what">今天：${esc(name)}<small>当前阶段：${esc(cur.title)} · 30min 复习 → 120min 项目 → 45min 回补 → 20min 收尾</small></div>
+    <div class="rhythm"><span>📚 复习 30'</span><span>💻 项目 120'</span><span>🧩 回补 45'</span><span>✅ 收尾 20'</span></div>
+    ${target&&target.slug?`<a class="btn" href="site/lesson.html?path=phases/${encodeURIComponent(target.slug)}&lang=zh" target="_blank">📖 打开本课</a>`:""}
+    ${cmd?`<button id="todayCopy">复制开始命令</button>`:""}`;
+  const b=document.getElementById("todayCopy");
+  if(b)b.onclick=()=>copyText(cmd);
+}
+
+function renderBlockers(){
+  const host=document.getElementById("blkList");
+  if(!S.blockers.length){host.innerHTML=`<div class="blk-empty">暂无卡点。卡住了就记进来，别让它打断当前迭代。</div>`;return;}
+  host.innerHTML=S.blockers.map((b,i)=>`
+    <div class="blk-item ${b.ok?"resolved":""}">
+      <input type="checkbox" data-i="${i}" ${b.ok?"checked":""}>
+      <span class="txt">${esc(b.text)}</span>
+      <time>${esc(b.at)}</time>
+      <button class="del" data-del="${i}" title="删除">✕</button>
+    </div>`).join("");
+  host.querySelectorAll("input[type=checkbox]").forEach(c=>c.onchange=()=>{S.blockers[+c.dataset.i].ok=c.checked;save();renderBlockers();});
+  host.querySelectorAll(".del").forEach(d=>d.onclick=()=>{S.blockers.splice(+d.dataset.del,1);save();renderBlockers();});
+}
+
+function renderJIT(){
+  const body=document.getElementById("jitBody");
+  body.innerHTML=JIT.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td class="k" data-k="${esc(r[2])}">${esc(r[2])}</td></tr>`).join("");
+  body.querySelectorAll(".k").forEach(td=>td.onclick=()=>{
+    const first=td.dataset.k.split(" ")[0].split("/");
+    copyText(`python scripts/track_progress.py start ${first[0]}/${+first[1]}`);
+  });
+  document.getElementById("jitSearch").oninput=e=>{
+    const q=e.target.value.trim().toLowerCase();
+    body.querySelectorAll("tr").forEach(tr=>tr.classList.toggle("hide",!!q&&!tr.textContent.toLowerCase().includes(q)));
+  };
+}
+
+function renderAll(){renderHero();renderStages();renderToday();renderBlockers();renderJIT();}
+
+/* ══════════ 导入 / 导出（兼容 MY_PROGRESS.json） ══════════ */
+function mergeImported(data){
+  if(!data||typeof data!=="object"||!data.lessons){toast("文件格式不对：缺少 lessons 字段");return;}
+  let n=0;
+  for(const[k,v]of Object.entries(data.lessons)){
+    if(v&&CYCLE.includes(v.status)){S.lessons[k]=Object.assign({},S.lessons[k],v);n++;}
+  }
+  save();renderAll();toast(`已导入 ${n} 条课程记录`);
+}
+document.getElementById("btnExport").onclick=()=>{
+  const out={created:new Date().toLocaleString("zh-CN",{hour12:false}),last_updated:new Date().toLocaleString("zh-CN",{hour12:false}),lessons:S.lessons};
+  const blob=new Blob([JSON.stringify(out,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="MY_PROGRESS.json";a.click();
+  URL.revokeObjectURL(a.href);toast("已导出 MY_PROGRESS.json（覆盖到仓库根目录即可与命令行同步）");
+};
+document.getElementById("btnImport").onclick=()=>document.getElementById("fileInput").click();
+
+/* 课程网站（site/）的进度存在 localStorage 的 aifs:progress:v1，
+   与看板同源（用启动脚本或同一端口访问时）可直接读取：测验全对的课自动带回完成状态 */
+function syncFromSite(silent){
+  let d=null;
+  try{d=JSON.parse(localStorage.getItem("aifs:progress:v1")||"null");}catch(e){}
+  if(!d||!d.lessons){if(!silent)toast("课程网站还没有学习记录（在网站上学一课、做完测验就有了）");return;}
+  let n=0;
+  /* 网站进度键带 phases/ 前缀，看板/命令行键不带，同步时去掉 */
+  for(const[siteKey,v]of Object.entries(d.lessons)){
+    if(!v||!v.completedAt)continue;
+    const k=siteKey.replace(/^phases\//,"");
+    const L=S.lessons[k];
+    if(L&&L.status==="completed")continue;
+    S.lessons[k]=Object.assign({},L,{status:"completed",completed_at:new Date(v.completedAt).toLocaleString("zh-CN",{hour12:false})});
+    n++;
+  }
+  if(n){save();renderAll();toast(`已从课程网站同步 ${n} 节完成`);}
+  else if(!silent)toast("没有新的完成记录需要同步");
+}
+document.getElementById("btnSiteSync").onclick=()=>syncFromSite(false);
+document.getElementById("fileInput").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=()=>{try{mergeImported(JSON.parse(r.result));}catch(err){toast("JSON 解析失败");}};
+  r.readAsText(f,"utf-8");e.target.value="";
+};
+
+/* ══════════ 卡点箱 / 日期 ══════════ */
+document.getElementById("blkAdd").onclick=addBlocker;
+document.getElementById("blkInput").onkeydown=e=>{if(e.key==="Enter")addBlocker();};
+function addBlocker(){
+  const inp=document.getElementById("blkInput"),t=inp.value.trim();
+  if(!t){toast("先写点什么");return;}
+  S.blockers.unshift({text:t,at:new Date().toLocaleDateString("zh-CN"),ok:false});
+  inp.value="";save();renderBlockers();
+}
+document.getElementById("startDate").onchange=e=>{
+  S.startDate=e.target.value||null;save();renderAll();
+};
+
+/* ══════════ 启动 ══════════ */
+load();
+document.getElementById("startDate").value=S.startDate||"";
+renderAll();
+/* 用 http 服务打开时自动读取仓库根目录的 MY_PROGRESS.json */
+if(location.protocol.startsWith("http")){
+  fetch("MY_PROGRESS.json",{cache:"no-store"})
+    .then(r=>r.ok?r.json():null)
+    .then(d=>{if(d&&d.lessons&&Object.keys(d.lessons).length)mergeImported(d);})
+    .then(()=>syncFromSite(true))
+    .catch(()=>{});
+}
+</script>
+</body>
+</html>
