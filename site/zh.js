@@ -187,6 +187,12 @@ window.ZH = {
     "app.completed": "已完成",
     "app.youCompleted": "你已完成本课程",
     "app.combines": "组合：",
+    "app.openLesson": "打开课程",
+    "app.comingSoon": "即将推出",
+    "app.done": "已完成",
+    "app.markDone": "标记完成",
+    "app.ofLessonsComplete": "/ 共",
+    "app.lessonsComplete": "节课已完成",
 
     // Prereq status and navigation
     "prereq.selectPhase": "选择阶段 ",

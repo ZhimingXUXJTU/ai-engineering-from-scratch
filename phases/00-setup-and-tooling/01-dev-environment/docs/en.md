@@ -1,45 +1,28 @@
-# Dev Environment | 开发环境搭建
+# Dev Environment
 
 > Your tools shape your thinking. Set them up once, set them up right.
-> 你的工具塑造你的思维。一次性搭好，一劳永逸。
 
-**Type:** Build | **类型:** 构建
-**Languages:** Python, Node.js, Rust | **语言:** Python, Node.js, Rust
-**Prerequisites:** None | **前置知识:** 无
-**Time:** ~45 minutes | **时间:** ~45 分钟
+**Type:** Build
+**Languages:** Python, Node.js, Rust
+**Prerequisites:** None
+**Time:** ~45 minutes
 
-## Learning Objectives | 学习目标
+## Learning Objectives
 
 - Set up Python 3.11+, Node.js 20+, and Rust toolchains from scratch
-  中文翻译：从零搭建 Python 3.11+、Node.js 20+ 和 Rust 工具链
 - Configure virtual environments and package managers for reproducible builds
-  中文翻译：配置虚拟环境和包管理器，确保构建可复现
 - Verify GPU access with CUDA/MPS and run a test tensor operation
-  中文翻译：验证 GPU（CUDA/MPS）是否可用，运行测试张量运算
 - Understand the four-layer stack: system, packages, runtimes, AI libraries
-  中文翻译：理解四层技术栈：系统层、包管理器层、语言运行时层、AI 库层
 
-> **【中文解读】**
-> 本章是整个课程的起点。你将搭建一套完整的 AI 工程开发环境，包括 Python、Node.js、Rust 三种语言工具链，并验证 GPU 加速是否可用。环境搭建是 AI 学习中最容易被忽略但最重要的步骤——环境不对，后面每一步都会踩坑。
+## The Problem
 
-## The Problem | 问题描述
-
-You're about to learn AI engineering across 200+ lessons using Python, TypeScript, Rust, and Julia. If your environment is broken, every single lesson becomes a fight against tooling instead of learning.
-
-> 你即将通过 200 多节课学习 AI 工程开发，涉及 Python、TypeScript、Rust 和 Julia。如果你的环境有问题，每一节课都会变成和工具斗智斗勇，而不是在学习。
+You're about to learn AI engineering across 500+ lessons using Python, TypeScript, Rust, and Julia. If your environment is broken, every single lesson becomes a fight against tooling instead of learning.
 
 Most people skip environment setup. Then they spend hours debugging import errors, version conflicts, and missing CUDA drivers. We're going to do this once, properly.
 
-> 大多数人跳过环境搭建。然后他们花好几个小时调试 import 错误、版本冲突和缺失的 CUDA 驱动。我们只做一次，但要做对。
-
-> **【中文解读】**
-> 环境问题是你遇到 "import error"、"版本冲突"、"找不到 CUDA" 等报错的根本原因。与其每次上课都修环境，不如一次性搭好。
-
-## The Concept | 核心概念
+## The Concept
 
 An AI engineering environment has four layers:
-
-> AI 工程环境有四个层次：
 
 ```mermaid
 graph TD
@@ -50,28 +33,15 @@ graph TD
 
 We install bottom-up. Each layer depends on the one below it.
 
-> 我们自底向上安装。每一层都依赖它下面的一层。
-
-> **【中文解读】**
-> AI 工程环境是四层金字塔：最底层是操作系统和驱动，往上是包管理器，再往上是语言运行时，最顶层才是 PyTorch、transformers 等 AI 库。安装时从底层往上装，每一层依赖下层。
-
-> **【拓展：为什么需要 uv 而不是 pip？】**
-> uv 是 Rust 写的 Python 包管理器，速度比 pip 快 10-100 倍，还能自动管理虚拟环境。在实际 AI 项目中，你可能会同时维护多个项目的依赖（比如一个用 PyTorch 2.1，另一个用 2.4），uv 能让环境隔离变得非常简单。
 ```figure
 s0-env-stack
 ```
 
 ## Build It
 
-## Build It | 动手搭建
-
-> **【中文解读】** 以下步骤按"从底到顶"的顺序安装四层工具栈。每一步都可以直接复制粘贴到终端执行。如果你用 Windows，建议使用 WSL2（Windows Subsystem for Linux）来获得 Linux 环境。
-
-### Step 1: System Foundation | 第1步：系统基础层
+### Step 1: System Foundation
 
 Check your system and install the basics.
-
-> 检查你的系统并安装基础工具。
 
 ```bash
 # macOS
@@ -85,13 +55,9 @@ sudo apt update && sudo apt install -y build-essential git curl wget
 wsl --install -d Ubuntu-24.04
 ```
 
-### Step 2: Python with uv | 第2步：使用 uv 安装 Python
+### Step 2: Python with uv
 
 We use `uv` — it's 10-100x faster than pip and handles virtual environments automatically.
-
-> 我们使用 `uv`——它比 pip 快 10-100 倍，而且能自动管理虚拟环境。
-
-> **【拓展：Python 版本选择】** 推荐 Python 3.12（稳定且性能优化）。3.11+ 都可以，但要避免 3.13（部分 AI 库可能尚未适配）。uv 的 `python install` 会自动下载和管理 Python 版本，不再需要 pyenv。
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -99,14 +65,12 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv python install 3.12
 
 uv venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows # Windows 下激活虚拟环境
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 
-uv pip install numpy matplotlib jupyter  # 安装 AI 学习三大基础库
+uv pip install numpy matplotlib jupyter
 ```
 
 Verify:
-
-> 验证安装：
 
 ```python
 import sys
@@ -114,17 +78,13 @@ print(f"Python {sys.version}")
 
 import numpy as np
 print(f"NumPy {np.__version__}")
-a = np.array([1, 2, 3])  # 创建一个一维数组（向量）
-print(f"Vector: {a}, dot product with itself: {np.dot(a, a)}")  # 点积运算，线性代数基础
+a = np.array([1, 2, 3])
+print(f"Vector: {a}, dot product with itself: {np.dot(a, a)}")
 ```
 
-### Step 3: Node.js with pnpm | 第3步：安装 Node.js 和 pnpm
-
-> **【中文解读】** Node.js 是 TypeScript 的运行环境。本课程 Phase 13-17（工具协议、Agent 工程等）使用 TypeScript 编写。fnm 是 Node 版本管理器，pnpm 是比 npm 更快的包管理器。
+### Step 3: Node.js with pnpm
 
 For TypeScript lessons (agents, MCP servers, web apps).
-
-> 用于 TypeScript 课程（Agent、MCP 服务器、Web 应用）。
 
 ```bash
 curl -fsSL https://fnm.vercel.app/install | bash
@@ -136,7 +96,6 @@ npm install -g pnpm
 node -e "console.log('Node', process.version)"
 ```
 
-### Step 4: Rust | 第4步：安装 Rust
 **macOS / Apple Silicon (M1/M2/M3/M4):** If the installer stops with `Error: Cannot install under Rosetta 2 in ARM default prefix (/opt/homebrew)`, your terminal is running under Rosetta 2 (`arch` prints `i386`) while Homebrew is a native arm64 build. Install fnm forcing arm64, wire it into your shell, then rerun the commands above from `fnm install 22`:
 
 ```bash
@@ -149,10 +108,6 @@ source ~/.zshrc
 
 For performance-critical lessons (inference, systems).
 
-> 用于性能敏感的课程（推理优化、系统编程）。
-
-> **【中文解读】** Rust 用于本课程中性能敏感的部分，如推理优化（Phase 12）和自主系统（Phase 15-17）。rustup 是 Rust 官方安装器，cargo 是 Rust 的包管理器+构建工具（相当于 Rust 版的 pip+make）。
-
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
@@ -160,11 +115,9 @@ rustc --version
 cargo --version
 ```
 
-### Step 5: Julia (Optional) | Julia（可选）
+### Step 5: Julia (Optional)
 
 For math-heavy lessons where Julia shines.
-
-> 用于 Julia 擅长的数学密集型课程。
 
 ```bash
 curl -fsSL https://install.julialang.org | sh
@@ -172,16 +125,14 @@ curl -fsSL https://install.julialang.org | sh
 julia -e 'println("Julia ", VERSION)'
 ```
 
-### Step 6: GPU Setup (If You Have One) | GPU 设置（如果有显卡）
+### Step 6: GPU Setup (If You Have One)
 
 **NVIDIA (Linux / Windows):**
 
 ```bash
-# NVIDIA
-nvidia-smi  # 检查 GPU 驱动是否正常
 nvidia-smi
 
-# Install PyTorch with CUDA # 安装支持 GPU 加速的 PyTorch
+# Install PyTorch with CUDA
 uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 ```
 
@@ -195,39 +146,59 @@ Verify (works on any platform):
 
 ```python
 import torch
-print(f"CUDA available: {torch.cuda.is_available()}")  # 检测 GPU 是否可用
 print(f"CUDA available: {torch.cuda.is_available()}")           # False on macOS — expected
 print(f"MPS available:  {torch.backends.mps.is_available()}")   # True on Apple Silicon
 if torch.cuda.is_available():
-    print(f"GPU: {torch.cuda.get_device_name(0)}")  # 打印 GPU 名称
+    print(f"GPU: {torch.cuda.get_device_name(0)}")
 ```
 
 No GPU? No problem. Most lessons work on CPU. For training-heavy lessons, use Google Colab or cloud GPUs.
 
-> 没有 GPU？没关系。大部分课程可以在 CPU 上运行。训练量大的课程可以用 Google Colab 或云端 GPU。
+### Step 7: Verify the route you want to start
 
-> **【拓展：GPU vs CPU 性能对比】** 训练 GPT-2 small（117M 参数）：CPU 约 7 天，单块 RTX 3090 约 3 小时，A100 约 40 分钟。推理阶段差距略小但依然显著。本课程大部分 Lesson 可以用 CPU 跑，只有 Phase 10（从零训练 LLM）等少数课程建议用 GPU。
+Run every command in this lesson from the repository root, the directory that
+contains `README.md` and `phases/`. The preflight checks only what you need to
+start the selected route. It skips later tools by default so a new learner sees
+one clear answer instead of a wall of warnings.
 
-> **【拓展：GPU 在 AI 中的作用】**
-> GPU（图形处理器）之所以在 AI 中不可或缺，是因为它能同时执行成千上万个简单计算（并行计算）。训练一个 Transformer 模型在 CPU 上可能需要几周，在 GPU 上只需几小时。如果你没有 GPU，Google Colab 提供免费的 GPU 使用。
-
-### Step 7: Verify Everything | 第7步：验证一切
-
-Run the verification script:
-
-> 运行验证脚本：
+Start the full beginner sequence:
 
 ```bash
-python phases/00-setup-and-tooling/01-dev-environment/code/verify.py
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner
 ```
 
-## Use It | 使用指南
+Or check only the route you want:
 
-> **【中文解读】** 下表告诉你每种语言在哪些阶段使用。Python 是绝对主力（Phase 1-12），TypeScript 用于 Agent 和工具链（Phase 13-17），Rust 用于高性能场景，Julia 用于数学计算。
+```bash
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route ml-foundations
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route llm-engineering
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route agents
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route mcp
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route agent-skills
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route certification
+```
 
-Your environment is now ready for every lesson in this course. Here's what you'll use where:
+Add `--show-later` when you want the same preflight to inspect optional tools
+and dependencies used by later lessons. A missing later tool never blocks the
+selected route.
 
-> 你的环境现在已经为本课程的每一节课准备好了。以下是各语言的使用场景：
+Each failed required check includes the detected path or import error and an
+exact corrective command. The Agent Skills and certification routes also show
+manual host checks because a Python script cannot prove that an AI host has
+discovered a skill or that your chosen skill scope is writable.
+
+When the beginner preflight passes, it prints the exact first runnable lesson:
+
+```text
+Ready to start Beginner course.
+Next: python3 phases/01-math-foundations/01-linear-algebra-intuition/code/vectors.py
+```
+
+## Use It
+
+Your environment is ready to start the route you checked. Install later tools
+when a lesson asks for them instead of blocking your first lesson on the whole
+stack. Here is what you will use across the curriculum:
 
 | Language | Used In | Package Manager |
 |----------|---------|-----------------|
@@ -236,30 +207,14 @@ Your environment is now ready for every lesson in this course. Here's what you'l
 | Rust | Phases 12, 15-17 (Performance-critical systems) | cargo |
 | Julia | Phase 1 (Math foundations) | Pkg |
 
-| 语言 | 用在哪些阶段 | 包管理器 |
-|------|------------|---------|
-| Python | 阶段 1-12（ML、DL、NLP、视觉、音频、LLM） | uv |
-| TypeScript | 阶段 13-17（工具、Agent、集群、基础设施） | pnpm |
-| Rust | 阶段 12, 15-17（高性能系统） | cargo |
-| Julia | 阶段 1（数学基础） | Pkg |
-
-## Ship It | 产出物
-
-> **【拓展：环境检查 Prompt】** `outputs/prompt-env-check.md` 是一个可以直接给 AI 助手用的 prompt，让它帮你诊断环境问题。在实际工作中，这类"环境自检 prompt"非常有用——你只需要把报错贴给它，它就能定位问题。
+## Ship It
 
 This lesson produces a verification script that anyone can run to check their setup.
 
-> 本课产出一个验证脚本，任何人都可以运行它来检查自己的环境配置。
-
 See `outputs/prompt-env-check.md` for a prompt that helps AI assistants diagnose environment issues.
 
-> 参见 `outputs/prompt-env-check.md`，其中包含一个帮助 AI 助手诊断环境问题的 prompt。
-
-## Exercises | 练习题
+## Exercises
 
 1. Run the verification script and fix any failures
-   运行验证脚本并修复所有失败的检查项
 2. Create a Python virtual environment for this course and install PyTorch
-   为本课程创建 Python 虚拟环境并安装 PyTorch
 3. Write a "hello world" in all four languages and run each one
-   用四种语言各写一个 "hello world" 并运行

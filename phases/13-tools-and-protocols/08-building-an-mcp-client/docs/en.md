@@ -1,244 +1,227 @@
-# Building an MCP Client — Discovery, Invocation, Session Management | 构建 MCP 客户端：发现、调用与会话管理
+# Building an MCP Client: Discovery, Routing, and Dual-Era Fallback
 
-> Most MCP content ships server tutorials and waves a hand at the client. Client code is where the hard orchestration lives: process spawning, capability negotiation, tool list merging across multiple servers, sampling callbacks, reconnection, and namespace collision resolution. This lesson builds a multi-server client that lifts three different MCP servers into one flat tool namespace for the model.
+> A modern MCP client repeats its contract on every request. Its hardest compatibility decision is knowing when an old server is truly old and when a modern server is reporting a correctable error.
 
-> **【中文解读】** 大多数 MCP 内容只教服务器端教程。客户端代码才是真正复杂的编排所在：进程生成、能力协商、多服务器工具列表合并、sampling 回调、重连和命名空间冲突解决。本课构建一个多服务器客户端，将三个不同的 MCP 服务器提升到一个扁平的工具命名空间中。
+**Type:** Build
+**Languages:** Python
+**Prerequisites:** Phase 13, Lesson 07
+**Time:** ~85 minutes
 
-> **【拓展：MCP 客户端→Agent 编排核心】** MCP 客户端是 Agent 宿主的核心。Claude Desktop、Cursor 等都实现了 MCP 客户端，同时加载多个 MCP 服务器（如文件系统、Postgres、GitHub），将工具列表合并后提供给模型。命名空间冲突解决（前缀 vs 拒绝）是实际部署中的关键设计决策。
+## Learning Objectives
 
-> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·07（Building an MCP Server）——理解服务器端的 initialize/tools/call 协议；(2) Python `subprocess.Popen` 和管道 I/O；(3) asyncio 或 threading 基础，多服务器并发必须；(4) Phase 13·06 的 JSON-RPC 信封格式。
+- Build every MCP `2026-07-28` request with current metadata.
+- Probe stdio servers with `server/discover` and select a mutually supported version.
+- Authorize a bounded legacy probe only for explicitly allowlisted peers.
+- Accept a legacy era only after validating a positive `initialize` result for a supported revision.
+- Merge deterministic tool lists without silently overwriting collisions.
+- Route calls to the peer that owns each tool without inventing protocol sessions.
 
-**Type:** Build | **类型:** 构建
-**Languages:** Python (stdlib, multi-server MCP client) | **语言:** Python (stdlib, multi-server MCP client)
-**Prerequisites:** Phase 13 · 07 (building an MCP server) | **前置知识:** Phase 13 · 07 (building an MCP server)
-**Time:** ~75 minutes | **时间:** ~75 分钟
+## The Problem
 
-## Learning Objectives | 学习目标
+An agent host usually talks to more than one MCP server. It must discover each server, merge tool catalogs, resolve duplicate names, route calls, and recover from transport failure.
 
-- Spawn an MCP server as a child process, complete `initialize`, and send a `notifications/initialized`.
-  中文翻译：将 MCP 服务器作为子进程生成，完成 `initialize`，并发送 `notifications/initialized`。
-- Maintain per-server session state (capabilities, tool list, last-seen notification ids).
-  中文翻译：维护每服务器会话状态（能力、工具列表、最近见过的通知 id）。
-- Merge tool lists across multiple servers into one namespace with collision handling.
-  中文翻译：跨多服务器合并工具列表到一个命名空间，并处理冲突。
-- Route a tool call to the server that owns it and reassemble the response.
-  中文翻译：将工具调用路由到拥有它的服务器并重组响应。
+The `2026-07-28` revision makes the steady state simpler because each request is self-contained. Compatibility makes startup more subtle. A client may encounter:
 
-## The Problem | 问题引入
+- a modern server that supports the preferred version;
+- a modern server that returns a recognized version or header error;
+- a legacy server that has never heard of `server/discover`;
+- a legacy server that stays silent until it receives `initialize`.
 
-A real agent host (Claude Desktop, Cursor, Goose, Gemini CLI) loads multiple MCP servers at once. A user might have a filesystem server, a Postgres server, and a GitHub server running simultaneously. The client's job:
+Treating every probe error as legacy is dangerous. A malformed modern request, an overloaded server, a dead process, and an old server can all produce the same timeout or connection close. Those signals are ambiguous. The client must combine explicit operator intent with positive protocol evidence before it chooses the legacy era.
 
-> 一个真正的 Agent 宿主（Claude Desktop、Cursor、Goose、Gemini CLI）同时加载多个 MCP 服务器。用户可能同时运行文件系统服务器、Postgres 服务器和 GitHub 服务器。客户端的工作：
+## The Concept
 
-1. Spawn each server.
-  中文翻译：生成每个服务器。
-2. Handshake each independently.
-  中文翻译：独立与每个服务器握手。
-3. Call `tools/list` on each and flatten the result.
-  中文翻译：在每个服务器上调用 `tools/list` 并扁平化结果。
-4. When the model emits `notes_search`, look it up in the merged namespace and route to the right server.
-  中文翻译：当模型发出 `notes_search` 时，在合并命名空间中查找并路由到正确服务器。
-5. Handle notifications from any server (`tools/list_changed`) without blocking.
-  中文翻译：处理任何服务器的通知（`tools/list_changed`）而不阻塞。
-6. Reconnect on transport failure.
-  中文翻译：传输失败时重连。
+### A peer, not a protocol session
 
-Hand-rolling all of that is what separates "toy" from "serviceable". The official SDKs wrap this, but the mental model has to be yours.
+Keep one transport peer record for each server process or endpoint:
 
-> **【中文解读】** 真正的 Agent 宿主同时加载多个 MCP 服务器。客户端的工作：(1) 生成每个服务器；(2) 独立握手；(3) 在每个服务器上调用 `tools/list` 并扁平化结果；(4) 当模型发出 `notes_search` 时，在合并命名空间中查找并路由到正确服务器；(5) 处理任意服务器的通知而不阻塞；(6) 传输失败时重连。
+- transport handle or send function;
+- selected protocol era and version;
+- last discovered server capabilities;
+- last deterministic tool list;
+- pending request ids for correlation;
+- transport health.
 
-> 💡 **【类比】** MCP 客户端像医院分诊台。病人（用户请求）进来后，分诊台要快速判断该往哪个科室（哪个 MCP 服务器）送——挂号的（filesystem server）、化验的（postgres server）、放射的（github server）。分诊台手里有一本"科室能力清单"（合并的工具列表），并能同时指挥多科室会诊（并发调用）。每个科室是独立子进程，分诊台要在它们之间高效路由，还要应对某个科室突然掉线（重连）。
+This is client bookkeeping. It is not protocol session state. On modern MCP, the server still receives current version and capabilities on every request.
 
-## The Concept | 核心概念
+### Build every modern request from scratch
 
-### Child-process spawning
+```python
+def modern_request(request_id, method, params, version, capabilities):
+    return {
+        "jsonrpc": "2.0",
+        "id": request_id,
+        "method": method,
+        "params": {
+            **params,
+            "_meta": {
+                "io.modelcontextprotocol/protocolVersion": version,
+                "io.modelcontextprotocol/clientCapabilities": capabilities,
+                "io.modelcontextprotocol/clientInfo": CLIENT_INFO,
+            },
+        },
+    }
+```
 
-> **【中文解读】** 客户端用 `subprocess.Popen` 生成每个 MCP 服务器子进程，设置 `stdin=PIPE, stdout=PIPE, stderr=PIPE`，`bufsize=1` 并使用文本模式逐行读取。每个服务器是一个进程，客户端持有对应的 Popen 句柄。
+Do not attach metadata once to a connection object and assume it reached the wire. Stamp and inspect the final serialized request.
 
-`subprocess.Popen` with `stdin=PIPE, stdout=PIPE, stderr=PIPE`. Set `bufsize=1` and use text mode for line-by-line reads. Each server is one process; the client holds one `Popen` handle per server.
+### Modern discovery
 
-> `subprocess.Popen` 设置 `stdin=PIPE, stdout=PIPE, stderr=PIPE`。设置 `bufsize=1` 并使用文本模式逐行读取。每个服务器是一个进程；客户端为每个服务器持有一个 `Popen` 句柄。
+`server/discover` returns supported versions, server capabilities, instructions, cache hints, and recommended server identity. A client chooses the highest mutually supported modern version.
 
-### Per-server session state
+Discovery is optional for a modern-only client, but it is recommended on stdio. Some legacy servers accept an operation before initialization, so sending `tools/list` first can produce an ambiguous success. `server/discover` creates a clean era boundary.
 
-A `Session` object per server holds:
+### The stdio compatibility probe
 
-> 每服务器的 `Session` 对象持有：
+A dual-era stdio client sends `server/discover` with its preferred modern metadata before any other request. There are three outcome classes:
 
-- `process` — the Popen handle.
-  中文翻译：`process`——Popen 句柄。
-- `capabilities` — what the server declared at `initialize`.
-  中文翻译：`capabilities`——服务器在 `initialize` 中声明的能力。
-- `tools` — the last `tools/list` result.
-  中文翻译：`tools`——最近的 `tools/list` 结果。
-- `pending` — map of request id to a promise/future waiting for the response.
-  中文翻译：`pending`——请求 id 到等待响应的 promise/future 的映射。
+1. **DiscoverResult.** The server is modern. Select a mutually supported version and continue with per-request metadata.
+2. **Recognized modern error.** The server is modern. For `-32022`, choose from `data.supported` and retry with a new request id. For header or capability errors, correct the request. Do not send `initialize`.
+3. **Ambiguous signal.** An unrecognized JSON-RPC error, timeout, connection close, or empty response does not identify an era. Fail closed unless that exact peer is configured for legacy compatibility.
 
-Requests are async by nature; a `tools/call` sent to server A while server B is mid-call must not block. Either use threads with queues or asyncio.
+Recognized modern protocol errors include:
 
-> 请求天然是异步的；当服务器 B 正在执行调用时，发给服务器 A 的 `tools/call` 不应阻塞。使用带队列的线程或 asyncio。
+- `-32020` HeaderMismatch
+- `-32021` MissingRequiredClientCapability
+- `-32022` UnsupportedProtocolVersion
 
-> ⚠️ **【易错点】** 场景：单线程同步实现，循环读取每个服务器的 stdout / 后果：一个慢工具（如长 SQL）阻塞整个客户端，其他服务器即使响应快也无法处理 / 修复：每个服务器必须有独立的 reader 线程/任务，主循环只负责 dispatch；用 `selectors` 或 `asyncio` 监听多个 stdin，按到达顺序处理。stdout 写入也要加锁避免消息交错。
+Recognized modern errors remain modern even when the peer is on the legacy allowlist. Once a server proves that it understands the modern error vocabulary, sending `initialize` would be a downgrade.
 
-### Merged namespace
+Do not treat `-32601` as positive legacy evidence. It only makes an explicitly allowlisted peer eligible for one legacy probe. The same rule applies to a timeout, connection close, or empty response.
 
-> **【拓展：多 MCP 服务器命名空间冲突处理】** 当多个服务器有同名工具时，客户端有三种处理策略：(1) 按服务器名前缀（`notes/search`、`files/search`），清晰但冗长——Claude Desktop 和 VS Code 用这种方式；(2) 先到先得，后加载的覆盖先加载的——风险高，隐藏冲突；(3) 碰撞拒绝，拒绝加载第二个服务器——Cursor 用这种方式，对安全敏感的宿主最安全。
+### Allowlisting is operator intent, not evidence
 
-When the client sees the aggregate tool list, names can collide. Two servers might both expose `search`. The client has three options:
+Legacy compatibility must be an explicit property of one pinned peer configuration:
 
-> 当客户端看到聚合的工具列表时，名称可能冲突。两个服务器可能都暴露 `search`。客户端有三个选项：
+```python
+client.add_server("archive", archive_transport, allow_legacy=True)
+```
 
-1. **Prefix by server name.** `notes/search`, `files/search`. Clear but ugly.
-  中文翻译：**按服务器名加前缀。** `notes/search`、`files/search`。清晰但难看。
-2. **Silent first-come.** Later server's `search` overrides the earlier. Risky; hides collisions.
-  中文翻译：**静默先到先得。** 后续服务器的 `search` 覆盖先到的。有风险；隐藏冲突。
-3. **Collision rejection.** Refuse to load the second server; notify the user. Safest for security-sensitive hosts.
-  中文翻译：**冲突拒绝。** 拒绝加载第二个服务器；通知用户。对安全敏感的宿主最安全。
+Bind that choice to the configured command or endpoint. Do not use a wildcard that lets an arbitrary server opt itself into weaker semantics. A peer without `allow_legacy=True` fails after an ambiguous discovery outcome and never receives `initialize`.
 
-Claude Desktop uses prefix-by-server. Cursor uses collision rejection with a clear error. VS Code MCP adopts prefix-by-server as well.
+The allowlist grants permission to probe. It does not select the era. The client sends one `initialize` under a transport-enforced deadline, then requires all of the following:
 
-> Claude Desktop 使用按服务器加前缀。Cursor 使用带清晰错误的冲突拒绝。VS Code MCP 也采用按服务器加前缀。
+- a JSON-RPC `2.0` response with the matching request id;
+- exactly one `result` and no `error`;
+- a `protocolVersion` in the client's configured legacy revision set;
+- an object-valued `capabilities` field;
+- a `serverInfo` object with non-empty string `name` and `version` fields.
 
-> 🤔 **【困惑】** Q: 加了前缀（如 `notes/search`）后，模型会不会因为名字带斜号而选不准？ A: 实测影响很小，因为前缀本身有语义（"notes"是领域），模型反而更准。但要注意：(1) 不要混用——一会儿前缀一会儿不前缀会让模型困惑；(2) 描述里要呼应——`notes/search` 的描述里要写"在笔记中搜索"；(3) 测试时跑 StableToolBench 验证选择准确率，前缀通常带来 3-5% 提升。
+A timeout, connection close, error response, malformed result, mismatched id, or unsupported revision fails closed. Only a structurally valid positive result selects the legacy era. The code passes `legacy_probe_timeout_ms` to the transport adapter; a real stdio or HTTP adapter must enforce that deadline rather than merely record it.
 
-### Routing
+Cache the selected era for the transport peer. Do not probe again before every call.
 
-> **【中文解读】** 合并后，调度表将 `tool_name -> session` 映射起来。模型按名称发出调用，客户端找到对应 session 并向该服务器的 stdin 写入 `tools/call` 消息，然后等待响应。
+### Legacy is a compatibility branch
 
-After merging, a dispatch table maps `tool_name -> session`. The model emits a call by name; the client finds the session and writes a `tools/call` message to that server's stdin, then awaits the response.
+Once the bounded probe returns valid positive legacy evidence, the client uses the selected legacy version exactly as defined by that revision:
 
-> 合并后，调度表将 `tool_name -> session` 映射起来。模型按名发出调用；客户端找到 session 并向该服务器的 stdin 写入 `tools/call` 消息，然后等待响应。
+1. Verify the response envelope and correlation id.
+2. Verify the negotiated revision is in the configured legacy set.
+3. Record validated capabilities and server identity.
+4. Send `notifications/initialized` only after all checks pass.
+5. Use legacy request shapes for that transport lifetime.
 
-### Sampling callback
+This branch exists for interoperability with known peers. It is not the default design for new servers or new requests. If the transport restarts or its endpoint changes, discard the peer-era cache and negotiate again.
 
-If the server declared the `sampling` capability at `initialize`, it may send `sampling/createMessage` asking the client to run its LLM. The client must:
+### Discovering and caching tools
 
-> 如果服务器在 `initialize` 中声明了 `sampling` 能力，它可以发送 `sampling/createMessage` 请求客户端运行其 LLM。客户端必须：
+For each active peer, call `tools/list`. A modern result includes `resultType`, `ttlMs`, and `cacheScope`. Honor the freshness hint within the correct authorization context. Re-fetch after expiry or a subscribed list-change event.
 
-1. Block further requests to that server until the sample resolves, or pipeline if its implementation supports concurrency.
-  中文翻译：在该样本完成前阻止对该服务器的进一步请求，或如实现支持并发则流水线处理。
-2. Call its LLM provider.
-  中文翻译：调用其 LLM 提供商。
-3. Send the response back to the server.
-  中文翻译：将响应发回服务器。
+Clients must treat a missing `resultType` from a legacy server as `"complete"`. Do not require modern cache fields on a response from an earlier negotiated era.
 
-Lesson 11 covers sampling end-to-end. This lesson stubs it for completeness.
+The server should return deterministic ordering. The client should also sort before merging so local registry order does not depend on process startup timing.
 
-> Lesson 11 端到端讲解 sampling。本课为完整性做了简单实现。
+### Collision-safe namespace merge
 
-### Notification handling
+Two servers may both expose `search`. Choose a declared policy:
 
-> **【中文解读】** `notifications/tools/list_changed` 意味着重新调用 `tools/list`。`notifications/resources/updated` 意味着重新读取正在使用的资源。通知不得产生响应。常见客户端 bug：在 `tools/call` 上阻塞读取循环，而通知排在流中。解决方案：使用后台读取线程将每条消息推入队列，主线程出队并分发。
+1. **Prefix on collision.** Keep the first canonical name and expose later collisions as `<server>/<tool>`.
+2. **Reject on collision.** Do not load the duplicate and surface a clear configuration error.
+3. **Silent overwrite.** Never use this. It hides which server receives a model-selected action.
 
-`notifications/tools/list_changed` means re-call `tools/list`. `notifications/resources/updated` means re-read the resource if it is in use. Notifications must not produce responses — do not try to ack them.
+Store both canonical and local names. The model sees the canonical name. The outgoing `tools/call` uses the local name the owning server declared.
 
-> `notifications/tools/list_changed` 意味着重新调用 `tools/list`。`notifications/resources/updated` 意味着如果资源正在使用就重新读取。通知不得产生响应——不要尝试 ack 它们。
+### Routing a call
 
-A common client bug: blocking the read loop on `tools/call` while a notification sits in the stream. Use a background reader thread that pushes every message onto a queue; the main thread dequeues and dispatches.
+Routing is a pure lookup:
 
-> 一个常见的客户端 bug：在 `tools/call` 上阻塞读取循环，而通知排在流中。使用后台读取线程将每条消息推入队列；主线程出队并分发。
+```text
+canonical tool name
+  -> peer name + local tool name
+  -> new JSON-RPC request id
+  -> modern request metadata or explicit legacy shape
+  -> matching response id
+```
 
-### Reconnection
+Do not send a call when its owning transport is unavailable. Reconnect or restart the transport, then re-run discovery and `tools/list`. Modern in-flight requests lost on a broken transport can be retried with a new JSON-RPC id when the operation's safety policy permits it.
 
-> **【拓展：MCP 传输失败与重连策略】** 传输可能因服务器崩溃、OS 杀进程或 stdio 管道断裂而失败。客户端检测 stdout 上的 EOF 并将会话标记为死亡。两种重连策略：(1) 静默重启服务器并重新握手——适合纯只读服务器；(2) 向用户报告失败——适合有状态和用户可见会话的服务器。Phase 13.09 覆盖 Streamable HTTP 重连语义。
+### Notifications and subscriptions
 
-Transport can fail: server crashed, OS killed the process, stdio pipe broke. The client detects EOF on stdout and treats the session as dead. Options:
+Modern list and resource changes arrive only on a client-opened `subscriptions/listen` stream. The client sends the notification filter, waits for `notifications/subscriptions/acknowledged`, and correlates events with the listen request id in notification metadata.
 
-> 传输可能失败：服务器崩溃、OS 杀进程、stdio 管道断裂。客户端检测到 stdout 上的 EOF 并将 session 视为死亡。选项：
+On disconnect, open a new listen request and refetch relevant lists or resources. Modern streams do not resume with `Last-Event-ID`.
 
-- Silently restart the server and re-handshake. OK for pure read-only servers.
-  中文翻译：静默重启服务器并重新握手。适合纯只读服务器。
-- Surface the failure to the user. OK for stateful servers with user-visible sessions.
-  中文翻译：将失败暴露给用户。适合有状态和用户可见会话的服务器。
+### No server-initiated requests
 
-Phase 13 · 09 covers the Streamable HTTP reconnection semantics; stdio is simpler.
+Modern servers do not call the client with independent JSON-RPC requests for sampling, elicitation, or roots. They return `input_required`, and the client retries the original request after fulfilling the embedded input requests.
 
-> Phase 13 · 09 涵盖 Streamable HTTP 重连语义；stdio 更简单。
+Do not block the peer's response reader while fulfilling input. Preserve correlation and create a new JSON-RPC id for the retry.
 
-### Keepalive and session id
-
-Streamable HTTP uses a `Mcp-Session-Id` header. Stdio has no session id — the process identity IS the session. Keepalive pings are optional; stdio pipes do not break under inactivity.
-
-> Streamable HTTP 使用 `Mcp-Session-Id` 头。stdio 没有 session id——进程身份就是 session。保活 ping 是可选的；stdio 管道不会因不活动而断裂。
-
-## Use It | 用框架实现
 ```figure
 tp-client-merge
 ```
 
 ## Use It
 
-`code/main.py` spawns three simulated MCP servers as subprocesses, handshakes each, merges their tool lists, and routes tool calls to the right one. The "servers" are actually other Python processes running toy responders (no real LLM). Run it to see:
+`code/main.py` uses in-process peer functions so the protocol decisions stay visible. It connects to two modern peers and one intentionally allowlisted legacy peer, then merges and routes their tools. The transport callable receives a timeout budget so the compatibility branch cannot hide an unbounded probe.
 
-> `code/main.py` 将三个模拟的 MCP 服务器作为子进程生成，与每个握手，合并其工具列表，并将工具调用路由到正确的服务器。这些"服务器"实际上是运行玩具响应器的其他 Python 进程（无真实 LLM）。运行它可以看到：
+```bash
+cd code
+python3 main.py
+python3 -m unittest discover tests -v
+```
 
-- Three initializations, each with their own capability set.
-  中文翻译：三次初始化，每次带自己的能力集合。
-- Three `tools/list` results merged into a 7-tool namespace.
-  中文翻译：三个 `tools/list` 结果合并为 7 个工具的命名空间。
-- A routing decision based on the tool name.
-  中文翻译：基于工具名的路由决策。
-- A collision prevented by namespace prefixing.
-  中文翻译：通过命名空间前缀防止的冲突。
+The tests prove boundaries that normal demos miss:
 
-What to look at:
+- modern requests repeat metadata;
+- `-32022` retries modern discovery without initialization;
+- recognized modern errors never downgrade, even for an allowlisted peer;
+- timeouts, connection closes, empty responses, and unrecognized errors do not trigger `initialize` without an allowlist;
+- an allowlisted peer becomes legacy only after a valid, supported `initialize` result;
+- malformed and unsupported legacy results leave the peer unavailable;
+- a successfully selected era is cached for the transport lifetime.
 
-- The `Session` dataclass holds per-server state cleanly.
-  中文翻译：`Session` 数据类干净地保存每服务器状态。
-- The background reader thread dequeues every line on stdout without blocking the main thread.
-  中文翻译：后台读取线程从 stdout 出队每行而不阻塞主线程。
-- The dispatch table is a simple `dict[str, Session]`.
-  中文翻译：调度表是一个简单的 `dict[str, Session]`。
-- Collision handling is explicit: when two servers declare the same name, the later one is renamed with a prefix.
-  中文翻译：冲突处理是显式的：当两个服务器声明同名时，后者被重命名加前缀。
+## Ship It
 
-## Ship It | 产出物
+This lesson ships `outputs/skill-mcp-client-harness.md`. It scaffolds modern request stamping, stdio era negotiation, deterministic namespace merge, routing, and a fail-closed legacy compatibility branch.
 
-This lesson produces `outputs/skill-mcp-client-harness.md`. Given a declarative list of MCP servers (name, command, args), the skill produces a harness that spawns them, merges tool lists, and ships a routing function with collision resolution.
+## Exercises
 
-> 本课产出 `outputs/skill-mcp-client-harness.md`。给定一个声明式 MCP 服务器列表（名称、命令、参数），该 skill 生成一个线束：生成它们、合并工具列表，并附带带冲突解决的路由函数。
+1. Make a fake server return `-32022` with no mutually supported version. Confirm the client fails instead of sending `initialize`.
+2. Allowlist a fake legacy server, make its bounded `initialize` probe time out, and prove the peer stays `unknown` and unavailable.
+3. Add `cacheScope: "private"` tool lists for two authorization contexts. Confirm the client never shares one context's cached result with the other.
+4. Change the collision policy to rejection and make startup fail with both peer names in the error.
+5. Add a finite `subscriptions/listen` simulator. On stream loss, re-listen with a new request id and refetch tools.
 
-## Exercises | 练习题
+## Key Terms
 
-1. Run `code/main.py` and watch the server spawn log. Kill one of the simulated server processes with a SIGTERM and observe how the client detects the EOF and marks that session as dead.
-   中文翻译：运行 `code/main.py` 并观察服务器生成日志。用 SIGTERM 杀死一个模拟服务器进程，观察客户端如何检测到 EOF 并将 session 标记为死亡。
+| Term | Meaning |
+|------|---------|
+| Peer | Client-side record for one server transport and its discovered data |
+| Protocol era | Modern per-request metadata or legacy initialization semantics |
+| Discovery probe | Initial `server/discover` used to identify the stdio era |
+| Recognized modern error | Error that proves modern behavior and forbids legacy fallback |
+| Legacy allowlist | Operator configuration permitting one bounded compatibility probe for a pinned peer |
+| Positive legacy evidence | Valid, correlated `initialize` result for an explicitly supported legacy revision |
+| Merged namespace | Canonical tool names across all active peers |
+| Collision policy | Prefix or reject rule for duplicate tool names |
+| Era cache | Selected modern or legacy behavior stored for one transport peer |
+| Transport recovery | Restart or reconnect, rediscover, relist, and retry safely with a new id |
 
-2. Implement namespace prefixing. When two servers expose `search`, rename the second as `<server>/search`. Update the dispatch table and verify tool calls route correctly.
-   中文翻译：实现命名空间前缀。当两个服务器暴露 `search` 时，将第二个重命名为 `<server>/search`。更新调度表并验证工具调用正确路由。
+## Further Reading
 
-3. Add a connection-pool-style backoff for server restart: exponential backoff on consecutive failures, cap at 30 seconds, emit a notification to the user after three failures.
-   中文翻译：添加连接池式的服务器重启退避：连续失败时指数退避，上限 30 秒，三次失败后向用户发出通知。
-
-4. Sketch a client that supports 100 concurrent MCP servers. What data structure replaces the simple dispatch dict? (Hint: trie for prefix namespacing, plus a metric for tool-count-per-server.)
-   中文翻译：勾勒支持 100 个并发 MCP 服务器的客户端。什么数据结构替代简单的调度字典？（提示：用于前缀命名空间的 trie，加每服务器工具数指标。）
-
-5. Port the client to the official MCP Python SDK. The SDK wraps `stdio_client` and `ClientSession`. The code should shrink from ~200 lines to ~40 lines while preserving multi-server routing.
-   中文翻译：将客户端迁移到官方 MCP Python SDK。SDK 包装了 `stdio_client` 和 `ClientSession`。代码应从约 200 行缩减到约 40 行，同时保留多服务器路由。
-
-## Key Terms | 术语速查表
-
-| Term | What people say | What it actually means | 中文术语 |
-|------|----------------|------------------------|----------|
-| MCP client | "The agent host" | Process that spawns servers and orchestrates tool calls | MCP 客户端 |
-| Session | "Per-server state" | Capabilities, tool list, and pending-request bookkeeping | 会话状态 |
-| Merged namespace | "One tool list" | Flat set of tool names across all active servers | 合并命名空间 |
-| Namespace collision | "Two servers same tool" | Client must prefix, reject, or first-come the duplicate | 命名空间冲突 |
-| Routing | "Who gets this call?" | Dispatch from tool name to owning server | 工具路由 |
-| Background reader | "Non-blocking stdout" | Thread or task that drains server stdout into a queue | 后台读取线程 |
-| Sampling callback | "LLM-as-a-service" | Client handler for `sampling/createMessage` from server | 采样回调 |
-| `notifications/*_changed` | "Primitive mutated" | Signal the client must re-discover or re-read | 变更通知 |
-| Reconnection policy | "When server dies" | Restart semantics when transport fails | 重连策略 |
-| Stdio session | "Process = session" | No session id; child process lifetime is the session | stdio 会话 |
-
-## Further Reading | 延伸阅读
-
-- [Model Context Protocol — Client spec](https://modelcontextprotocol.io/specification/2025-11-25/client) — canonical client behavior
-  中文翻译：权威客户端行为参考
-- [MCP — Quickstart client guide](https://modelcontextprotocol.io/quickstart/client) — hello-world client tutorial with the Python SDK
-  中文翻译：使用 Python SDK 的 hello-world 客户端教程
-- [MCP Python SDK — client module](https://github.com/modelcontextprotocol/python-sdk) — reference `ClientSession` and `stdio_client`
-  中文翻译：`ClientSession` 和 `stdio_client` 参考
-- [MCP TypeScript SDK — Client](https://github.com/modelcontextprotocol/typescript-sdk) — TS parallel
-  中文翻译：TypeScript 并行实现
-- [VS Code — MCP in extensions](https://code.visualstudio.com/api/extension-guides/ai/mcp) — how VS Code multiplexes multiple MCP servers in a single editor host
-  中文翻译：VS Code 如何在单个编辑器宿主中多路复用多个 MCP 服务器
+- [MCP Specification 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/)
+- [MCP Server Discovery](https://modelcontextprotocol.io/specification/2026-07-28/server/discover)
+- [MCP stdio Transport](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/stdio)
+- [MCP Versioning](https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning)
+- [MCP Tools](https://modelcontextprotocol.io/specification/2026-07-28/server/tools)
