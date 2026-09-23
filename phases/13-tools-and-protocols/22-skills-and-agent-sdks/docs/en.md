@@ -1,270 +1,445 @@
-# Skills and Agent SDKs — Anthropic Skills, AGENTS.md, OpenAI Apps SDK | Skills 与 Agent SDK：Anthropic Skills、AGENTS.md 与 OpenAI Apps SDK
+# Agent Skills: Portable Contract and Runtime Boundary
 
-> MCP says "what tools exist." Skills say "how to do a task." The 2026 stack layers both. Anthropic's Agent Skills (open standard, December 2025) ship as SKILL.md with progressive disclosure. OpenAI's Apps SDK is MCP plus widget metadata. AGENTS.md (now in 60,000+ repos) sits at the repo root as project-level agent context. This lesson names what each covers and builds a minimal SKILL.md + AGENTS.md bundle that travels across agents.
+> A skill is not a long prompt with a better filename. It is a discoverable package of instructions, resources, and executable helpers that enters an agent's context through a runtime contract.
 
-> **【中文解读】** MCP 说"有哪些工具"。Skills 说"如何完成任务"。2026 年技术栈将两者分层。Anthropic 的 Agent Skills（2025年12月开放标准）以 SKILL.md 发货，支持渐进式披露。OpenAI 的 Apps SDK 是 MCP 加上小组件元数据。AGENTS.md（已在 60,000+ 仓库中）位于仓库根目录作为项目级 Agent 上下文。本课命名每个覆盖的范围并构建最小 SKILL.md + AGENTS.md 包。
+**Type:** Build
+**Languages:** Python (stdlib)
+**Prerequisites:** Phase 13 · 01 (The Tool Interface), Phase 13 · 05 (Tool Schema Design)
+**Time:** ~90 minutes
 
-> **【拓展】** 三层堆栈是 2026 年 AI Agent 开发的标准模式：AGENTS.md（项目级约定）+ SKILL.md（可复用工作流）+ MCP 服务器（可调用工具）。Anthropic Claude Agent SDK 和 SkillKit 等跨 Agent 分发层让一个 SKILL.md 可以自动翻译为 32+ AI Agent 的原生格式。
+## Learning Objectives
 
-> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·07（MCP server）——MCP 是三层中的工具层；(2) Markdown + YAML frontmatter 基础；(3) 至少用过 Claude Code 或 Cursor 等 AI coding agent，体会"项目上下文"的痛点。
+- Define an agent skill without confusing it with a prompt, repository instructions, a tool, a hook, a subagent, or a plugin.
+- Read the portable `SKILL.md` contract and separate it from runtime-specific extensions.
+- Explain discovery, selection, activation, resource loading, tool use, and verification as distinct lifecycle stages.
+- Validate a skill package before a runtime places it in an agent's catalog.
+- Choose between a skill, MCP tool, hook, subagent, or ordinary code for a concrete task.
 
-**Type:** Learn | **类型:** 学习
-**Languages:** Python (stdlib, SKILL.md parser and loader) | **语言:** Python（标准库，SKILL.md 解析器与加载器）
-**Prerequisites:** Phase 13 · 07 (MCP server) | **前置知识:** Phase 13 · 07（MCP 服务器）
-**Time:** ~45 minutes | **时间:** ~45 分钟
+## Ten-Minute First Success
 
-## Learning Objectives | 学习目标
+Do this before the long explanation. You will create a small skill, install
+the complete reviewer bundle into a real agent host, invoke it, verify the
+result, and remove it. This proves the lifecycle with an observable result.
 
-- Distinguish the three layers: AGENTS.md (project context), SKILL.md (reusable know-how), MCP (tools).
-  中文翻译：区分三层：AGENTS.md（项目上下文）、SKILL.md（可复用知识）、MCP（工具）。
-- Write a SKILL.md with YAML frontmatter and progressive disclosure.
-  中文翻译：编写带 YAML frontmatter 和渐进式披露的 SKILL.md。
-- Load skills filesystem-style into an agent runtime.
-  中文翻译：以文件系统方式将技能加载到 Agent 运行时。
-- Compose a skill with an MCP server and an AGENTS.md so one package works in Claude Code, Cursor, and Codex.
+### Preflight for the real-host lab
 
-> **【中文解读】** 学习目标：区分三层（AGENTS.md 项目上下文、SKILL.md 可复用知识、MCP 工具）；编写带 YAML frontmatter 和渐进式披露的 SKILL.md；以文件系统方式加载技能到 Agent 运行时；组合 SKILL.md + MCP 服务器 + AGENTS.md 使一个包在多个 Agent 中通用。
+The real-host checkpoint requires Node.js, `npx`, Python 3, one selected
+skill-capable host, and write access to the project or user scope you choose in
+the installer. Verify the local commands first:
 
-## The Problem | 问题引入
-
-> **【中文解读】** 工程师将发版说明写作工作流提炼为多步骤提示词，放在 Notion 文档中。现在想在 Claude Code、Cursor 和 Codex CLI 中使用，但每个 Agent 加载指令的方式不同。AGENTS.md 和 SKILL.md 一起解决这一问题：AGENTS.md 位于仓库根目录，每个兼容 Agent 在会话启动时读取；SKILL.md 是可移植的技能包。三层、一个可移植工件。
-
-An engineer distills a release-notes-writing workflow into a multi-step prompt: "Read the latest merged PRs. Group by area. Summarize each. Write a changelog entry following the team's style. Post to Slack draft." They put it in a Notion doc for their team.
-
-> 工程师将发版说明写作工作流提炼为多步 prompt："读最近合并的 PR。按领域分组。摘要每个。按团队风格写 changelog 条目。发到 Slack 草稿。"他们放在 Notion 文档中供团队使用。
-
-Now they want to use this workflow from Claude Code, Cursor, and Codex CLI. Each agent has a different way to load instructions: Claude Code slash-commands, Cursor rules, Codex `.codex.md`. The engineer copies the workflow three times and maintains three copies.
-
-> 现在他们想从 Claude Code、Cursor 和 Codex CLI 使用此工作流。每个 Agent 有不同的加载指令方式：Claude Code 斜杠命令、Cursor 规则、Codex `.codex.md`。工程师复制工作流三次并维护三个副本。
-
-AGENTS.md and SKILL.md together fix this:
-
-> AGENTS.md 和 SKILL.md 一起修复此问题：
-
-- **AGENTS.md** sits at the repo root. Every compatible agent reads it on session start. "How does this project work? What are the conventions? Which commands run tests?"
-  中文翻译：**AGENTS.md** 位于仓库根目录。每个兼容 Agent 在会话启动时读取它。"此项目如何工作？有哪些约定？哪些命令运行测试？"
-- **SKILL.md** is a portable bundle: YAML frontmatter (name, description) + markdown body + optional resources. Agents that support skills load them by name on demand.
-  中文翻译：**SKILL.md** 是可移植包：YAML frontmatter（名、描述）+ markdown 正文 + 可选资源。支持技能的 Agent 按需按名加载。
-- **MCP** (Phase 13 · 06-14) handles the tools the skill needs to invoke.
-  中文翻译：**MCP**（Phase 13 · 06-14）处理技能需调用的工具。
-
-Three layers, one portable artifact.
-
-> 三层，一个可移植工件。
-
-> 💡 **【类比】** 三层堆栈像软件公司的"职位说明书 + 操作手册 + 工具箱"分工：(1) **AGENTS.md** = 公司入职手册——告诉新人"我们用 TypeScript、跑 pnpm test"，每个项目一份；(2) **SKILL.md** = 操作手册——"如何写发版说明"是具体流程，可跨公司复用（你跳槽到下家也能用）；(3) **MCP server** = 工具箱——里面是具体工具（GitHub CLI、Slack API）。新人入职读手册（AGENTS.md）、按需学操作手册（SKILL.md）、用工具（MCP）干活。三者解耦，每个都能独立复用。
-
-## The Concept | 核心概念
-
-### AGENTS.md (agents.md)
-
-Launched late 2025, adopted by 60,000+ repos by April 2026. One file at repo root. Format:
-
-> 2025 年末发布，截至 2026 年 4 月被 60,000+ 仓库采用。一个文件在仓库根目录。格式：
-
-```markdown
-# Project: my-service
-
-## Conventions
-- TypeScript with strict mode.
-- Use Pydantic for models on the Python side.
-- Tests run with `pnpm test`.
-
-## Build and run
-- `pnpm dev` for local dev server.
-- `pnpm build` for production bundle.
+```bash
+node --version
+npx --version
+python3 --version
 ```
 
-Agents read this on session start and use it to calibrate their behavior for that project. Every coding agent in 2026 supports AGENTS.md: Claude Code, Cursor, Codex, Copilot Workspace, opencode, Windsurf, Zed.
+Decide which host and scope you will use before installation. If any
+requirement is unavailable, read this lesson on the website or continue with
+the manual package exercise below. That fallback teaches the contract, but it
+does not prove host discovery, invocation, bundled-script execution, or
+uninstall behavior. Keep those observations marked pending.
 
-> Agent 在会话启动时读此并用它为该项目校准行为。2026 年每个编码 Agent 都支持 AGENTS.md：Claude Code、Cursor、Codex、Copilot Workspace、opencode、Windsurf、Zed。
+### 1. Start in an empty working directory
 
-> ⚠️ **【易错点】** 场景：把 SKILL.md 写成 5000 字的详尽文档 / 后果：每次触发技能模型上下文被爆掉，反而降低质量；YAML frontmatter 字段缺失或不规范，跨 Agent 加载失败 / 修复：(1) SKILL.md 主体 < 500 字，详细资源放 `resources/*.md` 用渐进式披露；(2) frontmatter 必填 `name` 和 `description`，描述用"Use when X. Do not use for Y." 模式；(3) 测试技能在多个 Agent（Claude Code/Cursor）下加载是否成功，差异通常是 frontmatter 字段命名。
+Run these commands from any parent directory where you keep learning work:
 
-> 🤔 **【困惑】** Q: SKILL.md 和 MCP prompts 有什么区别？不都是预设工作流吗？ A: 三点核心差异：(1) **载体**——MCP prompts 是协议消息（运行时获取），SKILL.md 是文件（文件系统加载）；(2) **触发**——MCP prompts 是 slash command 显式触发，SKILL.md 是模型读 description 后自动决定何时用；(3) **可移植性**——SKILL.md 跨所有 Agent 通用，MCP prompts 只在支持 MCP 的客户端用。两者互补：复杂逻辑放 MCP prompts（能调 sampling），简单工作流放 SKILL.md（更轻量）。
+```bash
+mkdir -p agent-skills-first-run
+cd agent-skills-first-run
+TARGET_ROOT="$(pwd -P)"
+printf 'TARGET_ROOT=%s\n' "$TARGET_ROOT"
+ls -A
+```
 
-### SKILL.md format
+The final command should print nothing. If it prints files, choose a different
+empty directory so the review has a clear boundary.
 
-Anthropic's Agent Skills (released as an open standard December 2025):
+Create a directory for your first skill:
 
-> Anthropic 的 Agent Skills（2025 年 12 月作为开放标准发布）：
+```bash
+mkdir -p my-first-skill
+```
+
+Create `my-first-skill/SKILL.md` with this content:
 
 ```markdown
 ---
-name: release-notes-writer
-description: Write a changelog entry for the latest merged PRs following this project's style.
+name: my-first-skill
+description: Turn rough meeting notes into a compact decision record when the user asks to capture a technical decision.
 ---
 
-# Release notes writer
+# Decision record
 
-When invoked, run these steps:
-
-1. List PRs merged since the last tag. Use `gh pr list --base main --state merged`.
-2. Group by label: feature, fix, chore, docs.
-3. For each PR in each group, write one line: `- <title> (#<num>)`.
-4. Draft the release notes and stage them in CHANGELOG.md.
-
-If the user says "ship", run `git tag vX.Y.Z` and `gh release create`.
-
-## Notes
-
-- Never include commits without a PR.
-- Skip "chore" entries from the public changelog.
+Extract the decision, context, alternatives, owner, and next review date.
+If the notes do not contain a decision, ask one clarifying question instead
+of inventing one.
 ```
 
-Frontmatter declares the skill's identity. The body is the prompt shown to the model when the skill loads.
+Verify that you created the file in the intended directory:
 
-> Frontmatter 声明技能的身份。正文是技能加载时显示给模型的 prompt。
-
-### Progressive disclosure
-
-Skills can reference sub-resources that the agent fetches only when needed. Example:
-
-> 技能可引用 Agent 仅在需要时获取的子资源。示例：
-
-```
-skills/
-  release-notes-writer/
-    SKILL.md
-    style-guide.md
-    template.md
-    scripts/
-      generate.sh
+```bash
+test -f my-first-skill/SKILL.md
 ```
 
-SKILL.md says "see style-guide.md for the style rules." The agent pulls style-guide.md only when the skill is actively running. This avoids bloating the prompt with detail the model may not need.
+No output and exit code 0 means the file exists.
 
-> SKILL.md 说"参见 style-guide.md 了解风格规则"。Agent 仅在技能激活运行时拉取 style-guide.md。这避免用模型可能不需要的细节膨胀 prompt。
+### 2. Install the complete reviewer bundle
 
-### Filesystem discovery
+Stay in `agent-skills-first-run` and run:
 
-Agent runtimes scan known directories for SKILL.md files:
+```bash
+npx skills add rohitg00/ai-engineering-from-scratch --skill skill-contract-reviewer --full-depth
+```
 
-> Agent 运行时扫描已知目录的 SKILL.md 文件：
+Choose the agent host and scope you are using. The installer should list
+`skill-contract-reviewer` and the destination it wrote. `--full-depth` is
+required because this lesson's skill is a nested bundle with references, a
+script, and an asset.
 
-- `~/.anthropic/skills/*/SKILL.md`
-  中文翻译：`~/.anthropic/skills/*/SKILL.md`（用户全局）。
-- Project `./skills/*/SKILL.md`
-  中文翻译：项目 `./skills/*/SKILL.md`（项目级）。
-- `~/.claude/skills/*/SKILL.md`
-  中文翻译：`~/.claude/skills/*/SKILL.md`（Claude Code 用户级）。
+Set `SKILL_ROOT` to the absolute directory reported by the installer. It must
+be the directory containing the installed `SKILL.md`, not the lesson source
+directory and not the current workspace:
 
-Loading is by folder name and frontmatter `name`. Claude Code, Anthropic Claude Agent SDK, and SkillKit (cross-agent) all follow this pattern.
+```bash
+# Replace the placeholder with the destination printed by the installer.
+SKILL_ROOT="$(cd "/absolute/path/to/skill-contract-reviewer" && pwd -P)"
+test -f "$SKILL_ROOT/SKILL.md"
+printf 'SKILL_ROOT=%s\n' "$SKILL_ROOT"
+```
 
-> 加载按文件夹名和 frontmatter `name`。Claude Code、Anthropic Claude Agent SDK 和 SkillKit（跨 Agent）都遵循此模式。
+If the agent session was already open, start a new session or use that host's
+skill rescan command. Do not assume every host hot-reloads its catalog.
 
-### Anthropic Claude Agent SDK
+### 3. Invoke it explicitly
 
-`@anthropic-ai/claude-agent-sdk` (TypeScript) and `claude-agent-sdk` (Python) load skills at session start, expose them as callable "agents" inside the runtime. The agent loop dispatches to a skill when the user invokes it.
+In the installed agent, with `agent-skills-first-run` as the working
+directory, use the syntax supported by that host:
 
-> `@anthropic-ai/claude-agent-sdk`（TypeScript）和 `claude-agent-sdk`（Python）在会话启动时加载技能，将它们作为运行时内可调用的"agent"暴露。Agent 循环在用户调用时分发到技能。
+| Host | Explicit invocation |
+|---|---|
+| Codex | `skill-contract-reviewer`, or choose it from `/skills`, then provide the review request |
+| Claude Code | `/skill-contract-reviewer` followed by the review request |
+| Portable fallback | `Use skill-contract-reviewer to review the target package.` |
 
-### OpenAI Apps SDK
+Use the absolute values printed for `SKILL_ROOT` and `TARGET_ROOT` in the
+request. Require the host to expand them before execution and show the exact
+resolved command, not a command that depends on the process working directory:
 
-Launched October 2025; built directly on MCP. Unifies OpenAI's prior Connectors and Custom GPT Actions under a single developer surface. An Apps SDK app is:
+```text
+Use skill-contract-reviewer to review <TARGET_ROOT>/my-first-skill. The installed bundle root is <SKILL_ROOT>. Run python3 <SKILL_ROOT>/scripts/check_skill.py <TARGET_ROOT>/my-first-skill. Before running it, show the fully resolved argv. Return the validation report, selected primitives, and one sentence for each selection. Include the resolved script path, resolved target path, cwd, argv, and exit code as execution evidence.
+```
 
-> 2025 年 10 月发布；直接建立在 MCP 上。统一 OpenAI 先前的 Connectors 和 Custom GPT Actions 为单一开发者表面。Apps SDK 应用是：
+The resolved command should have this shape, with no placeholders remaining:
 
-- An MCP server (tools, resources, prompts).
-  中文翻译：一个 MCP 服务器（tools、resources、prompts）。
-- Plus widget metadata for ChatGPT's UI.
-  中文翻译：加上 ChatGPT UI 的小组件元数据。
-- Plus an optional MCP Apps `ui://` resource for interactive surfaces.
-  中文翻译：加上可选的 MCP Apps `ui://` 资源用于交互式表面。
+```bash
+python3 "/absolute/install/path/skill-contract-reviewer/scripts/check_skill.py" \
+  "/absolute/workspace/path/agent-skills-first-run/my-first-skill"
+```
 
-Same protocol, richer UX.
+A successful result has all three properties:
 
-> 相同协议，更丰富 UX。
+1. The host finds `skill-contract-reviewer` by name.
+2. The reviewer reads the package contract and runs its bundled validator.
+3. The response contains a validation report with no structural error for the
+   sample, plus a justified primitive selection.
 
-### Cross-agent portability via SkillKit
+The execution evidence must also name the script path, target path, cwd, exact
+argument vector, and exit code. A fluent report without those fields does not
+prove that the installed companion script ran.
 
-Tools like SkillKit and similar cross-agent distribution layers translate a single SKILL.md into the native format of each of 32+ AI agents (Claude Code, Cursor, Codex, Gemini CLI, OpenCode, etc.). One source of truth; many consumers.
+If the host reports that the skill is unavailable, verify the install
+destination, rescan or restart once, and retry the explicit request. Do not
+rewrite the skill description to hide an installation failure.
 
-> SkillKit 等工具和类似跨 Agent 分发层将单个 SKILL.md 翻译为 32+ AI Agent（Claude Code、Cursor、Codex、Gemini CLI、OpenCode 等）的原生格式。单一真相源；多消费者。
+### 4. Probe implicit selection
 
-### The three-layer stack
+Start a fresh agent turn and enter the same task without naming the skill:
 
-| Layer | File | Loaded when | Purpose |
-|-------|------|-------------|---------|
-| AGENTS.md | repo root | session start | project-level conventions |
-| SKILL.md | skills directory | skill invoked | reusable workflow |
-| MCP server | external process | tools needed | callable actions |
+```text
+Review <TARGET_ROOT>/my-first-skill as a reusable agent package and tell me whether its package contract is valid.
+```
 
-All three compose: the agent reads AGENTS.md on session start, the user invokes a skill, the skill's instructions include MCP tool calls, the agent dispatches via an MCP client.
+If the host exposes selected skills, record whether it chose
+`skill-contract-reviewer`. If the host does not expose routing, mark implicit
+selection as unverified. The explicit invocation is the portable fallback.
 
-> 三者组合：Agent 在会话启动时读 AGENTS.md、用户调用技能、技能的指令包含 MCP 工具调用、Agent 通过 MCP 客户端分发。
+### 5. Clean up
 
-## Use It | 用框架实现
+Remove only the installed reviewer bundle:
 
-> **【中文解读】** `code/main.py` 实现标准库 SKILL.md 解析器和加载器：在 `./skills/` 下发现技能文件，解析 YAML frontmatter 和 markdown 正文，生成按技能名索引的字典。然后模拟 Agent 循环按名称调用 `release-notes-writer`。关注点：YAML 用最小标准库解析器（无 pyyaml 依赖）；技能正文原样存储，调用时拼接到系统提示前；渐进式披露通过 `read_subresource` 按需拉取引用文件。
+```bash
+npx skills remove skill-contract-reviewer
+```
+
+Select the same host and scope used during installation. After a rescan or new
+session, an explicit request for `skill-contract-reviewer` should report that
+it is unavailable. Keep `my-first-skill` for the later lessons, or remove the
+lab directory after you finish the track.
+
+## The Problem
+
+Suppose your team has a reliable release workflow. It finds merged changes, checks migration notes, updates the changelog, runs a packaging command, and produces a review checklist.
+
+Putting that workflow in one prompt makes it easy to paste and hard to operate. The prompt has no stable identity, no discovery rule, no resource boundary, no testable package shape, and no answer to basic questions: Who may invoke it? When should the model select it? Which scripts can it run? Which files are trusted? What survives when context is compacted?
+
+The opposite mistake is to treat every reusable instruction as a skill. Repository conventions, deterministic automation, external tools, event hooks, and delegated agents solve different problems. Packing all of them into `SKILL.md` produces a directory that looks portable while depending on one host's undocumented behavior.
+
+The first engineering task is classification. Decide what the artifact is before you decide how to package it.
+
+## The Concept
+
+### Skills encode procedural knowledge
+
+An agent skill is a directory whose entry point is `SKILL.md`. The entry file contains YAML frontmatter followed by Markdown instructions. The directory can also contain references, scripts, and assets.
+
 ```figure
-t3-skill-layers
+skill-package-anatomy
 ```
+
+The directory, not the Markdown file alone, is the deployable unit. A copied `SKILL.md` with missing references is a broken package even if its frontmatter parses.
+
+### The neighboring abstractions
+
+| Artifact | Primary job | Loaded or run when | What it should not impersonate |
+|---|---|---|---|
+| Prompt | Shape one model interaction | Included by an application or user | A versioned package with resources |
+| Repository instructions | Explain one codebase's standing rules | A coding runtime enters that scope | A reusable task workflow |
+| Agent skill | Supply reusable procedural knowledge | Explicit or implicit activation | A hard authorization boundary |
+| MCP tool | Expose a typed remote capability | The model or application calls it | A detailed operating procedure |
+| Hook | Run deterministic logic on an event | The declared event occurs | Probabilistic model routing |
+| Subagent | Delegate work with separate context and state | An orchestrator creates or calls it | A static instruction bundle |
+| Plugin | Distribute a larger runtime extension | The host installs or enables it | The portable skill contract itself |
+| Learned skill library | Store behavior discovered through experience | A policy retrieves a prior program or trajectory | A standards-based `SKILL.md` package |
+
+A release skill can tell the agent how to inspect a release. An MCP server can expose the release registry. A hook can forbid direct pushes. A subagent can independently audit the candidate. These pieces compose because they keep different responsibilities.
+
+### The word "skill" names two different ideas
+
+Research systems sometimes call a learned program, successful trajectory, or environment-specific policy fragment a skill. An agent can create these artifacts during exploration, retrieve them by task similarity, execute them, and revise the library from feedback. Phase 14 · 10 builds that kind of lifelong-learning library.
+
+An Agent Skill in this mini-track is different. It is an authored package with a declared filesystem contract, catalog metadata, progressive disclosure, runtime-mediated invocation, and host-controlled tools. It can be generated or improved by an agent, but learning is not required for the format.
+
+| Dimension | Agent Skill package | Learned skill library |
+|---|---|---|
+| Primary unit | `SKILL.md` directory | Program, policy, trajectory, or memory record |
+| Creation | Authored, generated, or curated | Usually discovered from environment experience |
+| Selection | Catalog description plus runtime policy | Retrieval or policy over task state |
+| Execution | Model follows instructions and calls host tools | Environment runs a stored behavior or code artifact |
+| Portability | Package contract can cross compatible hosts | Often tied to one environment and action space |
+| Evaluation | Routing, artifact, safety, and host compatibility | Reward, success rate, transfer, and library growth |
+
+Both ideas package reusable competence. They should not share implementation claims merely because they share a name.
+
+### The portable core
+
+The Agent Skills specification requires two frontmatter fields:
+
+```yaml
+---
+name: release-readiness
+description: Inspect a release candidate when the user asks whether a version is ready to publish.
+---
+```
+
+`name` is the stable identifier. It must satisfy the specification's naming rules and match the parent directory. `description` is both documentation and routing metadata. It should say what the skill does and when it applies.
+
+The portable optional fields are:
+
+| Field | Purpose | Portability note |
+|---|---|---|
+| `license` | State the terms for the package | Core specification |
+| `compatibility` | State environmental requirements | Core specification |
+| `metadata` | Carry string-valued extension data | Core specification |
+| `allowed-tools` | Suggest pre-approved tools | Experimental; host support varies |
+
+The Markdown body holds the operational instructions. It should define the workflow, decision points, failure behavior, and direct paths to supporting resources.
+
+```markdown
+# Release readiness
+
+Use this workflow for a release candidate, not for ordinary development builds.
+
+1. Read `references/release-policy.md`.
+2. Run `python3 scripts/inspect_release.py --format json`.
+3. Stop if the report contains a blocking failure.
+4. Produce the checklist from `assets/release-checklist.md`.
+5. Ask for approval before any publish or tag action.
+```
+
+### Runtime extensions are a second layer
+
+Some hosts accept extra frontmatter or companion configuration. Those fields can be useful, but they are not automatically portable.
+
+| Behavior | Example host extension | Portable core? |
+|---|---|:---:|
+| Hide a skill from model routing while keeping direct user invocation | `disable-model-invocation` | No |
+| Hide a skill from the user's command menu while allowing model routing | `user-invocable` | No |
+| Show argument help in a command menu | `argument-hint` | No |
+| Run the skill in delegated context | `context`, `agent` | No |
+| Pin model or reasoning settings | `model`, `effort` | No |
+| Register lifecycle automation | `hooks` | No |
+| Disable implicit invocation in Codex | `agents/openai.yaml` policy | No |
+
+Treat each extension as an adapter. Keep the core workflow valid without it, document the fallback, and test the host that consumes it. A runtime may ignore an unknown field, reject it, or preserve it without implementing the behavior.
+
+### Frontmatter is executable metadata
+
+Metadata changes system behavior before the skill body is read.
+
+- A malformed `name` can make discovery fail.
+- A vague `description` can route the wrong requests.
+- A human-only flag can remove the skill from the model's catalog.
+- A tool allowance can change whether a host asks for permission.
+- A context setting can move execution into a separate agent session.
+
+Review frontmatter like configuration code. Validate it, version it, and include its behavior in evals.
+
+### The skill lifecycle
+
+```figure
+skill-runtime-lifecycle
+```
+
+Each arrow is a boundary with its own failure modes.
+
+1. **Discovery** finds possible packages in configured locations.
+2. **Validation** rejects malformed or unsafe packages before catalog publication.
+3. **Cataloging** exposes a compact `name` and `description`, not the full package.
+4. **Selection** decides whether the skill is relevant.
+5. **Activation** loads the body into model-visible context.
+6. **Disclosure** reads references or assets only when a branch requires them.
+7. **Execution** uses host tools under the host's permission and isolation rules.
+8. **Verification** checks the produced artifact independently of the model's claim.
+
+Collapsing these stages causes bad mental models. A discovered skill is not active. An active skill is not authorized to do everything it describes. A permitted tool call is not proof that the result is correct.
+
+### Skills and tools are orthogonal
+
+MCP answers, "Which capabilities can this application call, and what are their schemas?" A skill answers, "How should an agent approach this class of task?"
+
+```figure
+skill-tool-orthogonality
+```
+
+The skill may name a tool, but the host owns the actual capability registry. If the tool is absent, the skill should state a fallback or fail clearly. It should never imply that naming a capability creates it.
+
+### Skills and repository instructions are different scopes
+
+Repository instructions describe the environment you are already in: commands, conventions, generated files, and boundaries. A skill provides reusable procedure for a task that may occur across many repositories.
+
+When both apply, the active user request and repository rules constrain the skill. A generic refactoring skill must not override a repository rule that forbids editing generated files.
+
+### Skills do not import one another
+
+One skill can direct the agent to invoke another, but this is not a language-level import. The second skill still goes through runtime discovery, eligibility, activation, permissions, and context handling.
+
+Write cross-skill dependencies as observable workflow edges:
+
+```markdown
+After producing the candidate changelog, invoke the `release-risk-review` skill.
+Pass the candidate path and require a blocking or non-blocking verdict.
+If that skill is unavailable, stop and report the missing dependency.
+```
+
+This makes the dependency testable and gives the host a chance to enforce policy.
+
+## Build It
+
+`code/main.py` implements a small standards-oriented validator and an artifact chooser. It stays stdlib-only so every rule is visible.
+
+The validator exposes:
+
+- `parse_frontmatter(text)` to separate metadata from the body.
+- `validate_skill_text(text, directory_name, allowed_runtime_extensions=())` to check required fields, naming, unknown extensions, body presence, and portable limits.
+- `ValidationIssue` and `SkillReport` to return structured evidence instead of one opaque boolean.
+- `FrontmatterSyntaxError` for input that cannot be interpreted safely.
+
+The chooser exposes `TaskShape` and `select_primitives(task)`. It maps a task's needs to ordinary code, repository instructions, a skill, a hook, a subagent, or an MCP tool.
+
+Run the lab:
+
+```bash
+cd "$(git rev-parse --show-toplevel)"
+cd phases/13-tools-and-protocols/22-skills-and-agent-sdks
+python3 code/main.py
+python3 -m unittest discover -s code/tests -v
+```
+
+This command block requires a local clone and must start from anywhere inside
+that clone so `git rev-parse --show-toplevel` can resolve the repository root.
+
+The demo prints JSON for one valid portable skill, one host-extended skill, one invalid package, and several task-shape decisions. Inspect the issue codes. A package validator should explain how to fix an artifact without guessing on the author's behalf.
+
+### Validation order matters
+
+Validate cheap structural facts before deeper content rules:
+
+```figure
+skill-validation-order
+```
+
+This order prevents secondary errors from obscuring the first broken invariant.
 
 ## Use It
 
-`code/main.py` ships a stdlib SKILL.md parser and loader. It discovers skills under `./skills/`, parses the YAML frontmatter plus markdown body, and produces a dict keyed by skill name. It then simulates an agent loop that invokes `release-notes-writer` by name.
+Before writing a skill, fill out this decision card:
 
-> `code/main.py` 提供标准库 SKILL.md 解析器和加载器。它在 `./skills/` 下发现技能、解析 YAML frontmatter 和 markdown 正文、生成按技能名索引的字典。然后模拟按名调用 `release-notes-writer` 的 Agent 循环。
+| Question | If yes | Likely primitive |
+|---|---|---|
+| Does this need reusable model judgment across several steps? | The procedure is stable but decisions vary | Skill |
+| Must this happen every time an event fires? | Missing one execution is unacceptable | Hook or application code |
+| Does the model need an external capability with typed inputs? | The operation lives outside model context | Tool or MCP server |
+| Does the work need isolated context, state, or ownership? | A separate worker returns a bounded result | Subagent |
+| Is this guidance specific to one repository? | It describes local commands and constraints | Repository instructions |
+| Is one interaction enough? | No package lifecycle is needed | Prompt |
 
-What to look at:
+Many production workflows use more than one row. The card prevents one artifact from pretending to provide every property.
 
-- YAML frontmatter parsed with a minimal stdlib parser (no `pyyaml` dependency).
-  中文翻译：YAML frontmatter 用最小标准库解析器解析（无 `pyyaml` 依赖）。
-- Skill body stored verbatim; agent prepends it to the system prompt on invocation.
-  中文翻译：技能正文原样存储；Agent 在调用时前置到系统 prompt。
-- Progressive disclosure demoed via a `read_subresource` function that pulls referenced files on demand.
-  中文翻译：渐进式披露通过 `read_subresource` 函数演示，按需拉取引用文件。
+## Ship It
 
-## Ship It | 产出物
+This lesson produces the `skill-contract-reviewer` bundle under `outputs/`. It contains:
 
-> **【中文解读】** 本课产出 `outputs/skill-agent-bundle.md`——给定一个工作流，生成 SKILL.md + AGENTS.md + MCP 服务器蓝图组合包，可跨 Agent 移植。
+- a portable `SKILL.md` that reviews a proposed skill package;
+- reference checklists for the portable contract and primitive selection;
+- a deterministic validation script;
+- task-shape fixtures covering prompts, skills, tools, hooks, ordinary code, and subagents.
 
-This lesson produces `outputs/skill-agent-bundle.md`. Given a workflow, the skill produces the combined SKILL.md + AGENTS.md + MCP-server-blueprint bundle, portable across agents.
+Install the full bundle, not only its entry file:
 
-> 本课产出 `outputs/skill-agent-bundle.md`。给定一个工作流，该 skill 生成组合的 SKILL.md + AGENTS.md + MCP 服务器蓝图包，可跨 Agent 移植。
+```bash
+cd "$(git rev-parse --show-toplevel)"
+python3 scripts/install_skills.py /tmp/aiefs-skills --phase 13 --type skill
+```
 
-## Exercises | 练习题
+The course installer reports each copied Phase 13 skill and writes
+`/tmp/aiefs-skills/manifest.json`. This clean destination checks package shape;
+the first-success loop above checks discovery and invocation in a real host.
 
-1. Run `code/main.py`. Add a second skill under `skills/` and confirm the loader picks it up.
-   中文翻译：运行 `code/main.py`。在 `skills/` 下添加第二个技能，确认加载器拾取它。
+The following lessons deepen each lifecycle stage. Lesson 24 builds discovery and progressive disclosure. Lesson 25 builds invocation policy and routing. Lesson 26 separates permissions from sandboxing. Lesson 27 turns the whole package into an evaluated release artifact.
 
-2. Write an AGENTS.md for this course repo. Include testing commands, style conventions, and the Phase 13 mental model.
-   中文翻译：为此课程仓库编写 AGENTS.md。包含测试命令、风格约定和 Phase 13 心智模型。
+## Exercises
 
-3. Port a multi-step workflow from your team's internal docs into a SKILL.md. Verify it loads in Claude Code.
-   中文翻译：将团队内部文档中的多步工作流移植到 SKILL.md。验证它在 Claude Code 中加载。
+1. Classify five workflows from your own team using `TaskShape`. Defend every case where you choose more than one primitive.
+2. Add boundary tests proving that a 500-character `compatibility` value passes and a 501-character value fails as a specification error.
+3. Add one runtime extension to the allowlist. Write a test proving the same file is still distinguishable from a portable-only skill.
+4. Split a 400-line prompt into `SKILL.md`, one reference, one script contract, and one output template. Keep every file responsible for one kind of information.
+5. Design a failure response for a skill that references an unavailable MCP tool. Do not silently substitute a tool with broader permissions.
+6. Review an existing skill and label every sentence as routing, procedure, policy, reference pointer, or output contract. Move anything that does not belong.
 
-4. Translate the skill into Cursor's and Codex's native rule formats by hand. Count the diff between formats — this is the translation surface SkillKit automates.
-   中文翻译：手动将技能翻译到 Cursor 和 Codex 的原生规则格式。计算格式间 diff——这是 SkillKit 自动化的翻译表面。
+## Key Terms
 
-5. Read the Anthropic Agent Skills blog post. Identify one feature in the Claude Agent SDK that this lesson's loader does not cover. (Hint: agent sub-invocation.)
-   中文翻译：阅读 Anthropic Agent Skills 博客。识别 Claude Agent SDK 中本课加载器未涵盖的一个功能。（提示：Agent 子调用。）
+| Term | What people say | What it actually means |
+|---|---|---|
+| Agent skill | "A saved prompt" | A discoverable directory of procedural instructions and optional resources |
+| Portable core | "Fields every runtime shares" | The contract defined by the Agent Skills specification |
+| Runtime extension | "Extra frontmatter" | Host-specific configuration whose behavior requires a compatible adapter |
+| Activation | "The skill ran" | The skill body entered model-visible context; execution may come later |
+| Skill dependency | "Import another skill" | A runtime-mediated invocation edge with availability and policy checks |
+| Tool contract | "A function schema" | Inputs, outputs, permissions, side effects, errors, and evidence for a capability |
 
-## Key Terms | 术语速查表
+## Further Reading
 
-| Term | What people say | What it actually means | 中文 |
-|------|----------------|------------------------|------|
-| SKILL.md | "The skill file" | YAML frontmatter plus markdown body, loaded by agent runtime | 技能文件：YAML 元数据+Markdown 正文 |
-| AGENTS.md | "Repo-root agent context" | Project-level conventions file read on session start | 项目级 Agent 上下文文件 |
-| Progressive disclosure | "Lazy-load sub-resources" | Skill body references files pulled only when needed | 渐进式披露：按需加载子资源 |
-| Frontmatter | "YAML block at top" | Metadata (name, description) in `---` delimiters | YAML 前置元数据 |
-| Claude Agent SDK | "Anthropic's skill runtime" | `@anthropic-ai/claude-agent-sdk`, loads skills and routes | Anthropic 的技能运行时 |
-| OpenAI Apps SDK | "MCP + widget meta" | OpenAI's dev surface built on MCP plus ChatGPT UI hooks | OpenAI 的 MCP+UI 开发平台 |
-| Skill discovery | "Filesystem scan" | Walk known dirs for SKILL.md, key by name | 技能发现：文件系统扫描 |
-| Cross-agent portability | "One skill many agents" | Translate one SKILL.md to 32+ agents via SkillKit-style tools | 跨 Agent 可移植性 |
-| Agent Skill | "Portable know-how" | Reusable task template outside MCP's tool concept | Agent 技能：可移植的任务模板 |
-| Apps SDK | "MCP plus ChatGPT UI" | Connectors and Custom GPTs unified on MCP | Apps SDK：MCP+ChatGPT UI 统一平台 |
-
-## Further Reading | 延伸阅读
-
-- [Anthropic — Agent Skills announcement](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills) — December 2025 launch
-  中文翻译：2025 年 12 月发布
-- [Anthropic — Agent Skills docs](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview) — SKILL.md format reference
-  中文翻译：SKILL.md 格式参考
-- [OpenAI — Apps SDK](https://developers.openai.com/apps-sdk) — MCP-based developer platform for ChatGPT
-  中文翻译：基于 MCP 的 ChatGPT 开发者平台
-- [agents.md](https://agents.md/) — AGENTS.md format and adoption list
-  中文翻译：AGENTS.md 格式和采用列表
-- [Anthropic — anthropics/skills GitHub](https://github.com/anthropics/skills) — official skill examples
-  中文翻译：官方技能示例
+- [Agent Skills specification](https://agentskills.io/specification) for the portable directory and frontmatter contract.
+- [Agent Skills best practices](https://agentskills.io/skill-creation/best-practices) for scope, instructions, and resource organization.
+- [OpenAI: Build skills](https://learn.chatgpt.com/docs/build-skills) for current Codex discovery and invocation behavior.
+- [Claude Code skills](https://code.claude.com/docs/en/skills) for one runtime's invocation, argument, tool, and delegated-context extensions.

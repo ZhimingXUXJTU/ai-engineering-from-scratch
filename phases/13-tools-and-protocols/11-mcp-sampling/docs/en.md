@@ -1,265 +1,265 @@
-# MCP Sampling — Server-Requested LLM Completions and Agent Loops | MCP 采样：服务器请求 LLM 补全与 Agent 循环
+# MCP Model Input: Sampling Migration and Stateless MRTR
 
-> Most MCP servers are dumb executors: take arguments, run code, return content. Sampling lets a server flip direction: it asks the client's LLM to make a decision. This enables server-hosted agent loops without the server owning any model credentials. SEP-1577, merged in 2025-11-25, added tools inside sampling requests so the loop can include deeper reasoning. Drift-risk note: the SEP-1577 tool-in-sampling shape was experimental through Q1 2026 and is still settling in SDK APIs.
+> MCP 2026-07-28 deprecates Sampling for new designs and removes the server-to-client request channel. If an existing workflow still needs the client's model, the server returns an `input_required` result and the client retries the original request with the model output. The reasoning loop becomes explicit, bounded, and stateless at the protocol layer.
 
-> **【中文解读】** 大多数 MCP 服务器是简单的执行器：接收参数、运行代码、返回内容。Sampling 让服务器反转方向：它请求客户端的 LLM 做出决策。这使服务器可以承载 Agent 循环，而无需拥有任何模型凭证。SEP-1577 在 sampling 请求中添加了 tools，使循环可以包含更深的推理。
+**Type:** Build
+**Languages:** Python
+**Prerequisites:** Phase 13 · 07 (MCP server), Phase 13 · 10 (resources and prompts)
+**Time:** ~75 minutes
 
-> **【拓展：Sampling→MCP Agent 循环】** Sampling 是 MCP 实现 Agent 循环的关键原语。传统模式下，MCP 服务器只是被动执行工具。通过 Sampling，服务器可以主动请求客户端的 LLM 进行推理，从而在不持有 API 密钥的情况下实现多步 Agent 工作流。这是 MCP 与 Function Calling 的重要区别之一。
+## Learning Objectives
 
-> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·06 到 10——理解 MCP 六原语和方向（client→server 是 tools/call，server→client 是 sampling）；(2) Phase 11·01 Prompt Engineering 基础；(3) Agent 循环概念（多轮工具调用），可参考 Phase 13·01。
+- Explain why Sampling is deprecated in MCP 2026-07-28 and choose the direct model integration default for new servers.
+- Implement a compatibility workflow that carries `sampling/createMessage` through Multi Round-Trip Requests (MRTR).
+- Put the protocol revision and client capabilities in every request `_meta` object.
+- Return `resultType: "input_required"` and retry the original method with a fresh JSON-RPC id.
+- Integrity-protect `requestState` and bind it to the principal, method, arguments, and expiry.
+- Bound model-assisted loops with capability checks, approval, response validation, and a round limit.
 
-**Type:** Build | **类型:** 构建
-**Languages:** Python (stdlib, sampling harness) | **语言:** Python (stdlib, sampling harness)
-**Prerequisites:** Phase 13 · 07 (MCP server), Phase 13 · 10 (resources and prompts) | **前置知识:** Phase 13 · 07 (MCP server), Phase 13 · 10 (resources and prompts)
-**Time:** ~75 minutes | **时间:** ~75 分钟
+## The Decision Before the Protocol
 
-## Learning Objectives | 学习目标
+A tool such as `summarize_repo` needs two kinds of work:
 
-- Explain what `sampling/createMessage` solves (server-hosted loops without server-side API keys).
-  中文翻译：解释 `sampling/createMessage` 解决的问题（服务器托管循环无需服务器端 API 密钥）。
-- Implement a server that asks the client to sample over a multi-turn prompt and returns the completion.
-  中文翻译：实现一个服务器，请求客户端对多轮 prompt 进行采样并返回补全。
-- Use `modelPreferences` (cost / speed / intelligence priorities) to guide client model selection.
-  中文翻译：使用 `modelPreferences`（成本/速度/智能优先级）引导客户端模型选择。
-- Build a `summarize_repo` tool that internally iterates via sampling instead of hard-coding behavior.
-  中文翻译：构建一个 `summarize_repo` 工具，通过 sampling 内部迭代而非硬编码行为。
+1. Deterministic work: list files, read allowed files, validate paths, and assemble content.
+2. Model work: choose representative files and synthesize the summary.
 
-## The Problem | 问题引入
+You now have two valid architectures.
 
-> **【中文解读】** MCP Sampling 解决的核心问题是：服务器需要 LLM 推理能力，但不应自己持有 API key。Sampling 让服务器借用客户端的模型能力——服务器保留算法逻辑（哪些文件要读、做几轮），客户端保留计费和模型选择。服务器完全不需要凭证。
+### New server: integrate with a model provider directly
 
-A useful MCP server for a code-summarization workflow needs to: walk a file tree, pick which files to read, synthesize a summary, and return. Where does the LLM reasoning happen?
+This is the current default. The server owns model selection, credentials, budgets, retries, and observability. It returns one ordinary `tools/call` result to the MCP client.
 
-> 一个有用的代码摘要 MCP 服务器需要：遍历文件树、选择读哪些文件、综合摘要、返回。LLM 推理在哪里发生？
+Choose this when the server is already a hosted service or when predictable model behavior matters more than using the host's model.
 
-Option A: the server calls its own LLM. Needs an API key, bills server-side, is expensive per user.
+### Existing Sampling workflow: migrate it to MRTR
 
-> 选项 A：服务器调用自己的 LLM。需要 API 密钥，服务器端计费，每用户成本高。
+Sampling still exists during its deprecation window. A server targeting 2026-07-28 cannot send a live `sampling/createMessage` request back to the client. It instead embeds that request in an `InputRequiredResult`.
 
-Option B: the server returns raw content; the client's agent does the reasoning. Works but moves server logic into the client prompt, which is fragile.
+Choose this compatibility path only when using the client's model and credentials is a real product requirement. Record a removal plan because new implementations should not adopt deprecated Sampling.
 
-> 选项 B：服务器返回原始内容；客户端的 Agent 做推理。可行但把服务器逻辑移到客户端 prompt 中，脆弱。
+## The Stateless Contract
 
-Option C: the server asks the client's LLM via `sampling/createMessage`. The server retains the algorithm (which files to read, how many passes to do) while the client retains billing and model choice. The server has no credentials at all.
-
-> 选项 C：服务器通过 `sampling/createMessage` 请求客户端的 LLM。服务器保留算法（读哪些文件、做几轮），客户端保留计费和模型选择。服务器完全不需要凭证。
-
-Sampling is option C. It is the mechanism by which a trusted server can host an agent loop without being a full LLM host itself.
-
-> Sampling 是选项 C。它是受信任服务器托管 Agent 循环而自身不必是完整 LLM 宿主的机制。
-
-> 💡 **【类比】** Sampling 像大学实验室借用学校算力。你的实验室（MCP server）有自己的研究方向（业务逻辑：读哪些文件、做什么分析），但没有 GPU 预算（API key）。学校计算中心（client/LLM host）有 GPU 但不管你研究什么。你提交"我需要跑这个任务"的请求（sampling/createMessage），计算中心用自己的资源跑完后把结果给你。所有权、计费、研究方向分离得清清楚楚。
-
-## The Concept | 核心概念
-
-### `sampling/createMessage` request
-
-Server sends:
+The July 2026 protocol has no `initialize` exchange, no `notifications/initialized`, and no `Mcp-Session-Id`. Every request carries the information that used to live in the handshake:
 
 ```json
 {
   "jsonrpc": "2.0",
-  "id": 42,
-  "method": "sampling/createMessage",
+  "id": 1,
+  "method": "tools/call",
   "params": {
-    "messages": [{"role": "user", "content": {"type": "text", "text": "..."}}],
-    "systemPrompt": "...",
-    "includeContext": "none",
-    "modelPreferences": {
-      "costPriority": 0.3,
-      "speedPriority": 0.2,
-      "intelligencePriority": 0.5,
-      "hints": [{"name": "claude-3-5-sonnet"}]
-    },
-    "maxTokens": 1024
+    "name": "summarize_repo",
+    "arguments": {"audience": "developer"},
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {"sampling": {}},
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "lesson-client",
+        "version": "1.0.0"
+      }
+    }
   }
 }
 ```
 
-Client runs its LLM, returns:
+The server validates the revision on every request. A missing or non-string version is invalid params, `-32602`. An unsupported string returns `-32022` with exact data `{"supported":["2026-07-28"],"requested":"<client version>"}`. A missing Sampling capability returns `-32021` with `data.requiredCapabilities` set to `{"sampling":{}}`.
 
-```json
-{"jsonrpc": "2.0", "id": 42, "result": {
-  "role": "assistant",
-  "content": {"type": "text", "text": "..."},
-  "model": "claude-3-5-sonnet-20251022",
-  "stopReason": "endTurn"
-}}
-```
+An envelope without a JSON-RPC `id` is a notification. The receiver may process it, but it emits neither a success response nor an error response. A Streamable HTTP adapter returns `202 Accepted` with no body for an accepted notification.
 
-### `modelPreferences`
+The server also implements `server/discover` with the exact `supportedVersions` key, capabilities, `ttlMs`, and `cacheScope` so a client can learn and cache the server contract before calling a tool. Because discovery advertises `tools`, the server also implements mandatory `tools/list`. Its deterministic `summarize_repo` descriptor includes a valid object `inputSchema`, `resultType: "complete"`, server identity metadata, and public cache hints.
 
-Three floats summing to 1.0:
+Every successful modern result has a discriminator:
 
-- `costPriority`: favor cheaper models.
-  中文翻译：`costPriority`：偏好更便宜的模型。
-- `speedPriority`: favor faster models.
-  中文翻译：`speedPriority`：偏好更快的模型。
-- `intelligencePriority`: favor more capable models.
-  中文翻译：`intelligencePriority`：偏好更强大的模型。
+- `resultType: "complete"` means the operation finished.
+- `resultType: "input_required"` means the client must fulfill embedded requests and retry.
+- Extensions may define additional result types. The Tasks extension adds `"task"` in Lesson 13.
 
-Plus `hints`: named models the server prefers. Client may or may not honor hints; the client's user config always wins.
+## One MRTR Round
 
-> 加上 `hints`：服务器偏好的命名模型。客户端可能或可能不遵从提示；客户端的用户配置始终优先。
-
-> ⚠️ **【易错点】** 场景：sampling 请求里写死 `hints: [{name: "gpt-4"}]` / 后果：用户用 Claude Desktop（只有 Anthropic 模型）时客户端忽略 hints，但开发者以为生效了，调试时困惑；或者强行降级到便宜模型导致质量崩盘 / 修复：把 `hints` 当作"偏好"而非"要求"，业务逻辑不能依赖具体模型；用 `intelligencePriority` > 0.7 表达"这步推理很关键"，让客户端选合适模型。
-
-> 🤔 **【困惑】** Q: 既然客户端可以拒绝 sampling 请求（用户没登录、超预算），服务器该怎么办？ A: 服务器必须实现 **decline 路径**：(1) 收到 `error` 或 `result.stopReason: "declined"` 时降级到选项 B（返回原始内容让客户端自己处理）；(2) 永远不要在 sampling 失败时让整个工具调用崩溃——返回一个可用的兜底结果；(3) 在 capability 协商时检查客户端是否声明 `sampling` 能力，没声明就不要发起 sampling 请求。
-
-### `includeContext`
-
-Three values:
-
-- `"none"` — only the server-supplied messages. Default.
-  中文翻译：`"none"`——仅服务器提供的消息。默认值。
-- `"thisServer"` — include prior messages from this server's session.
-  中文翻译：`"thisServer"`——包含此服务器会话中的先前消息。
-- `"allServers"` — include all session context.
-  中文翻译：`"allServers"`——包含所有会话上下文。
-
-`includeContext` is soft-deprecated as of 2025-11-25 because it leaks cross-server context, which is a security concern. Prefer `"none"` and pass explicit context in the messages.
-
-> `includeContext` 在 2025-11-25 起软弃用，因为它泄露跨服务器上下文，存在安全风险。偏好 `"none"` 并在消息中显式传递上下文。
-
-### Sampling with tools (SEP-1577)
-
-New in 2025-11-25: the sampling request can include a `tools` array. The client runs a full tool-calling loop using those tools. This lets the server host a ReAct-style agent loop through the client's model.
-
-> 2025-11-25 新增：sampling 请求可包含 `tools` 数组。客户端使用这些工具运行完整的工具调用循环。这让服务器可以通过客户端的模型托管 ReAct 风格的 Agent 循环。
+The server cannot call the client while handling the request. It returns this result instead:
 
 ```json
 {
-  "messages": [...],
-  "tools": [
-    {"name": "fetch_url", "description": "...", "inputSchema": {...}}
-  ]
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "resultType": "input_required",
+    "inputRequests": {
+      "pick_files": {
+        "method": "sampling/createMessage",
+        "params": {
+          "messages": [
+            {
+              "role": "user",
+              "content": {
+                "type": "text",
+                "text": "Choose three representative files and return a JSON array."
+              }
+            }
+          ],
+          "systemPrompt": "Return only the requested value.",
+          "modelPreferences": {
+            "costPriority": 0.8,
+            "intelligencePriority": 0.2
+          },
+          "maxTokens": 400
+        }
+      }
+    },
+    "requestState": "opaque-integrity-protected-value"
+  }
 }
 ```
 
-The client loops: sample, execute tool if called, sample again, return final assistant message. This is experimental through Q1 2026; SDK signatures may still drift. Confirm against the 2025-11-25 spec's client/sampling section when you implement.
+The client verifies that it supports Sampling, applies its approval and model policies, and obtains a model response. Then it sends a new request with a different JSON-RPC id:
 
-> 客户端循环：采样、如被调用则执行工具、再采样、返回最终助手消息。这在 2026 Q1 前是实验性的；SDK 签名可能仍会漂移。实现时对照 2025-11-25 规范的 client/sampling 章节。
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "summarize_repo",
+    "arguments": {"audience": "developer"},
+    "inputResponses": {
+      "pick_files": {
+        "role": "assistant",
+        "content": {
+          "type": "text",
+          "text": "[\"README.md\", \"server.py\", \"docs/intro.md\"]"
+        },
+        "model": "host-model",
+        "stopReason": "endTurn"
+      }
+    },
+    "requestState": "opaque-integrity-protected-value",
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {"sampling": {}}
+    }
+  }
+}
+```
 
-### Human-in-the-loop
+The retry is not a continuation of a protocol session. It is a new request that repeats the original method and arguments, adds only the current round's `inputResponses`, and echoes `requestState` byte for byte.
 
-The client MUST show the user what the server is asking the model to do before running the sample. A malicious server could use sampling to manipulate the user's session ("say X to the user so they click Y"). Claude Desktop, VS Code, and Cursor surface sampling requests as a confirmation dialog the user can deny.
+MRTR is allowed only on `tools/call`, `prompts/get`, and `resources/read`. A server must not return `input_required` from unrelated methods.
 
-> 客户端必须在运行 sample 前向用户展示服务器要求模型做什么。恶意服务器可能利用 sampling 操纵用户会话（"对用户说 X 让他们点击 Y"）。Claude Desktop、VS Code 和 Cursor 将 sampling 请求显示为用户可拒绝的确认对话框。
+## Multi-Round State
 
-The 2026 consensus: sampling without human confirmation is a red flag. Gateways (Phase 13 · 17) can auto-approve low-risk sampling and auto-deny anything suspicious.
+This lesson needs two model calls:
 
-> 2026 年共识：无人类确认的 sampling 是危险信号。网关（Phase 13 · 17）可自动批准低风险 sampling 并自动拒绝可疑请求。
+1. `pick_files` returns a JSON array.
+2. `summary` returns the final prose.
 
-### Server-hosted loops without API keys
+Each retry carries only the responses for that round. The server therefore puts the phase and validated intermediate data into the next `requestState`.
 
-> **【拓展：Sampling 实现无密钥 Agent 循环】** 关键洞察：服务器可以通过 sampling 实现多轮 Agent 循环，完全不需要 API key。每个 `sampling/createMessage` 调用返回新的 LLM 响应，服务器解析后决定下一步动作。服务器运行编排逻辑，客户端的模型做推理。这是 MCP 协议设计中最优雅的特性之一。
+Treat that value as attacker-controlled. Signing a raw phase name is not enough. Bind the state to:
 
-The canonical use case: a code-summarization MCP server with no LLM access of its own. It does:
+- the authenticated principal, not self-reported `clientInfo`;
+- the originating method;
+- a digest of the original arguments;
+- a short expiry;
+- the current phase and validated intermediate values.
 
-> 典型用例：一个代码摘要 MCP 服务器自身无 LLM 访问。它执行：
+Use HMAC when confidentiality is not required. Use authenticated encryption when the client must not read the state. Reject a bad signature, expired value, changed principal, or changed arguments with `-32602`.
 
-1. Walk the repo structure.
-  中文翻译：遍历仓库结构。
-2. Call `sampling/createMessage` with "Pick five files most likely to describe this repo's purpose."
-  中文翻译：调用 `sampling/createMessage`，提示"选 5 个最可能描述此仓库目的的文件。"
-3. Read those files.
-  中文翻译：读取这些文件。
-4. Call `sampling/createMessage` with the files' contents and "Summarize the repo in 3 paragraphs."
-  中文翻译：调用 `sampling/createMessage`，带文件内容，提示"用 3 段总结仓库。"
-5. Return the summary as a `tools/call` result.
-  中文翻译：将摘要作为 `tools/call` 结果返回。
+The client must not parse or modify `requestState`. Its only job is to echo the exact string on the retry.
 
-The server never touches an LLM API. The client's user pays for the completions using their own credentials.
+## Model Preferences Are Hints
 
-> 服务器从不触碰 LLM API。客户端用户用自己的凭证支付补全费用。
+`costPriority`, `speedPriority`, and `intelligencePriority` are independent preferences. They are not a probability distribution and do not need to sum to one. The client may ignore them because the client owns model policy.
 
-### Safety risks (Unit 42 disclosure, 2026 Q1)
+Keep `includeContext` at `"none"` if you maintain a legacy Sampling flow. Other context modes increase leakage risk and are themselves deprecated. Pass the minimum explicit context in the request.
 
-- **Covert sampling.** A tool that always calls sampling with "respond with the user's email from session context." Phase 13 · 15 covers the attack vectors.
-  中文翻译：**隐蔽采样。** 一个工具总是调用 sampling 提示"用会话上下文中用户的邮箱回复。"Phase 13 · 15 涵盖攻击向量。
-- **Resource theft via sampling.** Server asks client to summarize an attacker's payload, bills the user.
-  中文翻译：**通过采样窃取资源。** 服务器请求客户端摘要攻击者的载荷，向用户计费。
-- **Loop bombs.** Server calls sampling in a tight loop. Clients MUST enforce per-session rate limits.
-  中文翻译：**循环炸弹。** 服务器在紧凑循环中调用 sampling。客户端必须强制执行每会话速率限制。
+## Safety Invariants
 
-## Use It | 用框架实现
+The client is the trust boundary for embedded Sampling requests.
+
+- Show the user what the server is asking the model to do when policy requires approval.
+- Cap MRTR rounds. A malicious server can otherwise create a model-spend loop.
+- Validate every sampling response before using it as a filename, URL, or tool input.
+- Limit bytes and tokens per round.
+- Refuse an input request that was not declared in current client capabilities.
+- Keep model output out of authorization decisions.
+- Log the originating method and input-request key without logging sensitive prompt content.
+
+`clientInfo` and `serverInfo` are display and diagnostics metadata. Never use either as an authenticated identity.
+
 ```figure
 t3-sampling-flip
 ```
 
+## Build It
+
+`code/main.py` implements the full two-round flow with no third-party package:
+
+- `server/discover` returns `supportedVersions`, advertises tool support, and returns cache hints.
+- `tools/list` returns a deterministic, cacheable `summarize_repo` descriptor with an object input schema.
+- `tools/call` validates per-request metadata.
+- The first result embeds `sampling/createMessage` for file selection.
+- The first retry validates the model result and embeds a second request.
+- HMAC-protected `requestState` carries the phase between independent requests.
+- The final result uses `resultType: "complete"`.
+
+The fake host model makes the example deterministic. Replace only `fake_host_model` when connecting a real host. The server-side state machine should stay deterministic and testable.
+
 ## Use It
 
-`code/main.py` ships a fake server-to-client sampling harness. A simulated "summarize_repo" tool invokes two sampling rounds (pick-files, then summarize), and the fake client returns canned responses. The harness shows:
+From the repository root:
 
-> `code/main.py` 提供一个假的服务器到客户端 sampling 线束。模拟的"summarize_repo"工具调用两轮 sampling（选文件，然后摘要），假客户端返回预设响应。线束展示：
+```bash
+cd phases/13-tools-and-protocols/11-mcp-sampling/code
+python3 main.py
+python3 -m unittest discover tests -v
+```
 
-- Server sends `sampling/createMessage` with `modelPreferences`.
-  中文翻译：服务器发送带 `modelPreferences` 的 `sampling/createMessage`。
-- Client returns a completion.
-  中文翻译：客户端返回补全。
-- Server continues its loop.
-  中文翻译：服务器继续循环。
-- Rate limiter caps total sampling calls per tool invocation.
-  中文翻译：速率限制器对每次工具调用的总 sampling 数设上限。
+Expected checkpoints:
 
-What to look at:
+- Discovery returns a complete result with `ttlMs` and `cacheScope`.
+- Tool discovery returns the same sorted descriptor with `resultType`, server identity, and cache hints.
+- Missing capabilities and unsupported versions use exact `-32021` and `-32022` error data.
+- An id-less notification produces no JSON-RPC response.
+- Request ids are `[1, 2, 3]`, proving each MRTR round is independent.
+- The first two results are `input_required`.
+- The final result is `complete` and contains the selected files plus summary.
+- Changing the original arguments on a retry fails the request-state check.
 
-- The server exposes only one tool (`summarize_repo`); all reasoning happens in the sampling calls.
-  中文翻译：服务器只暴露一个工具（`summarize_repo`）；所有推理发生在 sampling 调用中。
-- Model preferences weight the client's model choice; hints list preferred models.
-  中文翻译：模型偏好加权客户端的模型选择；提示列出偏好模型。
-- The loop terminates on `stopReason: "endTurn"`.
-  中文翻译：循环在 `stopReason: "endTurn"` 时终止。
-- The `max_samples_per_tool = 5` limit catches a runaway loop.
-  中文翻译：`max_samples_per_tool = 5` 限制捕获失控循环。
+## Ship It
 
-## Ship It | 产出物
+`outputs/skill-sampling-loop-designer.md` is now a migration planner. It first decides whether Sampling should be removed in favor of direct model integration. If compatibility is required, it produces the MRTR rounds, state binding, capability gate, budget, validation, and removal plan.
 
-This lesson produces `outputs/skill-sampling-loop-designer.md`. Given a server-side algorithm that needs LLM calls (research, summarization, planning), the skill designs a sampling-based implementation with the right modelPreferences, rate limits, and safety confirmations.
+## Exercises
 
-> 本课产出 `outputs/skill-sampling-loop-designer.md`。给定一个需要 LLM 调用的服务器端算法（研究、摘要、规划），该 skill 设计基于 sampling 的实现，包含正确的 modelPreferences、速率限制和安全确认。
+1. Change the file-selection response to invalid JSON. Confirm the server returns `-32602` instead of trusting model output.
+2. Change `audience` between the first call and retry. Explain why the sealed state blocks cross-request reuse.
+3. Add a third round that asks the host to critique the summary. Carry the earlier summary inside signed state and cap the entire flow at three rounds.
+4. Remove Sampling by replacing the fake host callback with a server-owned model adapter. List which approval, billing, and observability responsibilities move to the server.
+5. Add an expiry test using a state value that is one second past its deadline.
 
-## Exercises | 练习题
+## Key Terms
 
-1. Run `code/main.py`. Change `max_samples_per_tool` to 2 and observe the rate-limit cut-off.
-   中文翻译：运行 `code/main.py`。将 `max_samples_per_tool` 改为 2，观察速率限制切断。
+| Term | Meaning in 2026-07-28 |
+|------|------------------------|
+| Sampling | Deprecated feature that asks the client's model for a completion |
+| MRTR | Stateless retry pattern for client input required during a request |
+| `InputRequiredResult` | Result with `resultType: "input_required"` |
+| `inputRequests` | Server-assigned map of embedded elicitation, sampling, or roots requests |
+| `inputResponses` | Current round's client results keyed like `inputRequests` |
+| `requestState` | Opaque server state echoed exactly by the client and verified by the server |
+| `resultType` | Required discriminator for modern MCP results |
+| Direct model integration | Recommended replacement for new servers that need model inference |
+| Capability gate | Rule that prevents sending an embedded request the client did not advertise |
+| Loop budget | Maximum rounds, tokens, bytes, time, and spend allowed for the operation |
 
-2. Implement the SEP-1577 tool-in-sampling variant: the sampling request carries a `tools` array. Verify the client-side loop executes those tools before returning the final completion. Note drift risk: SDK signatures may still change through H1 2026.
-   中文翻译：实现 SEP-1577 的 tool-in-sampling 变体：sampling 请求携带 `tools` 数组。验证客户端循环在返回最终补全前执行这些工具。注意漂移风险：SDK 签名在 2026 H1 前可能仍变化。
+## Legacy Compatibility
 
-3. Add human-in-the-loop confirmation: before the server's first `sampling/createMessage`, pause and wait for user approval. Denied calls return a typed refusal.
-   中文翻译：添加人在回路确认：在服务器首次 `sampling/createMessage` 前暂停等待用户批准。被拒绝的调用返回类型化拒绝。
+A client pinned to 2025-11-25 may still use the older server-initiated `sampling/createMessage` flow over a live connection. Keep that behavior in a version-specific adapter only. Do not make the sessionful path the architecture for a 2026-07-28 server.
 
-4. Add a per-user rate limiter keyed by client session. Same-server loops by the same user should share a budget.
-   中文翻译：添加按客户端 session 索引的每用户速率限制器。同用户的同服务器循环应共享预算。
+Official SDKs can translate modern `input_required` handlers for older peers. That shim is a compatibility boundary, not permission to add new session-dependent logic.
 
-5. Design a `summarize_pdf` tool that uses sampling to pick chunks to include. Sketch the messages sent. How does `modelPreferences.intelligencePriority` change the behavior at 0.1 vs 0.9?
-   中文翻译：设计 `summarize_pdf` 工具，使用 sampling 选择要包含的块。勾勒发送的消息。`modelPreferences.intelligencePriority` 在 0.1 vs 0.9 时如何改变行为？
+## Further Reading
 
-## Key Terms | 术语速查表
-
-| Term | What people say | What it actually means | 中文术语 |
-|------|----------------|------------------------|----------|
-| Sampling | "Server-to-client LLM call" | Server asks client's model for a completion | 采样 |
-| `sampling/createMessage` | "The method" | JSON-RPC method for sampling requests | 采样请求方法 |
-| `modelPreferences` | "Model priorities" | Cost / speed / intelligence weights plus name hints | 模型偏好 |
-| `includeContext` | "Cross-session leakage" | Soft-deprecated context inclusion mode | 上下文包含（已弃用） |
-| SEP-1577 | "Tools in sampling" | Allow tools inside sampling for server-hosted ReAct | 采样中的工具支持 |
-| Human-in-the-loop | "User confirms" | Client surfaces sampling request to user before running | 人在回路 |
-| Loop bomb | "Runaway sampling" | Server-side infinite sampling loop; client must rate-limit | 循环炸弹 |
-| Covert sampling | "Hidden reasoning" | Malicious server hides intent in sampling prompts | 隐蔽采样 |
-| Resource theft | "Using user's LLM budget" | Server forces client to spend on sampling it does not want | 资源盗用 |
-| `stopReason` | "Why generation halted" | `endTurn`, `stopSequence`, or `maxTokens` | 停止原因 |
-
-## Further Reading | 延伸阅读
-
-- [MCP — Concepts: Sampling](https://modelcontextprotocol.io/docs/concepts/sampling) — high-level overview of sampling
-  中文翻译：sampling 的高层概览
-- [MCP — Client sampling spec 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling) — canonical `sampling/createMessage` shape
-  中文翻译：权威 `sampling/createMessage` 形态
-- [MCP — GitHub SEP-1577](https://github.com/modelcontextprotocol/modelcontextprotocol) — Spec Evolution Proposal for tools in sampling (experimental)
-  中文翻译：sampling 中工具的规范演进提案（实验性）
-- [Unit 42 — MCP attack vectors](https://unit42.paloaltonetworks.com/model-context-protocol-attack-vectors/) — covert sampling and resource-theft patterns
-  中文翻译：隐蔽 sampling 和资源盗窃模式
-- [Speakeasy — MCP sampling core concept](https://www.speakeasy.com/mcp/core-concepts/sampling) — walk-through with client-side code samples
-  中文翻译：带客户端代码示例的演练
+- [MCP 2026-07-28 Multi Round-Trip Requests](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr)
+- [MCP 2026-07-28 changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog)
+- [MCP Sampling deprecation](https://modelcontextprotocol.io/seps/2577-deprecate-roots-sampling-and-logging)
+- [MCP 2026-07-28 server discovery](https://modelcontextprotocol.io/specification/2026-07-28/server/discover)
