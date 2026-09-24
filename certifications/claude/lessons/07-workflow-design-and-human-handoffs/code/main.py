@@ -1,4 +1,11 @@
-"""Companion code for:
+"""课程：先设计交接，再设计自动化（Design the Handoff Before the Automation）
+认证课程 07 · 工作流设计与人工交接（workflow design / human handoff）
+核心概念：工作流不是一串模型调用，而是一条责任链；每个步骤要有触发、负责人、门禁、
+升级、回退和下一任负责人；不可逆的发布动作必须带人工审批。
+AI 应用对应：为一条 Claude 辅助流程产出可校验的工作流包（步骤契约 + 检查点 + 交接包），
+用本地评分器判断契约完整性和推荐的下一步动作。
+
+Companion code for:
 certifications/claude/lessons/07-workflow-design-and-human-handoffs/docs/en.md
 It validates step ownership, review boundaries, checkpoints, and fallback.
 The local runner returns the next decision from a filled handoff packet.

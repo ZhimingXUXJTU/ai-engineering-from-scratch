@@ -1,4 +1,11 @@
-"""Companion code for:
+"""课程：把权限围绕能力来设计（Put Authority Around Capability）
+认证课程 06 · 治理、安全与负责任使用（governance / safety / responsible use）
+核心概念：能力（capability）、许可（permission）、授权（authority）是三道独立的门；
+治理控制要覆盖预防、检测、纠正三层；置信度永远不能替代授权与后果控制。
+AI 应用对应：为一个 Claude 辅助流程配齐治理包（用例卡 + 控制映射 + 审批包 + 事件路径），
+在把高影响或不可逆动作交给自动化之前，先落实人工门与最小权限。
+
+Companion code for:
 certifications/claude/lessons/06-governance-safety-and-responsible-use/docs/en.md
 It scores governance controls and computes a deterministic review threshold.
 Confidence never overrides consequence, authority, or reversibility in the runner.

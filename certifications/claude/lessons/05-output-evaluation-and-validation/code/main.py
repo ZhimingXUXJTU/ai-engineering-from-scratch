@@ -2,6 +2,14 @@
 certifications/claude/lessons/05-output-evaluation-and-validation/docs/en.md
 It validates claim provenance, evaluator fit, and release-gate consistency.
 The local packet contains one intentional blocker to exercise revision logic.
+
+中文注解（fork 维护）：
+课程：验证的是论断，不是自信（Validate the Claim, Not the Confidence）
+核心概念：流畅不等于正确——验证（validation）要把论断追溯到权威证据（有据可依 / grounded）；
+分层验证按性质选评估器，幻觉要先分类（捏造/错误归属/过度推断/遗漏/矛盾/越界/过时/格式），
+四性质能力诊断（next-token prediction / knowledge / working memory / steerability）定修复。
+AI 应用对应：本验证器把"论断溯源 + 评估器匹配 + 发布门禁一致性"变成确定性检查，
+阻断失败绝不允许产出发布决策（对应 outputs/claim-validation-record.json）。
 """
 
 from __future__ import annotations

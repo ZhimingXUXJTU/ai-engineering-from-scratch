@@ -45,7 +45,7 @@ LESSON_NAME_RE = re.compile(r"^[0-9]{2}-[a-z0-9]+(?:-[a-z0-9]+)*$")
 ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 FIELD_RE = re.compile(r"^\*\*(?P<name>[^*]+):\*\*\s*(?P<value>.+)$", re.MULTILINE)
 H1_RE = re.compile(r"^#\s+\S", re.MULTILINE)
-LEARNING_OBJECTIVES_RE = re.compile(r"^##\s+Learning Objectives\s*$", re.MULTILINE)
+LEARNING_OBJECTIVES_RE = re.compile(r"^##\s+Learning Objectives(?:\s*\|.+)?\s*$", re.MULTILINE)  # FORK-ZH: allow bilingual heading suffix
 FIGURE_FENCE_RE = re.compile(r"```figure\s*\n\s*([a-z0-9-]+)", re.MULTILINE)
 CODE_EXTENSIONS = {".py": "Python", ".ts": "TypeScript", ".rs": "Rust", ".jl": "Julia"}
 QUIZ_KEYS = {"stage", "question", "options", "correct", "explanation"}
@@ -176,9 +176,14 @@ def check_fenced_code_languages(audit: Audit, path: Path, text: str) -> None:
 
 
 def check_prose_style(audit: Audit, path: Path, text: str) -> None:
-    for character, label in DISALLOWED_DASHES.items():
-        if character in text:
-            audit.add("C023", path, f"contains a disallowed {label}; use punctuation or a hyphen")
+    # FORK-ZH: Chinese annotations legitimately use em/en dashes, so only
+    # flag dashes on lines that carry no CJK characters.
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        if any("\u4e00" <= ch <= "\u9fff" for ch in line):
+            continue
+        for character, label in DISALLOWED_DASHES.items():
+            if character in line:
+                audit.add("C023", path, f"line {line_number}: contains a disallowed {label}; use punctuation or a hyphen")
 
 
 def normalized_correct(question: dict[str, Any]) -> tuple[int, ...] | None:
@@ -265,7 +270,11 @@ def check_answer_quality(audit: Audit, path: Path, questions: list[Any]) -> None
 
 def language_field(text: str) -> str | None:
     fields = {match.group("name").strip(): match.group("value").strip() for match in FIELD_RE.finditer(text)}
-    return fields.get("Languages")
+    declared = fields.get("Languages")
+    # FORK-ZH: strip the bilingual suffix ("Python | **语言:** Python").
+    if declared and " | " in declared:
+        declared = declared.split(" | ", 1)[0].strip()
+    return declared
 
 
 def code_languages(lesson_dir: Path) -> set[str]:
@@ -388,7 +397,8 @@ def check_lesson(audit: Audit, lesson_dir: Path) -> None:
     if not LEARNING_OBJECTIVES_RE.search(text):
         audit.add("C020", doc_path, "missing Learning Objectives section")
     for heading in PARITY_HEADINGS:
-        if not re.search(rf"^##\s+{re.escape(heading)}\s*$", text, re.MULTILINE):
+        # FORK-ZH: allow a bilingual suffix on parity headings.
+        if not re.search(rf"^##\s+{re.escape(heading)}(?:\s*\|.+)?\s*$", text, re.MULTILINE):
             audit.add("C029", doc_path, f"missing full-parity section '## {heading}'")
     expected_figure = EXPECTED_FIGURES.get(lesson_dir.name[:2])
     figure_ids = set(FIGURE_FENCE_RE.findall(text))

@@ -2,6 +2,13 @@
 certifications/claude/lessons/09-structured-output-and-defensive-parsing/docs/en.md
 It demonstrates schema-first parsing, validation, and bounded repair.
 Concepts follow official Anthropic structured-output documentation.
+
+中文批注（认证课 09）：
+课程标题：结构化输出是不受信任的契约 / Structured Output Is an Untrusted Contract
+核心概念：四道门——语法、形状、语义、授权；严格解析拒绝乐观清洗与静默类型转换
+（含 Python 中 bool 是 int 子类的陷阱）；带预算的有界修复回路在证据缺失时升级而非编造。
+AI 应用对应：任何模型输出进入业务决策前都必须过完整校验管线；把 schema 当作公共
+API 做版本化管理；官方事实（如 2026-08-09 产品核实说明）以官方文档为准。
 """
 
 from __future__ import annotations

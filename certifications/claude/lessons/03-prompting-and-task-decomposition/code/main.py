@@ -2,6 +2,13 @@
 certifications/claude/lessons/03-prompting-and-task-decomposition/docs/en.md
 It validates a prompt contract, stage gates, and adversarial case coverage.
 The runner evaluates structure and evidence boundaries without a provider call.
+
+中文注解（fork 维护）：
+课程：把请求变成可测试的契约（Turn a Request Into a Testable Contract）
+核心概念：提示词是接口契约——结果、上下文、任务、证据、约束、格式、验收检查七件套；
+复杂工作沿"可验证边界"分解为阶段，每阶段有输入、输出和门禁；拒答是设计出来的输出。
+AI 应用对应：本验证器把提示契约变成可机检的验收标准，用于高频 Claude 工作流的
+提示词版本管理与上线前把关（对应 outputs/prompt-contract-packet.json）。
 """
 
 from __future__ import annotations
