@@ -1,4 +1,12 @@
 """Phase 13 Lesson 06: trace the stateless MCP request lifecycle.
+
+MCP 基础：无状态请求与 JSON-RPC (MCP Fundamentals: Stateless Requests and JSON-RPC)
+核心概念：MCP 2026-07-28 是无状态协议——每个请求在 params._meta 里自带协议版本、客户端能力与身份；
+无 initialize 握手、无协议会话；用 server/discover 发现服务器；成功结果带 resultType="complete"
+与服务器身份；版本不受支持时返回 -32022 并附 supported 列表。
+AI 应用对应：MCP 是 Claude 生态的核心协议（Anthropic 2024年11月发布，现由 Linux 基金会托管），
+无状态内核让任何服务器副本都能独立处理任何请求，天然适配多 worker 部署与安全重试。
+
 Lesson: phases/13-tools-and-protocols/06-mcp-fundamentals/docs/en.md
 Specification: https://modelcontextprotocol.io/specification/2026-07-28/
 Builds JSON-RPC requests, validates per-request metadata, and emits results.

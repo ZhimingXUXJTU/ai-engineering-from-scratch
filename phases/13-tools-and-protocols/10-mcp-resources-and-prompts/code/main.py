@@ -1,4 +1,13 @@
 """Runnable companion to docs/en.md for MCP protocol version 2026-07-28.
+
+MCP 资源与提示：无状态服务器的可寻址上下文
+(MCP Resources and Prompts: Addressable Context for Stateless Servers)
+核心概念：从消费者意图出发选择原语——工具执行操作、资源暴露 URI 寻址内容、提示打包用户选择的消息模板。
+2026-07-28 无状态信封：server/discover 强制、列表确定性排序、ttlMs/cacheScope 缓存提示、
+未知资源 URI 返回 -32602、订阅统一走 subscriptions/listen 响应流（请求 ID 即订阅 ID）。
+AI 应用对应：设计 MCP 服务器时先用"谁在选择"做原语三分，再为每种列表/读取结果
+配置正确的缓存范围，避免把用户私有数据泄漏进公共缓存。
+
 Official resources contract: https://modelcontextprotocol.io/specification/2026-07-28/server/resources
 Official prompts contract: https://modelcontextprotocol.io/specification/2026-07-28/server/prompts
 Official subscription contract: https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions

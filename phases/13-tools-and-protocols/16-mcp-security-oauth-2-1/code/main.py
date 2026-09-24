@@ -4,6 +4,11 @@ Companion to ../docs/en.md. Implements an in-process protocol model with
 protected-resource discovery, CIMD-first enrollment, deprecated DCR fallback,
 PKCE, issuer validation, resource-bound tokens, scope step-up, discovery, and
 tools/list. Lesson 09 supplies the complete Streamable HTTP adapter.
+
+MCP 授权：CIMD、签发方绑定、PKCE 与逐步授权 (CIMD, Issuer Binding, PKCE, and Step-Up)
+核心概念：注册优先级为 预注册 > CIMD > DCR(弃用兼容)；凭证按 (issuer, resource) 两级键隔离存储；
+RFC 8707 资源指示器 + RFC 9207 iss 精确校验 + 403 insufficient_scope 权威挑战触发逐步授权。
+AI 应用对应：企业级远程 MCP 服务器部署必须实现完整的 OAuth 2.1 授权链路，本文件是可跑通的最小模型。
 """
 
 from __future__ import annotations

@@ -3,6 +3,20 @@ Lesson: phases/13-tools-and-protocols/14-mcp-apps/docs/en.md
 Spec: https://modelcontextprotocol.io/specification/2026-07-28
 Models discovery, tools, resources, and a self-contained MCP Apps UI.
 Lesson 09 owns the HTTP adapter; the UI pins its postMessage origin.
+
+无状态协议上的 MCP Apps (MCP Apps on the Stateless Protocol)
+核心概念：
+  - 扩展标识 io.modelcontextprotocol/ui：客户端在每请求 _meta 能力里声明，服务器在
+    server/discover 能力里声明；tools/list 只在客户端声明扩展时才带 _meta.ui.resourceUri
+  - UI 绑定在工具定义（调用前元数据），工具调用本身只返回 content + structuredContent
+  - resources/read 提供 text/html;profile=mcp-app 资源，头部与主体不匹配返回 -32020，
+    缺少 Apps 能力返回 -32021，版本不受支持返回 -32022
+  - CSP 域名列表（connectDomains/resourceDomains/frameDomains/baseUriDomains）默认全空，
+    按需加白；加载权与上传权分离
+  - Apps 桥接：postMessage 上的 JSON-RPC 方言，ui/initialize 握手 + ui/notifications/initialized
+    就绪通知；postMessage 钉死精确对端源（hostOrigin），拒绝其他任何源
+AI 应用对应：MCP Apps 是 MCP 从文本工具走向应用平台的扩展，支持仪表盘、表单、地图等
+  交互场景；无会话核心让它可以随宿主任意水平扩展。
 """
 
 from __future__ import annotations
@@ -24,12 +38,14 @@ RESOURCE_URI = "ui://notes/timeline.html"
 RESOURCE_MIME = "text/html;profile=mcp-app"
 HOST_ORIGIN = "https://host.example"
 
+# 示例笔记数据，用于生成时间线（工具调用经 structuredContent 返回同一份数据）
 NOTES = [
     {"id": "note-1", "title": "Discover", "created": "2026-07-28"},
     {"id": "note-2", "title": "Per-request metadata", "created": "2026-07-29"},
     {"id": "note-3", "title": "MCP Apps", "created": "2026-07-30"},
 ]
 
+# CSP 域名列表默认全空（最小权限）：connectDomains 管上传/fetch，resourceDomains 管加载
 APP_CSP = {
     "connectDomains": [],
     "resourceDomains": [],
@@ -70,6 +86,7 @@ def make_request(
     return body, headers
 
 
+# 生成自包含的 HTML 时间线：SVG 风格列表 + 内联 JS；桥接消息全部钉死 hostOrigin 源
 def timeline_html(notes: list[dict[str, str]]) -> str:
     items = "".join(
         "<li><button data-note='{}'>{}</button><time>{}</time></li>".format(
@@ -116,6 +133,7 @@ window.parent.postMessage({{
 </script></body></html>"""
 
 
+# 进程内协议模型：校验请求信封与路由头，分发 server/discover、tools、resources 方法
 class McpAppServer:
     def _validate(self, body: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
         if body.get("jsonrpc") != "2.0":
@@ -262,6 +280,7 @@ class McpAppServer:
             return self._error_status(error), self._error(body.get("id"), error)
 
 
+# 演示：发现 → 工具列表（含 UI 绑定）→ 工具调用 → 读取 ui:// 资源
 def demo() -> None:
     server = McpAppServer()
     for request_id, (method, params) in enumerate(

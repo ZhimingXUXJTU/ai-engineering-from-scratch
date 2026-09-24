@@ -1,5 +1,13 @@
 """Phase 13 Capstone - stateless in-process research-and-report simulation.
 
+毕业项目：无状态工具生态系统 (Capstone: Stateless Tool Ecosystem)
+核心概念：按 MCP 2026-07-28 规范把 Phase 13 各边界组织为一次"研究-报告"运行——每请求 _meta
+（协议版本/客户端能力/身份）、强制 server/discover、tools/call 直接分发、Tasks 扩展
+（任务句柄 -> tasks/get 携带最终结果与 ui:// 资源）、A2A 形状的委托边界、共享单一 trace id 的
+OTel GenAI span、锁定哈希防工具描述投毒、网关 RBAC。
+AI 应用对应：这是 Phase 13 的集大成课程，展示生产级工具生态系统的骨架；模拟与生产的
+每一层边界都显式标注，本地绿灯只验证模拟，不构成集成证据。
+
 Several Phase 13 boundaries in one readable demo:
   - gateway-shaped static token lookup and RBAC
   - per-request protocol metadata and mandatory server discovery
@@ -24,6 +32,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 
 
+# --- 模块级状态：span 表、任务存储与协议常量 ---
 SPANS: list[dict] = []
 TASKS: dict[str, dict] = {}
 
@@ -32,6 +41,7 @@ TASK_EXTENSION = "io.modelcontextprotocol/tasks"
 SERVER_INFO = {"name": "research-simulator", "version": "1.0.0"}
 
 
+# --- 请求信封辅助：_meta 构造、complete/task 结果封装与协议错误 ---
 def request_meta(*, tasks: bool = False) -> dict:
     extensions = {TASK_EXTENSION: {}} if tasks else {}
     return {
@@ -90,6 +100,7 @@ def validate_request_meta(meta: dict, *, require_tasks: bool = False) -> dict | 
     return None
 
 
+# --- 强制服务器发现 server/discover（MCP 2026-07-28） ---
 def server_discover(meta: dict) -> dict:
     invalid = validate_request_meta(meta)
     if invalid:
@@ -105,6 +116,7 @@ def server_discover(meta: dict) -> dict:
     )
 
 
+# --- OTel 风格 span 发射器：内存字典，记录 trace id 与父 span id ---
 def _hex(n: int) -> str:
     return uuid.uuid4().hex[: n * 2]
 
@@ -122,6 +134,7 @@ def finish(sp: dict) -> None:
     sp["end"] = max(time.time_ns(), sp["start"] + 1)
 
 
+# --- 工具清单、论文夹具与锁定哈希（防工具描述投毒） ---
 TOOLS = [
     {"name": "arxiv_search", "description": "Use when the user searches arXiv by keyword."},
     {"name": "generate_report", "description": "Use when the user wants a full report."},
@@ -137,6 +150,7 @@ PINNED = {f"research::{t['name']}": hashlib.sha256(t["description"].encode()).he
           for t in TOOLS}
 
 
+# --- 工具实现：搜索（complete 结果）与报告生成（task 句柄 + ui:// 资源） ---
 def research_arxiv_search(args: dict) -> dict:
     q = args["query"].lower()
     hits = [p for p in PAPERS if q in p["title"].lower()]
@@ -195,6 +209,7 @@ def research_generate_report(args: dict, trace_id: str, parent: str) -> dict:
     }
 
 
+# --- Tasks 扩展：tasks/get 轮询，读取终态任务携带的最终结果 ---
 def tasks_get(task_id: str, meta: dict) -> dict:
     invalid = validate_request_meta(meta, require_tasks=True)
     if invalid:
@@ -207,6 +222,7 @@ def tasks_get(task_id: str, meta: dict) -> dict:
     return deepcopy(task)
 
 
+# --- 网关：静态 token 认证、scope 授权、锁定哈希检查与审计日志 ---
 USERS = {
     "tok_alice": {"id": "alice", "scopes": {"research:read", "research:write"}},
     "tok_bob":   {"id": "bob",   "scopes": {"research:read"}},
@@ -252,6 +268,7 @@ def gateway_call(token: str, tool_name: str, args: dict,
     return result
 
 
+# --- 编排器：一次研究-报告运行，全部 span 共享单一 trace id ---
 def orchestrator(token: str, user_query: str) -> dict:
     trace_id = _hex(16)
     root = span("agent.invoke_agent", "INTERNAL", trace_id, None,
@@ -282,6 +299,7 @@ def orchestrator(token: str, user_query: str) -> dict:
     return {"trace_id": trace_id, "search": search, "report": report, "task": task}
 
 
+# --- 演示入口：发现、两次编排运行、审计与 span 清单 ---
 def demo() -> None:
     print("=" * 72)
     print("PHASE 13 CAPSTONE - RESEARCH AND REPORT ECOSYSTEM")

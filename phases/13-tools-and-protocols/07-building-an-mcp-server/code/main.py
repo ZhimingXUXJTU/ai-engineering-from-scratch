@@ -1,4 +1,12 @@
 """Phase 13 Lesson 07: a stateless MCP server over stdio.
+
+构建 MCP 服务器：无状态 Python 与 TypeScript (Building an MCP Server: Stateless Python and TypeScript)
+核心概念：MCP 2026-07-28 无状态服务器——每个请求在 params._meta 自带版本/能力/身份，校验后分发；
+必选的 server/discover；tools/resources/prompts 三原语的确定性列表（带 ttlMs/cacheScope 缓存提示）；
+成功结果统一包装 resultType="complete" + serverInfo；无 initialize 握手、无协议会话。
+AI 应用对应：MCP 服务器是 Claude 生态的标准工具接口（Claude Desktop/Cursor 经 stdio 启动并调用），
+无状态内核让任何副本独立处理任何请求；协议错误走 JSON-RPC error，工具失败走 isError: true。
+
 Lesson: phases/13-tools-and-protocols/07-building-an-mcp-server/docs/en.md
 Specification: https://modelcontextprotocol.io/specification/2026-07-28/
 Implements discovery, three server primitives, and per-request validation.

@@ -1,4 +1,12 @@
 """Phase 13 Lesson 09: stateless MCP Streamable HTTP.
+
+MCP 传输层：stdio 与无状态 Streamable HTTP (MCP Transports: stdio and Stateless Streamable HTTP)
+核心概念：2026-07-28 规范把传输层无状态化——仅 POST 的单端点契约；镜像头（协议版本/方法/名称）
+必须与 JSON-RPC 请求体比对校验（-32020/-32022）；GET/DELETE 返回 405，会话头被忽略；
+变更通知走客户端发起的 subscriptions/listen 请求级 SSE 流，携带 subscriptionId。
+AI 应用对应：远程 MCP 服务器按无状态契约部署时，任意健康副本可处理任意请求，
+横向扩展无需粘性路由；有状态工作流用显式状态句柄，而不是隐藏的会话亲和。
+
 Lesson: phases/13-tools-and-protocols/09-mcp-transports/docs/en.md
 Specification: https://modelcontextprotocol.io/specification/2026-07-28/
 Implements POST-only transport, header validation, JSON, and finite SSE.

@@ -1,3 +1,19 @@
+"""Phase 13 Lesson 27: Skill evals, packaging, and portability.
+Lesson: ../docs/en.md
+Skill eval guidance: https://agentskills.io/skill-creation/evaluating-skills
+
+Skill 评测、打包与可移植性（Skill Evals, Packaging, and Portability）
+
+核心概念：skill 是带概率性路由与执行层的小型软件包，必须分六层验收——静态包结构（lint）、
+触发路由（precision/recall/near-miss）、指令与产物行为（baseline vs treatment 对照实验）、
+脚本正确性、安全与权限、打包与可移植性（能力矩阵 + manifest 完整性）；发布门禁按层设阈值，
+并把 fixture 通过、本地证据完整性与外部 attestation 信任锚区分为三级判定。
+
+AI 应用对应：这套六层评测就是给 Agent Skills（SKILL.md 工作流包）配的"CI 流水线"——
+任何把专家工作流打包成 skill 并分发给 Claude Code/Cursor/Codex 等宿主的团队，
+都需要这套门禁来回答"该不该发布"；attestation 机制对应软件供应链中的签名发布与信任锚。
+"""
+
 from __future__ import annotations
 
 import hashlib

@@ -1,177 +1,327 @@
-# Roots 与 Elicitation — 作用域与飞行中用户输入
+# 显式作用域与无状态诱导输入
 
-> 硬编码路径在用户打开不同项目时就会出问题。预填的工具参数在用户信息不足时也会出错。Roots 将服务器限定在用户控制的一组 URI 中；Elicitation 在工具调用中途暂停，通过表单或 URL 向用户请求结构化输入。两个客户端原语，修复两个常见的 MCP 失败模式。SEP-1036（URL 模式 elicitation，2025-11-25）在 2026 年上半年之前是实验性的——在使用前检查 SDK 版本。
+> Roots（根范围）在 MCP 2026-07-28 中已被废弃，而且从来就不是安全沙箱。把作用域放进看得见的工具参数或资源 URI 里，在服务器端完成授权，当工具确实需要用户输入时使用 MRTR。用户能看到决策，模型能看到句柄，任何服务器实例都能处理重试请求。
 
-> **【中文解读】** 硬编码路径在用户打开不同项目时就会出问题。预填的工具参数在用户信息不足时也会出错。Roots 将服务器限定在用户控制的一组 URI 中；Elicitation 在工具调用中途暂停，通过表单或 URL 向用户请求结构化输入。两个客户端原语，修复两个常见的 MCP 失败模式。
+> **【中文解读】** 本课的主题在 MCP 2026-07-28 版本中发生了根本变化：Roots（根范围）被正式废弃——它从来就不是安全沙箱；作用域信息必须显式出现在工具参数或资源 URI 里，由服务器负责授权；elicitation（诱导输入）仍然存在，但当工具真的需要用户输入时，改用 MRTR（多轮往返请求）交付。用户能看到决策，模型能看到句柄，任何服务器实例都能处理重试。
 
-> **【拓展：Roots→MCP 安全边界】** Roots 是 MCP 安全模型的基础。客户端通过声明 roots 控制服务器可以访问的文件/资源范围。例如 Claude Desktop 只允许 MCP 服务器访问用户打开的项目目录。Elicitation 则让工具在需要额外信息时安全地向用户请求，而非假设或幻觉参数值。
+> **【拓展：显式作用域→可审计的 MCP 安全模型】** 把作用域从隐藏的传输会话状态搬进可见的请求参数，换来的是可检查、可重放、可审计、可路由——这与 REST 的无状态约束一脉相承：一切影响行为的信息都在报文里。授权归服务器、路径包含检查防目录穿越、操作系统沙箱兜底，三层缺一不可。本课与 Phase 13·11（无状态 MRTR）和 Phase 13·15（MCP 安全）构成一条完整线索。
+
+> 🔗 **【前置】** 学本节前请先掌握：(1) Phase 13·07（MCP server）——工具调用与能力协商的基本形态；(2) Phase 13·11（stateless MRTR）——`input_required` 结果、`requestState` 回传、无会话重试机制，本课的 elicitation 完全建立在它之上；(3) 基础的路径/URI 知识（百分号编码、路径组件、符号链接）。
 
 **类型：** 构建
-**语言：** Python（标准库，roots + elicitation 演示）
-**前置条件：** Phase 13 · 07（MCP 服务器）
-**时间：** 约 45 分钟
+**语言：** Python
+**前置条件：** Phase 13 · 07（MCP server）、Phase 13 · 11（无状态 MRTR）
+**预计用时：** 约 60 分钟
 
 ## 学习目标
 
-- 声明 `roots` 并响应 `notifications/roots/list_changed`。
-- 将服务器文件操作限制在声明的根集内的 URI。
-- 使用 `elicitation/create` 在工具调用中途向用户请求确认或结构化输入。
-- 在表单模式和 URL 模式 elicitation 之间做出选择（后者是实验性的；漂移风险已注明）。
+- 用显式的工作区参数、资源 URI 或服务器配置取代已废弃的 Roots。
+- 把作用域提示与授权、路径包含检查、操作系统沙箱区分开来。
+- 通过 MRTR `input_required` 结果交付表单模式的 `elicitation/create`。
+- 在按请求的客户端能力中声明 elicitation 支持，并拒绝不支持的模式。
+- 把 `accept`、`decline` 和 `cancel` 当作三种不同的结局来验证。
+- 把破坏性确认绑定到已认证主体、原始参数、候选集和过期时间。
 
-## 问题引入
+## 看似相似的两个问题
 
-笔记 MCP 服务器在生产中遇到两个具体的失败。
+一个笔记工具收到这样的请求："删除旧的 TPS 报告。"
 
-**路径假设问题。** 服务器针对 `~/notes` 编写。另一台笔记在 `~/Documents/Notes` 的用户会得到一个静默失败的工具调用（找不到文件）或更糟的情况——写入了错误的位置。
+服务器必须回答两个不同的问题。
 
-**用户可能知道但缺失的参数。** 用户要求"删除旧的 TPS 报告笔记"。模型调用 `notes_delete(title: "TPS report")` 但有 2023、2024 和 2025 三个匹配的笔记。工具无法猜测。以"模糊"失败很烦人；三个都删除是灾难性的。
+1. 这个操作可以触碰哪个工作区？
+2. 三条匹配的笔记里用户指的是哪一条？
 
-Roots 修复第一个：客户端在 `initialize` 时声明服务器可以触碰的 URI 集合。Elicitation 修复第二个：服务器暂停工具调用并发送 `elicitation/create` 让用户选择哪一个。
+第一个是作用域与授权问题。第二个是交互式消歧义。把两者混在一起会导致危险的设计——比如把客户端提供的文件夹当作"调用者可以删除其中一切"的证明。
 
-## 核心概念
+> **【中文解读】** 作用域（我能碰哪里）与消歧义（用户指哪个）是两个正交的问题。前者由服务器授权决定，后者需要用户输入。旧版 MCP 用 Roots 表达前者、用反向 elicitation 请求表达后者；2026-07-28 把两者都改成了显式、无状态的形式：作用域进参数，用户输入进 MRTR 重试。
 
-### Roots
+## Roots 是一个迁移面
 
-客户端在 `initialize` 时声明根列表：
+更早的 MCP 修订版允许客户端声明 Roots 并在列表变化时通知服务器。Roots 是信息性指引。它们不约束服务器进程能读什么、不给调用者授权、也不构成操作系统沙箱。
+
+MCP 2026-07-28 对新设计废弃了 `roots/list` 和 `notifications/roots/list_changed`。优先选用以下显式替代方案：
+
+- 作用域随调用变化时，用 `workspaceUri` 或 `directory` 工具参数。
+- 操作本来就针对某个资源时，用资源 URI。
+- 一个部署只拥有一个固定工作区时，用服务器配置。
+- 当代码必须在技术上无法越界时，用进程沙箱或受限文件系统。
+
+如果现有的 2026-07-28 集成在废弃窗口内仍需要 `roots/list`，服务器要把它嵌入 MRTR `inputRequests` 中。它不得发送活跃的反向请求。那是迁移适配器；新的处理器应当接受显式作用域。
+
+模型能看到并重复一个显式句柄。隐藏的传输会话作用域更难检查、重放、审计和路由。
+
+> 💡 **【类比】** Roots 像客人进门时口头说"我只去客厅"——主人听了但不锁门；显式作用域像每张出入证上都印着房间号，门禁系统（服务器授权）逐间验票。前者只是"提示"，后者才是"凭证"。旧版把提示当边界用；新版要求把边界写成请求里看得见的参数，再由服务器真正执行授权检查。
+
+### 三层规则
+
+显式 URI 本身仍不能自我授权。三层都要执行：
+
+1. **授权：** 这个已认证主体是否被允许使用这个工作区？
+2. **包含检查：** 归一化后的目标 URI 是否仍在授权工作区的边界内？
+3. **沙箱：** 操作系统是否仍能拦住一个已被攻破的服务器越界？
+
+可运行的服务器维护一份已授权工作区 URI 的白名单，归一化百分号编码的路径，检查真实的路径组件边界，并在删除前一刻重新检查包含关系。
+
+朴素的前缀字符串检查是错的：
+
+```text
+allowed:   file:///work/notes
+attacker:  file:///work/notes-evil/secret.md
+traversal: file:///work/notes/%2e%2e/private.md
+```
+
+两个恶意路径都以误导性的字符串开头。先归一化，再比较路径组件。生产环境的文件系统服务器还必须防御符号链接竞争和平台特定的路径语义。
+
+> ⚠️ **【易错点】** 场景：用 `uri.startswith(workspace)` 做包含检查 / 后果：`file:///work/notes-evil/secret.md`（前缀撞车）和 `file:///work/notes/%2e%2e/private.md`（编码穿越）都能通过检查，造成越界读写 / 修复：先 `unquote` 归一化，再拆成路径组件逐段比较边界，删除前再查一次；真实文件系统实现还要防符号链接竞争（TOCTOU 窗口）。
+
+## Elicitation 仍在，但交付方式变了
+
+> **【中文解读】** 这是本课最大的变化点：elicitation 的方法名还是 `elicitation/create`，但线上流转方向反了。旧版（2025-11-25）服务器在工具调用中途发出一个反向 JSON-RPC 请求，需要一个活跃会话；2026-07-28 的服务器直接返回 `resultType: "input_required"` 结果，把表单请求装进 `inputRequests`，客户端渲染表单、收集答案后带着 `inputResponses` 用全新的 id 重试 `tools/call`。两次调用之间没有协议会话——状态由签名的 `requestState` 携带。
+
+Elicitation 是在 `tools/call`、`prompts/get` 或 `resources/read` 期间收集用户输入的现行客户端特性。方法名仍是 `elicitation/create`。变的是线上流转的方向。
+
+2026-07-28 服务器不发送反向 JSON-RPC 请求。它返回一个 `InputRequiredResult`：
 
 ```json
 {
-  "capabilities": {"roots": {"listChanged": true}}
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "resultType": "input_required",
+    "inputRequests": {
+      "delete_choice": {
+        "method": "elicitation/create",
+        "params": {
+          "mode": "form",
+          "message": "Choose one matching note and confirm deletion.",
+          "requestedSchema": {
+            "type": "object",
+            "properties": {
+              "note_id": {
+                "type": "string",
+                "enum": ["note-3", "note-7", "note-14"]
+              },
+              "confirm": {"type": "boolean"}
+            },
+            "required": ["note_id", "confirm"]
+          }
+        }
+      }
+    },
+    "requestState": "integrity-protected-delete-state"
+  }
 }
 ```
 
-服务器然后可以调用 `roots/list`：
-
-```json
-{"roots": [{"uri": "file:///Users/alice/Documents/Notes", "name": "Notes"}]}
-```
-
-服务器必须将 roots 视为边界：根集外的任何文件读写都应被拒绝。这不是客户端强制执行的（服务器仍是用户信任的代码），而是符合规范的服务器遵守它。
-
-当用户添加或移除根时，客户端发送 `notifications/roots/list_changed`。服务器重新调用 `roots/list` 并更新其边界。
-
-### 为什么 roots 是客户端原语
-
-Roots 由客户端声明，因为它们代表用户的同意模型。用户告诉 Claude Desktop"让这个笔记服务器访问这两个目录"。服务器不能扩大该范围。
-
-### Elicitation：表单模式默认
-
-`elicitation/create` 接受一个表单 Schema 加上自然语言提示：
+宿主渲染表单。用户可以接受、明确拒绝或关闭它。然后客户端用一个全新的 id 重试原始的 `tools/call`：
 
 ```json
 {
-  "method": "elicitation/create",
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
   "params": {
-    "message": "Delete 'TPS report'? Multiple notes match; pick one.",
-    "requestedSchema": {
-      "type": "object",
-      "properties": {
-        "note_id": {
-          "type": "string",
-          "enum": ["note-3", "note-7", "note-14"]
-        },
-        "confirm": {"type": "boolean"}
-      },
-      "required": ["note_id", "confirm"]
+    "name": "notes_delete",
+    "arguments": {
+      "workspaceUri": "file:///Users/alice/Documents/Notes",
+      "title": "TPS report"
+    },
+    "inputResponses": {
+      "delete_choice": {
+        "action": "accept",
+        "content": {"note_id": "note-14", "confirm": true}
+      }
+    },
+    "requestState": "integrity-protected-delete-state",
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "elicitation": {"form": {}}
+      }
     }
   }
 }
 ```
 
-客户端渲染表单，收集用户回答，返回：
+两次调用之间没有协议会话。服务器验证回传的状态、按预期 schema 校验响应、检查所选笔记确实在签名的候选集里、重新授权工作区、重新检查包含关系，然后才删除。
+
+## 能力协商按请求进行
+
+支持表单模式 elicitation 的客户端这样声明：
 
 ```json
 {
-  "action": "accept",
-  "content": {"note_id": "note-14", "confirm": true}
+  "io.modelcontextprotocol/clientCapabilities": {
+    "elicitation": {"form": {}}
+  }
 }
 ```
 
-三种可能的动作：`accept`（用户填写了）、`decline`（用户关闭了）、`cancel`（用户中止了整个工具调用）。
+空的 elicitation 能力 `"elicitation": {}` 出于兼容性仍等价于仅支持表单。显式的 `"elicitation": {"form": {}}` 同样支持表单模式。仅 URL 的声明 `"elicitation": {"url": {}}` 则不支持。服务器不得嵌入当前请求能力中不存在的模式，即使更早的请求声明过它。
 
-表单 Schema 是扁平的——v1 中不支持嵌套对象。SDK 通常拒绝比单层更复杂的任何内容。
+每个请求还携带 `io.modelcontextprotocol/protocolVersion`。缺失或非字符串的版本返回 `-32602`。不支持的字符串返回 `-32022`，并附带精确的 `supported` 与 `requested` 数据。缺失或仅 URL 的 elicitation 支持返回 `-32021`，`data.requiredCapabilities` 设为 `{"elicitation":{"form":{}}}`。
 
-### Elicitation：URL 模式（SEP-1036，实验性）
+没有 JSON-RPC `id` 的信封是通知。处理它但不发出 JSON-RPC 成功或错误响应。在 Streamable HTTP 上，被接受的通知收到没有响应体的 `202 Accepted`。
 
-2025-11-25 新增。服务器不发送 Schema 而是发送 URL：
+`clientInfo` 应当包含以便诊断，但它是自报的数据，不能用作授权意义上的用户身份。
+
+服务器实现 `server/discover`，返回 `supportedVersions`、能力、`ttlMs` 和 `cacheScope`，`resultType` 为 `"complete"`。在这个现代设计里它不声明 Roots。因为它声明了 tools，所以也实现强制的 `tools/list`。该结果返回确定性的 `notes_delete` 描述符、合法的对象 `inputSchema`、服务器身份元数据和公开缓存提示。
+
+> 🤔 **【困惑】** Q: 客户端上一次请求明明声明过支持表单 elicitation，服务器这次为什么还要再检查一遍？ A: 因为 2026-07-28 没有会话——每个请求都是独立宇宙，能力声明只对当前请求有效。服务器若依赖"上一个请求说过支持"，就是隐式依赖了不存在的会话状态，重试被路由到另一个服务器实例时会出错。规则：读能力只读当前请求的 `_meta`。
+
+## 表单模式
+
+> **【中文解读】** 表单模式用受限的扁平 JSON Schema 描述"用户要填什么"：根是对象，属性只能是扁平的原始字段或枚举数组。定位是"小而可用的确认对话框"，不是通用表单引擎——消歧义、破坏性确认、非敏感偏好收集是它的主场。密码、API 密钥、支付凭据绝对不能走表单：这些秘密会经过 MCP 客户端，可能落入日志或模型上下文。
+
+表单模式使用为可用对话框设计的受限 JSON Schema。根是对象，属性是扁平的原始字段或受支持的枚举数组。深层嵌套对象和通用文档 schema 不属于确认对话框。
+
+表单模式适用于：
+
+- 从多个候选中选择一个；
+- 确认一个破坏性操作；
+- 收集非敏感偏好；
+- 收集少量必须由用户（而非模型）决定的值。
+
+不要用表单模式收集密码、API 密钥、访问令牌或支付凭据。这些秘密会经过 MCP 客户端，可能进入日志或模型上下文。
+
+服务器要再次校验返回的内容。客户端表单校验改善 UX，但不产生信任。
+
+## URL 模式
+
+URL 模式发送一个安全的 Web URL，用于带外交互：
 
 ```json
 {
   "method": "elicitation/create",
   "params": {
-    "message": "Sign in to GitHub",
-    "url": "https://github.com/login/oauth/authorize?client_id=..."
+    "mode": "url",
+    "message": "Connect the report service to continue.",
+    "url": "https://mcp.example.com/connect/report-service"
   }
 }
 ```
 
-客户端在浏览器中打开 URL，等待完成，用户回来时返回。适用于 OAuth 流程、支付授权和文档签署——表单不够用的场景。
+当敏感信息必须直接进入服务器控制的 Web 流程（如第三方授权）时使用它。客户端展示完整目标地址并在打开前征得同意。它不得预取该 URL。
 
-漂移风险提示：SEP-1036 响应形状仍在稳定中；一些 SDK 返回回调 URL，其他返回完成令牌。在生产中使用 URL 模式前阅读 SDK 的发布说明。
+`accept` 响应表示用户同意打开该 URL。它不证明外部流程已完成。重试时，服务器检查自己的状态，要么完成操作，要么返回另一个 `input_required` 结果。
 
-### 何时使用 elicitation
+URL elicitation 不是 MCP 客户端与 MCP 服务器之间授权的替代品。它用于 MCP 服务器代表用户执行的外部交互。服务器必须把浏览器里的用户绑定到发起该 MCP 操作的同一已认证主体。
 
-- 破坏性操作前的用户确认（destructive hint + elicitation）。
-- 消歧义（从 N 个匹配中选择一个）。
-- 首次运行设置（API 密钥、目录、偏好）。
-- OAuth 风格的流程（URL 模式）。
+## 响应分支
 
-### 何时不使用 elicitation
+把这些动作当作产品决策，而非同义词：
 
-- 填充模型本可以用散文询问的工具必填参数。使用正常的重新提问，而非 elicitation 对话。
-- 高频调用。Elicitation 中断对话；不要在循环中触发它。
-- 服务器可以在事后验证的任何内容。验证，返回错误，让模型用文本向用户询问。
+| 动作 | 含义 | 安全的服务器行为 |
+|------|------|------------------|
+| `accept` | 用户提交了交互 | 先校验内容再继续 |
+| `decline` | 用户明确拒绝 | 返回完整的非错误拒绝结果 |
+| `cancel` | 用户关闭或未能完成 | 安全停止，允许稍后重试 |
 
-### 人在回路桥梁
+> **【中文解读】** 三个分支语义不同：`accept` 是用户提交了交互（要校验内容再继续）；`decline` 是用户明确拒绝（返回完整的非错误拒绝结果，本课实现中为终态）；`cancel` 是用户没做完（安全停止，允许稍后重试）。把 decline 和 cancel 混为一谈，或把空响应当 accept，都是真实产品里出现过的事故来源。
 
-Elicitation 加 sampling 一起构成了 MCP 的"人在回路"模型。服务器的 Agent 循环可以暂停以获取用户输入（elicitation）或模型推理（sampling）。Phase 13 · 11 覆盖了 sampling；本课覆盖 elicitation。将它们放在一起实现完整的飞行中控制。
+永远不要把缺失内容解释为同意。永远不要把 decline 变成重复弹窗的循环。
 
-## 用框架实现
+## 保护破坏性 MRTR 状态
 
-`code/main.py` 用以下内容扩展了笔记服务器：
+候选列表不能只活在提示词或未签名的 Base64 值里。客户端控制它发回的一切。
 
-- `roots/list` 响应，服务器在根列表变更通知后重新查询。
-- 一个在多个笔记匹配时使用 `elicitation/create` 消歧义的 `notes_delete` 工具。
-- 一个使用 URL 模式 elicitation 打开首次运行配置页面（模拟）的 `notes_setup` 工具。
-- 一个拒绝在声明的 roots 之外的 URI 操作的边界检查。
+本课对包含以下内容的状态载荷签名：
 
-演示运行三个场景：正常路径（一个匹配）、消歧义（三个匹配，elicitation 触发）、根外写入（被拒绝）。
+- 已认证主体；
+- 发起方法；
+- `workspaceUri` 和 `title` 的摘要；
+- 表单中展示的允许笔记 id 集合；
+- 操作阶段；
+- 较短的过期时间。
+
+在变更之前，服务器还会检查活跃的笔记记录。这能捕获删除竞争，以及表单展示后目标被移出工作区的情况。
+
+对于一次性的金融操作或不可逆操作，仅靠 HMAC 不能阻止一个有效状态在过期时间内被重放。要在所有处理器实例共享的重放存储中，恰好存储并消耗一次 nonce。本课注入了一个有界、按 TTL 清理的存储，并在执行内存删除期间持有其原子声明。生产数据库应当把 nonce 声明与变更耦合进一个事务或等价的条件写边界。
+
+在声明 nonce 之前先校验交互。格式错误的响应或 `cancel` 不执行变更，状态在过期前保持可重试。显式 `decline` 是终态，因此本课在不删除任何东西的情况下消耗 nonce。
+
+> ⚠️ **【易错点】** 场景：只做 HMAC 签名、不做一次性 nonce / 后果：攻击者（或重复的客户端重试）在过期窗口内原样重放同一份 `requestState` + `inputResponses`，同一个删除被确认两次；多实例部署下更难察觉 / 修复：签名只解决"状态未被篡改"，不解决"状态只用一次"；把"声明 nonce + 执行变更"放进同一原子边界（事务或条件写），并让全部实例共享同一个重放存储。
+
+## 动手构建
+
+`code/main.py` 演示一个现代的 `notes_delete` 工具：
+
+- `tools/list` 返回带必需 workspace 与 title schema 的确定性、可缓存描述符。
+- 作用域是显式的 `workspaceUri` 参数。
+- 服务器配置为课程主体授权该工作区。
+- URI 归一化拒绝前缀混淆和编码穿越。
+- 每次破坏性删除都要求表单模式 elicitation。
+- elicitation 装在 `resultType: "input_required"` 里传输。
+- 签名的 `requestState` 绑定精确的候选列表和原始参数。
+- 注入的重放存储跨服务器实例拒绝同一个已接受或已拒绝的状态。
+- 重试使用全新的请求 id 并返回 `resultType: "complete"`。
+
+数据存储在内存中，便于检查协议行为。换成数据库后安全规则不变。
+
+## 运行验证
+
+从仓库根目录：
+
+```bash
+cd phases/13-tools-and-protocols/12-mcp-roots-and-elicitation/code
+python3 main.py
+python3 -m unittest discover tests -v
+```
+
+预期检查点：
+
+- 发现结果声明 tools 而没有 Roots。
+- 工具发现返回带 `resultType`、服务器身份和缓存提示的 `notes_delete`。
+- 请求 id `1` 在 `inputRequests.delete_choice` 中返回表单。
+- 请求 id `2` 回传签名状态并完成删除。
+- 前缀路径和编码穿越路径都未通过包含检查。
+- 改过的标题不能复用原始确认状态。
+- decline 之后笔记保持不变。
+- 共享笔记与重放状态的两个服务器对象不能都执行同一个确认。
+- 空声明和显式表单声明都能工作，而仅 URL 支持返回精确的 `-32021` 表单要求。
+- 不支持的版本失败使用精确的 `-32022` 数据形状。
+- 无 id 的通知不产生 JSON-RPC 响应。
 
 ## 产出物
 
-本课产生 `outputs/skill-elicitation-form-designer.md`。给定一个可能需要用户确认或消歧义的工具，该技能设计 elicitation 表单 Schema 和消息模板。
+`outputs/skill-elicitation-form-designer.md` 设计显式作用域、授权检查、MRTR 表单、响应分支和状态绑定。它拒绝把已废弃的 Roots 当沙箱，也拒绝通过表单模式收集秘密。
 
 ## 练习题
 
-1. 运行 `code/main.py`。触发消歧义路径；确认模拟的用户答案被路由回工具。
+1. 把内存重放存储换成 SQLite。用一个事务声明 nonce 并删除笔记，然后证明两个进程不能都提交成功。
 
-2. 添加一个每次都需要 elicitation 确认的新工具 `notes_archive`（destructive hint）。检查 UX：这与模型用文本重新询问相比如何？
+2. 添加 `url` 能力协商和一个带外设置流程。让第三方凭据远离 `inputResponses`。
 
-3. 为首次运行 OAuth 流程实现 URL 模式 elicitation。注意漂移风险并添加 SDK 版本守卫。
+3. 把内存笔记映射换成临时 SQLite 数据库。在变更事务内部重新检查授权和包含关系。
 
-4. 扩展 `roots/list` 处理：当通知到达时，服务器应原子性地重新读取并重新扫描可能现在超出范围的打开文件句柄。
+4. 为真实文件系统实现添加符号链接策略。解释为什么仅靠 URI 词法包含检查挡不住符号链接逃逸。
 
-5. 阅读 GitHub 上的 SEP-1036 议题讨论线程。识别一个影响服务器应如何处理 URL 模式回调的开放问题。
+5. 设计一个 2025-11-25 适配器，把现代 MRTR 处理器输出映射为旧版服务器发起的 elicitation。让它与当前处理器隔离。
 
 ## 术语速查表
 
-| 术语 | 人们怎么说 | 实际含义 | 英文 |
-|------|-----------|---------|------|
-| 根路径 | "同意边界" | 客户端允许服务器触碰的 URI | Root |
-| 查询根路径 | "服务器请求范围" | 客户端返回当前根集 | `roots/list` |
-| 根路径变更通知 | "用户更改了范围" | 客户端发出根集已变化的信号 | `notifications/roots/list_changed` |
-| 用户征询 | "在调用中问用户" | 服务器发起的结构化用户输入请求 | Elicitation |
-| 征询请求方法 | "那个方法" | elicitation 请求的 JSON-RPC 方法 | `elicitation/create` |
-| 表单模式 | "Schema 驱动表单" | 在客户端 UI 中渲染为表单的扁平 JSON Schema | Form mode |
-| URL 模式 | "浏览器重定向" | SEP-1036 实验性；打开 URL 并等待 | URL mode |
-| 接受/拒绝/取消 | "用户响应结果" | 服务器处理的三个分支 | Accept/Decline/Cancel |
-| 消歧义 | "选一个" | 工具有 N 个候选项时的常见 elicitation 用例 | Disambiguation |
-| 扁平表单 | "仅顶层属性" | Elicitation Schema 不能嵌套 | Flat form |
+| 术语 | 2026-07-28 中的含义 |
+|------|---------------------|
+| Roots（根范围） | 已废弃的信息性工作区提示，不是授权也不是沙箱 |
+| Explicit scope（显式作用域） | 请求参数中可见的工作区、目录或资源句柄 |
+| Containment（包含检查） | 让目标留在边界内的归一化路径组件检查 |
+| Elicitation（诱导输入） | MCP 操作期间获取用户输入的客户端特性 |
+| Form mode（表单模式） | 用受限扁平 schema 的带内结构化用户输入 |
+| URL mode（URL 模式） | 面向敏感或外部工作流的带外交互 |
+| MRTR | 无状态的 input-required 结果加全新重试 |
+| `requestState` | 原样回传并由服务器做完整性校验的不透明状态 |
+| Decline（拒绝） | 明确的用户拒绝 |
+| Cancel（取消） | 未经同意的关闭或未完成的交互 |
+
+> **【中文解读】** 术语速查要点：Roots 已死，别再把它当边界；作用域要"看得见"（参数里）；包含检查要做路径组件级归一化比较；MRTR 是本课 elicitation 的载体；`requestState` 是无状态设计的状态载体——签名防篡改、nonce 防重放。
+
+## 旧版兼容
+
+对于锁定在 2025-11-25 的对端，`roots/list`、`notifications/roots/list_changed` 和活跃的服务器发起 `elicitation/create` 可能仍然存在。给那个适配器贴上 legacy 标签。不要允许旧版 Root 列表绕过服务器授权，也不要把协议会话的假设带进现代处理器。
 
 ## 延伸阅读
 
-- [MCP — Client roots spec](https://modelcontextprotocol.io/specification/draft/client/roots) — 权威 roots 参考
-- [MCP — Client elicitation spec](https://modelcontextprotocol.io/specification/draft/client/elicitation) — 权威 elicitation 参考
-- [Cisco — What's new in MCP elicitation, structured content, OAuth enhancements](https://blogs.cisco.com/developer/whats-new-in-mcp-elicitation-structured-content-and-oauth-enhancements) — 2025-11-25 新增内容演练
-- [MCP — GitHub SEP-1036](https://github.com/modelcontextprotocol/modelcontextprotocol) — URL 模式 elicitation 提案（实验性，漂移风险）
-- [The New Stack — How elicitation brings human-in-the-loop to AI tools](https://thenewstack.io/how-elicitation-in-mcp-brings-human-in-the-loop-to-ai-tools/) — UX 演练
+- [MCP 2026-07-28 Elicitation](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation) — 2026-07-28 版 elicitation 官方规范
+- [MCP 2026-07-28 Multi Round-Trip Requests](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr) — MRTR（多轮往返请求）模式规范，`input_required` 结果的权威定义
+- [MCP 2026-07-28 Roots deprecation](https://modelcontextprotocol.io/specification/2026-07-28/client/roots) — Roots 废弃说明
+- [MCP 2026-07-28 server discovery](https://modelcontextprotocol.io/specification/2026-07-28/server/discover) — `server/discover` 发现机制规范

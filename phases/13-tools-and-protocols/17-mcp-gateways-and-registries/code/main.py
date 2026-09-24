@@ -5,6 +5,12 @@ discovery, routing validation, deterministic tool aggregation, Registry
 server.json admission, RBAC, rate limits, descriptor pins, stateless backend
 forwarding, and a modeled subscriptions/listen response. Lesson 09 supplies
 the complete Streamable HTTP adapter.
+
+MCP 网关与注册中心准入：无状态网关 (Stateless MCP Gateways and Registry Admission)
+核心概念：每个请求走 认证主体 -> 校验路由头/元数据 -> 授权 -> 策略 -> 构造全新后端请求 的七步路径；
+注册中心 server.json 只是发现证据，与本地准入状态显式 join 后才可路由；
+确定性命名空间 + 完整描述符哈希锁定 + 按主体取键的限流与审计。
+AI 应用对应：MCP 网关是企业部署的必备控制平面，本文件是可运行的最小模型（Lesson 30 扩展为完整供应链控制平面）。
 """
 
 from __future__ import annotations
