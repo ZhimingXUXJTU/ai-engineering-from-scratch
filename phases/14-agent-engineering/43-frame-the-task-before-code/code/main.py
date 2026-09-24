@@ -2,6 +2,11 @@
 # Lesson: phases/14-agent-engineering/43-frame-the-task-before-code/docs/en.md
 # Canonical source: Nuseibeh and Easterbrook, Requirements Engineering: A Roadmap.
 # Canonical source: Yang et al., SWE-agent, arXiv:2405.15793.
+# 中文标题：先定任务，再写代码 (Frame the Task Before the Agent Writes Code)
+# 核心概念：任务框架六字段——目标/仓库事实（必须带凭据：文件:行号或命令输出）/允许路径/禁止路径/
+#           验收证据/未知项；校验器拒绝缺目标、无凭据事实、允许与禁止路径重叠、缺验收命令的框架。
+# AI 应用对应：让编码 Agent 在改文件之前先产出并校验任务框架，把"模糊请求"变成"有边界的任务"；
+#             未知项分四类（可发现/可决定/需人来定/可延后），"需人来定"的必须在埋进代码前升级给人。
 from __future__ import annotations
 
 from dataclasses import dataclass, field
