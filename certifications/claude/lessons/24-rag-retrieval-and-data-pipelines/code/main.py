@@ -1,4 +1,12 @@
-"""Retrieval incident lab for docs/en.md in this lesson.
+"""课程：RAG, Retrieval, and Data Pipelines | RAG、检索与数据管道
+路径：certifications/claude/lessons/24-rag-retrieval-and-data-pipelines
+核心概念：RAG 是数据系统——索引构建前先排除非活跃版本（简化版新鲜度门），
+BM25 式打分（词频/文档频率/长度归一化/逆文档频率）保持透明可解释，每个
+RetrievalHit 携带文档 ID/块 ID/更新日期/文本/得分，溯源贯穿到评估层。
+AI 应用对应：真实检索系统的最小模型——元数据过滤先于生成、检索评估与答案
+评估分离、刷新当版本化部署原子切换；诊断纪律是找最早失败的边界，而不是换模型。
+
+Retrieval incident lab for docs/en.md in this lesson.
 
 Implements chunking, a compact BM25-style index, provenance, and retrieval evals.
 Uses only the Python standard library so every ranking decision stays visible.

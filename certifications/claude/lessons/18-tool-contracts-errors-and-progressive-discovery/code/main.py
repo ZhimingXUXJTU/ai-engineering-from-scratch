@@ -1,4 +1,13 @@
-"""Companion validator for this lesson's docs/en.md tool catalog."""
+"""课程：Tool Contracts, Errors, and Progressive Discovery | 工具契约、错误与渐进式披露
+路径：certifications/claude/lessons/18-tool-contracts-errors-and-progressive-discovery
+核心概念：工具目录的确定性评审器——校验产物是否包含六个必备章节（目录边界、工具
+契约、错误矩阵、渐进式披露、授权、选择 fixture）、证据关键词（错误类别、作用域、
+正负使用准则），并拦截未解决的占位符（tbd/todo/[replace）。
+AI 应用对应：真实 AI 应用中"接口质量门"的最小模型——工具目录变更后的 CI 检查，
+让契约评审可机检、可回归，而不是靠人眼读 Markdown。
+
+Companion validator for this lesson's docs/en.md tool catalog.
+"""
 
 from __future__ import annotations
 

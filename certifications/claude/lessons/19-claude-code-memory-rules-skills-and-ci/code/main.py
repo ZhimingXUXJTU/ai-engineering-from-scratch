@@ -1,4 +1,16 @@
-"""Companion validator for this lesson's docs/en.md configuration audit."""
+"""课程：Claude Code Memory, Rules, Skills, and CI | Claude Code 记忆、规则、Skill 与 CI
+路径：certifications/claude/lessons/19-claude-code-memory-rules-skills-and-ci
+核心概念：把稳定指南放进最窄的真实作用域（CLAUDE.md、导入文件、路径规则、Skill、
+子代理、钩子、settings 分层选择）；不可失败的约束交给确定性钩子与无头 CI。本文件
+校验 configuration-scope-audit.md 的标题与证据关键词，检查 migration-review-skill
+软件包的结构：SKILL.md 的 allowed-tools 保持窄授权、check_scope.py 对迁移路径
+放行并对路径穿越拒绝、子代理契约含 maxTurns 与 worktree 隔离。
+AI 应用对应：团队级 Claude Code 配置治理的最小验收器——配置即代码，改配置要过
+与改代码同级的评审、fixture 测试和 CI 证据；迁移评审 Skill 是可直接装进
+.claude/skills/ 的交付产物。
+
+Companion validator for this lesson's docs/en.md configuration audit.
+"""
 
 from __future__ import annotations
 

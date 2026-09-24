@@ -1,4 +1,12 @@
-"""Companion code for:
+"""课程：Security Lives Outside the Prompt | 安全活在提示词之外
+路径：certifications/claude/lessons/13-application-security-and-secrets
+核心概念：把不可信的模型意图与确定性授权分离——策略门（PolicyGate）在工具处理器
+之前评估高危能力：工具白名单、真实路径根目录强制、密钥路径拒绝、破坏性命令拒绝、
+网络目的地白名单、变更审批，以及"不可信内容不能授权动作"；未知状态一律失败关闭。
+AI 应用对应：真实 Agent 应用的服务端策略层（Claude Code 权限/钩子、MCP 宿主策略）
+的最小模型，对应 OWASP LLM Top 10 的混淆代理人与过度代理防护——模型只提议，代码才许可。
+
+Companion code for:
 certifications/claude/lessons/13-application-security-and-secrets/docs/en.md
 It separates untrusted model intent from deterministic authorization.
 Controls follow official Anthropic safety guidance and OWASP LLM concepts.

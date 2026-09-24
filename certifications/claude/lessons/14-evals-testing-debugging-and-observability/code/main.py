@@ -2,6 +2,14 @@
 certifications/claude/lessons/14-evals-testing-debugging-and-observability/docs/en.md
 It scores output, tool trajectory, final state, latency, and failures.
 The design follows official Anthropic evaluation guidance.
+
+中文批注（认证课 14）：
+课程标题：评估把 Agent 行为变成工程证据 / Evals Turn Agent Behavior Into Engineering Evidence
+核心概念：追踪（trace）回答"发生了什么"，评测（eval）对照既定期望判定"是否可接受"，回归门守住下一次
+变更；对输出契约、工具轨迹、最终状态、安全、运营预算五个表面分别断言；失败先分类（传输/协议/契约/
+策略/模型行为等）再选恢复手段；非确定性系统要重复测量、按切片看回归，而不是只看平均分。
+AI 应用对应：任何 Claude Agent 应用的发布流水线都需要本地评测脚手架 + 发布门（严重用例 100%、切片
+回归上限、p95 延迟与成本阈值）；本文件即该证据链的最小可运行模型，评分器选型遵循"确定性优先"。
 """
 
 from __future__ import annotations

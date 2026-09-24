@@ -2,6 +2,15 @@
 # Official source: Claude Certified Architect Foundations Exam Guide, effective July 2026.
 # Guide URL: https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf
 # This standard-library validator checks architecture packet invariants. It does not call Claude.
+#
+# 中文批注（fork 维护）：
+# 课程：在六种情境下捍卫同一套架构（Defend One Architecture Across Six Contexts）
+# 核心概念：架构 = 情境改变、工具失败、证据不完整时仍然守得住的边界。本校验器把
+#   CCAR-F 五个领域（编排 / 工具与 MCP 契约 / Claude Code 配置 / 结构化输出 / 上下文
+#   可靠性）的架构不变式编码成确定性检查，刻意不评判散文质量。
+# AI 应用对应：把"架构方案包"编码为 JSON 后做失败优先校验——依赖无环、工具分布、
+#   封闭 schema 与结构化错误、写工具幂等、四层校验（语法/schema/语义/出处）、
+#   分层评审与完整架构交接；坏方案包必须被阻塞而不是被放过。
 
 """Validate an original CCAR-F architecture scenario packet."""
 

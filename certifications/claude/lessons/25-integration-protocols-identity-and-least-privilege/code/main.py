@@ -1,4 +1,14 @@
-"""Integration and least-privilege lab for this lesson's docs/en.md.
+"""课程：Integration Protocols, Identity, and Least Privilege | 集成协议、身份与最小权限
+路径：certifications/claude/lessons/25-integration-protocols-identity-and-least-privilege
+核心概念：把能力暴露拆成发现、选择、执行三段独立控制——能力注册中心只返回主体
+scope 内的窄工具目录；授权门在执行前重查当前 scope 与新鲜审批；审批是绑定动作、
+参数、身份与时间的能力对象；授权失败返回结构化的不可重试错误。MCP scope 不等于
+业务授权，传输安全也不是授权。
+AI 应用对应：真实多服务 Agent 应用的服务端授权层（协议选型 ADR、身份传播、
+角色化工具束、绑定已批准动作的短时凭据、不可变审计记录）的最小模型——
+发现控制模型看见什么，授权控制实际发生什么，执行时授权才是最终控制。
+
+Integration and least-privilege lab for this lesson's docs/en.md.
 
 Models protocol selection, capability discovery, scope checks, and approvals.
 Authorization is evaluated at execution time instead of delegated to a prompt.
