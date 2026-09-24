@@ -8,6 +8,17 @@ This stdlib-only model keeps two discovery layers separate:
 
 It does not open a network listener, validate a real OAuth token, call OPA, or
 publish to a registry. Run with ``python3 code/main.py`` from the lesson root.
+
+课程：Capstone 13: Stateless MCP Server with Registry and Governance | 无状态 MCP 服务器：注册中心与治理
+（phases/19-capstone-projects/13-mcp-server-with-registry/docs/en.md，协议目标 MCP 2026-07-28）
+
+核心概念：无状态 MCP 服务器 + 注册中心 + OPA 策略门——每个请求自带协议元数据（无 initialize
+握手、无会话 ID），注册中心分别校验 server.json（发布元数据）与 server/discover（实时能力）
+的对齐，破坏性工具需要绑定规范化参数摘要的审批记录（审批是记录，不是塞进令牌的魔法 scope）。
+
+AI 应用对应：Model Context Protocol (MCP) 是 Anthropic 发起、OpenAI/Google 与主流 IDE 均已
+采纳的 AI 工具调用标准；官方 Registry 用版本化 server.json 做服务器发现与供应链准入；
+OPA (Open Policy Agent) 是云原生策略引擎标准；动作绑定审批对应企业级变更管理的人工审批。
 """
 
 from __future__ import annotations
@@ -20,6 +31,10 @@ from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 from typing import Callable
 
+
+# ---------------------------------------------------------------------------
+# 协议常量与无状态请求信封  --  MCP 2026-07-28：每请求自带版本与客户端能力
+# ---------------------------------------------------------------------------
 
 PROTOCOL_VERSION = "2026-07-28"
 REGISTRY_SCHEMA = "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json"
@@ -64,6 +79,10 @@ def validate_meta(meta: object) -> dict | None:
         return error(-32602, "clientCapabilities must be an object")
     return None
 
+
+# ---------------------------------------------------------------------------
+# 工具 schema 与 MCP 服务器  --  server/discover、tools_list 与 server.json 文档
+# ---------------------------------------------------------------------------
 
 @dataclass(frozen=True)
 class ToolSchema:
@@ -145,6 +164,10 @@ class MCPServer:
         }
 
 
+# ---------------------------------------------------------------------------
+# OAuth 风格令牌与动作绑定审批  --  issuer/audience/scope/过期；审批绑定参数摘要
+# ---------------------------------------------------------------------------
+
 @dataclass(frozen=True)
 class Token:
     user: str
@@ -210,6 +233,10 @@ class ApprovalRecord:
         return True, "ok"
 
 
+# ---------------------------------------------------------------------------
+# OPA 风格策略门  --  逐调用决策：可信签发者、受众、过期、scope、动作绑定审批
+# ---------------------------------------------------------------------------
+
 def policy_decide(
     server: MCPServer,
     tool: str,
@@ -246,6 +273,10 @@ def policy_decide(
     return True, "ok"
 
 
+# ---------------------------------------------------------------------------
+# 审计日志  --  PII 脱敏（邮箱/SSN）后的结构化记录
+# ---------------------------------------------------------------------------
+
 def redact(payload: dict) -> dict:
     text = json.dumps(payload)
     text = re.sub(r"[\w.+-]+@[\w-]+\.[\w.-]+", "[email]", text)
@@ -263,6 +294,10 @@ class AuditEntry:
     args_redacted: dict
     response_redacted: dict
 
+
+# ---------------------------------------------------------------------------
+# 无状态调用分发  --  元数据校验 → 策略门 → 执行 → 审计
+# ---------------------------------------------------------------------------
 
 def dispatch(
     server: MCPServer,
@@ -310,6 +345,10 @@ def dispatch(
         isError=False,
     )
 
+
+# ---------------------------------------------------------------------------
+# server.json 校验器  --  零依赖的部分远程 profile 校验（非完整官方 schema 校验）
+# ---------------------------------------------------------------------------
 
 def validate_registry_document(document: object) -> list[str]:
     """Validate the official fields used by this lesson's remote-only profile.
@@ -374,6 +413,10 @@ def validate_registry_document(document: object) -> list[str]:
     return issues
 
 
+# ---------------------------------------------------------------------------
+# 发布者命名空间与运行时对齐  --  反向 DNS 命名空间 + 发布/运行时漂移检测
+# ---------------------------------------------------------------------------
+
 def reverse_dns_namespace(domain: str) -> str:
     normalized = domain.casefold().rstrip(".")
     labels = normalized.split(".")
@@ -414,6 +457,10 @@ def validate_runtime_alignment(document: dict, discovery: object) -> list[str]:
     return issues
 
 
+# ---------------------------------------------------------------------------
+# 注册中心  --  校验并索引 server.json 与实时发现结果
+# ---------------------------------------------------------------------------
+
 @dataclass
 class Registry:
     publisher_domain: str = PUBLISHER_DOMAIN
@@ -445,6 +492,10 @@ class Registry:
             or needle in entry["description"].casefold()
         )
 
+
+# ---------------------------------------------------------------------------
+# 演示服务器  --  只读工具面与破坏性工具面
+# ---------------------------------------------------------------------------
 
 def build_readonly_server() -> MCPServer:
     server = MCPServer(
@@ -515,6 +566,10 @@ def build_destructive_server() -> MCPServer:
     return server
 
 
+# ---------------------------------------------------------------------------
+# 端到端演示  --  注册 → 发现 → 策略门控调用 → 审计
+# ---------------------------------------------------------------------------
+
 def main() -> None:
     readonly = build_readonly_server()
     destructive = build_destructive_server()
@@ -580,4 +635,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # 运行主函数
