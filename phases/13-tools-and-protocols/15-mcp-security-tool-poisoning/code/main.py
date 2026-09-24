@@ -3,6 +3,11 @@ Lesson: phases/13-tools-and-protocols/15-mcp-security-tool-poisoning/docs/en.md
 Spec: https://modelcontextprotocol.io/specification/2026-07-28
 Scans metadata, pins descriptors, detects collisions, and validates routing.
 It also protects MRTR continuation state; Lesson 09 owns HTTP transport.
+
+MCP 安全：投毒元数据、路由与 MRTR 状态 (Poisoned Metadata, Routing, and MRTR State)
+核心概念：元数据一律不可信；锁定完整描述符（名称+描述+schema+注解）防地毯拉扯；
+路由头先于策略校验（-32020/-32022/-32601）；MRTR requestState 用 HMAC 签名防篡改并绑定精确参数。
+AI 应用对应：MCP 网关/宿主应把本文件的扫描与锁定检查接入安装时与 CI 流程，防工具投毒与描述符突变。
 """
 
 from __future__ import annotations

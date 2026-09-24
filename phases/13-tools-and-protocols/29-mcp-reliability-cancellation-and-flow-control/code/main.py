@@ -3,6 +3,19 @@ Lesson: ../docs/en.md
 Cancellation: https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/cancellation
 Transport: https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http
 This deterministic simulator uses only Python's standard library.
+
+MCP 可靠性、取消与流控（MCP Reliability, Cancellation, and Flow Control）
+
+核心概念：请求 ID 只关联消息，不提供业务安全。stdio 取消是 notifications/cancelled 通知，
+Streamable HTTP 取消是关闭响应流，tasks/cancel 只确认意图（Task 保持 working 直到 worker
+检查点）；完成与取消是一场必须显式建模的竞态；超时需要空闲+绝对两个时钟；幂等键（不是新
+JSON-RPC id）+ SQLite BEGIN IMMEDIATE 原子账本才能让重试只执行一次；背压 = 有界队列 +
+进度合并/丢弃 + 绝不丢最终响应；重连即权威重取（现代 Streamable HTTP 无 Last-Event-ID
+恢复），配带上限的指数退避加抖动防重连风暴。
+
+AI 应用对应：这是 AI Agent 调用长耗时工具（部署、批量分析、数据处理）时的生产可靠性骨架——
+用户取消、网关超时、代理缓冲、断线重连都会真实发生；扣款/写库等副作用工具没有幂等键就
+会在重试时执行两次。任何 MCP 生产网关（Phase 13 · 17/23）都需要这套机制。
 """
 
 from __future__ import annotations

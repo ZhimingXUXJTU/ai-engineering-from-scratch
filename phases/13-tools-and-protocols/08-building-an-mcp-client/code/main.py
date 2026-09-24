@@ -1,4 +1,12 @@
 """Phase 13 Lesson 08: a stateless multi-server MCP client.
+
+构建 MCP 客户端：发现、路由与双时代回退 (Building an MCP Client: Discovery, Routing, and Dual-Era Fallback)
+核心概念：MCP 2026-07-28 客户端——每请求自带 _meta 元数据；用 server/discover 判定对端时代
+（-32020/-32021/-32022 为可识别现代错误，绝不降级）；旧版 initialize 只走白名单授权的有界探测，
+且需五条正向验证全过才接受；确定性工具列表合并（冲突加前缀/拒绝）与纯查表路由；全程无协议会话。
+AI 应用对应：Claude Desktop、Cursor 等 Agent 宿主都是 MCP 客户端，同时挂载多个 MCP 服务器，
+把合并后的工具命名空间交给模型；"失败即关闭"的时代判定是防止弱语义降级的关键安全设计。
+
 Lesson: phases/13-tools-and-protocols/08-building-an-mcp-client/docs/en.md
 Specification: https://modelcontextprotocol.io/specification/2026-07-28/
 Demonstrates discovery, fail-closed legacy probing, deterministic merge, and routing.

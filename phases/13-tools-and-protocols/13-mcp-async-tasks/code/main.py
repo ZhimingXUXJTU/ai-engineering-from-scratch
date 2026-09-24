@@ -1,5 +1,18 @@
 """Phase 13 Lesson 13: the stateless MCP Tasks extension.
 
+MCP Tasks 扩展：无状态内核上的持久化任务 (Durable Work on a Stateless Core)
+核心概念：
+  - Tasks 已从 2025-11-25 实验性核心特性（SEP-1686）迁移为官方 io.modelcontextprotocol/tasks 扩展
+  - 能力协商：客户端在每个请求的 _meta 里声明扩展支持，server/discover 在能力中列出同一扩展
+  - 服务器主导创建：旧的客户端标志 params._meta.task.required 已移除，tools/call 直接返回
+    resultType="task"；durable-before-return——先持久化任务再返回句柄
+  - 现行方法：tasks/get 轮询完整快照（取代旧 tasks/status + tasks/result）、tasks/update
+    应答任务执行中的 inputRequests、tasks/cancel 协作式取消；tasks/list 已移除
+  - 持久化存储：任务状态写入文件系统（临时文件 + 原子改名），新服务实例重载同一任务演示重启恢复
+  - HTTP 路由：tasks/get、tasks/update、tasks/cancel 的 Mcp-Name 头镜像 params.taskId
+AI 对应：真实 Agent 的长时运行工作（深度研究、代码生成、批量导出）都适合这套模式；
+  服务器无状态可水平扩展，任务状态放在共享持久存储里，任何副本都能续接。
+
 Lesson: ../docs/en.md
 Extension: https://tasks.extensions.modelcontextprotocol.io/specification/draft/tasks
 This example uses only Python's standard library.

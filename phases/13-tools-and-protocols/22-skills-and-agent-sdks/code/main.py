@@ -1,3 +1,17 @@
+"""Phase 13 Lesson 22 - Skill contract validator and primitive chooser.
+
+Agent Skills：可移植契约与运行时边界 (Agent Skills: Portable Contract and Runtime Boundary)
+核心概念：skill 是可发现的指令/参考/脚本包，经运行时契约进入 Agent 上下文；可移植核心（name、description
+等）与宿主运行时扩展分层；生命周期分发现-验证-编目-选择-激活-披露-执行-验证八个阶段。
+AI 应用对应：写 skill 之前先用 TaskShape 决策卡选原语（skill / MCP 工具 / hook / subagent /
+仓库说明 / 普通代码 / 提示词），再用包验证器在进入 Agent 目录之前把关 SKILL.md 契约。
+
+Docs: phases/13-tools-and-protocols/22-skills-and-agent-sdks/docs/en.md
+Spec: Agent Skills specification (https://agentskills.io/specification)
+
+Stdlib only. Run: python3 code/main.py
+"""
+
 from __future__ import annotations
 
 import json

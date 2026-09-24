@@ -1,5 +1,13 @@
 """Phase 13 Lesson 12: explicit scope and elicitation through MRTR.
 
+显式作用域与无状态诱导输入 (Explicit Scope and Stateless Elicitation)
+核心概念：Roots 在 MCP 2026-07-28 中已废弃；作用域改为显式的 workspaceUri 参数 / 资源 URI /
+服务器配置，并按"授权 + 路径包含检查 + 系统沙箱"三层执行。elicitation（诱导输入）方法名仍是
+elicitation/create，但改为装入 MRTR input_required 结果，客户端渲染表单后带 inputResponses
+用全新 id 重试。破坏性操作用签名 requestState 绑定候选集与原始参数，共享重放存储防重放。
+AI 应用对应：任何需要"限定工作区 + 危险操作二次确认"的 Agent 工具（删除、覆盖、发布）都应
+照搬这套模式——显式作用域进参数、用户判断走 MRTR、状态签名再加一次性 nonce。
+
 Lesson: ../docs/en.md
 Specification: https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr
 This example uses only Python's standard library.

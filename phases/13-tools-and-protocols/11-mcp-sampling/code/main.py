@@ -1,5 +1,14 @@
 """Phase 13 Lesson 11: model input through stateless MCP MRTR.
 
+MCP 模型输入：Sampling 迁移与无状态 MRTR
+(MCP Model Input: Sampling Migration and Stateless MRTR)
+核心概念：2026-07-28 弃用 Sampling 并移除服务器到客户端请求通道。存量采样工作流改走 MRTR：
+服务器返回 resultType="input_required"，把 sampling/createMessage 嵌入 inputRequests；
+客户端用新 JSON-RPC id 重试原方法并携带 inputResponses，逐字节回显 requestState。
+requestState 由 HMAC 完整性保护，绑定主体、方法、参数摘要、过期与阶段（五重绑定）。
+AI 应用对应：新服务器默认直连模型提供商；只有"必须用客户端的模型/凭证"时才保留 MRTR 兼容路径，
+并给轮数、token、字节设预算上限，防止恶意服务器制造模型花费循环。
+
 Lesson: ../docs/en.md
 Specification: https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/mrtr
 This example uses only Python's standard library.

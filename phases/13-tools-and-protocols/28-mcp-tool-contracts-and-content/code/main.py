@@ -3,6 +3,18 @@ Lesson: ../docs/en.md
 Specification: https://modelcontextprotocol.io/specification/2026-07-28/server/tools
 Utilities: completion and pagination in the MCP 2026-07-28 specification.
 This example uses only Python's standard library.
+
+MCP 工具契约与内容（MCP Tool Contracts and Content）
+
+核心概念：把一次工具调用拆成五道门——发现→准入→调用→执行→消费。JSON Schema 是运行时
+边界（structuredContent 可以是任意 JSON 值，错误结果也要符合已发布的 outputSchema）；
+x-mcp-header 是路由元数据（只许顶层直挂、类型限 string/integer/boolean、值按可见 ASCII 或
+=?base64?...?= 哨兵编码）；分页游标不透明（空字符串是合法游标）；补全是授权面；协议错误
+（JSON-RPC error）与工具执行错误（isError: true）分属两层。
+
+AI 应用对应：这套准入核心就是 AI 网关合并多台 MCP 服务器工具时的"工具准入检查器"——
+镜像头部让负载均衡按区域路由而不解析请求体，头体一致性门禁（HTTP 400 + JSON-RPC -32020）
+防止"网关路由 A、源站执行 B"，按调用者过滤的补全防止租户名通过自动补全泄露。
 """
 
 from __future__ import annotations
