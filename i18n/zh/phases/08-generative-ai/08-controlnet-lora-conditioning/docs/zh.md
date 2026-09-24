@@ -1,0 +1,189 @@
+# 控制网,LoRA和条件控制
+
+> 文字本身是一个拙的控制信号.ControlNet允许你克隆预训练的扩散模型,并用深度地图,姿势骨架,形或边缘图像来引导它.LoRA允许你通过训练1000万参数来细节调整2B参数模型.他们一起将稳定扩散从玩具变成了2026年图像管道,将其发送到每个机构.
+
+> **【中文解读】**纯文本控制太粗――ControlNet使用深度图,姿态骨架,涂或边缘图精确控制生成;LoRA只训练1000万参数就能微调20亿参数的模型――两者结合使稳定传播从玩具变成2026年每个设计公司都使用的图像流水线――
+
+> **【拓展：LoRA 是大模型时代的微调标准】**仅需训练0.1%的参数才能适应新任务/新风格,使AI定制成本大幅降低.
+
+**Type:** Build / 构建型
+**Languages:** Python
+**Prerequisites:** Phase 8 · 07 (Latent Diffusion / 潜在扩散), Phase 10 (LLMs from Scratch — for LoRA foundation / LoRA 基础)
+**Time:** ~75 minutes
+
+## 问题 问题引入
+
+像"一个穿着红色衣服的女人在拥挤的街上散步狗"这样的提示没有给模型提供关于狗在哪里,女人在什么姿势,或者街道的视角的信息.文字注入了你需要的10%左右的图像.其余的图像是视觉的,不能用语言有效地描述.
+
+> 像"一个穿红的女人在繁忙的街道上狗"这样的提示没有告诉模型狗在哪里,女人是什么姿态,街道的视角如何.文本只能确定约10%的图像信息. 其余是视觉的,无法用文字高效描述.
+
+训练一个新的条件模型从零开始每一个信号 (姿势,深度,,细分) 是禁止的.你想保持2.6B-param SDXL脊柱结,连接一个小侧网络,读取条件,让它推向脊柱的中间功能.那就是控制网.
+
+> 为了每个信号 (姿态,深度,边缘,分) 从头训练新条件模型的成本太高了.
+
+你还想教模型新的概念 (你的脸,你的产品,你的风格) 而不需要重新训练完整的模型.你想要一个100倍小的三角形.那就是LoRA 低级适配器,连接到现有注意力重量.
+
+> 你还想教模型新概念 (你的脸,你的产品,你的风格) 不重训整个模型――你需要小 100 倍的增量――这就是LoRA插入现有注意力权重的低排适配器――
+
+控制网+LoRA+文字 = 2026 实践者工具包.大多数生产图像管道层 2-5 LoRA, 1-3 ControlNets,以及 SDXL / SD3 / Flux 基础上一个IP-适配器.
+
+> 控制网+LoRA+文字 = 2026年实践者工具箱――大多数生产图像流水线在SDXL/SD3/Flux 基础上叠加 2-5个LoRA、1-3个控制网和一个IP-适配器――
+
+## 概念的核心概念
+
+![ControlNet clones the encoder; LoRA adds low-rank deltas](../assets/controlnet-lora.svg)
+
+### 控制网 (Zhang等, 2023)
+
+除原始的编码器. 除原始的编码器. 训练克隆接受额外的调节输入 (边缘,深度,姿势). 连接克隆回原始的解码器半个使用 *零转变* 跳转连接 (1×1 连接初始化为零 开始为无操作,学习三角形).
+
+```
+SD U-Net decoder:   ... ← orig_enc_features + zero_conv(controlnet_enc(condition))
+```
+
+零-conv init意味着控制网开始作为身份即使在训练之前也没有伤害. 1M (快速,条件,图像) 的火车与标准的扩散损失增加了三倍.
+
+按modality ControlNets 作为小型侧模型 (SDXL 约360M,SD 1.5) 运输.
+
+```
+features += weight_a * control_a(depth) + weight_b * control_b(pose)
+```
+
+### 劳拉 (Hu等,2021年)
+
+对于任何线性层`W ∈ R^{d×d}`在模型中,结`W`加入一个低级别的三角形:
+
+```
+W' = W + ΔW,  ΔW = B @ A,  A ∈ R^{r×d},  B ∈ R^{d×r}
+```
+
+随着`r << d`排名4-16是注意力标准,排名64-128是重型细调.`2 · d · r`没有`d²`为了 SDXL 的关注`d=640`现在`r=16`整个模型中:LoRA通常是20-200MB与基 5GB相比.
+
+在推断下,你可以扩展LORA:`W' = W + α · B @ A`现在,我们要去.`α = 0.5-1.5`许多LoRA的堆积量是加上性的 (通常警告的是它们以非线性方式相互作用).
+
+### 适应器 (Ye et al., 2023)
+
+通过Clip图像编码器生成图像代币,将它们注入文本代币旁边的交叉注意力. ~ 20MB/基模型. 允许您"生成图像按照本参考的风格"而不用LoRA.
+
+## 复合性矩阵
+
+| Tool / 工具 | What it controls / 控制内容 | Size / 大小 | When to use / 使用时机 |
+|------|------------------|------|-------------|
+| ControlNet | Spatial structure (pose, depth, edges) / 空间结构 | 70-360MB | Exact layout, composition / 精确布局 |
+| LoRA | Style, subject, concept / 风格、主题、概念 | 20-200MB | Personalization, style / 个性化、风格 |
+| IP-Adapter | Style or subject from reference image / 参考图像风格 | 20MB | No text can describe the look / 文字无法描述 |
+| Textual Inversion | Single concept as a new token / 单概念新 token | 10KB | Legacy, mostly replaced by LoRA / 旧方案 |
+| DreamBooth | Full fine-tune on a subject / 完整微调 | 2-5GB | Strong identity, high compute / 强身份 |
+| T2I-Adapter | Lighter ControlNet alternative / 轻量 ControlNet | 70MB | Edge devices, inference budget / 边缘设备 |
+
+控制网空间,洛拉语义.
+
+> 控制网 ≈ 空间控制――LoRA ≈ 语义控制――两者配合使用――
+
+> **【中文解读】**控制网的核心机制:克隆 SD U-Net 编码器,结原始部分,训练克隆部分接受额外条件输入 (边缘、深度、姿态) △零卷积 (零卷积) △零卷积 (零卷积) 初始化 确保训练开始时控制网不会影响原始模型.
+
+> **【拓展：ControlNet + LoRA 的组合控制】**实际生产中,ControlNet (空间控制) 和LoRA (风格/主题控制) 通常组合使用.例如:ControlNet 控制人物姿态,LoRA 注入特定艺术风格,文本提示描述场景内容.
+
+## 建立它,实现它.
+```figure
+v4-controlnet-zero
+```
+
+## 建立它
+
+`code/main.py`在1-D上模拟两个机制:
+
+1. **LoRA.**预训练的线性层`W`结它,训练一个低级的`B @ A`这样.`W + BA`显示出它是什么?`r = 1`足以学习一个级-1的纠正.
+
+2. **ControlNet-lite.**预测器"结结结基础"和"侧网络"读取额外信号.侧网络的输出由一个可学习的尺度器启动到零 (我们的零-conv版本). 训练和观察门升.
+
+### 步骤1:LoRA数学
+
+```python
+def lora(W, A, B, x, alpha=1.0):
+    # W is frozen; A, B are the trainable low-rank factors.
+    return [W[i][j] * x[j] for i, j in ...] + alpha * (B @ (A @ x))
+```
+
+### 步骤2:零点侧网络
+
+```python
+side_out = control_net(x, condition)
+gated = gate * side_out  # gate initialized to 0
+h = base(x) + gated
+```
+
+在步骤0中输出与基础相同.`gate`慢慢 没有灾难性漂移.
+
+> 在第0步输出与基础模型完全相同.`gate`更新缓慢 没有灾难性偏移.
+
+## 陷常见的陷
+
+- **Over-scaling LoRAs.** `α = 2`或`α = 3`果是一个常见的"强化"黑客,`α ≤ 1.5`现在,我们要去.
+  **LoRA 过度缩放。** `α = 2`或`α = 3`由于"强化"的常见做法,会产生过度风格化/损坏的输出.`α ≤ 1.5`,我知道.
+- **ControlNet weight conflict.**使用Pose ControlNet在重量1.0和深度控制网在重量1.0通常过分.重量总量≈1.0是安全默认的.
+  **ControlNet 权重冲突。**权重之和 ≈ 1.0 是安全的默认值.
+- **LoRA on the wrong base.**由于注意力尺寸不匹配,SDXL LoRA在SD 1.5上默默无闻.
+  **LoRA 用错基础模型。**没有任何效果.
+- **Textual Inversion drift.**通过一个检查点训练的代币,在另一个检查点上漂移得很差.
+  **Textual Inversion 漂移。**在一个检查点上训练的标志在另一个严重漂移.
+- **LoRA weight-merging and storage.**您可以将LoRA入基模型重量中,以更快地推断 (没有运行时间的增加),但您失去了扩展能力`α`保持两种版本.
+  **LoRA 权重合并。**能到基础模型中加速推理,但失去运行时调节.`α`能力
+
+## 用它实现框架
+
+| Goal / 目标 | 2026 pipeline / 方案 |
+|------|---------------|
+| Reproduce a brand's art style / 复刻品牌艺术风格 | LoRA trained on ~30 curated images at rank 32 |
+| Put my face in a generated image / 把我的脸放入生成图像 | DreamBooth or LoRA + IP-Adapter-FaceID |
+| Specific pose + prompt / 特定姿态+提示 | ControlNet-Openpose + SDXL + text |
+| Depth-aware composition / 深度感知构图 | ControlNet-Depth + SD3 |
+| Reference + prompt / 参考+提示 | IP-Adapter + text |
+| Exact layout / 精确布局 | ControlNet-Scribble or ControlNet-Canny |
+| Background replace / 背景替换 | ControlNet-Seg + Inpainting (Lesson 09) |
+| Fast 1-step style / 快速单步风格 | LCM-LoRA on SDXL-Turbo |
+
+## 运送它.
+
+保存`outputs/skill-sd-toolkit-composer.md`技能接收一个任务 (输入资产:即时,可选参考图像,可选姿势,可选深度,可选) 并输出工具堆,权重和可复制的种子协议.
+
+## 练习题
+
+1. **Easy / 简单.**在`code/main.py`根据" 洛拉"的排名`r`在哪个级别的 LoRA 完全匹配到一个级别-2的目标三角形?
+   在`code/main.py`中将 洛拉 秩`r`从1变到4... 在哪个排名时,LORA恰好匹配排名2的目标?
+2. **Medium / 中等.**训练两个不同的LoRA在两个目标转换. 加载它们在一起,显示它们的增量相互作用. 相互作用什么时候会打破线性?
+   在两个目标变化上分别训练 LoRA.
+3. **Hard / 困难.**使用扩散器堆叠:SDXL-base + Canny-ControlNet (重量0.8) +风格LoRA (α 0.8) + IP-Adapter (重量0.6).随着堆叠重量变化,测量FID-vs-prompt-adhesion trade-off.
+   用扩散器 堆叠组合,测量FID与快速遵循的权衡
+
+## 关键词 快速查找表
+
+| Term / 术语 | What people say / 俗称 | What it actually means / 实际含义 |
+|------|-----------------|-----------------------|
+| ControlNet | "Spatial control" / "空间控制" | Cloned encoder + zero-conv skips; reads a conditioning image. / 克隆编码器 + 零卷积跳跃。 |
+| Zero convolution | "Starts as identity" / "起始为恒等" | 1×1 conv initialized to zero; ControlNet starts as no-op. / 1×1 卷积初始化为零。 |
+| LoRA | "Low-rank adapter" / "低秩适配器" | `W + B @ A`, `r << d`; 100x fewer params than a full fine-tune. / 比完整微调少 100 倍参数。 |
+| rank r | "The knob" / "那个旋钮" | LoRA compression; 4-16 typical, 64+ for heavy personalization. / LoRA 压缩；典型 4-16。 |
+| α | "LoRA strength" / "LoRA 强度" | Runtime scaling of the LoRA delta. / LoRA 增量的运行时缩放。 |
+| IP-Adapter | "Reference image" / "参考图像" | Small image-conditioning adapter via CLIP-image tokens. / 通过 CLIP 图像 token 的小型适配器。 |
+| DreamBooth | "Full subject fine-tune" / "完整主题微调" | Train the full model on ~30 images of a subject. / 在约 30 张主题图像上训练完整模型。 |
+| Textual Inversion | "New token" / "新 token" | Learn a new word embedding only; legacy, mostly replaced. / 仅学习新词嵌入；旧方案。 |
+
+## 产品注释:LoRA 热插拔、ControlNet 通道、多租户服务
+
+实际的文字到图像SaaS在同一基点上服务数百个LoRA和几十个ControlNets.服务问题看起来非常像LLM多租金 (生产文献涵盖了LLM案例在连续批量和LoRAX / S-LoRA下):
+
+- **Hot-swap LoRAs, do not merge.**合并`W' = W + α·B·A`入基底,每步推断速度大约3-5%,但结.`α`保持LORA在VRAM中作为R级的海域;扩散器暴露`pipe.load_lora_weights()`其他`pipe.set_adapters([...], adapter_weights=[...])`交换成本是`2 · d · r · num_layers` MB 尺度,次分.
+- **ControlNet as a second attention lane.**克隆编码器与基层并行运行.重量1.0的两个控制网 = 每步额外的两个前进传递,而不是一个合并传递.批量大小的头部空间四旋翼下降.每步的预算为1.5x.
+- **Quantized LoRAs too.**如果您量化了基数 (见课07号,Flux在8GB),LoRA三角形也可以清洁地量化到8位或4位.
+
+流量特定:尼尔斯的Flux-on-8GB笔记本电脑量化了基数为4位;`pipe.load_lora_weights("user/style-lora")`) 在此次定量基础上`weight_name="pytorch_lora_weights.safetensors"`这就是大多数SaaS机构在2026年发布的食谱.
+
+## 继续阅读 继续阅读
+
+- [Zhang, Rao, Agrawala (2023). Adding Conditional Control to Text-to-Image Diffusion Models](https://arxiv.org/abs/2302.05543)控制网
+- [Hu et al. (2021). LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685) LoRA (原来用于 LLM; 输出口).
+- [Ye et al. (2023). IP-Adapter: Text Compatible Image Prompt Adapter](https://arxiv.org/abs/2308.06721) IP 适配器
+- [Mou et al. (2023). T2I-Adapter: Learning Adapters to Dig Out More Controllable Ability](https://arxiv.org/abs/2302.08453)更轻的替代品对控制网.
+- [Ruiz et al. (2023). DreamBooth: Fine Tuning Text-to-Image Diffusion Models for Subject-Driven Generation](https://arxiv.org/abs/2208.12242)梦幻.
+- [HuggingFace Diffusers — ControlNet / LoRA / IP-Adapter docs](https://huggingface.co/docs/diffusers/training/controlnet)参考管道.
