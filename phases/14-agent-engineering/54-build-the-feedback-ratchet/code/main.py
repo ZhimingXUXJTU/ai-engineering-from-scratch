@@ -3,6 +3,12 @@
 # Reference: Basili, Caldiera, and Rombach, The Goal Question Metric Approach.
 # Reference: Fagerholm et al., Building Blocks for Continuous Experimentation, 2014.
 # Run this file to generate outputs/feedback-backlog.json.
+# 中文标题：反馈棘轮：改进有主，控制可退役 (Build a Feedback Ratchet with Ownership and Retirement)
+# 核心概念：信号按路由表晋升到"最早有效层"（评估/上下文/策略/运行时/待办），每个棘轮动作
+#           带六要素：唯一主人、优先级=严重度×频率、要改的工件、验证证据、复核窗口、退役条件；
+#           退役同样要证据（到期复核而非到期删除）。
+# AI 应用对应：把 AI 系统的事故与评估结果变成可累积的系统改进——prompt 之外先想测试与权限；
+#             "没主人的改进只是排版更好看的观察"，43-54 方法论由此闭合成持续运转的环。
 from __future__ import annotations
 
 import json

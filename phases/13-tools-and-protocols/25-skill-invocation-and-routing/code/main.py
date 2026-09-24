@@ -1,3 +1,21 @@
+"""Phase 13 Lesson 25: skill invocation and routing.
+Lesson: phases/13-tools-and-protocols/25-skill-invocation-and-routing/docs/en.md
+Specification: https://agentskills.io/specification (package contract only; invocation policy is host-side)
+This example uses only Python's standard library.
+
+技能调用与路由（Skill Invocation and Routing）
+
+核心概念：调用 = 权限决策 + 相关性决策。人类可见性 × 模型可选性构成 2×2 策略矩阵
+（InvocationPolicy/build_invocation_matrix）；五阶段生命周期 eligible→selected→activated→
+executing→completed 用 InvocationDecision 追踪。路由铁律：先按角色和适配器过滤资格、再排序
+相关性（route_request）——被禁的最高分不能挤掉合法的次高分。Core 与 Extension 两个适配器
+分离，防止运行时字段被悄悄提升成假标准。
+
+AI 应用对应：这是支持 Agent Skills 的宿主做"技能该不该被触发"判定的骨架——Claude Code 的
+disable-model-invocation / user-invocable、Codex 的 allow_implicit_invocation 都映射到同一个
+2×2 矩阵；near-miss（词汇重叠但工作流不同）样本是评测触发边界的标准手段，Lesson 27 展开。
+"""
+
 from __future__ import annotations
 
 import json

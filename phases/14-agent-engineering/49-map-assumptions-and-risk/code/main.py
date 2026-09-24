@@ -2,6 +2,11 @@
 # Lesson: phases/14-agent-engineering/49-map-assumptions-and-risk/docs/en.md
 # Canonical source: Boehm, Spiral Model, DOI 10.1145/12944.12948.
 # Canonical source: Dardenne et al., Goal-Directed Requirements Acquisition.
+# 中文标题：映射假设，先拆最大风险 (Map Assumptions and Resolve the Riskiest One First)
+# 核心概念：功能背后是可证伪假设（价值/可用性/可行性/生存力/安全性五类）；风险分 =
+#           影响 × 不确定性 + 不可逆性（各 1-5），始终先解决"风险最高且仍开放"的那条假设。
+# AI 应用对应：AI 功能排期前先画假设地图，用最便宜的决定性实验（如只读回放）替换最贵的猜测；
+#             证据支持才有边界地构建，证据反对则重构问题或停止——让证据而不是热情决定顺序。
 from __future__ import annotations
 
 import json

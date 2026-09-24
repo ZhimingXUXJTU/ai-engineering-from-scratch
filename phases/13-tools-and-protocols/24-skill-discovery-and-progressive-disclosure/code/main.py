@@ -1,3 +1,22 @@
+"""Phase 13 Lesson 24: skill discovery and progressive disclosure.
+Lesson: phases/13-tools-and-protocols/24-skill-discovery-and-progressive-disclosure/docs/en.md
+Specification: https://agentskills.io/specification (package shape and disclosure levels)
+This example uses only Python's standard library.
+
+技能发现与渐进式披露（Skill Discovery and Progressive Disclosure）
+
+核心概念：把技能发现建模成编译器流水线——作用域（Scope+整数 rank）→候选校验→同名冲突
+策略（resolve_collisions）→有界 catalog 发布（build_catalog+CatalogBudget）。渐进式披露分
+三级：Level 1 catalog 元数据（约 100 token/条的路由描述）、Level 2 正文激活（SKILL.md <500 行）、
+Level 3 有界资源读取（load_reference）。资源路径是信任边界：realpath 解析后的包含校验挡住
+路径穿越与符号链接逃逸，且 catalog 与活跃上下文是两笔独立的预算。
+
+AI 应用对应：这是每个支持 Agent Skills 的宿主（Claude Code、Codex 等）启动时都要跑的发现
+引擎骨架——Codex 的项目级发现（.agents/skills 沿祖先目录）、2% 上下文窗口的 catalog 预算、
+同名不合并等行为都落在这条流水线上；发现日志（谁被拒、谁胜出、谁被截短）是把"模型没用我的
+技能"变成可诊断问题的运营证据。
+"""
+
 from __future__ import annotations
 
 import json

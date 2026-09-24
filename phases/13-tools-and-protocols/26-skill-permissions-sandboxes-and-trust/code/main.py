@@ -1,3 +1,22 @@
+"""Phase 13 Lesson 26: skill permissions, sandboxes, and trust.
+Lesson: phases/13-tools-and-protocols/26-skill-permissions-sandboxes-and-trust/docs/en.md
+References: https://agentskills.io/skill-creation/using-scripts and NIST SP 800-190.
+This example uses only Python's standard library and never executes a command.
+
+技能权限、沙箱与信任（Skill Permissions, Sandboxes, and Trust）
+
+核心概念：技能只能"建议"动作——授权归宿主、遏制归隔离边界、成败归验证。五层控制链：
+能力暴露→权限策略→审批门禁（ask）→沙箱→验证门禁；review_action 产出 allow/ask/deny 三
+种判决，永不执行。路径在 realpath 解析后做包含校验（normalize_workspace_path）；HTTPS
+origin 归一化为协议+主机+有效端口（normalize_https_origin，443 省略与显式同源、8443 不同
+源）；allowed-tools 只是能力/权限提示，不是操作系统隔离；审批展示真实后果，永不关闭遏制。
+
+AI 应用对应：这是 Agent Skills 宿主在技能执行之前的"安全评审器"骨架——四类失败源（恶意包、
+被投毒依赖、不可信任务内容、普通 bug）映射到不同控制层；不可信内容影响的布尔位对应间接
+prompt injection 防线（与 Phase 13 · 15 的工具投毒威胁模型相接）；代码沙箱目录演示真实的
+OCI 容器强制边界（无网络、只读根、丢弃全部 capabilities）。
+"""
+
 from __future__ import annotations
 
 import json

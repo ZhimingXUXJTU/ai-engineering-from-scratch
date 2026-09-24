@@ -3,6 +3,11 @@
 # Reference: Basili, Caldiera, and Rombach, The Goal Question Metric Approach.
 # Reference: Shinn et al., Reflexion, arXiv:2303.11366.
 # Run this file to generate outputs/feedback-ratchet.json.
+# 中文标题：把反馈变成系统 (Turn Every Agent Correction into a System Improvement)
+# 核心概念：纠正 → 控制的升级规则（按根因关键词选最早责任层：测试/范围/自动化/示例/指令）；
+#           归一化根因后做指纹（sha256 前 12 位）去重，同一根因的重复纠正只保留一条控制。
+# AI 应用对应：人工纠正不再只留在聊天里——每次纠正被升级为可验证的持久控制并带去重指纹，
+#             相当于给 Agent 工作流装上"只进不退"的棘轮，下一次运行从更强的起点开始。
 from __future__ import annotations
 
 import hashlib

@@ -2,6 +2,23 @@
 Protocol contract: https://modelcontextprotocol.io/specification/2026-07-28/server/discover
 Registry contract: https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/official-registry-requirements.md
 Run `python3 main.py` for the finite demo or `python3 -m unittest discover -s tests`.
+
+课程：MCP Registry Supply Chain: Admission, Drift, and Rollback
+中文标题：MCP 注册中心供应链：准入、漂移与回滚
+
+核心概念：
+- 注册中心只是索引，不是审批系统：命名空间、记录、执行来源、运行时、准入、运维六个边界各有证据持有方。
+- 一次准入决策串起七项控制：命名空间精确验证、来源拼接（provenance join）、多层摘要 pin、
+  在线漂移检测（工具描述符摘要）、注册中心活状态同步（active/deprecated/deleted）、
+  只选已准入目标的路由回滚、以及哈希链追加式准入账本。
+- Registry 状态位于响应级 _meta["io.modelcontextprotocol.registry/official"]，
+  serverInfo 只是诊断证据，不能提供任何准入权威。
+
+AI 应用对应：
+- 给接入生产的企业 MCP 服务器（agent 工具供应链）建立可审计的准入与回滚流水线，
+  防止工具投毒、包偷换与"未审批版本被静默路由"。
+- 漂移检测对应 agent 安全体检：安装之后持续比对工具描述符摘要，
+  描述文本的变化也算漂移，因为它直接影响 LLM 的工具选择。
 """
 
 from __future__ import annotations

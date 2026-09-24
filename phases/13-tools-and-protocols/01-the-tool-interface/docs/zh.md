@@ -2,14 +2,16 @@
 
 > 语言模型产出 token。程序执行动作。两者之间的鸿沟就是工具接口：一个让模型请求动作、宿主执行动作的契约。2026 年的每一个技术栈——OpenAI、Anthropic 和 Gemini 的函数调用；MCP 的 `tools/call`；A2A 的任务部件——都是同一个四步循环的不同编码方式。本课命名这个循环并展示运行它所需的最小机制。
 
-> **【中文解读】** 语言模型生成 token，程序执行动作。工具接口是连接两者的桥梁——一个让模型请求动作、宿主执行动作的契约。2026年所有主流栈都是同一四步循环的不同编码。
+> **【中文解读】** 语言模型生成 token，程序执行动作。工具接口是连接两者的桥梁——一个让模型请求动作、宿主执行动作的契约。2026 年所有主流栈都是同一四步循环的不同编码。
 
-> **【拓展：工具接口→AI Agent基础】** 工具接口是 AI Agent 的核心抽象。MCP 的 `tools/call`、OpenAI 的 `tool_calls`、A2A 的 task parts 都是这一抽象的不同实现。
+> **【拓展：工具接口→AI Agent 基础】** 工具接口是 AI Agent 的核心抽象。MCP 的 `tools/call`、OpenAI 的 `tool_calls`、A2A 的 task parts 都是这一抽象的不同实现。
+
+> 🔗 **【前置】** 学本课前请先掌握：(1) Phase 11·01（Prompt Engineering）——理解 LLM 如何生成 token；(2) Phase 11·03（Structured Outputs）——JSON Schema 基础，本课输入 schema 全靠它；(3) Python 字典、JSON 序列化基础。本课不需要真实 LLM，用 stdlib 模拟，重点在理解循环结构而非 API。
 
 **类型：** 学习
-**语言：** Python（标准库，无需 LLM）
+**语言：** Python（标准库，无 LLM）
 **前置条件：** Phase 11（LLM 补全 API）
-**时间：** 约 45 分钟
+**预计用时：** 约 45 分钟
 
 ## 学习目标
 
@@ -22,7 +24,7 @@
 
 > **【中文解读】** LLM 只能输出 token 的概率分布，这是它唯一的输出方式。它无法直接调用 API、操作数据库或执行任何外部动作。工具接口就是弥合这一鸿沟的桥梁——让模型能通过结构化请求来"间接"操控真实世界。
 
-> **【拓展：Function Calling 的商业影响】** 2023年6月 OpenAI 推出 Function Calling 后，AI 应用开发范式发生根本变化。据 OpenAI 数据，2025年有超过 80% 的 API 调用涉及 tool_use，从简单的天气查询到复杂的多步骤工作流编排。
+> **【拓展：Function Calling 的商业影响】** 2023 年 6 月 OpenAI 推出 Function Calling 后，AI 应用开发范式发生根本变化。据 OpenAI 数据，2025 年有超过 80% 的 API 调用涉及 tool_use，从简单的天气查询到复杂的多步骤工作流编排。
 
 LLM 输出的是关于下一个 token 的概率分布。这就是它全部的输出能力。如果你问聊天模型"班加罗尔现在的天气如何"，它可以写出一段看似合理的句子，但它无法拨入天气 API。这句话可能碰巧正确，也可能已经过时三天。
 
@@ -32,9 +34,11 @@ LLM 输出的是关于下一个 token 的概率分布。这就是它全部的输
 
 四步循环是所有这些实现之下的不变量。Phase 13 的其余内容都是对这个循环的展开。
 
-> **【中文解读】** 四步循环 (describe→decide→execute→observe) 是所有工具调用协议的不变量。无论是 OpenAI 的 function calling、Anthropic 的 tool_use、MCP 的 tools/call 还是 A2A 的 task parts，本质上都是这个循环的不同编码方式。
+> **【中文解读】** 四步循环（describe→decide→execute→observe）是所有工具调用协议的不变量。无论是 OpenAI 的 function calling、Anthropic 的 tool_use、MCP 的 tools/call 还是 A2A 的 task parts，本质上都是这个循环的不同编码方式。
 
 ## 核心概念
+
+> **【中文解读】** 本节把四步循环逐步拆开：描述（宿主声明工具）、决定（模型选择行为）、执行（宿主验证并运行）、观察（结果回填上下文）。每一步的"归属方"是理解各协议差异的钥匙。
 
 ### 第一步：描述
 
@@ -46,13 +50,15 @@ LLM 输出的是关于下一个 token 的概率分布。这就是它全部的输
 - **描述（Description）。** 一段自然语言摘要。"当用户询问特定城市的当前天气时使用。不用于历史数据。"
 - **输入模式（Input schema）。** 描述工具参数的 JSON Schema 对象（draft 2020-12）。
 
+> 💡 **【类比】** 工具接口像餐厅点餐：菜单上每道菜=工具，菜名=tool name，菜单描述=description（"招牌牛肉面，清真可选，配辣油"），点餐选项（辣度、加蛋）=JSON Schema 参数。服务员（模型）看菜单决定推荐哪道菜，把订单（tool_call）递给厨房（执行器），厨房做好端上来（tool_result）。模型从不进厨房，只递单子。
+
 模型接收这个列表。现代供应商使用供应商特定的模板将这些声明序列化到系统提示中，因此作为调用者，你只需要处理结构化形式。
 
 ### 第二步：决定
 
 > **【中文解读】** 模型面对用户消息和可用工具列表时，有三种选择：直接文本回答、调用一个或多个工具、或者拒绝。工具调用负载包含三个字段：call id（用于关联结果）、tool name（工具名）、arguments（JSON 参数对象）。并行调用时 id 尤为重要，因为结果可能乱序返回。
 
-> **【拓展：Parallel Tool Calls 的性能优势】** OpenAI 和 Gemini 默认开启并行工具调用 (`parallel_tool_calls: true`)，允许模型在一次推理中发出多个独立调用。实测表明，对于需要查询多个数据源的场景（如同时查天气和股票），并行调用可以将端到端延迟降低 40-60%。
+> **【拓展：Parallel Tool Calls 的性能优势】** OpenAI 和 Gemini 默认开启并行工具调用（`parallel_tool_calls: true`），允许模型在一次推理中发出多个独立调用。实测表明，对于需要查询多个数据源的场景（如同时查天气和股票），并行调用可以将端到端延迟降低 40-60%。
 
 给定用户消息和可用工具，模型从三种行为中选择一种。
 
@@ -68,6 +74,8 @@ LLM 输出的是关于下一个 token 的概率分布。这就是它全部的输
 
 宿主接收调用，根据声明的 Schema 验证参数，然后运行执行器。无效参数意味着模型幻觉了一个字段或使用了错误的类型——这是弱模型上非常常见的失败模式。生产宿主在遇到无效参数时有三种处理方式：快速失败并将错误反馈给模型；用约束解析器修复 JSON；或在提示中包含验证错误后重试模型。
 
+> ⚠️ **【易错点】** 场景：跳过 schema 验证直接执行 / 后果：弱模型会幻觉字段（如 `get_weather({ cityy: "Tokyo" })` 拼错 key），执行器要么 KeyError 崩溃要么拿到 None 走错分支 / 修复：在执行器前必加 schema 验证，失败时把错误以 `tool_result` 形式返回给模型让它重试，而不是抛异常给宿主。
+
 执行器本身是普通代码。Python、TypeScript、shell 命令、数据库查询。它产生一个结果，通常是字符串，但也可以是任何 JSON 值或结构化内容块（MCP 中的文本、图像或资源引用）。结果必须可序列化。
 
 ### 第四步：观察
@@ -78,9 +86,9 @@ LLM 输出的是关于下一个 token 的概率分布。这就是它全部的输
 
 ### 信任分割
 
-> **【中文解读】** 工具分为两类：纯工具（只读、无副作用，如 get_weather）和后果性工具（改变状态、消耗资金、触及用户数据，如 send_email）。后果性工具必须设置门控机制。Meta 2026年的"二选一规则"要求单次交互最多只能组合两项：不可信输入、敏感数据、后果性动作。
+> **【中文解读】** 工具分为两类：纯工具（只读、无副作用，如 get_weather）和后果性工具（改变状态、消耗资金、触及用户数据，如 send_email）。后果性工具必须设置门控机制。Meta 2026 年的"二选一规则"要求单次交互最多只能组合两项：不可信输入、敏感数据、后果性动作。
 
-> **【拓展：Agent 安全中的 Tool Poisoning】** 2025年出现的 Tool Poisoning 攻击显示，恶意工具可以通过精心构造的描述欺骗模型执行危险操作。例如在工具描述中嵌入"当用户要求删除时立即执行"的隐藏指令。这也是 MCP 安全层（Phase 13 Lessons 15-18）需要重点关注的问题。
+> **【拓展：Agent 安全中的 Tool Poisoning】** 2025 年出现的 Tool Poisoning 攻击显示，恶意工具可以通过精心构造的描述欺骗模型执行危险操作。例如在工具描述中嵌入"当用户要求删除时立即执行"的隐藏指令。这也是 MCP 安全层（Phase 13 Lessons 15-18）需要重点关注的问题。
 
 工具分为两种对安全有重要影响的类型。
 
@@ -100,7 +108,9 @@ Meta 2026 年关于 Agent 安全的"二选一规则"指出，单次轮次最多�
 
 到处都是同样的四个步骤。列名变了，结构没变。
 
-> **【拓展：MCP 统一工具协议】** Model Context Protocol (MCP, 2024年11月发布) 将工具接口标准化，使得一个工具注册表可以服务所有模型。MCP 已被 Anthropic、OpenAI、Google 等主要厂商采纳，2026年已成为事实上的工具协议标准，类似于 USB-C 对充电器的统一作用。
+> 🤔 **【困惑】** Q: 既然都是同一个四步循环，为什么还要 MCP、A2A 这么多协议？ A: 循环不变的是"逻辑步骤"，变的是"通信边界"。原生 function calling 在同一进程内；MCP 把 describe 步骤跨进程化（让一个 server 服务多个 host）；A2A 把 execute 步骤跨网络化（让 agent 调 agent）。本质都是把循环的某一步从"进程内"搬到"网络边界"，需要标准化协议来描述谁负责什么。
+
+> **【拓展：MCP 统一工具协议】** Model Context Protocol（MCP，2024 年 11 月发布）将工具接口标准化，使得一个工具注册表可以服务所有模型。MCP 已被 Anthropic、OpenAI、Google 等主要厂商采纳，2026 年已成为事实上的工具协议标准，类似于 USB-C 对充电器的统一作用。
 
 ### 为什么不直接让模型输出 JSON？
 
@@ -114,9 +124,9 @@ Phase 13 · 02 并排展示三个供应商的 API。Phase 13 · 04 深入讲解�
 
 ### 熔断器
 
-> **【中文解读】** 熔断器是生产环境的必备机制。循环在模型停止发出调用或宿主触达最大轮次时终止。生产环境通常设 5-20 轮上限。无上限循环是 "Agent 一夜花掉 $400" 事故的根本原因。
+> **【中文解读】** 熔断器是生产环境的必备机制。循环在模型停止发出调用或宿主触达最大轮次时终止。生产环境通常设 5-20 轮上限。无上限循环是"Agent 一夜花掉 $400"事故的根本原因。
 
-> **【拓展：Agent 成本失控案例】** 2025年多个公开案例显示，缺少熔断器的 Agent 在遇到模型死循环时会产生巨额 API 账单。例如某用户报告其编码 Agent 在修复 bug 时陷入循环，一夜产生 $2,000+ 的 API 费用。Claude Code 默认上限 20 轮，OpenAI Assistants 10 轮，Cursor agent 模式 25 轮。
+> **【拓展：Agent 成本失控案例】** 2025 年多个公开案例显示，缺少熔断器的 Agent 在遇到模型死循环时会产生巨额 API 账单。例如某用户报告其编码 Agent 在修复 bug 时陷入循环，一夜产生 $2,000+ 的 API 费用。Claude Code 默认上限 20 轮，OpenAI Assistants 10 轮，Cursor agent 模式 25 轮。
 
 循环在模型停止发出调用或宿主达到最大轮次时终止。生产宿主将其设置为 5 到 20 轮。超过这个范围，你几乎肯定处于模型无法退出的循环中。Claude Code 默认为 20；OpenAI Assistants 为 10；Cursor 的 Agent 模式为 25。
 
@@ -134,7 +144,13 @@ Phase 14 · 12 深入讲解错误恢复和自愈；Phase 17 涵盖生产限流�
 
 其余每一课都是这个四步循环的展开。请将其牢记为不变量。
 
+```figure
+tp-tool-loop
+```
+
 ## 用框架实现
+
+> **【中文解读】** 示例代码用假"决策器"模拟模型，把循环的其余部分（验证、执行、观察）做成真实实现。这是学习协议的好方法：先把控制流跑通，再逐步替换成真实组件。
 
 `code/main.py` 在不使用 LLM 的情况下运行四步循环。一个假的"决策器"函数通过模式匹配用户消息来模拟模型；执行器、Schema 验证器和观察步骤的线束都是真实的。运行它可以看到完整的请求/响应编排和可打印的中间状态，然后在后续课程中将假决策器替换为任何真正的供应商。
 
@@ -180,5 +196,5 @@ Phase 14 · 12 深入讲解错误恢复和自愈；Phase 17 涵盖生产限流�
 - [OpenAI — Function calling guide](https://platform.openai.com/docs/guides/function-calling) — OpenAI 风格工具声明和调用形状的权威参考
 - [Anthropic — Tool use overview](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview) — Claude 的 `tool_use` / `tool_result` 块格式
 - [Google — Gemini function calling](https://ai.google.dev/gemini-api/docs/function-calling) — Gemini 中的 `functionDeclarations` 和并行调用语义
-- [Model Context Protocol — Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25) — 工具接口的供应商无关泛化
+- [Model Context Protocol — Specification 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) — 当前无状态、供应商无关的工具接口泛化
 - [JSON Schema — 2020-12 release notes](https://json-schema.org/draft/2020-12/release-notes) — 每个现代工具 API 使用的 Schema 方言

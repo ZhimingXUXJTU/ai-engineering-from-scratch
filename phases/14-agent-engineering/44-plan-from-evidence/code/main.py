@@ -3,6 +3,11 @@
 # Reference: PERT, U.S. Navy Special Projects Office, 1958.
 # Reference: CPM, Kelley and Walker, Eastern Joint Computer Conference, 1959.
 # Run this file to generate outputs/evidence-plan.json.
+# 中文标题：从证据出发做计划 (Build an Evidence-Backed Execution Plan)
+# 核心概念：工作项五要素——标识符/最小改动/证据（仓库凭据）/依赖/证明；校验器拒绝缺证据、缺证明、
+#           依赖悬空和循环依赖的计划；拓扑排序把工作项切成可并行的"执行波次"。
+# AI 应用对应：让编码 Agent 在改文件之前先产出这份计划，人只审批计划本身；波次即并行委托的依据
+#             （同一波互不依赖，可分给多个 Agent）；不可逆动作必须排在其不确定性解决之后。
 from __future__ import annotations
 
 import json
