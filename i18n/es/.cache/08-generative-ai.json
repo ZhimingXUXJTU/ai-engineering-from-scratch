@@ -1,0 +1,17 @@
+{
+  "phases/08-generative-ai/01-generative-models-taxonomy-history/docs/en.md": "f1d5068f110e2a7cda8ebb4cd6cb573865e72d541a51fa06f199d38fcdb67cbb",
+  "phases/08-generative-ai/02-autoencoders-vae/docs/en.md": "e1e2d7640ff1d3aa164a26d774d25ccb0a7bbd517231614d9440b9f031143ee6",
+  "phases/08-generative-ai/03-gans-generator-discriminator/docs/en.md": "4781ee71bfe37799061260c2bcc96acb2006874e3109ade387f37fc24aad7ab4",
+  "phases/08-generative-ai/04-conditional-gans-pix2pix/docs/en.md": "a85f7d88fe56fd7818ab4bb6f80aa28db43e3107a1988dce25a2c0d0889236ed",
+  "phases/08-generative-ai/05-stylegan/docs/en.md": "d28ee601cc37d282f13c30a05e16ddcc87297304641c42391f7f16d632b9e922",
+  "phases/08-generative-ai/06-diffusion-ddpm-from-scratch/docs/en.md": "ae9f922808ccf919bc90e3fa9b0a6be1e37eac8118b51ae43f505127f9339b6d",
+  "phases/08-generative-ai/07-latent-diffusion-stable-diffusion/docs/en.md": "817fdcd0da406c8063202e7c5c25fc384a4960ef8e1811abd0acc40a6ac2593e",
+  "phases/08-generative-ai/08-controlnet-lora-conditioning/docs/en.md": "de8f0117f2ecc85ca0b9833644d4678bac6bc18c0247a88c155c754dbdc532d9",
+  "phases/08-generative-ai/09-inpainting-outpainting-editing/docs/en.md": "9d61cd2093ab14800f7fa23115da704e5cf24ccfe4feb7694db241fe306060e2",
+  "phases/08-generative-ai/10-video-generation/docs/en.md": "2a3ce4c51864cdbb73d475328e7553798b4b49f9bf9d294ce80333fce8c4ef2a",
+  "phases/08-generative-ai/11-audio-generation/docs/en.md": "3d55e6bd7e739b2791063464757d2d2adef7907cf4975562c13baf32cd10778a",
+  "phases/08-generative-ai/12-3d-generation/docs/en.md": "2e43e005c633c2d7e104eaf69cbbdf9875d5768cce4e8c9d705800dbc43896ec",
+  "phases/08-generative-ai/13-flow-matching-rectified-flows/docs/en.md": "062bf0f661db493d7b7d38e2cb8fb71ef1ebb5f94d56486b904bedf556804fb6",
+  "phases/08-generative-ai/14-evaluation-fid-clip-score/docs/en.md": "a94baea6748cd6a3edf8a12f1212dd0a662a3ed1e6d3aa4e5bdf1fd378ea46ce",
+  "phases/08-generative-ai/19-visual-autoregressive-var/docs/en.md": "67f6926d3b855dfd6c7ee26b27e971444e03821b639992dce3a674dfae524762"
+}
