@@ -1,5 +1,14 @@
 """Phase 11 Lesson 14: a stateless MCP server and in-process client.
 
+模型上下文协议（MCP）— 无状态版
+核心概念：实现 MCP 2026-07-28 请求契约——每个请求自带 `_meta` 元数据（协议版本/
+客户端能力/身份）、`server/discover` 发现、带 `resultType` 的显式结果，以及三个
+服务器原语（tools/resources/prompts）。没有 initialize 握手、没有会话 ID。
+
+AI 应用对应：MCP 是 Claude 生态的核心协议（Anthropic 2024 年 11 月发布，现由
+Linux 基金会托管）。本文件刻意只用标准库、走内存管道，让每个 JSON-RPC 信封
+清晰可见；生产实现见 Phase 13 · 06-18 与 28-31。
+
 Implements the 2026-07-28 request contract with per-request metadata,
 server/discover, typed results, and the three server primitives. The transport
 is in memory so the protocol remains visible and the demo stays stdlib-only.
