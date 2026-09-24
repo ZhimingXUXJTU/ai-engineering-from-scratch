@@ -1,5 +1,16 @@
 """Constitutional rules engine.
 
+中文标题：宪法规则引擎（Constitutional Rules Engine）
+核心概念：宪法式（Constitutional AI）约束的工程形态——把行为原则写成 YAML 规则
+（name + predicate + severity + explanation），随代码进版本控制、走独立评审。
+规则两段式求值：先评估 applies_when（不适用记 not_applicable），再评估 must
+（产出 pass 或 violation）；谓词用 all_of/any_of/not_ 递归组合、any_of 短路。
+Fixer 按声明式操作（append_if_missing 等）做局部修订，diff 产出 add/remove/edit
+结构化变更列表供人工审计，形成"草稿→违规→修复→复审"闭环。
+AI 应用对应：企业 LLM 使用规范的落地检查、NeMo Guardrails 一类护栏的流程约束
+都是"约束文件 + 评审流程"的同一形态。本课 high 规则违规与 85 课 high 分类器
+判定在下游等价；87 课把本引擎作为 post-gen 检查点接入端到端安全门。
+
 Loads a YAML constitution, evaluates rules against a candidate text, and
 produces structured violations with rule name, severity, explanation, and
 matched span. The Fixer applies declarative repairs per rule; diff produces

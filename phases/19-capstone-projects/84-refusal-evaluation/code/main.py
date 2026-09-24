@@ -1,5 +1,15 @@
 """Refusal evaluation framework.
 
+中文标题：拒答评测（Refusal Evaluation）
+核心概念：助手的安全失误是双向的——欠拒答（回答了标 unsafe 的 prompt）与过拒答
+（拒答了标 safe 的 prompt）。本课把助手当 prompt 安全性上的二元分类器：带标签
+prompt 集经模拟 LLM 产生输出，拒答短语 regex 判定拒答/回答，聚合器算欠拒答率、
+过拒答率、准确率、ECE 校准误差和按 82 课分类别的欠拒答拆解。三个模拟策略是被
+脚本化的 bug，框架必须全部检出。
+AI 应用对应：真实产品安全评测（模型卡 refusal benchmark、XSTest 一类过拒答测试
+集）都靠"双向指标 + 按类别拆解"避免按下葫芦浮起瓢。87 课把模拟 LLM 换成真模型
+HTTP 调用，本框架不动——这正是 fixture 驱动评测的设计意图。
+
 Runs labeled prompts through one or more mock LLM policies, classifies each
 output as a refusal or an answer, computes under-refusal, over-refusal,
 accuracy, ECE calibration, and a per-category breakdown for unsafe prompts.

@@ -1,5 +1,16 @@
 """End-to-end safety gate demo over the lesson 82 taxonomy.
 
+中文标题：端到端安全门（End-to-End Safety Gate）
+核心概念：纵深防御在 LLM 栈里的工程形态——三个检查点编排前五课的部件。pre-gen
+在调模型前跑 83 课检测器（放行/拦截/挂标志）；during-gen 流式过滤器缓冲块、扫描
+禁语续写、可提前终止（前缀注入只做事后检查会漏网）；post-gen 由 85 课分类器路由
+和 86 课规则引擎审完整输出。聚合器按确定性表合并四个严重度信号出最终动作
+（block/redact/warn/allow），每个请求产出含全部检查点判定与延迟的 RequestTrace。
+AI 应用对应：各大平台的组合式安全管线（输入审核 + 流式输出调制 + 策略执行 +
+全链路审计日志）就是这套形态。门的首要交付物是 trace 格式和组合逻辑——不是
+"拦住多少"的数字，而是每个请求在每个检查点发生了什么的证据链，可直接搬进
+真实后端。
+
 Loads the taxonomy artifact, runs all 50 fixtures plus a small benign list
 through the SafetyGate, prints a per-action / per-category summary, and
 writes outputs/gate_trace.json.

@@ -1,5 +1,15 @@
 """Prompt injection detector with normalize -> substring -> regex pipeline.
 
+中文标题：提示注入检测器（Prompt Injection Detector）
+核心概念：检测器是"从 prompt 到置信度 + 类别"的函数，本课用三层流水线实现：
+先规范化（剥零宽字符、解码 base64/rot13、leet 还原）暴露伪装词元，再跑确定性
+子串规则和词元级正则规则；聚合器取最高分类别与该类内最高分得到 Verdict。在
+82 课的带标注语料和良性语料上按类别统计 TP/FP/TN/FN，报告精确率与召回率。
+AI 应用对应：输入侧护栏是所有 LLM 安全产品的第一道闸（OWASP LLM Top 10 的
+LLM01、NeMo Guardrails、Llama Guard 一类方案）。本课产物 detector_report.json
+是 87 课端到端安全门的 pre-gen 信号；"规则即数据、逐类覆盖可声明"的写法可
+直接搬进真实后端的输入检查层。
+
 Reads the taxonomy artifact from lesson 82, runs the layered detector across
 every fixture, runs it across a benign corpus, and writes a per-category
 precision/recall report to outputs/detector_report.json.

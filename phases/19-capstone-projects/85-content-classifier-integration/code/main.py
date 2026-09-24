@@ -1,5 +1,16 @@
 """Content classifier router.
 
+中文标题：内容分类器集成（Content Classifier Integration）
+核心概念：输出侧分类器回答"即将发给用户的内容可不可接受"——毒性（规则式脏话
+检测）、PII（邮箱/电话/SSN/信用卡/IP 形状的 regex）、指令泄露（输出与已知系统
+提示词的三元组重叠）。每个分类器返回带 severity/score/findings 的结构化
+ClassifierVerdict 并自带独立脱敏器；Router 取全部判定的最高严重度查表执行
+block / redact / warn / log，拦截优先、redact + warn 归并为 redact。
+AI 应用对应：OpenAI moderation API、Azure Content Safety、NeMo Guardrails 的
+output rails 都是这套"多分类器 + 策略路由"的形态；分类器与 token 流式输出并行
+可解延迟问题。本课产物 classifier_report.json 是 87 课端到端安全门 post-gen
+检查点的核心组件，接口约定可直接搬进真实后端。
+
 Wires three output-side classifiers behind a single router that picks the
 maximum severity, runs the corresponding action (block, redact, warn, log),
 and returns a structured Action object the safety gate can consume.
