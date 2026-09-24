@@ -2,6 +2,24 @@
 
 > **17 节课 · ~18 小时 · 🟡进阶**
 
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**Phase 1 的向量、矩阵和概率。第一个演示只使用 Python 标准库。
+
+**第一课：**[音频基础](01-audio-fundamentals/)
+
+在仓库根目录运行以下命令：
+
+```bash
+python3 phases/06-speech-and-audio/01-audio-fundamentals/code/main.py
+```
+
+保留命令、退出码、检测到的频率峰值、混叠频率，以及解释为什么降采样前必须先做低通滤波。
+
+**下一步：**改变源音调并预测其混叠频率，然后继续学习 [频谱图与梅尔特征](02-spectrograms-mel-features/)。
+
+浏览[完整的 Phase 6 课程列表](../../README.md#phase-6)或[跨阶段路线图](../../ROADMAP.md)。
+
 ## 学习目标
 
 - 理解音频信号的数学基础和特征提取方法（频谱图、梅尔特征）

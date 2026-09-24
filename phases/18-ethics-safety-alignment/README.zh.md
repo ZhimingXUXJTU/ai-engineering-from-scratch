@@ -4,6 +4,24 @@
 
 构建有益于人类的 AI。这不是可选项。
 
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**Phase 10 第 06、07、08 课（SFT、RLHF 与 DPO）。
+
+**第一课：**[指令遵循作为对齐信号](01-instruction-following-alignment-signal/)
+
+在仓库根目录运行以下命令：
+
+```bash
+python3 phases/18-ethics-safety-alignment/01-instruction-following-alignment-signal/code/main.py
+```
+
+保留命令、退出码、有无 KL 惩罚的两份策略、奖励与 KL 轨迹，以及一句话指出你观察到的代理目标（proxy）失效。
+
+**下一步：**修改 KL 系数，预测策略漂移，然后继续学习 [奖励黑客与古德哈特定律](02-reward-hacking-goodhart/)。
+
+浏览[完整的 Phase 18 课程列表](../../README.md#phase-18)或[跨阶段路线图](../../ROADMAP.md)。
+
 ## 学习目标
 
 - 理解对齐信号的本质：指令遵循、奖励黑客、阿谀奉承

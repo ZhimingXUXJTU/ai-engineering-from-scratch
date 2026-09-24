@@ -1,6 +1,24 @@
 # Phase 10: 从零构建 LLM
 
-> **25 节课 · ~26 小时 · 🔴高级**
+> **24 节课 · ~26 小时 · 🔴高级**
+
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**Phase 5 NLP 基础。在进入模型构建课程之前，强烈建议先完成 Phase 7 Transformer 深度解析。
+
+**第一课：**[分词器](01-tokenizers/)
+
+在仓库根目录运行以下命令：
+
+```bash
+python3 phases/10-llms-from-scratch/01-tokenizers/code/main.py
+```
+
+保留命令、退出码、编码/解码往返结果、学到的合并（merge）数量和压缩率。`tiktoken` 是可选的对比项。
+
+**下一步：**添加一个迷你语料中没有出现过的词，检查它被切分的片段，然后继续学习 [从零构建分词器](02-building-a-tokenizer/)。
+
+浏览[完整的 Phase 10 课程列表](../../README.md#phase-10)或[跨阶段路线图](../../ROADMAP.md)。
 
 ## 学习目标
 

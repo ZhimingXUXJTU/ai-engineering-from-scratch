@@ -4,6 +4,24 @@
 
 无需人类干预即可运行的 Agent —— 安全地运行。
 
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**Phase 14 第 01 课（Agent Loop，Agent 循环）。
+
+**第一课：**[长程 Agent](01-long-horizon-agents/)
+
+在仓库根目录运行以下命令：
+
+```bash
+python3 phases/15-autonomous-systems/01-long-horizon-agents/code/main.py
+```
+
+保留命令、退出码、时间跨度（horizon）投影、复合可靠性表，以及一项你在长时间运行之前会要求的运营控制措施。
+
+**下一步：**用不同的单步可靠度重新计算一条轨迹，然后继续学习 [自我教学推理](02-star-family-reasoning/)。
+
+浏览[完整的 Phase 15 课程列表](../../README.md#phase-15)或[跨阶段路线图](../../ROADMAP.md)。
+
 ## 学习目标
 
 - 理解长程 Agent 的挑战：从聊天机器人到自主系统的跃迁

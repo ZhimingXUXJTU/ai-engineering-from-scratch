@@ -2,6 +2,24 @@
 
 > **29 节课 · ~30 小时 · 🟡进阶**
 
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**Phase 2 第 14 课（朴素贝叶斯）。第一课只需要 Python 3.11+。
+
+**第一课：**[文本处理](01-text-processing/)
+
+在仓库根目录运行以下命令：
+
+```bash
+python3 phases/05-nlp-foundations-to-advanced/01-text-processing/code/main.py
+```
+
+保留命令、退出码、token 列表、词干、词元（lemma），以及一个词干提取丢失语义而词形还原保留语义的例子。
+
+**下一步：**添加一个包含标点和不规则动词的句子，检查结果，然后继续学习 [词袋模型与 TF-IDF](02-bag-of-words-tfidf/)。
+
+浏览[完整的 Phase 5 课程列表](../../README.md#phase-5)或[跨阶段路线图](../../ROADMAP.md)。
+
 ## 学习目标
 
 - 掌握文本预处理、词袋模型、TF-IDF 等基础文本处理方法

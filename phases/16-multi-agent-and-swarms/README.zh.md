@@ -4,6 +4,24 @@
 
 协调、涌现与集体智能。
 
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**Phase 14 Agent 工程。第一个 TypeScript 演示需要 Node.js 20+ 和 `npx`。
+
+**第一课：**[为什么需要多 Agent](01-why-multi-agent/)
+
+在仓库根目录运行以下命令：
+
+```bash
+npx --yes tsx phases/16-multi-agent-and-swarms/01-why-multi-agent/code/single_vs_multi.ts
+```
+
+保留命令、退出码、单 Agent 与多 Agent 的 token 和工具调用总量，以及一项让额外协调物有所值的权衡。
+
+**下一步：**更换任务，再次比较两种方案，然后继续学习 [FIPA-ACL 遗产与言语行为](02-fipa-acl-heritage/)。
+
+浏览[完整的 Phase 16 课程列表](../../README.md#phase-16)或[跨阶段路线图](../../ROADMAP.md)。
+
 ## 学习目标
 
 - 理解多 Agent 系统的四个原语：Agent、交接、共享状态、编排者

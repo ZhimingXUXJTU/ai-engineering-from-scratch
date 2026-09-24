@@ -2,6 +2,24 @@
 
 > **16 节课 · ~16 小时 · 🟡进阶**
 
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**Phase 3 深度学习核心、Phase 5 第 09 课（序列到序列模型）和 Phase 5 第 10 课（注意力机制）。
+
+**第一课：**[为什么需要 Transformer](01-why-transformers/)
+
+在仓库根目录运行以下命令：
+
+```bash
+python3 phases/07-transformers-deep-dive/01-why-transformers/code/main.py
+```
+
+保留命令、退出码、串行与并行深度对照表、等价性检查，以及一句话描述速度与内存的权衡。
+
+**下一步：**解释为什么并行深度改变了硬件层面的格局，然后继续学习 [自注意力从零实现](02-self-attention-from-scratch/)。
+
+浏览[完整的 Phase 7 课程列表](../../README.md#phase-7)或[跨阶段路线图](../../ROADMAP.md)。
+
 ## 学习目标
 
 - 理解自注意力机制（Self-Attention）的数学原理与实现

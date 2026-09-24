@@ -2,6 +2,24 @@
 
 > **17 节课 · ~17 小时 · 🟡进阶**
 
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**Phase 10 第 01 至 05 课，或具备分词、数据流水线、预训练和扩展方面的同等知识。
+
+**第一课：**[提示工程](01-prompt-engineering/)
+
+在仓库根目录运行以下命令：
+
+```bash
+python3 phases/11-llm-engineering/01-prompt-engineering/code/prompt_engineering.py
+```
+
+保留命令、退出码、生成的提示元数据、测试结果，以及一处提示修改和它造成的输出差异。该演示使用模拟的模型响应，无需 API 密钥。
+
+**下一步：**解释哪个提示变量改变了行为以及原因，然后继续学习 [少样本、思维链与思维树](02-few-shot-cot/)。
+
+浏览[完整的 Phase 11 课程列表](../../README.md#phase-11)或[跨阶段路线图](../../ROADMAP.md)。
+
 ## 学习目标
 
 - 掌握提示工程（Prompt Engineering）的核心技术与模式

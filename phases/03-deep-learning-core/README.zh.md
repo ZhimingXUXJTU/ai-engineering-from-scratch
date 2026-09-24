@@ -2,6 +2,24 @@
 
 > **13 节课 · ~15 小时 · 🟢入门**
 
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**Phase 1 线性代数直觉。建议同时完成 Phase 2，以掌握模型评估的基本词汇。
+
+**第一课：**[感知机](01-the-perceptron/)
+
+在仓库根目录运行以下命令：
+
+```bash
+python3 phases/03-deep-learning-core/01-the-perceptron/code/perceptron.py
+```
+
+保留命令、退出码、收敛门控（gate）结果、单个感知机在 XOR 上的失败结果，以及最终两层网络对 XOR 的预测。
+
+**下一步：**解释为什么单条线性边界无法解决 XOR，然后继续学习 [多层网络与前向传播](02-multi-layer-networks/)。
+
+浏览[完整的 Phase 3 课程列表](../../README.md#phase-3)或[跨阶段路线图](../../ROADMAP.md)。
+
 ## 学习目标
 
 - 从感知机到多层网络，理解神经网络的基本架构
