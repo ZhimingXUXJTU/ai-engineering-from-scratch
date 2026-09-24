@@ -3,6 +3,14 @@
 # MCP: https://modelcontextprotocol.io/specification/2026-07-28
 # Also follows JSON-RPC 2.0, RFC 2104 HMAC, and RFC 4648 base64url.
 # Run: python3 main.py
+#
+# 中文批注（认证课 11）：
+# 课程标题：MCP 把能力与宿主分离 / MCP Separates Capability From Host
+# 核心概念：2026-07-28 无状态规范——每请求 _meta 携带版本与客户端能力；强制 server/discover；
+# 结果声明 complete/input_required；roots/sampling/elicitation 仅经 MRTR（新 ID + inputResponses +
+# 原样回显 requestState）；HMAC 保护状态完整性，重试可落在另一实例。
+# AI 应用对应：多宿主共享能力时用 MCP 取代 M×N 定制连接器；传输遵循无会话 POST-only
+# Streamable HTTP 语境（无 GET 流、无 Mcp-Session-Id、无服务器主动请求）。
 
 from __future__ import annotations
 

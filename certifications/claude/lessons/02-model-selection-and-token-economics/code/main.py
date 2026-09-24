@@ -3,6 +3,14 @@ certifications/claude/lessons/02-model-selection-and-token-economics/docs/en.md
 It validates and summarizes a ten-case local model-routing benchmark.
 It also validates repeated mode trials against dated support evidence and gates.
 Rates are illustrative units, so no provider price or credential is required.
+
+中文标题：把能力花在失败代价高的地方（Spend Capability Where Failure Is Expensive）
+核心概念：模型选型是质量/延迟/上下文/成本的分配问题——token 按四桶估算（用变量
+  不用现价），质量用阈值门而非感觉，六层失败诊断里只有"模型层"该靠升级解决，
+  路由按可观察信号分流，配置是带日期的捆绑包（模型/速度/努力/思考/契约/采样）。
+AI 应用对应：对应生产 LLM 系统的成本与可靠性工程——校验器要求每个模式组合有
+  带日期的官方支持证据、每个 docs-supported 配置至少三次重复运行、p95 与成本
+  从原始运行对账，这正是"采样非确定性下如何积累证据"的工程化答案。
 """
 
 from __future__ import annotations

@@ -2,6 +2,13 @@
 certifications/claude/lessons/04-context-knowledge-memory-and-caching/docs/en.md
 It validates source lifecycle metadata, prompt budget, and cache eligibility.
 The scenario runner keeps correctness separate from cache economics.
+
+中文注解（fork 维护）：
+课程：把每类事实放进正确类型的上下文（Put Each Fact in the Right Kind of Context）
+核心概念：上下文是临时注意力、知识是被维护的证据、记忆是连续性、缓存是复用；
+来源注册表带权威/归属/敏感度/时效元数据，正确性优先于缓存经济性。
+AI 应用对应：本验证器把"来源生命周期 + 提示预算 + 缓存准入"变成可机检规则，
+用于 Claude 工作流的知识管理与成本治理（对应 outputs/context-registry.json）。
 """
 
 from __future__ import annotations

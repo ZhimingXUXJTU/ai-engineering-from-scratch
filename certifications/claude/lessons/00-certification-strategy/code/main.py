@@ -2,6 +2,14 @@
 certifications/claude/lessons/00-certification-strategy/docs/en.md
 It validates a readiness packet and ranks domains by weighted weakness.
 It uses only local JSON and never reconstructs confidential exam content.
+
+中文标题：学决策，不是学术语（Study the Decisions, Not the Vocabulary）
+核心概念：把考试大纲当作"可辩护决策"的权重地图而非术语表——按知识域权重 ×
+  薄弱系数分配学习时间，用证据台账（决策规则 + 反例 + 带日期官方来源）和
+  多条件就绪门取代单次模拟分；错题先分类（七类）再选补救方式。
+AI 应用对应：这套方法直接迁移到 LLM 应用的评估与治理——按知识域/风险切片
+  分配评测预算，用带日期的证据而非记忆支撑模型选型，用"多条件质量门 +
+  重复运行"替代"一次跑通就上线"的判断方式。
 """
 
 from __future__ import annotations

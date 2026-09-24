@@ -2,6 +2,14 @@
 certifications/claude/lessons/01-claude-product-and-model-landscape/docs/en.md
 It validates surface, model, and deployment decisions plus their dated evidence.
 All measurements come from a local filled scenario rather than provider calls.
+
+中文标题：选择能承载工作的最小接口面（Choose the Smallest Surface That Can Carry the Work）
+核心概念：产品选型 = 边界设计。先按六维（重复性/知识/新鲜度/输出/后果/协作）描述
+  工作再选界面；模型家族（Haiku/Sonnet/Opus）是角色不是等级；部署是控制面决策，
+  四条路径（直连、Bedrock、Vertex AI、Foundry）用加权矩阵 + ADR 记录。
+AI 应用对应：对应真实 LLM 系统的"最小充分能力"原则与选型治理——校验器拒绝
+  无日期的产品事实、无人类主人的决策、没有落选替代方案的记录，这正是把
+  "选型要有证据"变成可执行断言的工程化做法。
 """
 
 from __future__ import annotations

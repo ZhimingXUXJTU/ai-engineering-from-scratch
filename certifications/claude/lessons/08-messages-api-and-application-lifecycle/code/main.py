@@ -1,4 +1,11 @@
-"""Companion code for:
+"""课程：Messages API 是一台状态机（The Messages API Is a State Machine）
+认证课程 08 · Messages API 与应用生命周期（Messages API / application lifecycle）
+核心概念：API 无状态，会话状态由客户端持有；一次请求就是一次显式状态迁移；
+按 stop_reason 分支而不是按文本语气分支；tool_result 必须随完整对话序列回传。
+AI 应用对应：用脚本化的离线模拟器把工具往返、流式收集、SDK/REST 与同步/流式/批处理
+选择、多模态资产边界（file_id 允许列表 + 哈希台账）全部变成可测试的协议断言。
+
+Companion code for:
 certifications/claude/lessons/08-messages-api-and-application-lifecycle/docs/en.md
 It models the Messages API lifecycle without network calls.
 Protocol concepts follow the official Anthropic Messages API documentation.

@@ -2,6 +2,13 @@
 certifications/claude/lessons/10-tool-use-and-agentic-loops/docs/en.md
 It models Claude tool_use and tool_result content-block sequencing.
 Behavior follows official Anthropic client-tool and Messages documentation.
+
+中文批注（认证课 10）：
+课程标题：工具循环是受控的委托 / A Tool Loop Is Controlled Delegation
+核心概念：模型只能"提议"工具调用，授权、沙箱、幂等与轮次预算归确定性代码；
+配对的 tool_use/tool_result ID 关联结果与请求；失败按类别作为类型化结果返回。
+AI 应用对应：任何带工具调用的 Claude 应用都要实现显式状态机与终止条件；
+官方事实（如 Managed Agents 公测状态、2026-08-08/09 产品核实说明）以官方文档为准。
 """
 
 from __future__ import annotations
