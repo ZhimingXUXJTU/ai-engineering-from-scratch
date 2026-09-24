@@ -1,0 +1,19 @@
+{
+  "phases/06-speech-and-audio/01-audio-fundamentals/docs/en.md": "92ff2530fe037197063ea11130e18093eed927d6f695b51f5c36717743b9e951",
+  "phases/06-speech-and-audio/02-spectrograms-mel-features/docs/en.md": "16a5a76d3d7de4961d4826ecfcf773d42695662daa0721678e1c4fd91985fa1a",
+  "phases/06-speech-and-audio/03-audio-classification/docs/en.md": "12d5c3718c4ad84216bf406c6ecdf5c08d7041a07159578ae0e80440f0633495",
+  "phases/06-speech-and-audio/04-speech-recognition-asr/docs/en.md": "e5bec4aca3e23d8fb4ad5a68fb89b6f838b03e473400a35fd30b085d748b7c23",
+  "phases/06-speech-and-audio/05-whisper-architecture-finetuning/docs/en.md": "206dc5f33cf324057119a244bc2980596fe0a2969528ed764358c7778fe8770e",
+  "phases/06-speech-and-audio/06-speaker-recognition-verification/docs/en.md": "6fb7f95f60b1fc1455525067c331903efc58392c74b8b018f7f55be32669b270",
+  "phases/06-speech-and-audio/07-text-to-speech/docs/en.md": "3cc551c133bcc787a99f891d0b33e1175ae09e977535e992eca7f5855b122543",
+  "phases/06-speech-and-audio/08-voice-cloning-conversion/docs/en.md": "8d04f1615cb4c7d021c049cd124b5ac3e6a2394792697d9f96404d9488f9269b",
+  "phases/06-speech-and-audio/09-music-generation/docs/en.md": "d491a173f964fd1a9653b266066333f6d7dab6ad720422e9d68e94ba2a2be335",
+  "phases/06-speech-and-audio/10-audio-language-models/docs/en.md": "835e69ee670320403520aeb741adef8256231663f58807149507a63e8f03bea7",
+  "phases/06-speech-and-audio/11-real-time-audio-processing/docs/en.md": "c37994ac4e4eb6f6813120f1fe6da657992736985b9ad5e88aed9154f1c9ad2d",
+  "phases/06-speech-and-audio/12-voice-assistant-pipeline/docs/en.md": "c04146d24c3bdd5bf73d459d34041a52cb62cfd712bffd0da75dbcdb38622bdc",
+  "phases/06-speech-and-audio/13-neural-audio-codecs/docs/en.md": "43e2af29845340a98332e15aa7bf3a54315b173c2705a499d8475852280ff0af",
+  "phases/06-speech-and-audio/14-voice-activity-detection-turn-taking/docs/en.md": "613bfda3f8e23367b2c9bdcd257c54c6adea2460a3408aee6e8ad50aed93e13b",
+  "phases/06-speech-and-audio/15-streaming-speech-to-speech-moshi-hibiki/docs/en.md": "d4c8f0a272f3a3ed940cece61aa2055444afe24d234a6c1491142e02fc517ab6",
+  "phases/06-speech-and-audio/16-anti-spoofing-audio-watermarking/docs/en.md": "acb9420216dae28fc2fe17f9643de5a96d89eb4476a77ee56c2e6b26e67bb1bd",
+  "phases/06-speech-and-audio/17-audio-evaluation-metrics/docs/en.md": "fc8cfc9ee5c7496d325410416858577fa87d8264dd9eed3531e5cb4bc60323b4"
+}
