@@ -1,0 +1,14 @@
+{
+  "phases/09-reinforcement-learning/01-mdps-states-actions-rewards/docs/en.md": "c7755bf25c0a2e0c4129a2bfb36a0b52b77a95bba3a54930e2f536801bfe4684",
+  "phases/09-reinforcement-learning/02-dynamic-programming/docs/en.md": "1b81a2c2b86ccffb66e9f073392ee36b873cc836b199d3d037cf1f9a7727effa",
+  "phases/09-reinforcement-learning/03-monte-carlo-methods/docs/en.md": "41e289f6c56cd61b8a8a0fe15815744631ba8c10d2341c7518df189ffe1913e3",
+  "phases/09-reinforcement-learning/04-q-learning-sarsa/docs/en.md": "b0d8ae2e1ad2e181794e041a8fa58b73aa7cd8cef70192670bc477abf63fda53",
+  "phases/09-reinforcement-learning/05-dqn/docs/en.md": "8e8d12562449c101839b0e4dbdb2f025e458564ef93bbf8a6ab39d730eb028de",
+  "phases/09-reinforcement-learning/06-policy-gradients-reinforce/docs/en.md": "a84233b67410125604aa838f3c60ca68dab56703f7d8fee614ec6339c0ca4aec",
+  "phases/09-reinforcement-learning/07-actor-critic-a2c-a3c/docs/en.md": "87a2f42263cb6a1c00bc85b51eff609b7d8e4d56f26bf34d11ea40e0df23f8e9",
+  "phases/09-reinforcement-learning/08-ppo/docs/en.md": "97a00fe7e468fe856146acfb618af09bcf6ac3198da44a5827f5c6c8e4968002",
+  "phases/09-reinforcement-learning/09-reward-modeling-rlhf/docs/en.md": "050c3415100472d8f55d9da76ee2d5141dabe91565f8e04a4a883478bbdf9e6d",
+  "phases/09-reinforcement-learning/10-multi-agent-rl/docs/en.md": "85d73fcbe82d706b362c9963f80bb6814a42daf4053fd3d11e95c0d65bf4c13c",
+  "phases/09-reinforcement-learning/11-sim-to-real-transfer/docs/en.md": "96f2e68b2e7f58e35bd16cf813113099c8204bc23f612deb856381b0661164c5",
+  "phases/09-reinforcement-learning/12-rl-for-games/docs/en.md": "68c62318465dc8bc04285127c3d25720acb28c6ca2adcaa1415d6036ec1cf88d"
+}
