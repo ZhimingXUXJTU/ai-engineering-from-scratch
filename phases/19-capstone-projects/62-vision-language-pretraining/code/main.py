@@ -1,5 +1,15 @@
 """Vision-language pretraining: contrastive InfoNCE plus language modeling.
 
+中文标题：视觉-语言预训练（Vision-Language Pretraining）
+核心概念：把 59 课 ViT 编码器、60 课投影器、61 课交叉注意力解码器组装成一
+个多目标模型。损失一：InfoNCE——N 对图文配对做 L2 归一化，算 N x N 相似度矩
+阵 S = I T^T / tau，按行按列各做一次以对角线为目标的交叉熵（可学习温度控制
+softmax 尖锐度）。损失二：LM 交叉熵——解码器经交叉注意力消费图像记忆词元，
+逐位置预测下一词元，填充位掩掉。total = contrastive + lm_weight * lm。
+AI 应用对应：CLIP（仅对比）、CoCa（对比 + 描述 LM，本课模式）、BLIP/BLIP-2
+（对比 + LM + 图文匹配三损失）、SigLIP（sigmoid 逐对损失）、LLaVA 第二阶段
+（解冻 LM 加 LM 损失）。本课是多模态视觉路线（58-62）的收官。
+
 The model combines a small ViT encoder (lesson 59), a two-layer projection
 (lesson 60), and a cross-attention decoder (lesson 61). Training runs for 50
 steps over a synthetic 200-pair mock corpus. Both contrastive and LM losses

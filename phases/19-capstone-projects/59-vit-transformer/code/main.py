@@ -1,5 +1,14 @@
 """Vision Transformer encoder built on the patch front end from lesson 58.
 
+中文标题：Vision Transformer 编码器（Vision Transformer Encoder）
+核心概念：12 层 pre-LN Transformer 块 + 12 头自注意力 + 4 倍 GELU 前馈，堆在
+58 课的图像块前端之上。块内流程：LayerNorm -> 自注意力 -> 残差 -> LayerNorm
+-> 前馈 -> 残差。CLS 词元无自身内容、逐层靠注意力积累信息，最终成为整图摘要。
+无因果掩码：纯编码器、双向全连接注意力。ViT-Base 共约 86M 参数。
+AI 应用对应：CLIP ViT-L、SigLIP、DINOv2、Qwen-VL、InternVL 等 2025-2026 开源
+VLM 的视觉侧全部复用这一块形状，只改宽度、深度、池化头与位置处理。本课是
+60（模态对齐投影）、61（交叉注意力融合）、62（视觉-语言预训练）的基座。
+
 Twelve pre-LN blocks, twelve heads, GELU feed-forward with 4x expansion. The
 encoder consumes a 224x224x3 fixture image, returns the contextual token
 sequence, and exposes the CLS pooled vector for downstream heads.

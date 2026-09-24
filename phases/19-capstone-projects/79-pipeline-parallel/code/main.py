@@ -1,5 +1,17 @@
 """Pipeline parallel with GPipe schedule and bubble analysis.
 
+课程：Pipeline Parallel and Bubble Analysis | 流水线并行与气泡分析
+（phases/19-capstone-projects/79-pipeline-parallel/docs/en.md）
+
+核心概念：流水线并行把模型按深度切成 N 个阶段、每 rank 一段，微批次
+逐段流动。GPipe 调度先填后排：前向 M+N-1 个周期、反向再 M+N-1 个周期，
+气泡分数闭式解为 (N-1)/(M+N-1)——M 越大气泡越小。激活显存随 M 线性
+增长，是 GPipe 与 1F1B 的核心差异点。
+
+AI 应用对应：Megatron-LM / DeepSpeed 等生产框架的大模型训练都把流水线
+并行作为 3D 并行的一根轴；理解气泡与微批次的关系，才能解释训练脚本里
+num-microbatches、num-stages 这些参数为什么这样调。
+
 Splits a sequential MLP into N stages. The schedule simulates wall-clock for
 each stage's forward and backward, then prints a Gantt chart and computes the
 bubble fraction against the closed-form (N-1)/(M+N-1) prediction.

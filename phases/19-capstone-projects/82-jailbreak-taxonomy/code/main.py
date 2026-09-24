@@ -1,5 +1,19 @@
 """Jailbreak Taxonomy loader, validator, and trigram nearest-fixture matcher.
 
+课程：Capstone 82 — Jailbreak Taxonomy | 毕业项目 82 —— 越狱攻击分类
+（phases/19-capstone-projects/82-jailbreak-taxonomy/docs/en.md）
+
+核心概念：安全路线（82-87）先建攻击分类学再写检测器。六个类别沿单轴
+切分——攻击滥用哪条信任边界：role-play（人设）、instruction-override
+（系统提示词权威）、context-smuggling（数据/指令缝隙）、multi-turn-ramp
+（对话历史契约）、encoding-trick（token 表层形式）、prefix-injection
+（下一 token 决策）。本模块装载 fixtures.py 语料、硬校验四条不变量、
+用字符三元组余弦做最近邻 match——它是标签生产器，不是检测器。
+
+AI 应用对应：给 LLM 应用建安全线束时，先用本课的方法给攻击流打标签、
+生成直方图和覆盖率图表，再决定检测器优先级；taxonomy.json 是下游
+检测器、分类器、规则引擎共同依赖的稳定产物。
+
 The taxonomy is a partition of attacks by which trust boundary they abuse.
 Six categories, fifty hand-built fixtures in fixtures.py. This module loads
 that corpus, validates invariants, exposes lookup methods, and serializes a

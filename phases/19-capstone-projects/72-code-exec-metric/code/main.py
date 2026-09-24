@@ -6,6 +6,16 @@ Conceptual references:
 - lesson 71 (classical metrics) for the dispatcher pattern
 
 Stdlib + numpy. Run: python3 code/main.py
+
+课程：代码执行指标（Code Exec Metric）
+核心概念：候选代码在隔离子进程中执行——每个候选一个全新 Python 解释器，
+配挂钟超时（默认 3 秒、上限 30 秒）、stdout 输出上限（256 KB）和导入拒绝列表；
+任务分数 = 断言字符串通过比例，pass-at-k = 1 - C(n-c,k)/C(n,k) 的无偏估计；
+五种退出码（pass / assertion_fail / syntax_error / timeout / error）把失败
+归一化为可统计的桶，traceback 永远不冒泡到线束。
+AI 应用对应：HumanEval、MBPP、BigCodeBench、LiveCodeBench 等代码评测都采用
+"子进程沙箱 + pass@k"这套面；生产平台再叠 Docker / seccomp / 网络隔离，
+本课停在子进程层以保持纯标准库与可移植。
 """
 
 from __future__ import annotations

@@ -6,6 +6,18 @@ Conceptual references:
 - lesson 73 (calibration) for the multi-model report pattern
 
 Stdlib + numpy. Run: python3 code/main.py
+
+课程：Leaderboard Aggregation | 排行榜聚合
+（phases/19-capstone-projects/74-leaderboard-aggregation/docs/en.md，评测系统路线第五站）
+
+核心概念：把 (model, task, score) 的 EvalRun 流聚合成每模型一行——均值（头条数字，对离群值
+敏感）与胜率（同任务上击败所有对手的频率，对量纲鲁棒）双排名；bootstrap 有放回重采样任务并取
+百分位区间给出置信度，两两差值区间不含零才算显著、否则视作并列；分数必须已归一到 [0, 1]，
+越界即拒绝运行（契约由指标层 71-73 保证）。
+
+AI 应用对应：LMSYS Chatbot Arena、Open LLM Leaderboard 等公开榜单都依赖多任务聚合 +
+bootstrap 置信区间来宣称排名有效；CI 评论里的 markdown 排行榜是团队内部模型选型与回归
+检测（哪个提交让模型变差了）的标准动作。
 """
 
 from __future__ import annotations

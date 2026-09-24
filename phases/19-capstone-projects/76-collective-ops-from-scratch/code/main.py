@@ -12,6 +12,19 @@ The mesh workers use the 'fork' multiprocessing context so child processes
 inherit Queue file descriptors without pickling. The gloo reference workers
 use 'spawn' because torch.distributed needs a clean process. Both contexts
 ship in stdlib multiprocessing.
+
+课程：Collective Ops From Scratch | 集合通信原语从零实现
+（phases/19-capstone-projects/76-collective-ops-from-scratch/docs/en.md，分布式训练路线第一站）
+
+核心概念：分布式训练的四个地基原语——allreduce（归约分发，调用后每个 rank 持有相同的归约
+结果）、broadcast（广播）、allgather（全收集）、reduce_scatter（归约散射）。环 allreduce 分
+两遍（先 reduce-scatter 再 allgather，各 N-1 步），每 rank 通信量 2T(N-1)/N、与集群规模无关；
+树拓扑深度仅 log2(N) 跳，小消息高延迟下更优。每个原语都与 torch.distributed（gloo 后端）
+的输出做字节级比对验证。
+
+AI 应用对应：NCCL 跑在 PCIe/NVLink 上做硬件卸载归约，是 PyTorch DDP/ZeRO/FSDP 的通信底座；
+本课用 multiprocessing.Queue 网格复刻同一套线格式（wire pattern），在 CPU 上理解 NCCL 环
+算法的正确性与带宽账，为 77-81 课（DDP、ZeRO、流水线并行、端到端）打地基。
 """
 
 from __future__ import annotations

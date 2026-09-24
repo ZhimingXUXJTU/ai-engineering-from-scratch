@@ -10,6 +10,17 @@ mock corpus, and re-evaluates to show the metrics move above their random
 baselines.
 
 Run with: python3 main.py
+
+课程：Multimodal Evaluation | 多模态评测
+（phases/19-capstone-projects/63-multimodal-eval/docs/en.md）
+
+核心概念：多模态评测三件套——图文检索用 Recall@K（N×N 余弦相似度矩阵看对角线排名）、
+视觉问答用精确匹配（预测 token id == 参考 id）、描述生成用 BLEU-4（1~4-gram 精确率几何
+平均 + 简短惩罚 + Chen-Cherry 方法 1 平滑）。评测集用留出种子合成，指标必须高于随机基线。
+
+AI 应用对应：R@K 是 CLIP/Flickr30K/MS-COCO 检索报告口径，精确匹配是 VQA v2/GQA 的打分
+形状（生产版换软准确率），BLEU-4 是 MS-COCO 描述生成赛道的标准指标（生产版再加 CIDEr、
+METEOR）。函数签名与官方评测脚本同构，换真实数据加载器即可接入真实基准。
 """
 
 from __future__ import annotations

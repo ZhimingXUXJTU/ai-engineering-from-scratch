@@ -1,5 +1,17 @@
 """ZeRO stage 1 optimiser state sharding on the gloo backend.
 
+课程：ZeRO Optimizer State Sharding | ZeRO 优化器状态分片
+（phases/19-capstone-projects/78-zero-parameter-sharding/docs/en.md）
+
+核心概念：Adam 优化器状态（fp32 主副本 + 一阶矩 + 二阶矩）是训练栈中
+最大的一块显存，ZeRO-1 把它按 rank 分片，每卡只持有 1/N。反传后用
+reduce_scatter 让每个 rank 只收到自己分片的求和梯度，本地执行 Adam 步，
+再用 allgather 把更新后的参数分片广播回去。带宽与 DDP 相同，显存除以 N。
+
+AI 应用对应：训练中大型模型时的显存优化是必备技能——DeepSpeed ZeRO
+与 PyTorch FSDP 的 stage 1/2/3 配置项对应本课手工实现的同一套机制；
+读懂本课，生产框架的 zero_optimization 配置就不再是黑盒。
+
 Each rank owns 1/N of the fp32 master parameter copy and 1/N of the Adam
 moments. After backward the full fp16 gradient is reduce_scattered so each
 rank receives only its shard's summed gradient. Adam updates the rank's

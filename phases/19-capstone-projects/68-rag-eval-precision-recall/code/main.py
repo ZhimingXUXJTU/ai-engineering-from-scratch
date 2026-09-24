@@ -8,6 +8,15 @@ References:
 - Phase 19 lesson 69 (end-to-end system this eval grades)
 
 Run: python3 code/main.py
+
+课程：RAG 评测：精确率、召回率、MRR、nDCG、忠实度、答案相关性
+（RAG Evaluation: Precision, Recall, MRR, nDCG, Faithfulness, Answer Relevance）
+核心概念：用固定 qrels 同时给检索端（precision@k / recall@k / MRR / nDCG@k）和
+生成端（忠实度 / 答案相关性）打分，六个指标全部按字面定义从零实现，据此定位
+流水线在哪一层失败（检索、排序、生成还是落地依据）。
+AI 应用对应：这套六指标体系对应工业界 Ragas 框架的 faithfulness、answer
+relevancy 与 context precision/recall 三类维度；把 MockJudge 换成真实 LLM 裁判
+调用，就得到生产级 RAG 评测线束。
 """
 
 from __future__ import annotations

@@ -6,6 +6,18 @@ Conceptual references:
 - lesson 71 (classical metrics) for the scalar dispatch pattern
 
 Stdlib + numpy. Run: python3 code/main.py
+
+课程：Perplexity and Calibration | 困惑度与校准
+（phases/19-capstone-projects/73-perplexity-calibration/docs/en.md，评测系统路线第四站）
+
+核心概念：困惑度 = exp(每 token 平均负对数似然)，度量模型认为留出文本多合理（1=完美，
+词表大小=均匀噪声）；ECE 按置信度分箱度量"置信度-准确率"平均差距，小样本下有偏置，故同时
+返回有数据的箱数；Brier 分数逐条计算 (p-y)^2 直接惩罚散布，可分解为可靠性/分辨率/不确定性。
+校准是逐模型报告而非逐任务指标，线束只聚合、不算对数概率（那是适配器的职责）。
+
+AI 应用对应：生产评测线束（lm-eval-harness、Open LLM Leaderboard 类系统）除准确率外逐步
+把校准纳入报告；温度缩放等事后修复建立在 ECE/Brier 管线之上，用于把"自信但不准"的模型
+调成可信的生产部署。
 """
 
 from __future__ import annotations

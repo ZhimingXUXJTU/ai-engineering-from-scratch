@@ -10,6 +10,17 @@ References:
 - Phase 19 lesson 69 (end-to-end pipeline composing rewriter + retriever + reranker)
 
 Run: python3 code/main.py
+
+课程：Query Rewriting: HyDE, Multi-Query, and Decomposition | 查询改写：HyDE、多查询与分解
+（phases/19-capstone-projects/67-query-rewriting-hyde/docs/en.md）
+
+核心概念：三种检索前改写器——HyDE（LLM 写"假想答案文档"，用语料口吻，嵌入后向量落在
+真实答案附近）、多查询（一条查询改写成 N 条改述，逐条检索后 RRF 合并）、查询分解
+（复合问题拆成子问题分别检索）。检索器复用第 65 课混合 BM25 + 稠密，融合同一套 RRF。
+
+AI 应用对应：查询改写是生产 RAG 的"检索前优化"层——LlamaIndex query transformations、
+LangChain MultiQueryRetriever 即本课改写器的成品件；HyDE 出自 Gao 等 2023 年论文，
+子查询分解是 DSPy 多跳问答的标配。69 课端到端系统在检索器前接本课改写级。
 """
 
 from __future__ import annotations

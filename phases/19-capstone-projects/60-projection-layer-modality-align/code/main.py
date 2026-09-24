@@ -1,5 +1,14 @@
 """Two-layer MLP projection from vision-token space to text embedding space.
 
+中文标题：模态对齐投影层（Projection Layer for Modality Alignment）
+核心概念：视觉编码器（768 维）与文本解码器（512 维）活在不同的向量空间。一个
+768 -> 1024 -> 512 的两层 MLP（线性-GELU-线性）把 CLS 池化后的图像特征投进文
+本嵌入空间；逐对余弦对齐损失 1 - cos(image, text) 负责拉拢两个空间。编码器与
+文本表全部冻结，只有约 1.3M 参数的投影在训练。
+AI 应用对应：LLaVA 1.5 的两层 GELU MLP 投影、BLIP-2 Q-Former 末端投影头、
+MiniGPT-4 的单线性投影、Qwen-VL 适配器的收尾投影——同一角色：池化图像词元、
+投到文本嵌入维、单独训练。本课对应 LLaVA 两阶段训练的第一阶段（对齐）。
+
 The vision encoder (lessons 58 and 59) stays frozen. A frozen mock text
 embedding table provides target vectors for synthetic captions. Only the
 projector trains. The objective is per-pair cosine alignment.

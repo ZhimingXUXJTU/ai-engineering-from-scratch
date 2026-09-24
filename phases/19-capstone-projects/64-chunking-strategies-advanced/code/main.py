@@ -9,6 +9,18 @@ References (lesson-internal):
 - Phase 19 lesson 68 (eval harness that scores the chunker)
 
 Run: python3 code/main.py
+
+课程：Chunking Strategies, Compared | 分块策略对比
+（phases/19-capstone-projects/64-chunking-strategies-advanced/docs/en.md）
+
+核心概念：五种分块策略同台对比——固定窗口（字符硬切）、句子切分（句界打包）、递归切分
+（分隔符层级降级）、语义聚类（句子嵌入质心漂移检测）、结构化 Markdown（标题边界）。
+评测口径 recall@k：金标答案区间与任一前 k 块重叠记 1，否则记 0，查询集取平均。
+
+AI 应用对应：分块是 RAG 流水线第一站，LongRAG（2024）实测仅分块选择就带来 35 个百分点
+召回摆动；LlamaIndex/LangChain 的默认递归切分即本课 recursive_split 的生产版本；
+Anthropic Contextual Retrieval 的上下文块头是在本课策略之上的增强。65 课混合检索、
+68 课评测线束、69 课端到端系统都直接消费本课切出的块。
 """
 
 from __future__ import annotations
