@@ -1,3 +1,12 @@
+# 中文批注（fork 维护）：
+# 课程：架构师专业级系统毕业设计（Architect Professional System Capstone）
+# 核心概念：用一条证据链贯穿整个架构方案包——需求→架构决策→契约或控制→测试
+#   与证据→发布门禁→试点观察→下一个决策。硬控制（授权、安全、回滚）必须经过
+#   验证；平均就绪度再高也掩盖不了它们的失败。
+# AI 应用对应：把方案包编码为 Requirement/Decision/Control/EvaluationGate 数据
+#   模型并做确定性发布决策——缺责任人、不可测量的需求、未验证的硬控制、失败的
+#   评测门禁、缺失的回滚、没有反转规则的决策，都会被点名并阻塞发布。
+
 """Architecture readiness gate for this capstone's docs/en.md.
 
 Validates requirements, decisions, controls, evaluations, owners, and rollback.

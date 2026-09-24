@@ -1,4 +1,14 @@
-"""Companion code for:
+"""课程：Ship a Claude Application You Can Defend | 交付一个你能辩护的 Claude 应用
+路径：certifications/claude/lessons/30-developer-application-capstone
+核心概念：开发者毕业设计的最小可辩护应用——SupportAgent 编排一条订单状态查询轨迹：
+输入校验、信任边界打标、模型决策（本地模拟或可选实弹）、最小权限策略门
+（LeastPrivilegeGate 只放行单参数只读 lookup_order）、结果最小化、严格输出契约
+（validate_contract 本地兜底）、脱敏追踪（record_trace）与行为评测（evaluate）。
+AI 应用对应：真实 Claude 应用的参考骨架——把第 09 课（结构化输出防御式解析）、
+第 10 课（工具循环受控委托）、第 13 课（策略门/最小权限/脱敏日志）与第 14 课
+（回归评测门）装进同一条可测试轨迹；注入用例断言最终状态而非拒答措辞。
+
+Companion code for:
 certifications/claude/lessons/30-developer-application-capstone/docs/en.md
 It combines validation, policy, tools, tracing, and deterministic evaluation.
 Protocol ideas follow official Anthropic Messages and evaluation guidance.

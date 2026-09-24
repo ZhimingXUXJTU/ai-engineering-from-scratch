@@ -1,4 +1,14 @@
-"""Companion validator for this lesson's docs/en.md governance packet."""
+"""课程：Enterprise Governance, Compliance, and Human Review | 企业治理、合规与人工审查
+路径：certifications/claude/lessons/27-enterprise-governance-compliance-and-hitl
+核心概念：治理是决定"谁可以拿谁的数据冒哪种风险"的系统——本验证器检查治理证据包是否
+齐备：风险登记册、数据地图、控制矩阵（预防/检测/纠正/治理四类）、人工审查设计
+（触发、有资格的评审者、证据包、队列 SLO）、回退与材料变更触发的重新评估；
+没有负责人与测试的控制只是一厢情愿，合规要按特性、配置、协议、区域逐项核实。
+AI 应用对应：真实受监管 Claude 工作流（医疗、金融）上线前的治理门禁——
+把"有人审""符合 HIPAA"这类口号校验成有归属、有证据、可测试的架构工件，
+对应架构师毕业设计的治理与人工审查章节。
+
+Companion validator for this lesson's docs/en.md governance packet."""
 
 from __future__ import annotations
 

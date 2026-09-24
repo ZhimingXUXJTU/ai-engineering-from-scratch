@@ -1,4 +1,14 @@
-"""Production telemetry lab for this lesson's docs/en.md.
+"""课程：Production Observability, Latency, and Cost | 生产可观测性、延迟与成本
+路径：certifications/claude/lessons/26-production-observability-latency-and-cost
+核心概念：把系统成功（HTTP 200）、任务成功（达到评分标准）与业务结果分成四层观测；
+日志记离散事件、指标做时间聚合、追踪串起完整轨迹；延迟拆到每个 span 并同时盯
+P50/P95 尾部；成本按"每次成功结果的成本"计算——失败请求照样留在分子里；
+告警必须有负责人与运维手册，灰度发布用质量、延迟、成本、安全四道门守住证据风险。
+AI 应用对应：真实 LLM 服务的可观测性与 FinOps 基线（发布记分卡、金丝雀发布、
+缓存命中率监控、按变体分层比较）的最小模型——仪表盘度量的是传输成功，
+产品依赖的是任务成功，可观测性负责把两者连起来。
+
+Production telemetry lab for this lesson's docs/en.md.
 
 Aggregates traces into latency, reliability, cache, error, and economic signals.
 Evaluates cost per successful outcome instead of reporting call price alone.

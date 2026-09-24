@@ -1,4 +1,15 @@
-"""Companion validator for this lesson's docs/en.md reliability packet."""
+"""课程：Make Large Context Observable | 让长上下文可观测
+路径：certifications/claude/lessons/21-long-context-reliability-provenance-and-escalation
+核心概念：大上下文窗口装得下证据，却不能保证证据被注意到、仍然最新、权威且安全。
+本文件校验 reliability-packet.md 的标题与证据关键词：覆盖率显式（18/24 加未处理
+计数）、来源可溯信封（源版本、内容类型、位置）、partial 结果不被伪装成完成、
+冲突绑定负责人、升级点出缺失的决定并给出安全的下一步、人工评审带随机抽检。
+AI 应用对应：长上下文 Agent 系统的最小可靠性验收器——用清单（manifest）保住
+持久状态、用三态契约（complete/partial/blocked）暴露不确定性、用证据校准置信度，
+而不是让一份圆滑的摘要把缺失的工作藏起来。
+
+Companion validator for this lesson's docs/en.md reliability packet.
+"""
 
 from __future__ import annotations
 

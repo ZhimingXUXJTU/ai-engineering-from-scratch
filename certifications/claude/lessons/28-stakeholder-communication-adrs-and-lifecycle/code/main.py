@@ -1,4 +1,13 @@
-"""Companion validator for this lesson's docs/en.md delivery packet."""
+"""课程：Stakeholder Communication, ADRs, and Lifecycle Ownership | 干系人沟通、ADR 与生命周期归属
+路径：certifications/claude/lessons/28-stakeholder-communication-adrs-and-lifecycle
+核心概念：交付交接包的确定性验收器——校验产物是否包含六个必备章节（高管决策、ADR、
+契约索引、运营就绪、归属地图、翻转条件）、证据关键词（回滚/告警/SLO、被否决/翻转、
+负责人、桌面演练），并拦截未解决的占位符（tbd/todo/[replace）。
+AI 应用对应：真实架构交付中"交接验收门"的最小模型——让干系人沟通与生命周期归属
+可机检、可回归，而不是靠人眼读 Markdown 确认架构已经交付。
+
+Companion validator for this lesson's docs/en.md delivery packet.
+"""
 
 from __future__ import annotations
 

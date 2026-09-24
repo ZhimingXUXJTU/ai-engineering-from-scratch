@@ -1,3 +1,11 @@
+# 课程：Ship a Week of Work, Not a Perfect Prompt | 交付一周的工作量，而非一个完美的提示词
+# 路径：certifications/claude/lessons/29-associate-workflow-capstone
+# 核心概念：受治理决策工作流的确定性验证器——检查数据包五章节（工作流/来源/论断/治理/交接）
+# 是否齐全、每个来源六字段（ID/负责人/权威级别/生效日期/复审日期/敏感度）、论断是否引用
+# 已知来源、重大论断是否有直接或计算支撑、产品面是否被批准、决策负责人与交接字段是否在场。
+# AI 应用对应：真实 AI 工作流中"发布门"的最小模型——精确性质（合计数、来源、权限、交接）
+# 用确定性代码判定，模型只负责提取与起草，发布与重大决策保留给被授权的人。
+#
 # Course lesson: certifications/claude/lessons/29-associate-workflow-capstone/docs/en.md
 # Official source: Claude Certified Associate Foundations Exam Guide, effective July 2026.
 # Guide URL: https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542847%2FClaude+Certified+Associate+%E2%80%93+Foundations+Exam+Guide.pdf
