@@ -19,7 +19,7 @@
 
 ## 问题引入
 
-你即将通过 200 多节课学习 AI 工程，使用 Python、TypeScript、Rust 和 Julia。如果你的环境有问题，每一节课都会变成和工具的搏斗，而不是在学习。
+你即将通过 500 多节课学习 AI 工程，使用 Python、TypeScript、Rust 和 Julia。如果你的环境有问题，每一节课都会变成和工具的搏斗，而不是在学习。
 
 大多数人跳过环境搭建，然后花几个小时调试 import 错误、版本冲突和缺失的 CUDA 驱动。我们这次要一次性把它做好。
 
@@ -110,6 +110,14 @@ npm install -g pnpm
 node -e "console.log('Node', process.version)"
 ```
 
+**苹果芯片 Mac（M1/M2/M3/M4）注意**：如果安装器报错 `Error: Cannot install under Rosetta 2 in ARM default prefix (/opt/homebrew)`，说明你的终端运行在 Rosetta 2 转译模式下（`arch` 输出 `i386`），而 Homebrew 是原生 arm64 版本。此时强制用 arm64 安装 fnm 并写入 shell 配置，然后从 `fnm install 22` 开始重跑上面的命令：
+
+```bash
+arch -arm64 brew install fnm
+echo 'eval "$(fnm env --use-on-cd)"' >> ~/.zshrc
+source ~/.zshrc
+```
+
 ### 第 4 步：安装 Rust
 
 用于性能敏感的课程（推理优化、系统编程）。
@@ -123,7 +131,7 @@ rustc --version
 cargo --version
 ```
 
-### Julia（可选）
+### 第 5 步：Julia（可选）
 
 用于 Julia 表现出色的数学密集型课程。
 
@@ -133,19 +141,29 @@ curl -fsSL https://install.julialang.org | sh
 julia -e 'println("Julia ", VERSION)'
 ```
 
-### GPU 设置（如果有显卡）
+### 第 6 步：GPU 设置（如果有显卡）
+
+**NVIDIA（Linux / Windows）：**
 
 ```bash
-# NVIDIA
 nvidia-smi  # 检查 GPU 驱动是否正常
 
 # 安装支持 GPU 加速的 PyTorch
 uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 ```
 
+**macOS / 苹果芯片（M1/M2/M3/M4）：** Mac 上没有 CUDA——这是预期行为，不是故障。不要传 `--index-url .../cuXXX`（那些 wheel 仅限 Linux/Windows，传了安装会失败）。安装默认版本即可，它内置了苹果的 MPS（Metal）GPU 后端：
+
+```bash
+uv pip install torch torchvision torchaudio
+```
+
+验证（任意平台通用）：
+
 ```python
 import torch
-print(f"CUDA 可用: {torch.cuda.is_available()}")  # 检测 GPU 是否可用
+print(f"CUDA 可用: {torch.cuda.is_available()}")           # macOS 上为 False —— 正常
+print(f"MPS 可用:  {torch.backends.mps.is_available()}")    # 苹果芯片上为 True
 if torch.cuda.is_available():
     print(f"GPU: {torch.cuda.get_device_name(0)}")  # 打印 GPU 名称
 ```
@@ -157,19 +175,45 @@ if torch.cuda.is_available():
 > **【拓展：GPU 在 AI 中的作用】**
 > GPU（图形处理器）之所以在 AI 中不可或缺，是因为它能同时执行成千上万个简单计算（并行计算）。训练一个 Transformer 模型在 CPU 上可能需要几周，在 GPU 上只需几小时。如果你没有 GPU，Google Colab 提供免费的 GPU 使用。
 
-### 第 7 步：验证一切
+### 第 7 步：验证你想开始的路线
 
-运行验证脚本：
+本课的所有命令都在仓库根目录（包含 `README.md` 和 `phases/` 的目录）下运行。预检脚本只检查你开始所选路线（route）真正需要的东西，默认跳过后续课程才用到的工具——让新手看到一条清晰的结论，而不是一整屏警告。
+
+启动完整的初学者序列：
 
 ```bash
-python phases/00-setup-and-tooling/01-dev-environment/code/verify.py
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner
 ```
 
-## 用框架实现
+或者只检查你想学的路线：
 
-> **【中文解读】** 下表告诉你每种语言在哪些阶段使用。Python 是绝对主力（Phase 1-12），TypeScript 用于 Agent 和工具链（Phase 13-17），Rust 用于高性能场景，Julia 用于数学计算。
+```bash
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route ml-foundations
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route llm-engineering
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route agents
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route mcp
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route agent-skills
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route certification
+```
 
-你的环境现在已经为本课程做好了准备。以下是各语言的使用场景：
+想让预检同时检查后续课程会用到的可选工具和依赖时，加上 `--show-later`。缺失的后续工具永远不会阻塞你当前选择的路线。
+
+每个失败的必需检查项都会附上检测到的路径或 import 错误，以及一条精确的修复命令。Agent Skills 和认证（certification）路线还会显示人工主机检查项——因为 Python 脚本无法证明 AI 宿主已经发现了某个 skill，也无法证明你选定的 skill 作用域可写。
+
+当初学者预检通过时，脚本会打印出确切的第一个可运行课程：
+
+```text
+Ready to start Beginner course.
+Next: python3 phases/01-math-foundations/01-linear-algebra-intuition/code/vectors.py
+```
+
+> **【中文解读】** 预检脚本是"按路线最小环境"哲学的落地：beginner 只需要 Python 和 Git，ml-foundations 再加 NumPy，agents/mcp 路线连 Node 都可以先不装——用到再装。Windows 用户把命令里的 `python3` 换成 `python` 即可。
+
+## 使用指南
+
+> **【中文解读】** 下表告诉你每种语言在哪些阶段使用。Python 是绝对主力（Phase 1-12），TypeScript 用于 Agent 和工具链（Phase 13-17），Rust 用于高性能场景，Julia 用于数学计算。新版思路是"用到再装"：不要为了凑齐全家桶而卡住第一节正课。
+
+你的环境已经可以开始你检查过的那条路线。后续工具等到课程用到时再装，不要让整个技术栈阻塞你的第一节课。以下是整个课程中各语言的使用分布：
 
 | 语言 | 用在哪些阶段 | 包管理器 |
 |------|------------|---------|

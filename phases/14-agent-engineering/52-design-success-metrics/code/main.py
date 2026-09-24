@@ -3,6 +3,11 @@
 # Reference: Basili, Software Modeling and Measurement: The GQM Paradigm, 1992.
 # Reference: Basili, Caldiera, and Rombach, The Goal Question Metric Approach.
 # Run this file to generate outputs/measurement-report.json.
+# 中文标题：结果出来前，先定成功指标 (Design Success Metrics Before the Result Exists)
+# 核心概念：GQM——目标推出问题、问题推出指标；每个指标签契约（名称/方向/阈值/窗口/来源/人群/类别）；
+#           结果指标必配护栏指标（如 production_writes 恒为 0），缺护栏则整份计划判 invalid。
+# AI 应用对应：AI 功能的"成功"必须在跑数据前预注册——通过/失败/模糊三条路径先写死，
+#             防止团队事后挪阈值保构建；护栏与反指标专防"局部变好、别处变坏"。
 from __future__ import annotations
 
 import json

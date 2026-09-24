@@ -3,6 +3,12 @@
 # Reference: Boehm, A Spiral Model of Software Development and Enhancement, 1988.
 # Reference: Lenarduzzi and Taibi, MVP Explained, 2016.
 # Run this file to generate outputs/slice-decision.json.
+# 中文标题：选能改变决策的最小切片 (Choose the Smallest Slice That Can Change the Decision)
+# 核心概念：先从最高风险开放假设推出"必备证明集"，切片只有覆盖全部证明才有资格参评
+#           （required_proof <= set(item.proves)）；评分 = (结果价值+不确定性消减)/(投入+后果惩罚)，
+#           资格门槛高于算术——便宜但证明不全的候选分数再高也会被拒绝。
+# AI 应用对应：AI 功能的 MVP/试点范围应按"能证明哪条假设"来定，而不是按"能做多小"来定；
+#             只读回放这类可逆形态优先于生产自动执行，停止规则先于实现写下。
 from __future__ import annotations
 
 import json

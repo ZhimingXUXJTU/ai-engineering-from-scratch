@@ -3,6 +3,12 @@
 # Reference: Boehm, A Spiral Model of Software Development and Enhancement, 1988.
 # Reference: Fagerholm et al., Building Blocks for Continuous Experimentation, 2014.
 # Run this file to generate outputs/stage-decisions.json.
+# 中文标题：原型、试点还是生产：三档慎选 (Choose Prototype, Pilot, or Production Deliberately)
+# 核心概念：三档 = 三种学习环境而非打磨程度；不需要真实用户/数据→原型；需要但运维未就绪、
+#           后果≥4 或不可逆→试点；皆备→生产。每档返回专属控制清单（试点要负责人/审计/退出标准，
+#           生产要 SLO/值班/回滚/退役路径）。
+# AI 应用对应：AI 功能的真实权限（写生产、自动执行）必须推迟到证据与运维就绪；
+#             边界要写进配置与访问控制而非 UI 横幅，防止原型悄悄漂移成生产系统。
 from __future__ import annotations
 
 import json

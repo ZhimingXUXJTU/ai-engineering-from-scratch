@@ -2,6 +2,26 @@
 Protocol contract: https://modelcontextprotocol.io/specification/2026-07-28/basic
 Transport contract: https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http
 Run `python3 main.py` for the finite demo or `python3 -m unittest discover -s tests`.
+
+课程：MCP Conformance Engineering: Versioning, Evidence, and Operations
+中文标题：MCP 一致性工程：版本化、证据与运维
+
+核心概念：
+- 一致性活在四个地方：线格式上、版本边界上、穿过中间设备时、以及回滚过程中——
+  快乐路径在某个 SDK 里跑通不构成一致性。
+- 版本纪元二分：现代（2026-07-28）要求命名空间化的逐请求元数据与 resultType；
+  旧版（截至 2025-11-25）只在显式 allowlist 且 initialize 证据验证通过后选定，
+  被识别的现代错误绝不触发降级（防降级攻击）。
+- 未知字段不等于未知结果：增量式字段可保留或忽略，未知的 resultType 判别器必须拒绝。
+- 头部（MCP-Protocol-Version / Mcp-Method / Mcp-Name 哨兵编码）必须与 JSON-RPC 主体一致；
+  通知不得产生响应；SDK 差分区分簿记移除与语义丢失；代理证据三视角（入口/源站/出口）。
+- 发布门拼接五类证据：转录、SDK 差分、代理、健康窗口、带 HMAC-SHA-256 认证的回滚目标。
+
+AI 应用对应：
+- 给企业 MCP 服务器/客户端/网关/SDK 的每次变更建立可复现的一致性矩阵与发布决策，
+  把"agent 工具栈升级"从经验判断变成证据驱动。
+- 代理三视角证据与脱敏对应 agent 平台的变更审计：证明每个中间设备没有改变协议语义，
+  且不泄露凭证即可复核发布与回滚理由。
 """
 
 from __future__ import annotations

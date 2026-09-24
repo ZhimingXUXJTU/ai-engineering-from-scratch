@@ -2,6 +2,11 @@
 # Lesson: phases/14-agent-engineering/48-discover-the-real-workflow/docs/en.md
 # Canonical source: Nuseibeh and Easterbrook, Requirements Engineering: A Roadmap.
 # Canonical source: Gotel and Finkelstein, ICRE 1994, DOI 10.1109/ICRE.1994.292398.
+# 中文标题：发现真实工作流 (Discover the Workflow People Actually Perform)
+# 核心概念：工作流步骤 = 顺序 + 行动者 + 动作 + 证据 + 摩擦；证据分直接/间接并带置信度；
+#           审计器校验顺序连续、每步有证据、置信度合法，并计算"直接证据占比"与摩擦点清单。
+# AI 应用对应：在为真实工作流设计 AI 功能之前先落地证据——只有直接观察和产物能证明当前行为，
+#             口述与推断必须带标签；happy path 之外的交接与例外才是 AI 功能最容易翻车的地方。
 from __future__ import annotations
 
 import json

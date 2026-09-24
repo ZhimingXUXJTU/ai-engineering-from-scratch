@@ -3,6 +3,11 @@
 # Reference: Nuseibeh and Easterbrook, Requirements Engineering: A Roadmap, 2000.
 # Reference: Dardenne, van Lamsweerde, and Fickas, Goal-Directed Requirements Acquisition, 1993.
 # Run this file to generate outputs/outcome-frame.json.
+# 中文标题：结果先于产出 (Define the Outcome Before You Choose the Output)
+# 核心概念：结果框架六段——用户/情境/当前行为/期望结果/约束/非目标；校验器拒绝空字段和
+#           "解决方案泄漏"（拟议产出出现在期望结果句里）；出口问题是"什么证据能证明结果达成"。
+# AI 应用对应：在决定"造什么 AI 产品"之前先钉住"世界要变好什么"；泄漏检测防止第一个
+#             被想象出的产物（如"事故助手"）硬化成范围，让手册、数据修复、小改动同台竞争。
 from __future__ import annotations
 
 import json

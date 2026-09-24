@@ -3,6 +3,12 @@
 # Reference: Zave and Jackson, Four Dark Corners of Requirements Engineering, 1997.
 # Reference: Gotel and Finkelstein, Requirements Traceability, IEEE ICRE 1994.
 # Run this file to generate outputs/executable-specification.json.
+# 中文标题：写保留判断力的规格 (Write Specifications That Preserve Judgment)
+# 核心概念：规格 = 六面契约（结果/不变量/示例/非目标/决策政策/证明）；每个决定标注为
+#           locked（Agent 不得选）/bounded（界限内可选）/delegated（Agent 拥有并需解释），
+#           非 delegated 决定必须附理由，否则契约判 incomplete。
+# AI 应用对应：给编码 Agent 的任务书按此契约写——锁死权限与安全，限定预算与接口，
+#             委托命名与局部结构；让 Agent 的判断力用在便宜可逆的选择上。
 from __future__ import annotations
 
 import json

@@ -3,6 +3,11 @@
 # Reference: Git worktree documentation, git-scm.com/docs/git-worktree.
 # Reference: Lamport, Time, Clocks, and the Ordering of Events, 1978.
 # Run this file to generate outputs/delegation-plan.json.
+# 中文标题：带隔离地委托 (Delegate Agent Work with Isolation and Merge Contracts)
+# 核心概念：工作单元 = 所有者 + 独占路径 + 依赖 + 证明；校验器拒绝重复 id、路径重叠（含父子目录）、
+#           缺证明的委托计划；拓扑排序把单元切成可并行的执行波次，集成单元排在最后一波。
+# AI 应用对应：多 Agent 并行改同一个仓库时的安全网——每个 worker 只写契约里属于自己的路径，
+#             证明命令随产物交回；路径重叠检测是所有权隔离的机械化版本，不靠自觉靠校验器 block。
 from __future__ import annotations
 
 import json
