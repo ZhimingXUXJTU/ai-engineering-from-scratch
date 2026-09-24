@@ -2,6 +2,24 @@
 
 > **12 节课 · ~13 小时 · 🟡进阶**
 
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**Phase 1 的概率与分布，以及 Phase 2 第 01 课（机器学习分类体系）。
+
+**第一课：**[MDP 状态、动作与奖励](01-mdps-states-actions-rewards/)
+
+在仓库根目录运行以下命令：
+
+```bash
+python3 phases/09-reinforcement-learning/01-mdps-states-actions-rewards/code/main.py
+```
+
+保留命令、退出码、随机策略与贪心策略的回报、价值网格，以及一句话把策略质量与期望回报联系起来。
+
+**下一步：**修改折扣因子，预测价值会如何变化，然后继续学习 [动态规划](02-dynamic-programming/)。
+
+浏览[完整的 Phase 9 课程列表](../../README.md#phase-9)或[跨阶段路线图](../../ROADMAP.md)。
+
 ## 学习目标
 
 - 理解马尔可夫决策过程（MDP）的数学框架：状态、动作、奖励

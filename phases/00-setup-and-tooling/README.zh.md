@@ -2,6 +2,24 @@
 
 > **12 节课 · ~14 小时 · 🟢入门**
 
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**无。开始只需要 Git 和 Python 3.11 或更高版本。其他工具只在你的路线（route）需要时才安装。
+
+**第一课：**[开发环境搭建](01-dev-environment/)
+
+在仓库根目录运行可识别路线的预检（preflight）：
+
+```bash
+python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route beginner
+```
+
+保留命令、仓库根目录的工作目录、退出码、必需检查项的结果，以及打印出的 `Next:` 命令。可选检查未通过不算失败。
+
+**下一步：**修复所有必需项的失败，重新运行直到命令以退出码 0 结束，然后继续学习 [Git 与协作](02-git-and-collaboration/)。
+
+浏览[完整的 Phase 0 课程列表](../../README.md#phase-0)或[跨阶段路线图](../../ROADMAP.md)。
+
 ## 学习目标
 
 - 搭建完整的 AI 开发环境，掌握日常开发工具链

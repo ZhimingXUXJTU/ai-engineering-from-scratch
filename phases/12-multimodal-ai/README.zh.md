@@ -2,6 +2,24 @@
 
 > **25 节课 · ~65 小时 · 🔴高级**
 
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**Phase 7 Transformer 深度解析和 Phase 4 计算机视觉。
+
+**第一课：**[视觉 Transformer Patch Token](01-vision-transformer-patch-tokens/)
+
+在仓库根目录运行以下命令：
+
+```bash
+python3 phases/12-multimodal-ai/01-vision-transformer-patch-tokens/code/main.py
+```
+
+保留命令、退出码、patch 网格与序列长度、参数量，以及一句话解释为什么更高的分辨率会产生更多视觉 token。
+
+**下一步：**修改图像或 patch 大小，预测序列长度，然后继续学习 [CLIP 与对比预训练](02-clip-contrastive-pretraining/)。
+
+浏览[完整的 Phase 12 课程列表](../../README.md#phase-12)或[跨阶段路线图](../../ROADMAP.md)。
+
 ## 学习目标
 
 - 理解视觉 Transformer 的 Patch-Token 原语和 CLIP 对比预训练

@@ -2,6 +2,24 @@
 
 > **28 节课 · ~27 小时 · 🟡进阶**
 
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**Phase 1 第 12 课（张量运算）和 Phase 3 第 11 课（PyTorch 入门）。第一个演示只需要 NumPy。
+
+**第一课：**[图像基础](01-image-fundamentals/)
+
+在仓库根目录运行以下命令：
+
+```bash
+python3 phases/04-computer-vision/01-image-fundamentals/code/main.py
+```
+
+保留命令、退出码、HWC 与 CHW 形状、归一化后的通道统计、往返像素差异和插值粗糙度。该演示会生成确定性的合成图像，不使用网络。
+
+**下一步：**解释 HWC 与 CHW 之间哪根轴发生了变化，然后继续学习 [卷积从零实现](02-convolutions-from-scratch/)。
+
+浏览[完整的 Phase 4 课程列表](../../README.md#phase-4)或[跨阶段路线图](../../ROADMAP.md)。
+
 ## 学习目标
 
 - 理解图像的基本表示和卷积操作的数学原理

@@ -2,6 +2,24 @@
 
 > **18 节课 · ~21 小时 · 🟢入门**
 
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**Phase 1 数学基础和 NumPy。用以下命令检查路线：`python3 phases/00-setup-and-tooling/01-dev-environment/code/verify.py --route ml-foundations`。
+
+**第一课：**[什么是机器学习](01-what-is-machine-learning/)
+
+在仓库根目录运行以下命令：
+
+```bash
+python3 phases/02-ml-fundamentals/01-what-is-machine-learning/code/ml_intro.py
+```
+
+保留命令、退出码、测试准确率、随机基线，以及一句话解释为什么学到的分类器优于该基线。
+
+**下一步：**调整类别间隔，预测准确率会怎么变化，再次运行，然后继续学习 [线性回归从零实现](02-linear-regression/)。
+
+浏览[完整的 Phase 2 课程列表](../../README.md#phase-2)或[跨阶段路线图](../../ROADMAP.md)。
+
 ## 学习目标
 
 - 理解机器学习的核心范式：监督学习、无监督学习

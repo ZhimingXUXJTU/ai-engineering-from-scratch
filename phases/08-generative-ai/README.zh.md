@@ -2,6 +2,24 @@
 
 > **15 节课 · ~15 小时 · 🔴高级**
 
+## 在本阶段开始（GitHub）| Start this phase on GitHub
+
+**前置条件：**Phase 2 机器学习基础、Phase 3 深度学习核心，以及 Phase 7 第 14 课（从零构建 Transformer）。
+
+**第一课：**[生成模型分类与历史](01-generative-models-taxonomy-history/)
+
+在仓库根目录运行以下命令：
+
+```bash
+python3 phases/08-generative-ai/01-generative-models-taxonomy-history/code/main.py
+```
+
+保留命令、退出码、密度估计、生成的样本，以及一句话解释隐式生成器无法回答关于 `p(x)` 的什么问题。
+
+**下一步：**更换随机种子，比较密度估计结果，然后继续学习 [自编码器与 VAE](02-autoencoders-vae/)。
+
+浏览[完整的 Phase 8 课程列表](../../README.md#phase-8)或[跨阶段路线图](../../ROADMAP.md)。
+
 ## 学习目标
 
 - 理解生成模型的分类体系与历史发展脉络
