@@ -12,6 +12,15 @@ References:
 - Phase 19 lesson 68 (eval suite)
 
 Run: python3 code/main.py
+
+课程：端到端 RAG 系统（End-to-End RAG System）
+核心概念：把分块、混合索引、查询改写、交叉编码器重排序、带引用的答案生成五阶段
+组装成一条流水线，再用 68 课的六指标评测端到端打分；生成器按 [doc_id:chunk_index]
+锚点逐句引用，交叉编码器 top-1 分数低于阈值即拒答；演示按指标阈值设定退出码，
+可直接当 CI 冒烟测试。
+AI 应用对应：这条"混合检索 + 重排序 + 强制引用 + 低置信度拒答"的骨架对应
+Anthropic 上下文检索（contextual retrieval）文章描述的生产 RAG 形态；
+评测门控（eval drops, merge does not land）是生产 RAG 团队的标准守门实践。
 """
 
 from __future__ import annotations

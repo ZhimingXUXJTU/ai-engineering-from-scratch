@@ -12,6 +12,18 @@ that walks the same batches in rank order. The two paths produce identical
 loss curves to float epsilon, which is the load-bearing correctness test.
 
 Run: python3 code/main.py
+
+课程：Data Parallel DDP From Scratch | 数据并行 DDP 从零实现
+（phases/19-capstone-projects/77-data-parallel-ddp/docs/en.md，分布式训练路线第二站）
+
+核心概念：DDP 是 allreduce 之上的钩子——构造时从 rank 0 broadcast 初始参数（起点一致），
+反向后对每份梯度 allreduce-SUM 并除以 world_size 得均值梯度（学习率对集群规模不变）。
+种子纪律：洗牌用 seed+rank、参数初始化用同一 seed，否则副本第 1 步就不一致。正确性证明 =
+单进程顺序训练与 4 rank DDP 的逐 step 参数等价（字节级一致到 float epsilon）。
+
+AI 应用对应：PyTorch DDP 是工业界大模型预训练的默认起点（Megatron-LM、HuggingFace
+Accelerate 底下都是它）；桶化（~25 MB 梯度桶摊薄延迟）与通信重叠（反向未结束就发起
+allreduce）是官方 DDP 性能的秘密，no_sync 上下文支撑梯度累积的吞吐提升。
 """
 
 from __future__ import annotations

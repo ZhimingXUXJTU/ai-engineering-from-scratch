@@ -5,6 +5,15 @@ Conceptual references:
 - Phase 19 Track B foundations
 
 Stdlib only. Run: python3 code/main.py
+
+课程：任务规格格式（Task Spec Format）
+核心概念：在写打分函数之前先冻结任务契约——一行一个 JSON 对象的 JSONL 记录，
+6 个必填字段 + 封闭的指标词表（exact_match / f1 / bleu_4 / rouge_l / accuracy /
+code_exec）+ 六选一的后处理规则；严格校验器逐行独立验证，坏记录带行号、违反
+规则和出错字段被拒绝，运行器在错误非空时拒绝启动。
+AI 应用对应：这是自建评测平台的地基，对应 BIG-bench / HELM / lm-eval 等公开
+线束的"任务 schema + 校验门"设计；下游 71-75 课的指标、沙箱与运行器全部按
+metric_name 单字段分发，契约不变即可跨模型比较成绩。
 """
 
 from __future__ import annotations

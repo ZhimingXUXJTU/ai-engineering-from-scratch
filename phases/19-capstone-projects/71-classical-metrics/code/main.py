@@ -5,6 +5,15 @@ Conceptual references:
 - lesson 70 (task spec format) for the metric_name field
 
 Stdlib + numpy. Run: python3 code/main.py
+
+课程：经典指标（Classical Metrics）
+核心概念：从第一性原理实现五个最常见的 LLM 评测指标——精确匹配、token 级 F1
+（多重集交集导出的精确率/召回率调和平均）、BLEU-4（修改版 n-gram 精确率 +
+几何平均 + 短句惩罚 + Lin-Och 加一平滑）、ROUGE-L（最长公共子序列 + F-beta
+组合）、准确率；全课共用一个分词器契约，并按 70 课的 metric_name 单字段分发。
+AI 应用对应：这五个指标仍是已发表 LLM 评测数字的主体（SQuAD 用 F1、机器翻译
+与摘要用 BLEU/ROUGE）；手写实现让你能指出分词与平滑的决定位置，跨论文比较
+指标数字时不再被库的隐藏默认值坑。
 """
 
 from __future__ import annotations

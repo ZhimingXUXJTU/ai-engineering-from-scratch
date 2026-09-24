@@ -10,6 +10,18 @@ References:
 - Phase 19 lesson 68 (eval harness over this retriever)
 
 Run: python3 code/main.py
+
+课程：Hybrid Retrieval with BM25 and Dense Embeddings | 混合检索：BM25 与稠密向量
+（phases/19-capstone-projects/65-hybrid-retrieval-bm25-dense/docs/en.md）
+
+核心概念：词面与语义检索在相反的查询分布上翻车，混合检索用 RRF 投票合并两份排名——
+BM25（IDF × 饱和词频 × 长度归一化，k1=1.5、b=0.75，字段加权在索引期用乘数实现）+
+稠密检索（嵌入 + 余弦排序）。RRF 公式 1/(k+rank)、k=60，排名跨模态天然可比，
+优于需要逐语料调 α 的分数线性插值。
+
+AI 应用对应：混合检索是生产 RAG 的默认形态——Elasticsearch/OpenSearch 原生 BM25，
+pgvector/Milvus/Qdrant 提供稠密索引，Vespa/Weaviate 把 RRF 做成一等公民接口。
+66 课交叉编码器重排序消费本课融合出的前 k 名，68 课评测整条流水线。
 """
 
 from __future__ import annotations

@@ -1,5 +1,15 @@
 """Cross-attention fusion for a vision-language decoder.
 
+中文标题：交叉注意力融合（Cross-Attention Fusion）
+核心概念：晚融合路线——文本解码器跑在纯文本词元上，每层经交叉注意力伸手进图
+像流。Q 来自文本，K/V 来自图像记忆词元。掩码纪律：自注意力用 (Nt, Nt) 下三
+角因果掩码防偷看未来；交叉注意力无掩码，整张图对每个文本位置可见。图像 K/V
+在解码开始算一次进缓存，之后逐步复用。解码器块 = 因果自注意力 + 交叉注意力
++ 前馈，三个子层各配 pre-LN 与残差。
+AI 应用对应：Flamingo/IDEFICS 每 K 个语言块插一个交叉注意力子层（冻结 LM）；
+BLIP-2 的 Q-Former 用固定 32 查询词元对图像特征做交叉注意力。本课解码器将
+在 62 课（视觉-语言预训练）中作为 LM 损失的承载部件复用。
+
 The decoder block runs:
   1. causal self-attention over text tokens
   2. cross-attention with queries from text and keys/values from image memory

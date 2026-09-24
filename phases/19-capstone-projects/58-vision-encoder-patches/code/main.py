@@ -1,5 +1,14 @@
 """Vision encoder front end: patch embedding plus 2D sinusoidal position.
 
+中文标题：视觉编码器分块（Vision Encoder Patches）
+核心概念：图像块嵌入是"像素的分词器"——把 224x224x3 图像切成 16x16 的块得到
+14x14=196 个图像块，每块展平后经一次线性（Conv2d）投影到隐藏维度；再叠加确定
+性的二维正弦位置嵌入（一半维度编码行、一半编码列），并前置一个可学习的 CLS
+词元作为池化头。Conv2d 写法与"展开 + 线性"数学等价，本课测试验证该等价性。
+AI 应用对应：CLIP、SigLIP、DINOv2、Qwen-VL、InternVL 等所有主流开源 VLM 的
+视觉侧都从这个"Conv2d 分块投影 + 位置信号"前端起步；本课是 59-62 课多模态
+视觉路线（ViT 编码器、模态对齐投影、交叉注意力融合、视觉-语言预训练）的地基。
+
 Tokenizes a 224x224x3 image into a sequence of 196 patch tokens plus a CLS
 token. The patch projection is a Conv2d with kernel and stride equal to the
 patch size, which is numerically identical to flatten-then-linear. The

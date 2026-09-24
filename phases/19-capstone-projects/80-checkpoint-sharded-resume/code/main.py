@@ -1,5 +1,17 @@
 """Sharded checkpoint with atomic write and verified resume.
 
+课程：Sharded Checkpoint and Atomic Resume | 分片检查点与原子恢复
+（phases/19-capstone-projects/80-checkpoint-sharded-resume/docs/en.md）
+
+核心概念：多 rank 训练状态保存为"每 rank 一个分片文件 + JSON 清单
+（记录 world_size、分片偏移、sha256）"。写入遵循原子模式：全部先落
+.tmp、逐个 fsync、最后统一 rename——崩溃时现役的永远是上一个完好
+检查点。恢复时逐分片验 sha256，字节级相等才放行；world size 变化、
+分片数不符、部分写入三种失败模式都会被响亮拒绝。
+
+AI 应用对应：DeepSpeed / PyTorch torch.distributed.checkpoint / NeMo
+的生产检查点全是这一形态；长跑训练任务的可恢复性完全依赖这份契约。
+
 Saves a multi-rank training state as per-rank binary files plus a JSON
 manifest. The write is atomic: every file lands at <name>.tmp first, the
 manifest writes last, then a single rename moves everything to the final

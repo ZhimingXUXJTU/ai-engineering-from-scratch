@@ -10,6 +10,19 @@ References:
 - Phase 19 lesson 69 (end-to-end system that uses this reranker)
 
 Run: python3 code/main.py
+
+课程：Cross-Encoder Reranker | 交叉编码器重排序
+（phases/19-capstone-projects/66-reranker-cross-encoder/docs/en.md）
+
+核心概念：两段式"先检索后重排序"——双编码器（bi-encoder）独立嵌入查询与文档、按余弦
+排序，快但分不开同主题文档；交叉编码器（cross-encoder）把 [CLS] query [SEP] document
+[SEP] 拼成单序列跑完整注意力、输出相关性标量，精确但逐对前向跑不动全库。N（候选预算）
+既是延迟预算也是质量上限：拐点通常在 20-50 候选，且交叉编码器救不回双编码器在 N 处
+就没召回的答案。
+
+AI 应用对应：生产甜点位是 22M 参数量级（ms-marco-MiniLM-L-6-v2），bge-reranker-v2-m3
+（568M）留给离线/首页精排；Cohere Rerank、Voyage Rerank 把这一层做成 API。本课两段式
+形状与 LangChain/LlamaIndex 的 retriever-reranker 链同构，是 69 课端到端系统第二级。
 """
 
 from __future__ import annotations

@@ -1,33 +1,52 @@
-# Task Spec Format
+# Task Spec Format | 任务规格格式
 
 > An eval harness is only as good as the contract its tasks honour. Freeze the JSONL shape and the metric vocabulary before you write a single scoring function.
 
-**Type:** Build
-**Languages:** Python
-**Prerequisites:** Phase 19 Track B foundations
-**Time:** ~90 min
+> **【中文解读】** 本课是评测系统路线（70-75）的第一课：在写任何打分函数之前，先冻结任务的 JSONL 形状和指标词表。一个评测线束的上限由其任务遵守的契约决定——算术、多选、代码执行、分类、摘要五类任务共用一种记录形状，指标名词表封闭，校验器把坏记录挡在运行器之外。这是后面 71（经典指标）、72（代码执行指标）、75（端到端运行器）共同遵守的地基。
 
-## Learning objectives
+> 🔗 **【前置】** 学本课前请先掌握：Phase 19 Track B 基础（20-29 课）——特别是其中的验证门控与 fixture 任务设计；本课不依赖任何模型调用，纯标准库。
+
+**Type:** Build | **类型:** 动手构建
+**Languages:** Python | **语言:** Python
+**Prerequisites:** Phase 19 Track B foundations | **前置知识:** Phase 19 Track B 基础
+**Time:** ~90 min | **时间:** 约 90 分钟
+
+## Learning objectives | 学习目标
 
 - Define a JSONL task record schema that covers arithmetic, multiple-choice, code execution, classification, and free-text summarisation in one shape.
+  中文翻译：定义一个 JSONL 任务记录 schema，用同一种形状覆盖算术、多选、代码执行、分类和自由文本摘要。
 - Pin a closed vocabulary of metric names so downstream lessons (71-73) can dispatch on a single field.
+  中文翻译：钉死一个封闭的指标名词表，让下游课程（71-73）只按单个字段分发。
 - Specify few-shot examples and post-processing rules as part of the task, not the runner, so the same prompt produces the same target across models.
+  中文翻译：把少样本示例和后处理规则写成任务的一部分而不是运行器的一部分，让同一提示词在不同模型上产出同样的目标。
 - Implement a strict validator that rejects malformed records before they reach the runner.
+  中文翻译：实现一个严格校验器，在坏记录到达运行器之前就拒绝它。
 - Ship a 10-task fixture set that exercises every branch of the spec so the validator has something real to chew on.
+  中文翻译：交付一个 10 任务的 fixture 集，走遍规格的每个分支，让校验器有真东西可嚼。
 
 ```figure
 ci-task-spec-gate
 ```
 
-## Why a frozen spec
+## Why a frozen spec | 为什么要冻结规格
+
+> **【中文解读】** 本节给出动机：研究代码库积累评测脚本的速度快过积累测试，半年后每个 notebook 一套 JSON 形状、每个指标被实现两遍、跨运行无法比较。解法无聊但有效：定一个 schema、写一个校验器、拒绝其余一切。设计借镜 BIG-bench、HELM、lm-eval 风格的线束，但字段名是本课自己的——每个字段有唯一属主，流水线中途任何字段不可变。
 
 A research codebase will accumulate eval scripts faster than it accumulates tests. Six months in, every notebook has its own JSON shape, every metric is reimplemented twice, and nothing can be compared across runs. The fix is boring. Pick a schema. Write a validator. Reject everything else. That is what this lesson does.
 
+> 研究代码库积累评测脚本的速度快过积累测试。半年之后，每个 notebook 有自己的 JSON 形状，每个指标被实现了两遍，没有任何东西能跨运行比较。修复方法很无聊：选定一个 schema，写一个校验器，拒绝其余一切。这就是本课做的事。
+
 The shape borrows ideas from BIG-bench, HELM, and lm-eval style harnesses, but the field names are ours. Every field has a single owner. The runner reads the task. The metric reads the targets. The post-process step normalises the generation. No field is mutable mid-pipeline.
 
-## The record shape
+> 这个形状借镜了 BIG-bench、HELM 和 lm-eval 风格线束的思路，但字段名是我们自己的。每个字段有唯一属主：运行器读任务，指标读 targets，后处理步骤归一化生成结果。流水线中途任何字段都不可变。
+
+## The record shape | 记录结构
+
+> **【中文解读】** 一个任务就是一行 JSON 对象（JSONL）：线束读 `tasks.jsonl` 并逐行独立校验——一行坏了只中止该记录，不中止整个运行。必填字段 6 个（task_id、category、prompt、targets、metric_name、post_process），可选 2 个（few_shot_examples、metadata），未知顶层字段直接校验失败。
 
 A task is a JSON object on a single line. The harness reads `tasks.jsonl` and validates each line independently. A bad line aborts that record, not the run.
+
+> 一个任务是单行上的一个 JSON 对象。线束读 `tasks.jsonl` 并逐行独立校验。一行坏了只中止该记录，不中止整个运行。
 
 ```json
 {
@@ -46,23 +65,43 @@ A task is a JSON object on a single line. The harness reads `tasks.jsonl` and va
 
 The required fields are `task_id`, `category`, `prompt`, `targets`, `metric_name`, `post_process`. `few_shot_examples` and `metadata` are optional. Unknown top-level fields fail validation.
 
-## Field rules
+> 必填字段是 `task_id`、`category`、`prompt`、`targets`、`metric_name`、`post_process`。`few_shot_examples` 和 `metadata` 可选。未知顶层字段校验失败。
+
+## Field rules | 字段规则
+
+> **【中文解读】** 字段规则的核心是"类别约束指标"：`code_exec` 任务必须配 `metric_name = code_exec`，`mcq` 必须配 `exact_match` 加单字母目标。指标词表封闭为六个（exact_match、f1、bleu_4、rouge_l、accuracy、code_exec）——加新指标必须开新课并在词表里加条目。few-shot 上限 8 条；后处理规则六选一、不许组合。
 
 `task_id` is a string with no whitespace. The validator enforces uniqueness across the file.
 
+> `task_id` 是不含空白字符的字符串。校验器在整文件范围内强制唯一。
+
 `category` is one of `arithmetic`, `mcq`, `code_exec`, `classification`, `summary`. The category constrains which metric and post-process pair is legal. A `code_exec` task must use `metric_name = code_exec` and a `mcq` task must use `metric_name = exact_match` against a single-letter target.
+
+> `category` 是 `arithmetic`、`mcq`、`code_exec`、`classification`、`summary` 之一。类别约束哪个"指标 + 后处理"组合是合法的：`code_exec` 任务必须用 `metric_name = code_exec`；`mcq` 任务必须用 `metric_name = exact_match` 对单字母目标。
 
 `prompt` is a non-empty string. The validator forbids trailing whitespace and rejects records that already contain a few-shot block in the prompt body. Few-shot rendering happens in the runner, not the author.
 
+> `prompt` 是非空字符串。校验器禁止尾部空白，并拒绝 prompt 正文里已含少样本块的记录。少样本渲染发生在运行器，不在作者侧。
+
 `targets` is a non-empty list of strings. For `exact_match`, any element matching counts. For `f1` and `rouge_l`, the highest-scoring target wins. For `mcq`, the list holds exactly one element.
+
+> `targets` 是非空字符串列表。对 `exact_match`，任一元素命中即算；对 `f1` 和 `rouge_l`，取得分最高的目标；对 `mcq`，列表恰好一个元素。
 
 `metric_name` is one of `exact_match`, `f1`, `bleu_4`, `rouge_l`, `accuracy`, `code_exec`. The vocabulary is closed. A new metric requires a new lesson and a new entry here.
 
+> `metric_name` 是 `exact_match`、`f1`、`bleu_4`、`rouge_l`、`accuracy`、`code_exec` 之一。词表是封闭的。新指标需要新课和新条目。
+
 `few_shot_examples` is a list of `{prompt, completion}` pairs. The validator caps the list at eight entries to keep prompts bounded.
+
+> `few_shot_examples` 是 `{prompt, completion}` 对的列表。校验器把列表上限压到 8 条，以约束提示词长度。
 
 `post_process` is one of `none`, `strip_whitespace`, `lower`, `extract_letter`, `extract_code_block`, `extract_first_line`. Each rule has a single deterministic behaviour. The validator forbids combining rules.
 
-## Validator behaviour
+> `post_process` 是 `none`、`strip_whitespace`、`lower`、`extract_letter`、`extract_code_block`、`extract_first_line` 之一。每条规则只有单一确定行为。校验器禁止组合规则。
+
+## Validator behaviour | 校验器行为
+
+> **【中文解读】** 校验器返回两个列表：通过的记录，以及带行号、违反规则、出错字段的错误记录。运行器在错误列表非空时拒绝启动，除非显式传 `--allow-bad-tasks`。"fail fast + 精确指认"是评测基础设施的基本功。
 
 ```mermaid
 flowchart TD
@@ -85,9 +124,15 @@ flowchart TD
 
 The validator returns two lists: validated records and error records with the offending line, the violated rule, and the field at fault. The runner refuses to start if the error list is non-empty unless an explicit `--allow-bad-tasks` flag is set.
 
-## Few-shot rendering
+> 校验器返回两个列表：通过的记录；带出错行号、违反规则和出错字段的错误记录。错误列表非空时运行器拒绝启动，除非显式设置 `--allow-bad-tasks` 开关。
+
+## Few-shot rendering | 少样本渲染
+
+> **【中文解读】** 少样本渲染与后处理都收进规格层：渲染由运行器统一拼接——同一条代码路径服务所有模型，方差来源只剩模型本身；作者只把示例写一次，不是每个 provider 写一次。后处理在生成之后、指标之前运行，确定性、无状态、不许组合。
 
 The runner concatenates few-shot examples in front of the prompt with a blank line separator. The same code path runs for every model, so the only source of variance is the model itself. Authors write examples once, not once per provider.
+
+> 运行器把少样本示例拼接在 prompt 之前，中间以空行分隔。同一条代码路径为每个模型运行，因此唯一的方差来源是模型本身。作者把示例写一次，而不是每个 provider 写一次。
 
 ```python
 def render(task):
@@ -98,31 +143,53 @@ def render(task):
     return "\n\n".join(parts)
 ```
 
-## Post-process rules
+## Post-process rules | 后处理规则
 
 The post-process step runs after generation, before the metric. It is deterministic and stateless.
 
+> 后处理步骤在生成之后、指标之前运行。它是确定性的、无状态的。
+
 - `none` returns the string unchanged.
+  中文翻译：`none` 原样返回字符串。
 - `strip_whitespace` strips leading and trailing whitespace.
+  中文翻译：`strip_whitespace` 去除首尾空白。
 - `lower` lowercases the string.
+  中文翻译：`lower` 把字符串转小写。
 - `extract_letter` returns the first character that matches `[A-E]`, used for MCQ.
+  中文翻译：`extract_letter` 返回第一个匹配 `[A-E]` 的字符，用于多选题。
 - `extract_code_block` returns the body of the first triple-backtick fenced block, used for code-exec.
+  中文翻译：`extract_code_block` 返回第一个三反引号围栏代码块的主体，用于代码执行。
 - `extract_first_line` returns the first non-empty line, used for summary classification.
+  中文翻译：`extract_first_line` 返回第一个非空行，用于摘要分类。
 
 A task that needs a rule outside this list belongs in a new lesson.
 
-## What this lesson does not do
+> 需要这张清单之外规则的任务，应该放进一门新课。
+
+## What this lesson does not do | 本课不做什么
 
 It does not score. It does not call a model. It does not run code. Those come in lessons 71, 72, and 75. This lesson freezes the contract that all of them honour.
 
+> 本课不评分、不调模型、不跑代码——那些在 71、72、75 课。本课冻结的是它们全部要遵守的契约。
+
 The 10-task fixture covers two arithmetic items, two MCQ items, two code-exec items, two classification items, and two summarisation items. The validator passes on all 10. A separate fixture (`tasks_bad.jsonl`) trips every rule and the validator returns exactly that many errors.
 
-## How to read the code
+> 10 条任务的 fixture 覆盖两条算术、两条多选、两条代码执行、两条分类、两条摘要。校验器在全部 10 条上通过。另一个 fixture（`tasks_bad.jsonl`）踩遍每条规则，校验器返回恰好那么多个错误。
+
+## How to read the code | 如何读代码
 
 `main.py` defines `TaskSpec`, `validate_task`, `validate_file`, and a CLI entry point. The fixture loader is `load_fixtures`. The render and post-process helpers live next to validation so the runner in lesson 75 imports a single module.
 
+> `main.py` 定义 `TaskSpec`、`validate_task`、`validate_file` 和 CLI 入口。fixture 加载器是 `load_fixtures`。渲染与后处理辅助函数就放在校验旁边，让 75 课的运行器只需导入单个模块。
+
 Read `main.py` top to bottom. Then read `code/tests/test_spec.py`. The tests pin every validation rule and every post-process behaviour. The demo at the bottom of `main.py` validates the bundled fixture and prints a summary.
 
-## Going further
+> 从头到尾读 `main.py`，然后读 `code/tests/test_spec.py`。测试钉死了每条校验规则和每个后处理行为。`main.py` 底部的演示校验自带的 fixture 并打印摘要。
+
+## Going further | 更进一步
+
+> **【中文解读】** 收尾的态度值得记住：像对待数据库迁移一样对待规格变更——加类别必须同时加指标、后处理规则和至少一条 fixture 任务；每次变更都过评审、有版本、带测试。校验器就是那道门。
 
 Real eval suites grow categories the way schemas grow columns. The sober move is to refuse to add a category without also adding a metric, a post-process rule, and at least one fixture task. Treat the spec like a database migration. Every change is reviewed, versioned, and accompanied by tests. The validator in this lesson is the gate.
+
+> 真实评测套件长类别的方式，就是 schema 长列的方式。清醒的做法是：拒绝只加类别而不同时加一个指标、一条后处理规则和至少一条 fixture 任务。像对待数据库迁移一样对待规格：每次变更都被评审、有版本、带测试。本课的校验器就是那道门。

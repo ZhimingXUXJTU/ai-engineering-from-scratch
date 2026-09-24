@@ -5,6 +5,19 @@ Conceptual references:
 - lesson 70 (task spec), 71 (metrics), 72 (code exec), 73 (calibration), 74 (leaderboard)
 
 Stdlib + numpy. Run: python3 code/main.py
+
+课程：End-to-End Eval Runner | 端到端评测运行器
+（phases/19-capstone-projects/75-end-to-end-eval-runner/docs/en.md，评测系统路线收官课）
+
+核心概念：运行器只做集成不复制逻辑——读 70 课任务规格并校验，经 ModelAdapter 接缝调用模型
+（generate 返回 text + confidence + token_nll），单遍循环内后处理、按 metric_name 分发到
+71/72 课指标层、累积 (confidence, correct) 进 73 课校准，最后全部进 74 课聚合，输出 JSON
+信封 + markdown 排行榜；线程池并行（瓶颈是网络 I/O），parallel=False 供测试钉住顺序；
+干净运行自终止退出码 0，任何判据破坏则非零退出并带结构化错误。
+
+AI 应用对应：lm-eval-harness、OpenAI evals、HELM 等生产评测系统都是同样的五层骨架
+（任务规格→模型适配→指标→校准→聚合报告）；接真实供应商只需三十行适配器胶水，
+换模型不换线束——这正是 Agent 团队做模型选型与回归检测的日常工具形态。
 """
 
 from __future__ import annotations

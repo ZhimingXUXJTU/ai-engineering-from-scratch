@@ -1,5 +1,18 @@
 """End-to-end distributed training: tiny GPT, 4 ranks, DDP + ZeRO-1 + sharded checkpoint.
 
+课程：End-to-End Distributed Training | 端到端分布式训练
+（phases/19-capstone-projects/81-end-to-end-distributed-train/docs/en.md）
+
+核心概念：分布式训练路线的总装课——把 lesson 76 的 gloo 集合通信、
+77 的初始参数 broadcast、78 的 ZeRO-1 步（reduce_scatter 梯度 + 分片
+Adam + allgather 参数）、80 的分片检查点拼进同一个训练循环。四个验收
+不变量：loss 单调下降、各 rank 参数范数一致、优化器显存 = 12P/N、
+第 10 步检查点字节级相等重载。20 步自终止，退出码 0。
+
+AI 应用对应：这套组合是 DeepSpeed / FSDP 训练脚本的微缩模型——
+读懂本课，生产框架配置里 zero_optimization、checkpoint、pipeline
+各字段的背后机制就全部对上了号。
+
 Composes the pieces built in lessons 76-80:
   * gloo backend with file rendezvous (lesson 76)
   * broadcast at init for DDP-shape parameter sync (lesson 77)
