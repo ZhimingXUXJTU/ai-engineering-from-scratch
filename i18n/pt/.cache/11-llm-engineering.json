@@ -1,0 +1,19 @@
+{
+  "phases/11-llm-engineering/01-prompt-engineering/docs/en.md": "0d8dbf1dc5cd58f11c20c60d4f8527e34f4d38f35e2396a6acaf364ee6028cd8",
+  "phases/11-llm-engineering/02-few-shot-cot/docs/en.md": "d3d6a5100bd72915ddd6e5349553fd214f447682e92de503d95f688217c8aca8",
+  "phases/11-llm-engineering/03-structured-outputs/docs/en.md": "3030cc9f3842fbcb5f32025e0f1ea16e5cdfedcf9f069ef6a617c90e37f32308",
+  "phases/11-llm-engineering/04-embeddings/docs/en.md": "e343c4db838ac2eecf906545801ab7b0c96d402f247e552cb3a651a3e804bbf9",
+  "phases/11-llm-engineering/05-context-engineering/docs/en.md": "6a764cc6876dae72e5d3ae2ea06e8bad222dfd6099fdaad022dbccec767f21c4",
+  "phases/11-llm-engineering/06-rag/docs/en.md": "24b30ab01d18112041056777a64406d89b4720a166b17b2237b85d2644e61dbf",
+  "phases/11-llm-engineering/07-advanced-rag/docs/en.md": "a22ff579cd81d4cb87c1ae25db832e6a9a32fb43bae4d0360d1eb9411fbe7768",
+  "phases/11-llm-engineering/08-fine-tuning-lora/docs/en.md": "05909c79e2eb7a0e8f622453d896c6235f88e2f7bf8b0bf4d5206552082d8d4f",
+  "phases/11-llm-engineering/09-function-calling/docs/en.md": "db043dc3de6adf1847c9c45e04201b71acdfe744ffd4bd8c9455a7b1a599d06f",
+  "phases/11-llm-engineering/10-evaluation/docs/en.md": "8d095bff1b5a0ffee116098c51c5762815ee65b71b33aee19324d2a03812f61c",
+  "phases/11-llm-engineering/11-caching-cost/docs/en.md": "14be271f463a3718911e173d38399b390577eda1b962fe0d2c6d4ce3251fbe53",
+  "phases/11-llm-engineering/12-guardrails/docs/en.md": "f7b28477c4078d257a6924e83db4eaa473b09d7f36110c109b3f9acf4df14778",
+  "phases/11-llm-engineering/13-production-app/docs/en.md": "c4a6049938265f766a0a520d7d016db0c23ddd2cbd8153b2b3dd87a667f95806",
+  "phases/11-llm-engineering/14-model-context-protocol/docs/en.md": "8ffcc8e336b38fe6a5743e353042de6309548ba8721eaefa212f64b0a3530b42",
+  "phases/11-llm-engineering/15-prompt-caching/docs/en.md": "791aeaff9936fed2939672271caca98ff1b78e2f73ddf7e9af6ceec9b97ad752",
+  "phases/11-llm-engineering/16-langgraph-state-machines/docs/en.md": "e6d6d8f590c226f5cdee509a87d871ef577ccb90c20593535c1f438b8f5c9a82",
+  "phases/11-llm-engineering/17-agent-framework-tradeoffs/docs/en.md": "67c354d5f0885f96b8354aef4125b5692b21bf470e714442f13673cb8f72b17d"
+}
