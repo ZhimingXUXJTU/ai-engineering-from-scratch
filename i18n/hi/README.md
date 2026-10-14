@@ -917,6 +917,14 @@ through evidence, risk, scope, measurement, staged release, and feedback ownersh
 
 ---
 
+## 中文版是怎么做出来的
+
+本 fork 的中文层由 [ZCode](https://zcode.ai)（智谱 **GLM-5.3** 模型）驱动开发与维护：上游同步、103 个课程的重译/补译（2026-09~10 两轮）、中文 README 与导师指南、历史清理，均由 AI agent 完成，人工负责方向决策与验收。
+
+> 据 ZCode 本地会话数据库溯源统计（2026-07-31 至 2026-10-14，主会话 + 45 个并行子代理，共约 2,100 次模型调用）：累计消耗约 **2.3 亿 token**（234,534,175），其中主会话约 6,500 万、并行翻译子代理约 1.3 亿。模型为 GLM-5.3（另有约 130 万 token 的 GLM-5.3-Flash 轻量辅助调用）。
+
+所有翻译都经过脚本校验：英文原文零删改（逐行前缀比对）、课程审计 0 问题、官方事实数字零改写。
+
 ## 贡献与致谢
 
 - **英文原版**：[rohitg00/ai-engineering-from-scratch](https://github.com/rohitg00/ai-engineering-from-scratch) 及其全体贡献者——课程内容、代码、站点全部来自上游，请去给原仓库点 ⭐。
