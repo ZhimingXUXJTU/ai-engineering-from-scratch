@@ -89,3 +89,6 @@ i18n/*/phases/
 i18n/*/.cache/
 i18n/*/.translate-cache.json
 site/langs.js
+
+# ZCode session tooling (fork-local, never commit)
+.zcode/
