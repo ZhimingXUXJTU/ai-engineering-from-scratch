@@ -144,6 +144,15 @@ python3 phases/13-tools-and-protocols/06-mcp-fundamentals/code/main.py   # 任�
 
 ---
 
+## 考 Claude 认证？有中文备考全套
+
+`certifications/claude/` 是 33 课的 Claude 认证备考课程（中文版：[入口 README](../../certifications/claude/README.zh.md)），覆盖全部四项认证（CCAO-F / CCDV-F / CCAR-F / CCAR-P），含原创模拟题与诊断测试。从 [certifications/claude/GETTING_STARTED.md](../../certifications/claude/GETTING_STARTED.md) 开始，或把 [skills/claude-certification/SKILL.md](../../skills/claude-certification/SKILL.md) 装进你的 agent 后运行 `/claude-certification`——学习进度记在 `CLAUDE-CERTIFICATION.md`。
+
+Certification curricula are intentionally not converted into the books——认证课程
+有意不收入电子书：它的导师状态、可运行实验、交互图表和限时模拟题只有在线形态。
+
+---
+
 ## 把课程当书读（免费 EPUB / PDF）
 
 20 个阶段的核心课程会编译成六卷本电子书，由 CI 自动构建并附在 [GitHub Releases](https://github.com/rohitg00/ai-engineering-from-scratch/releases)（链接永远指向最新版；每本带日期版戳，旧版仍可下载）。认证课程不进书——它的导师状态、可运行实验和交互图表只有在线形态。
